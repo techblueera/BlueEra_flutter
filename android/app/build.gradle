@@ -89,10 +89,16 @@ android {
     packagingOptions {
         pickFirst "lib/**/libc++_shared.so"
     }
+
+    configurations.all {
+        exclude group: 'androidx.media3', module: 'media3-exoplayer-rtsp'
+        resolutionStrategy {
+            force 'androidx.core:core:1.15.0'
+            force 'androidx.core:core-ktx:1.15.0'
+        }
+    }
 }
-configurations.all {
-    exclude group: 'androidx.media3', module: 'media3-exoplayer-rtsp'
-}
+
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"

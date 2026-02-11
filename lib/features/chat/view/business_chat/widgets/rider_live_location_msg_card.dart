@@ -1,10 +1,10 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -29,18 +29,43 @@ class RiderLiveLocationMsgCard extends StatefulWidget {
 
 class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   final chatViewController = Get.find<ChatViewController>();
-  MapplsMapController? mapController;
+  late GoogleMapController mapController;
+  Set<Marker> _markers = {};
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
-    await mapController?.addSymbol(
-      SymbolOptions(
-        geometry: LatLng(26.7836, 80.9013),
-        iconSize: 1.2,
-        iconImage: "marker-icon",
-      ),
-    );
-    setState(() {});
+    try {
+      final markerBytes = await getBytesFromSvgAsset(
+        AppIconAssets.locationMarkerIcon,
+        35,
+      );
+
+      if (markerBytes.isEmpty) {
+        throw Exception("Marker bytes are empty");
+      }
+
+      final markerIcon = BitmapDescriptor.bytes(markerBytes);
+
+
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(26.7836, 80.9013),
+        icon: markerIcon,
+      );
+
+
+      setState(() {
+        _markers.add(customMarker);
+      });
+
+      await mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(26.7836, 80.9013), 14.0),
+      );
+
+    } catch (e, stackTrace) {
+      debugPrint("Error: $e");
+      debugPrint("StackTrace: $stackTrace");
+    }
   }
 
   @override
@@ -74,12 +99,13 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                 borderRadius: BorderRadius.circular(10),
               ),
               height: 160,
-              child: MapplsMap(
+              child: GoogleMap(
                 onMapCreated: (controller) => _onMapCreated(controller),
                 initialCameraPosition: CameraPosition(
                   target: LatLng(26.7836, 80.9013),
                   zoom: 14.0,
                 ),
+                markers: _markers,
                 myLocationEnabled: false,
                 compassEnabled: false,
                 rotateGesturesEnabled: true,

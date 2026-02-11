@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -7,6 +8,8 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -14,9 +17,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
-// import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
-
 import '../../features/common/service/model/get_service_model.dart';
 import 'app_colors.dart';
 
@@ -664,3 +665,38 @@ double? calculateDistance(double targetLat, double targetLng){
 
   return (distanceMeters * roadFactor) / 1000;
 }
+
+
+Future<Uint8List> getBytesFromSvgAsset(
+    String assetName,
+    double size,
+    ) async {
+  final pictureInfo =
+  await vg.loadPicture(SvgAssetLoader(assetName), null);
+
+  final double width = pictureInfo.size.width;
+  final double height = pictureInfo.size.height;
+
+  final double scale = size / width;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+
+  canvas.scale(scale);
+  canvas.drawPicture(pictureInfo.picture);
+
+  final picture = recorder.endRecording();
+
+  final image = await picture.toImage(
+    (width * scale).toInt(),
+    (height * scale).toInt(),
+  );
+
+  final byteData =
+  await image.toByteData(format: ui.ImageByteFormat.png);
+
+  pictureInfo.picture.dispose();
+
+  return byteData!.buffer.asUint8List();
+}
+

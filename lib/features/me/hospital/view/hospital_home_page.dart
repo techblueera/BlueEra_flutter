@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_gallery_photo_widget.dart';
@@ -11,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -36,11 +35,36 @@ class HospitalHomePage extends StatefulWidget {
 class _HospitalHomePageState extends State<HospitalHomePage> {
   int selectedTab = 0;
   final controller = getOrPut(() => HospitalModelController());
-  late MapplsMapController mapController;
+  late GoogleMapController mapController;
+  Set<Marker> _markers = {};
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
+    try {
+      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 30)),
+        AppImageAssets.markerBlue,
+      );
+
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(26.7836, 80.9013),
+        icon: customIcon,
+      );
+
+      setState(() {
+        _markers.add(customMarker);
+      });
+
+      await mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(26.7836, 80.9013), 15.0),
+      );
+
+    } catch (e) {
+      debugPrint("Error loading marker: $e");
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -461,12 +485,13 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                       height: SizeConfig.size160,
                                       child: Stack(
                                         children: [
-                                          MapplsMap(
+                                          GoogleMap(
                                             onMapCreated: _onMapCreated,
                                             initialCameraPosition: CameraPosition(
                                               target:LatLng(26.8311, 80.9244),
                                               zoom: 14.0,
                                             ),
+                                            markers: _markers,
                                             myLocationEnabled: false,
                                             compassEnabled: false,
                                             rotateGesturesEnabled: true,

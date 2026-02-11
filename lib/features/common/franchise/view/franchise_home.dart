@@ -12,8 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
-import 'package:mappls_gl/mappls_gl.dart';
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/getx_utils.dart';
@@ -31,10 +30,35 @@ class FranchiseHome extends StatefulWidget {
 class _FranchiseHomeState extends State<FranchiseHome> {
   int selectedTab = 0;
   final controller = getOrPut(() => HospitalModelController());
-  late MapplsMapController mapController;
+  late GoogleMapController mapController;
+  Set<Marker> _markers = {};
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
+    try {
+      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 30)),
+        AppImageAssets.markerBlue,
+      );
+
+      // 2. Create Marker
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(26.2389, 73.0243),
+        icon: customIcon,
+      );
+
+      setState(() {
+        _markers.add(customMarker);
+      });
+
+      await mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(26.2389, 73.0243), 14.0),
+      );
+
+    } catch (e) {
+      debugPrint("Error loading marker: $e");
+    }
   }
 
   @override
@@ -428,19 +452,17 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                     height: SizeConfig.size160,
                                     child: Stack(
                                       children: [
-                                        MapplsMap(
+
+                                        GoogleMap(
                                           onMapCreated: _onMapCreated,
                                           initialCameraPosition: CameraPosition(
-                                            target:LatLng(26.8311, 80.9244),
+                                            target: LatLng(26.2389, 73.0243),
                                             zoom: 14.0,
                                           ),
-                                          myLocationEnabled: false,
+                                          markers: _markers,
                                           compassEnabled: false,
-                                          rotateGesturesEnabled: true,
-                                          tiltGesturesEnabled: true,
-                                          zoomGesturesEnabled: true,
-                                          scrollGesturesEnabled: true,
                                         ),
+
                                       ],
                                     ),
                                   )

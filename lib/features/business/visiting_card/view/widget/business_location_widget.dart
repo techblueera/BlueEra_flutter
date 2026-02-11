@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class BusinessLocationWidget extends StatefulWidget {
   final double latitude;
@@ -28,31 +28,35 @@ class BusinessLocationWidget extends StatefulWidget {
 }
 
 class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
-  late MapplsMapController mapController;
+  late GoogleMapController mapController;
+  Set<Marker> _markers = {};
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
-  }
-
-  Future<void> _onStyleLoadedCallback() async {
     try {
-      // Add marker
-      await mapController.addSymbol(
-        SymbolOptions(
-            iconImage: AppImageAssets.markerBlue,
-            geometry: LatLng(widget.latitude, widget.longitude),
-            iconSize: 1.5),
+      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 30)),
+        AppImageAssets.markerBlue,
       );
 
-      // Move camera to the location
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(widget.latitude, widget.longitude),
-          14.0,
-        ),
+      // 2. Create Marker
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(widget.latitude, widget.longitude),
+        icon: customIcon,
       );
+
+      setState(() {
+        _markers.add(customMarker);
+      });
+
+      await mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(widget.latitude, widget.longitude), 14.0),
+      );
+
     } catch (e) {
-      print('Error adding marker: $e');
+      debugPrint("Error loading marker: $e");
     }
   }
 
@@ -99,19 +103,19 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                   height: 180,
                   child: Stack(
                     children: [
-                      MapplsMap(
+                      GoogleMap(
                         onMapCreated: _onMapCreated,
                         initialCameraPosition: CameraPosition(
                           target: LatLng(widget.latitude, widget.longitude),
                           zoom: 14.0,
                         ),
+                        markers: _markers,
                         myLocationEnabled: false,
                         compassEnabled: false,
                         rotateGesturesEnabled: true,
                         tiltGesturesEnabled: true,
                         zoomGesturesEnabled: true,
                         scrollGesturesEnabled: true,
-                        onStyleLoadedCallback: _onStyleLoadedCallback,
                       ),
                       Positioned(
                         right: SizeConfig.size10,

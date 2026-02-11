@@ -24,7 +24,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pinput/pinput.dart';
 
 class CreateBusinessAccountNewStepTwo extends StatefulWidget {
@@ -51,7 +51,8 @@ class _CreateBusinessAccountNewStepTwoState
   Get.find<ViewBusinessDetailsController>();
   bool isFormValid = false;
   final locationController = Get.put(LocationController());
-  MapplsMapController? mapController;
+  GoogleMapController? mapController;
+  Set<Marker> _markers = {};
   LocationDataModel? locationData;
 
   @override
@@ -108,14 +109,9 @@ class _CreateBusinessAccountNewStepTwoState
     });
   }
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
-  }
 
-  Future<void> _onStyleLoadedCallback() async {
-    if (mapController == null) return;
-
-    // If location already exists, update marker
     if (locationData != null) {
       _updateMarkerOnMap();
     }
@@ -125,33 +121,30 @@ class _CreateBusinessAccountNewStepTwoState
     if (locationData == null) return;
 
     try {
-      // Clear old symbols if required
-      await mapController?.removeSymbols(await mapController!.symbols);
+      double lat = double.parse(locationData!.lat);
+      double long = double.parse(locationData!.long);
+      LatLng position = LatLng(lat, long);
 
-      await mapController?.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(
-            double.parse(locationData!.lat),
-            double.parse(locationData!.long),
-          ),
-          iconSize: 1.5,
-        ),
+      // Create the Google Maps Marker
+      final Marker newMarker = Marker(
+        markerId: const MarkerId("selected_location"),
+        position: position,
+        icon: BitmapDescriptor.defaultMarker, // Or use custom icon
       );
 
+      setState(() {
+        _markers = {newMarker};
+      });
+
+      // Animate Camera
       await mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(
-            double.parse(locationData!.lat),
-            double.parse(locationData!.long),
-          ),
-          14,
-        ),
+        CameraUpdate.newLatLngZoom(position, 14),
       );
+
     } catch (e) {
       print("Error updating marker: $e");
     }
   }
-
 
   @override
   void dispose() {
@@ -247,7 +240,7 @@ class _CreateBusinessAccountNewStepTwoState
                               height: SizeConfig.size160,
                               child: Stack(
                                 children: [
-                                  MapplsMap(
+                                  GoogleMap(
                                     onMapCreated: _onMapCreated,
                                     initialCameraPosition: CameraPosition(
                                       target: (locationData!=null)
@@ -258,13 +251,13 @@ class _CreateBusinessAccountNewStepTwoState
                                           : LatLng(20.5937, 78.9629), // Center of India
                                       zoom: (locationData!=null) ? 14 : 4,
                                     ),
+                                    markers: _markers,
                                     myLocationEnabled: false,
                                     compassEnabled: false,
                                     rotateGesturesEnabled: true,
                                     tiltGesturesEnabled: true,
                                     zoomGesturesEnabled: true,
                                     scrollGesturesEnabled: true,
-                                    onStyleLoadedCallback: _onStyleLoadedCallback,
                                   ),
                                   Positioned(
                                     right: SizeConfig.size10,

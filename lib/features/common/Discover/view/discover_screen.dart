@@ -10,7 +10,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/find_contact_with_service.dart';
@@ -24,25 +23,20 @@ import 'package:BlueEra/features/common/Discover/view/home_made_product_screen.d
 import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
-import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'book_your_transport/book_transport_main.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -60,7 +54,9 @@ class DiscoverScreen extends StatefulWidget {
 
 class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProviderStateMixin {
   final controller = getOrPut(() => DiscoverController());
-  late MapplsMapController mapController;
+  // late MapplsMapController mapController;
+  late GoogleMapController mapController;
+  Set<Marker> _markers = {};
   late final double userLat;
   late final double userLng;
   bool isMapLoading = true;
@@ -93,34 +89,74 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
     }
   }
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
+    _loadCustomMarker();
   }
 
-  Future<void> _onStyleLoadedCallback() async {
+  Future<void> _loadCustomMarker() async {
     try {
-      // 1. Create the combined image
-      final Uint8List markerBytes = await TooltipGenerator.createTooltipWithSvg(
-        title: "BlueEra Partner\nNear you",
-        svgAssetPath: AppIconAssets.locationMarkerIcon,
+      final markerBytes = await getBytesFromSvgAsset(
+        AppIconAssets.locationMarkerIcon,
+        35,
       );
 
-      // 2. Add to Map
-      await mapController.addImage("svg-composite-icon", markerBytes);
+      if (markerBytes.isEmpty) {
+        throw Exception("Marker bytes are empty");
+      }
 
-      // 3. Display Symbol
-      await mapController.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(userLat, userLng),
-          iconImage: "svg-composite-icon",
-          iconSize: 1.0,
+      final markerIcon = BitmapDescriptor.bytes(markerBytes);
 
-        ),
+
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(userLat, userLng),
+        icon: markerIcon,
+        onTap: () {
+          debugPrint("📍 Marker tapped");
+          Get.to(() => FranchiseHome());
+        },
       );
-    } catch (e) {
-      print('Error adding marker: $e');
+
+
+      setState(() {
+        _markers.add(customMarker);
+        isMapLoading = false;
+      });
+
+      debugPrint("🎉 Marker added successfully");
+
+    } catch (e, stackTrace) {
+      debugPrint("Error: $e");
+      debugPrint("StackTrace: $stackTrace");
     }
   }
+
+
+  // Future<void> _onStyleLoadedCallback() async {
+  //   try {
+  //     // 1. Create the combined image
+  //     final Uint8List markerBytes = await TooltipGenerator.createTooltipWithSvg(
+  //       title: "BlueEra Partner\nNear you",
+  //       svgAssetPath: AppIconAssets.locationMarkerIcon,
+  //     );
+  //
+  //     // 2. Add to Map
+  //     await mapController.addImage("svg-composite-icon", markerBytes);
+  //
+  //     // 3. Display Symbol
+  //     await mapController.addSymbol(
+  //       SymbolOptions(
+  //         geometry: LatLng(userLat, userLng),
+  //         iconImage: "svg-composite-icon",
+  //         iconSize: 1.0,
+  //
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     print('Error adding marker: $e');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -167,182 +203,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildFloatingHeader() {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-      top: -controller.headerOffset.value * controller.headerHeight,
-      left: 0,
-      right: 0,
-      child: KeyedSubtree(
-        key: controller.headerKey,
-        child: Builder(
-          builder: (context) => Container(
-            margin: EdgeInsets.only(bottom: 10),
-            padding: EdgeInsets.only(
-                left: SizeConfig.size15,
-                right: SizeConfig.size20,
-                top: SizeConfig.size15,
-                bottom: SizeConfig.size20),
-            decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.vertical(bottom: Radius.circular(16.0)),
-              color: AppColors.white,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Row(children: [
-                        LocalAssets(
-                          imagePath: AppIconAssets.currentLocationIcon,
-                          height: SizeConfig.size24,
-                          width: SizeConfig.size24,
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: CustomText(
-                            [
-                              LocationService.userCurrentAddress.value.subLocality,
-                              LocationService.userCurrentAddress.value.city,
-                            ].where((e) => e.isNotEmpty).join(', '),
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w600,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ]),
-                    ),
-                    SizedBox(width: SizeConfig.size8),
-                    InkWell(
-                      onTap: () {
-                        if (isBusinessUser()) {
-                          final controller =
-                              getOrPut(() => ViewBusinessDetailsController());
-
-                          if ((controller.businessProfileDetails?.data
-                                          ?.livePhotos ??
-                                      [])
-                                  .length <
-                              3) {
-                            showLivePhotoDialog(
-                              context: context,
-                            );
-                          } else {
-                            Get.toNamed(RouteHelper.getInventoryScreenRoute());
-                          }
-                        } else {
-                          final controller =
-                              getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-
-                          if (controller.personalProfileDetails.value
-                                  .isProfileCreated ==
-                              false) {
-                            Get.to(() => CreateProfileScreen());
-                          } else {
-                            Get.toNamed(
-                                RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
-                            );
-
-                            // if (userProfessionGlobal == DELIVERY_RIDER) {
-                            //   Get.toNamed(
-                            //       RouteHelper.getRiderServiceScreenRoute());
-                            // } else {
-                            //   Get.toNamed(
-                            //       RouteHelper.getEarnServiceScreenRoute());
-                            // }
-                          }
-                        }
-                      },
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.cartIcon,
-                      ),
-                    )
-                  ],
-                ),
-
-                // SizedBox(height: SizeConfig.paddingXL),
-
-                /// Mapple map
-
-                /*  ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: SizeConfig.size160,
-                    child: Stack(
-                      children: [
-                        MapplsMap(
-                          onMapCreated: _onMapCreated,
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(userLat, userLng),
-                            zoom: 14.0,
-                          ),
-                          myLocationEnabled: false,
-                          compassEnabled: false,
-                          onStyleLoadedCallback: () {
-                            // This is the best place to hide the loader
-                            setState(() {
-                              isMapLoading = false;
-                            });
-                            _onStyleLoadedCallback();
-                          },
-                        ),
-
-                        // Loader Overlay
-                        if (isMapLoading)
-                          Container(
-                            color: Colors.grey[200],
-                            // Background color while loading
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primaryColor),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),*/
-
-                /*  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: SizeConfig.size160,
-                      child: Stack(
-                        children: [
-                          MapplsMap(
-                            onMapCreated: _onMapCreated,
-                            initialCameraPosition: CameraPosition(
-                              target: LatLng(userLat, userLng),
-                              zoom: 14.0,
-                            ),
-                            myLocationEnabled: false,
-                            compassEnabled: false,
-                            rotateGesturesEnabled: true,
-                            tiltGesturesEnabled: true,
-                            zoomGesturesEnabled: true,
-                            scrollGesturesEnabled: true,
-                            onStyleLoadedCallback:
-                                _onStyleLoadedCallback,
-                          ),
-                        ],
-                      ),
-                    )
-                ),*/
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildMapWidget() {
     return CustomFormCard(
      padding: EdgeInsets.all(SizeConfig.size10),
@@ -383,43 +243,21 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
               height: SizeConfig.size160,
               child: Stack(
                 children: [
-                  MapplsMap(
-                      onMapCreated: _onMapCreated,
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(userLat, userLng),
-                        zoom: 12.0,
-                      ),
-                      onMapClick: (lat,long) {
-                        logs("logMsg");
-                        Get.to(()=> FranchiseHome());
-                      },
-                      onStyleLoadedCallback: () {
-                        setState(() => isMapLoading = false);
-                        _onStyleLoadedCallback();
-                      },
-                      zoomGesturesEnabled: false
-                    // onSymbolTapped: _onSymbolTapped,
+                  GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(userLat, userLng),
+                      zoom: 12.0,
+                    ),
+                    markers: _markers,
+                    onTap: (LatLng latLng) {
+                      logs("logMsg");
+                      Get.to(() => FranchiseHome());
+                    },
+                    zoomGesturesEnabled: false,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
                   ),
-                  // Positioned(
-                  //     left: 8,
-                  //     top: 8,
-                  //     child: Container(
-                  //         padding: EdgeInsets.all(6.0),
-                  //         decoration: BoxDecoration(
-                  //           color: Color(0xFFE0E9EA),
-                  //           borderRadius: BorderRadius.circular(10),
-                  //           // border: Border.all(
-                  //           //   color: AppColors.primaryColor
-                  //           // )
-                  //         ),
-                  //         child: CustomText(
-                  //             LocationService.userCurrentAddress.value.postalCode,
-                  //             color: AppColors.primaryColor,
-                  //             fontSize: SizeConfig.medium,
-                  //             fontWeight: FontWeight.w600
-                  //         )
-                  //     )
-                  // ),
 
                   if (isMapLoading)
                     Container(
@@ -548,7 +386,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
         children: [
 
           Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.paddingM, top: SizeConfig.paddingM),
+              padding: EdgeInsets.only(top: SizeConfig.paddingM),
               child: _buildMapWidget(), // Extract your map code here
           ),
       
