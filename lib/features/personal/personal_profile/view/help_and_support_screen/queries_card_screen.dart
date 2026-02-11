@@ -8,7 +8,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -128,75 +127,104 @@ class _QueriesCardState extends State<QueriesCard> {
         title: "Queries",
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: SizeConfig.size16,),
-            Row(
-              children: [
-                Expanded(
-                  // width: 300,
-                  child: CommonSearchBar(
-                    backgroundColor: Colors.grey[300],
-                    controller: _searchController,
-                    onSearchTap: () {
-                      FocusScope.of(context).unfocus();
-                      _applyFilter();
-                    },
-                    onClearCallback: () {
-                      _searchController.clear();
-                      _applyFilter();
-                    },
-                  ),
-                ),
-                SizedBox(width: 10,),
-                CustomBtn(
-                    height: 40,
-                    width: 90,
-                    isValidate: true,
-                    onTap: () {
-                      Get.to(()=>CreateSupportQueryPage());
-                    },
-                    title: "Ask Queries")
-              ],
-            ),
-            SizedBox(height: SizeConfig.size20),
-            HorizontalTabSelector(
-              tabs: postTab,
-              selectedIndex: selectedIndex,
-              onTabSelected: (index, value) {
-                setState(() {
-                  selectedIndex = index;
-                });
-                _applyFilter();
-              },
-              labelBuilder: (label) => label,
-            ),
-            SizedBox(height: SizeConfig.size10),
-            Obx(() {
-              if (helpController.getQueryResponse.value.status ==
-                  Status.COMPLETE) {
-
-                if (filteredList.isEmpty&&selectedIndex==0) {
-                  filteredList = helpController.allList;
-                }
-
-                return Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: AppColors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: AppColors.white
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    // width: 300,
+                    child: CommonSearchBar(
+                      backgroundColor: AppColors.whiteE5.withOpacity(0.5),
+                      controller: _searchController,
+                      onSearchTap: () {
+                        FocusScope.of(context).unfocus();
+                        _applyFilter();
+                      },
+                      onClearCallback: () {
+                        _searchController.clear();
+                        _applyFilter();
+                      },
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: buildQueryList(filteredList),
                   ),
-                );
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            }),
-          ],
+                  SizedBox(width: 10,),
+                  CustomBtn(
+                      height: 40,
+                      width: 90,
+                      isValidate: true,
+                      onTap: () {
+                        Get.to(()=>CreateSupportQueryPage());
+                      },
+                      title: "Ask Queries")
+                ],
+              ),
+              SizedBox(height: SizeConfig.size20),
+              Row(
+                children: [
+                  for (int i = 0; i < postTab.length; i++)
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedIndex = i;
+                        });
+                        _applyFilter();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: CustomText(
+                          postTab[i],
+                          fontSize: 14,
+                          decoration: TextDecoration.underline,
+                          color: selectedIndex==i?AppColors.primaryColor:AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              // HorizontalTabSelector(
+              //   tabs: postTab,
+              //   selectedIndex: selectedIndex,
+              //   onTabSelected: (index, value) {
+              //     setState(() {
+              //       selectedIndex = index;
+              //     });
+              //     _applyFilter();
+              //   },
+              //   labelBuilder: (label) => label,
+              // ),
+              SizedBox(height: SizeConfig.size10),
+              Obx(() {
+                if (helpController.getQueryResponse.value.status ==
+                    Status.COMPLETE) {
+
+                  if (filteredList.isEmpty&&selectedIndex==0) {
+                    filteredList = helpController.allList;
+                  }
+
+                  return Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.white,
+                      ),
+                      // padding: const EdgeInsets.all(16),
+                      child: buildQueryList(filteredList),
+                    ),
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              }),
+            ],
+          ),
         ),
       ),
     );
@@ -244,7 +272,7 @@ class _QueriesCardState extends State<QueriesCard> {
       itemBuilder: (context, index) {
         final item = list[index];
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -253,16 +281,16 @@ class _QueriesCardState extends State<QueriesCard> {
                 children: [
                   CustomText(
                     item.subject,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
                   CustomText(
                     DateFormat('MMM d')
                         .format(DateTime.parse(item.createdAt.toString())),
                     fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                    color:AppColors.secondaryTextColor,
                   ),
                 ],
               ),
@@ -273,13 +301,14 @@ class _QueriesCardState extends State<QueriesCard> {
                   CustomText(
                     "Priority: ${item.priority}",
                     fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w400,
+                    color:AppColors.secondaryTextColor,
+
                   ),
                   CustomText(
                     item.status,
                     fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                     color: getStatusColor(item.status),
                   ),
                 ],

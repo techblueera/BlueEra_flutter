@@ -150,4 +150,5 @@ class AppColors {
   static const redE4 = Color(0xFFFFE6E4);
   static const boxBg = Color(0xFFF2F2F2);
   static const circleBg = Color(0xFFF0F0F0);
+  static const placeHolder = Color(0xFFB0B4BF);
 }

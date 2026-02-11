@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/faq_screen.dart';
@@ -5,11 +6,10 @@ import 'package:BlueEra/features/personal/personal_profile/view/help_and_support
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/queries_card_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../../chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../../controller/help_and_support_controller.dart';
@@ -47,7 +47,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
               children: [
                 SizedBox(height: SizeConfig.size20),
                 _helpServiceCard(
-                  AppIconAssets.helpIcon,
+                  'assets/images/customer.png',
                   AppStrings.customerSupport,
                   () {
                     // Get.to(CustomerSupportScreen());
@@ -65,7 +65,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                 ),
                 SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
-                  AppIconAssets.mailIcon,
+                  'assets/images/mail.png',
                   AppStrings.mailUs,
                   () {
                     Get.to(HelpAndSupportFormScreen());
@@ -73,7 +73,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                 ),
                 SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
-                  AppIconAssets.queriIcon,
+                 'assets/images/qury.png',
                   AppStrings.queries,
                   () {
                     Get.to(QueriesCard());
@@ -81,7 +81,8 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                 ),
                 SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
-                  AppIconAssets.queriIcon,
+                  'assets/images/complaint.png',
+
                   "Complaint",
                   () {
                    Get.to(ComplaintMainPage());
@@ -89,7 +90,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                 ),
                 SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
-                  AppIconAssets.FAQIcon,
+                  'assets/images/faq.png',
                   AppStrings.faq,
                   () {
                     Get.to(FaqScreen());
@@ -109,7 +110,7 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
     onTap: onTap,
     child: Container(
       padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size16, horizontal: SizeConfig.size16),
+          vertical: SizeConfig.size20, horizontal: SizeConfig.size16),
       margin: EdgeInsets.symmetric(horizontal: 1),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -121,37 +122,35 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
         children: [
           Row(
             children: [
-              Container(
-                padding: EdgeInsets.all(SizeConfig.size16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(100),
-                  color: AppColors.primaryColor.withValues(alpha: 0.2),
-                ),
-                child: SvgPicture.asset(
-                  value1,
-                  height: 24,
-                  width: 24,
-                ),
+              LocalAssets(
+                height: 20,
+                width: 20,
+                imagePath: value1,
+                imgColor: AppColors.secondaryTextColor,
+
               ),
               SizedBox(width: SizeConfig.size16),
               CustomText(
                 value2,
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
+                fontWeight: FontWeight.w400,
+                color: AppColors.secondaryTextColor,
               ),
             ],
           ),
-          Padding(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: InkWell(
-              onTap: onTap,
-              child: SvgPicture.asset(
-                AppIconAssets.frontArrow,
-                height: 18,
-                width: 18,
-                color: Colors.black,
-              ),
+          if(value2==AppStrings.customerSupport)
+          LocalAssets(imagePath: AppImageAssets.chat_with_ai_bot),
+          if(value2==AppStrings.mailUs)
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColors.whiteE5.withOpacity(0.4)
+            ),
+            padding: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
+            child: Center(
+              child: CustomText(
+                "mailusbluecs@gmail.com",fontSize: 14,
+              color: AppColors.secondaryTextColor,),
             ),
           )
         ],

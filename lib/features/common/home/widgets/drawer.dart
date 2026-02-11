@@ -23,6 +23,7 @@ import '../../../../widgets/common_dialog.dart';
 import '../../../../widgets/custom_btn.dart';
 import '../../../../widgets/webview_common.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../business/visiting_card/view/business_own_profile_screen.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/service/location_update_service.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
@@ -30,13 +31,17 @@ import '../../../personal/personal_profile/view/account_setting_screen/account_s
 import '../../../personal/personal_profile/view/create_profile_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
 import '../../../personal/personal_profile/view/documents.dart';
+import '../../../personal/personal_profile/view/franchise/request_to_franchise.dart';
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
+import '../../../personal/personal_profile/view/manage_notification/notification.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/profile_settings_new_screen.dart';
+import '../../../personal/personal_profile/view/profile_setup_new_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../../subscription/view/subscription_screen.dart';
 import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
+import '../../franchise/view/franchise_home.dart';
 import '../../referral/view/referral_page.dart';
 
 class ProfileMenuDrawer extends StatefulWidget {
@@ -140,34 +145,45 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   Widget _header() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundImage: NetworkImage(accountProfileImage()),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  accountProfileName(),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-                SizedBox(height: 2),
-                CustomText(
-                  userDesigination(),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
+      child: InkWell(
+        onTap: (){
+          if (isGuestUser()) {
+            createProfileScreen();
+          } else if (isIndividualUser()) {
+            navigatePushTo(context, PersonalProfileSetupNewScreen());
+          } else if (isBusinessUser()) {
+            navigatePushTo(context, BusinessOwnProfileScreen());
+          }
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundImage: NetworkImage(accountProfileImage()),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    accountProfileName(),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  SizedBox(height: 2),
+                  CustomText(
+                    userDesigination(),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -228,16 +244,22 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             ),
           ),
           SizedBox(width: 8,),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.whiteE5),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: const CustomText(
-                "Cards",
-                fontSize: 13,
+          InkWell(
+            onTap: (){
+              Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
+                  arguments: {ApiKeys.isFromHomeScreen: false});
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.whiteE5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: const CustomText(
+                  "Cards",
+                  fontSize: 13,
+                ),
               ),
             ),
           ),
@@ -315,14 +337,10 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "Franchise Inquiry",
-        onTap: () =>
-            Get.to(
-                  CommonWebView(
-                    urlLink: takeFranchise,
-                    urlTitle: AppStrings.applyForFranchise,
-                  ),
-            ),
-      ),
+    onTap: () => Get.to( FranchiseInquiryScreen())
+
+    ),
+
       MenuItemModel(
         title: "Account Settings",
         onTap: () => Get.to( AccountSettingScreen()),
@@ -334,7 +352,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       // ),
       MenuItemModel(
         title: "Manage Notification",
-        onTap: () => Get.toNamed(RouteHelper.getNotificationScreenRoute()),
+        onTap: () => Get.to( NotificationSettingScreen()),
 
 
       ),
