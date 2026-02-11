@@ -728,4 +728,16 @@ abstract class BaseService {
 
 
   final String aiLabsService = 'ai-service/api/ai-labs/generate-lab';
+  final String  labServiceGallery= 'lab-service/gallery';
+  final String  labServiceContactUs= 'lab-service/contact-us';
+  final String  labServiceProcessResponse= 'lab-service/ai/process-response';
+  final String  labFullDetails= 'lab-service/laboratory-profiles/full-details/$userId';
+  final String  labFacilities= 'lab-service/facilities';
+  final String labHealthCamps = 'lab-service/health-camps';
+  final String  labProfiles= 'lab-service/laboratory-profiles';
+  final String testCategories = 'lab-service/test-categories';
+  final String testParameters = 'lab-service/test-parameters';
+  final String  testPathology= 'lab-service/pathology-tests';
+  final String  testLabServiceFullDetails= 'lab-service/laboratory-profiles/full-details';
+
 }

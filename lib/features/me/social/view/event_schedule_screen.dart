@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/api/model/social_event_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/social__event_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_create_event_screen.dart';

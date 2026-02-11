@@ -169,20 +169,4 @@ class DepartmentCard extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(color: Colors.black, fontSize: 14),
-          children: [
-            TextSpan(
-                text: label,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(text: value),
-          ],
-        ),
-      ),
-    );
-  }
 }

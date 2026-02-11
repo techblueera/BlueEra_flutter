@@ -1,6 +1,13 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
+import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_update_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_full_details_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/no_lab_create_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -21,41 +28,45 @@ class LaboratoryMain extends StatefulWidget {
 class _LaboratoryMainState extends State<LaboratoryMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
-  bool hasLabCreated = false;
+  final labServiceAiController = getOrPut(() => LabServiceAiController());
 
   @override
   void initState() {
-    // apiCalling();
+    // labIDGlobal="";
+    apiCalling();
     _tabController = TabController(length: 3, vsync: this);
 
     super.initState();
   }
 
-  //
-  // apiCalling() async {
-  //   try {
-  //     if (hotelIDGlobal.isEmpty) {
-  //       ResponseModel response = await HotelServiceRepo().getHotelRepo();
-  //       if (response.isSuccess) {
-  //         String? hotelIDGlobal = response.response?.data['data']['_id'];
-  //         if (hotelIDGlobal != null && hotelIDGlobal.isNotEmpty) {
-  //           await setHotelID(hotelIDGlobal);
-  //         } else {
-  //           await setHotelID("");
-  //         }
-  //       }
-  //     }
-  //     await getHotelID();
-  //     setState(() {
-  //       // Check if global ID was successfully populated
-  //       hasHotel = hotelIDGlobal.isNotEmpty;
-  //       // controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
-  //     });
-  //     // await schoolAboutUsController.getSchoolByIdController();
-  //   } on Exception {
-  //     // TODO
-  //   }
-  // }
+  apiCalling() async {
+    try {
+      logs("labIDGlobal==== ${labIDGlobal}");
+      if (labIDGlobal.isEmpty) {
+        ResponseModel response =
+            await LabServiceRepo().getLabFullDetailsByIdRepo();
+        if (response.isSuccess) {
+          labIDGlobal = response.response?.data['data']['profile']['_id'];
+          if (labIDGlobal.isNotEmpty) {
+            await setLabID(labIDGlobal);
+          } else {
+            labIDGlobal = "";
+            await setLabID("");
+          }
+        } else {
+          labIDGlobal = "";
+          await setLabID("");
+        }
+      }
+      await getLabID();
+      labServiceAiController.hasLabCreated.value = labIDGlobal.isNotEmpty;
+      setState(() {
+        // hasLabCreated = labIDGlobal.isNotEmpty;
+      });
+    } on Exception {
+      // TODO
+    }
+  }
 
   @override
   void dispose() {
@@ -65,43 +76,48 @@ class _LaboratoryMainState extends State<LaboratoryMain>
 
   @override
   Widget build(BuildContext context) {
+    // hasLabCreated = labIDGlobal.isNotEmpty;
+
     return Scaffold(
-     
-        body: SafeArea(
-          child: hasLabCreated
-              ? Column(
-                  children: [
-                    SizedBox(
-                      height: SizeConfig.size12,
-                    ),
-                    TabBar(
-                      controller: _tabController,
-                      labelColor: AppColors.primaryColor,
-                      unselectedLabelColor: Colors.grey[600],
-                      indicatorColor: AppColors.primaryColor,
-                      indicatorWeight: 4,
-                      tabAlignment: TabAlignment.fill,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                      tabs: [
-                        Tab(text: "Home"),
-                        Tab(text: "Update"),
-                        Tab(text: "Statics"),
-                      ],
-                    ),
-                    Expanded(
-                        child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        ComingSoon(),
-                        ComingSoon(),
-                        ComingSoon(),
-                      ],
-                    ))
-                  ],
-                )
-              : NoLabCreateScreen(),
-        ));
+        backgroundColor: AppColors.white,
+        body: Obx(() {
+          return SafeArea(
+            child:  labServiceAiController.hasLabCreated.value
+                ? Column(
+                    children: [
+                      SizedBox(
+                        height: SizeConfig.size12,
+                      ),
+                      TabBar(
+                        controller: _tabController,
+                        labelColor: AppColors.primaryColor,
+                        unselectedLabelColor: Colors.grey[600],
+                        indicatorColor: AppColors.primaryColor,
+                        indicatorWeight: 4,
+                        tabAlignment: TabAlignment.fill,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        labelStyle:
+                            const TextStyle(fontWeight: FontWeight.w600),
+                        tabs: [
+                          Tab(text: "Home"),
+                          Tab(text: "Update"),
+                          Tab(text: "Statics"),
+                        ],
+                      ),
+                      Expanded(
+                          child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          LabFullDetailsScreen(),
+                          LabUpdateScreen(),
+                          ComingSoon(),
+                        ],
+                      ))
+                    ],
+                  )
+                : NoLabCreateScreen(),
+          );
+        }));
   }
 }
 

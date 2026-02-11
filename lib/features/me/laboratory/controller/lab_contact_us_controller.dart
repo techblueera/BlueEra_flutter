@@ -1,11 +1,12 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
-import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:get/get.dart';
 
-class SocialContactUsController extends GetxController {
+class LabContactUsController extends GetxController {
   // Observables
   var isLoading = true.obs;
   var contactUsData = Rxn<SocialContactUsResModel>();
@@ -21,14 +22,11 @@ class SocialContactUsController extends GetxController {
 
       // call repo
       ResponseModel responseModel =
-          await SocialProfileRepo().getSocialContactByIdRepo();
+          await LabServiceRepo().getSocialContactByIdRepo();
 
       if (responseModel.isSuccess) {
         contactUsData.value =
             SocialContactUsResModel.fromJson(responseModel.response?.data);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } finally {
       isLoading(false);
@@ -77,19 +75,22 @@ class SocialContactUsController extends GetxController {
 
       // Prepare Request Body
       Map<String, dynamic> body = {
-        "name": branchName,
-        "websiteUrl": website,
-        "email": email,
-        "phoneNo": phone,
-        "location": {
-          "name": address,
-          "type": "Point",
-          "coordinates": [selectedLat, selectedLng]
-        }
+          "name": branchName,
+          "websiteUrl": website,
+          "email": email,
+          "phoneNo": phone,
+
+          "location": {
+            "name": address,
+            "type": "Point",
+            "coordinates": [selectedLat, selectedLng]
+          },
+        "laboratoryId": labIDGlobal
+
       };
 
       ResponseModel response =
-          await SocialProfileRepo().addSocialContactRepo(reqBody: body);
+          await LabServiceRepo().addSocialContactRepo(reqBody: body);
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??

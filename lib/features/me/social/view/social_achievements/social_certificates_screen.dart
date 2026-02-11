@@ -1,15 +1,9 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_certificates_controller.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_service_photo_controller.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/professionals_service_category_details_screen.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/upload_professionals_service_photos_screen.dart';
 import 'package:BlueEra/features/me/social/controller/social_certificates_controller.dart';
 import 'package:BlueEra/features/me/social/model/social_certification_res_model.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
@@ -341,22 +335,6 @@ class SocialCertificatesScreen extends StatelessWidget {
     );
   }
 
-  Widget _documentTypeDropdown() {
-    final types = ["Award", "Certificate", "License", "Other"];
-    return Obx(() => DropdownButtonFormField<String>(
-          value: certController.documentType.value,
-          items: types
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
-          onChanged: (val) {
-            if (val != null) certController.documentType.value = val;
-          },
-          decoration: const InputDecoration(
-            labelText: "Document Type",
-            border: OutlineInputBorder(),
-          ),
-        ));
-  }
 
   Widget _filePicker() {
     return Obx(() {

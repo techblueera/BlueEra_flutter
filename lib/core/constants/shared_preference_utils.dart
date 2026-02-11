@@ -50,6 +50,7 @@ String isEarnServiceOpt = '';
 String schoolIDGlobal = '';
 String otherServiceIDGlobal = '';
 String hotelIDGlobal = '';
+String labIDGlobal = '';
 String deviceOsVersionGlobal = '';
 String userProfileTypeGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
@@ -103,6 +104,7 @@ class SharedPreferenceUtils {
   static const isEarnServiceUser = 'isEarnServiceUser';
   static const schoolIDKey = 'schoolIDKey';
   static const hotelIDKey = 'hotelIDKey';
+  static const labIDKey = 'labIDKey';
   static const otherServiceIDKey = 'otherServiceIDKey';
   static const productBusinessProfileIDIDKey = 'productBusinessProfileIDIDKey';
 
@@ -259,6 +261,7 @@ class SharedPreferenceUtils {
       businessSubCategoryGlobal = '';
       schoolIDGlobal = '';
       hotelIDGlobal = '';
+      labIDGlobal = '';
       otherServiceIDGlobal = '';
       productBusinessProfileIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
@@ -528,5 +531,20 @@ setHotelID(String schoolIDValue) {
 getHotelID() async {
   hotelIDGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.hotelIDKey);
+}
+
+///SET LAB ID....
+setLabID(String labIDValue) {
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.labIDKey, labIDValue.toString());
+}
+
+getLabID() async {
+  try {
+    labIDGlobal = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.labIDKey);
+  } on Exception catch (e) {
+    // TODO
+  }
 }
 
