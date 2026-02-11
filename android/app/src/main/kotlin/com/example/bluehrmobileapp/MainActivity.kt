@@ -1,60 +1,90 @@
 package ai.bluecs.app
 
-import android.media.Ringtone
-import android.media.RingtoneManager
-import android.net.Uri
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.WindowManager
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.drawable.Icon
+import android.os.Build
+import android.util.Rational
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import android.app.PictureInPictureParams
-import android.os.Build
-import android.util.Rational
-
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.vahcare.lab/pip"
-    // The Master Switch: False by default
+    private val ACTION_COMPLETE_RIDE = "ACTION_COMPLETE_RIDE"
     private var isPipEnabled = false
 
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val filter = IntentFilter(ACTION_COMPLETE_RIDE)
+            // Note: Use Context.RECEIVER_EXPORTED if targeting Android 14+
+            registerReceiver(pipReceiver, filter, Context.RECEIVER_EXPORTED)
+        }
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "updatePipStatus") {
-                // Flutter will tell Android when to enable/disable PiP
-                isPipEnabled = call.argument<Boolean>("isEnabled") ?: false
-                result.success(null)
-            } else if (call.method == "enterPip") {
-                enterPipMode()
-                result.success(true)
+            when (call.method) {
+                "updatePipStatus" -> {
+                    isPipEnabled = call.argument<Boolean>("isEnabled") ?: false
+                    result.success(null)
+                }
+                "enterPip" -> {
+                    enterPipMode()
+                    result.success(true)
+                }
+                "isInPipMode" -> {
+                    val inPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+                    result.success(inPip)
+                }
+                else -> result.notImplemented()
             }
         }
     }
 
-    // This triggers when Home or Center button is clicked
+    private val pipReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == ACTION_COMPLETE_RIDE) {
+                flutterEngine?.dartExecutor?.binaryMessenger?.let {
+                    MethodChannel(it, CHANNEL).invokeMethod("completeRide", null)
+                }
+            }
+        }
+    }
+
     override fun onUserLeaveHint() {
         if (isPipEnabled) {
             enterPipMode()
         } else {
-            super.onUserLeaveHint() // Normal minimize behavior
+            super.onUserLeaveHint()
         }
     }
 
     private fun enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
             val params = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(1, 1))
                 .build()
+
             enterPictureInPictureMode(params)
         }
     }
+
+    override fun onDestroy() {
+        try {
+            unregisterReceiver(pipReceiver)
+        } catch (e: Exception) {}
+        super.onDestroy()
+    }
 }
+
 
 /*class MainActivity : FlutterActivity() {
 //    override fun onUserLeaveHint() {
@@ -186,3 +216,96 @@ class MainActivity: FlutterActivity() {
         ringtone?.stop()
     }
 }*/
+
+//Dont Delete below code -by Boopathi
+//class MainActivity: FlutterActivity() {
+//    private val CHANNEL = "com.vahcare.lab/pip"
+//    private val ACTION_COMPLETE_RIDE = "ACTION_COMPLETE_RIDE"
+//    private var isPipEnabled = false
+//
+//    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+//        super.configureFlutterEngine(flutterEngine)
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val filter = IntentFilter(ACTION_COMPLETE_RIDE)
+//            // Note: Use Context.RECEIVER_EXPORTED if targeting Android 14+
+//            registerReceiver(pipReceiver, filter, Context.RECEIVER_EXPORTED)
+//        }
+//
+//        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+//            when (call.method) {
+//                "updatePipStatus" -> {
+//                    isPipEnabled = call.argument<Boolean>("isEnabled") ?: false
+//                    result.success(null)
+//                }
+//                "enterPip" -> {
+//                    enterPipMode()
+//                    result.success(true)
+//                }
+//                "isInPipMode" -> {
+//                    val inPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+//                    result.success(inPip)
+//                }
+//                else -> result.notImplemented()
+//            }
+//        }
+//    }
+//
+//    private val pipReceiver = object : BroadcastReceiver() {
+//        override fun onReceive(context: Context, intent: Intent) {
+//            if (intent.action == ACTION_COMPLETE_RIDE) {
+//                flutterEngine?.dartExecutor?.binaryMessenger?.let {
+//                    MethodChannel(it, CHANNEL).invokeMethod("completeRide", null)
+//                }
+//            }
+//        }
+//    }
+//
+//    override fun onUserLeaveHint() {
+//        if (isPipEnabled) {
+//            enterPipMode()
+//        } else {
+//            super.onUserLeaveHint()
+//        }
+//    }
+//
+//    private fun enterPipMode() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val actions = ArrayList<RemoteAction>()
+//
+//            // Intent for the button
+//            val intent = Intent(ACTION_COMPLETE_RIDE)
+//            val pendingIntent = PendingIntent.getBroadcast(
+//                this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+//            )
+//
+//
+//            val icon = Icon.createWithResource(this, android.R.drawable.ic_menu_save)
+//
+//            val remoteAction = RemoteAction(
+//                icon,
+//                "Cancel Ride",  // Text Label
+//                "Cancel",       // Content Description
+//                pendingIntent
+//            )
+//
+//
+//            remoteAction.isEnabled = true
+//
+//            actions.add(remoteAction)
+//
+//            val params = PictureInPictureParams.Builder()
+//                .setAspectRatio(Rational(1, 1))
+//                .setActions(actions)
+//                .build()
+//            enterPictureInPictureMode(params)
+//        }
+//    }
+//
+//    override fun onDestroy() {
+//        try {
+//            unregisterReceiver(pipReceiver)
+//        } catch (e: Exception) {}
+//        super.onDestroy()
+//    }
+//}

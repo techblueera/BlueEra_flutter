@@ -1,5 +1,6 @@
 class PaymentResponseModel {
   String? requestId;
+  String? id;
   String? orderId;
   int? estimatedPickupTime;
   EstimatedFareDetails? estimatedFareDetails;
@@ -12,6 +13,7 @@ class PaymentResponseModel {
   PaymentResponseModel({
     this.requestId,
     this.orderId,
+    this.id,
     this.estimatedPickupTime,
     this.estimatedFareDetails,
     this.trackingUrl,
@@ -23,6 +25,7 @@ class PaymentResponseModel {
   PaymentResponseModel.fromJson(Map<String, dynamic> json) {
     requestId = json['request_id'];
     orderId = json['order_id'];
+    id = json['_id'];
     fare = json['fare'].toString();
     estimatedPickupTime = json['estimated_pickup_time'];
     estimatedFareDetails = json['estimated_fare_details'] != null
@@ -43,6 +46,7 @@ class PaymentResponseModel {
     final Map<String, dynamic> data = {};
     data['request_id'] = requestId;
     data['order_id'] = orderId;
+    data['_id'] = id;
     data['fare'] = fare;
     data['estimated_pickup_time'] = estimatedPickupTime;
 

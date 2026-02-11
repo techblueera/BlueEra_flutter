@@ -244,5 +244,15 @@ class ChatViewRepo extends BaseService {
         .postHTTP(messageLikeUnlike,params: params,showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> checkTrackOrderStatusApi(
+     String orderId) async {
+    final response = await ApiBaseHelper()
+        .getHTTP(
+        checkTrackOrderStatus(orderId),
+        showProgress: true,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
 
 }

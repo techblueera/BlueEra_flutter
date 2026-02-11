@@ -2136,59 +2136,26 @@ class ChatViewController extends GetxController {
       }
     } catch (e) {}
   }
+  Future<bool> checkTrackOrderStatusApi(
+      String orderId) async {
+    try {
+      ResponseModel responseModel =
+      await ChatViewRepo().checkTrackOrderStatusApi(orderId);
+      if (responseModel.isSuccess) {
+        var details=responseModel.response?.data;
+        if(details["status"]=="in-progress"){
+          return true;
+        }else{
+          return false;
+        }
 
-  // Future<void> askAiInventory({required String message}) async {
-  //   // try {
-  //   getListOfInventoryAiMessages.value?.add(InventoryAskAiModel(
-  //     message: message,
-  //     messageStatus: AppConstants.AiQuest_Chat_Type,
-  //     timestamp: formatTime(DateTime.now().toIso8601String())
-  //   ));
-  //     chatBotReading.value = true;
-  //     sendMessageController.value.clear();
-  //     final response = await StoreRepo().askAiInventoryRepo(
-  //       params: {ApiKeys.query: message},
-  //     );
-  //
-  //     if (response.isSuccess) {
-  //       InventoryAskAiModel detail=InventoryAskAiModel.fromJson(response.response?.data);
-  //       detail.messageStatus=AppConstants.AiReply_Chat_Type;
-  //       getListOfInventoryAiMessages.value?.add(detail);
-  //       getListOfInventoryAiMessageResponse.value = ApiResponse.complete(getListOfInventoryAiMessages);
-  //
-  //       chatBotReading.value = false;
-  //     } else {
-  //       getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
-  //     }
-  //   // } catch (e) {
-  //   //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
-  //   // } finally {}
-  // }
-
-  // Future<void> askLetsTalkApi({required String message}) async {
-  //   // try {
-  //   getListOfInventoryAiMessages?.add(InventoryAskAiModel(
-  //       message: message,
-  //       messageStatus: AppConstants.AiQuest_Chat_Type
-  //   ));
-  //   chatBotReading.value = true;
-  //   sendMessageController.value.clear();
-  //   final response = await StoreRepo().askAiInventoryRepo(
-  //     params: {ApiKeys.query: message},
-  //   );
-  //
-  //   if (response.isSuccess) {
-  //     InventoryAskAiModel detail=InventoryAskAiModel.fromJson(response.response?.data);
-  //     detail.messageStatus=AppConstants.AiReply_Chat_Type;
-  //     getListOfInventoryAiMessages?.add(detail);
-  //     getListOfInventoryAiMessageResponse.value = ApiResponse.complete(getListOfInventoryAiMessages);
-  //
-  //     chatBotReading.value = false;
-  //   } else {
-  //     getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
-  //   }
-  //   // } catch (e) {
-  //   //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
-  //   // } finally {}
-  // }
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
 }

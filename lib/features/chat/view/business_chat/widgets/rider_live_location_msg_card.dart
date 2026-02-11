@@ -8,6 +8,7 @@ import 'package:mappls_gl/mappls_gl.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/size_config.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
@@ -169,30 +170,35 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                 children: [
                   Expanded(
                     child: TextButton.icon(
-                      onPressed: () {
-                        //     endLat: 26.7836,
-                        //             endLng: 80.9013,
+                      onPressed: ()async {
+                       bool value= await chatViewController.checkTrackOrderStatusApi("${widget.message.metadata?.order?.id}");
+                      if(value){
                         Get.to(() => TrackRiderLiveLocationPage(
-                              riderId: rider?.userId ?? '',
-                              dropLat: widget
-                                      .message
-                                      .metadata
-                                      ?.order
-                                      ?.dropLocation
-                                      ?.location
-                                      ?.coordinates?[1] ??
-                                  26.7836,
-                              dropLng: widget
-                                      .message
-                                      .metadata
-                                      ?.order
-                                      ?.dropLocation
-                                      ?.location
-                                      ?.coordinates?[0] ??
-                                  80.9013,
-                            ));
+                          riderId: rider?.userId ?? '',
+                          dropLat: widget
+                              .message
+                              .metadata
+                              ?.order
+                              ?.dropLocation
+                              ?.location
+                              ?.coordinates?[1] ??
+                              26.7836,
+                          dropLng: widget
+                              .message
+                              .metadata
+                              ?.order
+                              ?.dropLocation
+                              ?.location
+                              ?.coordinates?[0] ??
+                              80.9013,
+                        ));
+                      }else{
+                        commonSnackBar(
+                            message: "Ride has been Completed");
+                      }
+
                       },
-                      icon: SvgPicture.asset(AppIconAssets.rider_call_icon),
+                      icon: SvgPicture.asset(AppIconAssets.location_new,color: AppColors.primaryColor,),
                       label: CustomText(
                         AppStrings.trackOrder,
                         color: AppColors.primaryColor,
