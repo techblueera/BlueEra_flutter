@@ -5,11 +5,6 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../category/OphthalmologyENTPage.dart';
-import '../category/basic_blood_test_page.dart';
-import '../category/lab_pathology_page.dart';
-import '../category/pulmonology_diagnostics_page.dart';
-import '../category/radiology_page.dart';
 import '../lab_test_list_screen.dart';
 import 'me_menu_card_design.dart';
 class AddLabServices extends StatefulWidget {

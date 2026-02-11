@@ -18,10 +18,8 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/language_localization_service/language_controller_new.dart';
 import '../../../../core/routes/route_helper.dart';
-import '../../../../environment_config.dart';
 import '../../../../widgets/common_dialog.dart';
 import '../../../../widgets/custom_btn.dart';
-import '../../../../widgets/webview_common.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../business/visiting_card/view/business_own_profile_screen.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -35,13 +33,10 @@ import '../../../personal/personal_profile/view/franchise/request_to_franchise.d
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
-import '../../../personal/personal_profile/view/profile_settings_new_screen.dart';
 import '../../../personal/personal_profile/view/profile_setup_new_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
-import '../../../subscription/view/subscription_screen.dart';
 import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
-import '../../franchise/view/franchise_home.dart';
 import '../../referral/view/referral_page.dart';
 
 class ProfileMenuDrawer extends StatefulWidget {

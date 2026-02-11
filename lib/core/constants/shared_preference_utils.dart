@@ -543,7 +543,7 @@ getLabID() async {
   try {
     labIDGlobal = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.labIDKey);
-  } on Exception catch (e) {
+  } on Exception {
     // TODO
   }
 }

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
-import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 

@@ -201,7 +201,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                       _buildCategoryGrid(
                         items: grocerySuperCategories,
                         onTap: (item) {
-                          final categoryMap = getCategoriesByTag(item.slugId);
+                          getCategoriesByTag(item.slugId);
                           Get.toNamed(
                             RouteHelper.getGroceryCategoryScreenRoute(),
                             arguments: {

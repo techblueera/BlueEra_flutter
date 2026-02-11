@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/ai_lab_profile_dialoge.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

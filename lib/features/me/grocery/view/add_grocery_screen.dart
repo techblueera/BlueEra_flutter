@@ -588,11 +588,4 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
   //   );
   // }
 
-  Widget _TextFieldBox({required String title, required String hint}) {
-    return CommonTextField(
-      textEditController: TextEditingController(),
-      title: title,
-      hintText: hint,
-    );
-  }
 }

@@ -404,11 +404,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   isValidate() {
     if (isBusiness()) {
       return (controller.selectedImage.value != null &&
-          controller.serviceName.value.isNotEmpty &&
-          businessCategoryGlobal !=
-              null &&
-          businessSubCategoryGlobal !=
-              null);
+          controller.serviceName.value.isNotEmpty);
     } else {
       return (controller.selectedImage.value != null &&
           controller.serviceName.value.isNotEmpty);

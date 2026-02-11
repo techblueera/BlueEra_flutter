@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:io';
 import 'package:BlueEra/core/anim/listening_ripple.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -69,8 +68,6 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
   final chatViewController = getOrPut(() => ChatViewController());
   final chatThemeController = getOrPut(() => ChatThemeController());
   final TextEditingController editingController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  bool _isEmojiVisible = false;
   final _scrollController = ScrollController();
 
   final SpeechToText _speechToText = SpeechToText();

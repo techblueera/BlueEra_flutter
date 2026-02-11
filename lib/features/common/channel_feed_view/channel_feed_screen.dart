@@ -304,7 +304,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
         ));
     return setupScrollVisibilityNotification(
       controller: scrollController,
-      headerHeight: (widget.headerHeight ?? SizeConfig.size100),
+      headerHeight: (widget.headerHeight),
       onVisibilityChanged: (visible, offset) {
         final controller = Get.find<HomeScreenController>();
         final currentOffset = controller.headerOffset.value;

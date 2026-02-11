@@ -153,7 +153,6 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     );
 
     final overlay = Overlay.of(context, rootOverlay: true);
-    if (overlay == null) return;
 
     overlay.insert(overlayEntry!);
   }

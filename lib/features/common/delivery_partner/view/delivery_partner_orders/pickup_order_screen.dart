@@ -165,7 +165,6 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           );
         },
       );
-    ;
   }
   Map<String, List<RiderOrdersDetailsModel>> groupOrdersByOrderFor(
       List<RiderOrdersDetailsModel> orders) {

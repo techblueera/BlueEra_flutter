@@ -153,7 +153,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress}');
     if (LocationService.lat!=0.0 && LocationService.lng!=0.0) {
       final position = LatLng(LocationService.lat, LocationService.lng);
-      final address = LocationService.userCurrentAddress;
 
       _currentPosition = LatLng(position.latitude, position.longitude);
       _currentAddress = LocationService.userCurrentAddress.value.formattedAddress;

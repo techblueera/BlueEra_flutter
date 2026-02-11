@@ -1459,7 +1459,6 @@ class RouteHelper {
       //      settings: RouteSettings(name: getGroceryCartScreenRoute())
       // );
       case RouteConstant.grocerySuperCategoryScreen:
-        final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
             builder: (_) =>
                 GrocerySuperCategoryScreen(),

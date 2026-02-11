@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

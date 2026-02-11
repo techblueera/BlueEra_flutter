@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

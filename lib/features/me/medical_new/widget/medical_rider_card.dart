@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:BlueEra/features/me/grocery/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/me/medical_new/controller/user_medical_controller.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';

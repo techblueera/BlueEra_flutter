@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -24,8 +23,6 @@ class FranchiseHeader extends StatefulWidget {
 }
 
 class _FranchiseHeaderState extends State<FranchiseHeader> {
-  File? _bannerImage;
-  File? _logoImage;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(bool isBanner) async {
@@ -33,9 +30,7 @@ class _FranchiseHeaderState extends State<FranchiseHeader> {
     if (image != null) {
       setState(() {
         if (isBanner) {
-          _bannerImage = File(image.path);
         } else {
-          _logoImage = File(image.path);
         }
       });
       // if (isBanner) {

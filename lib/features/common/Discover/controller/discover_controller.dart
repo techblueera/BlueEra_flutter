@@ -367,9 +367,7 @@ Future<String> getOrderTypeString()async{
 
     if(selectedFromLat?.value!=0.0&&selectedFromLong?.value!=0.0&&selectedToLat?.value!=0.0&&selectedToLong?.value!=0.0){
       findRiderDetailsLoading.value=true;
-      String? postCodeData;
       if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1){
-        postCodeData=await getCurrentPostCode();
 
       }
       Map<String, dynamic> queryParams= {

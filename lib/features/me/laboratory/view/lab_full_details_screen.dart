@@ -1,12 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -75,51 +72,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
     );
   }
 
-  Widget _cover(Profile? profile) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Image.network(
-        (profile?.coverUrl ?? '').toString().replaceAll('`', ''),
-        height: 160,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          height: 160,
-          color: Colors.grey.shade200,
-          alignment: Alignment.center,
-          child: const Icon(Icons.image, size: 40),
-        ),
-      ),
-    );
-  }
 
-  Widget _about(Profile? profile, bool isWide) {
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(profile?.name ?? '',
-                    fontSize: SizeConfig.size16, fontWeight: FontWeight.w700),
-                SizedBox(height: SizeConfig.size6),
-                CustomText(profile?.description ?? '',
-                    maxLines: isWide ? 6 : 4, color: AppColors.black28),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _basicTest(List<Tests> tests) {
     if (tests.isEmpty) return const SizedBox.shrink();
