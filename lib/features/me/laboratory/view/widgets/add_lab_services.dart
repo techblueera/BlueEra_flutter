@@ -10,6 +10,7 @@ import '../category/basic_blood_test_page.dart';
 import '../category/lab_pathology_page.dart';
 import '../category/pulmonology_diagnostics_page.dart';
 import '../category/radiology_page.dart';
+import '../lab_test_list_screen.dart';
 import 'me_menu_card_design.dart';
 class AddLabServices extends StatefulWidget {
   const AddLabServices({super.key});
@@ -20,11 +21,12 @@ class AddLabServices extends StatefulWidget {
 class _AddLabServicesState extends State<AddLabServices> {
   // Map of service title to corresponding page
   final Map<String, Widget Function()> servicePages = {
-    "Basic Blood Test": () => BasicBloodTestPage(),
-    "Pathology": () => PathologyTestsPage(),
-    "Radiology": () => RadiologyPage(),
-    "Pulmonology Diagnostics": () => PulmonologyDiagnosticsPage(),
-    "Ophthalmology & ENT": () => OphthalmologyENTPage(),
+    "Basic Blood Test": () => LabTestListScreen(collection: "Blood test", title: "Basic Blood Test"),
+    "Pathology": () => LabTestListScreen(collection: "Pathology", title: "Pathology"),
+    "Radiology": () => LabTestListScreen(collection: "Radiology", title: "Radiology"),
+    "Pulmonology Diagnostics": () => LabTestListScreen(collection: "Pulmonology Diagnostics", title: "Pulmonology Diagnostics"),
+    "Ophthalmology & ENT": () => LabTestListScreen(collection: "Ophthalmology & ENT", title: "Ophthalmology & ENT"),
+    "Others (Add Manually)": () => LabTestListScreen(collection: "Others", title: "Others (Add Manually)"),
   };
 
   @override

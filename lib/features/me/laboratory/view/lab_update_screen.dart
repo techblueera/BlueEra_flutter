@@ -4,66 +4,70 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'widgets/me_menu_card_design.dart';
+import 'health_camp_list_screen.dart';
+import 'lab_description_screen.dart';
+import 'facility_screen.dart';
 
 class LabUpdateScreen extends StatelessWidget {
   LabUpdateScreen({super.key});
-
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
       title: AppStrings.description,
       icon: AppIconAssets.other_privacy,
-      page: () => ComingSoon(),
+      page: () => const LabDescriptionScreen(),
     ),
     ServiceMenuItem(
-      title: "Basic Blood Test ",
+      title: "Basic Blood Test",
       icon: AppIconAssets.BasicBloodTest,
-      page: () => ComingSoon(),
+      page: () => LabTestListScreen(collection: 'Blood test',title: "Basic Blood Test",),
     ),
     ServiceMenuItem(
       title: "Pathology",
       icon: AppIconAssets.Pathology,
-      page: () => ComingSoon(),
+      page: () => LabTestListScreen(collection: 'Pathology',title: "Pathology",),
     ),
     ServiceMenuItem(
       title: "Radiology",
       icon: AppIconAssets.Radiology,
-      page: () => ComingSoon(),
+      page: () => LabTestListScreen(collection: 'Radiology',title: "Radiology",),
     ),
     ServiceMenuItem(
       title: "Pulmonology Diagnostics",
       icon: AppIconAssets.PulmonologyDiagnostics,
-      page: () => ComingSoon(),
+      page: () => LabTestListScreen(collection: 'Pulmonology Diagnostics',title: "Pulmonology Diagnostics",),
       // page: () => SchoolNoticeAndNews(),
     ),
     ServiceMenuItem(
       title: "Ophthalmology & ENT",
       icon: AppIconAssets.OphthalmologyENT,
-      page: () => ComingSoon(),
+      page: () => LabTestListScreen(collection: 'Ophthalmology & ENT',title: "Ophthalmology & ENT",),
     ),
     ServiceMenuItem(
       title: "Others (Add Manually)",
       icon: AppIconAssets.OthersLab,
-      page: () => ComingSoon(),
+      page: () => LabTestListScreen(collection: 'Others',title: "Others",),
     ),
     ServiceMenuItem(
       title: "Facility ",
       icon: AppIconAssets.other_office_facility,
-      page: () => ComingSoon(),
+      page: () => FacilityScreen(),
     ),
     ServiceMenuItem(
       title: "Gallery",
       icon: AppIconAssets.other_gallery,
-      page: () => ComingSoon(),
+      page: () => LabServicePhotosPhotoScreen(),
     ),
     ServiceMenuItem(
       title: "Create Health Camp",
       icon: AppIconAssets.OthersLab,
-      page: () => ComingSoon(),
+      page: () => const HealthCampListScreen(),
     ),
     ServiceMenuItem(
       title: "Contact Us",

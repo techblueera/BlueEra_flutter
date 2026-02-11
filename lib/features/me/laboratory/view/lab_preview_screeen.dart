@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/ai_lab_service_model_res.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,16 @@ class LabPreviewScreen extends StatelessWidget {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: "Diagnostic Laboratory Preview ",
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 30.0,right: 20,left: 20,top: 10),
+          child: PositiveCustomBtn(
+              onTap: () async {
+                await controller.createLabServiceController();
+              },
+              title: "Create Laboratory"),
+        ),
       ),
       body: Obx(() {
         // Accessing data through the 'aiLabResModel' variable
