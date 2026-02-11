@@ -29,7 +29,6 @@ class _UpdatePersonalProfessionDialogState extends State<UpdatePersonalProfessio
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
   bool isProfileCreateStatus = false;
   final authController = Get.find<AuthController>();
-  AutovalidateMode _autoValidate = AutovalidateMode.always;
   final designationController = TextEditingController();
   final specializationController = TextEditingController();
   final professionOthersController = TextEditingController();

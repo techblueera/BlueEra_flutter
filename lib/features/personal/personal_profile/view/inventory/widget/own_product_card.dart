@@ -8,7 +8,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -354,22 +353,6 @@ class OwnProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildIconBox(Widget child, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 25,
-        width: 25,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow],
-        ),
-        alignment: Alignment.center,
-        child: child,
-      ),
-    );
-  }
 }
 
 ProductPreviewArgs mapProductDataToPreviewArgs(GetProductData productData) {

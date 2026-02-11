@@ -489,44 +489,6 @@ class _PersonalProfileSetupNewScreenState
     return youTubeRegex.hasMatch(url.trim());
   }
 
-  Widget _filterButtons() {
-    return SingleChildScrollView(
-        padding:
-            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-            SizedBox(width: SizeConfig.size10),
-            Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: Row(
-                children: filters!.map((filter) {
-                  final isSelected = selectedFilter == filter;
-                  return Padding(
-                    padding: EdgeInsets.only(right: SizeConfig.size14),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedFilter = filter;
-                        });
-                      },
-                      child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label,
-                        // use .label for display text
-                        decoration: TextDecoration.underline,
-                        color: isSelected ? Colors.blue : Colors.black54,
-                        decorationColor:
-                            isSelected ? Colors.blue : Colors.black54,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            )
-          ],
-        ));
-  }
 
   Widget _buildMyProfileWidget() {
     return CustomFormCard(

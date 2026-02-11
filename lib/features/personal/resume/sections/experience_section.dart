@@ -105,7 +105,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
                 }
                 showConfirmDeleteDialog(context, () async {
                   Navigator.of(context).pop();
-                  final res =
                   await fullTimeExperienceController.deleteExperience(id: id);
 
                 });
