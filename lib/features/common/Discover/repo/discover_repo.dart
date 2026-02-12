@@ -46,6 +46,16 @@ class DiscoverRepo extends BaseService {
     );
     return response;
   }
-
+  /// GET EARN SERVICES
+  Future<ResponseModel> fetchProfessionalConsServices({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      professionalSearch,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }
 

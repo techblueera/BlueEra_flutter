@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_update_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
           controller: _tabController,
           children: [
             PersonalProfileSetupNewScreen(),
+            SocialHomeScreen(),
             SocialUpdateScreen(),
             ComingSoon(),
           ],

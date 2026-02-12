@@ -63,58 +63,61 @@ class ProfessionalsTimingScreen extends StatelessWidget {
                         children: [
                           // Day Name
                           SizedBox(
-                            width: 80,
+                            width: 60,
                             child: CustomText(
                               dayTiming.day,
                               fontWeight: FontWeight.w500,
+                              fontSize: 12,
                               color: AppColors.mainTextColor,
                             ),
                           ),
 
-                          Row(
-                            children: [
-                              Transform.scale(
-                                scale: 0.8,
-                                child: Switch(
-                                  value: dayTiming.isOpen.value,
-                                  onChanged: (val) =>
-                                      controller.toggleDay(index, val),
-                                  activeColor: Colors.white,
-                                  activeTrackColor: AppColors.primaryColor,
-                                  // Google Blue
-                                  inactiveThumbColor: Colors.white,
-                                  inactiveTrackColor: Colors.grey.shade300,
+                          Flexible(
+                            child: Row(
+                              children: [
+                                Transform.scale(
+                                  scale: 0.8,
+                                  child: Switch(
+                                    value: dayTiming.isOpen.value,
+                                    onChanged: (val) =>
+                                        controller.toggleDay(index, val),
+                                    activeColor: Colors.white,
+                                    activeTrackColor: AppColors.primaryColor,
+                                    // Google Blue
+                                    inactiveThumbColor: Colors.white,
+                                    inactiveTrackColor: Colors.grey.shade300,
+                                  ),
                                 ),
-                              ),
-                              // Status Text or Time Pickers
-                              dayTiming.isOpen.value
-                                  ? CustomText(
-                                      "Open",
-                                      color: AppColors.secondaryTextColor,
-                                      fontSize: SizeConfig.size12,
-                                    )
-                                  : const CustomText(
-                                      "Closed",
-                                      color: AppColors.mainTextColor,
-                                    ),
-
-                              if (dayTiming.isOpen.value) ...[
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                _buildDropdown(
-                                    controller.timeSlots,
-                                    dayTiming.openTime.value,
-                                    (val) => controller.updateTime(
-                                        index, val!, true)),
-                                const SizedBox(width: 8),
-                                _buildDropdown(
-                                    controller.timeSlots,
-                                    dayTiming.closeTime.value,
-                                    (val) => controller.updateTime(
-                                        index, val!, false)),
-                              ]
-                            ],
+                                // Status Text or Time Pickers
+                                dayTiming.isOpen.value
+                                    ? CustomText(
+                                        "Open",
+                                        color: AppColors.secondaryTextColor,
+                                        fontSize: SizeConfig.size12,
+                                      )
+                                    : const CustomText(
+                                        "Closed",
+                                        color: AppColors.mainTextColor,
+                                      ),
+                            
+                                if (dayTiming.isOpen.value) ...[
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  _buildDropdown(
+                                      controller.timeSlots,
+                                      dayTiming.openTime.value,
+                                      (val) => controller.updateTime(
+                                          index, val!, true)),
+                                  const SizedBox(width: 8),
+                                  _buildDropdown(
+                                      controller.timeSlots,
+                                      dayTiming.closeTime.value,
+                                      (val) => controller.updateTime(
+                                          index, val!, false)),
+                                ]
+                              ],
+                            ),
                           ),
 
                           const SizedBox(width: 8),

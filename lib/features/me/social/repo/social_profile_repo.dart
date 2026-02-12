@@ -6,9 +6,18 @@ import 'package:BlueEra/core/api/model/social_event_model.dart';
 import 'package:BlueEra/core/api/model/social_vision_mission_model.dart';
 import 'package:BlueEra/core/api/model/social_activity_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/me/social/model/social_profile_res_model.dart';
 
 class SocialProfileRepo extends BaseService {
   final ApiBaseHelper _apiBaseHelper = ApiBaseHelper();
+
+  Future<SocialProfileResModel> getSocialProfile() async {
+    final response = await _apiBaseHelper.getHTTP(socialProfile);
+    if (response.response != null && response.response!.data != null) {
+      return SocialProfileResModel.fromJson(response.response!.data);
+    }
+    return SocialProfileResModel(success: false);
+  }
 
   Future<PersonalIdentityModel> getPersonalIdentity() async {
     final response = await _apiBaseHelper.getHTTP(personalIdentity);

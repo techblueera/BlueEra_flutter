@@ -1,9 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -48,21 +53,22 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // _cover(profile),
                 LabHeaderView(
                   schoolAboutUsController: controller,
                 ),
                 SizedBox(height: SizeConfig.size12),
-                // _about(profile, isWide),
-                // SizedBox(height: SizeConfig.size12),
                 _basicTest(tests),
                 SizedBox(height: SizeConfig.size16),
-                _popularServices(tests, profile),
+                CommonCardWidget(
+                    padding: 10,
+                    cardMargin: 0,
+                    child: _popularServices(tests, profile)),
                 SizedBox(height: SizeConfig.size16),
-                _allServices(facility),
+                CommonCardWidget(
+                    padding: 10, cardMargin: 0, child: _allServices(facility)),
                 SizedBox(height: SizeConfig.size16),
-                _gallery(galleries, isWide),
-                SizedBox(height: SizeConfig.size16),
+                LabHomeGalleryWidget(photos: galleries),
+                // SizedBox(height: SizeConfig.size16),
                 _contact(contact, isWide),
               ],
             ),
@@ -72,52 +78,134 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
     );
   }
 
-
-
   Widget _basicTest(List<Tests> tests) {
+    final List<Color> cardColors = [
+      Color(0xFFFFFBEB), // Soft Yellow/Cream
+      Color(0xFFF0FDF4), // Soft Green
+      Color(0xFFEFF6FF), // Soft Blue
+      Color(0xFFFAF5FF), // Soft Purple
+    ];
     if (tests.isEmpty) return const SizedBox.shrink();
-    final t = tests.first;
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+    return CommonCardWidget(
+      cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Basic Blood Test", fontWeight: FontWeight.w700),
-          SizedBox(height: SizeConfig.size6),
-          Row(
-            children: [
-              Expanded(
-                  child: CustomText(t.testName ?? "",
-                      fontWeight: FontWeight.w600)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: CustomText("LFT",
-                    color: AppColors.primaryColor, fontSize: SizeConfig.small),
-              )
-            ],
-          ),
-          SizedBox(height: SizeConfig.size6),
-          CustomText(t.description ?? "", color: AppColors.black28),
-          SizedBox(height: SizeConfig.size8),
-          Wrap(
-            spacing: 8,
-            children: [
-              _pill("Price: ${t.customerPrice ?? 0}"),
-              _pill("Fees: ${t.testFees ?? 0}"),
-              _pill("Report: ${t.estimatedReportHours ?? 0}h"),
-              _pill("Gender: ${t.gender ?? ''}"),
-            ],
+          CustomText("Test Report", fontWeight: FontWeight.w700),
+          SizedBox(
+            height: 200, // Adjusted height to accommodate the layout
+            child: ListView.builder(
+              itemCount: tests.length,
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 0),
+              itemBuilder: (BuildContext context, int index) {
+                final t = tests[index];
+                // Logic to repeat the 4 colors
+                final backgroundColor = cardColors[index % cardColors.length];
+
+                return Container(
+                  width: 300,
+                  // Fixed width for horizontal cards
+                  margin: EdgeInsets.only(right: 12, top: 8, bottom: 8),
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    // Subtle shadow to match the "lifted" look
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row: Title and More Icon
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: CustomText(
+                              t.testName ?? "Test Name",
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // Icon(Icons.more_vert, color: Colors.black87),
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      CustomText(
+                        t.description ?? "",
+                        color: Colors.grey.shade600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Divider(color: Colors.grey.shade300, height: 1),
+                      ),
+
+                      // Middle Row: Report Time and Price
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _pill(
+                              "Reports within ${t.estimatedReportHours ?? 24} hours",
+                              Colors.white),
+                          _pill("INR-${t.customerPrice ?? 0}", Colors.white,
+                              isBold: true),
+                        ],
+                      ),
+
+                      SizedBox(height: 12),
+
+                      // Bottom Row: Home Collection status
+                      Row(
+                        children: [
+                          Icon(Icons.circle, size: 8, color: Colors.grey),
+                          SizedBox(width: 8),
+                          CustomText(
+                            "Home sample collection available",
+                            color: Colors.grey.shade700,
+                            fontSize: 14,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ],
+      ),
+    );
+
+// Helper method for the styled pills
+  }
+
+  // Helper method for the styled pills
+  Widget _pill(String text, Color bgColor, {bool isBold = false}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
+        ),
       ),
     );
   }
@@ -130,7 +218,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         CustomText("Our Popular Services", fontWeight: FontWeight.w700),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
-          height: 170,
+          height: 70,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemBuilder: (_, i) {
@@ -145,8 +233,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 padding: EdgeInsets.all(SizeConfig.size10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-
                     CustomText(t.testName ?? "",
                         fontSize: SizeConfig.small, maxLines: 2),
                   ],
@@ -176,110 +264,50 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         .map((e) => e.label ?? '')
         .where((e) => e.toString().isNotEmpty)
         .toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText("Our All Services", fontWeight: FontWeight.w700),
-        SizedBox(height: SizeConfig.size8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ...chips.map((c) => _chip(c)),
-            ...other.map((c) => _chip(c)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _gallery(List<Galleries> galleries, bool isWide) {
-    if (galleries.isEmpty) return const SizedBox.shrink();
-    final images = (galleries.first.imageUrls ?? [])
-        .map((u) => u.toString().replaceAll('`', ''))
-        .toList();
-    if (images.isEmpty) return const SizedBox.shrink();
-    final cross = isWide ? 4 : 2;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText("Gallery", fontWeight: FontWeight.w700),
-        SizedBox(height: SizeConfig.size8),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cross, crossAxisSpacing: 10, mainAxisSpacing: 10),
-          itemCount: images.length,
-          itemBuilder: (_, i) {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(images[i],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: Colors.grey.shade200)),
-            );
-          },
-        ),
-      ],
+    return SizedBox(
+      width: Get.width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText("Our All Services", fontWeight: FontWeight.w700),
+          SizedBox(height: SizeConfig.size8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...chips.map((c) => _chip(c)),
+              ...other.map((c) => _chip(c)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _contact(ContactInfo? contact, bool isWide) {
     final loc = contact?.location;
-    final name = contact?.name ?? '';
-    final phone = contact?.phoneNo ?? '';
-    final email = contact?.email ?? '';
-    final website = (contact?.websiteUrl ?? '').toString().replaceAll('`', '');
-    final address = loc?.name ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText("Contact Us", fontWeight: FontWeight.w700),
-        SizedBox(height: SizeConfig.size8),
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size12),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(name, fontWeight: FontWeight.w600),
-              SizedBox(height: SizeConfig.size6),
-              CustomText(address,
-                  color: AppColors.black28, maxLines: isWide ? 3 : 2),
-              SizedBox(height: SizeConfig.size8),
-              CustomText(phone),
-              CustomText(email),
-              CustomText(website),
-              SizedBox(height: SizeConfig.size12),
-              Container(
-                height: 160,
-                decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(10)),
-                alignment: Alignment.center,
-                child: const Icon(Icons.map, color: AppColors.primaryColor),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+        // 5. Contact Section
+        SizedBox(height: SizeConfig.size16),
+        _buildContactCard(contact),
+        SizedBox(height: SizeConfig.size16),
 
-  Widget _pill(String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
-      ),
-      child: CustomText(text,
-          fontSize: SizeConfig.small, color: AppColors.primaryColor),
+        CommonCardWidget(
+          padding: 0,
+          cardMargin: 0,
+          child: BusinessLocationWidget(
+              locationText: "",
+              latitude: double.parse(loc?.coordinates?[1].toString() ?? "0.0"),
+              longitude: double.parse(loc?.coordinates?[0].toString() ?? "0.0"),
+              businessName: loc?.name ?? "",
+              padding: 0,
+              isTitleShow: true),
+        ),
+
+        SizedBox(height: kBottomNavigationBarHeight + 30),
+      ],
     );
   }
 
@@ -292,6 +320,92 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
       ),
       child: CustomText(text, fontSize: SizeConfig.small),
+    );
+  }
+
+  Widget _buildContactCard(ContactInfo? profile) {
+    return CommonCardWidget(
+      padding: 5,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, left: 6),
+            child: const CustomText("Contact Us", fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[200]!),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logo and Hotel Name
+                if (controller.details.value?.profile?.logoUrl?.isNotEmpty ??
+                    false)
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 10)
+                      ],
+                      image: DecorationImage(
+                          image: NetworkImage(
+                              controller.details.value?.profile?.logoUrl ?? ''),
+                          fit: BoxFit.cover),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                CustomText(controller.details.value?.profile?.name,
+                    fontSize: 20, fontWeight: FontWeight.bold),
+
+                const SizedBox(height: 5),
+                CustomText(
+                  controller.details.value?.profile?.description ?? "",
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+                const Divider(height: 30),
+
+                // Contact List
+                _contactItem(AppIconAssets.website_click,
+                    profile?.websiteUrl ?? "", Colors.blue),
+                _contactItem(
+                    AppIconAssets.principal, "Reception", Colors.grey[700]!),
+                _contactItem(AppIconAssets.email, profile?.email ?? "",
+                    AppColors.secondaryTextColor),
+                _contactItem(AppIconAssets.phone_outline,
+                    profile?.phoneNo ?? "", AppColors.secondaryTextColor),
+                _contactItem(AppIconAssets.location_new,
+                    profile?.location?.name ?? "", Colors.grey[700]!),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _contactItem(String icon, String label, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          LocalAssets(
+            imagePath: icon,
+            imgColor: iconColor,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+              child: CustomText(label, fontSize: 15, color: Colors.black87)),
+        ],
+      ),
     );
   }
 }

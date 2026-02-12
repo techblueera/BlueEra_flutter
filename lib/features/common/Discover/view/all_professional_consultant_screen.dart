@@ -6,16 +6,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
-import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -31,39 +29,35 @@ class AllProfessionConsultantScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
   final OnboardingCategoryModel? selectedProfessionConsultantData;
 
-  const AllProfessionConsultantScreen({
-    super.key,
-    required this.professionalConsultantCategories,
-    this.selectedProfessionConsultantData});
+  const AllProfessionConsultantScreen(
+      {super.key,
+      required this.professionalConsultantCategories,
+      this.selectedProfessionConsultantData});
 
   @override
-  State<AllProfessionConsultantScreen> createState() => _AllProfessionConsultantScreenState();
+  State<AllProfessionConsultantScreen> createState() =>
+      _AllProfessionConsultantScreenState();
 }
 
-class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantScreen> {
+class _AllProfessionConsultantScreenState
+    extends State<AllProfessionConsultantScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<OnboardingCategoryModel> _professionalConsultantCategories;
   ScrollController scrollController = ScrollController();
-  String serviceSubType = EarnServiceTypes.selfWork.label;
-  String earnServiceType = AppConstants.service;
 
   @override
-  initState(){
+  initState() {
     super.initState();
     _professionalConsultantCategories = widget.professionalConsultantCategories;
-    controller.selectedProfessionalConsultantData.value = widget.selectedProfessionConsultantData;
-    // controller.fetchEarnServices(
-    //     earnServiceType: earnServiceType,
-    //     subType: serviceSubType
-    // );
+    controller.selectedProfessionalConsultantData.value =
+        widget.selectedProfessionConsultantData;
+    controller.fetchProfessionalConsultantServices();
 
     // Listener for Pagination
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
-        // controller.fetchEarnServices(
-        //     earnServiceType: earnServiceType,
-        //     subType: serviceSubType,
-        //     isLoadMore: true);
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        controller.fetchProfessionalConsultantServices(isLoadMore: true);
       }
     });
   }
@@ -75,18 +69,13 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
       body: SafeArea(
         child: Column(
           children: [
-
             SizedBox(
               height: SizeConfig.paddingM,
             ),
-
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
               child: InkWell(
-                onTap: () {
-
-                },
+                onTap: () {},
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.size10,
@@ -105,8 +94,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         width: SizeConfig.size30,
                       ),
                       SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                          AppStrings.bookViaBlueEraPartner,
+                      CustomText(AppStrings.bookViaBlueEraPartner,
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400),
@@ -115,11 +103,9 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                 ),
               ),
             ),
-
             SizedBox(
               height: SizeConfig.paddingXSL,
             ),
-
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,9 +114,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   SizedBox(
                     width: SizeConfig.size6,
                   ),
-                  Expanded(
-                      child: rightContent()
-                  ),
+                  Expanded(child: rightContent()),
                 ],
               ),
             )
@@ -160,7 +144,8 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
         if (item.slugId == 'ALL_OPTION') {
           return controller.selectedProfessionalConsultantData.value == null;
         }
-        return controller.selectedProfessionalConsultantData.value?.slugId == item.slugId;
+        return controller.selectedProfessionalConsultantData.value?.slugId ==
+            item.slugId;
       },
       onTap: (item, index) {
         controller.selectedTabIndex.value = index;
@@ -170,112 +155,93 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
         } else {
           controller.selectedProfessionalConsultantData.value = item;
         }
-
         // Single API Call (Clean & Shared)
-        // controller.fetchEarnServices(
-        //   earnServiceType: earnServiceType,
-        //   subType: serviceSubType,
-        // );
+        controller.fetchProfessionalConsultantServices();
       },
     );
   }
 
   Widget rightContent() {
-    return Obx(()=> Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HorizontalTabSelector<CategoryFilter>(
-            tabs: controller.filters,
-            selectedIndex: controller.filters.indexOf(controller.selectedFilter.value),
-            horizontalMargin: 0.0,
-            onTabSelected: (index, _) {
-              final selectedEnum = controller.filters[index];
+    return Obx(() => Padding(
+          padding: EdgeInsets.only(right: SizeConfig.size8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HorizontalTabSelector<CategoryFilter>(
+                tabs: controller.filters,
+                selectedIndex:
+                    controller.filters.indexOf(controller.selectedFilter.value),
+                horizontalMargin: 0.0,
+                onTabSelected: (index, _) {
+                  final selectedEnum = controller.filters[index];
 
-              if (controller.filters == selectedEnum) return;
+                  if (controller.filters == selectedEnum) return;
 
-              controller.selectedFilter.value = selectedEnum;
-              // controller.callApi();
-            },
-            labelBuilder: (r) => r.label,
-            unSelectedBackgroundColor: AppColors.white,
-          ),
-
-          SizedBox(
-            height: SizeConfig.size5,
-          ),
-
-          Expanded(
-            child: Obx(() {
-              if (controller.isEarnServiceLoading.value &&
-                  controller.earnServiceList.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (controller.earnServiceList.isEmpty) {
-                return Center(child: EmptyStateWidget(message: "No services found"));
-              }
-
-              return ListView.builder(
-                  controller: scrollController,
-                  itemCount: controller.earnServiceList.length +
-                      (controller.isEarnServiceLoadingMore.value ? 1 : 0),
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-                  itemBuilder: (context, index) {
-
-                    if (index == controller.earnServiceList.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    }
-
-                    var service = controller.earnServiceList[index];
-
-                    return selfProfessionCard(service);
+                  controller.selectedFilter.value = selectedEnum;
+                  // controller.callApi();
+                },
+                labelBuilder: (r) => r.label,
+                unSelectedBackgroundColor: AppColors.white,
+              ),
+              SizedBox(
+                height: SizeConfig.size5,
+              ),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isProfConServiceLoading.value &&
+                      controller.professionalConsDataList.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
                   }
-              );
-            }),
-          )
 
-        ],
-      ),
-    ));
+                  if (controller.professionalConsDataList.isEmpty) {
+                    return Center(
+                        child: EmptyStateWidget(message: "No services found"));
+                  }
+
+                  return ListView.builder(
+                      controller: scrollController,
+                      itemCount: controller.professionalConsDataList.length +
+                          (controller.isProfConServiceLoadingMore.value
+                              ? 1
+                              : 0),
+                      shrinkWrap: true,
+                      padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
+                      itemBuilder: (context, index) {
+                        if (index ==
+                            controller.professionalConsDataList.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        }
+
+                        var service =
+                            controller.professionalConsDataList[index];
+
+                        return selfProfessionCard(service);
+                      });
+                }),
+              )
+            ],
+          ),
+        ));
   }
 
-  Widget selfProfessionCard(ServiceData service){
-
+  Widget selfProfessionCard(ProfessionalConsData service) {
     // Timings
-    DateTime parse12HourTime(String timeStr) {
-      final format = RegExp(r'(\d+):(\d+)\s*(AM|PM)');
-      final match = format.firstMatch(timeStr.trim());
 
-      if (match != null) {
-        int hour = int.parse(match.group(1)!);
-        int minute = int.parse(match.group(2)!);
-        final period = match.group(3);
-
-        if (period == "PM" && hour != 12) hour += 12;
-        if (period == "AM" && hour == 12) hour = 0;
-
-        return DateTime(0, 1, 1, hour, minute);
-      }
-
-      return DateTime(0); // fallback
-    }
-
+/*
     Map<String, String> getMinMaxTimings(List<Timings>? timingsList) {
-      if (timingsList == null || timingsList.isEmpty) return {"start": "--", "end": "--"};
+      if (timingsList == null || timingsList.isEmpty)
+        return {"start": "--", "end": "--"};
 
       Timings? earliest = timingsList.first;
       Timings? latest = timingsList.first;
 
       for (final t in timingsList) {
-        final startTime = parse12HourTime(t.start ?? "00:00 AM");
+        final startTime = parse12HourTime(t.schedule.monday.start ?? "00:00 AM");
         final earliestStart = parse12HourTime(earliest?.start ?? "00:00 AM");
         if (startTime.isBefore(earliestStart)) earliest = t;
 
@@ -289,33 +255,33 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
         "end": latest?.end ?? "--",
       };
     }
+*/
 
-    final timingMap = getMinMaxTimings(service.service?.timings);
-
+    // final timingMap = getMinMaxTimings(service.service?.timings);
 
     // Price
-    final priceData = service.priceData;
-    final isRange = priceData?.priceType == 'range';
+    final priceData = service.pricing?.amount;
+    final isRange = service.pricing?.type == 'range';
 
     String priceDisplay;
     if (isRange) {
-      final min = priceData?.priceRange?.min ?? 0;
-      final max = priceData?.priceRange?.max ?? 0;
+      final min = priceData ?? 0;
+      final max = priceData ?? 0;
       priceDisplay = "₹${formatIndianNumber(min)}-${formatIndianNumber(max)}";
     } else {
-      priceDisplay = "₹${formatIndianNumber(priceData?.singlePrice ?? 0)}";
+      priceDisplay = "₹${formatIndianNumber(priceData ?? 0)}";
     }
 
     Color badgeColor = isRange ? AppColors.green1A : AppColors.primaryColor;
-    String badgeText = priceData?.priceType.toString().capitalizeFirst ?? '';
-
+    String badgeText = service.pricing?.type.toString().capitalizeFirst ?? '';
 
     return InkWell(
-      onTap: ()=> showFullProfessionDetails(
+      // onTap: null,
+      onTap: () => showFullProfessionDetails(
         service,
-        timingMap: timingMap,
+        // timingMap: timingMap,
         priceDisplay: priceDisplay,
-        priceBadgeText:badgeText ,
+        priceBadgeText: badgeText,
         priceBadgeColor: badgeColor,
       ),
       child: CustomFormCard(
@@ -332,7 +298,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                       // Navigate to details
                     },
                     child: CachedAvatarWidget(
-                      imageUrl: service.profileImage ?? '',
+                      imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
                       size: SizeConfig.size40,
                       borderColor: Colors.white,
                       borderRadius: SizeConfig.size20,
@@ -341,25 +307,29 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   SizedBox(width: SizeConfig.size6),
                   Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                              service.name ?? 'Unknown User',
-                              fontSize: SizeConfig.small,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w600
-                          ),
-                          SizedBox(height: SizeConfig.size6),
-                          CommonRatingRow(
-                            rating: double.tryParse(service.rating.toString()) ?? 0.0,
-                            reviews: service.reviewCount ?? 0,
-                            distance: '${service.distance ?? 0} KM',
-                          )
-                        ],
-                      )
-                  ),
-                  Icon(Icons.more_vert, color: AppColors.black)
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(service.basicDetails?.fullName ?? 'User',
+                          // fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w600),
+                      // SizedBox(height: SizeConfig.size6),
+                      CustomText(
+                        service.basicDetails?.shortTagline ?? 'User',
+                        fontSize: SizeConfig.small,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.mainTextColor,
+                      ),
+                      // CommonRatingRow(
+                      //   rating: double.tryParse(service.rating.toString()) ?? 0.0,
+                      //   reviews: service.reviewCount ?? 0,
+                      //   distance: '${service.distance ?? 0} KM',
+                      // )
+                    ],
+                  )),
+                  // Icon(Icons.more_vert, color: AppColors.black)
                 ],
               ),
 
@@ -376,89 +346,87 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
               //     SizedBox(height: SizeConfig.size6),
               //   ],
 
-              (service.service!=null &&
-                  service.service!.expertise!=null &&
-                  service.service!.expertise!.isNotEmpty)
+              /*  (service.certificates != null &&
+                      (service.certificates?.isNotEmpty ?? false))
                   ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: SizeConfig.size6),
-                  ...List.generate(
-                  service.service!.expertise!.take(2).length,
-                      (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          margin:
-                          const EdgeInsets.only(top: 6.0, right: 8.0),
-                          width: 4.0,
-                          height: 4.0,
-                          decoration: BoxDecoration(
-                            color: AppColors.secondaryTextColor,
-                            shape: BoxShape.circle,
+                          SizedBox(height: SizeConfig.size6),
+                          ...List.generate(
+                            service.certificates?.take(2).length ?? 0,
+                            (index) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(
+                                        top: 6.0, right: 8.0),
+                                    width: 4.0,
+                                    height: 4.0,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondaryTextColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: CustomText(
+                                      service.certificates?[index].title,
+                                      fontSize: SizeConfig.small,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: CustomText(
-                            service.service!.expertise![index],
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                  SizedBox(height: SizeConfig.size6),
-                ]
-              )
-                  : SizedBox(),
+                          SizedBox(height: SizeConfig.size6),
+                        ])
+                  : SizedBox(),*/
 
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
                   children: [
                     CustomText(
-                      "${AppStrings.open.tr}: ",
+                      "${service.pricing?.consultationMode}",
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.green00,
                     ),
-                    CustomText(
-                      timingMap["start"]!,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                    ),
-                    CustomText(
-                      ' | ',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    CustomText(
-                      "${AppStrings.close.tr}: ",
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.redB4,
-                      maxLines: 1,
-                    ),
-                    CustomText(
-                      timingMap["end"]!,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.grayText,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
+                    // CustomText(
+                    //   timingMap["start"]!,
+                    //   fontSize: SizeConfig.small,
+                    //   fontWeight: FontWeight.w400,
+                    //   overflow: TextOverflow.ellipsis,
+                    //   color: AppColors.secondaryTextColor,
+                    //   maxLines: 1,
+                    // ),
+                    // CustomText(
+                    //   ' | ',
+                    //   fontSize: SizeConfig.small,
+                    //   fontWeight: FontWeight.w400,
+                    //   color: AppColors.secondaryTextColor,
+                    //   overflow: TextOverflow.ellipsis,
+                    // ),
+                    // CustomText(
+                    //   "${AppStrings.close.tr}: ",
+                    //   fontSize: SizeConfig.small,
+                    //   fontWeight: FontWeight.w400,
+                    //   overflow: TextOverflow.ellipsis,
+                    //   color: AppColors.redB4,
+                    //   maxLines: 1,
+                    // ),
+                    // CustomText(
+                    //   timingMap["end"]!,
+                    //   fontSize: SizeConfig.small,
+                    //   fontWeight: FontWeight.w400,
+                    //   color: AppColors.grayText,
+                    //   overflow: TextOverflow.ellipsis,
+                    //   maxLines: 1,
+                    // ),
                   ],
                 ),
               ),
@@ -494,22 +462,17 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                 ],
               ),
             ],
-          )
-      ),
+          )),
     );
-
   }
 
   void showFullProfessionDetails(
-      ServiceData service,
-      {
-        required Map<String, String> timingMap,
-        required String priceDisplay,
-        required String priceBadgeText,
-        required Color priceBadgeColor,
-      }
-
-      ) {
+    ProfessionalConsData service, {
+    // required Map<String, String> timingMap,
+    required String priceDisplay,
+    required String priceBadgeText,
+    required Color priceBadgeColor,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -540,9 +503,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Column(
                     children: [
@@ -554,9 +515,11 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                           clipBehavior: Clip.none,
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(10.0)),
                               child: CachedNetworkImage(
-                                imageUrl: service.profileImage ?? '',
+                                imageUrl:
+                                    service.basicDetails?.profilePhotoUrl ?? '',
                                 width: SizeConfig.screenWidth,
                                 height: SizeConfig.size150,
                                 fit: BoxFit.cover,
@@ -565,8 +528,9 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                                   height: SizeConfig.size150,
                                   color: Colors.grey[300],
                                 ),
-                                errorWidget: (context, url, error) =>
-                                    Icon(Icons.person, size: SizeConfig.size150 / 2),
+                                errorWidget: (context, url, error) => Icon(
+                                    Icons.person,
+                                    size: SizeConfig.size150 / 2),
                               ),
                             ),
                             Positioned(
@@ -576,37 +540,34 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                                   padding: EdgeInsets.all(3.0),
                                   decoration: BoxDecoration(
                                       color: AppColors.white,
-                                      shape: BoxShape.circle
-                                  ),
+                                      shape: BoxShape.circle),
                                   child: CachedAvatarWidget(
-                                    imageUrl: service.profileImage ?? '',
+                                    imageUrl:
+                                        service.basicDetails?.profilePhotoUrl ??
+                                            '',
                                     size: SizeConfig.size65,
                                     borderColor: Colors.white,
                                     borderRadius: SizeConfig.size40,
                                   ),
-                                )
-                            )
-
+                                ))
                           ],
                         ),
                       ),
-
                       SizedBox(
                         height: SizeConfig.size60,
                       ),
-
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
                               child: CustomText(
-                                  service.name ?? 'Unknown User',
+                                  service.basicDetails?.fullName ?? ' User',
                                   fontSize: SizeConfig.large,
                                   color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w700
-                              ),
+                                  fontWeight: FontWeight.w700),
                             ),
                             SizedBox(
                               width: SizeConfig.size8,
@@ -618,28 +579,27 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                               ),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(color: AppColors.secondaryTextColor, width: 0.5),
+                                border: Border.all(
+                                    color: AppColors.secondaryTextColor,
+                                    width: 0.5),
                               ),
                               child: CustomText(
-                                  service.profession,
+                                  service.basicDetails?.professionalTitle,
                                   fontSize: SizeConfig.small,
                                   color: AppColors.secondaryTextColor,
-                                  fontWeight: FontWeight.w400
-                              ),
+                                  fontWeight: FontWeight.w400),
                             ),
-
                           ],
                         ),
                       ),
-
                       SizedBox(
                         height: SizeConfig.size12,
                       ),
-
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: ExpandableText(
-                          text: "${service.bio ?? ''}",
+                          text: "${service.basicDetails?.shortTagline ?? ''}",
                           trimLines: 3,
                           expandMode: ExpandMode.dialog,
                           style: TextStyle(
@@ -650,11 +610,9 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                           ),
                         ),
                       ),
-
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
-
                     ],
                   ),
                 ),
@@ -666,9 +624,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   padding: EdgeInsets.all(SizeConfig.size10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -680,7 +636,6 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       CustomText(
                         priceDisplay,
                         fontSize: SizeConfig.medium,
@@ -710,14 +665,12 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
 
                 SizedBox(height: SizeConfig.size15),
 
-                // Timing
+                /* // Timing
                 Container(
                   padding: EdgeInsets.all(SizeConfig.size10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -728,17 +681,13 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
                       Container(
                         color: AppColors.greyE5,
                         height: 0.5,
                         width: SizeConfig.screenWidth,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Row(
@@ -784,10 +733,9 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                           ],
                         ),
                       ),
-
                     ],
                   ),
-                ),
+                ),*/
 
                 SizedBox(height: SizeConfig.size15),
 
@@ -796,9 +744,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   padding: EdgeInsets.all(SizeConfig.size10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,58 +755,98 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
                       Container(
                         color: AppColors.greyE5,
                         height: 0.5,
                         width: SizeConfig.screenWidth,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
-                      (service.service!=null &&
-                          service.service!.facilities!=null &&
-                          service.service!.facilities!.isNotEmpty)
+                      (service.certificates != null &&
+                              (service.certificates?.isNotEmpty ?? false))
                           ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(
-                          service.service!.facilities!.length,
-                              (index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4.0),
-                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                                  width: 4.0,
-                                  height: 4.0,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondaryTextColor,
-                                    shape: BoxShape.circle,
+                                  SizedBox(height: SizeConfig.size6),
+                                  ...List.generate(
+                                    service.certificates?.take(2).length ?? 0,
+                                    (index) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 4.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                                top: 6.0, right: 8.0),
+                                            width: 4.0,
+                                            height: 4.0,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  AppColors.secondaryTextColor,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: CustomText(
+                                              service
+                                                  .certificates?[index].title,
+                                              fontSize: SizeConfig.small,
+                                              color:
+                                                  AppColors.secondaryTextColor,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: SizeConfig.size6),
+                                ])
+                          : SizedBox(),
+                      /* (service.service != null &&
+                              service.service!.facilities != null &&
+                              service.service!.facilities!.isNotEmpty)
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
+                                service.service!.facilities!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(
+                                            top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: CustomText(
+                                          service.service!.facilities![index],
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                Expanded(
-                                  child: CustomText(
-                                    service.service!.facilities![index],
-                                    fontSize: SizeConfig.medium,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
+                              ),
+                            )
                           : CustomText(
-                        'No Description available',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-
+                              'No Description available',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),*/
                     ],
                   ),
                 ),
@@ -872,9 +858,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   padding: EdgeInsets.all(SizeConfig.size10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -885,32 +869,27 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
                       Container(
                         color: AppColors.greyE5,
                         height: 0.5,
                         width: SizeConfig.screenWidth,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
-                      (service.experiences!=null &&
-                          service.experiences!.isNotEmpty)
+                      (service.about?.totalExperience?.years != null &&
+                              service.about?.totalExperience?.years != 0)
                           ? CustomText(
-                        service.experiences![0],
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      )
+                              "${service.about?.totalExperience?.years ?? 0} Yr",
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            )
                           : CustomText(
-                        'No Experience',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-
+                              'No Experience',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),
                     ],
                   ),
                 ),
@@ -922,70 +901,77 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   padding: EdgeInsets.all(SizeConfig.size10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Expertise',
+                        'Portfolio',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
                       Container(
                         color: AppColors.greyE5,
                         height: 0.5,
                         width: SizeConfig.screenWidth,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
-                      (service.skills!=null &&
-                          service.skills!.isNotEmpty)
+                      (service.portfolio != null &&
+                              service.portfolio!.isNotEmpty)
                           ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(
-                          service.skills!.length,
-                              (index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4.0),
-                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                                  width: 4.0,
-                                  height: 4.0,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondaryTextColor,
-                                    shape: BoxShape.circle,
+                              children: List.generate(
+                                service.portfolio!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            margin: EdgeInsets.only(
+                                                top: 6.0, right: 8.0),
+                                            width: 4.0,
+                                            height: 4.0,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  AppColors.secondaryTextColor,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: CustomText(
+                                              service.portfolio?[index]
+                                                  .projectTitle,
+                                              fontSize: SizeConfig.medium,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.mainTextColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      CustomText(
+                                        service.portfolio?[index].description,
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.secondaryTextColor,
+                                      )
+                                    ],
                                   ),
                                 ),
-                                Expanded(
-                                  child: CustomText(
-                                    service.skills![index],
-                                    fontSize: SizeConfig.medium,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
+                              ),
+                            )
                           : CustomText(
-                        'No Skills',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-
+                              'No Data',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),
                     ],
                   ),
                 ),
@@ -997,9 +983,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   padding: EdgeInsets.all(SizeConfig.size10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: AppColors.greyE5,
-                        width: 0.5),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1010,91 +994,126 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
-
                       Container(
                         color: AppColors.greyE5,
                         height: 0.5,
                         width: SizeConfig.screenWidth,
                       ),
-
                       SizedBox(height: SizeConfig.size8),
+                      (service.gallery != null &&
+                              service.gallery?.signedUrls != null &&
+                              (service.gallery?.signedUrls?.isNotEmpty ??
+                                  false))
+                          ? Builder(builder: (context) {
 
-                      (service.serviceMedia!=null &&
-                          service.serviceMedia!.photos!=null &&
-                          service.serviceMedia!.photos!.isNotEmpty)
-                          ? Builder(
-                          builder: (context) {
-                            const crossAxisCount = 4;
-                            const mainAxisSpacing = 8.0;
-
-                            // Split into rows of 4
-                            final rows = <List<String>>[];
-
-                            for (int i = 0; i < service.serviceMedia!.photos!.length; i += crossAxisCount) {
-                              rows.add(
-                                service.serviceMedia!.photos!.sublist(
-                                  i,
-                                  (i + crossAxisCount).clamp(0, service.serviceMedia!.photos!.length),
-                                ),
+                              // Split into rows of 4
+                              final rows = <String>[];
+                              rows.addAll(service.gallery?.signedUrls ?? []);
+                              // for (int i = 0;
+                              //     i < (service.gallery?.signedUrls?.length??0);
+                              //     i += crossAxisCount) {
+                              //   rows.add(
+                              //     service.gallery?.signedUrls?.sublist(
+                              //       i,
+                              //       (i + crossAxisCount).clamp(0,
+                              //           service.serviceMedia!.photos!.length),
+                              //     ),
+                              //   );
+                              // }
+                              return Wrap(
+                                children: List.generate(rows.length, (index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      child: CachedNetworkImage(
+                                        imageUrl: rows[index],
+                                        width: SizeConfig.size80,
+                                        height: SizeConfig.size80,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => Container(
+                                          width: SizeConfig.size80,
+                                          height: SizeConfig.size80,
+                                          color: Colors.grey[300],
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            Icon(Icons.person,
+                                                size: SizeConfig.size80 / 2),
+                                      ),
+                                    ),
+                                  );
+                                }),
                               );
-                            }
+                              /*  return Column(
+                                children:
+                                    List.generate(rows.length, (rowIndex) {
+                                  final rowItems = rows[rowIndex];
+                                  logs("rowItems=== ${rowItems}");
 
-                            return Column(
-                              children: List.generate(rows.length, (rowIndex) {
-                                final rowItems = rows[rowIndex];
-                                final isLastRow = rowIndex == rows.length - 1;
+                                  final isLastRow = rowIndex == rows.length - 1;
 
-                                return Padding(
-                                  padding: EdgeInsets.only(bottom: isLastRow ? 0 : mainAxisSpacing),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: List.generate(crossAxisCount * 2 - 1, (i) {
-                                      if (i.isEven) {
-                                        final itemIndex = i ~/ 2;
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom:
+                                            isLastRow ? 0 : mainAxisSpacing),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: List.generate(
+                                          crossAxisCount * 2 - 1, (i) {
+                                        if (i.isEven) {
+                                          final itemIndex = i ~/ 2;
 
-                                        if (itemIndex < rowItems.length) {
-                                          final photos = rowItems[itemIndex];
+                                          if (itemIndex < rowItems.length) {
+                                            final photos = rowItems[itemIndex];
 
-                                          return Expanded(
-                                            child:  ClipRRect(
-                                              borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-                                              child: CachedNetworkImage(
-                                                imageUrl: photos,
-                                                width: SizeConfig.size80,
-                                                height: SizeConfig.size80,
-                                                fit: BoxFit.cover,
-                                                placeholder: (context, url) => Container(
+                                            return Expanded(
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                        top: Radius.circular(
+                                                            10.0)),
+                                                child: CachedNetworkImage(
+                                                  imageUrl: photos,
                                                   width: SizeConfig.size80,
                                                   height: SizeConfig.size80,
-                                                  color: Colors.grey[300],
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (context, url) =>
+                                                      Container(
+                                                    width: SizeConfig.size80,
+                                                    height: SizeConfig.size80,
+                                                    color: Colors.grey[300],
+                                                  ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          Icon(Icons.person,
+                                                              size: SizeConfig
+                                                                      .size80 /
+                                                                  2),
                                                 ),
-                                                errorWidget: (context, url, error) =>
-                                                    Icon(Icons.person, size: SizeConfig.size80 / 2),
                                               ),
-                                            ),
-                                          );
+                                            );
+                                          } else {
+                                            return const Expanded(
+                                                child: SizedBox.shrink());
+                                          }
                                         } else {
-                                          return const Expanded(child: SizedBox.shrink());
+                                          return SizedBox(
+                                              width: SizeConfig.size8);
                                         }
-                                      } else {
-                                        return SizedBox(width: SizeConfig.size8);
-                                      }
-                                    }),
-                                  ),
-                                );
-                              }),
-                            );
-                          }
-                      )
+                                      }),
+                                    ),
+                                  );
+                                }),
+                              );*/
+                            })
                           : CustomText(
-                        'No Photos Available',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-
+                              'No Photos Available',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),
                     ],
                   ),
                 ),
@@ -1108,7 +1127,6 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                   title: 'Request Booking',
                   // isLoading: authController.isAddBusinessUserLoading.value
                 ),
-
               ],
             );
           },
@@ -1118,31 +1136,29 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
   }
 
   Widget _dragHandle() => Center(
-    child: Container(
-      width: 50,
-      height: 5,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryTextColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-    ),
-  );
+        child: Container(
+          width: 50,
+          height: 5,
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: AppColors.secondaryTextColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
 
   Widget _header(BuildContext context) => Row(
-    children: [
-      const Expanded(
-        child: CustomText(
-          "All Variants",
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.close),
-      ),
-    ],
-  );
-
-
+        children: [
+          const Expanded(
+            child: CustomText(
+              "All Variants",
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      );
 }

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
@@ -236,14 +237,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           (1 - homeScreenController.headerOffset.value))),
                   child: PageView(
                     controller: _pageController,
+                    scrollDirection: Axis.horizontal,
+                    // physics: AlwaysScrollableScrollPhysics(),
                     onPageChanged: (index) {
+                      logs("PAGE CHANGE CALL $index");
                       setState(() {
                         selectedIndex = index;
                       });
                     },
                     children: isIndividual()
                         ? [
-                            if (selectedIndex == 0)
+                            // if (selectedIndex == 0)
                               HomeFeedScreenNew(
                                 key: ValueKey('feedScreen_all'),
                                 onHeaderVisibilityChanged:
@@ -255,19 +259,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                 headerHeight: _headerHeight,
                                 isInParentScroll: false,
                               ),
-                            if (selectedIndex == 1)
+                            // if (selectedIndex == 1)
                               ChannelFeedScreen(
                                 headerHeight: _headerHeight,
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
                               ),
-                            if (selectedIndex == 2)
+                            // if (selectedIndex == 2)
                               OttScreen(
                                 headerHeight: _headerHeight,
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
                               ),
-                            if (selectedIndex == 3)
+                            // if (selectedIndex == 3)
                               SavedFeedScreen(
                                   onHeaderVisibilityChanged:
                                       _toggleAppBarAndBottomNav,
@@ -277,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       _headerHeight + SizeConfig.size30),
                           ]
                         : [
-                            if (selectedIndex == 0)
+                            // if (selectedIndex == 0)
                               HomeFeedScreenNew(
                                 key: ValueKey('feedScreen_all'),
                                 onHeaderVisibilityChanged:
@@ -289,19 +293,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                 headerHeight: _headerHeight,
                                 isInParentScroll: false,
                               ),
-                            if (selectedIndex == 1)
+                            // if (selectedIndex == 1)
                               ChannelFeedScreen(
                                 headerHeight: _headerHeight,
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
                               ),
-                            if (selectedIndex == 2)
+                            // if (selectedIndex == 2)
                               OttScreen(
                                 headerHeight: _headerHeight,
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
                               ),
-                            if (selectedIndex == 3)
+                            // if (selectedIndex == 3)
                               SavedFeedScreen(
                                   onHeaderVisibilityChanged:
                                       _toggleAppBarAndBottomNav,
@@ -374,54 +378,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               }),
                             ),
                           ),
-                          // Divider or subtle line between main tabs and sub-filters
-                          // const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-
-                          // --- SUB-FILTER TAB BAR (Only for Lekha/Home) ---
-                          // if (selectedIndex == 0) _buildSubFilterRow(),
-
-                          // const SizedBox(height: 8),
                         ],
                       ),
                     ),
                   ),
                 ),
-                /*   AnimatedPositioned(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  top: -homeScreenController.headerOffset.value * _headerHeight,
-                  left: 0,
-                  right: 0,
-                  child: KeyedSubtree(
-                    key: _headerKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildCustomAppBar(),
-                        SizedBox(height: SizeConfig.size15),
-                        HorizontalTabSelector(
-                          tabs: postTab,
-                          selectedIndex: selectedIndex,
-                          onTabSelected: (index, value) {
-                            if (mounted) {
-                              searchController.clear();
-                              setState(() => selectedIndex = index);
-                              _pageController.animateToPage(
-                                index,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                              resetScrollingOnTabChanged();
-                            }
-                          },
-                          labelBuilder: (label) => label,
-                        ),
-                        SizedBox(height: SizeConfig.size10),
-                      ],
-                    ),
-                  ),
-                ),*/
               ],
             )),
       ),

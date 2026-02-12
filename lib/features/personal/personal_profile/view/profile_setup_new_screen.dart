@@ -1882,10 +1882,11 @@ class _PersonalProfileSetupNewScreenState
                   bottom: SizeConfig.size12),
               child: Row(
                 children: [
-                /*  Expanded(
+            /*      Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+                        // Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+                        // Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(

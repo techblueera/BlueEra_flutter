@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -43,14 +44,12 @@ enum DiscoverFilter {
   const DiscoverFilter(this.label);
 }
 
+class DiscoverController extends GetxController {
+  var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
 
-class DiscoverController extends GetxController{
-  var selfProfessionServiceResponse =
-      ApiResponse.initial('Initial').obs;
-  var rentalServiceResponse =
-      ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> productsResponse =
-      ApiResponse.initial('Initial').obs;
+  var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;
+  var rentalServiceResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
 
   final ScrollController scrollController = ScrollController();
   final GlobalKey headerKey = GlobalKey();
@@ -62,7 +61,10 @@ class DiscoverController extends GetxController{
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
-  Rx<OnboardingCategoryModel?> selectedEarnServiceData = Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?> selectedEarnServiceData =
+      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?> selectedProfConsServiceData =
+      Rx<OnboardingCategoryModel?>(null);
   RxInt selectedTabIndex = 0.obs;
   final List<CategoryFilter> filters = CategoryFilter.values;
   Rx<CategoryFilter> selectedFilter = CategoryFilter.nearest.obs;
@@ -70,26 +72,31 @@ class DiscoverController extends GetxController{
 
   /// Self Profession Services
   RxList<ServiceData> earnServiceList = <ServiceData>[].obs;
+  RxList<ProfessionalConsData> professionalConsDataList =
+      <ProfessionalConsData>[].obs;
   RxBool isEarnServiceLoading = false.obs;
+  RxBool isProfConServiceLoading = false.obs;
   int earnServicePage = 1;
+  int profConsServicePage = 1;
   var isEarnServiceLoadingMore = false.obs;
-  Rx<VehicleAllResponse> ridersDetailsList=VehicleAllResponse().obs;
-  var bookingRiderListResponse =
-      ApiResponse.initial('Initial').obs;
+  var isProfConServiceLoadingMore = false.obs;
+  Rx<VehicleAllResponse> ridersDetailsList = VehicleAllResponse().obs;
+  var bookingRiderListResponse = ApiResponse.initial('Initial').obs;
 
   bool hasMoreEarnServiceData = true;
-
+  bool hasMoreProfConServiceData = true;
 
   RxBool findRiderDetailsLoading = false.obs;
   RxBool bookRiderBtnLoading = false.obs;
-  RxInt selectedHorizontalTab=0.obs;
-  RxInt selectedVehicleOptionIndex=0.obs;
-  RxDouble? selectedFromLat=0.0.obs;
-  RxDouble? selectedFromLong=0.0.obs;
-  RxDouble? selectedToLat=0.0.obs;
-  RxDouble? selectedToLong=0.0.obs;
-  RxString? selectedFromAddress="".obs;
-  RxString? selectedToAddress="".obs;
+  RxInt selectedHorizontalTab = 0.obs;
+  RxInt selectedVehicleOptionIndex = 0.obs;
+  RxDouble? selectedFromLat = 0.0.obs;
+  RxDouble? selectedFromLong = 0.0.obs;
+  RxDouble? selectedToLat = 0.0.obs;
+  RxDouble? selectedToLong = 0.0.obs;
+  RxString? selectedFromAddress = "".obs;
+  RxString? selectedToAddress = "".obs;
+
   /// Rental Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
   Rx<RiderUser> selectedRider = RiderUser().obs;
@@ -97,13 +104,16 @@ class DiscoverController extends GetxController{
   int rentalServicePage = 1;
   var isRentalServiceLoadingMore = false.obs;
   bool hasMoreRentalServiceData = true;
-  Rxn<OnboardingCategoryModel> selectedStayCategory = Rxn<OnboardingCategoryModel>();
+  Rxn<OnboardingCategoryModel> selectedStayCategory =
+      Rxn<OnboardingCategoryModel>();
 
-void onSelectRider(RiderUser rider) {
-  selectedRider.value=rider;
-}
+  void onSelectRider(RiderUser rider) {
+    selectedRider.value = rider;
+  }
+
   /// Consultant Service
-  Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData = Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData =
+      Rx<OnboardingCategoryModel?>(null);
 
   /// Products
   RxList<GetProductData> productDataList = <GetProductData>[].obs;
@@ -113,12 +123,11 @@ void onSelectRider(RiderUser rider) {
   bool productDataHasMore = true;
 
   ///GET STORE PRODUCT ONLY....
-  Future<void> getAllProductNearBy({
-    ProviderType? providerType,
-    String? productCategory,
-    bool isLoadMore = false,
-    String? query}
-      ) async {
+  Future<void> getAllProductNearBy(
+      {ProviderType? providerType,
+      String? productCategory,
+      bool isLoadMore = false,
+      String? query}) async {
     if (isLoadMore) {
       if (isProductDataLoadingMore.value || !productDataHasMore) return;
       isProductDataLoadingMore.value = true;
@@ -149,39 +158,35 @@ void onSelectRider(RiderUser rider) {
         ApiKeys.limit: limit,
         ApiKeys.maxDistance: kmRadius1000,
       };
-      double lat =  LocationService.lat != 0.0 ? LocationService.lat : 0.0;
+      double lat = LocationService.lat != 0.0 ? LocationService.lat : 0.0;
       double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;
 
-      if ((lat!=0.0) && (long!=0.0)) {
+      if ((lat != 0.0) && (long != 0.0)) {
         queryParams[ApiKeys.latitude] = lat;
         queryParams[ApiKeys.longitude] = long;
       }
-      if(providerType!=null) queryParams[ApiKeys.ownerType] = providerType.title;
-      if(productCategory!=null) queryParams[ApiKeys.key] = productCategory;
+      if (providerType != null)
+        queryParams[ApiKeys.ownerType] = providerType.title;
+      if (productCategory != null) queryParams[ApiKeys.key] = productCategory;
 
       final response;
-      if(query != null){
-        response = await StoreRepo().productSearchFilterRepo(
-            queryParams: queryParams
-        );
-      }else{
-        if(productCategory!=null){
-          response = await StoreRepo().productFilterRepo(
-              queryParams: queryParams
-          );
+      if (query != null) {
+        response =
+            await StoreRepo().productSearchFilterRepo(queryParams: queryParams);
+      } else {
+        if (productCategory != null) {
+          response =
+              await StoreRepo().productFilterRepo(queryParams: queryParams);
+        } else {
+          response =
+              await StoreRepo().homePageProductRepo(queryParams: queryParams);
         }
-        else{
-          response = await StoreRepo().homePageProductRepo(
-              queryParams: queryParams
-          );
-        }
-
       }
 
       if (response.isSuccess) {
         productsResponse.value = ApiResponse.complete(response);
         final getOwnProductModel =
-        GetProductModel.fromJson(response.response?.data);
+            GetProductModel.fromJson(response.response?.data);
 
         final List<GetProductData> newData = getOwnProductModel.data;
 
@@ -193,9 +198,8 @@ void onSelectRider(RiderUser rider) {
             log('product data length--> ${productDataList.length}');
             log('loggggg 1--> ${productDataList[0].product.business_name}');
 
-            if(query == null) {
-              await HiveServices().saveAllStoreProduct(
-                  productDataList, userId);
+            if (query == null) {
+              await HiveServices().saveAllStoreProduct(productDataList, userId);
             }
           }
           productDataPage++;
@@ -207,7 +211,7 @@ void onSelectRider(RiderUser rider) {
     } catch (e, s) {
       log('stack trace --> $s');
       productsResponse.value = ApiResponse.error('error');
-    } finally{
+    } finally {
       if (isLoadMore) {
         isProductDataLoadingMore.value = false;
       } else {
@@ -217,11 +221,10 @@ void onSelectRider(RiderUser rider) {
   }
 
   /// fetch Earn service
-  Future<void> fetchEarnServices({
-    required String earnServiceType,
-    required String subType,
-    bool isLoadMore = false}) async {
-
+  Future<void> fetchEarnServices(
+      {required String earnServiceType,
+      required String subType,
+      bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isEarnServiceLoadingMore.value || !hasMoreEarnServiceData) {
         return;
@@ -246,28 +249,32 @@ void onSelectRider(RiderUser rider) {
       ApiKeys.page: earnServicePage,
       ApiKeys.limit: limit,
     };
-    if(selectedEarnServiceData.value!=null){
+    if (selectedEarnServiceData.value != null) {
       queryParams[ApiKeys.category] = selectedEarnServiceData.value?.slugId;
     }
 
     ResponseModel response =
-    await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
+        await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
 
     try {
       if (response.isSuccess) {
         selfProfessionServiceResponse.value = ApiResponse.complete(response);
 
-        final responseModel = ServiceModelResponse.fromJson(response.response?.data);
+        final responseModel =
+            ServiceModelResponse.fromJson(response.response?.data);
 
         List<ServiceData> tempNewItems = [];
 
         for (var service in responseModel.services ?? []) {
           if (service.data != null && service.data!.isNotEmpty) {
             for (ServiceData item in service.data!) {
-
               // Distance Calculation Logic
-              double itemLat = double.tryParse(item.userLocation?.lat.toString() ?? "0") ?? 0.0;
-              double itemLng = double.tryParse(item.userLocation?.lon.toString() ?? "0") ?? 0.0;
+              double itemLat =
+                  double.tryParse(item.userLocation?.lat.toString() ?? "0") ??
+                      0.0;
+              double itemLng =
+                  double.tryParse(item.userLocation?.lon.toString() ?? "0") ??
+                      0.0;
 
               double? tempDistance;
               if (itemLat != 0 && itemLng != 0) {
@@ -295,11 +302,11 @@ void onSelectRider(RiderUser rider) {
         if (tempNewItems.isNotEmpty) {
           earnServicePage++;
         }
-
       } else {
         if (!isLoadMore) {
           selfProfessionServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
         }
       }
     } catch (e, s) {
@@ -307,27 +314,120 @@ void onSelectRider(RiderUser rider) {
       selfProfessionServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      if(isLoadMore){
+      if (isLoadMore) {
         isEarnServiceLoadingMore.value = false;
-      } else{
+      } else {
         isEarnServiceLoading.value = false;
       }
     }
   }
-Future<String> getOrderTypeString()async{
-  switch(selectedHorizontalTab.value){
-    case 0:
-      return "InCity";
+
+  /// fetch Earn service
+  Future<void> fetchProfessionalConsultantServices(
+      {bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isProfConServiceLoadingMore.value || !hasMoreProfConServiceData) {
+        return;
+      }
+      isProfConServiceLoadingMore.value = true;
+    } else {
+      professionalConsDataList.clear();
+      isProfConServiceLoading.value = true;
+      profConsServicePage = 1;
+      hasMoreProfConServiceData = true;
+    }
+
+    // double lat = LocationService.lat;
+    // double lng = LocationService.lng;
+
+    final Map<String, dynamic> queryParams = {
+      // ApiKeys.type: earnServiceType,
+      // ApiKeys.subType: subType,
+      if (selectedProfessionalConsultantData.value?.slugId != null)
+        "profession": selectedProfessionalConsultantData.value?.slugId,
+
+      ApiKeys.page: profConsServicePage,
+      ApiKeys.limit: limit,
+    };
+    // if(selectedProfConsServiceData.value!=null){
+    // }
+
+    ResponseModel response = await DiscoverRepo()
+        .fetchProfessionalConsServices(queryParams: queryParams);
+
+    try {
+      if (response.isSuccess) {
+        profConProfessionServiceResponse.value = ApiResponse.complete(response);
+          final responseModel =
+              ProfessionalConsResModel.fromJson(response.response?.data);
+
+        List<ProfessionalConsData> tempNewItems = responseModel.data ?? [];
+
+        // for (var service in responseModel.services ?? []) {
+        //   if (service.data != null && service.data!.isNotEmpty) {
+        //     for (ProfessionalConsData item in service.data!) {
+        //
+        //       // Distance Calculation Logic
+        //       double itemLat = double.tryParse(item.userLocation?.lat.toString() ?? "0") ?? 0.0;
+        //       double itemLng = double.tryParse(item.userLocation?.lon.toString() ?? "0") ?? 0.0;
+        //
+        //       double? tempDistance;
+        //       if (itemLat != 0 && itemLng != 0) {
+        //         tempDistance = await getDistanceInKm(itemLat, itemLng);
+        //       } else {
+        //         tempDistance = 0.0;
+        //       }
+        //       item.distance = tempDistance?.toInt();
+        //
+        //       tempNewItems.add(item);
+        //     }
+        //   }
+        // }
+
+        if (tempNewItems.length < limit) {
+          hasMoreProfConServiceData = false;
+        }
+
+        if (isLoadMore) {
+          professionalConsDataList.addAll(tempNewItems);
+        } else {
+          professionalConsDataList.assignAll(tempNewItems);
+        }
+
+        if (tempNewItems.isNotEmpty) {
+          profConsServicePage++;
+        }
+      } else {
+        if (!isLoadMore) {
+          profConProfessionServiceResponse.value = ApiResponse.error('error');
+        }
+      }
+    } catch (e, s) {
+      print('stack trace --> $s');
+      profConProfessionServiceResponse.value = ApiResponse.error('error');
+    } finally {
+      if (isLoadMore) {
+        isProfConServiceLoadingMore.value = false;
+      } else {
+        isProfConServiceLoading.value = false;
+      }
+    }
+  }
+
+  Future<String> getOrderTypeString() async {
+    switch (selectedHorizontalTab.value) {
+      case 0:
+        return "InCity";
       case 1:
         return "OutStation";
-        case 2:
-          return "HourlyRental";
-          case 3:
-            return "Parcel";
-            default:
-              return "InCity";
+      case 2:
+        return "HourlyRental";
+      case 3:
+        return "Parcel";
+      default:
+        return "InCity";
+    }
   }
-}
 
   Future<String?> getCurrentPostCode() async {
     try {
@@ -363,22 +463,24 @@ Future<String> getOrderTypeString()async{
     }
   }
 
-  Future<void> getBookingRidersApi()async{
-
-    if(selectedFromLat?.value!=0.0&&selectedFromLong?.value!=0.0&&selectedToLat?.value!=0.0&&selectedToLong?.value!=0.0){
-      findRiderDetailsLoading.value=true;
-      if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1){
-
-      }
-      Map<String, dynamic> queryParams= {
-      ApiKeys.orderFor : "InCity",
-      ApiKeys.pickupLatitude : 23.266686,
-      ApiKeys.pickupLongitude : 77.459075,
-      ApiKeys.dropLatitude :23.266686,
-      ApiKeys.dropLongitude :77.459075,
-      ApiKeys.range_in_km: 5,
-        if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
-      ApiKeys.pincode: "462023",
+  Future<void> getBookingRidersApi() async {
+    if (selectedFromLat?.value != 0.0 &&
+        selectedFromLong?.value != 0.0 &&
+        selectedToLat?.value != 0.0 &&
+        selectedToLong?.value != 0.0) {
+      findRiderDetailsLoading.value = true;
+      if (selectedHorizontalTab.value == 0 ||
+          selectedHorizontalTab.value == 1) {}
+      Map<String, dynamic> queryParams = {
+        ApiKeys.orderFor: "InCity",
+        ApiKeys.pickupLatitude: 23.266686,
+        ApiKeys.pickupLongitude: 77.459075,
+        ApiKeys.dropLatitude: 23.266686,
+        ApiKeys.dropLongitude: 77.459075,
+        ApiKeys.range_in_km: 5,
+        if (selectedHorizontalTab.value == 0 ||
+            selectedHorizontalTab.value == 1)
+          ApiKeys.pincode: "462023",
       };
       // Map<String, dynamic> queryParams = {
       //   ApiKeys.orderFor : getOrderTypeString(),
@@ -395,18 +497,18 @@ Future<String> getOrderTypeString()async{
       );
 
       if (response.isSuccess) {
-        ridersDetailsList.value = VehicleAllResponse.fromJson(response.response?.data);
-        bookingRiderListResponse.value=ApiResponse.complete(ridersDetailsList.value);
-        findRiderDetailsLoading.value=false;
-
-      }else{
-        bookingRiderListResponse.value=ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-        findRiderDetailsLoading.value=false;
-
+        ridersDetailsList.value =
+            VehicleAllResponse.fromJson(response.response?.data);
+        bookingRiderListResponse.value =
+            ApiResponse.complete(ridersDetailsList.value);
+        findRiderDetailsLoading.value = false;
+      } else {
+        bookingRiderListResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        findRiderDetailsLoading.value = false;
       }
     }
-
   }
 
   String getTabName(int index) {
@@ -423,6 +525,7 @@ Future<String> getOrderTypeString()async{
         return '';
     }
   }
+
   String getSelectedVehicleFare(int index) {
     switch (index) {
       case 0:
@@ -438,45 +541,44 @@ Future<String> getOrderTypeString()async{
     }
   }
 
-  Future<void> makeTransportBookOrderApi()async{
-    bookRiderBtnLoading.value=true;
-    Map<String,dynamic> params ={
-      ApiKeys.selectedRiders: [
-        selectedRider.value.riderId
-      ],
+  Future<void> makeTransportBookOrderApi() async {
+    bookRiderBtnLoading.value = true;
+    Map<String, dynamic> params = {
+      ApiKeys.selectedRiders: [selectedRider.value.riderId],
       ApiKeys.pickupLocation: {
-      ApiKeys.address: "${selectedFromAddress?.value}",
-      ApiKeys.latitude: selectedFromLat?.value,
-      ApiKeys.longitude:  selectedFromLong?.value
+        ApiKeys.address: "${selectedFromAddress?.value}",
+        ApiKeys.latitude: selectedFromLat?.value,
+        ApiKeys.longitude: selectedFromLong?.value
       },
-        ApiKeys.dropLocation: {
-    ApiKeys.address: "${selectedToAddress?.value}",
-    ApiKeys.latitude: selectedToLat?.value,
-    ApiKeys.longitude: selectedToLong?.value
+      ApiKeys.dropLocation: {
+        ApiKeys.address: "${selectedToAddress?.value}",
+        ApiKeys.latitude: selectedToLat?.value,
+        ApiKeys.longitude: selectedToLong?.value
       },
-  ApiKeys.receiverUserId: "${selectedRider.value.riderId}",
-  ApiKeys.orderFor: "${getTabName(selectedHorizontalTab.value)}",
-  ApiKeys.modeOfPayment: "prepaid",
-  ApiKeys.fare:  ridersDetailsList.value.twoWheelerRider?.fare
+      ApiKeys.receiverUserId: "${selectedRider.value.riderId}",
+      ApiKeys.orderFor: "${getTabName(selectedHorizontalTab.value)}",
+      ApiKeys.modeOfPayment: "prepaid",
+      ApiKeys.fare: ridersDetailsList.value.twoWheelerRider?.fare
     };
 
     final response = await DiscoverRepo().makeTransportBookOrderApi(
-    params: params,
+      params: params,
     );
 
     if (response.isSuccess) {
-      bookRiderBtnLoading.value=false;
-      commonSnackBar(message: response.message ?? "Your Booking Request Send To Rider,Wait Rider Accept Soon");
-    }else{
-      bookRiderBtnLoading.value=false;
+      bookRiderBtnLoading.value = false;
+      commonSnackBar(
+          message: response.message ??
+              "Your Booking Request Send To Rider,Wait Rider Accept Soon");
+    } else {
+      bookRiderBtnLoading.value = false;
       commonSnackBar(message: response.message ?? "Unable to Book a Rider");
     }
-
   }
-  Future<void> fetchRentalServices({
-    required RentalServiceType rentalServiceType,
-    bool isLoadMore = false
-  }) async {
+
+  Future<void> fetchRentalServices(
+      {required RentalServiceType rentalServiceType,
+      bool isLoadMore = false}) async {
     try {
       if (isLoadMore) {
         log('more rental data -- $hasMoreRentalServiceData');
@@ -511,7 +613,7 @@ Future<String> getOrderTypeString()async{
         rentalServiceResponse.value = ApiResponse.complete(response);
 
         final responseModel =
-        RentalServiceResponse.fromJson(response.response!.data);
+            RentalServiceResponse.fromJson(response.response!.data);
 
         final List<RentalServiceData> tempNewItems = responseModel.data ?? [];
 
@@ -528,24 +630,23 @@ Future<String> getOrderTypeString()async{
         if (tempNewItems.isNotEmpty) {
           rentalServicePage++;
         }
-
-      }  else {
+      } else {
         if (!isLoadMore) {
           rentalServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
         }
       }
     } catch (e) {
-      rentalServiceResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
+      rentalServiceResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      if(isLoadMore){
+      if (isLoadMore) {
         isRentalServiceLoadingMore.value = false;
-      } else{
+      } else {
         isRentalServiceLoading.value = false;
       }
     }
   }
-
-
 }

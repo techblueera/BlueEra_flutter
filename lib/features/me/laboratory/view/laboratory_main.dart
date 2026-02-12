@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -32,7 +31,6 @@ class _LaboratoryMainState extends State<LaboratoryMain>
 
   @override
   void initState() {
-    // labIDGlobal="";
     apiCalling();
     _tabController = TabController(length: 3, vsync: this);
 
@@ -41,7 +39,6 @@ class _LaboratoryMainState extends State<LaboratoryMain>
 
   apiCalling() async {
     try {
-      logs("labIDGlobal==== ${labIDGlobal}");
       if (labIDGlobal.isEmpty) {
         ResponseModel response =
             await LabServiceRepo().getLabFullDetailsByIdRepo();
@@ -61,7 +58,6 @@ class _LaboratoryMainState extends State<LaboratoryMain>
       await getLabID();
       labServiceAiController.hasLabCreated.value = labIDGlobal.isNotEmpty;
       setState(() {
-        // hasLabCreated = labIDGlobal.isNotEmpty;
       });
     } on Exception {
       // TODO
@@ -76,8 +72,6 @@ class _LaboratoryMainState extends State<LaboratoryMain>
 
   @override
   Widget build(BuildContext context) {
-    // hasLabCreated = labIDGlobal.isNotEmpty;
-
     return Scaffold(
         backgroundColor: AppColors.white,
         body: Obx(() {

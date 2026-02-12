@@ -67,24 +67,20 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              Obx(() {
-                // Accessing .value here tells Obx to listen for changes
-
-                return AiDescriptionField(
-                  label: "Major Projects (Description)",
-                  hintText: "Tell us more about your projects...",
-                  controller: controller.descriptionController,
-                  // Ensure the widget itself is designed to handle RxString
-                  rxValue: controller.description,
-                  aiType: "Professional",
-                  aiData: {
-                    // Accessing nameController.text here won't trigger a rebuild
-                    // unless you wrap it in a reactive variable
-                    // "title": controller.nameController.text,
-                    // "desc_length": currentDescription.length.toString(),
-                  },
-                );
-              }),
+              AiDescriptionField(
+                label: "Major Projects (Description)",
+                hintText: "Tell us more about your projects...",
+                controller: controller.descriptionController,
+                // Ensure the widget itself is designed to handle RxString
+                rxValue: controller.description,
+                aiType: "Professional",
+                aiData: {
+                  // Accessing nameController.text here won't trigger a rebuild
+                  // unless you wrap it in a reactive variable
+                  // "title": controller.nameController.text,
+                  // "desc_length": currentDescription.length.toString(),
+                },
+              ),
               const SizedBox(height: 40),
               Obx(() => CustomBtn(
                     title: "Save",

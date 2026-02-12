@@ -21,6 +21,7 @@ abstract class BaseService {
   final String socialLinks = 'channel-service/channels/$channelId/social-links';
   final String missionVision = 'social-service/mission-vision';
   final String socialActivities = 'social-service/social-activities';
+  final String socialProfile = 'social-service/social/profile';
   String viewChannelProfile(String channelId) =>
       "channel-service/channels/$channelId";
   final String postVerifyBusinessDocs =
@@ -724,10 +725,6 @@ abstract class BaseService {
   final String myMedicalOrders = 'rider-service/medical/orders/business';
   final String ridersMedicalOrders = 'rider-service/riders/orders/medical/';
   static final String medicalRiderOrderStream = "riders/orders/stream/medical/$userId";
-
-
-
-
   final String aiLabsService = 'ai-service/api/ai-labs/generate-lab';
   final String  labServiceGallery= 'lab-service/gallery';
   final String  labServiceContactUs= 'lab-service/contact-us';
@@ -740,5 +737,6 @@ abstract class BaseService {
   final String testParameters = 'lab-service/test-parameters';
   final String  testPathology= 'lab-service/pathology-tests';
   final String  testLabServiceFullDetails= 'lab-service/laboratory-profiles/full-details';
+  final String  professionalSearch= 'earn-service/professional/search';
 
 }
