@@ -114,7 +114,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           }
         } else {
           return Center(
-            child: CircularProgressIndicator(),
+            child: CustomText(AppStrings.noOrdersFound),
           );
         }
       }),

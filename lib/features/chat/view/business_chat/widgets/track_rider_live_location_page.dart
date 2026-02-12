@@ -1,12 +1,13 @@
 import 'dart:async';
-
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../auth/controller/live_trach_rider_controller.dart';
 
@@ -49,7 +50,7 @@ class _TrackRiderLiveLocationPageState
             child: CustomText(AppStrings.findingRiderLocation),
           );
         } else {
-          return SimpleMapplsTracking(
+          return SimpleGoogleMapsTracking(
             startLng: orderController.liveLng.value,
             startLat: orderController.liveLat.value,
             endLat: widget.dropLat,
@@ -61,13 +62,13 @@ class _TrackRiderLiveLocationPageState
   }
 }
 
-class SimpleMapplsTracking extends StatefulWidget {
+class SimpleGoogleMapsTracking extends StatefulWidget {
   final double startLat;
   final double startLng;
   final double endLat;
   final double endLng;
 
-  const SimpleMapplsTracking({
+  const SimpleGoogleMapsTracking({
     super.key,
     required this.startLat,
     required this.startLng,
@@ -76,14 +77,16 @@ class SimpleMapplsTracking extends StatefulWidget {
   });
 
   @override
-  State<SimpleMapplsTracking> createState() => _SimpleMapplsTrackingState();
+  State<SimpleGoogleMapsTracking> createState() => _SimpleGoogleMapsTrackingState();
 }
 
-class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
-  MapplsMapController? mapController;
-  Line? polyline;
-  Symbol? startMarker;
-  Symbol? endMarker;
+class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
+  List<LatLng> polylineCoordinates = []; // Store road points here
+  PolylinePoints polylinePoints = PolylinePoints(apiKey: AppConstants.googleMapKey);
+  GoogleMapController? mapController;
+  Marker? startMarker;
+  Marker? endMarker;
+  Polyline? polyline;
   Circle? liveLocationCircle;
   final riderController = Get.find<LiveTrachRiderController>();
 
@@ -97,50 +100,76 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
 
     ever(riderController.liveLat, (_) => _updateRiderOnMap());
     ever(riderController.liveLng, (_) => _updateRiderOnMap());
+
   }
 
-  Future<void> _updateRiderOnMap() async {
-    if (mapController == null) return;
+  Future<void> _getRoutePolyline() async {
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      request: PolylineRequest(
+        origin: PointLatLng(widget.startLat, widget.startLng),
+        destination: PointLatLng(widget.endLat, widget.endLng),
+        mode: TravelMode.driving,
+      ),
+    );
 
-    final newLat = riderController.liveLat.value;
-    final newLng = riderController.liveLng.value;
+    if (result.points.isNotEmpty) {
+      setState(() {
+        polylineCoordinates.clear();
+        result.points.forEach((PointLatLng point) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        });
 
-    if (newLat == 0 || newLng == 0) return; // invalid skip
-
-    final newPosition = LatLng(newLat, newLng);
-
-    try {
-      // MOVE existing start marker instead of recreating
-      if (startMarker != null) {
-        await mapController!.updateSymbol(
-          startMarker!,
-          SymbolOptions(
-            geometry: newPosition,
-            iconSize: 1.0,
-          ),
+        // Initialize the blue line with road points
+        polyline = Polyline(
+          polylineId: const PolylineId('route_polyline'),
+          color: Colors.blue,
+          width: 6,
+          points: polylineCoordinates,
+          jointType: JointType.round,
         );
-      }
-
-      // UPDATE POLYLINE
-      if (polyline != null) {
-        await mapController!.updateLine(
-          polyline!,
-          LineOptions(
-            geometry: [
-              newPosition, // updated rider location
-              LatLng(widget.endLat, widget.endLng)
-            ],
-            lineColor: '#2196F3',
-            lineWidth: 5.0,
-            lineOpacity: 0.8,
-          ),
-        );
-      }
-    } catch (e) {
-      print("Error updating rider marker: $e");
+      });
     }
   }
 
+  @override
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+    _getRoutePolyline(); // Call the road-fetching function here
+    _addInitialMarkers();
+  }
+
+  void _addInitialMarkers() {
+    setState(() {
+      startMarker = Marker(
+        markerId: const MarkerId('rider_marker'),
+        position: LatLng(widget.startLat, widget.startLng),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      );
+      endMarker = Marker(
+        markerId: const MarkerId('drop_marker'),
+        position: LatLng(widget.endLat, widget.endLng),
+      );
+    });
+  }
+
+  Future<void> _updateRiderOnMap() async {
+    final newLat = riderController.liveLat.value;
+    final newLng = riderController.liveLng.value;
+    if (newLat == 0 || newLng == 0) return;
+
+    final newPosition = LatLng(newLat, newLng);
+
+    setState(() {
+      // 1. Move the Rider Marker
+      startMarker = startMarker!.copyWith(positionParam: newPosition);
+
+      // 2. Update only the starting point of the blue line so it stays attached to rider
+      if (polylineCoordinates.isNotEmpty) {
+        polylineCoordinates[0] = newPosition;
+        polyline = polyline!.copyWith(pointsParam: polylineCoordinates);
+      }
+    });
+  }
   Future<void> _startLocationTracking() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return;
@@ -167,90 +196,60 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
     currentPosition = LatLng(position.latitude, position.longitude);
 
     try {
-      // Remove old circle
-      if (liveLocationCircle != null) {
-        await mapController!.removeCircle(liveLocationCircle!);
-      }
-
-      // Add new circle for live location
-      liveLocationCircle = await mapController!.addCircle(
-        CircleOptions(
-          geometry: currentPosition!,
-          circleRadius: 15.0,
-          circleColor: '#2196F3',
-          circleOpacity: 0.8,
-          circleStrokeWidth: 3.0,
-          circleStrokeColor: '#FFFFFF',
-        ),
+    setState(() {
+      liveLocationCircle = Circle(
+        circleId: CircleId('live_location_circle'),
+        center: currentPosition!,
+        radius: 15.0,
+        fillColor: Colors.blue.withOpacity(0.5),
+        strokeColor: Colors.white,
+        strokeWidth: 3,
       );
+    });
     } catch (e) {
       print('Error updating live location: $e');
     }
   }
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
-    mapController = controller;
+  Future<void> _addInitialMarkersAndPolyline() async {
+    final start = LatLng(widget.startLat, widget.startLng);
+    final end = LatLng(widget.endLat, widget.endLng);
+
+    setState(() {
+      startMarker = Marker(
+        markerId: MarkerId('start_marker'),
+        position: start,
+      );
+      endMarker = Marker(
+        markerId: MarkerId('end_marker'),
+        position: end,
+      );
+      polyline = Polyline(
+        polylineId: PolylineId('route_polyline'),
+        points: [start, end],
+        color: Colors.blue,
+        width: 5,
+      );
+    });
   }
 
-  Future<void> _onStyleLoaded() async {
-    if (mapController == null) return;
-
-    try {
-      // Add start marker (default pin)
-      startMarker = await mapController!.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(widget.startLat, widget.startLng),
-          iconSize: 1.0,
-        ),
-      );
-
-      // Add end marker (default pin)
-      endMarker = await mapController!.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(widget.endLat, widget.endLng),
-          iconSize: 1.0,
-        ),
-      );
-
-      // Create polyline
-      polyline = await mapController!.addLine(
-        LineOptions(
-          geometry: [
-            LatLng(widget.startLat, widget.startLng),
-            LatLng(widget.endLat, widget.endLng),
-          ],
-          lineColor: '#2196F3',
-          lineWidth: 5.0,
-          lineOpacity: 0.8,
-        ),
-      );
-
-      await _fitBounds();
-    } catch (e) {
-      print('Error in onStyleLoaded: $e');
-    }
-  }
+  
 
   Future<void> _fitBounds() async {
-    if (mapController == null) return;
+    if (mapController == null || startMarker == null || endMarker == null) return;
 
-    try {
-      final bounds = LatLngBounds(
-        southwest: LatLng(
-          widget.startLat < widget.endLat ? widget.startLat : widget.endLat,
-          widget.startLng < widget.endLng ? widget.startLng : widget.endLng,
-        ),
-        northeast: LatLng(
-          widget.startLat > widget.endLat ? widget.startLat : widget.endLat,
-          widget.startLng > widget.endLng ? widget.startLng : widget.endLng,
-        ),
-      );
+    final LatLng southwest = LatLng(
+      widget.startLat < widget.endLat ? widget.startLat : widget.endLat,
+      widget.startLng < widget.endLng ? widget.startLng : widget.endLng,
+    );
+    final LatLng northeast = LatLng(
+      widget.startLat > widget.endLat ? widget.startLat : widget.endLat,
+      widget.startLng > widget.endLng ? widget.startLng : widget.endLng,
+    );
 
-      await mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds,
-            left: 50, top: 50, right: 50, bottom: 50),
-      );
-    } catch (e) {}
+    final LatLngBounds bounds = LatLngBounds(southwest: southwest, northeast: northeast);
+
+    mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
   }
 
   @override
@@ -261,16 +260,59 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return MapplsMap(
-      onMapCreated: (controller) => _onMapCreated(controller),
-      initialCameraPosition: CameraPosition(
-        target: LatLng(26.7836, 80.9013),
-        zoom: 14.0,
-      ),
-      onStyleLoadedCallback: _onStyleLoaded,
-      myLocationEnabled: true,
-      myLocationTrackingMode: MyLocationTrackingMode.tracking,
+    return Stack(
+      children: [
+        GoogleMap(
+          onMapCreated: _onMapCreated,
+          initialCameraPosition: CameraPosition(
+            target: LatLng(widget.startLat, widget.startLng),
+            zoom: 14.0,
+          ),
+          myLocationEnabled: true,
+          myLocationButtonEnabled: true,
+          markers: {
+            if (startMarker != null) startMarker!,
+            if (endMarker != null) endMarker!,
+          },
+          polylines: {
+            if (polyline != null) polyline!,
+          },
+          circles: {
+            if (liveLocationCircle != null) liveLocationCircle!,
+          },
+        ),
+        Positioned(
+          top: 20,
+          left: 20,
+          right: 20,
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(15),
+              child: Row(
+                children: [
+                  Icon(Icons.delivery_dining, color: Colors.blue),
+                  SizedBox(width: 10),
+                  Text(
+                    "Rider is ${(_calculateTotalDistance()).toStringAsFixed(1)} km away",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
+  }
+  double _calculateTotalDistance() {
+    double total = 0;
+    // Calculate distance from rider to end point using Geolocator math
+    total = Geolocator.distanceBetween(
+      riderController.liveLat.value,
+      riderController.liveLng.value,
+      widget.endLat,
+      widget.endLng,
+    );
+    return total / 1000; // Convert meters to KM
   }
 }

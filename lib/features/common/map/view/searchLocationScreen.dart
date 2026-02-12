@@ -5,8 +5,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:mappls_gl/mappls_gl.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class SearchLocationScreen extends StatefulWidget {
   final Function(double?, double?, String?)? onPlaceSelected;

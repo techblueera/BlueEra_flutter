@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class AppShadows {
   static const BoxShadow bottomShadow = BoxShadow(
-    color: Color.fromRGBO(0, 0, 0, 0.1), // 20% black
+    color: Color.fromRGBO(0, 0, 0, 0.15), // 20% black
     offset: Offset(0, 2), // bottom
     blurRadius: 2,
   );

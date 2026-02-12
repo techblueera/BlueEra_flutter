@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
-import 'package:flutter/services.dart';
+
 import '../../../../core/constants/getx_utils.dart';
-import '../../../common/auth/controller/auth_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
@@ -25,7 +22,7 @@ class TrackLiveLocationPage extends StatefulWidget {
 }
 
 class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
-  MapplsMapController? mapController;
+  GoogleMapController? mapController;
   final chatThemeController = getOrPut(() => ChatThemeController());
   final chatviewController = getOrPut(() => ChatViewController());
   LatLng? currentLatLng;
@@ -46,7 +43,7 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
     final permission = await Permission.location.request();
     if (permission.isGranted) {
       Position pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+          locationSettings: LocationSettings(accuracy: LocationAccuracy.high));
       setState(() {
         // chatThemeController.senderLiveLocation.value =
         //     SharedPersonsLiveLocationModel(
@@ -66,70 +63,18 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   }
 
 
-  Symbol? _userSymbol;
-  Symbol? _myProfileSymbol;
-  bool _isImageAdded = false;
-  bool _isMyImageAdded = false;
+  Marker? _userMarker;
+  Marker? _myProfileMarker;
+  final Set<Marker> _markers = {};
 
-  Future<void> _onStyleLoadedCallback() async {
-    try {
-      if (!_isImageAdded) {
-        final Uint8List profileBytes =
-        await ProfileLocationMarkerGenerator.createMarker(
-          imageUrl: widget.messages?.sender?.profileImage ?? "",
-          imageSize: 160,
-        );
-        await mapController?.addImage(
-          "profile-circle-icon",
-          profileBytes,
-        );
-
-        _isImageAdded = true;
-      }
-
-      if (_userSymbol == null &&
-          chatThemeController.senderLiveLocation.value.latitude != null) {
-        _userSymbol = await mapController?.addSymbol(
-          SymbolOptions(
-            geometry: LatLng(
-              chatThemeController.senderLiveLocation.value.latitude ?? 0,
-              chatThemeController.senderLiveLocation.value.longitude ?? 0,
-            ),
-            iconImage: "profile-circle-icon",
-            iconSize: 1.0,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint("Marker error: $e");
-    }
+  void _addMyOwnProfile(LatLng latLng) {
+    _myProfileMarker = Marker(
+      markerId: MarkerId('my_profile_marker'),
+      position: latLng,
+    );
+    _markers.add(_myProfileMarker!);
   }
 
-  Future<void> _addMyOwnProfile(LatLng latLng) async {
-    try {
-      if (!_isMyImageAdded) {
-        final Uint8List profileBytes =
-        await ProfileLocationMarkerGenerator.createMarker(
-          imageUrl: Get.find<AuthController>().imgPath.value,
-          imageSize: 160,
-        );
-        await mapController?.addImage(
-          "my_profile-circle-icon",
-          profileBytes,
-        );
-        _isMyImageAdded = true;
-      }
-      _myProfileSymbol = await mapController?.addSymbol(
-          SymbolOptions(
-            geometry: latLng,
-            iconImage: "my_profile-circle-icon",
-            iconSize: 1.0,
-          ),
-        );
-    } catch (e) {
-      debugPrint("Marker error: $e");
-    }
-  }
 
 
   @override
@@ -140,13 +85,21 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
       ),
       body:  Obx(() {
             Future.delayed(Duration.zero,(){
-              if(_userSymbol!=null){
-                mapController?.updateSymbol(
-                  _userSymbol!,
-                  SymbolOptions(
-                    geometry: LatLng(chatThemeController.senderLiveLocation.value.latitude??0, chatThemeController.senderLiveLocation.value.longitude??0),
-                  ),
-                );
+              if(_userMarker!=null){
+                setState(() {
+                  _userMarker = _userMarker!.copyWith(
+                    positionParam: LatLng(chatThemeController.senderLiveLocation.value.latitude??0, chatThemeController.senderLiveLocation.value.longitude??0),
+                  );
+                  _markers.add(_userMarker!);
+                });
+              } else {
+                setState(() {
+                  _userMarker = Marker(
+                    markerId: MarkerId('user_marker'),
+                    position: LatLng(chatThemeController.senderLiveLocation.value.latitude??0, chatThemeController.senderLiveLocation.value.longitude??0),
+                  );
+                  _markers.add(_userMarker!);
+                });
               }
 
             });
@@ -160,9 +113,8 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
         Column(
           children: [
             Expanded(
-              child: MapplsMap(
-                myLocationTrackingMode: MyLocationTrackingMode.tracking,
-                onMapCreated: (MapplsMapController controller) async {
+              child: GoogleMap(
+                onMapCreated: (GoogleMapController controller) {
                   mapController = controller;
                 },
                 initialCameraPosition: CameraPosition(
@@ -174,34 +126,8 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
                           0),
                   zoom: 15.0,
                 ),
-                myLocationEnabled: false,
-                onUserLocationUpdated: (userLocation) {
-                  final LatLng newPos = LatLng(
-                    userLocation.position.latitude,
-                    userLocation.position.longitude,
-                  );
-                    mapController?.updateSymbol(
-                      _myProfileSymbol!,
-                      SymbolOptions(
-                        geometry: newPos,
-                      ),
-                    );
-                    setState(() {
-
-                    });
-                },
-                onStyleLoadedCallback: () {
-                  if(!(widget.messages?.myMessage==true)){
-                    _onStyleLoadedCallback();
-                  }
-
-                },
-                zoomGesturesEnabled: true,
-                compassEnabled: false,
-                rotateGesturesEnabled: true,
-                tiltGesturesEnabled: true,
-                scrollGesturesEnabled: true,
-                // onSymbolTapped: _onSymbolTapped,
+                myLocationEnabled: true,
+                markers: _markers,
               ),
             ),
             const SizedBox(height: 6,),

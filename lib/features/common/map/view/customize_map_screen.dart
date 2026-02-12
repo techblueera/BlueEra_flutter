@@ -23,9 +23,8 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../controller/getplace_list_controller.dart';
 
 class CustomizeMapScreen extends StatefulWidget {
@@ -45,7 +44,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   final MapServiceController mapServiceController =
       Get.put(MapServiceController());
 
-  late MapplsMapController _mapController;
+  GoogleMapController? _mapController;
+  final Set<Marker> _markers = {};
+  BitmapDescriptor? placeMarker;
   LatLng _currentPosition =
       const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
@@ -141,7 +142,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   // }
 
   // inside onMapCreated
-  void _onMapCreated(MapplsMapController mapController) async {
+  void _onMapCreated(GoogleMapController mapController) {
     _mapController = mapController;
   }
 
@@ -188,29 +189,19 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     _lat = lat;
     _lng = lng;
 
-    Symbol symbol = await _mapController.addSymbol(
-      SymbolOptions(
-        iconImage: AppImageAssets.markerBlue,
-        geometry: LatLng(_lat, _lng),
-        iconSize: 1.5,
-        textField: 'Location',
-        textSize: SizeConfig.small,
-        textColor: AppColors.mainTextColor.toString(),
-        textOffset: const Offset(0, -2),
-      ),
+    final BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(
+        createLocalImageConfiguration(context), AppImageAssets.markerBlue);
+
+    final Marker marker = Marker(
+      markerId: MarkerId('current_location'),
+      position: LatLng(_lat, _lng),
+      icon: icon,
+      infoWindow: InfoWindow(title: 'Location'),
     );
 
-    // Calculate distance between selected location and current GPS location
-    double distanceInMeters = Geolocator.distanceBetween(
-        _lng, _lng, _currentPosition.latitude, _currentPosition.longitude);
-    // If the selected location is within 50 meters of current location,
-    // consider it as current location and remove marker
-    // This handles GPS precision differences between device GPS and Google Places API
-    if (distanceInMeters < 50.0) {
-      print(
-          "Selected location is within 50m of current position, removing marker");
-      _mapController.removeSymbol(symbol);
-    }
+    setState(() {
+      _markers.add(marker);
+    });
 
     await _loadPlaceMarkers(lat: _lat, lng: _lng);
     _moveCameraTo(LatLng(_lat, _lng));
@@ -221,50 +212,24 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       {required double lat, required double lng}) async {
     placeController.fetchPlaces(_lat, _lng);
 
-    // final placeMarker = await createMarkerUsingTearDropImage(
-    //   tearDropAssetPath: AppImageAssets.tearDrop,
-    //   centerIconAssetPath: AppImageAssets.temple,
-    // );
+    final BitmapDescriptor tearDropIcon = await BitmapDescriptor.fromAssetImage(
+        createLocalImageConfiguration(context), AppImageAssets.tearDrop);
 
-    // generateNearbyDummyPlaces(
-    //   lat: lat,
-    //   lng: lng,
-    // );
-
-    // add each place as a symbol
-    for (final place in placeController.allPlaces) {
-      await _mapController.addSymbol(
-        SymbolOptions(
-          iconImage: AppImageAssets.tearDrop,
-          geometry: LatLng(
-            place.location.coordinates.latitude,
-            place.location.coordinates.longitude,
-          ),
-          iconSize: 1.0,
-          textField: place.name,
-          textSize: 12.0,
-          textColor: '#000000',
-          textOffset: const Offset(0, -1.5),
+    final Set<Marker> placeMarkers = placeController.allPlaces.map((place) {
+      return Marker(
+        markerId: MarkerId(place.id.toString()),
+        position: LatLng(
+          place.location.coordinates.latitude,
+          place.location.coordinates.longitude,
         ),
+        icon: tearDropIcon,
+        infoWindow: InfoWindow(title: place.name),
       );
-    }
+    }).toSet();
 
-    // final Set<Marker> markers = placeController.allPlaces.map((place) {
-    //   return Marker(
-    //     markerId: MarkerId(place.id.toString()),
-    //     position: LatLng(
-    //       place.location.coordinates.latitude,
-    //       place.location.coordinates.longitude,
-    //     ),
-    //     icon: placeMarker,
-    //     infoWindow: InfoWindow(title: place.name),
-    //   );
-    // }).toSet();
-
-    // setState(() {
-    //   _placeMarkers = markers;
-    //   print("fieuf $_placeMarkers");
-    // });
+    setState(() {
+      _markers.addAll(placeMarkers);
+    });
   }
 
   // List<Map<String, dynamic>> generateNearbyDummyPlaces(
@@ -311,10 +276,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
 
   /// Moves camera to current location
   void _moveCameraTo(LatLng position) {
-    _mapController.animateCamera(CameraUpdate.newLatLngZoom(position, _zoom),
-        duration: Duration(milliseconds: 300));
-
-    setState(() {});
+    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(position, _zoom));
   }
 
   // Set<Marker> get _allMarkers => {
@@ -391,15 +353,17 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
             child: Stack(
               children: [
                 // 🗺 Mappls Map
-                MapplsMap(
+                GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: _currentPosition,
                     zoom: _zoom,
                   ),
                   myLocationEnabled: true,
                   onMapCreated: _onMapCreated,
-                  onStyleLoadedCallback: () =>
-                      _initializeLocationAndMarkers(context),
+                  markers: _markers,
+                  onTap: (_) {
+                    _initializeLocationAndMarkers(context);
+                  },
                 ),
 
                 // 🧭 Top Controls
@@ -452,7 +416,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         heroTag: "zoom-in",
                         onPressed: () {
                           _zoom++;
-                          _mapController.animateCamera(
+                          _mapController?.animateCamera(
                             CameraUpdate.zoomTo(_zoom),
                           );
                         },
@@ -468,7 +432,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         heroTag: "zoom-out",
                         onPressed: () {
                           _zoom--;
-                          _mapController.animateCamera(
+                          _mapController?.animateCamera(
                             CameraUpdate.zoomTo(_zoom),
                           );
                         },

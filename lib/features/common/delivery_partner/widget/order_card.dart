@@ -665,10 +665,11 @@ class _OrderCardState extends State<OrderCard> {
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(child: _buildDropLocationInfo()),
 
-              if (widget.selectedPickUp == PickUpTab.onGoing&&widget.isPipModeOn==false)
+              if ((widget.selectedPickUp == PickUpTab.onGoing)?widget.isPipModeOn==false:true)
                 _buildCallButton(widget.order.user?.contactNo),
             ],
           ),
@@ -713,16 +714,19 @@ class _OrderCardState extends State<OrderCard> {
 
   Widget _buildDropLocationDetails() {
     return Wrap(
+      alignment: WrapAlignment.spaceBetween,
       children: [
-        _buildLocationText(
-          latitude: widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-          longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+        Expanded(
+          child: _buildLocationText(
+            latitude: widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+            longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+          ),
         ),
         if (_shouldShowContactNumber())
           CustomText(
             '  +91 ${widget.order.user?.contactNo}',
             fontSize: SizeConfig.small11,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
             color: AppColors.secondaryTextColor,
           ),
       ],
@@ -823,7 +827,7 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   Widget _buildOnGoingOrderActions(DeliverPartnerOrdersController controller) {
-    print("kdjckjcnsdc ${widget.order.orderFor} ___ ${widget.order.status}");
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

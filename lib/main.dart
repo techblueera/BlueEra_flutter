@@ -31,7 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
@@ -119,7 +119,7 @@ Future<void> main() async {
   await HomeCacheService.init();
 
   /// initializeMappls Map
-  await initializeMappls();
+
 
   // await OnesignalService().initialize();
 
@@ -188,12 +188,7 @@ Future<void> main() async {
   }
 }
 
-Future<void> initializeMappls() async {
-  MapplsAccountManager.setMapSDKKey(AppConstants.restApiKey);
-  MapplsAccountManager.setRestAPIKey(AppConstants.restApiKey);
-  MapplsAccountManager.setAtlasClientId(AppConstants.atlasClientId);
-  MapplsAccountManager.setAtlasClientSecret(AppConstants.atlasClientSecret);
-}
+
 
 late List<CameraDescription> cameras;
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
