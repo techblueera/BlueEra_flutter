@@ -461,6 +461,21 @@ class ValidationMethod {
     return null;
   }
 
+  static String? validatePUCNumber(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter PUC Number';
+    }
+    // PUC numbers are usually long alphanumeric strings
+    if (value.length < 6) {
+      return 'Invalid PUC Number';
+    }
+    // Optional: Check for special characters that shouldn't exist
+    if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
+      return 'Enter only letters and numbers';
+    }
+    return null;
+  }
+
 }
 
 

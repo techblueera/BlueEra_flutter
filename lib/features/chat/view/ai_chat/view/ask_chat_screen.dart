@@ -7,6 +7,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/common_se
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_image_assets.dart';
@@ -144,21 +145,20 @@ class _AskChatScreenState extends State<AskChatScreen> {
                               color: AppColors.white, width: 1.5
                           ),
                         ),
-                        child: GridView.builder(
+                        child: MasonryGridView.count(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
                           physics: const NeverScrollableScrollPhysics(),
                           padding: EdgeInsets.zero,
                           itemCount: chatViewController.arrAskForOptions.length,
+                          primary: false,
                           shrinkWrap: true,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
-                            childAspectRatio: 1.2,
-                          ),
                           itemBuilder: (context, index) {
                             var items = chatViewController.arrAskForOptions[index];
                             return CommonServiceCard(
                               service: items,
+                              iconHeight: SizeConfig.size60,
                               getName: (item) => item.name,
                               getIcon: (item) => item.icon,
                               onTap: (_) {

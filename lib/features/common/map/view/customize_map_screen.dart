@@ -25,7 +25,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../controller/getplace_list_controller.dart';
 
 class CustomizeMapScreen extends StatefulWidget {
@@ -45,9 +45,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   final MapServiceController mapServiceController =
       Get.put(MapServiceController());
 
-  late MapplsMapController _mapController;
-  LatLng _currentPosition =
-      const LatLng(20.5937, 78.9629); // Default: India center
+  late GoogleMapController _mapController;
+  Set<Marker> _markers = {};
+  LatLng _currentPosition = const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
   final List<MapServiceCategory> categories = MapServiceCategory.values.where((category) {
     // if (isBusiness()) {
@@ -141,15 +141,13 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   // }
 
   // inside onMapCreated
-  void _onMapCreated(MapplsMapController mapController) async {
+  void _onMapCreated(GoogleMapController mapController) async {
     _mapController = mapController;
+    _initializeLocationAndMarkers();
   }
 
   /// Initial location fetch + marker setup
-  Future<void> _initializeLocationAndMarkers(BuildContext context) async {
-    // final permission = await _handleLocationPermission();
-    // if (!permission) return;
-
+  Future<void> _initializeLocationAndMarkers() async {
     log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress}');
     if (LocationService.lat!=0.0 && LocationService.lng!=0.0) {
       final position = LatLng(LocationService.lat, LocationService.lng);
@@ -183,88 +181,96 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   // }
 
   /// Updates blue dot marker
-  Future<void> _updateLocationMarker(
-      {required double lat, required double lng}) async {
+  Future<void> _updateLocationMarker({required double lat, required double lng}) async {
     _lat = lat;
     _lng = lng;
 
-    Symbol symbol = await _mapController.addSymbol(
-      SymbolOptions(
-        iconImage: AppImageAssets.markerBlue,
-        geometry: LatLng(_lat, _lng),
-        iconSize: 1.5,
-        textField: 'Location',
-        textSize: SizeConfig.small,
-        textColor: AppColors.mainTextColor.toString(),
-        textOffset: const Offset(0, -2),
-      ),
+    // 1. Calculate distance
+    double distanceInMeters = Geolocator.distanceBetween(
+        _lat, _lng, _currentPosition.latitude, _currentPosition.longitude
     );
 
-    // Calculate distance between selected location and current GPS location
-    double distanceInMeters = Geolocator.distanceBetween(
-        _lng, _lng, _currentPosition.latitude, _currentPosition.longitude);
-    // If the selected location is within 50 meters of current location,
-    // consider it as current location and remove marker
-    // This handles GPS precision differences between device GPS and Google Places API
-    if (distanceInMeters < 50.0) {
-      print(
-          "Selected location is within 50m of current position, removing marker");
-      _mapController.removeSymbol(symbol);
+    // 2. Prepare the marker (Load icon only once if possible)
+    final BitmapDescriptor locationIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      AppImageAssets.markerBlue,
+    );
+
+    Marker? selectedMarker;
+
+    // 3. Logic: Only create marker if > 50m away from current location
+    if (distanceInMeters >= 50.0) {
+      selectedMarker = Marker(
+        markerId: const MarkerId('selected_location'),
+        position: LatLng(_lat, _lng),
+        icon: locationIcon,
+        infoWindow: const InfoWindow(title: "Selected Location"),
+      );
+    } else {
+      debugPrint("Selected location is within 50m. Hiding marker.");
     }
 
+    // 4. Update State (Add/Remove logic)
+    setState(() {
+      // Always remove old one first to avoid duplicates
+      _markers.removeWhere((m) => m.markerId.value == 'selected_location');
+
+      // Add new one if it exists
+      if (selectedMarker != null) {
+        _markers.add(selectedMarker);
+      }
+    });
+
+    // 5. Load nearby places and move camera
     await _loadPlaceMarkers(lat: _lat, lng: _lng);
+
     _moveCameraTo(LatLng(_lat, _lng));
   }
-
   /// Loads profile image markers
-  Future<void> _loadPlaceMarkers(
-      {required double lat, required double lng}) async {
-    placeController.fetchPlaces(_lat, _lng);
+  Future<void> _loadPlaceMarkers({required double lat, required double lng}) async {
+    // 1. Fetch Data (Assuming this is an async API call)
+    await placeController.fetchPlaces(lat, lng);
 
-    // final placeMarker = await createMarkerUsingTearDropImage(
-    //   tearDropAssetPath: AppImageAssets.tearDrop,
-    //   centerIconAssetPath: AppImageAssets.temple,
-    // );
+    // 2. Load Icon
+    final BitmapDescriptor placeIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(40, 40)),
+      AppImageAssets.tearDrop,
+    );
 
-    // generateNearbyDummyPlaces(
-    //   lat: lat,
-    //   lng: lng,
-    // );
-
-    // add each place as a symbol
-    for (final place in placeController.allPlaces) {
-      await _mapController.addSymbol(
-        SymbolOptions(
-          iconImage: AppImageAssets.tearDrop,
-          geometry: LatLng(
-            place.location.coordinates.latitude,
-            place.location.coordinates.longitude,
-          ),
-          iconSize: 1.0,
-          textField: place.name,
-          textSize: 12.0,
-          textColor: '#000000',
-          textOffset: const Offset(0, -1.5),
+    // 3. Convert List<Place> to Set<Marker>
+    final Set<Marker> newPlaceMarkers = placeController.allPlaces.map((place) {
+      return Marker(
+        markerId: MarkerId(place.id.toString()), // Unique ID per place
+        position: LatLng(
+          place.location.coordinates.latitude,
+          place.location.coordinates.longitude,
         ),
+        icon: placeIcon,
+        // Google Maps standard: Show name on Tap
+        infoWindow: InfoWindow(
+          title: place.name,
+          snippet: "Tap for details", // Optional subtitle
+        ),
+        onTap: () {
+          print("Tapped on place: ${place.name}");
+        },
       );
-    }
+    }).toSet();
 
-    // final Set<Marker> markers = placeController.allPlaces.map((place) {
-    //   return Marker(
-    //     markerId: MarkerId(place.id.toString()),
-    //     position: LatLng(
-    //       place.location.coordinates.latitude,
-    //       place.location.coordinates.longitude,
-    //     ),
-    //     icon: placeMarker,
-    //     infoWindow: InfoWindow(title: place.name),
-    //   );
-    // }).toSet();
+    // 4. Update Map State
+    setState(() {
+      // We REMOVE old place markers (if any) before adding new ones
+      // This prevents "ghost" markers from previous searches remaining on the map
+      // (Assuming place IDs are numeric, we can clear logic, or just rebuild the set)
 
-    // setState(() {
-    //   _placeMarkers = markers;
-    //   print("fieuf $_placeMarkers");
-    // });
+      // Option A: If you want to keep the "Selected Location" marker but clear others:
+      _markers.removeWhere((m) => m.markerId.value != 'selected_location' && m.markerId.value != 'profile-circle-icon');
+
+      // Add the new batch
+      _markers.addAll(newPlaceMarkers);
+    });
+
+    print("Markers updated. Total count: ${_markers.length}");
   }
 
   // List<Map<String, dynamic>> generateNearbyDummyPlaces(
@@ -390,16 +396,14 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
             top: false,
             child: Stack(
               children: [
-                // 🗺 Mappls Map
-                MapplsMap(
+                // 🗺 Google Map
+                GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: _currentPosition,
                     zoom: _zoom,
                   ),
                   myLocationEnabled: true,
                   onMapCreated: _onMapCreated,
-                  onStyleLoadedCallback: () =>
-                      _initializeLocationAndMarkers(context),
                 ),
 
                 // 🧭 Top Controls
@@ -489,9 +493,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                     backgroundColor: AppColors.white,
                     elevation: 0,
                     onPressed: () {
-                      _initializeLocationAndMarkers(
-                        context,
-                      );
+                      _initializeLocationAndMarkers();
                     },
                     child:
                         Icon(Icons.my_location, color: AppColors.primaryColor),
@@ -503,7 +505,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                 searchLocationShow
                     ? SearchPlaceList(
                         onRefresh: () {
-                          _initializeLocationAndMarkers(context);
+                          _initializeLocationAndMarkers();
                         },
                         query: _currentSearchQuery,
                         lat: _currentPosition.latitude,

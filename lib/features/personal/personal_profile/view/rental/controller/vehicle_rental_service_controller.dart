@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -13,6 +14,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ class VehicleRentalServiceController extends GetxController {
 
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
 
+  String? rentalId;
   final currentStep = 0.obs;
   int totalSteps = 5;
 
@@ -79,18 +82,6 @@ class VehicleRentalServiceController extends GetxController {
   final Rxn<File> pucImage = Rxn<File>();
   final Rxn<File> vehicleFitnessCertificateImage = Rxn<File>();
 
-  static const String rc = 'rc';
-  static const String insurance = 'insurance';
-  static const String puc = 'puc';
-  static const String fitness = 'fitness';
-
-  final RxMap<String, bool> vehicleDocStatus = <String, bool>{
-    rc: false,
-    insurance: false,
-    puc: false,
-    fitness: false,
-  }.obs;
-
   /// step 5
   final RxList<File> vehicleNumberPlateImages = <File>[].obs;
   final RxList<File> vehicleRightSideImages = <File>[].obs;
@@ -107,6 +98,14 @@ class VehicleRentalServiceController extends GetxController {
     CommonMultipleImageSectionController.vehicleBackImageId: false,
   }.obs;
 
+  final Map<String, String> _vehicleSectionNames = {
+    CommonMultipleImageSectionController.vehicleNumberPlateImageId: "Number Plate Photo",
+    CommonMultipleImageSectionController.vehicleRightSideImageId: "Right Side Photo",
+    CommonMultipleImageSectionController.vehicleLeftSideImageId: "Left Side Photo",
+    CommonMultipleImageSectionController.vehicleFrontImageId: "Front View Photo",
+    CommonMultipleImageSectionController.vehicleBackImageId: "Back View Photo",
+  };
+
   /// Go to the next step
   void validateStepOne() {
     if (formKeyStep1.currentState!.validate()) {
@@ -115,9 +114,9 @@ class VehicleRentalServiceController extends GetxController {
   }
 
   void validateStepTwo() {
-    // nextStep();
-    if (formKeyStep2.currentState!.validate()) {
-      if (deliveryPartnerController.selectedVehicleRegistrationType.value ==
+    if (!(formKeyStep2.currentState!.validate())) return;
+
+    if (deliveryPartnerController.selectedVehicleRegistrationType.value ==
           null) {
         commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType.tr);
         return;
@@ -139,51 +138,65 @@ class VehicleRentalServiceController extends GetxController {
       }
 
       nextStep();
-    }
   }
 
   void validateStepThree() {
-    nextStep();
-
-    // if (formKeyStep3.currentState!.validate()) {
-    // if (rcFrontImage.value == null) {
-    //   commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
-    //   return;
-    // }
-    // if (rcBackImage.value == null) {
-    //   commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
-    //   return;
-    // }
-    // if (insuranceImage.value == null) {
-    //   commonSnackBar(message: AppStrings.pleaseSelectInsuranceImage.tr);
-    //   return;
-    // }
-    // if (pucImage.value == null) {
-    //   commonSnackBar(message: AppStrings.pleaseSelectPucImage.tr);
-    //   return;
-    // }
-    // if (vehicleFitnessCertificateImage.value == null) {
-    //   commonSnackBar(message: AppStrings.pleaseSelectFitnessCertImage.tr);
-    //   return;
-    // }
-
-    //   nextStep();
-    // }
-  }
-
-  void validateStepFour() {
-    nextStep();
-    if (formKeyStep4.currentState!.validate()) {
+    if (!(formKeyStep3.currentState!.validate())) return;
       if (selectedChargesTypes.value == null) {
         commonSnackBar(message: AppStrings.pleaseChooseChargesType.tr);
         return;
       }
 
-      nextStep();
+    if(rentalId==null) addFlatRentalServiceApi();
+    else updateFlatRentalServiceApi();
+
+  }
+
+  void validateStepFour(MyDocumentsController myDocumentsController) {
+
+    final Map<String, String> _requiredDocuments = {
+      DocumentKeys.vehicleRC: "Vehicle RC",
+      DocumentKeys.insuranceDocument: "Insurance Document",
+      DocumentKeys.puc: "Pollution Certificate",
+      DocumentKeys.vehicleFitnessCertificate: "Vehicle Fitness Certificate",
+    };
+
+    for (var entry in _requiredDocuments.entries) {
+      String docKey = entry.key;
+      String docName = entry.value;
+
+      // 1. Check Status
+      DocStatus status = myDocumentsController.getStatus(docKey);
+
+      // 2. If Not Uploaded (or Rejected), Show Error & Stop
+      if (status == DocStatus.notUploaded) {
+        commonSnackBar(message: "⚠️ Missing: Please upload $docName");
+        return;
+      }
     }
+
+    nextStep();
   }
 
   void validateStepFive() {
+    for (var entry in vehicleImagesUploadStatus.entries) {
+      String sectionId = entry.key;
+      bool isUploaded = entry.value;
+
+      if (!isUploaded) {
+        String readableName = _vehicleSectionNames[sectionId] ?? "Section Images"; // Fallback name
+        commonSnackBar(message: "⚠️ Missing: Please upload $readableName");
+        return;
+      }
+    }
+
+    Get.until(
+          (route) =>
+      route.settings.name ==
+          RouteHelper.getEarnServiceScreenRoute(),
+    );
+
+
     // if (vehicleNumberPlateImages.isEmpty) {
     //   commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage.tr);
     //   return;
@@ -215,7 +228,7 @@ class VehicleRentalServiceController extends GetxController {
     //   return;
     // }
 
-    addFlatRentalServiceApi();
+    // addFlatRentalServiceApi();
   }
 
   void nextStep() {
@@ -255,7 +268,6 @@ class VehicleRentalServiceController extends GetxController {
   }
 
   RxBool isVehicleRentalServiceLoading = false.obs;
-
   Future<void> addFlatRentalServiceApi() async {
     try {
       isVehicleRentalServiceLoading.value = true;
@@ -339,24 +351,17 @@ class VehicleRentalServiceController extends GetxController {
           ApiKeys.capacityUnit: selectedLoadCapacity.value.name,
         }),
         ApiKeys.description: vehicleDesCtrl.text,
-        // ApiKeys.rcNo: rcController.text,
-        // ApiKeys.rcImages: {
-        //   ApiKeys.front: rcFrontImageParts,
-        //   ApiKeys.back: rcBackImageParts,
-        // },
-        // ApiKeys.insuranceDocument: insuranceImageParts,
-        // ApiKeys.pollutionCertificate: pucImageParts,
-        // ApiKeys.fitnessCertificate: vehicleFitnessCertificateImageParts,
         ApiKeys.priceUnit: selectedChargesTypes.value?.label,
         ApiKeys.price: chargeCtrl.text,
-        if (arrHighlights.isNotEmpty)
-          ApiKeys.highlights: jsonEncode(arrHighlights),
+        if (arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
+        if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
         ApiKeys.pickupLocation: pickUpLocationCtrl.text,
-        // ApiKeys.vehicleNoPlateImg: vehicleNumberPlateImageUrls,
-        // ApiKeys.vehicleRightHandSideImage: vehicleRightSideImageUrls,
-        // ApiKeys.vehicleLeftSideImage: vehicleLeftSideImageUrls,
-        // ApiKeys.vehicleFrontImage: vehicleFrontImageUrls,
-        // ApiKeys.vehicleBackImage: vehicleBackImageUrls,
+        ApiKeys.securityDeposit: securityDepositCtrl.text.trim(),
+        ApiKeys.documentRequired: jsonEncode({
+          ApiKeys.adharCard: isAllowAadharCard.value,
+          ApiKeys.addressProof: isAllowAddressProof.value,
+          ApiKeys.drivingLicense: isAllowDrivingLicense.value
+        })
       };
 
       ResponseModel response = await RentalServiceRepo().addRentalServiceRepo(
@@ -365,12 +370,11 @@ class VehicleRentalServiceController extends GetxController {
 
       if (response.isSuccess) {
         addVehicleRentalServiceResponse.value = ApiResponse.complete(response);
+        rentalId = response.response?.data['data']['_id'];
+        print('rental id-- $rentalId');
+
         await setEarnServiceOptData(true);
-        Get.until(
-          (route) =>
-              route.settings.name ==
-              RouteHelper.getEarnServiceAvailableOptionsScreenRoute(),
-        );
+        nextStep();
       } else {
         addVehicleRentalServiceResponse.value = ApiResponse.error('error');
       }
@@ -385,68 +389,80 @@ class VehicleRentalServiceController extends GetxController {
     }
   }
 
-  RxBool isUploadImagesLoading = false.obs;
-
-  Future<void> uploadVehicleDocImagesApi({
-    required File frontImage,
-    File? backImage,
-    required String sectionId,
-  }) async {
+  Future<void> updateFlatRentalServiceApi() async {
     try {
-      isUploadImagesLoading.value = true;
+      isVehicleRentalServiceLoading.value = true;
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'Vehicle',
+        ApiKeys.ownerDetails: jsonEncode({
+          ApiKeys.ownerName: ownerNameCtrl.text,
+          ApiKeys.contactNumber: mobileNumberCtrl.text,
+          ApiKeys.email: emailCtrl.text,
+          ApiKeys.address: locationCtrl.text,
+          ApiKeys.pincode: pinCodeCtrl.text,
+          ApiKeys.landmark: landmarkCtrl.text
+        }),
+        ApiKeys.lat: pickUpLocationLatitude,
+        ApiKeys.lng: pickUpLocationLongitude,
+        ApiKeys.vehicleDetails: jsonEncode({
+          ApiKeys.registrationType:
+          deliveryPartnerController.selectedVehicleRegistrationType.value,
+          ApiKeys.vehicleType:
+          deliveryPartnerController.selectedVehicleType.value,
+          ApiKeys.fuelType: deliveryPartnerController.selectedFuelType.value,
+          ApiKeys.vehicleUsesType:
+          deliveryPartnerController.selectedVehicleUseType.value,
+          ApiKeys.brand: vehicleNameCtrl.text,
+          ApiKeys.registrationNumber: vehicleRegistrationNumberCtrl.text,
+          ApiKeys.yearOfManufacture: vehicleModelCtrl.text,
+          ApiKeys.seatingCapacity: seatingCapacityCtrl.text,
+          ApiKeys.loadCapacity: loadCapacityCtrl.text,
+          ApiKeys.capacityUnit: selectedLoadCapacity.value.name,
+        }),
+        ApiKeys.description: vehicleDesCtrl.text,
+        ApiKeys.priceUnit: selectedChargesTypes.value?.label,
+        ApiKeys.price: chargeCtrl.text,
+        if (arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
+        if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
+        ApiKeys.pickupLocation: pickUpLocationCtrl.text,
+        ApiKeys.securityDeposit: securityDepositCtrl.text.trim(),
+        ApiKeys.documentRequired: jsonEncode({
+          ApiKeys.adharCard: isAllowAadharCard.value,
+          ApiKeys.addressProof: isAllowAddressProof.value,
+          ApiKeys.drivingLicense: isAllowDrivingLicense.value
+        })
       };
 
-      if (sectionId == rc) {
-        var rcFrontImageParts =
-            await multiPartImage(imagePath: frontImage.path);
-        var rcBackImageParts = await multiPartImage(imagePath: backImage?.path);
-        params[ApiKeys.rcNo] = rcController.text.trim();
-        params[ApiKeys.rcImages] = {
-          ApiKeys.front: rcFrontImageParts,
-          ApiKeys.back: rcBackImageParts,
-        };
-      } else if (sectionId == insurance) {
-        var insuranceImageParts =
-            await multiPartImage(imagePath: frontImage.path);
-        params[ApiKeys.insuranceDocument] = insuranceImageParts;
-      } else if (sectionId == puc) {
-        var pucImageParts = await multiPartImage(imagePath: frontImage.path);
-        params[ApiKeys.pollutionCertificate] = pucImageParts;
-      } else {
-        var vehicleFitnessCertificateImageParts =
-            await multiPartImage(imagePath: frontImage.path);
-        params[ApiKeys.fitnessCertificate] =
-            vehicleFitnessCertificateImageParts;
-      }
-
-      ResponseModel response = await RentalServiceRepo().uploadRentalImagesRepo(
+      ResponseModel response = await RentalServiceRepo().updateRentalServiceRepo(
+        rentalId: rentalId!,
         params: params,
       );
 
       if (response.isSuccess) {
-        uploadImagesResponse.value = ApiResponse.complete(response);
-        Get.back();
-        vehicleDocStatus[sectionId] = true;
+        addVehicleRentalServiceResponse.value = ApiResponse.complete(response);
+        await setEarnServiceOptData(true);
+        nextStep();
       } else {
-        uploadImagesResponse.value = ApiResponse.error('error');
+        addVehicleRentalServiceResponse.value = ApiResponse.error('error');
       }
       commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong);
-    } catch (e) {
-      uploadImagesResponse.value = ApiResponse.error('error');
+    } catch (e, s) {
+      log('stack trace-- $s');
+      addVehicleRentalServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
     } finally {
-      isUploadImagesLoading.value = false;
+      isVehicleRentalServiceLoading.value = false;
     }
   }
 
+  bool isUploadImagesLoading = false;
   Future<void> uploadVehicleImagesApi(
       {required List<File> images, required String sectionId}) async {
     try {
-      isUploadImagesLoading.value = true;
+      isUploadImagesLoading = true;
+      update();
 
       final imageConfig = {
         CommonMultipleImageSectionController.vehicleNumberPlateImageId: (
@@ -494,11 +510,11 @@ class VehicleRentalServiceController extends GetxController {
           await multiPartMultipleImages(arrImages: images);
 
       Map<String, dynamic> params = {
-        ApiKeys.type: 'Vehicle',
         config.apiKey: imageParts,
       };
 
       ResponseModel response = await RentalServiceRepo().uploadRentalImagesRepo(
+        rentalId: rentalId!,
         params: params,
       );
 
@@ -515,7 +531,8 @@ class VehicleRentalServiceController extends GetxController {
       uploadImagesResponse.value = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
     } finally {
-      isUploadImagesLoading.value = false;
+      isUploadImagesLoading = false;
+      update();
     }
   }
 }

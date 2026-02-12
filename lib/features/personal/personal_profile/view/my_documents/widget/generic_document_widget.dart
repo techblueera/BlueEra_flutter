@@ -94,22 +94,26 @@ class GenericDocumentWidget extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(width: SizeConfig.size8),
-                    Expanded(
-                      child: CommonImageUploadTile(
-                        title: AppStrings.upload,
-                        imageFile: controller.genericDocumentsBackImage,
-                        context: context,
-                        onImageSelected: () async {
-                          final selectedPath =
-                          await CommonImageUploadTile.pickImage(
-                              context: context);
-                          if (selectedPath != null) {
-                            controller.genericDocumentsBackImage.value = File(selectedPath);
-                          }
-                        },
-                      ),
-                    ),
+                    if(backImage)
+                      ...[
+                        SizedBox(width: SizeConfig.size8),
+                        Expanded(
+                          child: CommonImageUploadTile(
+                            title: AppStrings.upload,
+                            imageFile: controller.genericDocumentsBackImage,
+                            context: context,
+                            onImageSelected: () async {
+                              final selectedPath =
+                              await CommonImageUploadTile.pickImage(
+                                  context: context);
+                              if (selectedPath != null) {
+                                controller.genericDocumentsBackImage.value = File(selectedPath);
+                              }
+                            },
+                          ),
+                        ),
+                      ]
+
                   ],
                 ),
 

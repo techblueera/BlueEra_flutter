@@ -112,10 +112,14 @@ class MyDocumentsController extends GetxController {
         case 'aadhar': localKey = DocumentKeys.aadhar; break;
         case 'pan': localKey = DocumentKeys.pan; break;
         case 'drivingLicense': localKey = DocumentKeys.drivingLicense; break;
-        case 'vehicleRC': localKey = DocumentKeys.vehicleRC; break;
         case 'addressProof': localKey = DocumentKeys.addressProof; break;
         case 'noc': localKey = DocumentKeys.noc; break;
         case 'bankersCancelledCheque': localKey = DocumentKeys.bankersCancelledCheque; break;
+
+        case 'vehicleRC': localKey = DocumentKeys.vehicleRC; break;
+        case 'insuranceDocument': localKey = DocumentKeys.insuranceDocument; break;
+        case 'puc': localKey = DocumentKeys.puc; break;
+        case 'fitnessCertificate': localKey = DocumentKeys.vehicleFitnessCertificate; break;
 
       // --- Business Keys ---
         case 'gstCertificate': localKey = DocumentKeys.gstCertificate; break;
@@ -367,14 +371,23 @@ class MyDocumentsController extends GetxController {
         return "PAN Card";
       case DocumentKeys.drivingLicense:
         return "Driving License";
-      case DocumentKeys.vehicleRC:
-        return "Vehicle RC";
+
       case DocumentKeys.addressProof:
         return "Address Proof";
       case DocumentKeys.noc:
         return "NOC";
       case DocumentKeys.bankersCancelledCheque:
         return "Cancelled Cheque";
+
+    // ----------------- VEHICLE DOCUMENTS -----------------
+      case DocumentKeys.vehicleRC:
+        return "Vehicle RC";
+      case DocumentKeys.insuranceDocument:
+        return "Insurance Document";
+      case DocumentKeys.puc:
+        return "Pollution Certificate";
+      case DocumentKeys.vehicleFitnessCertificate:
+        return "Vehicle Fitness Certificate";
 
     // ----------------- BUSINESS DOCUMENTS -----------------
       case DocumentKeys.gstCertificate:

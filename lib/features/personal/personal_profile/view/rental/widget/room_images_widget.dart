@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -14,11 +16,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class roomImagesWidget extends StatelessWidget {
+  final String rentalId;
   final StayImagesController controller;
   final CommonMultipleImageSectionController multipleImageSectionController;
 
   const roomImagesWidget({
     super.key,
+    required this.rentalId,
     required this.controller,
     required this.multipleImageSectionController,
   });
@@ -27,39 +31,94 @@ class roomImagesWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
         padding: EdgeInsets.zero,
-      child: Column(
+      child: Obx(()=> Column(
         children: [
           SizedBox(height: SizeConfig.paddingM),
 
           // Room Image
           _buildAddButton(
-            title: AppStrings.uploadRoomImages,
-            onTap: () {
-              Get.bottomSheet(
+              title: AppStrings.uploadRoomImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadRoomImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.roomImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadRoomImages,
+                            minImages: 1,
+                            maxImages: controller.maxHomeImageUpload,
+                            images: controller.roomImages,
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                label: AppStrings.roomsImagesLabel,
+                                imageList: controller.roomImages,
+                                updateId: CommonMultipleImageSectionController.roomImageId,
+                                maxUploadImages: controller.maxHomeImageUpload,
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.roomImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.roomImageId,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> uploadRentalImages(
+                              images: controller.roomImages,
+                              sectionId: CommonMultipleImageSectionController.roomImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.sectionUploadStatus[CommonMultipleImageSectionController.roomImageId] ?? false
+          ),
+
+          // kitchenImages
+          _buildAddButton(
+              title: AppStrings.uploadKitchenImages,
+              onTap: () {
                 CommonDocumentBottomSheet(
-                  title: AppStrings.uploadRoomImages,
+                  title: AppStrings.uploadKitchenImages,
                   child: Column(
                     children: [
                       GetBuilder<CommonMultipleImageSectionController>(
-                        id: CommonMultipleImageSectionController.roomImageId,
+                        id: CommonMultipleImageSectionController.kitchenImageId,
                         builder: (ctrl) => CommonMultipleImageUploadSection(
-                          title: AppStrings.uploadRoomImages,
-                          minImages: controller.maxHomeImageUpload,
+                          title: AppStrings.uploadKitchenImages,
+                          minImages: 1,
                           maxImages: controller.maxHomeImageUpload,
-                          images: controller.roomImages,
+                          images: controller.kitchenImages,
                           onAddImage: () async {
                             multipleImageSectionController.addImages(
-                              label: AppStrings.roomsImagesLabel,
-                              imageList: controller.roomImages,
-                              updateId: CommonMultipleImageSectionController.roomImageId,
-                              maxUploadImages: controller.maxHomeImageUpload,
+                                label: AppStrings.kitchenImagesLabel,
+                                imageList: controller.kitchenImages,
+                                updateId: CommonMultipleImageSectionController.kitchenImageId,
+                                maxUploadImages: controller.maxHomeImageUpload
                             );
                           },
                           onRemoveImage: (index) {
                             multipleImageSectionController.removeImageAt(
-                              imageList: controller.roomImages,
+                              imageList: controller.kitchenImages,
                               index: index,
-                              updateId: CommonMultipleImageSectionController.roomImageId,
+                              updateId: CommonMultipleImageSectionController.kitchenImageId,
                             );
                           },
                         ),
@@ -70,251 +129,207 @@ class roomImagesWidget extends StatelessWidget {
                             ? null
                             : AppStrings.upload,
                         isLoading: controller.isUploadImagesLoading.value,
-                        onTap: ()=> controller.uploadRentalImagesApi(
-                            images: controller.roomImages,
-                            sectionId: CommonMultipleImageSectionController.roomImageId
+                        onTap: ()=> uploadRentalImages(
+                            images: controller.kitchenImages,
+                            sectionId: CommonMultipleImageSectionController.kitchenImageId
                         ),
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
                       )
                     ],
                   ),
-                ),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-              );
-            },
-            status: controller.sectionUploadStatus[CommonMultipleImageSectionController.roomImageId] ?? false
-          ),
-
-          // kitchenImages
-          _buildAddButton(
-            title: AppStrings.uploadKitchenImages,
-            onTap: () {
-              CommonDocumentBottomSheet(
-                title: AppStrings.uploadKitchenImages,
-                child: Column(
-                  children: [
-                    GetBuilder<CommonMultipleImageSectionController>(
-                      id: CommonMultipleImageSectionController.kitchenImageId,
-                      builder: (ctrl) => CommonMultipleImageUploadSection(
-                        title: AppStrings.uploadKitchenImages,
-                        minImages: 2,
-                        maxImages: controller.maxHomeImageUpload,
-                        images: controller.kitchenImages,
-                        onAddImage: () async {
-                          multipleImageSectionController.addImages(
-                              label: AppStrings.kitchenImagesLabel,
-                              imageList: controller.kitchenImages,
-                              updateId: CommonMultipleImageSectionController.kitchenImageId,
-                              maxUploadImages: controller.maxHomeImageUpload
-                          );
-                        },
-                        onRemoveImage: (index) {
-                          multipleImageSectionController.removeImageAt(
-                            imageList: controller.kitchenImages,
-                            index: index,
-                            updateId: CommonMultipleImageSectionController.kitchenImageId,
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.paddingXSmall),
-                    CustomBtn(
-                      title: controller.isUploadImagesLoading.value
-                          ? null
-                          : AppStrings.upload,
-                      isLoading: controller.isUploadImagesLoading.value,
-                      onTap: ()=> controller.uploadRentalImagesApi(
-                          images: controller.kitchenImages,
-                          sectionId: CommonMultipleImageSectionController.kitchenImageId
-                      ),
-                      radius: 10.0,
-                      bgColor: AppColors.primaryColor,
-                    )
-                  ],
-                ),
-              );
-            },
-            status: controller.sectionUploadStatus[CommonMultipleImageSectionController.kitchenImageId] ?? false
+                );
+              },
+              status: controller.sectionUploadStatus[CommonMultipleImageSectionController.kitchenImageId] ?? false
 
           ),
           // SizedBox(height: SizeConfig.paddingM),
 
           // bathroomImages
           _buildAddButton(
-            title: AppStrings.uploadBathroomImages,
-            onTap: () {
-              Get.bottomSheet(
-                CommonDocumentBottomSheet(
-                  title: AppStrings.uploadBathroomImages,
-                  child: Column(
-                    children: [
-                      GetBuilder<CommonMultipleImageSectionController>(
-                        id: CommonMultipleImageSectionController.bathroomImageId,
-                        builder: (ctrl) => CommonMultipleImageUploadSection(
-                          title: AppStrings.uploadBathroomImages,
-                          minImages: 2,
-                          maxImages: controller.maxHomeImageUpload,
-                          images: controller.bathroomImages,
-                          onAddImage: () async {
-                            multipleImageSectionController.addImages(
-                                label: AppStrings.bathroomImagesLabel,
-                                imageList: controller.bathroomImages,
-                                updateId: CommonMultipleImageSectionController.bathroomImageId,
-                                maxUploadImages: controller.maxHomeImageUpload
-                            );
-                          },
-                          onRemoveImage: (index) {
-                            multipleImageSectionController.removeImageAt(
-                              imageList: controller.bathroomImages,
-                              index: index,
-                              updateId: CommonMultipleImageSectionController.bathroomImageId,
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.paddingXSmall),
-                      CustomBtn(
-                        title: controller.isUploadImagesLoading.value
-                            ? null
-                            : AppStrings.upload,
-                        isLoading: controller.isUploadImagesLoading.value,
-                        onTap: ()=> controller.uploadRentalImagesApi(
+              title: AppStrings.uploadBathroomImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadBathroomImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.bathroomImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadBathroomImages,
+                            minImages: 1,
+                            maxImages: controller.maxHomeImageUpload,
                             images: controller.bathroomImages,
-                            sectionId: CommonMultipleImageSectionController.bathroomImageId
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.bathroomImagesLabel,
+                                  imageList: controller.bathroomImages,
+                                  updateId: CommonMultipleImageSectionController.bathroomImageId,
+                                  maxUploadImages: controller.maxHomeImageUpload
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.bathroomImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.bathroomImageId,
+                              );
+                            },
+                          ),
                         ),
-                        radius: 10.0,
-                        bgColor: AppColors.primaryColor,
-                      )
-                    ],
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> uploadRentalImages(
+                              images: controller.bathroomImages,
+                              sectionId: CommonMultipleImageSectionController.bathroomImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-              );
-            },
-            status: controller.sectionUploadStatus[CommonMultipleImageSectionController.bathroomImageId] ?? false
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.sectionUploadStatus[CommonMultipleImageSectionController.bathroomImageId] ?? false
           ),
           // SizedBox(height: SizeConfig.paddingM),
 
           // roadSideImages
           _buildAddButton(
-            title: AppStrings.uploadRoadSideImages,
-            onTap: () {
-              Get.bottomSheet(
-                CommonDocumentBottomSheet(
-                  title: AppStrings.uploadRoadSideImages,
-                  child: Column(
-                    children: [
-                      GetBuilder<CommonMultipleImageSectionController>(
-                        id: CommonMultipleImageSectionController.roadSideImageId,
-                        builder: (ctrl) => CommonMultipleImageUploadSection(
-                          title: AppStrings.uploadRoadSideImages,
-                          minImages: 2,
-                          maxImages: controller.maxHomeImageUpload,
-                          images: controller.roadSideImages,
-                          onAddImage: () async {
-                            multipleImageSectionController.addImages(
-                              label: AppStrings.roadSideImagesLabel,
-                              imageList: controller.roadSideImages,
-                              updateId: CommonMultipleImageSectionController.roadSideImageId,
-                              maxUploadImages: controller.maxHomeImageUpload,
-                            );
-                          },
-                          onRemoveImage: (index) {
-                            multipleImageSectionController.removeImageAt(
-                              imageList: controller.roadSideImages,
-                              index: index,
-                              updateId: CommonMultipleImageSectionController.roadSideImageId,
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.paddingXSmall),
-                      CustomBtn(
-                        title: controller.isUploadImagesLoading.value
-                            ? null
-                            : AppStrings.upload,
-                        isLoading: controller.isUploadImagesLoading.value,
-                        onTap: ()=> controller.uploadRentalImagesApi(
+              title: AppStrings.uploadRoadSideImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadRoadSideImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.roadSideImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadRoadSideImages,
+                            minImages: 1,
+                            maxImages: controller.maxHomeImageUpload,
                             images: controller.roadSideImages,
-                            sectionId: CommonMultipleImageSectionController.roadSideImageId
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                label: AppStrings.roadSideImagesLabel,
+                                imageList: controller.roadSideImages,
+                                updateId: CommonMultipleImageSectionController.roadSideImageId,
+                                maxUploadImages: controller.maxHomeImageUpload,
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.roadSideImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.roadSideImageId,
+                              );
+                            },
+                          ),
                         ),
-                        radius: 10.0,
-                        bgColor: AppColors.primaryColor,
-                      )
-                    ],
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> uploadRentalImages(
+                              images: controller.roadSideImages,
+                              sectionId: CommonMultipleImageSectionController.roadSideImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-              );
-            },
-            status: controller.sectionUploadStatus[CommonMultipleImageSectionController.roadSideImageId] ?? false
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.sectionUploadStatus[CommonMultipleImageSectionController.roadSideImageId] ?? false
 
           ),
           // SizedBox(height: SizeConfig.paddingM),
 
           // otherImages
           _buildAddButton(
-            title: AppStrings.uploadOtherImages,
-            onTap: () {
-              /// roomImageId
-              Get.bottomSheet(
-                CommonDocumentBottomSheet(
-                  title: AppStrings.uploadOtherImages,
-                  child: Column(
-                    children: [
-                      GetBuilder<CommonMultipleImageSectionController>(
-                        id: CommonMultipleImageSectionController.otherImageId,
-                        builder: (ctrl) => CommonMultipleImageUploadSection(
-                          title: AppStrings.uploadOtherImages,
-                          maxImages: controller.maxHomeImageUpload,
-                          images: controller.otherImages,
-                          onAddImage: () async {
-                            multipleImageSectionController.addImages(
-                                label: AppStrings.otherImagesLabel,
-                                imageList: controller.otherImages,
-                                updateId: CommonMultipleImageSectionController.otherImageId,
-                                maxUploadImages: controller.maxHomeImageUpload
-                            );
-                          },
-                          onRemoveImage: (index) {
-                            multipleImageSectionController.removeImageAt(
-                              imageList: controller.otherImages,
-                              index: index,
-                              updateId: CommonMultipleImageSectionController.otherImageId,
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.paddingXSmall),
-                      CustomBtn(
-                        title: controller.isUploadImagesLoading.value
-                            ? null
-                            : AppStrings.upload,
-                        isLoading: controller.isUploadImagesLoading.value,
-                        onTap: ()=> controller.uploadRentalImagesApi(
+              title: AppStrings.uploadOtherImages,
+              onTap: () {
+                /// roomImageId
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadOtherImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.otherImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadOtherImages,
+                            minImages: 1,
+                            maxImages: controller.maxHomeImageUpload,
                             images: controller.otherImages,
-                            sectionId: CommonMultipleImageSectionController.otherImageId
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.otherImagesLabel,
+                                  imageList: controller.otherImages,
+                                  updateId: CommonMultipleImageSectionController.otherImageId,
+                                  maxUploadImages: controller.maxHomeImageUpload
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.otherImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.otherImageId,
+                              );
+                            },
+                          ),
                         ),
-                        radius: 10.0,
-                        bgColor: AppColors.primaryColor,
-                      )
-                    ],
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> uploadRentalImages(
+                              images: controller.otherImages,
+                              sectionId: CommonMultipleImageSectionController.otherImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-              );
-            },
-            status: controller.sectionUploadStatus[CommonMultipleImageSectionController.otherImageId] ?? false
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.sectionUploadStatus[CommonMultipleImageSectionController.otherImageId] ?? false
 
           ),
           // SizedBox(height: SizeConfig.paddingM),
         ],
+       )
       )
+
+    );
+  }
+
+  void uploadRentalImages({required List<File> images, required String sectionId}){
+    controller.uploadRentalImagesApi(
+        rentalId: rentalId,
+        images: images,
+        sectionId: sectionId
     );
   }
 

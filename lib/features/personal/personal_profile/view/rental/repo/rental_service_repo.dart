@@ -4,11 +4,24 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class RentalServiceRepo extends BaseService{
 
-  ///ADD RENTAL SERVICE...
+  /// ADD RENTAL SERVICE...
   Future<ResponseModel> addRentalServiceRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       rentalService,
-      isMultipart: true,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// UPDATE RENTAL SERVICE...
+  Future<ResponseModel> updateRentalServiceRepo({
+    required String rentalId,
+    required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      updateRentalService(rentalId),
       params: params,
       showProgress: false,
       onError: (error) {},
@@ -54,10 +67,13 @@ class RentalServiceRepo extends BaseService{
   }
 
   /// UPLOAD RENTAL IMAGES
-  Future<ResponseModel> uploadRentalImagesRepo({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      uploadRentalImages,
+  Future<ResponseModel> uploadRentalImagesRepo({
+    required String rentalId,
+    required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      uploadRentalImages(rentalId),
       params: params,
+      isMultipart: true,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

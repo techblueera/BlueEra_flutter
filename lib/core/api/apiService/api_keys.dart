@@ -678,4 +678,10 @@ class ApiKeys {
   static const fare  = 'fare';
   static const categoryKey  = 'categoryKey';
   static const websiteUrl  = 'websiteUrl';
+
+  static const securityDeposit = 'securityDeposit';
+  static const documentRequired = 'documentRequired';
+  static const adharCard = 'adharCard';
+  static const addressProof = 'addressProof';
+  static const drivingLicense = 'drivingLicense';
 }

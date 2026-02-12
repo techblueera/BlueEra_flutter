@@ -234,10 +234,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                 },
               ) : ListView.builder(
                 controller: _scrollController,
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size8,
-                    vertical: SizeConfig.size15
-                ),
+                padding: EdgeInsets.zero,
                 itemCount: productList.length +
                     (controller.isProductDataLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {

@@ -41,8 +41,8 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
         _controllers.add(TextEditingController(text: text));
       }
     }else{
-      // Ensure there are always 4 controllers minimum
-      while(_controllers.length < 4) {
+      // Ensure there are always 2 controllers minimum
+      while(_controllers.length < 2) {
         _controllers.add(TextEditingController());
       }
     }

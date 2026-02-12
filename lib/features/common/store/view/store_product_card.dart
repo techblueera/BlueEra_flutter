@@ -194,7 +194,7 @@ class StoreProductCard extends StatelessWidget {
           )
       )
           :  Container(
-        height: SizeConfig.size200,
+        height: SizeConfig.screenHeight * 0.17,
         decoration: BoxDecoration(
           color: AppColors.whiteFE,
           borderRadius: BorderRadius.circular(10),
@@ -212,8 +212,8 @@ class StoreProductCard extends StatelessWidget {
             /// Product Image
             CustomImageSlideshow(
               isLoading: false,
-              height: SizeConfig.size200,
-              width: SizeConfig.size150,
+              height: SizeConfig.screenHeight * 0.17,
+              width: SizeConfig.screenWidth * 0.32,
               imagePaths: details.media,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
               // fit: BoxFit.cover,
@@ -248,7 +248,7 @@ class StoreProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                     SizedBox(height: SizeConfig.size8),
+                     SizedBox(height: SizeConfig.size5),
 
                     /// Price Row
                     FittedBox(

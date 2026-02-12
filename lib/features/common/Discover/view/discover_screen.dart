@@ -707,10 +707,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                           Get.to(()=> HomeMadeFoodScreen());
                         }else if(item.slugId == PRODUCT){
                           Get.to(()=> HomeMadeProductScreen());
-                          // Get.to(() => AllProductStoreScreen(
-                          //   isShowInGrid: true,
-                          //   providerType: ProviderType.user,
-                          // ));
                         }
                       }
                   )
