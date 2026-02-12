@@ -2146,7 +2146,7 @@ class ChatViewController extends GetxController {
       await ChatViewRepo().checkTrackOrderStatusApi(orderId);
       if (responseModel.isSuccess) {
         var details=responseModel.response?.data;
-        if(details["status"]=="in-progress"){
+        if(details["status"]!="completed"||details["status"]!="rejected"||details["status"]!="cancelled"){
           return true;
         }else{
           return false;

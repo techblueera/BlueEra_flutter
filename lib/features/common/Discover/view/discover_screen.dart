@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -762,6 +763,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
           InkWell(
               onTap: (){
                 Get.to(BookTransportMain());
+
               },
               child: CustomFormCard(
                 color: AppColors.rating.withValues(alpha: 0.1),
@@ -785,6 +787,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                     // ),
                     SizedBox(height: SizeConfig.paddingXSL),
                     CustomFormCard(
+                      isBorderAvailable: true,
                       padding: EdgeInsets.all(SizeConfig.size10),
                       // IntrinsicHeight ensures the vertical line stretches to match the fields
                       child: IntrinsicHeight(
@@ -797,7 +800,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                                     Icons.home_outlined,
                                     color: AppColors.secondaryTextColor,
                                     size: 16),
-      
+
                                 // The Dotted Line
                                 Expanded(
                                   child: Padding(
@@ -808,16 +811,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                                     ),
                                   ),
                                 ),
-      
+
                                 const Icon(
                                     Icons.location_on_outlined,
                                     color: AppColors.redLite,
                                     size: 16),
                               ],
                             ),
-      
+
                             const SizedBox(width: 16),
-      
+
                             // 2. MIDDLE SECTION
                             Expanded(
                               child: Column(
@@ -826,21 +829,21 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                                 children: [
                                   // From
                                   CustomText(
-                                      "From",
+                                      "${LocationService.userCurrentAddress.value.city}",
                                       fontSize: SizeConfig.medium,
                                       color: AppColors.greyBf,
                                       fontWeight: FontWeight.w400),
-      
+
                                   SizedBox(height: SizeConfig.paddingS),
-      
+
                                   // Divider
                                   CommonHorizontalDivider(
                                       height: 1,
                                       color: AppColors.greyBf
                                   ),
-      
+
                                   SizedBox(height: SizeConfig.paddingS),
-      
+
                                   // To
                                   CustomText(
                                       "To",
@@ -850,9 +853,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                                 ],
                               ),
                             ),
-      
+
                             const SizedBox(width: 16),
-      
+
                             // 3. RIGHT SECTION: Swap Button
                             Container(
                               decoration: BoxDecoration(
@@ -882,7 +885,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                         crossAxisCount: 2,
                         getName: (item)=> item.name,
                         getIcon: (item)=> item.icon,
-                        onTap: (_){}
+                        onTap: (_){
+                          Get.to(BookTransportMain());
+                        }
                     ),
                   ],
                 ),

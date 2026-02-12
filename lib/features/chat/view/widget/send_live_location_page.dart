@@ -9,10 +9,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
 import 'package:flutter/services.dart';
 
 
@@ -26,7 +25,7 @@ class SendLocationPage extends StatefulWidget {
 
 class _SendLocationPageState extends State<SendLocationPage> {
 
-  MapplsMapController? mapController;
+
   LatLng? _currentPosition;
   LatLng? alternatCurrentPos;
 
@@ -84,37 +83,6 @@ class _SendLocationPageState extends State<SendLocationPage> {
   Symbol? _userSymbol;
   bool _isImageAdded = false;
 
-  Future<void> _onStyleLoadedCallback() async {
-    try {
-      // 🔥 Image only once
-      if (!_isImageAdded) {
-        final Uint8List markerBytes =
-        await TooltipGeneratorOnlyLocationIcon.createIconOnly(
-          svgAssetPath: AppIconAssets.locationMarkerIcon,
-        );
-
-        await mapController?.addImage(
-          "svg-composite-icon",
-          markerBytes,
-        );
-
-        _isImageAdded = true;
-      }
-
-      // 🔥 Symbol create only once
-      if (_userSymbol == null && _currentPosition != null) {
-        _userSymbol = await mapController?.addSymbol(
-          SymbolOptions(
-            geometry: _currentPosition!,
-            iconImage: "svg-composite-icon",
-            iconSize: 1.0,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint("Marker error: $e");
-    }
-  }
 
   Future<Duration?> showLocationDurationSheet(BuildContext context) {
     Duration selectedDuration = const Duration(minutes: 15);
@@ -233,46 +201,19 @@ class _SendLocationPageState extends State<SendLocationPage> {
           SizedBox(
             height: 250,
             child:
-            MapplsMap(
-                myLocationTrackingMode: MyLocationTrackingMode.tracking,
-                onMapCreated: (MapplsMapController controller) async {
-                  mapController = controller;
-                },
-                  initialCameraPosition: CameraPosition(
-                    target: alternatCurrentPos!,
-                    zoom: 15.0,
-                  ),
-                myLocationEnabled: true,
-              onUserLocationUpdated: (userLocation) {
-                final LatLng newPos = LatLng(
-                  userLocation.position.latitude,
-                  userLocation.position.longitude,
-                );
-
-                setState(() {
-                  _currentPosition = newPos;
-                });
-
-                // 🔥 Just move existing symbol
-                if (_userSymbol != null) {
-                  mapController?.updateSymbol(
-                    _userSymbol!,
-                    SymbolOptions(
-                      geometry: newPos,
-                    ),
-                  );
-                }
-              },
-              onStyleLoadedCallback: () {
-                  // setState(() => isMapLoading = false);
-                  _onStyleLoadedCallback();
-                },
-                zoomGesturesEnabled: true,
+            GoogleMap(
+              onMapCreated: (controller) =>controller,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(26.7836, 80.9013),
+                zoom: 14.0,
+              ),
+              // markers: _markers,
+              myLocationEnabled: false,
               compassEnabled: false,
               rotateGesturesEnabled: true,
               tiltGesturesEnabled: true,
+              zoomGesturesEnabled: true,
               scrollGesturesEnabled: true,
-              // onSymbolTapped: _onSymbolTapped,
             ),
 
           ),

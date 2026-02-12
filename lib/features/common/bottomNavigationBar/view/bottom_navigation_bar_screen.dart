@@ -50,6 +50,7 @@ import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
 import '../../../me/hospital/view/hospital_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
+import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   final int? initialIndex;
@@ -73,6 +74,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
+  final pipController = getOrPut(() => PipFloatingPageController());
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -91,7 +93,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
-
+    pipController.setPipStatus(false);
     if (isGuestUser()) {
       logs("DIALOGE CALL");
       _checkAndShowDialog();
