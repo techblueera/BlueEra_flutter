@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/stay_images_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/show_home_description_suggestion_dialog.dart';
@@ -18,6 +20,7 @@ class HomeStayRentalServiceController extends GetxController{
   Rx<ApiResponse> addHomeStayRentalServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateHomeRentalServiceResponse = ApiResponse.initial('Initial').obs;
 
+  String? rentalId;
   final currentStep = 0.obs;
   int totalSteps = 4;
 
@@ -126,60 +129,59 @@ class HomeStayRentalServiceController extends GetxController{
     }
   }
 
-  void validateStepTwo(){
-    if(formKeyStep2.currentState!.validate()){
-      if(arrHighlights.isEmpty) {
-        commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
+  void validateStepThree(MyDocumentsController myDocumentsController){
+
+    final Map<String, String> _requiredDocuments = {
+      DocumentKeys.hotelTradeLicense: "Trade License",
+      DocumentKeys.hotelPanCard: "PAN Card",
+      DocumentKeys.hotelGstCertificate: "GST Certificate",
+      DocumentKeys.hotelCancelledCheque: "Cancelled Cheque",
+      DocumentKeys.hotelPoliceVerification: "Police Verification",
+      DocumentKeys.hotelFireSafetyCertificate: "Fire Safety Certificate",
+      DocumentKeys.hotelFssaiLicense: "FSSAI License",
+      DocumentKeys.hotelOwnerIdProof: "Owner ID Proof",
+      DocumentKeys.hotelOnboardingAgreement: "Onboarding Agreement",
+      DocumentKeys.hotelPropertyAgreement: "Property Agreement",
+    };
+
+    for (var entry in _requiredDocuments.entries) {
+      String docKey = entry.key;
+      String docName = entry.value;
+
+      // 1. Check Status
+      DocStatus status = myDocumentsController.getStatus(docKey);
+
+      // 2. If Not Uploaded (or Rejected), Show Error & Stop
+      if (status == DocStatus.notUploaded) {
+        commonSnackBar(message: "⚠️ Missing: Please upload $docName");
         return;
       }
-
-      // if(!isUnMarried.value){
-      //   commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
-      //   return;
-      // }
-      //
-      // if(!isAllowStudentOrBachelor.value){
-      //   commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
-      //   return;
-      // }
-
-      if(anyFoodHabitRestriction.value){
-        if(selectedFoodHabit.isEmpty){
-          commonSnackBar(message: AppStrings.foodHabitRequired.tr);
-          return;
-        }
-      }
-
-      nextStep();
-
     }
-  }
-
-  void validateStepThree(){
-      // if (roomImages.length < 4) {
-      //   commonSnackBar(message: AppStrings.uploadAtLeast4Room.tr);
-      //   return;
-      // }
-      // if (kitchenImages.length < 2) {
-      //   commonSnackBar(message: AppStrings.uploadAtLeast2Kitchen.tr);
-      //   return;
-      // }
-      // if (bathroomImages.length < 2) {
-      //   commonSnackBar(message: AppStrings.uploadAtLeast2Bathroom.tr);
-      //   return;
-      // }
 
       nextStep();
 
   }
 
-  void validateStepFour(){
-    // if (roadSideImages.length < 2) {
-    //   commonSnackBar(message: AppStrings.uploadAtLeast2RoadSide.tr);
-    //    return;
-    // }
+  void validateStepFour(StayImagesController stayImagesController){
 
-    addHomeStayRentalServiceApi();
+    for (var entry in stayImagesController.sectionUploadStatus.entries) {
+      String sectionId = entry.key;
+      bool isUploaded = entry.value;
+
+      if (!isUploaded) {
+        String readableName = stayImagesController.sectionNames[sectionId] ?? "Section Images"; // Fallback name
+        commonSnackBar(message: "⚠️ Missing: Please upload $readableName");
+        return;
+      }
+    }
+
+    Get.until(
+          (route) =>
+      route.settings.name ==
+          RouteHelper.getEarnServiceScreenRoute(),
+    );
+
+
   }
 
   /// Go to the next step
@@ -224,6 +226,34 @@ class HomeStayRentalServiceController extends GetxController{
   RxBool isHomeStayRentalServiceLoading = false.obs;
 
   Future<void> addHomeStayRentalServiceApi() async {
+    if(!(formKeyStep2.currentState!.validate())) return;
+
+      if(arrHighlights.isEmpty) {
+        commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
+        return;
+      }
+
+    if(checkInMinute.value == null &&
+        checkInHour.value == null &&
+        checkInPeriod.value == null){
+      commonSnackBar(message: 'Please select check in time.');
+      return;
+    }
+
+    if(checkOutMinute.value == null &&
+        checkOutHour.value == null &&
+        checkOutPeriod.value == null){
+      commonSnackBar(message: 'Please select check out time.');
+      return;
+    }
+
+
+    if(anyFoodHabitRestriction.value){
+        if(selectedFoodHabit.isEmpty){
+          commonSnackBar(message: AppStrings.foodHabitRequired.tr);
+          return;
+        }
+      }
 
     try {
       isHomeStayRentalServiceLoading.value = true;
@@ -298,12 +328,11 @@ class HomeStayRentalServiceController extends GetxController{
 
       if (response.isSuccess) {
         addHomeStayRentalServiceResponse.value = ApiResponse.complete(response);
+        rentalId = response.response?.data['data']['_id'];
+        print('rental id-- $rentalId');
+
         await setEarnServiceOptData(true);
-        Get.until(
-              (route) =>
-          route.settings.name ==
-              RouteHelper.getEarnServiceAvailableOptionsScreenRoute(),
-        );
+        nextStep();
       } else {
         addHomeStayRentalServiceResponse.value = ApiResponse.error('error');
       }
@@ -317,13 +346,91 @@ class HomeStayRentalServiceController extends GetxController{
     }
   }
 
+  Future<void> updateHomeStayRentalServiceApi() async {
+    if(!(formKeyStep2.currentState!.validate())) return;
+
+    if(anyFoodHabitRestriction.value){
+      if(selectedFoodHabit.isEmpty){
+        commonSnackBar(message: AppStrings.foodHabitRequired.tr);
+        return;
+      }
+    }
+
+    try {
+      isHomeStayRentalServiceLoading.value = true;
+
+      Map<String, dynamic> params = {
+        ApiKeys.type: 'Property',
+        ApiKeys.name: propertyNameCtrl.text,
+        ApiKeys.contactNumber: mobileNumberCtrl.text,
+        ApiKeys.address: locationCtrl.text,
+        ApiKeys.landmark: landmarkCtrl.text,
+        ApiKeys.lat : latitude,
+        ApiKeys.lng: longitude,
+        ApiKeys.pincode: pinCodeCtrl.text,
+        ApiKeys.nearbyLocations: jsonEncode({
+          ApiKeys.railwayStation: nearByRailwayCtrl.text,
+          ApiKeys.airport: nearByAirportCtrl.text,
+          ApiKeys.busStand: nearByBusStandCtrl.text,
+          ApiKeys.famousPlace: nearByFamousPlaceCtrl.text
+        }),
+        ApiKeys.description: descriptionCtrl.text,
+        ApiKeys.maxPeople: jsonEncode({
+          ApiKeys.adults: selectedAdults.value,
+          ApiKeys.children: selectedChildren.value,
+        }),
+        ApiKeys.beds: bedsCountCtrl.text,
+        ApiKeys.priceUnit: selectedChargesTypes.value?.label,
+        ApiKeys.price: chargeCtrl.text,
+        ApiKeys.checkInTime: checkInTimeController.text,
+        ApiKeys.checkOutTime: checkOutTimeController.text,
+        if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
+        ApiKeys.restrictions: jsonEncode({
+          ApiKeys.unmarriedCoupleAllowed: isUnMarried.value,
+          ApiKeys.studentOrBachelorAllowed: isAllowStudentOrBachelor.value,
+          ApiKeys.foodRestriction: {
+            ApiKeys.isFoodRestriction: anyFoodHabitRestriction.value,
+            if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
+          },
+        }),
+        if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
+      };
+
+      ResponseModel response = await RentalServiceRepo().updateRentalServiceRepo(
+        rentalId: rentalId!,
+        params: params,
+      );
+
+      if (response.isSuccess) {
+        addHomeStayRentalServiceResponse.value = ApiResponse.complete(response);
+        await setEarnServiceOptData(true);
+        nextStep();
+      } else {
+        addHomeStayRentalServiceResponse.value = ApiResponse.error('error');
+      }
+      commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong);
+    } catch (e) {
+      addHomeStayRentalServiceResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: e.toString());
+    }finally{
+      isHomeStayRentalServiceLoading.value = false;
+    }
+  }
+
+
   RxBool isGenerateHomeRentalServiceLoading = false.obs;
   var descriptionSuggestions = <String>[].obs;
   var selectedDescription = "".obs;
 
   Future<void> generateHomeDescriptionApi() async {
-    if(bedsCountCtrl.text.isEmpty || arrHighlights.isEmpty){
-      commonSnackBar(message: AppStrings.enterBedCountAndHighlights.tr);
+    if(bedsCountCtrl.text.isEmpty){
+      commonSnackBar(message: 'Please add bed count to generate the description');
+      return;
+    }
+    if(arrHighlights.isEmpty){
+      commonSnackBar(message: 'Please add highlights to generate the description');
+      // commonSnackBar(message: AppStrings.enterBedCountAndHighlights.tr);
       return;
     }
 
@@ -334,8 +441,8 @@ class HomeStayRentalServiceController extends GetxController{
 
       Map<String, dynamic> params = {
         ApiKeys.propertyName: propertyNameCtrl.text,
-        ApiKeys.noOfBeds: bedsCountCtrl.text,
         ApiKeys.propertyLocation: locationCtrl.text,
+        ApiKeys.noOfBeds: bedsCountCtrl.text,
         ApiKeys.propertyHighlight: jsonEncode(arrHighlights)
       };
 

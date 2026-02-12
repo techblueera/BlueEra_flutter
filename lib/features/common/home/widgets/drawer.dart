@@ -10,7 +10,6 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -28,7 +27,6 @@ import '../../../personal/auth/controller/view_personal_details_controller.dart'
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import '../../../personal/personal_profile/view/create_profile_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
-import '../../../personal/personal_profile/view/documents.dart';
 import '../../../personal/personal_profile/view/franchise/request_to_franchise.dart';
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
@@ -327,7 +325,11 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "My Documents",
-          onTap: () => Get.to( AddYourDocumentScreen())
+          onTap: () =>  Get.toNamed(RouteHelper.getAddDocumentScreenRoute(),
+          arguments: {ApiKeys.argDocumentVia: isIndividual() ?
+          AppConstants.personalDocumentScreen
+          : AppConstants.businessDocumentScreen}
+        )
 
       ),
       MenuItemModel(

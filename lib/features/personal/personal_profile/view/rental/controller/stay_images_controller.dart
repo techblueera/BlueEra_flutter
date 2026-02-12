@@ -30,8 +30,18 @@ class StayImagesController extends GetxController {
     CommonMultipleImageSectionController.otherImageId: false,
   }.obs;
 
+  final Map<String, String> sectionNames = {
+    CommonMultipleImageSectionController.roomImageId: "Room Photos",
+    CommonMultipleImageSectionController.kitchenImageId: "Kitchen Photos",
+    CommonMultipleImageSectionController.bathroomImageId: "Bathroom Photos",
+    CommonMultipleImageSectionController.roadSideImageId: "Road Side Photos",
+    CommonMultipleImageSectionController.otherImageId: "Other Photos",
+  };
+
   Future<void> uploadRentalImagesApi(
-      {required List<File> images, required String sectionId}) async {
+      {
+        required String rentalId,
+        required List<File> images, required String sectionId}) async {
     try {
       isUploadImagesLoading.value = true;
 
@@ -71,11 +81,11 @@ class StayImagesController extends GetxController {
           await multiPartMultipleImages(arrImages: images);
 
       Map<String, dynamic> params = {
-        ApiKeys.type: 'Property',
         config.apiKey: imageParts,
       };
 
       ResponseModel response = await RentalServiceRepo().uploadRentalImagesRepo(
+        rentalId: rentalId,
         params: params,
       );
 

@@ -11,6 +11,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/wid
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/doc_verification_pending_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/generic_document_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/hotel_all_documents.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/vehicle_document_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -159,34 +161,6 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadVehicleRC,
-                              document: DocumentKeys.vehicleRC,
-                              status:
-                                  controller.getStatus(DocumentKeys.vehicleRC),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: AppStrings.rc,
-                                    child: GenericDocumentWidget(
-                                      documentType: DocumentKeys.vehicleRC,
-                                      uploadSectionLabel:
-                                          AppStrings.uploadRcBothSide,
-                                      backImage: true,
-                                      textFieldLabel: AppStrings.rcNumber,
-                                      textFieldHint: AppStrings.egUP32AB12,
-                                      textFieldValidation:
-                                          ValidationMethod.validateRC,
-                                      maxLength: 10,
-                                      keyboardType: TextInputType.text,
-                                      isCapitalize: true,
-                                    ),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
                               title: AppStrings.uploadAddressProof,
                               document: DocumentKeys.addressProof,
                               status: controller
@@ -294,6 +268,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                                       textFieldValidation:
                                           ValidationMethod.validateGSTIN,
                                       maxLength: 15,
+                                      isCapitalize: true,
                                     ),
                                   ),
                                   isScrollControlled: true,
@@ -436,263 +411,22 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                         )),
                   ],
 
-                  SizedBox(height: SizeConfig.paddingXSL),
+                  if(widget.documentVia == AppConstants.personalDocumentScreen)
+                    ...[
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      VehicleDocumentsScreen(
+                        controller: controller,
+                      ),
+                    ],
+
                   if (widget.documentVia == AppConstants.hotelServiceScreen)
-                    CustomFormCard(
-                        padding: EdgeInsets.only(
-                            top: SizeConfig.size16, bottom: SizeConfig.size8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.size16),
-                              child: CustomText(
-                                AppStrings.hotelNdHomeStayDocument,
-                                color: AppColors.mainTextColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: SizeConfig.large,
-                              ),
-                            ),
-                            SizedBox(height: SizeConfig.size8),
-                            _buildAddButton(
-                              title: AppStrings.hotelTradeLicense,
-                              document: DocumentKeys.hotelTradeLicense,
-                              status: controller
-                                  .getStatus(DocumentKeys.hotelTradeLicense),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "Hotel Trade License",
-                                    child: GenericDocumentWidget(
-                                      documentType:
-                                          DocumentKeys.hotelTradeLicense,
-                                      uploadSectionLabel:
-                                          "Upload Photo (Both Side)",
-                                      backImage: true,
-                                      textFieldLabel:
-                                          "Hotel Trade License Number",
-                                      textFieldHint: "E.g. 23333....",
-                                      textFieldValidation:
-                                          ValidationMethod.validateTradeLicense,
-                                      maxLength: 30,
-                                    ),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.panCardHotelOrOwner,
-                              document: DocumentKeys.hotelPanCard,
-                              status: controller
-                                  .getStatus(DocumentKeys.hotelPanCard),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                      title: AppStrings.panCard,
-                                      child: GenericDocumentWidget(
-                                        documentType: DocumentKeys.hotelPanCard,
-                                        textFieldLabel: AppStrings.panNumber,
-                                        textFieldHint: 'E.g. ABCDE1234F',
-                                        uploadSectionLabel:
-                                            AppStrings.uploadPan,
-                                        backImage: true,
-                                        textFieldValidation:
-                                            ValidationMethod.validatePAN,
-                                        maxLength: 10,
-                                      )),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.gstRegistrationCertificate,
-                              document: DocumentKeys.hotelGstCertificate,
-                              status: controller
-                                  .getStatus(DocumentKeys.hotelGstCertificate),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "GST Registration Certificate",
-                                    child: GenericDocumentWidget(
-                                      documentType:
-                                          DocumentKeys.hotelGstCertificate,
-                                      textFieldLabel: "GSTIN Number",
-                                      textFieldHint: "E.g. 23333....",
-                                      uploadSectionLabel:
-                                          "Upload GST Certificate",
-                                      backImage: true,
-                                      textFieldValidation:
-                                          ValidationMethod.validateGSTIN,
-                                      maxLength: 15,
-                                    ),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.cancelledCheque,
-                              document: DocumentKeys.hotelCancelledCheque,
-                              status: controller
-                                  .getStatus(DocumentKeys.hotelCancelledCheque),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "Cancelled Cheque",
-                                    child: CancelChequeDocumentWidget(
-                                        documentType:
-                                            DocumentKeys.hotelCancelledCheque),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.policeVerificationOrNOC,
-                              document: DocumentKeys.hotelPoliceVerification,
-                              status: controller.getStatus(
-                                  DocumentKeys.hotelPoliceVerification),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "Police Verification / NOC",
-                                    child: GenericDocumentWidget(
-                                        documentType: DocumentKeys
-                                            .hotelPoliceVerification,
-                                        uploadSectionLabel:
-                                            "Upload Police Verification / NOC",
-                                        backImage: true),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.fireSafetyCertificate,
-                              document: DocumentKeys.hotelFireSafetyCertificate,
-                              status: controller.getStatus(
-                                  DocumentKeys.hotelFireSafetyCertificate),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "Fire Safety Certificate",
-                                    child: GenericDocumentWidget(
-                                        documentType: DocumentKeys
-                                            .hotelFireSafetyCertificate,
-                                        uploadSectionLabel:
-                                            "Upload Fire Safety Certificate",
-                                        backImage: true),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.fssaiLicense,
-                              document: DocumentKeys.hotelFssaiLicense,
-                              status: controller
-                                  .getStatus(DocumentKeys.hotelFssaiLicense),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "FSSAI License",
-                                    child: GenericDocumentWidget(
-                                      documentType:
-                                          DocumentKeys.hotelFssaiLicense,
-                                      textFieldLabel: "FSSAI License Number",
-                                      textFieldHint: "E.g. 12345678901234",
-                                      uploadSectionLabel:
-                                          "Upload FSSAI Certificate",
-                                      backImage: false,
-                                      textFieldValidation:
-                                          ValidationMethod.validateFSSAI,
-                                      maxLength: 14,
-                                    ),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title:
-                                  AppStrings.ownerOrAuthorizedSignatoryIDProof,
-                              document: DocumentKeys.hotelOwnerIdProof,
-                              status: controller
-                                  .getStatus(DocumentKeys.hotelOwnerIdProof),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title:
-                                        "Owner / Authorized Signatory ID Proof",
-                                    child: GenericDocumentWidget(
-                                        documentType:
-                                            DocumentKeys.hotelOwnerIdProof,
-                                        uploadSectionLabel:
-                                            "Upload Aadhar Card (Both Side)",
-                                        backImage: true),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title: AppStrings.hotelOnboardingAgreementSigned,
-                              document: DocumentKeys.hotelOnboardingAgreement,
-                              status: controller.getStatus(
-                                  DocumentKeys.hotelOnboardingAgreement),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title:
-                                        "Hotel Onboarding Agreement (Signed)",
-                                    child: GenericDocumentWidget(
-                                        documentType: DocumentKeys
-                                            .hotelOnboardingAgreement,
-                                        uploadSectionLabel:
-                                            "Upload Signed Agreement",
-                                        backImage: true),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                            _buildAddButton(
-                              title:
-                                  AppStrings.propertyOwnershipOrLeaseAgreement,
-                              document: DocumentKeys.hotelPropertyAgreement,
-                              status: controller.getStatus(
-                                  DocumentKeys.hotelPropertyAgreement),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title:
-                                        "Property Ownership / Lease Agreement",
-                                    child: GenericDocumentWidget(
-                                        documentType:
-                                            DocumentKeys.hotelPropertyAgreement,
-                                        uploadSectionLabel:
-                                            "Upload Ownership Deed / Lease Agreement",
-                                        backImage: true),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
-                          ],
-                        )),
+                    ...[
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      HotelAllDocumentsScreen(
+                        controller: controller,
+                      ),
+                    ]
+
                 ],
               )),
         )));

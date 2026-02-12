@@ -84,6 +84,7 @@ class HotelAllDocumentsScreen extends StatelessWidget {
                         backImage: true,
                         textFieldValidation:
                         ValidationMethod.validatePAN,
+                        isCapitalize: true,
                         maxLength: 10,
                       )),
                   isScrollControlled: true,
@@ -111,6 +112,7 @@ class HotelAllDocumentsScreen extends StatelessWidget {
                       textFieldValidation:
                       ValidationMethod.validateGSTIN,
                       maxLength: 15,
+                      isCapitalize: true,
                     ),
                   ),
                   isScrollControlled: true,

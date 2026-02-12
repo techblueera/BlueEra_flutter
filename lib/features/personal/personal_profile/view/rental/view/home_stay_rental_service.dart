@@ -7,7 +7,9 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
@@ -25,6 +27,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/time_selection_dropdown.dart';
@@ -53,6 +56,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
   @override
   void initState() {
+    controller.mobileNumberCtrl.text = userMobileGlobal;
     myDocumentController.fetchAllDocumentStatusApi();
     super.initState();
   }
@@ -597,16 +601,129 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
             CustomFormCard(
                 child: Column(
                   children: [
+                    CommonSwitchCard(
+                      title: AppStrings.doYouAllowUnmarriedCouples,
+                      value: controller.isUnMarried.value,
+                      onChanged: (val) {
+                        controller.isUnMarried.value = val;
+                      },
+                    ),
 
-                    _buildRestrictionWidget(),
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    CommonSwitchCard(
+                      title: AppStrings.areYouAllowBachelorOrStudent,
+                      value: controller.isAllowStudentOrBachelor.value,
+                      onChanged: (val) {
+                        controller.isAllowStudentOrBachelor.value = val;
+                      },
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    Container(
+                      decoration: BoxDecoration(
+                          color: AppColors.whiteFE,
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(
+                              color: AppColors.whiteE5
+                          ),
+                          boxShadow: [AppShadows.textFieldShadow]
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: SizeConfig.size12,
+                              right: SizeConfig.size12,
+                              top: SizeConfig.size12,
+                              bottom: SizeConfig.size12,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                CustomText(
+                                  AppStrings.anyFoodHabitRestrictions,
+                                  fontSize: SizeConfig.medium,
+                                  color: AppColors.secondaryTextColor,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                CustomSwitch(
+                                  value: controller.anyFoodHabitRestriction.value,
+                                  onChanged: (val) {
+                                    controller.anyFoodHabitRestriction.value = !controller.anyFoodHabitRestriction.value;
+                                  },
+                                  containerHeight: SizeConfig.size24,
+                                  containerWidth: SizeConfig.size50,
+                                  circleSize: SizeConfig.size18,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          if(controller.anyFoodHabitRestriction.value)
+                            ...[
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                                child: CustomText(
+                                  AppStrings.kindlyIndicateWhichFoodHabits,
+                                  fontSize: SizeConfig.small,
+                                  color: AppColors.secondaryTextColor,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              SizedBox(height: SizeConfig.paddingXSL),
+                              ...controller.foodHabits.map((habit) {
+                                return CheckboxListTile(
+                                  value: controller.selectedHabits[habit['id']],
+                                  onChanged: (value) {
+                                    if (value == true) {
+                                      // Uncheck all other habits first
+                                      controller.selectedHabits.forEach((key, _) {
+                                        controller.selectedHabits[key] = false;
+                                      });
+                                      // Then check only the selected one
+                                      controller.selectedHabits[habit['id']!] = true;
+                                    } else {
+                                      controller.selectedHabits[habit['id']!] = false;
+                                    }                      },
+                                  title: CustomText(
+                                    habit['label']!,
+                                    fontSize: SizeConfig.small,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  contentPadding: EdgeInsets.zero,
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  checkColor: Colors.white,
+                                  dense: true,
+                                  visualDensity: VisualDensity(horizontal: -4, vertical: -2),
+                                );
+                              }).toList(),
+
+                            ],
+
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingL),
+
+                    _buildAddMoreRestrictionsSection(),
 
                     SizedBox(height: SizeConfig.paddingL),
 
                     CustomBtn(
-                      title: AppStrings.nextButton,
-                      onTap: controller.validateStepTwo,
+                        title: controller.isHomeStayRentalServiceLoading.value
+                            ? null
+                            : AppStrings.nextButton,
+                      onTap: controller.rentalId==null
+                          ? controller.addHomeStayRentalServiceApi
+                          : controller.updateHomeStayRentalServiceApi,
                       radius: 10.0,
                       bgColor: AppColors.primaryColor,
+                      isLoading: controller.isHomeStayRentalServiceLoading.value
                     ),
                   ],
                 )
@@ -725,7 +842,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
   // }
 
   // ---------------- STEP 3 ----------------
-
   Widget _buildStepThree(){
     return AbsorbPointer(
      absorbing: controller.isHomeStayRentalServiceLoading.value,
@@ -738,14 +854,10 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
             ),
             SizedBox(height: SizeConfig.paddingL),
             CustomBtn(
-              // title: controller.isRiderVehicleImagesLoading.value
-              //     ? null
-              //     : 'Next',
               title: AppStrings.nextButton,
-              onTap: controller.validateStepThree,
+              onTap: ()=> controller.validateStepThree(myDocumentController),
               radius: 10.0,
               bgColor: AppColors.primaryColor,
-              // isLoading: controller.isRiderVehicleImagesLoading.value,
             )
           ],
         ),
@@ -761,20 +873,18 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
         children: [
 
           roomImagesWidget(
-               controller: stayImagesController,
+              rentalId: controller.rentalId??'',
+              controller: stayImagesController,
               multipleImageSectionController: multipleImageSectionController
           ),
 
           SizedBox(height: SizeConfig.paddingL),
 
           CustomBtn(
-            title: controller.isHomeStayRentalServiceLoading.value
-                ? null
-                : AppStrings.postNowButton,
-            onTap: controller.validateStepFour,
+            title:AppStrings.postNowButton,
+            onTap: ()=> controller.validateStepFour(stayImagesController),
             radius: 10.0,
             bgColor: AppColors.primaryColor,
-            isLoading: controller.isHomeStayRentalServiceLoading.value,
           )
         ],
       ),
@@ -914,45 +1024,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
             ),
           ),
         )
-      ],
-    );
-  }
-
-  Widget _buildRestrictionWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonSwitchCard(
-          title: AppStrings.doYouAllowUnmarriedCouples,
-          value: controller.isUnMarried.value,
-          onChanged: (val) {
-            controller.isUnMarried.value = val;
-          },
-        ),
-
-        SizedBox(height: SizeConfig.paddingXSL),
-
-        CommonSwitchCard(
-          title: AppStrings.areYouAllowBachelorOrStudent,
-          value: controller.isAllowStudentOrBachelor.value,
-          onChanged: (val) {
-            controller.isAllowStudentOrBachelor.value = val;
-          },
-        ),
-
-        SizedBox(height: SizeConfig.paddingXSL),
-
-        CommonSwitchCard(
-          title:  AppStrings.anyFoodHabitRestrictions,
-          value: controller.anyFoodHabitRestriction.value,
-          onChanged: (val) {
-            controller.anyFoodHabitRestriction.value = val;
-          },
-        ),
-
-        SizedBox(height: SizeConfig.paddingL),
-
-        _buildAddMoreRestrictionsSection()
       ],
     );
   }

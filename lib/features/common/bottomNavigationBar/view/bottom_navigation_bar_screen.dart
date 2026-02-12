@@ -421,17 +421,29 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
-    return Obx(() {
-      String currentType = viewPersonalDetailsController.userProfileType.value;
-      log("userProfileTypeGlobal inside Obx: $currentType");
-      return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
+    String currentType = userProfileTypeGlobal;
+    log("userProfileTypeGlobal: $currentType");
+
+    return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
           ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
           : currentType == SOCIAL_PROFILE
-              ? SocialMainScreen()
-              : (currentType == PROFESSIONAL)
-                  ? ProfessionalsMainScreen()
-                  : PersonalProfileSetupNewScreen();
-    });
+          ? SocialMainScreen()
+          : (currentType == PROFESSIONAL)
+          ? ProfessionalsMainScreen()
+          : PersonalProfileSetupNewScreen();
+
+    // return Obx(() {
+    //   String currentType = viewPersonalDetailsController.userProfileType.value;
+    //   log("userProfileTypeGlobal inside Obx: $currentType");
+    //   return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
+    //       ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
+    //       : currentType == SOCIAL_PROFILE
+    //           ? SocialMainScreen()
+    //           : (currentType == PROFESSIONAL)
+    //               ? ProfessionalsMainScreen()
+    //               : PersonalProfileSetupNewScreen();
+    // });
+
   }
 
   void _checkAndShowDialog() async {

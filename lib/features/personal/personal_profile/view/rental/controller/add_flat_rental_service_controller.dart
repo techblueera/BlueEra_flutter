@@ -20,6 +20,7 @@ class AddFlatRentalServiceController extends GetxController {
 
   final currentStep = 0.obs;
   final int totalSteps = 2;
+  String? rentalId;
 
   /// Step 1
   final formKeyStep1 = GlobalKey<FormState>();
@@ -126,26 +127,24 @@ class AddFlatRentalServiceController extends GetxController {
 
   void nextStep() {
     if (formKeyStep1.currentState?.validate() ?? false) {
-      // Validate charges type
-      if (selectedChargesTypes.value == null) {
-        commonSnackBar(message: AppStrings.pleaseChooseChargesType.tr);
-        return;
-      }
       if(arrHighlights.isEmpty){
         commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
         return;
       }
 
-      // if(!isUnMarried.value){
-      //   commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
-      //   return;
-      // }
-      //
-      // if(!isAllowStudentOrBachelor.value){
-      //   commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
-      //   return;
-      // }
+      if(checkInMinute.value == null &&
+           checkInHour.value == null &&
+             checkInPeriod.value == null){
+        commonSnackBar(message: 'Please select check in time.');
+        return;
+      }
 
+      if(checkOutMinute.value == null &&
+          checkOutHour.value == null &&
+          checkOutPeriod.value == null){
+        commonSnackBar(message: 'Please select check out time.');
+        return;
+      }
       if(anyFoodHabitRestriction.value){
         if(selectedFoodHabit.isEmpty){
           commonSnackBar(message: AppStrings.foodHabitRequired.tr);
@@ -153,14 +152,8 @@ class AddFlatRentalServiceController extends GetxController {
         }
       }
 
-      // Move to next step
-      if (currentStep.value < totalSteps - 1) {
-        currentStep.value++;
-      }
+
     }
-    // else {
-    //   commonSnackBar(message: AppStrings.pleaseFillAllFieldsCorrectly.tr);
-    // }
   }
 
 
@@ -194,60 +187,40 @@ class AddFlatRentalServiceController extends GetxController {
     arrMoreRestriction.value = highlights;
   }
 
-
-  bool validateBeforePost() {
-    final errors = <String>[];
-
-    // if (stayImagesController.roadSideImage.length < 2) {
-    //   errors.add(AppStrings.uploadAtLeast2RoadSide);
-    // }
-    // if (stayImagesController.roomImages.length < 4) {
-    //   errors.add(AppStrings.uploadAtLeast4Room);
-    // }
-    // if (stayImagesController.kitchenImage.length < 2) {
-    //   errors.add(AppStrings.uploadAtLeast2Kitchen);
-    // }
-    // if (stayImagesController.bathroomImage.length < 2) {
-    //   errors.add(AppStrings.uploadAtLeast2Bathroom);
-    // }
-
-    if (errors.isNotEmpty) {
-      commonSnackBar(message: errors.first.tr);
-      return false;
-    }
-
-    return true;
-  }
-
   RxBool isAddFlatRentalServiceLoading = false.obs;
 
   Future<void> addFlatRentalServiceApi() async {
-     if(!validateBeforePost()) return;
+    if (!(formKeyStep1.currentState?.validate() ?? true)) return;
 
-      try {
+    if(arrHighlights.isEmpty){
+        commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
+        return;
+      }
+
+    if(checkInMinute.value == null &&
+          checkInHour.value == null &&
+          checkInPeriod.value == null){
+        commonSnackBar(message: 'Please select check in time.');
+        return;
+      }
+
+    if(checkOutMinute.value == null &&
+          checkOutHour.value == null &&
+          checkOutPeriod.value == null){
+        commonSnackBar(message: 'Please select check out time.');
+        return;
+      }
+
+    if(anyFoodHabitRestriction.value){
+        if(selectedFoodHabit.isEmpty){
+          commonSnackBar(message: AppStrings.foodHabitRequired.tr);
+          return;
+        }
+      }
+
+
+    try {
         isAddFlatRentalServiceLoading.value = true;
-
-        // List<dio.MultipartFile> roadsideParts = [];
-        // List<dio.MultipartFile> roomParts = [];
-        // List<dio.MultipartFile> kitchenParts = [];
-        // List<dio.MultipartFile> bathroomParts = [];
-        // List<dio.MultipartFile> otherParts = [];
-
-        // if (stayImagesController.roadSideImage.isNotEmpty) {
-        //   roadsideParts = await multiPartMultipleImages(arrImages: roadSideImage);
-        // }
-        // if (roomImages.isNotEmpty) {
-        //   roomParts = await multiPartMultipleImages(arrImages: roomImages);
-        // }
-        // if (kitchenImage.isNotEmpty) {
-        //   kitchenParts = await multiPartMultipleImages(arrImages: kitchenImage);
-        // }
-        // if (bathroomImage.isNotEmpty) {
-        //   bathroomParts = await multiPartMultipleImages(arrImages: bathroomImage);
-        // }
-        // if (otherImage.isNotEmpty) {
-        //   otherParts = await multiPartMultipleImages(arrImages: otherImage);
-        // }
 
         Map<String, dynamic> params = {
           ApiKeys.type: 'Property',
@@ -282,12 +255,15 @@ class AddFlatRentalServiceController extends GetxController {
 
         if (response.isSuccess) {
           addFlatRentalServiceResponse.value = ApiResponse.complete(response);
+          rentalId = response.response?.data['data']['_id'];
+          print('rental id-- $rentalId');
+
           await setEarnServiceOptData(true);
-          Get.until(
-                (route) =>
-            route.settings.name ==
-                RouteHelper.getEarnServiceAvailableOptionsScreenRoute(),
-          );
+          // Move to next step
+          if (currentStep.value < totalSteps - 1) {
+            currentStep.value++;
+          }
+
         } else {
           addFlatRentalServiceResponse.value = ApiResponse.error('error');
         }
@@ -300,6 +276,92 @@ class AddFlatRentalServiceController extends GetxController {
         isAddFlatRentalServiceLoading.value = false;
       }
     }
+
+  Future<void> updateFlatRentalServiceApi() async {
+    if (!(formKeyStep1.currentState?.validate() ?? true)) return;
+
+    if(anyFoodHabitRestriction.value){
+      if(selectedFoodHabit.isEmpty){
+        commonSnackBar(message: AppStrings.foodHabitRequired.tr);
+        return;
+      }
+    }
+
+    try {
+      isAddFlatRentalServiceLoading.value = true;
+
+      Map<String, dynamic> params = {
+        ApiKeys.type: 'Property',
+        ApiKeys.name: propertyName.text,
+        ApiKeys.landmark: landmark.text,
+        ApiKeys.address: location.text,
+        ApiKeys.lat : latitude,
+        ApiKeys.lng: longitude,
+        ApiKeys.pincode: pinCode.text,
+        ApiKeys.description: description.text,
+        ApiKeys.contactNumber: mobile.text,
+        ApiKeys.priceUnit: selectedChargesTypes.value?.label,
+        ApiKeys.price: charge.text,
+        ApiKeys.checkInTime: checkInTimeController.text,
+        ApiKeys.checkOutTime: checkOutTimeController.text,
+        if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
+        ApiKeys.restrictions: jsonEncode({
+          ApiKeys.unmarriedCoupleAllowed: isUnMarried.value,
+          ApiKeys.studentOrBachelorAllowed: isAllowStudentOrBachelor.value,
+          ApiKeys.foodRestriction: {
+            ApiKeys.isFoodRestriction: anyFoodHabitRestriction.value,
+            if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
+          },
+        }),
+        if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
+        if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
+      };
+
+      ResponseModel response = await RentalServiceRepo().updateRentalServiceRepo(
+        rentalId: rentalId!,
+        params: params,
+      );
+
+      if (response.isSuccess) {
+        addFlatRentalServiceResponse.value = ApiResponse.complete(response);
+        if (currentStep.value < totalSteps - 1) {
+          currentStep.value++;
+        }
+
+      } else {
+        addFlatRentalServiceResponse.value = ApiResponse.error('error');
+      }
+      commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong);
+    } catch (e) {
+      addFlatRentalServiceResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: e.toString());
+    } finally {
+      isAddFlatRentalServiceLoading.value = false;
+    }
+  }
+
+  void validateStepFour(StayImagesController stayImagesController){
+
+    for (var entry in stayImagesController.sectionUploadStatus.entries) {
+      String sectionId = entry.key;
+      bool isUploaded = entry.value;
+
+      if (!isUploaded) {
+        String readableName = stayImagesController.sectionNames[sectionId] ?? "Section Images"; // Fallback name
+        commonSnackBar(message: "⚠️ Missing: Please upload $readableName");
+        return;
+      }
+    }
+
+    Get.until(
+          (route) =>
+      route.settings.name ==
+          RouteHelper.getEarnServiceScreenRoute(),
+    );
+
+
+  }
 
 }
 

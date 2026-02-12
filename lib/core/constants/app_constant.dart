@@ -2,7 +2,6 @@
 
 import 'dart:core';
 import 'dart:math' hide log;
-
 import 'package:BlueEra/core/api/model/create_account_model.dart';
 import 'package:BlueEra/core/api/model/onboarding_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -285,11 +284,16 @@ class AppConstants {
 class DocumentKeys {
   static const aadhar = "aadhar";
   static const pan = "pan";
-  static const drivingLicense = "drivingLicense";
-  static const vehicleRC = "vehicleRC";
   static const addressProof = "addressProof";
   static const noc = "noc";
+  static const drivingLicense = "drivingLicense";
   static const bankersCancelledCheque = "bankersCancelledCheque";
+
+  // Vehicle Keys
+  static const vehicleRC = "vehicleRC";
+  static const insuranceDocument = "insuranceDocument";
+  static const puc = "puc";
+  static const vehicleFitnessCertificate = "fitnessCertificate";
 
   // Business Keys
   static const gstCertificate = "gstCertificate";
@@ -310,7 +314,7 @@ class DocumentKeys {
   static const hotelFssaiLicense = "hotelFssaiLicense";
   static const hotelOwnerIdProof = "hotelOwnerIdProof";
   static const hotelOnboardingAgreement = "hotelOnboardingAgreement";
-  static const hotelPropertyAgreement = "hotelPropertyAgreement ";
+  static const hotelPropertyAgreement = "hotelPropertyAgreement";
 }
 
 class MedicalStoreType {
