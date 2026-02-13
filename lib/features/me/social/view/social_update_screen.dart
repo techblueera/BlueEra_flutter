@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/job_seekar/job_seeker_resume_overview_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/update_job_seekar_screen.dart';
 import 'package:BlueEra/features/me/social/view/event_schedule_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_achievements/social_certificates_screen.dart';
@@ -62,7 +63,8 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Job Portfolio/ Resume",
       icon: AppIconAssets.job_post_black,
-      page: () => UpdateJobSeekerScreen(),
+      page: () => JobSeekerResumeOverviewScreen(),
+      // page: () => UpdateJobSeekerScreen(),
     ),
     ServiceMenuItem(
       title: "Contact",
