@@ -158,7 +158,7 @@ class _AskChatScreenState extends State<AskChatScreen> {
                             var items = chatViewController.arrAskForOptions[index];
                             return CommonServiceCard(
                               service: items,
-                              iconHeight: SizeConfig.size60,
+                              iconHeight: SizeConfig.size55,
                               getName: (item) => item.name,
                               getIcon: (item) => item.icon,
                               onTap: (_) {

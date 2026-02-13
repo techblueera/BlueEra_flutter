@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -77,13 +78,8 @@ class _BusinessStoreScreenState extends State<BusinessStoreScreen> {
        
          // Empty state
          if (controller.allStore.isEmpty) {
-           return Center(
-             child: CustomText(
-                 "${AppStrings.no.tr} ${widget.selectedStoreCategoryName} ${AppStrings.found.tr}.",
-                 fontSize: SizeConfig.large,
-                 color: AppColors.mainTextColor,
-                 fontWeight: FontWeight.w700
-             ),
+           return EmptyStateWidget(
+             message: "${AppStrings.no.tr} ${widget.selectedStoreCategoryName} ${AppStrings.found.tr}.",
            );
          }
        

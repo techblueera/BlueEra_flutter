@@ -152,10 +152,8 @@ class AddFlatRentalServiceController extends GetxController {
         }
       }
 
-
     }
   }
-
 
   void previousStep() {
     if (currentStep.value > 0) currentStep.value--;

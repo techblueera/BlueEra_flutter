@@ -27,6 +27,7 @@ class DiscoverRepo extends BaseService {
     );
     return response;
   }
+
   Future<ResponseModel> getBookingRidersApi({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       getBookingRiders,
@@ -46,6 +47,7 @@ class DiscoverRepo extends BaseService {
     );
     return response;
   }
+
   /// GET EARN SERVICES
   Future<ResponseModel> fetchProfessionalConsServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
@@ -57,5 +59,18 @@ class DiscoverRepo extends BaseService {
     );
     return response;
   }
+
+  /// GET: Get Hotel Stay
+  Future<ResponseModel> fetchHotelSearchRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      hotelSearch,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
 

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
@@ -225,6 +226,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
       ),
     );
   }
+
   Future<void> clearAllLocalDataOnLogout() async {
     try {
       // 1️⃣ Clear all Hive boxes
@@ -235,8 +237,11 @@ class ProfileSettingsNewScreen extends StatelessWidget {
       if (dir.existsSync()) {
         await dir.delete(recursive: true);
       }
-
       log("✅ Local storage cleared successfully");
+
+      await HiveServices.init();
+      log("✅ All Hive data wiped and boxes re-opened successfully.");
+
     } catch (e) {
       log("❌ Error clearing local data: $e");
     }

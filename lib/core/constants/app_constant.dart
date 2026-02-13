@@ -280,6 +280,12 @@ class AppConstants {
   static const OutStation = "OutStation";
   static const HourlyRental = "HourlyRental";
   static const Parcel = "Parcel";
+
+  /// Rental Service Types
+  static const property = "Property";
+  static const flat = "Flat";
+  static const vehicle = "Vehicle";
+
 }
 
 class DocumentKeys {
@@ -2009,96 +2015,112 @@ final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
       name: 'Consulting\nFirm / Org.',
       slugId: CONSULTING_HR_SERVICE,
       icon: OnboardingBusinessAssets.consultingFirm,
+      flagIcon: AppImageAssets.consultingService,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
-      name: 'Healthcare',
+      name: 'Healthcare\nServices',
       slugId: HEALTHCARE_MEDICAL_SERVICES,
       icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      flagIcon: AppConstants.healthcareMedicalServices,
       accountType: AppConstants.business,
       businessType: BusinessType.Healthcare),
   OnboardingCategoryModel(
       name: 'Education &\nTraining',
       slugId: EDUCATION_TRAINING,
       icon: OnboardingBusinessAssets.educationAndTraining,
+      flagIcon: AppImageAssets.educationTraining,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Hotels & Stay\nService',
       slugId: HOTELS_STAY_SERVICE,
       icon: OnboardingBusinessAssets.hostelsAndStayService,
+      flagIcon: AppImageAssets.hostel,
       accountType: AppConstants.business,
       businessType: BusinessType.Motel),
   OnboardingCategoryModel(
       name: 'Beauty &\nPersonal Care',
       slugId: BEAUTY_PERSONAL_CARE,
       icon: OnboardingBusinessAssets.beautyAndPersonalCare,
+      flagIcon: AppImageAssets.beautyPersonalCare,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Financial\nServices',
       slugId: FINANCIAL_SERVICES,
       icon: OnboardingBusinessAssets.financialServices,
+      flagIcon: AppImageAssets.financial,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Service Centre\n& Essential Utility',
       slugId: SERVICE_CENTRE_ESSENTIAL_UTILITY,
       icon: OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
+      flagIcon: AppImageAssets.serviceCenter,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Home Services\n& Utility',
       slugId: HOME_SERVICES_UTILITY,
       icon: OnboardingBusinessAssets.homeServiceAndUtility,
+      flagIcon: AppImageAssets.homeServiceUtility,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'IT &\nCommunication',
       slugId: IT_COMMUNICATION,
       icon: OnboardingBusinessAssets.itAndCommunication,
+      flagIcon: AppImageAssets.itCommunication,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Media, Publicity\n& Creative',
       slugId: MEDIA_PUBLICITY_CREATIVE,
       icon: OnboardingBusinessAssets.mediaPublicityAndCreative,
+      flagIcon: AppImageAssets.mediaPublicityIcon,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Automotive\nServices',
       slugId: AUTOMOTIVE_SERVICES,
       icon: OnboardingBusinessAssets.automotiveServices,
+      flagIcon: AppImageAssets.automativeService,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Logistics &\nTransportation',
       slugId: LOGISTICS_TRANSPORTATION,
       icon: OnboardingBusinessAssets.logisticsAndTransport,
+      flagIcon: AppImageAssets.logisticTransportation,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Celebration &\nEvent Services',
       slugId: CELEBRATION_EVENT_SERVICES,
       icon: OnboardingBusinessAssets.celebrationAndEventServices,
+      flagIcon: AppImageAssets.celebrationEvent,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Tour, Travel\n& Tourism',
       slugId: TOUR_TRAVEL_TOURISM,
       icon: OnboardingBusinessAssets.tourTravelsAndTourism,
+      flagIcon: AppImageAssets.tourTravel,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Real Estate &\nProperty Services',
       slugId: REAL_ESTATE_PROPERTY_SERVICES,
       icon: OnboardingBusinessAssets.realEstateProperty,
+      flagIcon: AppImageAssets.tourTravel,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Technical Testing\n& Quality Labs',
       slugId: TECHNICAL_TESTING_QUALITY_SERVICE,
       icon: OnboardingBusinessAssets.technicalTestingAndQualityLabs,
+      flagIcon: AppImageAssets.tourTravel,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
 ];
@@ -2481,7 +2503,7 @@ final List<BusinessProfileCategory> businessServicesCategories = [
   BusinessProfileCategory(
       name: 'Offer Professional\nConsulting or Counselling',
       // name: AppStrings.consulting,
-      slugId: AppConstants.consulting,
+      slugId: CONSULTING_HR_SERVICE,
       icon: AppImageAssets.consultingService,
       type: AppConstants.service),
   BusinessProfileCategory(
@@ -2973,36 +2995,6 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       icon: AppImageAssets.agricultureAndFarming,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
-  // OnboardingCategoryModel(
-  //     name: 'Fashion &\nJewelry',
-  //     slugId: AUTOMOTIVE_STORE_SHOWROOM,
-  //     icon: AppImageAssets.fashionLifestyle,
-  //     accountType: AppConstants.business,
-  //     businessType: BusinessType.Product),
-  // OnboardingCategoryModel(
-  //     name: 'Home\nEssentials',
-  //     slugId: CONSTRUCTION_HOME_ESSENTIALS,
-  //     icon: AppImageAssets.homeKitchenAndUtensils,
-  //     accountType: AppConstants.business,
-  //     businessType: BusinessType.Product),
-  // OnboardingCategoryModel(
-  //     name: 'Home\nAppliances',
-  //     slugId: JEWELRY_LUXURY_STORE,
-  //     icon: AppImageAssets.jewelleryLuxuryStore,
-  //     accountType: AppConstants.business,
-  //     businessType: BusinessType.Product),
-  // OnboardingCategoryModel(
-  //     name: 'Beauty &\nCosmetics',
-  //     slugId: BEAUTY_COSMETICS,
-  //     icon: AppImageAssets.beautyAndCosmetics,
-  //     accountType: AppConstants.business,
-  //     businessType: BusinessType.Product),
-  // OnboardingCategoryModel(
-  //     name: 'Health &\nMedical',
-  //     slugId: BOOKS_STATIONERY_GIFTS_STORE,
-  //     icon: AppImageAssets.pharmacyMedicalStore,
-  //     accountType: AppConstants.business,
-  //     businessType: BusinessType.Product),
 
 ];
 
@@ -3648,9 +3640,9 @@ final List<CollapsibleGridModel> homeMadeItemsCategories = [
 
 final discoverShownStayCategories = [
   'HOTEL_RESORT',
-  'Property',
-  'Flat',
-  'Vehicle'
+  AppConstants.property,
+  AppConstants.flat,
+  AppConstants.vehicle
 ];
 
 final List<OnboardingCategoryModel> stayItemsCategories = [
@@ -3658,10 +3650,11 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       name: 'Hotel & Resort',
       slugId: 'HOTEL_RESORT',
       icon: AppImageAssets.hotelStay,
-      accountType: AppConstants.business),
+      accountType: AppConstants.business
+  ),
   OnboardingCategoryModel(
       name: 'Home Stay',
-      slugId: 'Property',
+      slugId: AppConstants.property,
       icon: AppImageAssets.homeStay,
       accountType: AppConstants.individual
   ),
@@ -3685,13 +3678,13 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   ),
   OnboardingCategoryModel(
       name: 'House On Rent',
-      slugId: 'Flat',
+      slugId: AppConstants.flat,
       icon: AppImageAssets.houseOnRent,
       accountType: AppConstants.individual
   ),
   OnboardingCategoryModel(
       name: 'Other Rental',
-      slugId: 'Vehicle',
+      slugId: AppConstants.vehicle,
       icon: AppImageAssets.otherRental,
       accountType: AppConstants.individual
   ),

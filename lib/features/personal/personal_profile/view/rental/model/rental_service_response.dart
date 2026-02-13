@@ -46,6 +46,8 @@ class RentalServiceData {
   Location? location;
   String? price;
   String? priceUnit;
+  String? checkInTime;
+  String? checkOutTime;
   bool? isActive;
   bool? isNegotiable;
   int? rating;
@@ -80,6 +82,8 @@ class RentalServiceData {
     this.location,
     this.price,
     this.priceUnit,
+    this.checkInTime,
+    this.checkOutTime,
     this.isActive,
     this.isNegotiable,
     this.rating,
@@ -122,6 +126,8 @@ class RentalServiceData {
     location = json['location'] != null ? Location.fromJson(json['location']) : null;
     price = json['price'];
     priceUnit = json['priceUnit'];
+    checkInTime = json['checkInTime'];
+    checkOutTime = json['checkOutTime'];
     isActive = json['is_active'];
     isNegotiable = json['is_negotiable'];
     rating = json['rating'];
@@ -172,6 +178,8 @@ class RentalServiceData {
     }
     data['price'] = price;
     data['priceUnit'] = priceUnit;
+    data['checkInTime'] = checkInTime;
+    data['checkOutTime'] = checkOutTime;
     data['is_active'] = isActive;
     data['is_negotiable'] = isNegotiable;
     data['rating'] = rating;
@@ -429,39 +437,122 @@ class FoodRestriction {
 }
 
 class VehicleDetails {
+  String? registrationType;
+  List<String>? restrictions;
+  String? vehicleType;
+  String? brand;
+  String? registrationNumber;
+  int? yearOfManufacture;
+  String? fuelType;
+  int? seatingCapacity;
+  String? loadCapacity;
+  String? capacityUnit;
+  String? securityDeposit;
+  String? pickupLocation;
+  DocumentRequired? documentRequired;
   List<String>? vehicleFrontImage;
   List<String>? vehicleBackImage;
+  String? vehicleNoPlateImg;
   List<String>? vehicleLeftSideImage;
   List<String>? vehicleRightHandSideImage;
 
   VehicleDetails({
+    this.registrationType,
+    this.restrictions,
+    this.vehicleType,
+    this.brand,
+    this.registrationNumber,
+    this.yearOfManufacture,
+    this.fuelType,
+    this.seatingCapacity,
+    this.loadCapacity,
+    this.capacityUnit,
+    this.securityDeposit,
+    this.pickupLocation,
+    this.documentRequired,
     this.vehicleFrontImage,
     this.vehicleBackImage,
+    this.vehicleNoPlateImg,
     this.vehicleLeftSideImage,
     this.vehicleRightHandSideImage,
   });
 
   VehicleDetails.fromJson(Map<String, dynamic> json) {
-    vehicleFrontImage = json['vehicleFrontImage'] != null
-        ? List<String>.from(json['vehicleFrontImage'])
+    registrationType = json['registrationType'];
+
+    if (json['restrictions'] != null) {
+      restrictions = List<String>.from(json['restrictions']);
+    }
+
+    vehicleType = json['vehicleType'];
+    brand = json['brand'];
+    registrationNumber = json['registrationNumber'];
+    yearOfManufacture = json['yearOfManufacture'];
+    fuelType = json['fuelType'];
+    seatingCapacity = json['seatingCapacity'];
+    loadCapacity = json['loadCapacity'];
+    capacityUnit = json['capacityUnit'];
+    securityDeposit = json['securityDeposit'];
+    pickupLocation = json['pickupLocation'];
+
+    documentRequired = json['documentRequired'] != null
+        ? DocumentRequired.fromJson(json['documentRequired'])
         : null;
-    vehicleBackImage = json['vehicleBackImage'] != null
-        ? List<String>.from(json['vehicleBackImage'])
-        : null;
-    vehicleLeftSideImage = json['vehicleLeftSideImage'] != null
-        ? List<String>.from(json['vehicleLeftSideImage'])
-        : null;
-    vehicleRightHandSideImage = json['vehicleRightHandSideImage'] != null
-        ? List<String>.from(json['vehicleRightHandSideImage'])
-        : null;
+
+    // Image Parsing
+    vehicleFrontImage = json['vehicleFrontImage']?.cast<String>();
+    vehicleBackImage = json['vehicleBackImage']?.cast<String>();
+
+    // Note: vehicleNoPlateImg is a String, not a List
+    vehicleNoPlateImg = json['vehicleNoPlateImg'];
+
+    vehicleLeftSideImage = json['vehicleLeftSideImage']?.cast<String>();
+    vehicleRightHandSideImage = json['vehicleRightHandSideImage']?.cast<String>();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    data['registrationType'] = registrationType;
+    data['restrictions'] = restrictions;
+    data['vehicleType'] = vehicleType;
+    data['brand'] = brand;
+    data['registrationNumber'] = registrationNumber;
+    data['yearOfManufacture'] = yearOfManufacture;
+    data['fuelType'] = fuelType;
+    data['seatingCapacity'] = seatingCapacity;
+    data['loadCapacity'] = loadCapacity;
+    data['capacityUnit'] = capacityUnit;
+    data['securityDeposit'] = securityDeposit;
+    data['pickupLocation'] = pickupLocation;
+    if (documentRequired != null) data['documentRequired'] = documentRequired!.toJson();
     data['vehicleFrontImage'] = vehicleFrontImage;
     data['vehicleBackImage'] = vehicleBackImage;
+    data['vehicleNoPlateImg'] = vehicleNoPlateImg;
     data['vehicleLeftSideImage'] = vehicleLeftSideImage;
     data['vehicleRightHandSideImage'] = vehicleRightHandSideImage;
+
+    return data;
+  }
+}
+
+class DocumentRequired {
+  bool? adharCard;
+  bool? addressProof;
+  bool? drivingLicence;
+
+  DocumentRequired({this.adharCard, this.addressProof, this.drivingLicence});
+
+  DocumentRequired.fromJson(Map<String, dynamic> json) {
+    adharCard = json['adharCard'];
+    addressProof = json['addressProof'];
+    drivingLicence = json['drivingLicence'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['adharCard'] = adharCard;
+    data['addressProof'] = addressProof;
+    data['drivingLicence'] = drivingLicence;
     return data;
   }
 }

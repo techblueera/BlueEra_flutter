@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
@@ -23,7 +24,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ServicesNearMeScreen extends StatefulWidget {
-  final List<BusinessProfileCategory> businessServicesCategories;
+  final List<OnboardingCategoryModel> businessServicesCategories;
 
   const ServicesNearMeScreen({
     super.key,
@@ -37,7 +38,7 @@ class ServicesNearMeScreen extends StatefulWidget {
 
 class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
   late PageController _pageController;
-  late List<BusinessProfileCategory> _businessServicesCategories;
+  late List<OnboardingCategoryModel> _businessServicesCategories;
   int _activeGridPage = 0;
 
   @override
@@ -358,7 +359,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                                   print("Page: $pageIndex | Range: $startIndex - $endIndex | Total Items: ${_businessServicesCategories.length}");
 
                                   // 5. Get the sublist for this specific page
-                                  final List<BusinessProfileCategory> pageItems = _businessServicesCategories.sublist(startIndex, endIndex);
+                                  final List<OnboardingCategoryModel> pageItems = _businessServicesCategories.sublist(startIndex, endIndex);
 
                                   return _buildGridPage(pageItems);
                                 },
@@ -413,7 +414,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
   }
 
   // --- Widget: Grid Page (Reusable) ---
-  Widget _buildGridPage(List<BusinessProfileCategory> items) {
+  Widget _buildGridPage(List<OnboardingCategoryModel> items) {
     return MasonryGridView.count(
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 3,
@@ -454,8 +455,8 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   // --- Widget: Category Card ---
   Widget _buildCategoryItem({
-    required BusinessProfileCategory serviceCategory,
-    required Function(BusinessProfileCategory item)? onTap,
+    required OnboardingCategoryModel serviceCategory,
+    required Function(OnboardingCategoryModel item)? onTap,
   }) {
     return InkWell(
       onTap: () {
@@ -476,7 +477,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             LocalAssets(
-              imagePath: serviceCategory.icon,
+              imagePath: serviceCategory.flagIcon??'',
               height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXSL),

@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
@@ -97,15 +98,28 @@ class DiscoverController extends GetxController {
   RxString? selectedFromAddress = "".obs;
   RxString? selectedToAddress = "".obs;
 
-  /// Rental Services
+  /// Rental Services && Hotel Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
-  Rx<RiderUser> selectedRider = RiderUser().obs;
+  RxList<HotelServiceData> hotelServices = <HotelServiceData>[].obs;
   RxBool isRentalServiceLoading = false.obs;
   int rentalServicePage = 1;
   var isRentalServiceLoadingMore = false.obs;
   bool hasMoreRentalServiceData = true;
+
+  Rx<RiderUser> selectedRider = RiderUser().obs;
   Rxn<OnboardingCategoryModel> selectedStayCategory =
       Rxn<OnboardingCategoryModel>();
+
+  var selectedRoomType = "".obs;
+  List<String> getDynamicRoomTypes(HotelServiceData hotelData) {
+    final rooms = hotelData.rooms ?? [];
+
+    return rooms
+        .map((e) => e.type ?? "")
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList();
+  }
 
   void onSelectRider(RiderUser rider) {
     selectedRider.value = rider;
@@ -598,8 +612,8 @@ class DiscoverController extends GetxController {
 
       Map<String, dynamic> queryParams = {
         ApiKeys.type: rentalServiceType.apiValue,
-        ApiKeys.lat: lat,
-        ApiKeys.lng: lng,
+        // ApiKeys.lat: lat,
+        // ApiKeys.lng: lng,
         ApiKeys.radius: kmRadius1500,
         ApiKeys.page: rentalServicePage,
         ApiKeys.limit: limit,
@@ -625,6 +639,83 @@ class DiscoverController extends GetxController {
           rentalServices.addAll(tempNewItems);
         } else {
           rentalServices.assignAll(tempNewItems);
+        }
+
+        if (tempNewItems.isNotEmpty) {
+          rentalServicePage++;
+        }
+      } else {
+        if (!isLoadMore) {
+          rentalServiceResponse.value = ApiResponse.error('error');
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
+        }
+      }
+    } catch (e) {
+      rentalServiceResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      if (isLoadMore) {
+        isRentalServiceLoadingMore.value = false;
+      } else {
+        isRentalServiceLoading.value = false;
+      }
+    }
+  }
+
+  Future<void> fetchHotelServices(
+      {bool isLoadMore = false}) async {
+    try {
+      if (isLoadMore) {
+        log('more rental data -- $hasMoreRentalServiceData');
+        if (isRentalServiceLoadingMore.value || !hasMoreRentalServiceData) {
+          return;
+        }
+        isRentalServiceLoadingMore.value = true;
+      } else {
+        rentalServices.clear();
+        isRentalServiceLoading.value = true;
+        rentalServicePage = 1;
+        hasMoreRentalServiceData = true;
+      }
+
+      double lat = LocationService.lat;
+      double lng = LocationService.lng;
+      String city = LocationService.userCurrentAddress.value.city;
+      // String state = LocationService.userCurrentAddress.value.state;
+      // String pinCode = LocationService.userCurrentAddress.value.postalCode;
+
+      Map<String, dynamic> queryParams = {
+        ApiKeys.city: city,
+        // ApiKeys.state: state,
+        // ApiKeys.pincode: pinCode,
+        ApiKeys.lat: lat,
+        ApiKeys.lng: lng,
+        ApiKeys.radius: kmRadius1500,
+        ApiKeys.page: rentalServicePage,
+        ApiKeys.limit: limit,
+      };
+
+      final response = await DiscoverRepo().fetchHotelSearchRepo(
+        queryParams: queryParams,
+      );
+
+      if (response.isSuccess) {
+        rentalServiceResponse.value = ApiResponse.complete(response);
+
+        final responseModel = HotelSearchModelResponse.fromJson(response.response!.data);
+
+        final List<HotelServiceData> tempNewItems = responseModel.data ?? [];
+
+        if (tempNewItems.length < limit) {
+          hasMoreRentalServiceData = false;
+        }
+
+        if (isLoadMore) {
+          hotelServices.addAll(tempNewItems);
+        } else {
+          hotelServices.assignAll(tempNewItems);
         }
 
         if (tempNewItems.isNotEmpty) {

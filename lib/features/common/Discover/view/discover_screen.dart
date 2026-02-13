@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -24,6 +23,7 @@ import 'package:BlueEra/features/common/Discover/view/home_made_product_screen.d
 import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
@@ -62,6 +62,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
   late final double userLng;
   bool isMapLoading = true;
   TabController? _tabController;
+  List<OnboardingCategoryModel> _businessServiceCategories = businessOnboardingServicesCategories.where((s)=>
+  s.slugId != HEALTHCARE_MEDICAL_SERVICES &&
+  s.slugId != HOTELS_STAY_SERVICE &&
+  s.slugId != AUTOMOTIVE_SERVICES
+  ).toList();
 
   @override
   void initState() {
@@ -913,7 +918,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                       ),
                       InkWell(
                         onTap: () => Get.to(() => ServicesNearMeScreen(
-                          businessServicesCategories: businessServicesCategories,
+                          businessServicesCategories: _businessServiceCategories,
                         )),
                         child: _viewAll(),
                       ),
@@ -921,12 +926,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                   ),
                   SizedBox(height: SizeConfig.paddingXSL),
                   _buildMasonryGrid(
-                      items: businessOnboardingServicesCategories.take(6).toList(),
+                      items: _businessServiceCategories.take(6).toList(),
                       icon: (item)=> item.icon,
                       name: (item)=> item.name,
                       onTap: (_){
                         Get.to(() => ServicesNearMeScreen(
-                          businessServicesCategories: businessServicesCategories,
+                          businessServicesCategories: _businessServiceCategories,
                         ));
                       }
                   )
