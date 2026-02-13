@@ -154,24 +154,24 @@ class AddBankAccountScreen extends StatelessWidget {
                       )),
 
                       SizedBox(height: SizeConfig.paddingXSL),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CustomText(
-                            'Set account as default',
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.mainTextColor,
-                          ),
-                          Obx(()=> Checkbox(
-                            value: controller.isDefault.value,
-                            onChanged: (value) {
-                              controller.isDefault.value = !controller.isDefault.value;
-                            },
-                            checkColor: AppColors.white,
-                          ))
-                        ],
-                      )
+                      // Row(
+                      //   crossAxisAlignment: CrossAxisAlignment.center,
+                      //   children: [
+                      //     CustomText(
+                      //       'Set account as default',
+                      //       fontSize: SizeConfig.small,
+                      //       fontWeight: FontWeight.w600,
+                      //       color: AppColors.mainTextColor,
+                      //     ),
+                      //     Obx(()=> Checkbox(
+                      //       value: controller.isDefault.value,
+                      //       onChanged: (value) {
+                      //         controller.isDefault.value = !controller.isDefault.value;
+                      //       },
+                      //       checkColor: AppColors.white,
+                      //     ))
+                      //   ],
+                      // )
                     ],
                   ),
 

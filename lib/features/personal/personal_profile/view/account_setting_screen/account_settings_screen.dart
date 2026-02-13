@@ -13,10 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
-import '../../../../../core/constants/shared_preference_utils.dart';
-import '../../../../../core/routes/route_helper.dart';
-import '../../../../../widgets/common_dialog.dart';
-import '../../../../../widgets/custom_btn.dart';
 import '../widget/changes_languages_screen.dart';
 
 class AccountSettingScreen extends StatefulWidget {
@@ -28,7 +24,7 @@ class AccountSettingScreen extends StatefulWidget {
 
 class _AccountSettingScreenState extends State<AccountSettingScreen> {
   final AccountSettingsController accountController =
-      Get.put(AccountSettingsController());
+  Get.put(AccountSettingsController());
   final controller = getOrPut(() => LanguageControllerNew());
 
 
@@ -83,152 +79,114 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
             return SizedBox();
           }
 
-          return Column(
+          return ListView(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    // SizedBox(height: SizeConfig.size20),
-                    _helpServiceCard(
-                      AppIconAssets.app_setting_edit_profile,
-                      AppStrings.editProfile,
-                      () {
-                        accountController.setIndex("1");
-                        accountController.setTitle("Edit Profile");
-                      },
-                    ),
-                    // SizedBox(height: SizeConfig.size20),
-                    _helpServiceCard(
-                      AppIconAssets.app_setting_change_phone_number,
-                      AppStrings.changePhoneNumber,
-                      () {
-                        accountController.setIndex("2");
-                        accountController.setTitle("Change Phone number");
-                      },
-                    ),
-                    // SizedBox(height: SizeConfig.size20),
-                    Container(
-                      padding: EdgeInsets.only(
-                        left: SizeConfig.size10,
-                        // right: SizeConfig.size10,
-                        // bottom: SizeConfig.size10,
-                      ),
-                      child: buildSettingItem(
-                        imagePath:
-                            AppIconAssets.app_setting_change_notification,
-                        title: AppStrings.allNotification,
-                        control: buildToggleSwitch(
-                          value: accountController.allnotify,
-                          onChanged: accountController.toggleAllNotification,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(height: SizeConfig.size20),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    _helpServiceCard(
-                      AppIconAssets.app_setting_language,
-                      AppStrings.language,
-                      slugId: "Language",
-                      () {
-                        accountController.setIndex("4");
-                        accountController.setTitle("Language");
-                      },
-                    ),
-                    _helpServiceCard(
-                      AppIconAssets.app_setting_verification,
-                      AppStrings.verificationStatus,
-                      slugId: "Verification Status",
-                      () {
-                        accountController.setIndex("5");
-                        accountController.setTitle("Verification Status");
-                      },
-                    ),
-                    // Padding(
-                    //   padding: EdgeInsets.only(right: 5),
-                    //   child: _helpServiceCard(
-                    //     AppIconAssets.app_setting_manage_subscription,
-                    //     AppStrings.manageSubscription,
-                    //     slugId: "Manage Subscription",
-                    //     () {
-                    //       accountController.setIndex("6");
-                    //       accountController.setTitle("Manage Subscription");
-                    //     },
-                    //   ),
-                    // ),
-                    SizedBox(height: SizeConfig.size24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomBtn(
-                          onTap: () async {
-                            await showCommonDialog(
-                                context: context,
-                                text: AppStrings.deleteAccountConfirmationMessage,
-                                confirmCallback: () async {
-                                  await SharedPreferenceUtils.clearPreference();
-                                  Navigator.of(context).pushNamedAndRemoveUntil(
-                                      RouteHelper.getMobileNumberLoginRoute(),
-                                          (Route<dynamic> route) => false);
-                                },
-                                cancelCallback: () {
-                                  Navigator.of(context).pop(); // Close the dialog
-                                },
-                                confirmText: AppStrings.yes,
-                                cancelText: AppStrings.no);
-                          },
-                          title: AppStrings.deleteAccount,
-                          bgColor: Colors.white,
-                          textColor: AppColors.red00,
-                          borderColor: AppColors.red00,
-                          radius: 10.0),
-                    ),
-                    SizedBox(height: SizeConfig.size20),
-                  ],
-                ),
-              ),
-              SizedBox(height: SizeConfig.size28),
-              // SizedBox(height: 14,),
 
-              /*   Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.deleteIcon,
-                        'Delete Account',
-                        () {
-                          accountController.setIndex("7");
-                          accountController.setTitle("Delete Account");
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.logout,
-                        'Logout',
-                        () {
-                          accountController.setIndex("8");
-                          accountController.setTitle("Logout");
-                        },
-                      ),
-                    ],
-                  ),
-                ),*/
+              SizedBox(height: SizeConfig.size16),
+
+              _helpServiceCard(
+                AppIconAssets.app_setting_edit_profile,
+                AppStrings.editProfile,
+                    () {
+                  accountController.setIndex("1");
+                  accountController.setTitle("Edit Profile");
+                },
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.editIcon,
+                "Edit Category",
+                    () {
+                  accountController.setIndex("9");
+                  accountController.setTitle("Edit Category");
+                },
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.app_setting_change_phone_number,
+                AppStrings.changePhoneNumber,
+                    () {
+                  accountController.setIndex("2");
+                  accountController.setTitle("Change Phone number");
+                },
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.emotionUpdate,
+                "Change Your Email",
+                    () {
+                  accountController.setIndex("10");
+                  accountController.setTitle("Change Email");
+                },
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.verifiedIcon,
+                "Email Verification",
+                    () {},
+                slugId: "Email Verification",
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.app_setting_language,
+                AppStrings.language,
+                    () {
+                  accountController.setIndex("4");
+                  accountController.setTitle("Language");
+                },
+                slugId: "Language",
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.app_setting_verification,
+                AppStrings.verificationStatus,
+                    () {
+                  accountController.setIndex("5");
+                  accountController.setTitle("Verification Status");
+                },
+                slugId: "Verification Status",
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.app_setting_manage_subscription,
+                AppStrings.manageSubscription,
+                    () {
+                  accountController.setIndex("6");
+                  accountController.setTitle("Manage Subscription");
+                },
+                slugId: "Manage Subscription",
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.about_us,
+                "Two Step Authentication",
+                    () {
+                  accountController.setIndex("7");
+                  accountController.setTitle("Two Step Authentication");
+                },
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.deleteIcon,
+                "Account Delete",
+                    () {
+                  accountController.setIndex("8");
+                  accountController.setTitle("Delete Account");
+                },
+              ),
+
+              _helpServiceCard(
+                AppIconAssets.logout,
+
+                "Device Logout",
+                    () {
+                  accountController.setIndex("11");
+                  accountController.setTitle("Device Logout");
+                },
+              ),
+
+              SizedBox(height: SizeConfig.size30),
             ],
           );
         }),
@@ -237,128 +195,153 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   }
 }
 
-// Reusable Card Widget
 Widget _helpServiceCard(
-    String iconPath, String title, GestureTapCallback? onTap,
+    String iconPath,
+    String title,
+    GestureTapCallback? onTap,
     {String? slugId}) {
-  Get.put(AccountSettingsController());
+
   final lang = getOrPut(() => LanguageControllerNew());
 
-  return InkWell(
-    onTap: onTap,
-    child: Container(
-      padding: EdgeInsets.symmetric(
-        // vertical: SizeConfig.size4,
-        horizontal: SizeConfig.size4,
-      ),
-      margin: EdgeInsets.symmetric(horizontal: 1),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(20)),
-      child: Row(
-        children: [
-          Container(
+  return Padding(
+    padding: EdgeInsets.only(bottom: SizeConfig.size14),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size16,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
 
-            margin: EdgeInsets.all(SizeConfig.size5),
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: LocalAssets(
+            LocalAssets(
               imagePath: iconPath,
+              height: 22,
+              width: 22,
+              boxFix: BoxFit.contain,
+              imgColor: AppColors.mainTextColor,
             ),
-          ),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: Container(
+
+            SizedBox(width: SizeConfig.size14),
+
+            Expanded(
               child: CustomText(
                 title,
+                fontSize: SizeConfig.medium,
                 color: AppColors.mainTextColor,
-                textAlign: TextAlign.left,
+              ),
+            ),
 
+            if (slugId == "Email Verification")
+              _greenChip("Verified"),
+
+            if (slugId == "Language")
+              _greyChip(lang.selectedLang.value),
+
+            if (slugId == "Verification Status")
+              _greenChip("Owner Verified"),
+
+            if (slugId == "Manage Subscription")
+              CustomText(
+                "Free Plan",
+                color: AppColors.primaryColor,
               ),
-            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+Widget _greenChip(String text) {
+  return Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: SizeConfig.size14,
+      vertical: SizeConfig.size6,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.green4F,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: CustomText(
+      text,
+      fontSize: SizeConfig.size10,
+      color: Colors.white,
+    ),
+  );
+}
+Widget _greyChip(String text) {
+  return Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: SizeConfig.size14,
+      vertical: SizeConfig.size6,
+    ),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade200,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: CustomText(
+      text,
+      fontSize: SizeConfig.size10,
+      color: AppColors.mainTextColor,
+    ),
+  );
+}
+
+
+Widget buildSettingItem({
+  required String imagePath,
+  required String title,
+  required Widget control,
+}) {
+  return Padding(
+    padding: EdgeInsets.only(bottom: SizeConfig.size14),
+    child: Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size14,
+        vertical: SizeConfig.size14,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          LocalAssets(
+            imagePath: imagePath,
+            height: 22,
+            width: 22,
           ),
-          if (slugId == "Language")
-            Padding(
-              padding: EdgeInsets.only(right: 8.0),
-              child: CustomText(lang.selectedLang.toUpperCase()),
-            ),
-          if (slugId == "Verification Status")
-            Container(
-              margin: EdgeInsets.all(SizeConfig.size5),
-              padding: EdgeInsets.all(SizeConfig.size5),
-              decoration: BoxDecoration(
-                  color: AppColors.green4F,
-                  borderRadius: BorderRadius.circular(10)),
-              child: CustomText(
-                "Owner Verified",
-                fontSize: SizeConfig.size10,
-                color: AppColors.mainTextColor,
-              ),
-            ),
-          if (slugId == "Manage Subscription")
-            CustomText(
-              AppStrings.freePlan,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w400,
-              color: AppColors.primaryColor,
-            ),
+          SizedBox(width: SizeConfig.size14),
+          Expanded(
+            child: CustomText(title),
+          ),
+          control,
         ],
       ),
     ),
   );
 }
-
-Widget buildSettingItem({
-  required String imagePath, // <-- Replace IconData with image path
-  required String title,
-  required Widget control,
-}) {
-  return Row(
-    children: [
-      // Image Container
-      Container(
-        // width: 40,
-        padding: EdgeInsets.all(SizeConfig.size10),
-
-        child: LocalAssets(
-          imagePath: imagePath,
-          boxFix: BoxFit.contain,
-        ),
-      ),
-      SizedBox(width: SizeConfig.size20),
-
-      // Title
-      Expanded(
-        child: Container(
-          child: CustomText(
-            title,
-            color: AppColors.mainTextColor,
-            textAlign: TextAlign.left,
-          ),
-        ),
-      ),
-
-      // SizedBox(width: SizeConfig.size12),
-
-      // Control
-      control,
-    ],
-  );
-}
-
 Widget buildToggleSwitch({
   required RxBool value,
   required VoidCallback onChanged,
 }) {
   return Obx(() => Transform.scale(
-        scale: 0.75, // Adjust scale to reduce size
-        child: Switch(
-          value: value.value,
-          onChanged: (val) => onChanged(),
-          activeColor: AppColors.primaryColor,
-          activeTrackColor: AppColors.primaryColor.withValues(alpha: 0.3),
-          inactiveTrackColor: Colors.grey[300],
-          inactiveThumbColor: Colors.grey[400],
-        ),
-      ));
+    scale: 0.75, // Adjust scale to reduce size
+    child: Switch(
+      value: value.value,
+      onChanged: (val) => onChanged(),
+      activeColor: AppColors.primaryColor,
+      activeTrackColor: AppColors.primaryColor.withValues(alpha: 0.3),
+      inactiveTrackColor: Colors.grey[300],
+      inactiveThumbColor: Colors.grey[400],
+    ),
+  ));
 }
 
 Widget buildToggleSwitchChip({
@@ -366,14 +349,14 @@ Widget buildToggleSwitchChip({
   required VoidCallback onChanged,
 }) {
   return Obx(() => Transform.scale(
-        scale: 0.6, // Adjust scale to reduce size
-        child: Switch(
-          value: value.value,
-          onChanged: (val) => onChanged(),
-          activeColor: AppColors.white,
-          activeTrackColor: AppColors.primaryColor,
-          inactiveTrackColor: Colors.grey[300],
-          inactiveThumbColor: Colors.grey[400],
-        ),
-      ));
+    scale: 0.6, // Adjust scale to reduce size
+    child: Switch(
+      value: value.value,
+      onChanged: (val) => onChanged(),
+      activeColor: AppColors.white,
+      activeTrackColor: AppColors.primaryColor,
+      inactiveTrackColor: Colors.grey[300],
+      inactiveThumbColor: Colors.grey[400],
+    ),
+  ));
 }

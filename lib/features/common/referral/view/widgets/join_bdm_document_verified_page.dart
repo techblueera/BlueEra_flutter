@@ -1,30 +1,29 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/features/common/referral/view/widgets/join_as_bdm_screen.dart';
+import 'package:BlueEra/features/common/referral/view/widgets/referral_points_chart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
 
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/getx_utils.dart';
-import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../core/constants/size_config.dart';
-import '../../../../widgets/custom_text_cm.dart';
-import '../../../business/auth/controller/view_business_details_controller.dart';
-import '../../../personal/auth/controller/view_personal_details_controller.dart';
-import '../controller/referral_controller.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/getx_utils.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
+import '../../../../../core/constants/size_config.dart';
+import '../../../../../widgets/custom_text_cm.dart';
+import '../../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../../personal/auth/controller/view_personal_details_controller.dart';
+import '../../controller/referral_controller.dart';
 
 
-class ReferralPage extends StatefulWidget {
-  const ReferralPage({super.key});
+class JoinBdmDocumentVerifiedPage extends StatefulWidget {
+  const JoinBdmDocumentVerifiedPage({super.key});
 
   @override
-  State<ReferralPage> createState() => _ReferralPageState();
+  State<JoinBdmDocumentVerifiedPage> createState() => _JoinBdmDocumentVerifiedPageState();
 }
 
-class _ReferralPageState extends State<ReferralPage> {
+class _JoinBdmDocumentVerifiedPageState extends State<JoinBdmDocumentVerifiedPage> {
   final controller = getOrPut(()=>ReferralController());
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
   final viewBusinessProfileController =  getOrPut(() =>ViewBusinessDetailsController());
@@ -49,11 +48,11 @@ class _ReferralPageState extends State<ReferralPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-   // loadDetails();
+    // loadDetails();
   }
   void loadDetails()async{
-   // await controller.fetchMyReferralId();
-   await controller.getMyReferralHistoryApi();
+    // await controller.fetchMyReferralId();
+    await controller.getMyReferralHistoryApi();
   }
 
   @override
@@ -67,61 +66,6 @@ class _ReferralPageState extends State<ReferralPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: SizeConfig.size250,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-
-                  color: AppColors.white
-              ),
-              padding:EdgeInsets.all(14) ,
-              child: Column(
-                children: [
-                  Container(
-                    height: 170,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: AppColors.whiteE5
-                    ),
-                    child: Center(
-                      child: Container(
-                        height: SizeConfig.size50,
-                        width: SizeConfig.size50,
-                        decoration: BoxDecoration(
-                          color: AppColors.black65,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.play_arrow,
-                            color: AppColors.white,
-                            size: SizeConfig.size30),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10,),
-                  InkWell(
-                    onTap: (){
-                      Get.to(JoinAsBDMScreen());
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.primaryColor
-                          )
-                      ),
-                      padding: EdgeInsets.all(10),
-                      child: Center(
-                        child: CustomText("Join As Business Development Manager (BDM)",
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
@@ -174,37 +118,78 @@ class _ReferralPageState extends State<ReferralPage> {
                             Column(
                               children: [
                                 CustomText("Balance",fontSize: 16,
-                                color: AppColors.secondaryTextColor,
+                                  color: AppColors.secondaryTextColor,
                                 ),
                                 SizedBox(
                                   height: 16,
                                 ),
                                 CustomText("₹ 10,000",fontSize: 20,
                                   color: AppColors.secondaryTextColor,
-
-                                  fontWeight: FontWeight.w800,)
+                                  fontWeight: FontWeight.w800,
+                                )
                               ],
                             ),
                           ],
                         ),
-
+                        SizedBox(
+                          height: 16,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: AppColors.greyPlaceHolder
+                          ),
+                          padding: EdgeInsets.all(10),
+                          child: Center(
+                            child: CustomText(
+                              "20 Subscription Out of 400 Referral",
+                              fontSize: 14,fontWeight: FontWeight.w600,
+                            color: AppColors.grayText,),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomBtn(
+                                height: 34,
+                                radius: 10,
+                                borderColor: AppColors.primaryColor,
+                                bgColor: Colors.transparent,
+                                onTap: (){}, title: "History",
+                                textColor: AppColors.primaryColor,),
+                            ),
+                            SizedBox(width: 10,),
+                            Expanded(
+                              child: CustomBtn(
+                                  radius: 10,
+                                  height: 34,
+                                  isValidate: true,
+                                  onTap: (){}, title: "Withdraw"),
+                            ),
+                          ],
+                        )
 
                       ],
                     ),
                   ),
+                  SizedBox(height: 10,),
+                  Container(
 
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.white
+                    ),
+                    padding: EdgeInsets.all(10),
+                    child:    Column(
+                      children: [
+                        ReferralPointsChart(subscribe: 100, unSubscribe: 30, expired: 10,)
+                      ],
+                    ),
+                  )
 
-                  // _referralSummaryCard(),
-                  // SizedBox(height: SizeConfig.size20),
-                  // CustomText(
-                  //   AppStrings.referredPersons,
-                  //   fontSize: 16,
-                  //   fontWeight: FontWeight.w600,
-                  // ),
-                  // SizedBox(height: SizeConfig.size12),
-                  // Center(
-                  //   child: CustomText("No Referral Record Found"),
-                  // )
                 ],
               ),
             ),
@@ -251,13 +236,13 @@ class _ReferralPageState extends State<ReferralPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                   "User Name",
+                  "User Name",
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
                 SizedBox(height: SizeConfig.size4),
                 CustomText(
-                   "Referred on 12 Nov 2025",
+                  "Referred on 12 Nov 2025",
                   fontSize: 12,
                   color: AppColors.grayText,
                 ),
@@ -265,7 +250,7 @@ class _ReferralPageState extends State<ReferralPage> {
             ),
           ),
           CustomText(
-          "+10 pts",
+            "+10 pts",
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: AppColors.primaryColor,
