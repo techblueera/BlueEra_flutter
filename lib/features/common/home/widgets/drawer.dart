@@ -300,6 +300,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       MenuItemModel(
         title: "Payment",
         onTap: () => Get.to( PaymentSettingScreen()),
+       // onTap: () => Get.to( PaymentSettingEmptyScreen()),
 
       ),
       MenuItemModel(

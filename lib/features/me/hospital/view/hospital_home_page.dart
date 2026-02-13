@@ -478,31 +478,31 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                 ),
 
                                 SizedBox(height: SizeConfig.size10,),
-                                ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      height: SizeConfig.size160,
-                                      child: Stack(
-                                        children: [
-                                          GoogleMap(
-                                            onMapCreated: _onMapCreated,
-                                            initialCameraPosition: CameraPosition(
-                                              target:LatLng(26.8311, 80.9244),
-                                              zoom: 14.0,
-                                            ),
-                                            markers: _markers,
-                                            myLocationEnabled: false,
-                                            compassEnabled: false,
-                                            rotateGesturesEnabled: true,
-                                            tiltGesturesEnabled: true,
-                                            zoomGesturesEnabled: true,
-                                            scrollGesturesEnabled: true,
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                ),
+                                // ClipRRect(
+                                //     borderRadius: BorderRadius.circular(10),
+                                //     child: SizedBox(
+                                //       width: double.infinity,
+                                //       height: SizeConfig.size160,
+                                //       child: Stack(
+                                //         children: [
+                                //           GoogleMap(
+                                //             onMapCreated: _onMapCreated,
+                                //             initialCameraPosition: CameraPosition(
+                                //               target:LatLng(26.8311, 80.9244),
+                                //               zoom: 14.0,
+                                //             ),
+                                //             markers: _markers,
+                                //             myLocationEnabled: false,
+                                //             compassEnabled: false,
+                                //             rotateGesturesEnabled: true,
+                                //             tiltGesturesEnabled: true,
+                                //             zoomGesturesEnabled: true,
+                                //             scrollGesturesEnabled: true,
+                                //           ),
+                                //         ],
+                                //       ),
+                                //     )
+                                // ),
                               ],
                             )),
                       ],
