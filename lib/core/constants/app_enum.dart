@@ -1045,11 +1045,11 @@ extension RentalServiceTabApi on RentalServiceType {
   String get apiValue {
     switch (this) {
       case RentalServiceType.homeStay:
-        return "Property"; // <--- API string
+        return AppConstants.property; // <--- API string
       case RentalServiceType.flatRoom:
-        return "Flat"; // <--- API string
+        return AppConstants.flat; // <--- API string
       case RentalServiceType.vehicle:
-        return "Vehicle"; // <--- API string
+        return AppConstants.vehicle; // <--- API string
     }
   }
 }
@@ -1057,11 +1057,11 @@ extension RentalServiceTabApi on RentalServiceType {
 extension RentalServiceTypeParser on String {
   RentalServiceType toRentalServiceType() {
     switch (this) {
-      case "Property":
+      case AppConstants.property:
         return RentalServiceType.homeStay;
-      case "Flat":
+      case AppConstants.flat:
         return RentalServiceType.flatRoom;
-      case "Vehicle":
+      case AppConstants.vehicle:
         return RentalServiceType.vehicle;
       default:
         throw Exception("Unknown RentalServiceType: $this");

@@ -651,7 +651,7 @@ DateTime parse12HourTime(String timeStr) {
 
 double? calculateDistance(double targetLat, double targetLng){
   double userLat = LocationService.lat;
-  double userLng = LocationService.lat;
+  double userLng = LocationService.lng;
   if(userLat == 0.0 || userLng == 0.0) return null;
   double distanceMeters = geo.Geolocator.distanceBetween(
     userLat,

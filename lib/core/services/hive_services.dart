@@ -43,6 +43,20 @@ class HiveServices{
     await Hive.openBox(_savedMedicalNestedCategoryBox);
   }
 
+  static List<String> get allBoxNames => [
+    _savedPosts,
+    _savedVideos,
+    _savedAllNearByStoreFeed,
+    _savedAllNearByStore,
+    _savedAllNearByStoreProduct,
+    _savedAllNearByStoreService,
+    _savedAllNearByStoresFoodServices,
+    _savedBusinessCategoryBox,
+    _savedAdminVideosBox,
+    _savedGroceryNestedCategoryBox,
+    _savedMedicalNestedCategoryBox,
+  ];
+
   bool isPostSaved(String id) {
     final box = Hive.box(_savedPosts);
     final String key = '${userId}_$id';

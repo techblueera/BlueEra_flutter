@@ -36,7 +36,7 @@ class EmptyStateWidget extends StatelessWidget {
             height: imageSize ?? SizeConfig.size80,
             width: imageSize ?? SizeConfig.size80,
           ),
-          SizedBox(height: SizeConfig.size20),
+          SizedBox(height: SizeConfig.paddingXSL),
           CustomText(
             message,
             fontSize: fontSize ?? SizeConfig.large,

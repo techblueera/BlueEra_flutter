@@ -395,17 +395,22 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       if(businessCategoryGlobal.toUpperCase() ==
           AppConstants.HOSPITALS.toUpperCase()){
         return const HospitalMain();
-      } else if(businessCategoryGlobal.toUpperCase() ==
-          AppConstants.MEDICAL_EDUCATION_INSTITUTIONS.toUpperCase()){
-        return const MedicalScreen(fromBottomNavBar: true);
       } else if (businessCategoryGlobal.toUpperCase() ==
           AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
         return const LaboratoryMain();
-      }return SizedBox();
-    } else if (businessCategoryGlobal ==
-        AppConstants.healthcareMedicalServices) {
-      return const HospitalMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
+      }
+      // else if(businessCategoryGlobal.toUpperCase() ==
+      //     AppConstants.MEDICAL_EDUCATION_INSTITUTIONS.toUpperCase()){
+      //   return const MedicalScreen(fromBottomNavBar: true);
+      // }
+
+      return const MedicalScreen(fromBottomNavBar: true);
+    }
+    // else if (businessCategoryGlobal ==
+    //     AppConstants.healthcareMedicalServices) {
+    //   return const HospitalMain();
+    // }
+    else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
     }

@@ -118,13 +118,13 @@ class NewStoreController extends GetxController{
       allStorePage = 1;
       allStoreHasMore = true;
 
-      if(typeOfBusiness == null && businessCategoryId == null){
-        final cachedFood = await HiveServices().getAllStore(userId);
-        if (cachedFood != null && cachedFood.isNotEmpty) {
-          allStore.assignAll(cachedFood);
-          isAllStoreFirstLoading.value = false; // show instantly
-        }
-      }
+      // if(typeOfBusiness == null && businessCategoryId == null){
+      //   final cachedFood = await HiveServices().getAllStore(userId);
+      //   if (cachedFood != null && cachedFood.isNotEmpty) {
+      //     allStore.assignAll(cachedFood);
+      //     isAllStoreFirstLoading.value = false; // show instantly
+      //   }
+      // }
     }
 
     try {
@@ -162,21 +162,22 @@ class NewStoreController extends GetxController{
 
         log("Loaded ${newStores.length} stores");
 
-        newStores = newStores
-            .where((store) =>
-        (store.livePhotos != null &&
-            store.livePhotos!.isNotEmpty &&
-            store.livePhotos!.any((p) => p.trim().isNotEmpty)))
-            .toList();
+        // logic for if live photo not available we are not adding in main list
+        // newStores = newStores
+        //     .where((store) =>
+        // (store.livePhotos != null &&
+        //     store.livePhotos!.isNotEmpty &&
+        //     store.livePhotos!.any((p) => p.trim().isNotEmpty)))
+        //     .toList();
 
         if (newStores.isNotEmpty) {
           if (isLoadMore) {
             allStore.addAll(newStores);
           } else {
             allStore.assignAll(newStores);
-            if(typeOfBusiness == null && businessCategoryId == null){
-              await HiveServices().saveAllStore(allStore, userId);
-            }
+            // if(typeOfBusiness == null && businessCategoryId == null){
+            //   await HiveServices().saveAllStore(allStore, userId);
+            // }
           }
 
           allStorePage++;
@@ -191,8 +192,8 @@ class NewStoreController extends GetxController{
 
         log("API failed with status: ${response.statusCode}");
       }
-    } catch (e) {
-      log("Error: $e");
+    } catch (e, s) {
+      log("Error: $s");
       getAllStoreResponse.value = ApiResponse.error('error');
     }finally{
       if (isLoadMore) {

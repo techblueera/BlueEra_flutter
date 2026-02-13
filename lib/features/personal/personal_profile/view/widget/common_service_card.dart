@@ -53,14 +53,18 @@ class CommonServiceCard<T> extends StatelessWidget {
               height: iconHeight ?? SizeConfig.size50,
             ),
             SizedBox(height: spacing ?? SizeConfig.paddingXSL),
-            CustomText(
-              getName(service),
-              fontSize: SizeConfig.small,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w600,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            Container(
+              height: SizeConfig.size30,
+              alignment: Alignment.center,
+              child: CustomText(
+                getName(service),
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
 
           ],
