@@ -829,7 +829,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                                 children: [
                                   // From
                                   CustomText(
-                                      "${LocationService.userCurrentAddress.value.city}",
+                                      "${LocationService.userCurrentAddress.value.formattedAddress}",
                                       fontSize: SizeConfig.medium,
                                       color: AppColors.greyBf,
                                       fontWeight: FontWeight.w400),
@@ -885,8 +885,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                         crossAxisCount: 2,
                         getName: (item)=> item.name,
                         getIcon: (item)=> item.icon,
-                        onTap: (_){
-                          Get.to(BookTransportMain());
+                        onTap: (item){
+                          Get.to(BookTransportMain(
+                            vehicleType: item.slugId,
+                          ));
                         }
                     ),
                   ],

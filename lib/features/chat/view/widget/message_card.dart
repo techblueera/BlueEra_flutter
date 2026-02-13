@@ -116,7 +116,7 @@ class _MessageCardState extends State<MessageCard>
       final senderId = widget.message.senderId;
       isReceive = currentUserId != senderId;
    }
-
+   print("dnvlsdkvmsldkv ${widget.message.messageType}");
     final time = formatChatTime(widget.message.createdAt ?? '');
     Widget messageWidget;
     switch (widget.message.messageType) {
