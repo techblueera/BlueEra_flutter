@@ -11,6 +11,18 @@ class LabServiceRepo extends BaseService {
         params: reqBody, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  /// LIST: Laboratory Profiles (paginated)
+  Future<ResponseModel> listLaboratoryProfiles({
+    required int page,
+    required int limit,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "lab-service/laboratory-profiles?page=$page&limit=$limit",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
   // GET: Fetch property photos
   Future<ResponseModel> getOtherServicePhotosRepo() async {
     final response = await ApiBaseHelper().getHTTP(

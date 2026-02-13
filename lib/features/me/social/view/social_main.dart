@@ -61,7 +61,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
             child: TabBarView(
           controller: _tabController,
           children: [
-            PersonalProfileSetupNewScreen(),
+            // PersonalProfileSetupNewScreen(),
             SocialHomeScreen(),
             SocialUpdateScreen(),
             ComingSoon(),

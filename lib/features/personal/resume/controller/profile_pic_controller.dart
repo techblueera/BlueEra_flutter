@@ -128,9 +128,10 @@ class ProfilePicController extends GetxController {
       callAPIGetResume();
 
       Get.back();
-      commonSnackBar(message:AppStrings.personalDetailsUpdated);
+      commonSnackBar(message: AppStrings.personalDetailsUpdated);
     } else {
-      commonSnackBar(message: response.message ??AppStrings.personalDetailsUpdateFailed);
+      commonSnackBar(
+          message: response.message ?? AppStrings.personalDetailsUpdateFailed);
     }
   }
 
@@ -159,7 +160,6 @@ class ProfilePicController extends GetxController {
       qualificationController.educationList.clear();
 
       if (data.education != null && data.education!.isNotEmpty) {
-
         for (final edu in data.education!) {
           final hasData = (edu.highestQualification != null &&
                   edu.highestQualification!.trim().isNotEmpty) ||
@@ -169,7 +169,6 @@ class ProfilePicController extends GetxController {
           if (!hasData) {
             continue; // Skip incomplete entries with no visible data
           }
-
 
           qualificationController.educationList.add({
             'title': edu.highestQualification ?? '',
@@ -748,11 +747,8 @@ class ProfilePicController extends GetxController {
   }
 }
 
-
-callAPIGetResume()
-{
+callAPIGetResume() {
   final controller = getOrPut(() => ProfilePicController());
 
   controller.getMyResume();
-
 }
