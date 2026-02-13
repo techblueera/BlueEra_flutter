@@ -13,13 +13,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/services/location/location_service.dart';
 import '../../../map/view/searchLocationScreen.dart';
 import '../../controller/discover_controller.dart';
 import '../../model/get_booking_rider_model.dart';
 
 class BookTransportMain extends StatefulWidget {
-  const BookTransportMain({super.key});
-
+  const BookTransportMain({super.key,this.vehicleType});
+final String? vehicleType;
   @override
   State<BookTransportMain> createState() => _BookTransportMainState();
 }
@@ -113,6 +114,28 @@ class _BookTransportMainState extends State<BookTransportMain> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    if(widget.vehicleType!=null){
+      if(widget.vehicleType=="TWO_WHEELER"){
+        discoverController.selectedHorizontalTab.value=0;
+        discoverController
+            .selectedVehicleOptionIndex
+            .value=0;
+      }
+      else if(widget.vehicleType=="PASSENGER"){
+        discoverController.selectedHorizontalTab.value=0;
+        discoverController
+            .selectedVehicleOptionIndex
+            .value=1;
+      }
+      else if(widget.vehicleType=="GOODS"){
+        discoverController.selectedHorizontalTab.value=3;
+      }
+      else if(widget.vehicleType=="OUR_STATION"){
+        discoverController.selectedHorizontalTab.value=1;
+      }
+    }
+    discoverController.selectedFromLat?.value=LocationService.lat;
+    discoverController.selectedFromLong?.value=LocationService.lng;
   }
 
   @override
@@ -252,7 +275,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                                     .selectedFromAddress
                                                     ?.value == null)
                                                 ?
-                                            "Select Pickup Address"
+                                            "${LocationService.userCurrentAddress.value.formattedAddress}"
                                                 : discoverController
                                                 .selectedFromAddress?.value,
                                             fontSize: 12,
@@ -518,7 +541,18 @@ class TransportCategoryDetailsModel {
     };
   }
 }
-
+const ALL_VEHICLE_TYPES = [
+  'twoWheelerRider',
+  'autoTempo',
+  'eRickshaw',
+  'carMini',
+  'carSedan',
+  'suvCar',
+  'miniBus',
+  'pickupGoods',
+  'miniTruckGoods',
+  'largeTruckGoods',
+];
 VehicleData? getSelectedVehicleData(VehicleAllResponse response,
     int selectedTab,
     int selectedIndex,) {
@@ -532,7 +566,7 @@ VehicleData? getSelectedVehicleData(VehicleAllResponse response,
       case 2:
         return response.autoTempo;
       case 3:
-        return response.miniBus;
+        return response.eRickshaw;
     }
   }
 
@@ -540,7 +574,7 @@ VehicleData? getSelectedVehicleData(VehicleAllResponse response,
   if (selectedTab == 1) {
     switch (selectedIndex) {
       case 0:
-        return response.suvCar;
+        return response.carMini;
       case 1:
         return response.suvCar;
     }
