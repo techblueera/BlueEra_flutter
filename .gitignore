@@ -51,3 +51,4 @@ untranslated_messages.txt
 # FVM Version Cache
 .fvm/
 lib/features/personal/personal_profile/view/inventory/widgets/catalog.dart
+ios/Flutter/Secrets.xcconfig
