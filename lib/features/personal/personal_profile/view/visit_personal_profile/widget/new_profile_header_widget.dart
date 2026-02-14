@@ -372,3 +372,25 @@ Widget statBlock(String label, String count) {
     ],
   );
 }
+
+Widget statBlockChannel(String label, String count) {
+  return Row(
+    children: [
+      CustomText(
+        formatNumberLikePost(int.tryParse(count) ?? 0),
+        fontWeight: FontWeight.w500,
+        color:Colors.grey.shade600,
+      ),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        label,
+        fontSize: SizeConfig.medium,
+        overflow: TextOverflow.ellipsis,
+        color: Colors.grey.shade600,
+        fontWeight: FontWeight.w500,
+      ),
+    ],
+  );
+}

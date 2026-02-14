@@ -124,8 +124,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isCreateEventBtn,
       this.showElevation,
       this.categoryId,
-      this.isCustomTitleWidget
-      });
+      this.isCustomTitleWidget});
 
   // final AppBar? appBar;
   final String? title;
@@ -221,7 +220,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: showElevation??4,
+      elevation: showElevation ?? 4,
       shadowColor: (isShadowShow == true) ? Colors.black26 : null,
       surfaceTintColor: AppColors.white,
       backgroundColor: appBarColor ?? Colors.white,
@@ -256,39 +255,33 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
               if (isDrawerMenu ?? false)
                 Padding(
-                  padding: const EdgeInsets.only(left: 15.0,top: 10),
+                  padding: const EdgeInsets.only(left: 15.0, top: 10),
                   child: InkWell(
                     onTap: () {
                       showDialog(
                           barrierDismissible: true,
                           barrierColor: Colors.black.withOpacity(0.3),
-                          context: context, builder: (BuildContext context){
-
-                        return   Align(
-                          alignment: Alignment.centerLeft,
-                          child: SizedBox(
-                            width: Get.width * 0.85, // 👈 40% of screen
-                            height: double.infinity,
-                            child: Drawer(
-                              child: ProfileMenuDrawer(),
-                            ),
-                          ),
-                        );
-
-                      });
-
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: SizedBox(
+                                width: Get.width * 0.85, // 👈 40% of screen
+                                height: double.infinity,
+                                child: Drawer(
+                                  child: ProfileMenuDrawer(),
+                                ),
+                              ),
+                            );
+                          });
                     },
                     child: LocalAssets(
-                        imagePath: "assets/icons/app_logo_shadow.png",
-
-                    height: 40,
-                      width:40 ,
+                      imagePath: AppIconAssets.drawer_more,
                     ),
                   ),
                 ),
 
-              if (isProfile ?? false)
-               CommonProfileAvatar(),
+              if (isProfile ?? false) CommonProfileAvatar(),
 
               if (isStoreProfile ?? false)
                 Builder(
@@ -346,7 +339,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             padding: EdgeInsets.only(
                                 left: (isLeading ?? false)
                                     ? 0.0
-                                    : SizeConfig.size15,top: 10),
+                                    : SizeConfig.size15,
+                                top: 10),
                             child: CommonSearchBar(
                                 controller: controller!,
                                 isShowCursor: isShowCursor,
@@ -413,7 +407,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Get.find<AuthController>().isSearchOpen.value == false)
                 Builder(builder: (context) {
                   return Padding(
-                    padding: EdgeInsets.only(left: SizeConfig.size15,top: 10),
+                    padding: EdgeInsets.only(left: SizeConfig.size15, top: 10),
                     child: InkWell(
                         onTap: () => onNotificationTap?.call(),
                         child: LocalAssets(
@@ -480,7 +474,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   },
                   icon: Padding(
                     padding: const EdgeInsets.only(top: 10.0),
-                    child: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon,imgColor: AppColors.primaryColor,),
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.addOutlinedIcon,
+                      imgColor: AppColors.primaryColor,
+                    ),
                   ),
                   itemBuilder: (context) => popupMenuItems(),
                 ),
@@ -544,11 +541,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   itemBuilder: (context) => inventoryPopupMenuItems(),
                 ),
 
-              if(isCustomTitleWidget!=null)
+              if (isCustomTitleWidget != null)
                 Builder(
                   builder: (context) => isCustomTitleWidget!(),
                 ),
-
             ],
           );
         }),
@@ -567,7 +563,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           Builder(
             builder: (context) => isFollowRefreshWidget!(),
           ),
-        if (isCreateSocialWidget!=null)
+        if (isCreateSocialWidget != null)
           Builder(
             builder: (context) => isCreateSocialWidget!(),
           ),

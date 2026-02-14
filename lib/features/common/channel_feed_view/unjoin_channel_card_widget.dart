@@ -22,7 +22,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
   final channelFeedController = Get.find<ChannelFeedController>();
 
   String displayUsername(String username) {
-    return username.length > 5
+    return username.length > 15
         ? '@${username.substring(0, 5)}...'
         : '@$username';
   }
@@ -65,6 +65,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                     children: [
                       CustomText(
                         '${channelModel.name}',
+                        // displayUsername(channelModel.username ?? ""),
                         fontWeight: FontWeight.w700,
                         fontSize: SizeConfig.large,
                         maxLines: 1,
@@ -72,31 +73,48 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            displayUsername(channelModel.username ?? ""),
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: SizeConfig.medium,
-                            overflow: TextOverflow.ellipsis,
+                      Container(
+                        width: Get.width,
+                        child: Row(
+                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                            maxLines: 2,
-                          ),
-                          const SizedBox(width: 20),
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Get.to(() => ChannelJoinedUserScreen(
+                                    userID: channelModel.id ?? ""));
+                              },
+                              child: statBlockChannel(AppStrings.members,
+                                  channelModel.followers.toString()),
+                            ),
+                            const SizedBox(width: 4),
 
+                            CustomText(
+                              displayUsername(channelModel.username ?? ""),
+                              fontSize: SizeConfig.medium,
+                              overflow: TextOverflow.ellipsis,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                              maxLines: 2,
+                            ),
+                            // const SizedBox(width: 20),
 
-                          //  _divider(),
-                          InkWell(
-                            onTap: () {
-                              Get.to(() => ChannelJoinedUserScreen(
-                                  userID: channelModel.id ?? ""));
-                            },
-                            child: statBlock(AppStrings.members,
-                                channelModel.followers.toString()),
-                          ),
-                        ],
+                            // CustomText(
+                            //   formatClaimedAt(channelModel.ownership?.claimedAt ?? ""),
+                            //   fontSize: SizeConfig.small11,
+                            //   color: Colors.grey.shade600,
+                            // ),
+                            //  _divider(),
+                            // InkWell(
+                            //   onTap: () {
+                            //     Get.to(() => ChannelJoinedUserScreen(
+                            //         userID: channelModel.id ?? ""));
+                            //   },
+                            //   child: statBlock(AppStrings.members,
+                            //       channelModel.followers.toString()),
+                            // ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -109,12 +127,21 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+                      // InkWell(
+                      //   onTap: () {
+                      //     Get.to(() => ChannelJoinedUserScreen(
+                      //         userID: channelModel.id ?? ""));
+                      //   },
+                      //   child: statBlockChannel(AppStrings.members,
+                      //       channelModel.followers.toString()),
+                      // ),
+                      //
+                      // const SizedBox(height: 6),
                       CustomText(
                         formatClaimedAt(channelModel.ownership?.claimedAt ?? ""),
                         fontSize: SizeConfig.small11,
                         color: Colors.grey.shade600,
                       ),
-                      const SizedBox(height: 6),
                     ],
                   ),
                 ),              ],

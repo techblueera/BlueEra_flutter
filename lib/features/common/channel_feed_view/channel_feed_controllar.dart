@@ -90,6 +90,8 @@ class ChannelFeedController extends GetxController {
   var unJoinHasMore = true.obs;
   int _unJoinPage = 1;
 
+  var communityIndex = 0.obs;
+
   Future<void> fetchUnJoinChannelData({bool loadMore = false}) async {
     if (isUnJoinLoading.value) return;
     isUnJoinLoading.value = true;

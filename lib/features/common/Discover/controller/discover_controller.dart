@@ -354,20 +354,14 @@ class DiscoverController extends GetxController {
       hasMoreProfConServiceData = true;
     }
 
-    // double lat = LocationService.lat;
-    // double lng = LocationService.lng;
 
     final Map<String, dynamic> queryParams = {
-      // ApiKeys.type: earnServiceType,
-      // ApiKeys.subType: subType,
       if (selectedProfessionalConsultantData.value?.slugId != null)
         "profession": selectedProfessionalConsultantData.value?.slugId,
 
       ApiKeys.page: profConsServicePage,
       ApiKeys.limit: limit,
     };
-    // if(selectedProfConsServiceData.value!=null){
-    // }
 
     ResponseModel response = await DiscoverRepo()
         .fetchProfessionalConsServices(queryParams: queryParams);
@@ -379,28 +373,6 @@ class DiscoverController extends GetxController {
               ProfessionalConsResModel.fromJson(response.response?.data);
 
         List<ProfessionalConsData> tempNewItems = responseModel.data ?? [];
-
-        // for (var service in responseModel.services ?? []) {
-        //   if (service.data != null && service.data!.isNotEmpty) {
-        //     for (ProfessionalConsData item in service.data!) {
-        //
-        //       // Distance Calculation Logic
-        //       double itemLat = double.tryParse(item.userLocation?.lat.toString() ?? "0") ?? 0.0;
-        //       double itemLng = double.tryParse(item.userLocation?.lon.toString() ?? "0") ?? 0.0;
-        //
-        //       double? tempDistance;
-        //       if (itemLat != 0 && itemLng != 0) {
-        //         tempDistance = await getDistanceInKm(itemLat, itemLng);
-        //       } else {
-        //         tempDistance = 0.0;
-        //       }
-        //       item.distance = tempDistance?.toInt();
-        //
-        //       tempNewItems.add(item);
-        //     }
-        //   }
-        // }
-
         if (tempNewItems.length < limit) {
           hasMoreProfConServiceData = false;
         }

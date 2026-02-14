@@ -320,4 +320,28 @@ class MedicalRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> fetchNearestHospitalsRepo({
+    required Map<String, dynamic> params,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      'health-service/api/hp/hospitals/nearest',
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  Future<ResponseModel> fetchNearestPharmaciesRepo({
+    required Map<String, dynamic> params,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      'health-service/api/ms/nearest',
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

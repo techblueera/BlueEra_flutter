@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
+import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:get/get.dart';
 
 class LabProfileListItem {
@@ -10,6 +11,7 @@ class LabProfileListItem {
   final String description;
   final String coverUrl;
   final String logoUrl;
+  final Data? fullDetails;
 
   LabProfileListItem({
     required this.id,
@@ -17,16 +19,37 @@ class LabProfileListItem {
     required this.description,
     required this.coverUrl,
     required this.logoUrl,
+    this.fullDetails,
   });
 
   factory LabProfileListItem.fromJson(Map<String, dynamic> json) {
-    return LabProfileListItem(
-      id: json['_id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
-      coverUrl: json['coverUrl']?.toString() ?? '',
-      logoUrl: json['logoUrl']?.toString() ?? '',
-    );
+    if (json.containsKey('profile')) {
+      final profile = json['profile'] ?? {};
+      final data = Data.fromJson({
+        'profile': json['profile'],
+        'tests': json['tests'] ?? [],
+        'contactInfo': json['contactInfo'],
+        'galleries': json['galleries'] ?? [],
+        'healthCamps': json['healthCamps'] ?? [],
+        'facility': json['facility'],
+      });
+      return LabProfileListItem(
+        id: profile['_id']?.toString() ?? '',
+        name: profile['name']?.toString() ?? '',
+        description: profile['description']?.toString() ?? '',
+        coverUrl: profile['coverUrl']?.toString() ?? '',
+        logoUrl: profile['logoUrl']?.toString() ?? '',
+        fullDetails: data,
+      );
+    } else {
+      return LabProfileListItem(
+        id: json['_id']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        description: json['description']?.toString() ?? '',
+        coverUrl: json['coverUrl']?.toString() ?? '',
+        logoUrl: json['logoUrl']?.toString() ?? '',
+      );
+    }
   }
 }
 

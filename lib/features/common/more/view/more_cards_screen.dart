@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/widget/home_screen_card.dart';
+import 'package:BlueEra/features/common/more/model/card_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -16,6 +17,7 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MoreCardsScreen extends StatefulWidget {
   final bool isFromHomeScreen;
@@ -115,7 +117,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
                     shrinkWrap: true,
                     physics: AlwaysScrollableScrollPhysics(),
                     itemBuilder: (context, cardIndex) {
-                      final card = cards[cardIndex];
+                      final Cards card = cards[cardIndex];
                       final imageUrl = card.photo??'';
 
                       return Container(
@@ -146,15 +148,12 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
                               SizedBox(
                                 height: SizeConfig.size390,
                                 child: InkWell(
-                                  onTap: (){
-                                    navigatePushTo(
-                                      context,
-                                      ImageViewScreen(
-                                        subTitle: '',
-                                        appBarTitle: '',
-                                        imageUrls: [imageUrl],
-                                        initialIndex: 0,
-                                      ),
+                                  onTap: () {
+                                    _openCardDetailsBottomSheet(
+                                      context: context,
+                                      card: card,
+                                      imageUrl: imageUrl,
+                                      captureKey: _cardKeys[cardIndex],
                                     );
                                   },
                                   child: RepaintBoundary(
@@ -315,6 +314,159 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
         ),
       );
     });
+  }
+
+  void _openCardDetailsBottomSheet({
+    required BuildContext context,
+    required Cards card,
+    required String imageUrl,
+    required GlobalKey captureKey,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return Material(
+              color: AppColors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: EdgeInsets.only(top: 8, bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.whiteE5,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        height: SizeConfig.size180,
+                        width: double.infinity,
+                        child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if ((card.categoryName ?? '').isNotEmpty)
+                            _infoRow('Category', card.categoryName ?? ''),
+                          if ((card.eventDate ?? '').isNotEmpty)
+                            _infoRow('Event Date', card.eventDate ?? ''),
+                          if ((card.language ?? '').isNotEmpty)
+                            _infoRow('Language', card.language ?? ''),
+                          if ((card.timeZone ?? '').isNotEmpty)
+                            _infoRow('Time Zone', card.timeZone ?? ''),
+                          if ((card.createdBy ?? '').isNotEmpty)
+                            _infoRow('Created By', card.createdBy ?? ''),
+                          if ((card.createdAt ?? '').isNotEmpty)
+                            _infoRow('Created At', card.createdAt ?? ''),
+                          if ((card.updatedAt ?? '').isNotEmpty)
+                            _infoRow('Updated At', card.updatedAt ?? ''),
+                          SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PositiveCustomBtn(
+                            onTap: () async {
+                              await VisitingCardHelper().shareVisitingCard(captureKey);
+                            },
+                            title: 'Share',
+                            iconPath: AppIconAssets.shareIcon,
+                            height: SizeConfig.size40,
+                            radius: 10,
+                            bgColor: AppColors.primaryColor,
+                            borderColor: AppColors.primaryColor,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: PositiveCustomBtn(
+                            onTap: () {
+                              navigatePushTo(
+                                context,
+                                ImageViewScreen(
+                                  subTitle: '',
+                                  appBarTitle: '',
+                                  imageUrls: [imageUrl],
+                                  initialIndex: 0,
+                                ),
+                              );
+                            },
+                            title: 'View Image',
+                            height: SizeConfig.size40,
+                            radius: 10,
+                            bgColor: AppColors.white,
+                            borderColor: AppColors.primaryColor,
+                            textColor: AppColors.primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: CustomText(
+              label,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+              fontSize: SizeConfig.small,
+            ),
+          ),
+          Expanded(
+            child: CustomText(
+              value,
+              fontWeight: FontWeight.w400,
+              color: AppColors.mainTextColor,
+              fontSize: SizeConfig.medium,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
 

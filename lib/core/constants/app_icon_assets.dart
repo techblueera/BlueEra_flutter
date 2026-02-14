@@ -644,4 +644,8 @@ class AppIconAssets {
   static const String PulmonologyDiagnostics = "${iconPath}PulmonologyDiagnostics.svg";
   static const String Radiology = "${iconPath}Radiology.svg";
   static const String OthersLab = "${iconPath}OthersLab.svg";
+  static const String community_tab = "${iconPath}community_tab.svg";
+  static const String ott_tab = "${iconPath}ott_tab.svg";
+  static const String save_tab = "${iconPath}save_tab.svg";
+  static const String drawer_more = "${iconPath}drawer_more.svg";
 }

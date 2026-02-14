@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
@@ -47,6 +48,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _headerKey = GlobalKey();
   double _headerHeight = 0;
+  final List<String> iconTab = [
+    AppIconAssets.message_post,
+    AppIconAssets.community_tab,
+    AppIconAssets.ott_tab,
+    AppIconAssets.save_tab,
+  ];
   final List<String> postTab = [
     // AppStrings.allPosts,
     AppStrings.lekha,
@@ -248,71 +255,71 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: isIndividual()
                         ? [
                             // if (selectedIndex == 0)
-                              HomeFeedScreenNew(
-                                key: ValueKey('feedScreen_all'),
-                                onHeaderVisibilityChanged:
-                                    _toggleAppBarAndBottomNav,
-                                postFilterType: PostType.all,
-                                query: searchController.text.isEmpty
-                                    ? null
-                                    : searchController.text,
-                                headerHeight: _headerHeight,
-                                isInParentScroll: false,
-                              ),
+                            HomeFeedScreenNew(
+                              key: ValueKey('feedScreen_all'),
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                              postFilterType: PostType.all,
+                              query: searchController.text.isEmpty
+                                  ? null
+                                  : searchController.text,
+                              headerHeight: _headerHeight,
+                              isInParentScroll: false,
+                            ),
                             // if (selectedIndex == 1)
-                              ChannelFeedScreen(
-                                headerHeight: _headerHeight,
-                                onHeaderVisibilityChanged:
-                                    _toggleAppBarAndBottomNav,
-                              ),
+                            ChannelFeedScreen(
+                              headerHeight: _headerHeight,
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                            ),
                             // if (selectedIndex == 2)
-                              OttScreen(
-                                headerHeight: _headerHeight,
+                            OttScreen(
+                              headerHeight: _headerHeight,
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                            ),
+                            // if (selectedIndex == 3)
+                            SavedFeedScreen(
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
-                              ),
-                            // if (selectedIndex == 3)
-                              SavedFeedScreen(
-                                  onHeaderVisibilityChanged:
-                                      _toggleAppBarAndBottomNav,
-                                  query: searchController.text,
-                                  selectedTab: _selectedSavedTab,
-                                  headerHeight:
-                                      _headerHeight + SizeConfig.size30),
+                                query: searchController.text,
+                                selectedTab: _selectedSavedTab,
+                                headerHeight:
+                                    _headerHeight + SizeConfig.size30),
                           ]
                         : [
                             // if (selectedIndex == 0)
-                              HomeFeedScreenNew(
-                                key: ValueKey('feedScreen_all'),
-                                onHeaderVisibilityChanged:
-                                    _toggleAppBarAndBottomNav,
-                                postFilterType: PostType.all,
-                                query: searchController.text.isEmpty
-                                    ? null
-                                    : searchController.text,
-                                headerHeight: _headerHeight,
-                                isInParentScroll: false,
-                              ),
+                            HomeFeedScreenNew(
+                              key: ValueKey('feedScreen_all'),
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                              postFilterType: PostType.all,
+                              query: searchController.text.isEmpty
+                                  ? null
+                                  : searchController.text,
+                              headerHeight: _headerHeight,
+                              isInParentScroll: false,
+                            ),
                             // if (selectedIndex == 1)
-                              ChannelFeedScreen(
-                                headerHeight: _headerHeight,
-                                onHeaderVisibilityChanged:
-                                    _toggleAppBarAndBottomNav,
-                              ),
+                            ChannelFeedScreen(
+                              headerHeight: _headerHeight,
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                            ),
                             // if (selectedIndex == 2)
-                              OttScreen(
-                                headerHeight: _headerHeight,
+                            OttScreen(
+                              headerHeight: _headerHeight,
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                            ),
+                            // if (selectedIndex == 3)
+                            SavedFeedScreen(
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
-                              ),
-                            // if (selectedIndex == 3)
-                              SavedFeedScreen(
-                                  onHeaderVisibilityChanged:
-                                      _toggleAppBarAndBottomNav,
-                                  query: searchController.text,
-                                  selectedTab: _selectedSavedTab,
-                                  headerHeight:
-                                      _headerHeight + SizeConfig.size30),
+                                query: searchController.text,
+                                selectedTab: _selectedSavedTab,
+                                headerHeight:
+                                    _headerHeight + SizeConfig.size30),
                           ],
                   ),
                 ),
@@ -334,8 +341,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildCustomAppBar(),
-
-                          // --- PRIMARY TAB BAR ---
                           // --- PRIMARY TABS (Lekha, Community, etc.) ---
                           Padding(
                             padding:
@@ -351,17 +356,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsets.symmetric(vertical: 0),
-                                          child: CustomText(
-                                            postTab[index],
-                                            fontWeight: FontWeight.w500,
-                                            color: isSelected
-                                                ? AppColors.black28
-                                                : AppColors.secondaryTextColor,
-                                          ),
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Flexible(child: LocalAssets(imagePath: iconTab[index],width: 15,height: 15,)),
+                                            SizedBox(width: 3,),
+                                            Flexible(
+                                              child: CustomText(
+                                                postTab[index],
+                                                fontSize: 12,
+                                                maxLines: 1,
+                                                fontWeight: FontWeight.w500,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: isSelected
+                                                    ? AppColors.black28
+                                                    : AppColors.secondaryTextColor,
+                                              ),
+                                            ),
+                                          ],
                                         ),
+                                        SizedBox(height: 5,),
+
                                         // The Blue Indicator Line
                                         AnimatedContainer(
                                           duration:
@@ -378,6 +394,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               }),
                             ),
                           ),
+                          if (selectedIndex == 0) _buildSubFilterRow(),
+                          if (selectedIndex == 1) _buildCommunitySubFilterRow()
                         ],
                       ),
                     ),
@@ -414,6 +432,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildCommunitySubFilterRow() {
+    return Container(
+      padding: const EdgeInsets.only(top: 12, right: 16, left: 16),
+      color: AppColors.appBackgroundColor,
+      // Slight grey background like the image
+      child: Row(
+        children: [
+          // Filter Icon
+          LocalAssets(imagePath: AppIconAssets.filterIcon),
+          const SizedBox(width: 15),
+
+          // Sub-tabs
+          _communitysubFilterItem(
+            "Joined",
+            index: 0,
+          ),
+          const SizedBox(width: 20),
+          _communitysubFilterItem("Suggested", index: 1),
+          // const SizedBox(width: 20),
+          // _communitysubFilterItem("Community", index: 2),
+          // const SizedBox(width: 20),
+          // _communitysubFilterItem("Near Me", index: 3),
+        ],
+      ),
+    );
+  }
+
 // Logic to handle tab switching
   void _onTabTapped(int index) {
     if (mounted) {
@@ -432,6 +477,25 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isActive = selectedSubIndex == index;
     return InkWell(
       onTap: () {
+        setState(() {
+          selectedSubIndex = index;
+        });
+      },
+      child: CustomText(
+        title,
+        fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+        color: isActive ? AppColors.primaryColor : AppColors.secondaryTextColor,
+        decoration: TextDecoration.underline,
+        decorationColor: AppColors.secondaryTextColor,
+      ),
+    );
+  }
+
+  Widget _communitysubFilterItem(String title, {required int index}) {
+    bool isActive = selectedSubIndex == index;
+    return InkWell(
+      onTap: () {
+        Get.find<ChannelFeedController>().communityIndex.value = index;
         setState(() {
           selectedSubIndex = index;
         });
