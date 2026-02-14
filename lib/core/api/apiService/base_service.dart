@@ -740,5 +740,8 @@ abstract class BaseService {
   final String  testPathology= 'lab-service/pathology-tests';
   final String  testLabServiceFullDetails= 'lab-service/laboratory-profiles/full-details';
   final String  professionalSearch= 'earn-service/professional/search';
+  final String  joinAsBdm= 'wallet-service/bdm';
+  final String  getBdm= 'wallet-service/bdm';
+  final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
 
 }

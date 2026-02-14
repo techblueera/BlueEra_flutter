@@ -51,7 +51,7 @@ class _JoinBdmDocumentUploadState extends State<JoinBdmDocumentUpload> {
   }
   void loadDetails()async{
     // await controller.fetchMyReferralId();
-    await controller.getMyReferralHistoryApi();
+   // await controller.getBdmDetails();
   }
 
   @override
