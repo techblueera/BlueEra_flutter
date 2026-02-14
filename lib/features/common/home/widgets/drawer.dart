@@ -46,52 +46,22 @@ class ProfileMenuDrawer extends StatefulWidget {
 
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
-  final viewBusinessProfileController = Get.put(ViewBusinessDetailsController());
+  final viewBusinessProfileController =
+  Get.put(ViewBusinessDetailsController());
 
+  final LiveLocationService locationService = LiveLocationService();
+  final lang = getOrPut(() => LanguageControllerNew());
 
-  String accountProfileName(){
-    if (accountTypeGlobal != "BUSINESS") {
-      return _capitalizeFirstLetter(
-        viewProfileController
-            .personalProfileDetails.value.user?.name ??
-            '',
-      );
-    }else{
-      return _capitalizeFirstLetter(
-        viewBusinessProfileController.businessProfileDetails?.data?.businessName ??
-            '',
-      );
-    }
+  @override
+  void initState() {
+    _loadInitialData();
+    super.initState();
   }
-  String accountProfileImage(){
-    if (accountTypeGlobal != "BUSINESS") {
-      return Get
-          .find<AuthController>()
-          .imgPath
-          .value;
-    }else{
-      return
-        viewBusinessProfileController.imagePath?.value??"";
-    }
-  }
-
-  String userDesigination(){
-    if (accountTypeGlobal != "BUSINESS") {
-      return viewProfileController.personalProfileDetails.value
-          .user?.designation??'';
-    }else{
-      return _capitalizeFirstLetter(
-        viewBusinessProfileController.businessProfileDetails?.data?.categoryDetails?.name ??
-            '',
-      );
-    }
-  }
-
 
   Future<void> _loadInitialData() async {
     if (accountTypeGlobal != "BUSINESS") {
       await viewProfileController.viewPersonalProfile();
-    }else{
+    } else {
       viewBusinessProfileController.viewBusinessProfile();
     }
     if (userProfileTypeGlobal == SELF_EMPLOYED &&
@@ -100,11 +70,55 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     }
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    _loadInitialData();
-    super.initState();
+  String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return '';
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  String accountProfileName() {
+    if (accountTypeGlobal != "BUSINESS") {
+      return _capitalizeFirstLetter(
+        viewProfileController.personalProfileDetails.value.user?.name ?? '',
+      );
+    } else {
+      return _capitalizeFirstLetter(
+        viewBusinessProfileController
+            .businessProfileDetails?.data?.businessName ??
+            '',
+      );
+    }
+  }
+
+  String accountProfileImage() {
+    if (accountTypeGlobal != "BUSINESS") {
+      return Get.find<AuthController>().imgPath.value;
+    } else {
+      return viewBusinessProfileController.imagePath?.value ?? "";
+    }
+  }
+
+  String userDesigination() {
+    if (accountTypeGlobal != "BUSINESS") {
+      return viewProfileController
+          .personalProfileDetails.value.user?.designation ??
+          '';
+    } else {
+      return _capitalizeFirstLetter(
+        viewBusinessProfileController
+            .businessProfileDetails?.data?.categoryDetails?.name ??
+            '',
+      );
+    }
+  }
+
+  Future<void> clearAllLocalDataOnLogout() async {
+    try {
+      await Hive.deleteFromDisk();
+      final dir = await getApplicationDocumentsDirectory();
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
+    } catch (e) {}
   }
 
   @override
@@ -112,34 +126,27 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     return SafeArea(
       child: Container(
         color: AppColors.white,
-        child: Column(
-          children: [
-            Obx(() {
-              return _header();
-            }),
-            _walletRow(),
-            const SizedBox(height: 6),
-            Expanded(child: _menuList()),
-            Divider(
-              color: AppColors.whiteE5,
-            ),
-            _footer(),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Obx(() => _header()),
+              _walletRow(),
+              const SizedBox(height: 6),
+              _menuList(),
+              Divider(color: AppColors.whiteE5),
+              _footer(),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  String _capitalizeFirstLetter(String text) {
-    if (text.isEmpty) return '';
-    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
   Widget _header() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: InkWell(
-        onTap: (){
+        onTap: () {
           if (isGuestUser()) {
             createProfileScreen();
           } else if (isIndividualUser()) {
@@ -165,7 +172,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   CustomText(
                     userDesigination(),
                     fontSize: 14,
@@ -180,24 +187,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
     );
   }
-  final LiveLocationService locationService = LiveLocationService();
 
-  Future<void> clearAllLocalDataOnLogout() async {
-    try {
-      // 1️⃣ Clear all Hive boxes
-      await Hive.deleteFromDisk();
-
-      // 2️⃣ Clear stored media files
-      final dir = await getApplicationDocumentsDirectory();
-      if (dir.existsSync()) {
-        await dir.delete(recursive: true);
-      }
-
-
-    } catch (e) {
-
-    }
-  }
   Widget _walletRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -205,11 +195,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         children: [
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primaryColor),
-                  borderRadius: BorderRadius.circular(10),
-                  color: AppColors.blueShade.withOpacity(0.1)
+                border: Border.all(color: AppColors.primaryColor),
+                borderRadius: BorderRadius.circular(10),
+                color: AppColors.blueShade.withOpacity(0.1),
               ),
               child: Row(
                 children: [
@@ -219,14 +210,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     width: 20,
                     imgColor: AppColors.secondaryTextColor,
                   ),
-                  SizedBox(width: 6),
-                  CustomText(
+                  const SizedBox(width: 6),
+                  const CustomText(
                     "Wallet",
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
                   ),
-                  CustomText(
+                  const CustomText(
                     "  ₹0",
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -236,20 +227,23 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               ),
             ),
           ),
-          SizedBox(width: 8,),
+          const SizedBox(width: 8),
           InkWell(
-            onTap: (){
-              Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
-                  arguments: {ApiKeys.isFromHomeScreen: false});
+            onTap: () {
+              Get.toNamed(
+                RouteHelper.getMoreCardsScreenRoute(),
+                arguments: {ApiKeys.isFromHomeScreen: false},
+              );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.whiteE5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Center(
-                child: const CustomText(
+              child: const Center(
+                child: CustomText(
                   "Cards",
                   fontSize: 13,
                 ),
@@ -264,42 +258,39 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   Widget _menuList() {
     final List<MenuItemModel> menus = [
       MenuItemModel(
-          title: "App Tutorial",
-          onTap: () => Get.to(AppTutorialScreen())
-
+        title: "App Tutorial",
+        onTap: () => Get.to(AppTutorialScreen()),
       ),
       MenuItemModel(
         title: "Refer & Earn",
-        onTap: () => Get.to( ReferralPage()),
+        onTap: () => Get.to(ReferralPage()),
       ),
-      if(accountTypeGlobal!="BUSINESS")
-      MenuItemModel(
-        title: "Earn with BlueEra",
-        onTap: () {
-          if (viewProfileController
-              .personalProfileDetails.value.isProfileCreated ==
-              false) {
-            Navigator.push(
+      if (accountTypeGlobal != "BUSINESS")
+        MenuItemModel(
+          title: "Earn with BlueEra",
+          onTap: () {
+            if (viewProfileController.personalProfileDetails.value
+                .isProfileCreated ==
+                false) {
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => CreateProfileScreen()));
-          } else {
-            Get.toNamed(
-                RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
-            );
-          }
-        },
-
-      ),
+                  builder: (context) => CreateProfileScreen(),
+                ),
+              );
+            } else {
+              Get.toNamed(
+                  RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+            }
+          },
+        ),
       MenuItemModel(
-          title: "Subscription",
-          onTap: () => Get.to( SubscriptionScreenNew())
+        title: "Subscription",
+        onTap: () => Get.to(SubscriptionScreenNew()),
       ),
       MenuItemModel(
         title: "Payment",
-        onTap: () => Get.to( PaymentSettingScreen()),
-       // onTap: () => Get.to( PaymentSettingEmptyScreen()),
-
+        onTap: () => Get.to(PaymentSettingScreen()),
       ),
       MenuItemModel(
         title: "Channel & Community",
@@ -310,8 +301,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               arguments: {
                 ApiKeys.argAccountType: accountTypeGlobal,
                 ApiKeys.channelId: channelId,
-                ApiKeys.authorId:
-                (accountTypeGlobal == AppConstants.individual)
+                ApiKeys.authorId: (accountTypeGlobal ==
+                    AppConstants.individual)
                     ? userId
                     : businessId
               },
@@ -326,167 +317,129 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "My Documents",
-          onTap: () =>  Get.toNamed(RouteHelper.getAddDocumentScreenRoute(),
-          arguments: {ApiKeys.argDocumentVia: isIndividual() ?
-          AppConstants.personalDocumentScreen
-          : AppConstants.businessDocumentScreen}
-        )
-
+        onTap: () => Get.toNamed(
+          RouteHelper.getAddDocumentScreenRoute(),
+          arguments: {
+            ApiKeys.argDocumentVia: isIndividual()
+                ? AppConstants.personalDocumentScreen
+                : AppConstants.businessDocumentScreen
+          },
+        ),
       ),
       MenuItemModel(
         title: "Franchise Inquiry",
-    onTap: () => Get.to( FranchiseInquiryScreen())
-
-    ),
-
+        onTap: () => Get.to(FranchiseInquiryScreen()),
+      ),
       MenuItemModel(
         title: "Account Settings",
-        onTap: () => Get.to( AccountSettingScreen()),
+        onTap: () => Get.to(AccountSettingScreen()),
       ),
-      // MenuItemModel(
-      //   title: "Profile Settings",
-      //   onTap: () => Get.to( ProfileSettingsNewScreen()),
-      //
-      // ),
       MenuItemModel(
         title: "Manage Notification",
-        onTap: () => Get.to( NotificationSettingScreen()),
-
-
+        onTap: () => Get.to(NotificationSettingScreen()),
       ),
       MenuItemModel(
         title: "Help & Support",
         onTap: () => Get.to(HelpAndSupportScreen()),
       ),
-
     ];
-List icons=[
-  'assets/images/tutorial.png',
-  'assets/images/refer.png',
-  'assets/images/earn.png',
-  'assets/images/subscrption.png',
-  'assets/images/payment.png',
-  'assets/images/channel.png',
 
-  'assets/images/documents.png',
+    List icons = [
+      'assets/images/tutorial.png',
+      'assets/images/refer.png',
+      'assets/images/earn.png',
+      'assets/images/subscrption.png',
+      'assets/images/payment.png',
+      'assets/images/channel.png',
+      'assets/images/documents.png',
+      'assets/images/franchise.png',
+      'assets/images/profilesetting.png',
+      'assets/images/notify.png',
+      'assets/images/help.png'
+    ];
 
-  'assets/images/franchise.png',
-  'assets/images/profilesetting.png',
-  'assets/images/notify.png',
-  'assets/images/help.png'
-
-
-
-];
     return ListView.separated(
+      shrinkWrap: true,
+      physics:
+      const NeverScrollableScrollPhysics(),
       itemCount: menus.length,
       separatorBuilder: (_, __) =>
           Divider(height: 1, color: AppColors.whiteE5),
       itemBuilder: (context, index) {
         final item = menus[index];
-
         return InkWell(
           onTap: item.onTap,
           child: ListTile(
             leading: Container(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               height: 40,
               width: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.circleBg,
               ),
-              child:  LocalAssets(imagePath:icons[index]
-
-                , height: 24, width: 24,),
-            ),
-
-            title: GestureDetector(
-              onTap: item.onTap,
-              child: CustomText(
-                item.title,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              child: LocalAssets(
+                imagePath: icons[index],
+                height: 24,
+                width: 24,
               ),
             ),
-
+            title: CustomText(
+              item.title,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
             subtitle: const CustomText(
               "Learn how to earn with BlueEra",
               fontSize: 10,
               maxLines: 1,
               color: AppColors.secondaryTextColor,
             ),
-
-            trailing: GestureDetector(
-              onTap: item.onTap,
-              child: const Icon(
-                Icons.chevron_right,
-                size: 30,
-                color: AppColors.secondaryTextColor,
-              ),
+            trailing: const Icon(
+              Icons.chevron_right,
+              size: 30,
+              color: AppColors.secondaryTextColor,
             ),
           ),
         );
       },
     );
   }
-  final lang = getOrPut(() => LanguageControllerNew());
 
   Widget _footer() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Column(
         children: [
-
           CustomBtn(
-              onTap: () async {
-                await showCommonDialog(
-                    context: context,
-                    text: AppStrings.logoutConfirmationMessage,
-                    confirmCallback: () async {
-                      deleteIfRegistered<ChatViewController>();
-                      await SharedPreferenceUtils.clearPreference();
-                      locationService.stop();
-                      await clearAllLocalDataOnLogout();
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          RouteHelper.getMobileNumberLoginRoute(),
-                              (Route<dynamic> route) => false);
-                    },
-                    cancelCallback: () {
-                      Navigator.of(context).pop(); // Close the dialog
-                    },
-                    confirmText: AppStrings.yes,
-                    cancelText: AppStrings.no);
-              },
-              title: AppStrings.logout,
-              bgColor: Colors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              radius: 10.0),
-          // SizedBox(height: 14,),
-          // CustomBtn(
-          //     onTap: () async {
-          //       await showCommonDialog(
-          //           context: context,
-          //           text: AppStrings.deleteAccountConfirmationMessage,
-          //           confirmCallback: () async {
-          //             await SharedPreferenceUtils.clearPreference();
-          //             Navigator.of(context).pushNamedAndRemoveUntil(
-          //                 RouteHelper.getMobileNumberLoginRoute(),
-          //                     (Route<dynamic> route) => false);
-          //           },
-          //           cancelCallback: () {
-          //             Navigator.of(context).pop(); // Close the dialog
-          //           },
-          //           confirmText: AppStrings.yes,
-          //           cancelText: AppStrings.no);
-          //     },
-          //     title: AppStrings.deleteAccount,
-          //     bgColor: Colors.white,
-          //     textColor: AppColors.red00,
-          //     borderColor: AppColors.red00,
-          //     radius: 10.0),
-          SizedBox(height: 14,),
+            onTap: () async {
+              await showCommonDialog(
+                context: context,
+                text: AppStrings.logoutConfirmationMessage,
+                confirmCallback: () async {
+                  deleteIfRegistered<ChatViewController>();
+                  await SharedPreferenceUtils.clearPreference();
+                  locationService.stop();
+                  await clearAllLocalDataOnLogout();
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    RouteHelper.getMobileNumberLoginRoute(),
+                        (Route<dynamic> route) => false,
+                  );
+                },
+                cancelCallback: () {
+                  Navigator.of(context).pop();
+                },
+                confirmText: AppStrings.yes,
+                cancelText: AppStrings.no,
+              );
+            },
+            title: AppStrings.logout,
+            bgColor: Colors.white,
+            textColor: AppColors.primaryColor,
+            borderColor: AppColors.primaryColor,
+            radius: 10.0,
+          ),
+          const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
@@ -510,17 +463,19 @@ List icons=[
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children:  [
-              CustomText(lang.selectedLang.toUpperCase(),fontSize: 10,),
-              SizedBox(width: 6),
+            children: [
+              CustomText(
+                lang.selectedLang.toUpperCase(),
+                fontSize: 10,
+              ),
+              const SizedBox(width: 6),
               InkWell(
-                onTap: (){
+                onTap: () {
                   Future.microtask(() {
-
                     navigatePushTo(context, ChangeLanguageScreen());
                   });
                 },
-                child: CustomText(
+                child: const CustomText(
                   "Change Language?",
                   fontSize: 10,
                   color: AppColors.primaryColor,
@@ -529,9 +484,10 @@ List icons=[
             ],
           ),
           const SizedBox(height: 10),
-          Row(mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CustomText(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CustomText(
                 "v 1.0.1",
                 fontSize: 11,
                 color: AppColors.secondaryTextColor,
@@ -545,7 +501,6 @@ List icons=[
               ),
             ],
           ),
-
         ],
       ),
     );
