@@ -7,6 +7,9 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../../core/constants/getx_utils.dart';
+import '../../auth/controller/auth_controller.dart';
+
 class SearchLocationScreen extends StatefulWidget {
   final Function(double?, double?, String?)? onPlaceSelected;
   final String fromScreen;
@@ -20,6 +23,8 @@ class SearchLocationScreen extends StatefulWidget {
 class _SearchLocationScreenState extends State<SearchLocationScreen> {
   final TextEditingController searchController = TextEditingController();
   final locationTextController = TextEditingController();
+  final authController = getOrPut(() => AuthController());
+
   Timer? _debounce;
   LatLng _currentPosition = const LatLng(20.5937, 78.9629);
   String? _currentAddress;
@@ -28,6 +33,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
   void initState() {
     super.initState();
     checkPermissionAndSetData();
+    authController.isSearchOpen.value=true;
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
     }); // To show/hide clear icon
