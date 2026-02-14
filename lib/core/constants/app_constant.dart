@@ -1402,6 +1402,10 @@ const String TUTOR = "TUTOR";
 const String CONSULTANT = "CONSULTANT";
 const String OTHER = "OTHER";
 
+const String HOSPITAL = "HOSPITAL";
+const String PHARMACY = "PHARMACY";
+const String LABTEST = "LABTEST";
+
 // Consulatant
 const String LEGAL_GOVT_CONSULTANT = "LEGAL_GOVT_CONSULTANT";
 const String FINANCE_TAX_CONSULTANT = "FINANCE_TAX_CONSULTANT";
@@ -3411,6 +3415,56 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     individualType: IndividualType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
+];
+final List<OnboardingCategoryModel> healthCareList = [
+  OnboardingCategoryModel(
+    name: 'Hospital',
+    slugId: HOSPITAL,
+    icon: OnboardingIndividualAssets.legalGovtConsultant,
+    flagIcon: AppImageAssets.legalGovtConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnboardingCategoryModel(
+    name: 'Pharmacy',
+    slugId: PHARMACY,
+    icon: OnboardingIndividualAssets.financeTaxConsultant,
+    flagIcon: AppImageAssets.financeTaxConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnboardingCategoryModel(
+    name: 'Lab Test',
+    slugId: LABTEST,
+    icon: OnboardingIndividualAssets.spiritualConsultant,
+    flagIcon: AppImageAssets.spiritualConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  // OnboardingCategoryModel(
+  //   name: 'Clinic',
+  //   slugId: TRAINEE_CAREER_CONSULTANT,
+  //   icon: OnboardingIndividualAssets.traineeCareerConsultant,
+  //   flagIcon: AppImageAssets.traineeCareerConsultant,
+  //   individualType: IndividualType.PROFESSIONAL,
+  //   accountType: AppConstants.individual,
+  // ),
+  // OnboardingCategoryModel(
+  //   name: 'Doctors',
+  //   slugId: ADVERTISING_CONSULTANT,
+  //   icon: OnboardingIndividualAssets.advertisingConsultant,
+  //   flagIcon: AppImageAssets.advertisingConsultant,
+  //   individualType: IndividualType.PROFESSIONAL,
+  //   accountType: AppConstants.individual,
+  // ),
+  // OnboardingCategoryModel(
+  //   name: 'Others',
+  //   slugId: EVENT_PLANNER_DETECTIVE,
+  //   icon: OnboardingIndividualAssets.eventPlanDetective,
+  //   flagIcon: AppImageAssets.eventPlanDetective,
+  //   individualType: IndividualType.PROFESSIONAL,
+  //   accountType: AppConstants.individual,
+  // ),
 ];
 
 // --- End ---

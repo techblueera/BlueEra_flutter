@@ -21,8 +21,10 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 DateTime? _lastChannelFetchTime;
 bool _isChannelFetching = false;
+
 class ChannelFeedScreen extends StatefulWidget {
   final Function(bool)? onHeaderVisibilityChanged;
   final double headerHeight;
@@ -40,6 +42,7 @@ class ChannelFeedScreen extends StatefulWidget {
 class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
   final channelFeedController = Get.put(ChannelFeedController());
   final scrollController = ScrollController();
+
   Future<void> _guardedChannelFetch() async {
     final currentTime = DateTime.now();
 
@@ -66,6 +69,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
       _isChannelFetching = false;
     }
   }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -191,110 +195,117 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                   ),
                 ),
               ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Obx(() {
-                      return CustomText(
-                        "${AppStrings.joined.tr} ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total ?? 0)} ${AppStrings.channels.tr}",
-                        fontWeight: FontWeight.w500,
-                        fontSize: SizeConfig.size16,
-                        color: AppColors.mainTextColor,
-                      );
-                    }),
-                    InkWell(
-                      onTap: () => Get.to(ViewAllJoinedChannelListScreen()),
-                      child: CustomText(
-                        AppStrings.viewAll,
-                        fontWeight: FontWeight.w500,
-                        fontSize: SizeConfig.size16,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
-            // Joined Channels
-            Obx(() => SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final channel =
-                          channelFeedController.channelDataList[index];
-                      return InkWell(
-                        onTap: () => Get.to(
-                          () => ChannelFeedPostListingScreen(
-                              channelData: channel),
+            if (channelFeedController.communityIndex.value == 0) ...[
+           /*   SliverToBoxAdapter(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Obx(() {
+                      //   return Padding(
+                      //     padding: const EdgeInsets.only(top: 8.0),
+                      //     child: CustomText(
+                      //       "${AppStrings.joined.tr}  ${AppStrings.channels.tr}",
+                      //       fontWeight: FontWeight.w500,
+                      //       fontSize: SizeConfig.size16,
+                      //       color: AppColors.mainTextColor,
+                      //     ),
+                      //   );
+                      // }),
+                      InkWell(
+                        onTap: () => Get.to(ViewAllJoinedChannelListScreen()),
+                        child: CustomText(
+                          AppStrings.viewAll,
+                          fontWeight: FontWeight.w500,
+                          fontSize: SizeConfig.size16,
+                          color: AppColors.primaryColor,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          child: ChannelCardWidget(channelModel: channel),
-                        ),
-                      );
-                    },
-                    childCount: channelFeedController.channelDataList.length,
+                      ),
+                    ],
                   ),
-                )),
-
-            // Suggested Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      AppStrings.suggested,
-                      fontWeight: FontWeight.w500,
-                      fontSize: SizeConfig.size16,
-                      color: AppColors.mainTextColor,
-                    ),
-                    InkWell(
-                      onTap: () => Get.to(WhatsNewChannelListScreen()),
-                      child: CustomText(
-                        AppStrings.viewAll,
-                        fontWeight: FontWeight.w500,
-                        fontSize: SizeConfig.size16,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-            ),
+              ),*/
 
-            // Suggested Channels
-            Obx(() => SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final newChannel =
-                          channelFeedController.unJoinChannelDataList[index];
-                      return InkWell(
-                        onTap: () async {
-                          await Get.to(() => ChannelFeedPostListingScreen(
-                              channelData: newChannel));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          child: UnjoinChannelCardWidget(
-                            channelModel: newChannel,
-                            index: index,
+              // Joined Channels
+              Obx(() => SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final channel =
+                            channelFeedController.channelDataList[index];
+                        return InkWell(
+                          onTap: () => Get.to(
+                            () => ChannelFeedPostListingScreen(
+                                channelData: channel),
                           ),
-                        ),
-                      );
-                    },
-                    childCount:
-                        channelFeedController.unJoinChannelDataList.length,
-                  ),
-                )),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 12,left: 12,top: 15),
+                            child: ChannelCardWidget(channelModel: channel),
+                          ),
+                        );
+                      },
+                      childCount: channelFeedController.channelDataList.length,
+                    ),
+                  )),
+            ],
+
+            if (channelFeedController.communityIndex.value == 1) ...[
+              // Suggested Header
+              // SliverToBoxAdapter(
+              //   child: Padding(
+              //     padding:
+              //         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              //     child: Row(
+              //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //       children: [
+              //         CustomText(
+              //           AppStrings.suggested,
+              //           fontWeight: FontWeight.w500,
+              //           fontSize: SizeConfig.size16,
+              //           color: AppColors.mainTextColor,
+              //         ),
+              //         InkWell(
+              //           onTap: () => Get.to(WhatsNewChannelListScreen()),
+              //           child: CustomText(
+              //             AppStrings.viewAll,
+              //             fontWeight: FontWeight.w500,
+              //             fontSize: SizeConfig.size16,
+              //             color: AppColors.primaryColor,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+
+              // Suggested Channels
+              Obx(() => SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final newChannel =
+                            channelFeedController.unJoinChannelDataList[index];
+                        return InkWell(
+                          onTap: () async {
+                            await Get.to(() => ChannelFeedPostListingScreen(
+                                channelData: newChannel));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 12,left: 12,top: 15),
+
+                            child: UnjoinChannelCardWidget(
+                              channelModel: newChannel,
+                              index: index,
+                            ),
+                          ),
+                        );
+                      },
+                      childCount:
+                          channelFeedController.unJoinChannelDataList.length,
+                    ),
+                  )),
+            ],
 
             // Bottom Spacer
             const SliverToBoxAdapter(
