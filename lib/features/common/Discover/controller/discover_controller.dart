@@ -23,6 +23,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../model/get_booking_rider_model.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 enum CategoryFilter {
   nearest('Nearest'),
@@ -46,6 +47,7 @@ enum DiscoverFilter {
 }
 
 class DiscoverController extends GetxController {
+
   var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
 
   var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;
@@ -58,6 +60,7 @@ class DiscoverController extends GetxController {
   final RxBool isHeaderVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
   double headerHeight = 0;
+  Rx<LatLng>? currentAddress= LatLng(0.0,0.0).obs;
 
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;

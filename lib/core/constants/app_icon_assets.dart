@@ -148,6 +148,7 @@ class AppIconAssets {
   static const String horizontalThreeDots =
       '${iconPath}horizontal_three_dots.svg';
   static const String whatsappIcon = '${iconPath}whatsapp_icon.svg';
+  static const String get_contacts_person = '${iconPath}get_contacts_person.svg';
   static const String copyIcon = '${iconPath}copy_icon.svg';
   static const String gradientMsg = '${iconPath}msg_gradient.svg';
   static const String storyIcon = '${iconPath}story.svg';

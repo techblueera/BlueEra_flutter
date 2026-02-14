@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -10,11 +11,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/services/location/location_service.dart';
-import '../../../map/view/searchLocationScreen.dart';
 import '../../controller/discover_controller.dart';
 import '../../model/get_booking_rider_model.dart';
 
@@ -138,6 +139,22 @@ class _BookTransportMainState extends State<BookTransportMain> {
     discoverController.selectedFromLong?.value=LocationService.lng;
   }
 
+  double? calculateDistance(double targetLat, double targetLng){
+    double userLat = LocationService.lat;
+    double userLng = LocationService.lng;
+    if(userLat == 0.0 || userLng == 0.0) return null;
+    double distanceMeters = geo.Geolocator.distanceBetween(
+      userLat,
+      userLng,
+      targetLat,
+      targetLng,
+    );
+
+    // Road factor ≈ 1.27 (very close to Google distance)
+    const double roadFactor = 1.27;
+
+    return (distanceMeters * roadFactor) / 1000;
+  }
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -246,7 +263,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    SearchLocationScreen(
+                                                    SearchTransportAddress(
                                                       onPlaceSelected: (lat, long,
                                                           address) {
                                                         discoverController
@@ -263,7 +280,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                                         discoverController
                                                             .getBookingRidersApi();
                                                       },
-                                                      fromScreen: '',
+
                                                     ),
                                               ),
                                             );
@@ -292,7 +309,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    SearchLocationScreen(
+                                                    SearchTransportAddress(
                                                       onPlaceSelected: (lat, long,
                                                           address) {
                                                         discoverController
@@ -307,7 +324,6 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                                         discoverController
                                                             .getBookingRidersApi();
                                                       },
-                                                      fromScreen: '',
                                                     ),
                                               ),
                                             );
@@ -341,7 +357,16 @@ class _BookTransportMainState extends State<BookTransportMain> {
                               ),
 
                             ),
-                            SizedBox(height: SizeConfig.size16,),
+                            SizedBox(height: SizeConfig.size14,),
+                            HorizontalTabSelector(tabs: ["One Way","Round Trip"],
+                                selectedIndex: 0,
+                                onTabSelected: (value,index){
+
+                                },
+                                labelBuilder: (value)=>value
+                            ),
+
+                            SizedBox(height: SizeConfig.size14,),
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
@@ -658,10 +683,35 @@ class RiderCardWidget extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    rider.name ?? '',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  Row(
+                    children: [
+                      CustomText(
+                        rider.name ?? '',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      SizedBox(width: 6,),
+                      Container(
+                        // padding: const EdgeInsets.symmetric(
+                        //     horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          // color: AppColors.greyE4,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star,
+                                size: 14, color: Colors.amber),
+                            const SizedBox(width: 4),
+                            CustomText(
+                              (rider.rating ?? 0.0).toString(),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -677,11 +727,9 @@ class RiderCardWidget extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star,
-                                size: 14, color: Colors.amber),
-                            const SizedBox(width: 4),
+
                             CustomText(
-                              (rider.rating ?? 0.0).toString(),
+                              "${rider.vehicleInformation?.vehicleModelYear}",
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -726,7 +774,7 @@ class RiderCardWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 CustomText(
-                  "Distance",
+                  discoverController.selectedHorizontalTab.value==1?"Fare":"Distance",
                   fontSize: 12,
                   color: AppColors.grayText,
                   fontWeight: FontWeight.w600,
@@ -734,8 +782,16 @@ class RiderCardWidget extends StatelessWidget {
                 SizedBox(height: SizeConfig.size15),
                 Row(
                   children: [
+                    discoverController.selectedHorizontalTab.value==1?
+                    SizedBox():
                     LocalAssets(imagePath: AppIconAssets.location_new),
                     SizedBox(width: SizeConfig.size2),
+                    discoverController.selectedHorizontalTab.value==1? CustomText(
+                      '₹ 0.00',
+                      fontSize: 12,
+                      color: AppColors.grayText,
+                      fontWeight: FontWeight.w600,
+                    ):
                     CustomText(
                       rider.distance ?? '',
                       fontSize: 12,
