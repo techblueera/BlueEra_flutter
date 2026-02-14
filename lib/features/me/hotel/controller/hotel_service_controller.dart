@@ -147,8 +147,8 @@ class HotelServiceController extends GetxController {
           "name": hotelAddress.value,
           "type": "Point",
           "coordinates": [lat.value, lng.value]
-
         },
+        "category": businessCategoryGlobal
       };
 
       ResponseModel response =

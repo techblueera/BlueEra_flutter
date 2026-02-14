@@ -166,7 +166,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final bool isSmallScreen = View.of(context).physicalSize.width < 400;
+    final bool isSmallScreen = MediaQuery.sizeOf(context).width < 375;
+    print('physical  width -- ${MediaQuery.sizeOf(context).width}');
+    print('is Small screen -- $isSmallScreen');
 
     return SafeArea(
       child: Scaffold(
@@ -284,33 +286,33 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
   }
 
   Widget _buildMainBody(bool isSmallScreen) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-      ),
-      child: NotificationListener<UserScrollNotification>(
-        onNotification: (notification) {
-          if (notification.direction == ScrollDirection.reverse) {
-            controller.isHeaderVisible.value = false;
-            widget.onHeaderVisibilityChanged?.call(false);
-          } else if (notification.direction == ScrollDirection.forward) {
-            controller.isHeaderVisible.value = true;
-            widget.onHeaderVisibilityChanged?.call(true);
-          }
-          return true; // Stop the notification from bubbling further
-        },
-        child: NestedScrollView(
-            controller: controller.scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
+    return NotificationListener<UserScrollNotification>(
+      onNotification: (notification) {
+        if (notification.direction == ScrollDirection.reverse) {
+          controller.isHeaderVisible.value = false;
+          widget.onHeaderVisibilityChanged?.call(false);
+        } else if (notification.direction == ScrollDirection.forward) {
+          controller.isHeaderVisible.value = true;
+          widget.onHeaderVisibilityChanged?.call(true);
+        }
+        return true; // Stop the notification from bubbling further
+      },
+      child: NestedScrollView(
+          controller: controller.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
 
-              return [
-                SliverAppBar(
-                  pinned: false,
-                  floating: true,
-                  snap: true,
-                  forceElevated: innerBoxIsScrolled, // Adds shadow when content slides under
-                  title: Row(
+            return [
+              SliverAppBar(
+                pinned: false,
+                floating: true,
+                snap: true,
+                forceElevated: innerBoxIsScrolled, // Adds shadow when content slides under
+                title: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size8,
+                  ),
+                  child: Row(
                     children: [
                       LocalAssets(
                         imagePath: AppIconAssets.currentLocationIcon,
@@ -333,45 +335,50 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                       ),
                     ],
                   ),
-                  actions: [
-                    Padding(
-                      padding: EdgeInsets.only(right: SizeConfig.size16),
-                      child: InkWell(
-                        onTap: () {
-                          // ... your existing tap logic ...
-                        },
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.cartIcon,
-                        ),
+                ),
+                actions: [
+                  Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size16),
+                    child: InkWell(
+                      onTap: () {
+                        // ... your existing tap logic ...
+                      },
+                      child: LocalAssets(
+                        imagePath: AppIconAssets.cartIcon,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
 
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: TabBarDelegate(
-                    TabBar(
-                      controller: _tabController,
-                      isScrollable: isSmallScreen,
-                      tabAlignment: isSmallScreen ? TabAlignment.start : TabAlignment.fill,
-                      labelColor: AppColors.primaryColor,
-                      unselectedLabelColor: Colors.grey[600],
-                      indicatorColor: AppColors.primaryColor,
-                      indicatorWeight: 2,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                      tabs: const [
-                        Tab(text: 'Overview'),
-                        Tab(text: 'In Contact'),
-                        Tab(text: 'Favourite'),
-                        Tab(text: 'Best Deal'),
-                      ],
-                    ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: TabBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    isScrollable: isSmallScreen,
+                    tabAlignment: isSmallScreen ? TabAlignment.start : TabAlignment.fill,
+                    labelColor: AppColors.primaryColor,
+                    unselectedLabelColor: Colors.grey[600],
+                    indicatorColor: AppColors.primaryColor,
+                    indicatorWeight: 2,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                    tabs: const [
+                      Tab(text: 'Overview'),
+                      Tab(text: 'In Contact'),
+                      Tab(text: 'Favourite'),
+                      Tab(text: 'Best Deal'),
+                    ],
                   ),
                 ),
-              ];
-            },
-            body: TabBarView(
+              ),
+            ];
+          },
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size8,
+            ),
+            child: TabBarView(
               controller: _tabController,
               children: [
                 _discoverWidget(),
@@ -380,8 +387,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                 SizedBox(),
               ],
             ),
+          ),
 
-        ),
       ),
     );
   }

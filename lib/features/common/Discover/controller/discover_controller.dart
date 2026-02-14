@@ -665,7 +665,9 @@ class DiscoverController extends GetxController {
   }
 
   Future<void> fetchHotelServices(
-      {bool isLoadMore = false}) async {
+      {
+        required String category,
+        bool isLoadMore = false}) async {
     try {
       if (isLoadMore) {
         log('more rental data -- $hasMoreRentalServiceData');
@@ -688,10 +690,11 @@ class DiscoverController extends GetxController {
 
       Map<String, dynamic> queryParams = {
         ApiKeys.city: city,
+        ApiKeys.category: category,
         // ApiKeys.state: state,
         // ApiKeys.pincode: pinCode,
-        ApiKeys.lat: lat,
-        ApiKeys.lng: lng,
+        // ApiKeys.lat: lat,
+        // ApiKeys.lng: lng,
         ApiKeys.radius: kmRadius1500,
         ApiKeys.page: rentalServicePage,
         ApiKeys.limit: limit,

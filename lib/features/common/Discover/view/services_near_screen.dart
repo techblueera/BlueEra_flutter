@@ -11,7 +11,6 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
-import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -56,24 +55,26 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const int itemsPerPage = 12;
-    int totalPages = (_businessServicesCategories.length / itemsPerPage).ceil();
-
-    // --- 6. Dynamic Grid Height Calculation ---
-    // This ensures the PageView has a defined height based on content
-    double screenWidth = MediaQuery.of(context).size.width;
-    // Subtracted padding: Size8(body) + Size10(card) * 2 sides
-    double contentWidth = screenWidth - (SizeConfig.size18 * 2);
-    double itemWidth = (contentWidth - 12) / 3; // 12 is CrossAxisSpacing * 2
-    double itemHeight = itemWidth / 1.2; // 1.2 is ChildAspectRatio
-
-    // Calculate rows needed. Limiting to 4 rows max (12 items) for initial view if needed
-    // or use _businessProductsCategories.length for full height.
-    int itemCount = min(12, _businessServicesCategories.length); // returns 12 if length is > 12, otherwise returns actual length
-    int rows = (itemCount / 3).ceil();
-
-    // Total Height = (Rows * ItemHeight) + (Spacing * (Rows-1)) + Padding
-    double gridHeight = (rows * itemHeight) + ((rows > 0 ? rows - 1 : 0) * 6) + 20;
+    // const int itemsPerPage = 12;
+    // int totalPages = (_businessServicesCategories.length / itemsPerPage).ceil();
+    //
+    // // ---  Dynamic Grid Height Calculation ---
+    // double screenWidth = MediaQuery.of(context).size.width;
+    // double contentWidth = screenWidth - (SizeConfig.size18 * 2);
+    // // Calculate width per item
+    // double itemWidth = (contentWidth - 12) / 3;
+    //
+    // double minRequiredHeight = 100.0;
+    // double proportionalHeight = itemWidth / 1.1; // Tweaked ratio slightly
+    // double itemHeight = max(minRequiredHeight, proportionalHeight);
+    //
+    // // Calculate rows needed. Limiting to 4 rows max (12 items) for initial view if needed
+    // // or use _businessProductsCategories.length for full height.
+    // int itemCount = min(12, _businessServicesCategories.length); // returns 12 if length is > 12, otherwise returns actual length
+    // int rows = (itemCount / 3).ceil();
+    //
+    // // Total Height = (Rows * ItemHeight) + (Spacing * (Rows-1)) + Padding
+    // double gridHeight = (rows * itemHeight) + ((rows > 0 ? rows - 1 : 0) * 6) + 20;
 
     return Scaffold(
       appBar: AppBar(
@@ -334,51 +335,57 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
                 SizedBox(height: SizeConfig.paddingXSL),
 
-                // --- CATEGORY TABS & GRID SECTION ---
+                // // --- CATEGORY TABS & GRID SECTION ---
+                // CustomFormCard(
+                //     padding: EdgeInsets.all(SizeConfig.size10),
+                //     child: Column(
+                //       children: [
+                //
+                //         SizedBox(
+                //             height: gridHeight,
+                //             child: PageView.builder(
+                //                 controller: _pageController,
+                //                 itemCount: totalPages,
+                //                 onPageChanged: (int index) {
+                //                   setState(() {
+                //                     _activeGridPage = index;
+                //                   });
+                //                 },
+                //                 itemBuilder: (context, pageIndex) {
+                //                   // 4. Calculate Slicing Indices
+                //                   final int startIndex = pageIndex * itemsPerPage;
+                //                   final int endIndex = (startIndex + itemsPerPage < _businessServicesCategories.length)
+                //                       ? startIndex + itemsPerPage
+                //                       : _businessServicesCategories.length;
+                //
+                //                   print("Page: $pageIndex | Range: $startIndex - $endIndex | Total Items: ${_businessServicesCategories.length}");
+                //
+                //                   // 5. Get the sublist for this specific page
+                //                   final List<OnboardingCategoryModel> pageItems = _businessServicesCategories.sublist(startIndex, endIndex);
+                //
+                //                   return _buildGridPage(pageItems);
+                //                 },
+                //             )
+                //         ),
+                //
+                //         // --- Bottom Indicator ---
+                //         if (totalPages > 1) ...[
+                //           SizedBox(height: SizeConfig.size10),
+                //           Row(
+                //             mainAxisAlignment: MainAxisAlignment.center,
+                //             children: List.generate(
+                //               totalPages,
+                //                   (index) => _buildIndicator(index),
+                //             ),
+                //           ),
+                //         ],
+                //       ],
+                //     )
+                // ),
+
                 CustomFormCard(
                     padding: EdgeInsets.all(SizeConfig.size10),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                            height: gridHeight,
-                            child: PageView.builder(
-                                controller: _pageController,
-                                itemCount: totalPages,
-                                onPageChanged: (int index) {
-                                  setState(() {
-                                    _activeGridPage = index;
-                                  });
-                                },
-                                itemBuilder: (context, pageIndex) {
-                                  // 4. Calculate Slicing Indices
-                                  final int startIndex = pageIndex * itemsPerPage;
-                                  final int endIndex = (startIndex + itemsPerPage < _businessServicesCategories.length)
-                                      ? startIndex + itemsPerPage
-                                      : _businessServicesCategories.length;
-
-                                  print("Page: $pageIndex | Range: $startIndex - $endIndex | Total Items: ${_businessServicesCategories.length}");
-
-                                  // 5. Get the sublist for this specific page
-                                  final List<OnboardingCategoryModel> pageItems = _businessServicesCategories.sublist(startIndex, endIndex);
-
-                                  return _buildGridPage(pageItems);
-                                },
-                            )
-                        ),
-
-                        // --- Bottom Indicator ---
-                        if (totalPages > 1) ...[
-                          SizedBox(height: SizeConfig.size10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              totalPages,
-                                  (index) => _buildIndicator(index),
-                            ),
-                          ),
-                        ],
-                      ],
-                    )
+                    child:  _buildGridPage(_businessServicesCategories)
                 ),
 
                 SizedBox(height: SizeConfig.paddingXSL),
@@ -420,7 +427,8 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
       crossAxisCount: 3,
       crossAxisSpacing: 6,
       mainAxisSpacing: 6,
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+      shrinkWrap: true,
+      primary: false,
       itemCount: items.length,
       itemBuilder: (context, index) {
         var serviceData = items[index];
@@ -438,20 +446,20 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
     );
   }
 
-  // --- Widget: Animated Bottom Indicator ---
-  Widget _buildIndicator(int index) {
-    bool isActive = _activeGridPage == index;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      height: 4,
-      width: isActive ? 24 : 8,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.primaryColor : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
+  // // --- Widget: Animated Bottom Indicator ---
+  // Widget _buildIndicator(int index) {
+  //   bool isActive = _activeGridPage == index;
+  //   return AnimatedContainer(
+  //     duration: const Duration(milliseconds: 300),
+  //     margin: const EdgeInsets.symmetric(horizontal: 4),
+  //     height: 4,
+  //     width: isActive ? 24 : 8,
+  //     decoration: BoxDecoration(
+  //       color: isActive ? AppColors.primaryColor : Colors.grey.shade300,
+  //       borderRadius: BorderRadius.circular(4),
+  //     ),
+  //   );
+  // }
 
   // --- Widget: Category Card ---
   Widget _buildCategoryItem({

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -84,7 +85,37 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
     // Subtracted padding: Size8(body) + Size10(card) * 2 sides
     double contentWidth = screenWidth - (SizeConfig.size18 * 2);
     double itemWidth = (contentWidth - 12) / 3; // 12 is CrossAxisSpacing * 2
-    double itemHeight = itemWidth / 1.2; // 1.2 is ChildAspectRatio
+
+    // 1. Get the text scale factor (e.g., if user has Large Fonts enabled in settings)
+    //  Calculate Text Height Dynamically
+    // Font size * Line Height * Max Lines * Text Scale
+    // double fontSize = SizeConfig.extraSmall;
+    // double scaledFontSize = MediaQuery.of(context).textScaler.scale(fontSize);
+    // double lineHeight = 1.2; // Standard line height
+    // int maxLines = 2;
+    //
+    // double textBlockHeight = (lineHeight * maxLines * scaledFontSize);
+
+    double textBlockHeight = SizeConfig.size26;
+
+   // 2. Define your content constants (match your widget code)
+    double imageHeight = SizeConfig.size60; // Your LocalAssets height
+    double verticalPadding = SizeConfig.size10; // Top + Bottom padding inside card
+    double spacing = SizeConfig.paddingXSL; // Space between image and text
+    double borderWidth = 2.0; // Top + Bottom border width
+
+    // 3. Sum it all up for the REAL minimum height
+    double minRequiredHeight = imageHeight + textBlockHeight + verticalPadding + spacing + borderWidth;
+
+    // 4. Compare with Proportional Height
+    // We keep proportional height to ensure it looks good on big screens,
+    // but minRequiredHeight ensures it never crashes on small screens/large fonts.
+    double proportionalHeight = itemWidth / 1.2;
+
+    print('Dynamic Min Height: $minRequiredHeight');
+    print('Proportional Height: $proportionalHeight');
+
+    double itemHeight = max(minRequiredHeight, proportionalHeight);
 
     // Calculate rows needed. Limiting to 4 rows max (12 items) for initial view if needed
     // or use _businessProductsCategories.length for full height.
@@ -539,15 +570,19 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
               imagePath: productData.icon,
               height: SizeConfig.size60,
             ),
-            SizedBox(height: SizeConfig.paddingXSL),
-            CustomText(
-              productData.name,
-              fontSize: SizeConfig.extraSmall,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w400,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            SizedBox(height: SizeConfig.paddingXS),
+            Container(
+              height: SizeConfig.size26,
+              alignment: Alignment.center,
+              child: CustomText(
+                productData.name,
+                fontSize: SizeConfig.extraSmall,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

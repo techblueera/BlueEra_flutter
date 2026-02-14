@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
-String? baseUrl, razorpayKey,  chatSocketUrl,liveTrackSocket;
+String? baseUrl, razorpayKey,  chatSocketUrl,liveTrackSocket, geminiApiKey;
 bool isProdEnvironment = false;
 String blueEraPostLink = "BlueEraPostLink";
 
@@ -45,6 +45,7 @@ Future<void> projectKeys({required String environmentType}) async {
     // razorpayKey = "rzp_live_RYv0tzupV710iQ";
     chatSocketUrl = 'wss://chat.blueera.ai';
     liveTrackSocket = 'https://map.blueera.ai/';
+    geminiApiKey = "AIzaSyCfxq52QNGgnq9d37tztS9VxS6EBjPE2ls";
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
     baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
