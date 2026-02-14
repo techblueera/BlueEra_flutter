@@ -286,6 +286,13 @@ class AppConstants {
   static const flat = "Flat";
   static const vehicle = "Vehicle";
 
+  /// Hotel Category
+  static const alternativeStays = "Alternative Stays";
+  static const economicStays = "Economic Stays";
+  static const functionsAndVacation = "Functions & Vacation";
+  static const hotelsAndResort = "Hotels & Resort";
+  static const HostelsAndPayingGuest = "Hostels and Paying Guest";
+
 }
 
 class DocumentKeys {
@@ -3693,7 +3700,7 @@ final List<CollapsibleGridModel> homeMadeItemsCategories = [
 ];
 
 final discoverShownStayCategories = [
-  'HOTEL_RESORT',
+  AppConstants.hotelsAndResort,
   AppConstants.property,
   AppConstants.flat,
   AppConstants.vehicle
@@ -3702,7 +3709,7 @@ final discoverShownStayCategories = [
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel & Resort',
-      slugId: 'HOTEL_RESORT',
+      slugId: AppConstants.hotelsAndResort,
       icon: AppImageAssets.hotelStay,
       accountType: AppConstants.business
   ),
@@ -3714,19 +3721,25 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   ),
   OnboardingCategoryModel(
       name: 'Economy Stay',
-      slugId: 'ECONOMY_STAY',
+      slugId: AppConstants.economicStays,
       icon: AppImageAssets.otherRental,
       accountType: AppConstants.business
   ),
   OnboardingCategoryModel(
-      name: 'Hostel',
-      slugId: 'HOSTEL',
+      name: 'Hostels and Paying Guest',
+      slugId: AppConstants.HostelsAndPayingGuest,
       icon: AppImageAssets.otherRental,
       accountType: AppConstants.business
   ),
   OnboardingCategoryModel(
-      name: 'Function All',
-      slugId: 'FUNCTION_ALL',
+      name: 'Functions & Vacation',
+      slugId: AppConstants.functionsAndVacation,
+      icon: AppImageAssets.otherRental,
+      accountType: AppConstants.business
+  ),
+  OnboardingCategoryModel(
+      name: 'Alternative Stays',
+      slugId: AppConstants.alternativeStays,
       icon: AppImageAssets.otherRental,
       accountType: AppConstants.business
   ),

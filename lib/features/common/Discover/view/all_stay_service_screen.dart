@@ -44,16 +44,18 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   final controller = getOrPut(() => DiscoverController());
   ScrollController scrollController = ScrollController();
   late List<OnboardingCategoryModel> _stayCategories;
+  late String _category;
 
   @override
   initState(){
     super.initState();
     _stayCategories = widget.stayCategories;
     controller.selectedStayCategory.value = widget.selectedStayCategory;
+    _category = controller.selectedStayCategory.value!.slugId;
 
     if(controller.selectedStayCategory.value!=null){
     if(controller.selectedStayCategory.value?.accountType.toUpperCase() == AppConstants.individual) {
-      var serviceType = controller.selectedStayCategory.value!.slugId.toRentalServiceType();
+      var serviceType = _category.toRentalServiceType();
         controller.fetchRentalServices(
           rentalServiceType: serviceType,
         );
@@ -68,13 +70,17 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         });
       }
     else {
+
       // handle business rental api call
-      controller.fetchHotelServices();
+      controller.fetchHotelServices(
+          category: _category
+      );
 
       // Listener for Pagination
       scrollController.addListener(() {
         if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
           controller.fetchHotelServices(
+              category: _category,
               isLoadMore: true);
         }
       });
@@ -165,15 +171,20 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       onTap: (item, index) {
         controller.selectedStayCategory.value = item;
         controller.selectedTabIndex.value = index;
+
+        _category = controller.selectedStayCategory.value!.slugId;
+
         if(controller.selectedStayCategory.value?.accountType ==
             AppConstants.individual){
-          var serviceType = controller.selectedStayCategory.value!.slugId.toRentalServiceType();
+          var serviceType = _category.toRentalServiceType();
           controller.fetchRentalServices(
             rentalServiceType: serviceType,
           );
         }else{
           // handle business rental api call
-          controller.fetchHotelServices();
+          controller.fetchHotelServices(
+            category: _category
+          );
         }
       },
     );

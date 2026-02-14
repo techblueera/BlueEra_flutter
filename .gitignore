@@ -47,6 +47,7 @@ pubspec.lock
 windows/flutter/generated_plugin_registrant.cc
 windows/flutter/generated_plugins.cmake
 untranslated_messages.txt
+lib/environment_config.dart
 
 # FVM Version Cache
 .fvm/
