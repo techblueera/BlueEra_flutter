@@ -1,12 +1,16 @@
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_strings.dart';
+import '../../../../../core/constants/getx_utils.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import 'join_bdm_document_verified_page.dart';
+import '../../../../../widgets/new_common_date_selection_dropdown.dart';
+import '../../controller/referral_controller.dart';
 
 class JoinAsBDMScreen extends StatefulWidget {
   const JoinAsBDMScreen({Key? key}) : super(key: key);
@@ -16,14 +20,16 @@ class JoinAsBDMScreen extends StatefulWidget {
 }
 
 class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
-  bool isChecked = false;
+
+  final controller = getOrPut(() => ReferralController());
+
 
   Widget _sectionCard({required String title, required Widget child}) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8,),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:AppColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -79,12 +85,18 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // controller.searchStates();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
 
       appBar: CommonBackAppBar(
-        title: "Join As Business Developmen....",
+        title: "Join As Business Development",
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -100,23 +112,37 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                   CommonTextField(
                     title: "Full Name",
                     hintText: "E.g.1 Year",
+                    textEditController: controller.fullNameController,
                   ),
                   SizedBox(height: 16),
                   CommonTextField(
                     title: "Email",
                     hintText: "E.g. inquiry@gmail.com",
+                    textEditController: controller.emailController,
                   ),
                   SizedBox(height: 16),
 
                   _label("D.O.B"),
-                  Row(
-                    children: [
-                      Expanded(child: _dropdownBox("DD")),
-                      SizedBox(width: 10),
-                      Expanded(child: _dropdownBox("MM")),
-                      SizedBox(width: 10),
-                      Expanded(child: _dropdownBox("YYYY")),
-                    ],
+                  NewDatePicker(
+                    isAgeValidation15: true,
+                    selectedDay: controller
+                        .selectedDay?.value,
+                    selectedMonth: controller
+                        .selectedMonth?.value,
+                    selectedYear: controller
+                        .selectedYear?.value,
+                    onDayChanged: (value) {
+                      controller
+                          .selectedDay?.value = value ?? 0;
+                    },
+                    onMonthChanged: (value) {
+                      controller
+                          .selectedMonth?.value = value ?? 0;
+                    },
+                    onYearChanged: (value) {
+                      controller
+                          .selectedYear?.value = value ?? 0;
+                    },
                   ),
                   SizedBox(height: 16),
 
@@ -144,6 +170,8 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                         child: CommonTextField(
                           hintText: "1234567890",
                           keyBoardType: TextInputType.number,
+                          textEditController: controller
+                              .alternatePhoneNumberController,
                         ),
                       ),
                     ],
@@ -151,13 +179,26 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                   SizedBox(height: 16),
 
                   _label("Highest Educational Qualification"),
-                  _dropdownBox("E.g. Below 10th, 12th Pass...."),
+                  Obx(() =>
+                      CommonDropdown<String>(
+                        items: controller.qualificationsList,
+                        selectedValue:
+                        controller.selectQualification.value.isEmpty
+                            ? null
+                            : controller.selectQualification.value,
+                        hintText: AppStrings.qualificationsHint,
+                        onChanged: (val) =>
+                        controller.selectQualification.value = val ?? "",
+                        displayValue: (item) => item,
+                      )),
+
                 ],
               ),
             ),
             SizedBox(
               height: 10,
             ),
+
             /// LOCATION DETAILS
             _sectionCard(
               title: "Location Details",
@@ -168,24 +209,47 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                     title: "Work Location Pin Code",
                     hintText: "E.g.456856",
                     keyBoardType: TextInputType.number,
+                    textEditController: controller
+                        .workLocationPinCodeController,
                   ),
                   SizedBox(height: 16),
                   _label(
                       "In Which Location You Want to Start Your Franchise?"),
                   Row(
                     children: [
-                      Expanded(child: _dropdownBox("Select State")),
+                      Expanded(
+                        child: Obx(() {
+                          return CommonDropdown(items:
+                          controller.stateList,
+                              selectedValue: controller.selectedState.value,
+                              hintText: "Select State",
+                              onChanged: (val) {
+                                controller.selectState(val ?? '');
+                                controller.searchCities(val ?? '');
+                              },
+                              displayValue: (value) => value
+                          );
+                        }),
+                      ),
                       SizedBox(width: 12),
-                      Expanded(child: _dropdownBox("Select City")),
+                      Expanded(
+                        child: CommonTextField(
+                          hintText: "E.g.Salem",
+                          textEditController: controller
+                              .cityController,
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 16),
 
-                  _label("Address"),
                   CommonTextField(
+                    title: "Address",
                     hintText:
                     "E.g. Lucknow , Utter pradesh, Lorem Ipsum Dolor...",
                     maxLine: 3,
+                    textEditController: controller.addressController,
+
                   ),
                   SizedBox(height: 16),
 
@@ -194,21 +258,25 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 0), // aligns to top corner perfectly
-                        child: Checkbox(
-                          value: isChecked,
-                          onChanged: (v) {
-                            setState(() {
-                              isChecked = v ?? false;
-                            });
-                          },
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          side: BorderSide(color: AppColors.coloGreyText),
-                        ),
+                        padding: const EdgeInsets.only(top: 0),
+                        // aligns to top corner perfectly
+                        child: Obx(() {
+                          return Checkbox(
+                            value: controller.termAccept.value,
+                            onChanged: (v) {
+                              setState(() {
+                                controller.termAccept.value = v ?? false;
+                              });
+                            },
+                            materialTapTargetSize: MaterialTapTargetSize
+                                .shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            side: BorderSide(color: AppColors.coloGreyText),
+                          );
+                        }),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -223,11 +291,21 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                   SizedBox(height: 10),
 
                   /// SUBMIT BUTTON
-                  CustomBtn(
-                      isValidate: true,
-                      onTap: (){
-                    Get.to(JoinBdmDocumentVerifiedPage());
-                  }, title: "Submit"),
+                  Obx(() {
+                    return CustomBtn(
+                        isValidate: true,
+                        isLoading: controller.submitLoading.value,
+                        onTap: () {
+                          if (controller.termAccept.value) {
+                            controller.joinAsBdmApi();
+                          } else {
+                            commonSnackBar(
+                              message: "Accept Terms&Conditions",
+                            );
+                          }
+                          // Get.to(JoinBdmDocumentVerifiedPage());
+                        }, title: "Submit");
+                  }),
                   // SizedBox(
                   //   width: double.infinity,
                   //   height: 52,

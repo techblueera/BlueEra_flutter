@@ -264,9 +264,21 @@ class UserRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-
-
-
+  Future<ResponseModel> joinAsBdmApi(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+        joinAsBdm,
+        params: params,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> getBdmDetails() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getBdm,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel?> uploadVideoToS3({required Function(double progress) onProgress, required File file, required String fileType, required String preSignedUrl}) async {
     final response = await ApiBaseHelper().uploadVideoToS3(
       preSignedUrl,

@@ -684,4 +684,14 @@ class ApiKeys {
   static const adharCard = 'adharCard';
   static const addressProof = 'addressProof';
   static const drivingLicense = 'drivingLicense';
+  static const alternatePhoneNumber = 'alternatePhoneNumber';
+  static const highestEducationalQualification = 'highestEducationalQualification';
+  static const workLocationPinCode = 'workLocationPinCode';
+  static const preferredState = 'preferredState';
+  static const preferredCity = 'preferredCity';
+  static const acceptedTerms = 'acceptedTerms';
+  static const aadharDocumentId = 'aadharDocumentId';
+  static const panDocumentId = 'panDocumentId';
+  static const addressProofDocumentId = 'addressProofDocumentId';
+  static const bankDetailsDocumentId = 'bankDetailsDocumentId';
 }
