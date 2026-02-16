@@ -22,7 +22,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         "input": "$state",
-        "key": Env.googleMapKey,
+        "key": googleMapKey,
         "types": "(cities)",
         "components": "country:in",
         "language": "en",
@@ -39,7 +39,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         "input": query,
-        "key": Env.googleMapKey,
+        "key": googleMapKey,
         "types": "geocode|establishment", // You can customize this
         "language": "en",
         "components": "country:in" // only India
@@ -59,7 +59,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         'place_id': placeId,
-        'key': Env.googleMapKey,
+        'key': googleMapKey,
       },
       onError: (error) {},
       onSuccess: (data) {},
@@ -75,7 +75,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         'latlng': '${position.latitude},${position.longitude}',
-        'key': Env.googleMapKey,
+        'key': googleMapKey,
       },
       onError: (error) {},
       onSuccess: (data) {},

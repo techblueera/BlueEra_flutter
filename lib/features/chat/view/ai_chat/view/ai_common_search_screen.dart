@@ -364,7 +364,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
       // Initialize the Flash model (Fast & supports Audio)
       final model = GenerativeModel(
         model: 'gemini-2.0-flash',
-        apiKey: Env.geminiApiKey,
+        apiKey: geminiApiKey,
       );
 
       // ---------------------------------------------------------

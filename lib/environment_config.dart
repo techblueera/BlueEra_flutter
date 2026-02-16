@@ -8,6 +8,23 @@ String? baseUrl, razorpayKey,  chatSocketUrl, liveTrackSocket;
 bool isProdEnvironment = false;
 String blueEraPostLink = "BlueEraPostLink";
 
+
+///THIS RECORD IS SAME FOR ANDROID AND IOS...
+String firebaseAppId = Platform.isAndroid
+    ? Env.androidFirebaseAppId
+    : Platform.isIOS
+    ? Env.iosFirebaseAppId
+    : "";
+String messagingSenderId = Env.messagingSenderId;
+String projectFireBaseId = Env.projectFireBaseId;
+String firebaseApiKey = Platform.isAndroid
+    ? Env.androidFirebaseAPIKey
+    : Platform.isIOS
+    ? Env.iosFirebaseAPIKey
+    : "";
+String googleMapKey = Env.googleMapKey;
+String geminiApiKey = Env.geminiApiKey;
+
 String googleAutocomplete =
     "https://maps.googleapis.com/maps/api/place/autocomplete/json";
 String googlePlaceId =

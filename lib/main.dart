@@ -200,14 +200,17 @@ void debugPrintKeys() {
   print('Razorpay Key: $razorpayKey');
   print('Chat Socket URL: $chatSocketUrl');
   print('Live Track Socket: $liveTrackSocket');
-  print('Google Map Key: ${Env.googleMapKey}');
-  print('Gemini API Key: ${Env.geminiApiKey}');
-  print('Firebase Project ID: ${Env.projectFireBaseId}');
-  print('Android App ID: ${Env.androidFirebaseAppId}');
-  print('iOS App ID: ${Env.iosFirebaseAppId}');
-  print('Android Firebase Key: ${Env.androidFirebaseAPIKey}');
-  print('iOS Firebase Key: ${Env.iosFirebaseAPIKey}');
-  print('Messaging Sender ID: ${Env.messagingSenderId}');
+  print('Google Map Key: $googleMapKey');
+  print('Gemini API Key: $geminiApiKey');
+  print('Firebase Project ID: $projectFireBaseId');
+  print(Platform.isAndroid
+      ? 'Android App ID: $firebaseAppId'
+      : 'iOS App ID: $firebaseAppId');
+  print(Platform.isAndroid
+      ? 'Android Firebase Key: $firebaseApiKey'
+      : 'iOS Firebase Key: $firebaseApiKey'
+  );
+  print('Messaging Sender ID: $messagingSenderId');
   print('----------------------');
 }
 
