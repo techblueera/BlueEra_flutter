@@ -73,42 +73,61 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               s.slugId != AUTOMOTIVE_SERVICES)
           .toList();
 
+  BitmapDescriptor? _customIcon;
+
   @override
   void initState() {
     userLat = LocationService.lat;
     userLng = LocationService.lng;
     _tabController = TabController(length: 4, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _calculateHeaderHeight();
-    });
+    // _loadMarkerAsset();
     super.initState();
   }
 
-  void _calculateHeaderHeight() {
-    final renderBox =
-        controller.headerKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null && mounted) {
-      setState(() => controller.headerHeight = renderBox.size.height);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant DiscoverScreen oldWidget) {
-    if (oldWidget.isHeaderVisible != widget.isHeaderVisible) {
-      controller.isHeaderVisible.value = widget.isHeaderVisible;
-      super.didUpdateWidget(oldWidget);
+  Future<void> _loadMarkerAsset() async {
+    try {
+      _customIcon = await BitmapDescriptor.asset(
+        const ImageConfiguration(devicePixelRatio: 2.5),
+        'assets/images/location_marker_icon.png', // Hardcode here once to test
+      );
+      debugPrint("✅ PNG Marker loaded successfully");
+    } catch (e) {
+      debugPrint("❌ Failed to load PNG marker: $e");
+      // Fallback to default so the app doesn't crash
+      _customIcon = BitmapDescriptor.defaultMarker;
     }
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
-    _loadCustomMarker();
+
+    if (!mounted) return;
+
+    _customIcon = await BitmapDescriptor.asset(
+      const ImageConfiguration(size: Size(30, 40)),
+      AppImageAssets.locationMarkerIcon, // Your PNG path
+    );
+
+    // await _loadMarkerAsset();
+
+
+    setState(() {
+      _markers.add(Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(userLat, userLng),
+        icon: _customIcon ?? BitmapDescriptor.defaultMarker,
+        onTap: () => Get.to(() => FranchiseHome()),
+      ));
+      isMapLoading = false;
+    });
   }
+
+
 
   Future<void> _loadCustomMarker() async {
     try {
       final markerBytes = await getBytesFromSvgAsset(
-        AppIconAssets.locationMarkerIcon,
+        AppImageAssets.locationMarkerIcon,
         35,
       );
 
@@ -281,10 +300,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       child: NotificationListener<UserScrollNotification>(
         onNotification: (notification) {
           if (notification.direction == ScrollDirection.reverse) {
-            controller.isHeaderVisible.value = false;
             widget.onHeaderVisibilityChanged?.call(false);
           } else if (notification.direction == ScrollDirection.forward) {
-            controller.isHeaderVisible.value = true;
             widget.onHeaderVisibilityChanged?.call(true);
           }
           return true; // Stop the notification from bubbling further

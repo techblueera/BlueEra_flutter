@@ -49,6 +49,10 @@ windows/flutter/generated_plugins.cmake
 untranslated_messages.txt
 lib/environment_config.dart
 
+# Envied secrets
+.env
+lib/env.g.dart
+
 # FVM Version Cache
 .fvm/
 lib/features/personal/personal_profile/view/inventory/widgets/catalog.dart

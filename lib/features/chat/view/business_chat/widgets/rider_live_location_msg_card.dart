@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
@@ -36,17 +37,11 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
     try {
-      final markerBytes = await getBytesFromSvgAsset(
-        AppIconAssets.locationMarkerIcon,
-        35,
+
+      final markerIcon = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 40)),
+        AppImageAssets.locationMarkerIcon, // Your PNG path
       );
-
-      if (markerBytes.isEmpty) {
-        throw Exception("Marker bytes are empty");
-      }
-
-      final markerIcon = BitmapDescriptor.bytes(markerBytes);
-
 
       final Marker customMarker = Marker(
         markerId: const MarkerId("custom_marker_id"),

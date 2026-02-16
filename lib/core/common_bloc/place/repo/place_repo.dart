@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/env.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -21,7 +22,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         "input": "$state",
-        "key": googleMapKey,
+        "key": Env.googleMapKey,
         "types": "(cities)",
         "components": "country:in",
         "language": "en",
@@ -38,7 +39,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         "input": query,
-        "key": googleMapKey,
+        "key": Env.googleMapKey,
         "types": "geocode|establishment", // You can customize this
         "language": "en",
         "components": "country:in" // only India
@@ -58,7 +59,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         'place_id': placeId,
-        'key': googleMapKey,
+        'key': Env.googleMapKey,
       },
       onError: (error) {},
       onSuccess: (data) {},
@@ -74,7 +75,7 @@ class PlaceRepo{
       showProgress: false,
       params: {
         'latlng': '${position.latitude},${position.longitude}',
-        'key': googleMapKey,
+        'key': Env.googleMapKey,
       },
       onError: (error) {},
       onSuccess: (data) {},
