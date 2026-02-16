@@ -122,6 +122,13 @@ class AppConstants {
 
   // static const String business = 'business';
   // static const String company = 'company';
+  static const String oneWay = 'One Way';
+  static const String roundTrip = 'Round Trip';
+  static const String sharing = 'Sharing';
+  static const String mySelf = 'My Self';
+  static const String myFriend = 'My Friend';
+
+
   static const String recruiter = 'recruiter';
 
   static const String deepLinkScreen = 'deepLinkScreen';
