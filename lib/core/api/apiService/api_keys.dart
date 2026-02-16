@@ -694,4 +694,6 @@ class ApiKeys {
   static const panDocumentId = 'panDocumentId';
   static const addressProofDocumentId = 'addressProofDocumentId';
   static const bankDetailsDocumentId = 'bankDetailsDocumentId';
+  static const tripType = 'tripType';
+  static const orderForWhom = 'orderForWhom';
 }

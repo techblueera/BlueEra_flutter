@@ -140,6 +140,7 @@ class ViewPersonalDetailsController extends GetxController {
 
   void getServiceProviderStatus() async {
     try {
+
       ResponseModel responseModel =
           await PersonalProfileRepo().getServiceStatusRepo();
 
