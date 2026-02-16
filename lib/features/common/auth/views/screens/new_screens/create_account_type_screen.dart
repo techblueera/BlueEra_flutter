@@ -144,6 +144,10 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                               return _businessContent(
                                   key: ValueKey(PRODUCT),
                                   arrBusinessCategory: businessOnboardingProductsCategories);
+                            case SERVICE_OTHERS:
+                              return _businessOtherServiceContent(
+                                  key: ValueKey(SERVICE_OTHERS),
+                                  );
                             case SERVICE:
                               return _businessContent(
                                   key: ValueKey(SERVICE),
@@ -249,12 +253,6 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                             authController.selectedBusinessOnboardingProfile.value = category;
                             authController.selectedIndividualOnboardingProfile.value = null;
                             authController.selectedParentSlug.value = AppConstants.business;
-                            // controller.selectedTabIndex.value = 0;
-                            // log('new selection ${controller.selectedGroceryData.value}');
-                            //
-                            // /// api call
-                            // controller.fetchBoth();
-
                           },
                         ));
                       },
@@ -597,16 +595,18 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           if(category.businessType == BusinessType.Manufacturing){
             if(category.businessType == null) return;
             navigateToGstScreen(
-                context,
-                businessType: category.businessType!,
-                categorySlugId: category.slugId,
-                categoryName: category.name,
+              context,
+              businessType: category.businessType!,
+              categorySlugId: category.slugId,
+              categoryName: category.name,
             );
-          } else if(category.businessType == BusinessType.Motel ||
-              category.businessType == BusinessType.Healthcare ||
-              category.businessType == BusinessType.Siksha){
-            _showBusinessCategoryDialog(category.businessType!);
-          }else{
+          }
+          // else if(category.businessType == BusinessType.Motel ||
+          //     category.businessType == BusinessType.Healthcare ||
+          //     category.businessType == BusinessType.Siksha){
+          //   _showBusinessCategoryDialog(category.businessType!);
+          // }
+          else{
             _showBusinessSubCategoryDialog(
                 businessType: category.businessType!,
                 categorySlugId: category.slugId,
@@ -634,11 +634,11 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.greyE5
-          )
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+                color: AppColors.greyE5
+            )
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -674,6 +674,109 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _businessOtherServiceContent({Key? key}) {
+    final Map<String, List<OnboardingCategoryModel>> onboardingBusinessMap = {
+      'Automotive Services': businessOnboardingAutomotiveServicesCategories,
+      'Health Care Sectors': businessOnboardingHealthcareSectorsCategories,
+      'Hospitality & Stay': businessOnboardingHospitalityStayCategories,
+      'Education & Training Sectors': businessOnboardingEducationTrainingCategories,
+      'Financial Sectors': businessOnboardingFinancialSectorsCategories,
+    };
+
+    return SingleChildScrollView(
+      key: key,
+      child: Column(
+        children: onboardingBusinessMap.entries.map((entry) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: SizeConfig.size10),
+            child: CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.paddingXSL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    entry.key,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+
+                  SizedBox(height: SizeConfig.paddingXSL),
+
+                  _commonCard2(
+                    items: entry.value
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _commonCard2({
+    required List<OnboardingCategoryModel> items,
+  }) {
+    return MasonryGridView.count(
+      shrinkWrap: true,
+      primary: false,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      itemBuilder: (context, index) {
+        var category = items[index];
+        return InkWell(
+          onTap: (){
+            _showBusinessSubCategoryDialog(
+                businessType: category.businessType!,
+                categorySlugId: category.slugId,
+                categoryName: category.name
+            );
+          },
+          child: Container(
+            padding: EdgeInsets.all(SizeConfig.size5),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: AppColors.greyE5,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon Section
+                LocalAssets(
+                  imagePath: category.icon,
+                  height: SizeConfig.size60,
+                ),
+
+                SizedBox(height: SizeConfig.paddingXSL),
+
+                // Label Section
+                CustomText(
+                  category.name,
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

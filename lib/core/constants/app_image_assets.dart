@@ -142,6 +142,10 @@ class AppImageAssets {
   static String homeStay = "${imgPath}home_stay.png";
   static String houseOnRent = "${imgPath}house_on_rent.png";
   static String otherRental = "${imgPath}other_rental.png";
+  static String economyStay = "${imgPath}economy_stay.png";
+  static String hostelsAndPG = "${imgPath}hostels_and_pg.png";
+  static String functionsVacation = "${imgPath}functions_vacation.png";
+  static String alternativeStays = "${imgPath}alternative_stays.png";
   static String cab = "${imgPath}cab.png";
 
   // Earn Service
