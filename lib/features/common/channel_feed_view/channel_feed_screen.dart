@@ -197,7 +197,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               ),
 
             if (channelFeedController.communityIndex.value == 0) ...[
-           /*   SliverToBoxAdapter(
+              /*   SliverToBoxAdapter(
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -241,7 +241,8 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                 channelData: channel),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 12,left: 12,top: 15),
+                            padding: const EdgeInsets.only(
+                                right: 12, left: 12, top: 0),
                             child: ChannelCardWidget(channelModel: channel),
                           ),
                         );
@@ -292,8 +293,8 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                 channelData: newChannel));
                           },
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 12,left: 12,top: 15),
-
+                            padding: const EdgeInsets.only(
+                                right: 12, left: 12, top: 5),
                             child: UnjoinChannelCardWidget(
                               channelModel: newChannel,
                               index: index,
