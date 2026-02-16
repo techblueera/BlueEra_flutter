@@ -77,12 +77,13 @@ getDeviceInfo() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  ///SET YOUR API CALLING ENV.
+  await projectKeys(environmentType: AppConstants.prod);
+
   if (kDebugMode) {
     debugPrintKeys();
   }
 
-  ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.prod);
   await firebaseInitializeApp();
   await getDeviceInfo();
   // HttpOverrides.global = MyHttpOverrides();
@@ -195,6 +196,10 @@ Future<void> main() async {
 
 void debugPrintKeys() {
   print('--- API KEYS DEBUG ---');
+  print('Selected Base URL: $baseUrl');
+  print('Razorpay Key: $razorpayKey');
+  print('Chat Socket URL: $chatSocketUrl');
+  print('Live Track Socket: $liveTrackSocket');
   print('Google Map Key: ${Env.googleMapKey}');
   print('Gemini API Key: ${Env.geminiApiKey}');
   print('Firebase Project ID: ${Env.projectFireBaseId}');

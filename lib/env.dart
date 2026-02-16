@@ -19,7 +19,6 @@ abstract class Env {
   @EnviedField(varName: 'IOS_FIREBASE_APP_ID')
   static String iosFirebaseAppId = _Env.iosFirebaseAppId;
 
-
   @EnviedField(varName: 'ANDROID_FIREBASE_API_KEY')
   static String androidFirebaseAPIKey = _Env.androidFirebaseAPIKey;
 
@@ -28,4 +27,22 @@ abstract class Env {
 
   @EnviedField(varName: 'MESSAGING_SENDER_ID')
   static String messagingSenderId = _Env.messagingSenderId;
+
+  @EnviedField(varName: 'CHAT_SOCKET_URL')
+  static String chatSocketUrl = _Env.chatSocketUrl;
+
+  @EnviedField(varName: 'LIVE_TRACK_SOCKET')
+  static String liveTrackSocket = _Env.liveTrackSocket;
+
+  @EnviedField(varName: 'DEV_BASE_URL')
+  static String devBaseUrl = _Env.devBaseUrl;
+
+  @EnviedField(varName: 'PROD_BASE_URL')
+  static String prodBaseUrl = _Env.prodBaseUrl;
+
+  @EnviedField(varName: 'DEV_RAZORPAY_KEY')
+  static String devRazorPayKey = _Env.devRazorPayKey;
+
+  @EnviedField(varName: 'PROD_RAZORPAY_KEY')
+  static String prodRazorPayKey = _Env.prodRazorPayKey;
 }
