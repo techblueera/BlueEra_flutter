@@ -306,26 +306,7 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                           // Get.to(JoinBdmDocumentVerifiedPage());
                         }, title: "Submit");
                   }),
-                  // SizedBox(
-                  //   width: double.infinity,
-                  //   height: 52,
-                  //   child: ElevatedButton(
-                  //     style: ElevatedButton.styleFrom(
-                  //       backgroundColor: AppColors.primaryColor,
-                  //       shape: RoundedRectangleBorder(
-                  //         borderRadius: BorderRadius.circular(14),
-                  //       ),
-                  //       elevation: 0,
-                  //     ),
-                  //     onPressed: () {},
-                  //     child: CustomText(
-                  //       "Submit",
-                  //       fontSize: 16,
-                  //       fontWeight: FontWeight.w700,
-                  //       color: AppColors.white,
-                  //     ),
-                  //   ),
-                  // ),
+
                 ],
               ),
             ),

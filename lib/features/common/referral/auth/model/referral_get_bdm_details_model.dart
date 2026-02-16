@@ -54,21 +54,97 @@ class ReferralGetBdmDetailsModel {
     this.updatedAt,
     this.workLocationPinCode,
   });
-
+  ReferralGetBdmDetailsModel copyWith({
+    String? id,
+    String? userId,
+    int? v,
+    String? aadharDocumentId,
+    bool? aadharDocumentUploaded,
+    bool? acceptedTerms,
+    String? address,
+    String? addressProofDocumentId,
+    bool? addressProofDocumentUploaded,
+    String? alternatePhoneNumber,
+    String? bankDetailsDocumentId,
+    bool? bankDetailsDocumentUploaded,
+    DateTime? createdAt,
+    DateTime? dob,
+    String? email,
+    String? highestEducationalQualification,
+    bool? isBDMRegistered,
+    bool? isPersonalInfoComplete,
+    bool? isReferralCodeSaved,
+    String? name,
+    String? panDocumentId,
+    bool? panDocumentUploaded,
+    String? preferredCity,
+    String? preferredState,
+    DateTime? updatedAt,
+    String? workLocationPinCode,
+  }) {
+    return ReferralGetBdmDetailsModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      v: v ?? this.v,
+      aadharDocumentId: aadharDocumentId ?? this.aadharDocumentId,
+      aadharDocumentUploaded:
+      aadharDocumentUploaded ?? this.aadharDocumentUploaded,
+      acceptedTerms: acceptedTerms ?? this.acceptedTerms,
+      address: address ?? this.address,
+      addressProofDocumentId:
+      addressProofDocumentId ?? this.addressProofDocumentId,
+      addressProofDocumentUploaded:
+      addressProofDocumentUploaded ?? this.addressProofDocumentUploaded,
+      alternatePhoneNumber:
+      alternatePhoneNumber ?? this.alternatePhoneNumber,
+      bankDetailsDocumentId:
+      bankDetailsDocumentId ?? this.bankDetailsDocumentId,
+      bankDetailsDocumentUploaded:
+      bankDetailsDocumentUploaded ?? this.bankDetailsDocumentUploaded,
+      createdAt: createdAt ?? this.createdAt,
+      dob: dob ?? this.dob,
+      email: email ?? this.email,
+      highestEducationalQualification:
+      highestEducationalQualification ??
+          this.highestEducationalQualification,
+      isBDMRegistered: isBDMRegistered ?? this.isBDMRegistered,
+      isPersonalInfoComplete:
+      isPersonalInfoComplete ?? this.isPersonalInfoComplete,
+      isReferralCodeSaved:
+      isReferralCodeSaved ?? this.isReferralCodeSaved,
+      name: name ?? this.name,
+      panDocumentId: panDocumentId ?? this.panDocumentId,
+      panDocumentUploaded:
+      panDocumentUploaded ?? this.panDocumentUploaded,
+      preferredCity: preferredCity ?? this.preferredCity,
+      preferredState: preferredState ?? this.preferredState,
+      updatedAt: updatedAt ?? this.updatedAt,
+      workLocationPinCode:
+      workLocationPinCode ?? this.workLocationPinCode,
+    );
+  }
   factory ReferralGetBdmDetailsModel.fromJson(Map<String, dynamic> json) {
     return ReferralGetBdmDetailsModel(
       id: json['_id'] as String?,
       userId: json['userId'] as String?,
-      v: json['__v'] is int ? json['__v'] : int.tryParse(json['__v']?.toString() ?? ''),
+      v: json['__v'] is int
+          ? json['__v']
+          : int.tryParse(json['__v']?.toString() ?? ''),
       aadharDocumentId: json['aadharDocumentId'] as String?,
-      aadharDocumentUploaded: json['aadharDocumentUploaded'] as bool?,
-      acceptedTerms: json['acceptedTerms'] as bool?,
+      aadharDocumentUploaded:
+      (json['aadharDocumentUploaded'] as bool?) ?? false,
+      acceptedTerms: (json['acceptedTerms'] as bool?) ?? false,
       address: json['address'] as String?,
-      addressProofDocumentId: json['addressProofDocumentId'] as String?,
-      addressProofDocumentUploaded: json['addressProofDocumentUploaded'] as bool?,
-      alternatePhoneNumber: json['alternatePhoneNumber']?.toString(),
-      bankDetailsDocumentId: json['bankDetailsDocumentId'] as String?,
-      bankDetailsDocumentUploaded: json['bankDetailsDocumentUploaded'] as bool?,
+      addressProofDocumentId:
+      json['addressProofDocumentId'] as String?,
+      addressProofDocumentUploaded:
+      (json['addressProofDocumentUploaded'] as bool?) ?? false,
+      alternatePhoneNumber:
+      json['alternatePhoneNumber']?.toString(),
+      bankDetailsDocumentId:
+      json['bankDetailsDocumentId'] as String?,
+      bankDetailsDocumentUploaded:
+      (json['bankDetailsDocumentUploaded'] as bool?) ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
@@ -78,18 +154,23 @@ class ReferralGetBdmDetailsModel {
       email: json['email'] as String?,
       highestEducationalQualification:
       json['highestEducationalQualification'] as String?,
-      isBDMRegistered: json['isBDMRegistered'] as bool?,
-      isPersonalInfoComplete: json['isPersonalInfoComplete'] as bool?,
-      isReferralCodeSaved: json['isReferralCodeSaved'] as bool?,
+      isBDMRegistered:
+      (json['isBDMRegistered'] as bool?) ?? false,
+      isPersonalInfoComplete:
+      (json['isPersonalInfoComplete'] as bool?) ?? false,
+      isReferralCodeSaved:
+      (json['isReferralCodeSaved'] as bool?) ?? false,
       name: json['name'] as String?,
       panDocumentId: json['panDocumentId'] as String?,
-      panDocumentUploaded: json['panDocumentUploaded'] as bool?,
+      panDocumentUploaded:
+      (json['panDocumentUploaded'] as bool?) ?? false,
       preferredCity: json['preferredCity'] as String?,
       preferredState: json['preferredState'] as String?,
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
-      workLocationPinCode: json['workLocationPinCode']?.toString(),
+      workLocationPinCode:
+      json['workLocationPinCode']?.toString(),
     );
   }
 

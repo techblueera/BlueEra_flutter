@@ -15,6 +15,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/constants/size_config.dart';
 import '../../../../core/language_localization_service/language_controller_new.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/common_dialog.dart';
@@ -36,6 +37,8 @@ import '../../../personal/personal_profile/view/widget/changes_languages_screen.
 import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../referral/view/referral_page.dart';
+import '../view/home_screen.dart';
+import '../view/saved_feed_screen.dart';
 
 class ProfileMenuDrawer extends StatefulWidget {
   const ProfileMenuDrawer({super.key});
@@ -285,6 +288,15 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           },
         ),
       MenuItemModel(
+        title: "Saved",
+        onTap: (){
+          Get.to( SavedFeedScreen(
+              selectedTab:SavedFeedTab.posts,
+              headerHeight: SizeConfig.size30));
+         ;
+        },
+      ),
+      MenuItemModel(
         title: "Subscription",
         onTap: () => Get.to(SubscriptionScreenNew()),
       ),
@@ -348,6 +360,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       'assets/images/tutorial.png',
       'assets/images/refer.png',
       'assets/images/earn.png',
+      'assets/images/subscrption.png',
       'assets/images/subscrption.png',
       'assets/images/payment.png',
       'assets/images/channel.png',

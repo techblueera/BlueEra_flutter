@@ -742,6 +742,7 @@ abstract class BaseService {
   final String  professionalSearch= 'earn-service/professional/search';
   final String  joinAsBdm= 'wallet-service/bdm';
   final String  getBdm= 'wallet-service/bdm';
+  final String  saveNewReferralCode= 'wallet-service/referral/save';
   final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
 
 }

@@ -19,6 +19,7 @@ final highestEducationalQualificationController=TextEditingController();
 final workLocationPinCodeController=TextEditingController();
 final cityController=TextEditingController();
 final addressController=TextEditingController();
+final mainReferralCode=TextEditingController();
 RxList<String> stateList = <String>[
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
   "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
@@ -31,12 +32,15 @@ final List<String> qualificationsList = ["10th", "12th", "Diploma", "Degree"];
 
 RxList<String> cityList = <String>[].obs;
 RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
-
+final FocusNode referralFocusNode = FocusNode();
 RxString selectedState = "".obs;
 RxString selectQualification = ''.obs;
 RxString selectedCity = "".obs;
 RxBool submitLoading = false.obs;
 RxBool termAccept = false.obs;
+RxBool makeReferralEditable = false.obs;
+RxBool updateNewCodeLoading = false.obs;
+RxBool updateIsTextFormValidate= false.obs;
 Rx<ReferralGetBdmDetailsModel> referralBdmDetails = ReferralGetBdmDetailsModel().obs;
 Rx<ApiResponse> referralBdmDetailsResponse = ApiResponse.initial('Initial').obs;
 
@@ -111,10 +115,13 @@ void selectCity(String city) {
 
       if (res.isSuccess) {
         submitLoading.value=false;
+        getBdmDetails();
+
         commonSnackBar(
           message: res.message ?? "Joined as Business Development",
         );
         clearForm();
+        Get.back();
       } else {
         submitLoading.value=false;
 
@@ -191,6 +198,33 @@ Future<void> getBdmDetails() async {
   } catch (e) {
   } finally {
 
+  }
+}
+Future<void> saveNewReferralCodeApi() async {
+  try {
+    updateNewCodeLoading.value=true;
+    var params={
+      ApiKeys.referral_code: mainReferralCode.text
+    };
+    final res = await UserRepo().saveNewReferralCodeApi(params);
+
+    if (res.isSuccess) {
+      commonSnackBar(
+        message: res.message ?? "Your New Referral Code Updated Successfully",
+      );
+      referralBdmDetails.value=    referralBdmDetails.value.copyWith(
+        isReferralCodeSaved: true
+      );
+      updateNewCodeLoading.value=false;
+    } else {
+      commonSnackBar(
+        message: res.message ?? AppStrings.somethingWentWrong.tr,
+      );
+      updateNewCodeLoading.value=false;
+
+    }
+  } catch (e) {
+    updateNewCodeLoading.value=false;
   }
 }
 }

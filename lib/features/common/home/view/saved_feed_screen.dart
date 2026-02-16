@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 
 
@@ -27,7 +28,11 @@ class _SavedFeedScreenState extends State<SavedFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildTabView();
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: "Saved Post",
+      ),
+        body: _buildTabView());
   }
 
   Widget _buildTabView() {
