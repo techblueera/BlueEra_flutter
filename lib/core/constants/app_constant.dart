@@ -286,13 +286,6 @@ class AppConstants {
   static const flat = "Flat";
   static const vehicle = "Vehicle";
 
-  /// Hotel Category
-  static const alternativeStays = "Alternative Stays";
-  static const economicStays = "Economic Stays";
-  static const functionsAndVacation = "Functions & Vacation";
-  static const hotelsAndResort = "Hotels & Resort";
-  static const HostelsAndPayingGuest = "Hostels and Paying Guest";
-
 }
 
 class DocumentKeys {
@@ -1502,7 +1495,7 @@ const String IT_COMMUNICATION = "IT_COMMUNICATION";
 const String MEDIA_PUBLICITY_CREATIVE = "MEDIA_PUBLICITY_CREATIVE";
 const String AUTOMOTIVE_SERVICES = "AUTOMOTIVE_SERVICES";
 const String LOGISTICS_TRANSPORTATION = "LOGISTICS_TRANSPORTATION";
-const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
+// const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
 const String TOUR_TRAVEL_TOURISM = "TOUR_TRAVEL_TOURISM";
 const String REAL_ESTATE_PROPERTY_SERVICES = "REAL_ESTATE_PROPERTY_SERVICES";
 const String TECHNICAL_TESTING_QUALITY_SERVICE =
@@ -1553,11 +1546,53 @@ const VEHICLE = "VEHICLE";
 const FOOD = "FOOD";
 const PRODUCT = "PRODUCT";
 const SERVICE = "SERVICE";
+const SERVICE_OTHERS = "SERVICE_OTHERS";
 
 // Bookings
 const PARCEL_COURIER = "PARCEL_COURIER";
 const TRANSPORT_VEHICLE = "TRANSPORT_VEHICLE";
 const HOTEL_HOME_STAY = "HOTEL_HOME_STAY";
+
+// Automotive Services
+const String SALES_SECTOR = "SALES_SECTOR";
+const String PARTS_SECTOR = "PARTS_SECTOR";
+const String SERVICE_SECTOR = "SERVICE_SECTOR";
+const String TRANSPORT_LOGISTIC = "TRANSPORT_LOGISTIC";
+const String RENTAL_SECTOR = "RENTAL_SECTOR";
+const String SUPPORT_SECTOR = "SUPPORT_SECTOR";
+
+// Health Care
+const String HOSPITAL_SECTOR = "HOSPITAL_SECTOR";
+const String INSTRUMENTS_PHARMACY = "INSTRUMENTS_PHARMACY";
+const String DIAGNOSTIC_SECTOR = "DIAGNOSTIC_SECTOR";
+const String CLINIC_DOCTORS = "CLINIC_DOCTORS";
+const String ALTERNATIVE_WELLNESS = "ALTERNATIVE_WELLNESS";
+const String SUPPORT_SERVICES = "SUPPORT_SERVICES";
+
+// Hotel
+const String HOTELS_RESORT = "HOTELS_RESORT";
+const String ECONOMIC_STAYS = "ECONOMIC_STAYS";
+const String HOSTELS_PAYING_GUEST = "HOSTELS_PAYING_GUEST";
+const String ALTERNATIVE_STAYS = "ALTERNATIVE_STAYS";
+const String FUNCTIONS_VACATION = "FUNCTIONS_VACATION";
+const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
+
+// Education
+const String SCHOOL_EDUCATION = "SCHOOL_EDUCATION";
+const String COLLEGE_UNIVERSITY = "COLLEGE_UNIVERSITY";
+const String TECHNICAL_SKILL_TRAINING = "TECHNICAL_SKILL_TRAINING";
+const String COACHING_EXAM_PREPARATION = "COACHING_EXAM_PREPARATION";
+const String CREATIVE_SPORT_HOBBY = "CREATIVE_SPORT_HOBBY";
+const String PROFESSIONAL_SUPPORT_EDUCATION = "PROFESSIONAL_SUPPORT_EDUCATION";
+
+// Finance
+const String BANKING_SECTOR = "BANKING_SECTOR";
+const String LOAN_SECTOR = "LOAN_SECTOR";
+const String INSURANCE_SECTOR = "INSURANCE_SECTOR";
+const String CAPITAL_MARKET = "CAPITAL_MARKET";
+const String DATA_SECTOR = "DATA_SECTOR";
+const String ADVISORY_SECTOR = "ADVISORY_SECTOR";
+
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1911,25 +1946,31 @@ final List<OnboardingCategoryModel> businessOnboardingProfilesCategory = [
       slugId: FOOD,
       icon: OnboardingBusinessAssets.groceryFoodRestaurant,
       accountType: AppConstants.business,
-      businessType: BusinessType.Food),
+   ),
   OnboardingCategoryModel(
       name: 'Shop Or Store',
       slugId: PRODUCT,
       icon: OnboardingBusinessAssets.shopOrStore,
       accountType: AppConstants.business,
-      businessType: BusinessType.Product),
+      ),
+  OnboardingCategoryModel(
+      name: 'Sectors',
+      slugId: SERVICE_OTHERS,
+      icon: OnboardingBusinessAssets.services,
+      accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
       name: 'Services',
       slugId: SERVICE,
       icon: OnboardingBusinessAssets.services,
       accountType: AppConstants.business,
-      businessType: BusinessType.Service),
+  ),
   OnboardingCategoryModel(
       name: 'Manufacturing /\nIndustry',
       slugId: MANUFACTURING,
       icon: OnboardingBusinessAssets.manufacturingIndustry,
       accountType: AppConstants.business,
-      businessType: BusinessType.Manufacturing),
+     ),
 ];
 final List<OnboardingCategoryModel> serviceContactCategories = [
   OnboardingCategoryModel(
@@ -2021,6 +2062,8 @@ final List<OnboardingCategoryModel> findServiceByContactSubCate = [
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
 ];
+
+
 final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
   OnboardingCategoryModel(
       name: 'Consulting\nFirm / Org.',
@@ -2029,27 +2072,27 @@ final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
       flagIcon: AppImageAssets.consultingService,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Healthcare\nServices',
-      slugId: HEALTHCARE_MEDICAL_SERVICES,
-      icon: OnboardingBusinessAssets.healthcareMedicalServices,
-      flagIcon: AppConstants.healthcareMedicalServices,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Healthcare),
-  OnboardingCategoryModel(
-      name: 'Education &\nTraining',
-      slugId: EDUCATION_TRAINING,
-      icon: OnboardingBusinessAssets.educationAndTraining,
-      flagIcon: AppImageAssets.educationTraining,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Siksha),
-  OnboardingCategoryModel(
-      name: 'Hotels & Stay\nService',
-      slugId: HOTELS_STAY_SERVICE,
-      icon: OnboardingBusinessAssets.hostelsAndStayService,
-      flagIcon: AppImageAssets.hostel,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Motel),
+  // OnboardingCategoryModel(
+  //     name: 'Healthcare\nServices',
+  //     slugId: HEALTHCARE_MEDICAL_SERVICES,
+  //     icon: OnboardingBusinessAssets.healthcareMedicalServices,
+  //     flagIcon: AppConstants.healthcareMedicalServices,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Healthcare),
+  // OnboardingCategoryModel(
+  //     name: 'Education &\nTraining',
+  //     slugId: EDUCATION_TRAINING,
+  //     icon: OnboardingBusinessAssets.educationAndTraining,
+  //     flagIcon: AppImageAssets.educationTraining,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Siksha),
+  // OnboardingCategoryModel(
+  //     name: 'Hotels & Stay\nService',
+  //     slugId: HOTELS_STAY_SERVICE,
+  //     icon: OnboardingBusinessAssets.hostelsAndStayService,
+  //     flagIcon: AppImageAssets.hostel,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Motel),
   OnboardingCategoryModel(
       name: 'Beauty &\nPersonal Care',
       slugId: BEAUTY_PERSONAL_CARE,
@@ -2057,13 +2100,13 @@ final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
       flagIcon: AppImageAssets.beautyPersonalCare,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Financial\nServices',
-      slugId: FINANCIAL_SERVICES,
-      icon: OnboardingBusinessAssets.financialServices,
-      flagIcon: AppImageAssets.financial,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Financial\nServices',
+  //     slugId: FINANCIAL_SERVICES,
+  //     icon: OnboardingBusinessAssets.financialServices,
+  //     flagIcon: AppImageAssets.financial,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Service Centre\n& Essential Utility',
       slugId: SERVICE_CENTRE_ESSENTIAL_UTILITY,
@@ -2092,27 +2135,27 @@ final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
       flagIcon: AppImageAssets.mediaPublicityIcon,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Automotive\nServices',
-      slugId: AUTOMOTIVE_SERVICES,
-      icon: OnboardingBusinessAssets.automotiveServices,
-      flagIcon: AppImageAssets.automativeService,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Logistics &\nTransportation',
-      slugId: LOGISTICS_TRANSPORTATION,
-      icon: OnboardingBusinessAssets.logisticsAndTransport,
-      flagIcon: AppImageAssets.logisticTransportation,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Celebration &\nEvent Services',
-      slugId: CELEBRATION_EVENT_SERVICES,
-      icon: OnboardingBusinessAssets.celebrationAndEventServices,
-      flagIcon: AppImageAssets.celebrationEvent,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Automotive\nServices',
+  //     slugId: AUTOMOTIVE_SERVICES,
+  //     icon: OnboardingBusinessAssets.automotiveServices,
+  //     flagIcon: AppImageAssets.automativeService,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Logistics &\nTransportation',
+  //     slugId: LOGISTICS_TRANSPORTATION,
+  //     icon: OnboardingBusinessAssets.logisticsAndTransport,
+  //     flagIcon: AppImageAssets.logisticTransportation,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Celebration &\nEvent Services',
+  //     slugId: CELEBRATION_EVENT_SERVICES,
+  //     icon: OnboardingBusinessAssets.celebrationAndEventServices,
+  //     flagIcon: AppImageAssets.celebrationEvent,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Tour, Travel\n& Tourism',
       slugId: TOUR_TRAVEL_TOURISM,
@@ -2506,6 +2549,201 @@ final List<OnboardingCategoryModel> businessOnboardingManufacturingCategories = 
       icon: OnboardingBusinessAssets.miscellaneousRetails,
       accountType: AppConstants.business,
       businessType: BusinessType.Manufacturing),
+];
+
+final List<OnboardingCategoryModel> businessOnboardingAutomotiveServicesCategories = [
+  OnboardingCategoryModel(
+      name: 'Vehicle\nSales',
+      slugId: SALES_SECTOR,
+      icon: AppImageAssets.consultingService,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Automotive),
+  OnboardingCategoryModel(
+      name: 'Vehicle\nparts',
+      slugId: PARTS_SECTOR,
+      icon: AppImageAssets.healthCare,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Automotive),
+  OnboardingCategoryModel(
+      name: 'Vehicle\nService',
+      slugId: SERVICE_SECTOR,
+      icon: AppImageAssets.educationTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Automotive),
+  OnboardingCategoryModel(
+      name: 'Transport\nLogistic',
+      slugId: TRANSPORT_LOGISTIC,
+      icon: AppImageAssets.educationTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Automotive),
+  OnboardingCategoryModel(
+      name: 'Vehicle\nRental',
+      slugId: RENTAL_SECTOR,
+      icon: AppImageAssets.hostel,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Automotive),
+  OnboardingCategoryModel(
+      name: 'Vehicle\nSupport',
+      slugId: SUPPORT_SECTOR,
+      icon: AppImageAssets.beautyPersonalCare,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Automotive),
+];
+
+final List<OnboardingCategoryModel> businessOnboardingHealthcareSectorsCategories = [
+  OnboardingCategoryModel(
+      name: 'Hospital',
+      slugId: HOSPITAL_SECTOR,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices, // Use your relevant asset
+      accountType: AppConstants.business,
+      businessType: BusinessType.Healthcare),
+  OnboardingCategoryModel(
+      name: 'Pharmacy',
+      slugId: INSTRUMENTS_PHARMACY,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Healthcare),
+  OnboardingCategoryModel(
+      name: 'Diagonals',
+      slugId: DIAGNOSTIC_SECTOR,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Healthcare),
+  OnboardingCategoryModel(
+      name: 'Clinic/Doctors',
+      slugId: CLINIC_DOCTORS,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Healthcare),
+  OnboardingCategoryModel(
+      name: 'Alternative',
+      slugId: ALTERNATIVE_WELLNESS,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Healthcare),
+  OnboardingCategoryModel(
+      name: 'Support Services',
+      slugId: SUPPORT_SERVICES,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Healthcare),
+];
+
+final List<OnboardingCategoryModel> businessOnboardingHospitalityStayCategories = [
+  OnboardingCategoryModel(
+      name: 'Hotel/\nResort',
+      slugId: HOTELS_RESORT,
+      icon: AppImageAssets.hotelStay,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Motel),
+  OnboardingCategoryModel(
+      name: 'Economic\nStay',
+      slugId: ECONOMIC_STAYS,
+      icon: AppImageAssets.economyStay,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Motel),
+  OnboardingCategoryModel(
+      name: 'Function &\nVacation',
+      slugId: FUNCTIONS_VACATION,
+      icon: AppImageAssets.functionsVacation,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Motel),
+  OnboardingCategoryModel(
+      name: 'Hostel/\nPG',
+      slugId: HOSTELS_PAYING_GUEST,
+      icon: AppImageAssets.hostelsAndPG,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Motel),
+  OnboardingCategoryModel(
+      name: 'Alternative\nStay',
+      slugId: ALTERNATIVE_STAYS,
+      icon: AppImageAssets.alternativeStays,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Motel),
+  OnboardingCategoryModel(
+      name: 'Celebration\n& Event',
+      slugId: CELEBRATION_EVENT_SERVICES,
+      icon: AppImageAssets.celebrationEvent,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Motel),
+];
+
+final List<OnboardingCategoryModel> businessOnboardingEducationTrainingCategories = [
+  OnboardingCategoryModel(
+      name: 'School\nEducation',
+      slugId: SCHOOL_EDUCATION,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Siksha),
+  OnboardingCategoryModel(
+      name: 'Collage/\nUniversity',
+      slugId: COLLEGE_UNIVERSITY,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Siksha),
+  OnboardingCategoryModel(
+      name: 'Coaching/\nInstitute',
+      slugId: COACHING_EXAM_PREPARATION,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Siksha),
+  OnboardingCategoryModel(
+      name: 'Sports &\nHobby',
+      slugId: CREATIVE_SPORT_HOBBY,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Siksha),
+  OnboardingCategoryModel(
+      name: 'Professional\nLearn',
+      slugId: PROFESSIONAL_SUPPORT_EDUCATION,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Siksha),
+  OnboardingCategoryModel(
+      name: 'Skill\nTraining',
+      slugId: TECHNICAL_SKILL_TRAINING,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Siksha),
+];
+
+final List<OnboardingCategoryModel> businessOnboardingFinancialSectorsCategories = [
+  OnboardingCategoryModel(
+      name: 'Banking\nSector',
+      slugId: BANKING_SECTOR,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Finance),
+  OnboardingCategoryModel(
+      name: 'Loan\nSector',
+      slugId: LOAN_SECTOR,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Finance),
+  OnboardingCategoryModel(
+      name: 'Insurance\nSector',
+      slugId: INSURANCE_SECTOR,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Finance),
+  OnboardingCategoryModel(
+      name: 'Capital\nMarket',
+      slugId: CAPITAL_MARKET,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Finance),
+  OnboardingCategoryModel(
+      name: 'Data\nSector',
+      slugId: DATA_SECTOR,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Finance),
+  OnboardingCategoryModel(
+      name: 'Advisory\nSector',
+      slugId: ADVISORY_SECTOR,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Finance),
 ];
 
 // --- End ---
@@ -3700,7 +3938,7 @@ final List<CollapsibleGridModel> homeMadeItemsCategories = [
 ];
 
 final discoverShownStayCategories = [
-  AppConstants.hotelsAndResort,
+  HOTELS_RESORT,
   AppConstants.property,
   AppConstants.flat,
   AppConstants.vehicle
@@ -3709,7 +3947,7 @@ final discoverShownStayCategories = [
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel & Resort',
-      slugId: AppConstants.hotelsAndResort,
+      slugId: HOTELS_RESORT,
       icon: AppImageAssets.hotelStay,
       accountType: AppConstants.business
   ),
@@ -3721,26 +3959,32 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   ),
   OnboardingCategoryModel(
       name: 'Economy Stay',
-      slugId: AppConstants.economicStays,
-      icon: AppImageAssets.otherRental,
+      slugId: ECONOMIC_STAYS,
+      icon: AppImageAssets.economyStay,
       accountType: AppConstants.business
   ),
   OnboardingCategoryModel(
       name: 'Hostels and Paying Guest',
-      slugId: AppConstants.HostelsAndPayingGuest,
-      icon: AppImageAssets.otherRental,
+      slugId: HOSTELS_PAYING_GUEST,
+      icon: AppImageAssets.hostelsAndPG,
       accountType: AppConstants.business
   ),
   OnboardingCategoryModel(
       name: 'Functions & Vacation',
-      slugId: AppConstants.functionsAndVacation,
-      icon: AppImageAssets.otherRental,
+      slugId: FUNCTIONS_VACATION,
+      icon: AppImageAssets.functionsVacation,
       accountType: AppConstants.business
   ),
   OnboardingCategoryModel(
       name: 'Alternative Stays',
-      slugId: AppConstants.alternativeStays,
-      icon: AppImageAssets.otherRental,
+      slugId: ALTERNATIVE_STAYS,
+      icon: AppImageAssets.alternativeStays,
+      accountType: AppConstants.business
+  ),
+  OnboardingCategoryModel(
+      name: 'Celebration\n& Event',
+      slugId: CELEBRATION_EVENT_SERVICES,
+      icon: AppImageAssets.celebrationEvent,
       accountType: AppConstants.business
   ),
   OnboardingCategoryModel(

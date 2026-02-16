@@ -406,10 +406,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
       return const MedicalScreen(fromBottomNavBar: true);
     }
-    // else if (businessCategoryGlobal ==
-    //     AppConstants.healthcareMedicalServices) {
-    //   return const HospitalMain();
-    // }
     else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
