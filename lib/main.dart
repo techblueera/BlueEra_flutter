@@ -15,6 +15,7 @@ import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
+import 'package:BlueEra/env.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
@@ -78,6 +79,11 @@ Future<void> main() async {
 
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);
+
+  if (kDebugMode) {
+    debugPrintKeys();
+  }
+
   await firebaseInitializeApp();
   await getDeviceInfo();
   // HttpOverrides.global = MyHttpOverrides();
@@ -188,7 +194,22 @@ Future<void> main() async {
   }
 }
 
-
+void debugPrintKeys() {
+  print('--- API KEYS DEBUG ---');
+  print('Selected Base URL: $baseUrl');
+  print('Razorpay Key: $razorpayKey');
+  print('Chat Socket URL: $chatSocketUrl');
+  print('Live Track Socket: $liveTrackSocket');
+  print('Google Map Key: ${Env.googleMapKey}');
+  print('Gemini API Key: ${Env.geminiApiKey}');
+  print('Firebase Project ID: ${Env.projectFireBaseId}');
+  print('Android App ID: ${Env.androidFirebaseAppId}');
+  print('iOS App ID: ${Env.iosFirebaseAppId}');
+  print('Android Firebase Key: ${Env.androidFirebaseAPIKey}');
+  print('iOS Firebase Key: ${Env.iosFirebaseAPIKey}');
+  print('Messaging Sender ID: ${Env.messagingSenderId}');
+  print('----------------------');
+}
 
 late List<CameraDescription> cameras;
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();

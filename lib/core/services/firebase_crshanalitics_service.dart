@@ -1,28 +1,25 @@
 import 'dart:io';
-
-import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/env.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-
-
 
 firebaseInitializeApp() async {
   if (Platform.isAndroid) {
     await Firebase.initializeApp(
         options: FirebaseOptions(
-          apiKey: androidFirebaseAPIKey,
-          appId: firebaseAppId,
-          messagingSenderId: messagingSenderId,
-          projectId: projectFireBaseId,
+          apiKey: Env.androidFirebaseAPIKey,
+          appId: Env.androidFirebaseAppId,
+          messagingSenderId: Env.messagingSenderId,
+          projectId: Env.projectFireBaseId,
         ));
   } else if (Platform.isIOS) {
     await Firebase.initializeApp(
         options: FirebaseOptions(
-            apiKey: iosFirebaseAPIKey,
-            appId: firebaseAppId,
-            messagingSenderId: messagingSenderId,
-            projectId: projectFireBaseId));
+            apiKey: Env.iosFirebaseAPIKey,
+            appId: Env.iosFirebaseAppId,
+            messagingSenderId: Env.messagingSenderId,
+            projectId: Env.projectFireBaseId));
   } else {
     await Firebase.initializeApp();
   }

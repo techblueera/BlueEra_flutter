@@ -192,6 +192,7 @@ class AppImageAssets {
   static String find_real_estate_img = "${imgPath}find_real_estate_img.png";
   static String find_quality_img = "${imgPath}find_quality_img.png";
   static String find_consulting_img = "${imgPath}find_consulting_img.png";
+  static String locationMarkerIcon = "${imgPath}location_marker_icon.png";
 
 }
 

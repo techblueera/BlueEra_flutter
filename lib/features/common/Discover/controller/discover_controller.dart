@@ -55,11 +55,6 @@ class DiscoverController extends GetxController {
   Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
 
   final ScrollController scrollController = ScrollController();
-  final GlobalKey headerKey = GlobalKey();
-  Function(bool isVisible)? onHeaderVisibilityChanged;
-  final RxBool isHeaderVisible = true.obs;
-  final RxDouble headerOffset = 0.0.obs;
-  double headerHeight = 0;
   Rx<LatLng>? currentAddress= LatLng(0.0,0.0).obs;
 
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;

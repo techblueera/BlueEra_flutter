@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/env.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -360,12 +361,10 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
 
     try {
 
-      if(geminiApiKey==null) return "";
-
       // Initialize the Flash model (Fast & supports Audio)
       final model = GenerativeModel(
         model: 'gemini-2.0-flash',
-        apiKey: geminiApiKey!,
+        apiKey: Env.geminiApiKey,
       );
 
       // ---------------------------------------------------------

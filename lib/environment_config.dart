@@ -2,24 +2,11 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/env.dart';
 
-String? baseUrl, razorpayKey,  chatSocketUrl,liveTrackSocket, geminiApiKey;
+String? baseUrl, razorpayKey,  chatSocketUrl, liveTrackSocket;
 bool isProdEnvironment = false;
 String blueEraPostLink = "BlueEraPostLink";
-
-///THIS RECORD IS SAME FOR ANDROID AND IOS...
-String firebaseAppId = Platform.isAndroid
-    ? "1:725685070061:android:877400b3bc1273c4ae04e4"
-    : Platform.isIOS
-        ? "1:725685070061:ios:fd35fe5627c25861ae04e4"
-        : "";
-String messagingSenderId = "725685070061";
-String projectFireBaseId = "blueera-50c05";
-String androidFirebaseAPIKey = "AIzaSyCnwQv2WIfK4YsVBGMNpyVZyveBHOw1Z0A";
-String iosFirebaseAPIKey = "AIzaSyAgLweZj0Brbx2WkGcLTbU-LFYPD3AqGcc";
-
-///New Key
-String googleMapKey = "AIzaSyDdU2Ji6dCQ4Hq0TbLHILxMsdR-M27Ie2g";
 
 String googleAutocomplete =
     "https://maps.googleapis.com/maps/api/place/autocomplete/json";
@@ -28,8 +15,6 @@ String googlePlaceId =
 String googleGeoCode =
     "https://maps.googleapis.com/maps/api/geocode/json";
 String googleCountryCode = "&language=en&components=country:IN";
-
-
 
 String takeFranchise ="https://bluecs.in/partner";
 String privacyLink =
@@ -40,25 +25,30 @@ String tncLink =
 Future<void> projectKeys({required String environmentType}) async {
   if (environmentType == AppConstants.prod) {
     isProdEnvironment = true;
-    baseUrl = "https://be.blueera.ai/api/";
-    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
-    // razorpayKey = "rzp_live_RYv0tzupV710iQ";
-    chatSocketUrl = 'wss://chat.blueera.ai';
-    liveTrackSocket = 'https://map.blueera.ai/';
-    geminiApiKey = "AIzaSyCfxq52QNGgnq9d37tztS9VxS6EBjPE2ls";
+    baseUrl = Env.prodBaseUrl;
+    razorpayKey = Env.prodRazorPayKey;
+    chatSocketUrl = Env.chatSocketUrl;
+    liveTrackSocket = Env.liveTrackSocket;
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
-    baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
-    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
-    // razorpayKey = "rzp_live_RYv0tzupV710iQ";
-    chatSocketUrl = 'wss://chat.blueera.ai';
-    liveTrackSocket = 'https://map.blueera.ai/';
+    baseUrl = Env.devBaseUrl;
+    razorpayKey = Env.devRazorPayKey;
+    chatSocketUrl = Env.chatSocketUrl;
+    liveTrackSocket = Env.liveTrackSocket;
   } else if (environmentType == AppConstants.qa) {
     isProdEnvironment = false;
-    baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
-    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
+    baseUrl = Env.devBaseUrl;
+    razorpayKey = Env.devRazorPayKey;
+    chatSocketUrl = Env.chatSocketUrl;
+    liveTrackSocket = Env.liveTrackSocket;
     // razorpayKey = "rzp_live_RYv0tzupV710iQ";
   }
+
+  // print('--- 📊 Environment Assignment Results ---');
+  // print('Base URL: ${baseUrl ?? "❌ NULL"}');
+  // print('Razorpay Key: ${razorpayKey ?? "❌ NULL"}');
+  // print('Chat Socket: ${chatSocketUrl ?? "❌ NULL"}');
+  // print('Live Track Socket: ${liveTrackSocket ?? "❌ NULL"}');
 
   await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
 }
