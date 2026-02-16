@@ -1,21 +1,16 @@
 import 'dart:math';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart'
+    hide Timings;
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -23,165 +18,156 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ProfessionalsHomeScreen extends StatelessWidget {
-  ProfessionalsHomeScreen({super.key});
+class DiscoverProfessionalsViewScreen extends StatelessWidget {
+  final ProfessionalConsData professionalConsData;
 
-  final viewProfileController =
-      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-
-  final controller = Get.find<AiProfessionalsController>();
-  final personalCreateProfileController =
-      getOrPut(() => PersonalCreateProfileController());
+  DiscoverProfessionalsViewScreen(
+      {super.key, required this.professionalConsData});
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.appBackgroundColor,
-      child: Obx(() {
-        final data = controller.getProfessionalServiceRes?.value.data;
-        if (data == null) {
-          return const Center(child: CustomText("No Profile Data Found"));
-        }
-        final images = _extractPortfolioMedia(data, type: "image");
+    final data = professionalConsData;
+    final images = _extractPortfolioMedia(data, type: "image");
 
-        return Padding(
-          padding: EdgeInsets.all(SizeConfig.paddingXS),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ///FOOD HOTEL....
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 0,
-                  child: _buildHeaderSection(context),
-                ),
-                SizedBox(height: SizeConfig.size20),
+    return Scaffold(
+      backgroundColor: AppColors.appBackgroundColor,
+      appBar: CommonBackAppBar(
+        title: data.basicDetails?.professionalTitle,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(SizeConfig.paddingXS),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ///FOOD HOTEL....
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 0,
+                child: _buildHeaderSection(context),
+              ),
+              SizedBox(height: SizeConfig.size20),
 
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 10.0, bottom: 10, right: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle("Our Services"),
-                        _buildServicesFromAbout(data),
-                      ],
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: SizeConfig.size20),
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 0,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(left: 0.0, bottom: 10, right: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (images.isNotEmpty)
-                          Padding(
-                              padding: const EdgeInsets.only(
-                                left: 10.0,
-                              ),
-                              child: _buildSectionTitle("Project Images")),
-                        if (data.portfolio?.isNotEmpty ?? false)
-                          _buildProjectHorizontal(data),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size20),
-
-                // SizedBox(height: SizeConfig.size20),
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 10,
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 0,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(left: 10.0, bottom: 10, right: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if ((data.certificates ?? []).isNotEmpty)
-                        _buildSectionTitle("Certificate & Awards"),
-                      if ((data.certificates ?? []).isNotEmpty)
-                        _buildCertificates(data.certificates!),
+                      _buildSectionTitle("Our Services"),
+                      _buildServicesFromAbout(data),
                     ],
                   ),
                 ),
+              ),
 
-                SizedBox(height: SizeConfig.size20),
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 10,
+              SizedBox(height: SizeConfig.size20),
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 0,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(left: 0.0, bottom: 10, right: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
                     children: [
-                      if ((data.gallery?.signedUrls ?? []).isNotEmpty)
-                        _buildSectionTitle("Gallery"),
-                      if ((data.gallery?.signedUrls ?? []).isNotEmpty)
-                        _buildGallery(data.gallery?.signedUrls ?? [], context),
+                      if (images.isNotEmpty)
+                        Padding(
+                            padding: const EdgeInsets.only(
+                              left: 10.0,
+                            ),
+                            child: _buildSectionTitle("Project Images")),
+                      if (data.portfolio?.isNotEmpty ?? false)
+                        _buildProjectHorizontal(data),
                     ],
                   ),
                 ),
-                SizedBox(height: SizeConfig.size20),
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 10,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              SizedBox(height: SizeConfig.size20),
 
-                    children: [
-                      _buildSectionTitle("Contact Us"),
-                      _buildContact(data),
-                    ],
-                  ),
+              // SizedBox(height: SizeConfig.size20),
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ((data.certificates ?? []).isNotEmpty)
+                      _buildSectionTitle("Certificate & Awards"),
+                    if ((data.certificates ?? []).isNotEmpty)
+                      _buildCertificates(data.certificates!),
+                  ],
                 ),
-                SizedBox(height: SizeConfig.size12),
-                // const SizedBox(height: 20),
-                // Map Placeholder
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: BusinessLocationWidget(
-                      locationText: data.basicDetails?.fullName,
-                      latitude: double.parse(
-                          data.contact?.location?.coordinates?[0].toString() ?? "0.0"),
-                      longitude: double.parse(
-                          data.contact?.location?.coordinates?[1].toString() ?? "0.0"),
-                      businessName: "",
-                      padding: 10,
-                      isTitleShow: true),
-                ),
-                SizedBox(height: SizeConfig.size12),
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 10,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
 
-                    children: [
-                      _buildSectionTitle("Working Hours"),
-                      _buildTimings(data.timings),
-
-                    ],
-                  ),
+              SizedBox(height: SizeConfig.size20),
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ((data.gallery?.signedUrls ?? []).isNotEmpty)
+                      _buildSectionTitle("Gallery"),
+                    if ((data.gallery?.signedUrls ?? []).isNotEmpty)
+                      _buildGallery(data.gallery?.signedUrls ?? [], context),
+                  ],
                 ),
-                SizedBox(height: SizeConfig.size100),
-              ],
-            ),
+              ),
+              SizedBox(height: SizeConfig.size20),
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle("Contact Us"),
+                    _buildContact(data),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              // const SizedBox(height: 20),
+              // Map Placeholder
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: BusinessLocationWidget(
+                    locationText: data.basicDetails?.fullName,
+                    latitude: double.parse(
+                        data.contact?.location?.coordinates?[0].toString() ??
+                            "0.0"),
+                    longitude: double.parse(
+                        data.contact?.location?.coordinates?[1].toString() ??
+                            "0.0"),
+                    businessName: "",
+                    padding: 10,
+                    isTitleShow: true),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              CommonCardWidget(
+                cardMargin: 0,
+                padding: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle("Working Hours"),
+                    _buildTimings(data.timings),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.size100),
+            ],
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 
@@ -190,7 +176,8 @@ class ProfessionalsHomeScreen extends StatelessWidget {
       if (text.isEmpty) return '';
       return text[0].toUpperCase() + text.substring(1).toLowerCase();
     }
-
+    final banner = professionalConsData.basicDetails?.profilePhotoUrl ??
+        '';
     return CustomFormCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -218,27 +205,20 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                         end: Alignment.bottomCenter,
                       ),
                     ),
-                    child: Obx(() {
-                      final banner = personalCreateProfileController
-                              .coverImagePath?.value ??
-                          '';
-                      return banner.isNotEmpty
-                          ? Image.network(banner, fit: BoxFit.cover)
-                          : CachedNetworkImage(
-                              imageUrl: personalCreateProfileController
-                                      .imagePath?.value ??
-                                  '',
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                width: SizeConfig.size32,
-                                height: SizeConfig.size32,
-                                color: Colors.grey[300],
-                              ),
-                              errorWidget: (context, url, error) => Icon(
-                                  Icons.person,
-                                  size: SizeConfig.size32 / 2),
-                            );
-                    }),
+                    child: banner.isNotEmpty
+                        ? Image.network(banner, fit: BoxFit.cover)
+                        : CachedNetworkImage(
+                      imageUrl: banner,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: SizeConfig.size32,
+                        height: SizeConfig.size32,
+                        color: Colors.grey[300],
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                          Icons.person,
+                          size: SizeConfig.size32 / 2),
+                    ),
                   ),
                 ),
 
@@ -246,64 +226,17 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                 Positioned(
                   left: 20,
                   top: 90,
-                  child: Obx(() {
-                    return CommonProfileImage(
-                      imagePath:
-                          personalCreateProfileController.imagePath?.value ??
-                              "",
-                      onImageUpdate: (image) async {
-                        personalCreateProfileController.imagePath?.value =
-                            image;
-                        dynamic dataImage =
-                            await multiPartImage(imagePath: image);
-                        var reqProfile = {ApiKeys.profile_image: dataImage};
-                        await personalCreateProfileController
-                            .updateUserProfileDetails(
-                                params: reqProfile, isFromProfileOnly: true);
-                      },
-                      dialogTitle: AppStrings.uploadProfilePicture,
-                      //radius: 36,
-                      showProfileBorder: true,
-                    );
-                  }),
+                  child: CommonProfileImage(
+                    imagePath:
+                    banner ??
+                        "",
+                    onImageUpdate: (image) async {},
+                    dialogTitle: AppStrings.uploadProfilePicture,
+                    //radius: 36,
+                    showProfileBorder: true,
+                    isOwnProfile: false,
+                  ),
                 ),
-
-                // Edit + Share buttons
-                Positioned(
-                    right: 10,
-                    top: 8,
-                    child: InkWell(
-                        onTap: () async {
-                          final String? newPath =
-                              await SelectProfilePictureDialog.showLogoDialog(
-                                  context, AppStrings.editCoverPicture,
-                                  cropAspectRatio:
-                                      CropAspectRatio(width: 3, height: 1)
-                                  // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
-                                  );
-
-                          if (newPath == null || newPath.isEmpty) {
-                            return;
-                          }
-
-                          dynamic dataImage =
-                              await multiPartImage(imagePath: newPath);
-                          var reqProfile = {ApiKeys.coverpicture: dataImage};
-                          await personalCreateProfileController
-                              .updateUserProfileDetails(
-                                  params: reqProfile, isFromProfileOnly: true);
-                          // personalCreateProfileController.imagePath?.value = image;
-                          // dynamic dataImage = await multiPartImage(imagePath: image);
-                          // var reqProfile = {ApiKeys.profile_image: dataImage};
-                          // await personalCreateProfileController.updateUserProfileDetails(
-                          //     params: reqProfile, isFromProfileOnly: true);
-                        },
-                        child: CircleAvatar(
-                          backgroundColor:
-                              AppColors.black.withValues(alpha: 0.3),
-                          child: LocalAssets(
-                              imagePath: 'assets/diwali_card/image.png'),
-                        )))
               ],
             ),
           ),
@@ -317,8 +250,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               children: [
                 CustomText(
                   _capitalizeFirstLetter(
-                    viewProfileController
-                            .personalProfileDetails.value.user?.name ??
+                    professionalConsData.basicDetails?.fullName ??
                         '',
                   ),
                   fontSize: SizeConfig.size24,
@@ -330,14 +262,12 @@ class ProfessionalsHomeScreen extends StatelessWidget {
           ),
 
           // === Bio Section ===
-          viewProfileController
-                      .personalProfileDetails.value.user?.bio?.isNotEmpty ??
+        professionalConsData.about?.description?.isNotEmpty ??
                   false
               ? Padding(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                   child: ExpandableText(
-                    text: viewProfileController
-                            .personalProfileDetails.value.user?.bio ??
+                    text: professionalConsData.about?.description ??
                         "",
                     trimLines: 3,
                     style: TextStyle(
@@ -354,19 +284,11 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   ),
                 )
               : SizedBox(),
-
-          //
-          //
-          //
           const SizedBox(height: 12),
         ],
       ),
     );
   }
-
-
-
-
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -379,7 +301,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServicesFromAbout(ProfessionalProfileData data) {
+  Widget _buildServicesFromAbout(ProfessionalConsData data) {
     final desc =
         data.about?.majorProjectsDescription ?? data.about?.description ?? "";
     if (desc.isEmpty) return const SizedBox();
@@ -398,7 +320,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     );
   }
 
-  List<String> _extractPortfolioMedia(ProfessionalProfileData data,
+  List<String> _extractPortfolioMedia(ProfessionalConsData data,
       {required String type}) {
     final list = <String>[];
     for (final p in data.portfolio ?? []) {
@@ -411,7 +333,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     return list;
   }
 
-  Widget _buildProjectHorizontal(ProfessionalProfileData data) {
+  Widget _buildProjectHorizontal(ProfessionalConsData data) {
     return SizedBox(
       height: 160,
       child: ListView.builder(
@@ -430,7 +352,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildCertificates(List<Certificates> certs) {
     final items = certs;
@@ -582,7 +503,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContact(ProfessionalProfileData data) {
+  Widget _buildContact(ProfessionalConsData data) {
     final contact = data.contact;
     return Container(
       padding: EdgeInsets.all(SizeConfig.size12),
@@ -603,7 +524,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
           if ((contact?.address ?? "").isNotEmpty)
             _contactRow(AppIconAssets.location_new, contact!.address!,
                 color: AppColors.secondaryTextColor),
-
         ],
       ),
     );

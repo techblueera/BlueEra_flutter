@@ -11,7 +11,7 @@ class LabProfileListItem {
   final String description;
   final String coverUrl;
   final String logoUrl;
-  final Data? fullDetails;
+  final LabDetailsData? fullDetails;
 
   LabProfileListItem({
     required this.id,
@@ -25,7 +25,7 @@ class LabProfileListItem {
   factory LabProfileListItem.fromJson(Map<String, dynamic> json) {
     if (json.containsKey('profile')) {
       final profile = json['profile'] ?? {};
-      final data = Data.fromJson({
+      final data = LabDetailsData.fromJson({
         'profile': json['profile'],
         'tests': json['tests'] ?? [],
         'contactInfo': json['contactInfo'],

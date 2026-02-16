@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+
 ProfessionalProfileResModel professionalProfileResModelFromJson(String str) =>
     ProfessionalProfileResModel.fromJson(json.decode(str));
 
@@ -302,6 +304,7 @@ class MediaKeys {
   }
 }
 
+/*
 Certificates certificatesFromJson(String str) =>
     Certificates.fromJson(json.decode(str));
 
@@ -368,6 +371,7 @@ class Certificates {
     return map;
   }
 }
+*/
 
 Contact contactFromJson(String str) => Contact.fromJson(json.decode(str));
 

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -230,34 +231,6 @@ class _AllProfessionConsultantScreenState
   }
 
   Widget selfProfessionCard(ProfessionalConsData service) {
-    // Timings
-
-/*
-    Map<String, String> getMinMaxTimings(List<Timings>? timingsList) {
-      if (timingsList == null || timingsList.isEmpty)
-        return {"start": "--", "end": "--"};
-
-      Timings? earliest = timingsList.first;
-      Timings? latest = timingsList.first;
-
-      for (final t in timingsList) {
-        final startTime = parse12HourTime(t.schedule.monday.start ?? "00:00 AM");
-        final earliestStart = parse12HourTime(earliest?.start ?? "00:00 AM");
-        if (startTime.isBefore(earliestStart)) earliest = t;
-
-        final endTime = parse12HourTime(t.end ?? "00:00 AM");
-        final latestEnd = parse12HourTime(latest?.end ?? "00:00 AM");
-        if (endTime.isAfter(latestEnd)) latest = t;
-      }
-
-      return {
-        "start": earliest?.start ?? "--",
-        "end": latest?.end ?? "--",
-      };
-    }
-*/
-
-    // final timingMap = getMinMaxTimings(service.service?.timings);
 
     // Price
     final priceData = service.pricing?.amount;
@@ -276,14 +249,16 @@ class _AllProfessionConsultantScreenState
     String badgeText = service.pricing?.type.toString().capitalizeFirst ?? '';
 
     return InkWell(
-      // onTap: null,
-      onTap: () => showFullProfessionDetails(
-        service,
-        // timingMap: timingMap,
-        priceDisplay: priceDisplay,
-        priceBadgeText: badgeText,
-        priceBadgeColor: badgeColor,
-      ),
+      onTap: (){
+        Get.to(DiscoverProfessionalsViewScreen(professionalConsData:service ,));
+      },
+      // onTap: () => showFullProfessionDetails(
+      //   service,
+      //   // timingMap: timingMap,
+      //   priceDisplay: priceDisplay,
+      //   priceBadgeText: badgeText,
+      //   priceBadgeColor: badgeColor,
+      // ),
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: EdgeInsets.only(bottom: SizeConfig.size10),

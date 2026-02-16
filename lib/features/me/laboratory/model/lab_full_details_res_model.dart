@@ -8,10 +8,10 @@ class LabFullDetailsResModel {
 
   LabFullDetailsResModel.fromJson(dynamic json) {
     success = json['success'];
-    data = json['data'] != null ? Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? LabDetailsData.fromJson(json['data']) : null;
   }
   bool? success;
-  Data? data;
+  LabDetailsData? data;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -24,10 +24,10 @@ class LabFullDetailsResModel {
 
 }
 
-Data dataFromJson(String str) => Data.fromJson(json.decode(str));
-String dataToJson(Data data) => json.encode(data.toJson());
-class Data {
-  Data({
+LabDetailsData dataFromJson(String str) => LabDetailsData.fromJson(json.decode(str));
+String dataToJson(LabDetailsData data) => json.encode(data.toJson());
+class LabDetailsData {
+  LabDetailsData({
       this.profile, 
       this.tests, 
       this.contactInfo, 
@@ -35,7 +35,7 @@ class Data {
       this.healthCamps, 
       this.facility,});
 
-  Data.fromJson(dynamic json) {
+  LabDetailsData.fromJson(dynamic json) {
     profile = json['profile'] != null ? Profile.fromJson(json['profile']) : null;
     if (json['tests'] != null) {
       tests = [];

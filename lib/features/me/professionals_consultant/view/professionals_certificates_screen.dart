@@ -128,7 +128,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                     // 1. Background Image
                     Positioned.fill(
                       child: CachedNetworkImage(
-                        imageUrl: cert.fileUrl ?? "",
+                        imageUrl: cert.fileKey ?? "",
                         fit: BoxFit.cover,
                         placeholder: (context, url) =>
                             Container(color: Colors.grey[300]),

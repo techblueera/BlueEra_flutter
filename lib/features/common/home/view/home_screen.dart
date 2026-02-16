@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppIconAssets.message_post,
     AppIconAssets.community_tab,
     AppIconAssets.ott_tab,
-    AppIconAssets.save_tab,
+    // AppIconAssets.save_tab,
   ];
   final List<String> postTab = [
     // AppStrings.allPosts,
@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // AppStrings.channel,
     "Community",
     AppStrings.tab_ott,
-    AppStrings.tab_saved,
+    // AppStrings.tab_saved,
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
@@ -278,14 +278,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               onHeaderVisibilityChanged:
                                   _toggleAppBarAndBottomNav,
                             ),
-                            // if (selectedIndex == 3)
-                            SavedFeedScreen(
-                                onHeaderVisibilityChanged:
-                                    _toggleAppBarAndBottomNav,
-                                query: searchController.text,
-                                selectedTab: _selectedSavedTab,
-                                headerHeight:
-                                    _headerHeight + SizeConfig.size30),
+                            // // if (selectedIndex == 3)
+                            // SavedFeedScreen(
+                            //     onHeaderVisibilityChanged:
+                            //         _toggleAppBarAndBottomNav,
+                            //     query: searchController.text,
+                            //     selectedTab: _selectedSavedTab,
+                            //     headerHeight:
+                            //         _headerHeight + SizeConfig.size30),
                           ]
                         : [
                             // if (selectedIndex == 0)
@@ -313,13 +313,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _toggleAppBarAndBottomNav,
                             ),
                             // if (selectedIndex == 3)
-                            SavedFeedScreen(
-                                onHeaderVisibilityChanged:
-                                    _toggleAppBarAndBottomNav,
-                                query: searchController.text,
-                                selectedTab: _selectedSavedTab,
-                                headerHeight:
-                                    _headerHeight + SizeConfig.size30),
+                            // SavedFeedScreen(
+                            //     onHeaderVisibilityChanged:
+                            //         _toggleAppBarAndBottomNav,
+                            //     query: searchController.text,
+                            //     selectedTab: _selectedSavedTab,
+                            //     headerHeight:
+                            //         _headerHeight + SizeConfig.size30),
                           ],
                   ),
                 ),

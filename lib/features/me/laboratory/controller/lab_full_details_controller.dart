@@ -14,7 +14,7 @@ class LabFullDetailsController extends GetxController {
   final LabProfileRepo _repoProfile = LabProfileRepo();
 
   var isLoading = false.obs;
-  Rxn<Data> details = Rxn<Data>();
+  Rxn<LabDetailsData> details = Rxn<LabDetailsData>();
 
   @override
   void onInit() {

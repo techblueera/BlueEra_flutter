@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/discover_lab_view_screen.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profiles_list_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -103,7 +104,10 @@ class _LabCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: InkWell(
-        onTap: () => _openDetailsSheet(context, item),
+        // onTap: () => _openDetailsSheet(context, item),
+        onTap: () {
+          Get.to(DiscoverLabViewScreen(detailsData: item,));
+        },
         child: CommonCardWidget(
           cardMargin: 0,
           child: Row(

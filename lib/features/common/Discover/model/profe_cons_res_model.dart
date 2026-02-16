@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 ProfessionalConsResModel profeConsResModelFromJson(String str) => ProfessionalConsResModel.fromJson(json.decode(str));
 String profeConsResModelToJson(ProfessionalConsResModel data) => json.encode(data.toJson());
 class ProfessionalConsResModel {
@@ -107,7 +109,7 @@ class ProfessionalConsData {
     if (json['portfolio'] != null) {
       portfolio = [];
       json['portfolio'].forEach((v) {
-        portfolio?.add(Portfolio.fromJson(v));
+        portfolio?.add(ProfessionalPortfolio.fromJson(v));
       });
     }
   }
@@ -126,7 +128,7 @@ class ProfessionalConsData {
   Timings? timings;
   Contact? contact;
   List<Certificates>? certificates;
-  List<Portfolio>? portfolio;
+  List<ProfessionalPortfolio>? portfolio;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -315,7 +317,7 @@ class Certificates {
     documentType = json['documentType'];
     issuedBy = json['issuedBy'];
     issueDate = json['issueDate'];
-    fileKey = json['fileKey'];
+    fileKey = json['fileUrl'];
     description = json['description'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
@@ -341,7 +343,7 @@ class Certificates {
     map['documentType'] = documentType;
     map['issuedBy'] = issuedBy;
     map['issueDate'] = issueDate;
-    map['fileKey'] = fileKey;
+    map['fileUrl'] = fileKey;
     map['description'] = description;
     map['createdAt'] = createdAt;
     map['updatedAt'] = updatedAt;
@@ -434,7 +436,7 @@ class Location {
   }
 
 }
-
+/*
 Timings timingsFromJson(String str) => Timings.fromJson(json.decode(str));
 String timingsToJson(Timings data) => json.encode(data.toJson());
 class Timings {
@@ -474,7 +476,7 @@ class Timings {
     return map;
   }
 
-}
+}*/
 
 Schedule scheduleFromJson(String str) => Schedule.fromJson(json.decode(str));
 String scheduleToJson(Schedule data) => json.encode(data.toJson());
