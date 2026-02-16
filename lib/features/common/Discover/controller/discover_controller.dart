@@ -47,20 +47,19 @@ enum DiscoverFilter {
 }
 
 class DiscoverController extends GetxController {
-
   var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
 
   var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;
   var rentalServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
-
+  Set<Marker> markers = {};
   final ScrollController scrollController = ScrollController();
   final GlobalKey headerKey = GlobalKey();
   Function(bool isVisible)? onHeaderVisibilityChanged;
   final RxBool isHeaderVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
   double headerHeight = 0;
-  Rx<LatLng>? currentAddress= LatLng(0.0,0.0).obs;
+  Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
 
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
@@ -100,6 +99,9 @@ class DiscoverController extends GetxController {
   RxDouble? selectedToLong = 0.0.obs;
   RxString? selectedFromAddress = "".obs;
   RxString? selectedToAddress = "".obs;
+  RxString selectedRideType = AppConstants.oneWay.obs;
+  RxString selectedBookingFor = AppConstants.mySelf.obs;
+  final myFriendPhoneController = TextEditingController();
 
   /// Rental Services && Hotel Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
@@ -114,6 +116,7 @@ class DiscoverController extends GetxController {
       Rxn<OnboardingCategoryModel>();
 
   var selectedRoomType = "".obs;
+
   List<String> getDynamicRoomTypes(HotelServiceData hotelData) {
     final rooms = hotelData.rooms ?? [];
 
@@ -354,11 +357,9 @@ class DiscoverController extends GetxController {
       hasMoreProfConServiceData = true;
     }
 
-
     final Map<String, dynamic> queryParams = {
       if (selectedProfessionalConsultantData.value?.slugId != null)
         "profession": selectedProfessionalConsultantData.value?.slugId,
-
       ApiKeys.page: profConsServicePage,
       ApiKeys.limit: limit,
     };
@@ -369,8 +370,8 @@ class DiscoverController extends GetxController {
     try {
       if (response.isSuccess) {
         profConProfessionServiceResponse.value = ApiResponse.complete(response);
-          final responseModel =
-              ProfessionalConsResModel.fromJson(response.response?.data);
+        final responseModel =
+            ProfessionalConsResModel.fromJson(response.response?.data);
 
         List<ProfessionalConsData> tempNewItems = responseModel.data ?? [];
         if (tempNewItems.length < limit) {
@@ -547,6 +548,19 @@ class DiscoverController extends GetxController {
       ApiKeys.receiverUserId: "${selectedRider.value.riderId}",
       ApiKeys.orderFor: "${getTabName(selectedHorizontalTab.value)}",
       ApiKeys.modeOfPayment: "prepaid",
+      if (selectedHorizontalTab.value == 1)
+        ApiKeys.tripType: selectedRideType.value == AppConstants.oneWay
+            ? "oneWay"
+            : selectedRideType.value == AppConstants.roundTrip
+                ? "roundTrip"
+                : "sharing",
+      if (selectedHorizontalTab.value == 1)
+        ApiKeys.orderForWhom: selectedBookingFor.value == AppConstants.mySelf
+            ? "myself"
+            : "someoneElse",
+      if (selectedHorizontalTab.value == 1)
+        if (selectedBookingFor.value == AppConstants.myFriend)
+          ApiKeys.contactNo: myFriendPhoneController.text,
       ApiKeys.fare: ridersDetailsList.value.twoWheelerRider?.fare
     };
 
@@ -581,9 +595,6 @@ class DiscoverController extends GetxController {
         rentalServicePage = 1;
         hasMoreRentalServiceData = true;
       }
-
-      double lat = LocationService.lat;
-      double lng = LocationService.lng;
 
       Map<String, dynamic> queryParams = {
         ApiKeys.type: rentalServiceType.apiValue,
@@ -640,9 +651,7 @@ class DiscoverController extends GetxController {
   }
 
   Future<void> fetchHotelServices(
-      {
-        required String category,
-        bool isLoadMore = false}) async {
+      {required String category, bool isLoadMore = false}) async {
     try {
       if (isLoadMore) {
         log('more rental data -- $hasMoreRentalServiceData');
@@ -657,8 +666,6 @@ class DiscoverController extends GetxController {
         hasMoreRentalServiceData = true;
       }
 
-      double lat = LocationService.lat;
-      double lng = LocationService.lng;
       String city = LocationService.userCurrentAddress.value.city;
       // String state = LocationService.userCurrentAddress.value.state;
       // String pinCode = LocationService.userCurrentAddress.value.postalCode;
@@ -682,7 +689,8 @@ class DiscoverController extends GetxController {
       if (response.isSuccess) {
         rentalServiceResponse.value = ApiResponse.complete(response);
 
-        final responseModel = HotelSearchModelResponse.fromJson(response.response!.data);
+        final responseModel =
+            HotelSearchModelResponse.fromJson(response.response!.data);
 
         final List<HotelServiceData> tempNewItems = responseModel.data ?? [];
 
