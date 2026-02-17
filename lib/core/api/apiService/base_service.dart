@@ -598,7 +598,6 @@ abstract class BaseService {
   final String campusLifeCategories = 'education-service/campus-life-categories';
   final String campusLife = 'education-service/campus-life';
   final String hotelServiceCategory = 'hotel-service/api/categories/nested';
-  final String fetchHospitalFromAi = 'ai-service/api/ai-hospital/fetch-details';
   String groceryAcceptOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/accept';
   String groceryRejectOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/reject';
   String enableHotelServiceStatus(String categoryId) =>  'health-service/api/hp/categories/$categoryId/status';
@@ -607,10 +606,7 @@ abstract class BaseService {
   final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
   final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
   final String createGroceryOrderConvoApi = 'chat-service/grocery-order/send-message';
-  // final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
-  // final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
   final String schoolUserID = 'education-service/schools/';
-  final String saveHospitalAiDetails = 'health-service/api/hp/businesses/ai-hospital/offerings/save';
   final String myGroceryOrders = 'rider-service/grocery/orders/business';
   final String groceryOrderItemAvailability = 'rider-service/grocery/orders/item-availability';
   final String groceryOrderAvailableItem = 'rider-service/grocery/orders/available-items';
@@ -619,31 +615,8 @@ abstract class BaseService {
   final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
   final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
   final String foodAiGenerate = 'ai-service/api/ai-food/generate';
-  final String createBusinessPostApi = 'health-service/api/hp/businesses';
-  final String fetchHospitalDetails = 'health-service/api/hp/businesses/ai-hospital/fetch-details';
-  final String fetchHospitalMainCate = 'health-service/api/hp/departments/main';
-  final String addHospitalDepartment = 'health-service/api/hp/departments';
-  String fetchHospitalSubCate(String id) =>  'health-service/api/hp/departments/${id}/with-children';
   final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
-  final String getEmergencyCriticalCare = 'health-service/api/hp/emergency-services';
-  final String getOtherFacility = 'health-service/api/hp/facilities';
-  final String addDoctorsApi = 'health-service/api/hp/doctors';
-  final String addCoverImage = 'health-service/api/hp/about-us/images/cover';
-  final String addLogoImage = 'health-service/api/hp/about-us/images/logo';
-  final String getHospitalWards = 'health-service/api/hp/wards';
-   String editHospitalWards(String id) => 'health-service/api/hp/wards/$id';
-  final String addBuildGallery = 'health-service/api/hp/about-us/images/gallery/bulk';
   final String healthAndServiceImageUpload = 'health-service/api/upload/init';
-  String  updateDoctorsFees(String id) => 'health-service/api/hp/doctors/$id';
-  String fetchDoctorsByDepartment(String id) => 'health-service/api/hp/doctors/department/$id';
-  String updateDoctorsLeave(String id) => 'health-service/api/hp/doctors/$id/leave';
-  String deleteDoctorApi(String id) => 'health-service/api/hp/doctors/$id';
-  String fetchBedsByDepartment(String id) => 'health-service/api/hp/beds/ward/$id';
-  String editBedDetails(String id) => 'health-service/api/hp/beds/$id';
-  String deleteBedDetails(String id) => 'health-service/api/hp/beds/$id';
-  final String addBedsApi = 'health-service/api/hp/beds';
-  final String addHospitalContactUs = 'health-service/api/hp/contact';
-  final String addAboutUsDetails = 'health-service/api/hp/about-us';
   String getBusinessSubCategory(String tagId) => 'user-service/business/by-tag/$tagId/subcategories';
   String getIndividualFields(String tagId) => 'user-service/individual-professions/$tagId/designation';
   String getBusinessCategoryByType(String type) => 'user-service/business/by-type/$type';
@@ -662,7 +635,6 @@ abstract class BaseService {
   final String hotelSearch = 'hotel-service/api/hotels/Search';
   final String foodCategory = 'food-service/api/categories';
   final String foodProduct= 'food-service/api/foodProduct';
-  final String getHospitalHomeDetails= 'health-service/api/hp/about-us/home';
   final String generateAIDescription= 'ai-service/api/ai-description/generate-description';
   final String foodServiceProduct= 'food-service/api/foodProduct?page=1&limit=10&';
   final String createAboutOrganisation = "other-service/about-organisation";
@@ -744,5 +716,14 @@ abstract class BaseService {
   final String  getBdm= 'wallet-service/bdm';
   final String  saveNewReferralCode= 'wallet-service/referral/save';
   final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
+  ///HOSPITAL NEW...
+  final String  aiCreateHospital= 'hospital-service/ai/create-hospital';
+  final String  userSelfHospital= 'hospital-service/hospitals/user/hospitals';
+  final String  createAISearch= 'ai-service/api/ai-hospital/fetch-details';
+  final String hospitalVisionMissionBase = 'hospital-service/vision-mission';
+  final String hospitalVisionMissionByHospital= 'hospital-service/vision-mission/hospital/$hospitalIDGlobal';
+  String hospitalVisionMissionById(String id) => 'hospital-service/vision-mission/$id';
+  final String hospitalHistoryBase = 'hospital-service/history';
+  String hospitalHistoryById(String id) => 'hospital-service/history/$id';
 
 }

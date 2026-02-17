@@ -647,4 +647,10 @@ class AppIconAssets {
   static const String ott_tab = "${iconPath}ott_tab.svg";
   static const String save_tab = "${iconPath}save_tab.svg";
   static const String drawer_more = "${iconPath}drawer_more.svg";
+  static const String diag_dept = "${iconPath}diag_dept.svg";
+  static const String emergency_care = "${iconPath}emergency_care.svg";
+  static const String ipd = "${iconPath}ipd.svg";
+  static const String  opd = "${iconPath}opd.svg";
+  static const String  medical_store= "${iconPath}medical_store.svg";
+  static const String other_facilities = "${iconPath}other_facilities.svg";
 }

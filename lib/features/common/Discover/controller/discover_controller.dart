@@ -60,6 +60,7 @@ class DiscoverController extends GetxController {
   final RxBool isHeaderVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
   double headerHeight = 0;
+  // Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
 
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;

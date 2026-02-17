@@ -228,8 +228,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                   top: 90,
                   child: CommonProfileImage(
                     imagePath:
-                    banner ??
-                        "",
+                    banner,
                     onImageUpdate: (image) async {},
                     dialogTitle: AppStrings.uploadProfilePicture,
                     //radius: 36,

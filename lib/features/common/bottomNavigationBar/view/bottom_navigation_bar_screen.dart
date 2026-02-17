@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/medical_screen.dart';
@@ -35,6 +37,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +51,6 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
-import '../../../me/hospital/view/hospital_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 
@@ -74,7 +76,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
-  final pipController = getOrPut(() => PipFloatingPageController());
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -93,7 +94,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
-    pipController.setPipStatus(false);
+    if(Platform.isAndroid) {
+
+      final pipController = getOrPut(() => PipFloatingPageController());
+      pipController.setPipStatus(false);
+
+    }
     if (isGuestUser()) {
       logs("DIALOGE CALL");
       _checkAndShowDialog();

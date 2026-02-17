@@ -9,7 +9,6 @@ import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/me/hospital/view/nearest_hospitals_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_profiles_list_screen.dart';
 import 'package:BlueEra/features/me/medical/view/nearest_pharmacies_list_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
@@ -158,13 +157,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
 
   Widget rightContent() {
     return Obx(() {
-      if (controller.selectedProfessionalConsultantData.value?.slugId ==
-          HOSPITAL) {
-        return NearestHospitalsListScreen(
-          pincode: '',
-          radius: 1000000,
-        );
-      } else if (controller.selectedProfessionalConsultantData.value?.slugId ==
+     if (controller.selectedProfessionalConsultantData.value?.slugId ==
           PHARMACY) {
         return NearestPharmaciesListScreen(
           pincode: '',

@@ -51,6 +51,7 @@ String schoolIDGlobal = '';
 String otherServiceIDGlobal = '';
 String hotelIDGlobal = '';
 String labIDGlobal = '';
+String hospitalIDGlobal = '';
 String deviceOsVersionGlobal = '';
 String userProfileTypeGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
@@ -105,6 +106,7 @@ class SharedPreferenceUtils {
   static const schoolIDKey = 'schoolIDKey';
   static const hotelIDKey = 'hotelIDKey';
   static const labIDKey = 'labIDKey';
+  static const hospitalIDKey = 'hospitalIDKey';
   static const otherServiceIDKey = 'otherServiceIDKey';
   static const productBusinessProfileIDIDKey = 'productBusinessProfileIDIDKey';
 
@@ -262,6 +264,7 @@ class SharedPreferenceUtils {
       schoolIDGlobal = '';
       hotelIDGlobal = '';
       labIDGlobal = '';
+      hospitalIDGlobal = '';
       otherServiceIDGlobal = '';
       productBusinessProfileIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
@@ -375,7 +378,7 @@ getUserLoginData() async {
           SharedPreferenceUtils.userName) ??
       "";
   userProfileTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.userProfileType) ??
+          SharedPreferenceUtils.userProfileType) ??
       "";
   userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.userProfession) ??
@@ -479,12 +482,14 @@ setEarnServiceOptData(bool isEarnServiceUser) {
 
 getRiderServiceOptData() async {
   isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.isRiderServiceUser) ?? 'false';
+          SharedPreferenceUtils.isRiderServiceUser) ??
+      'false';
 }
 
 getEarnServiceOptData() async {
   isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.isEarnServiceUser) ?? 'false';
+          SharedPreferenceUtils.isEarnServiceUser) ??
+      'false';
   log('$isEarnServiceOpt');
 }
 
@@ -513,14 +518,14 @@ getOtherServiceID() async {
 ///SET PRODUCT PROFILE ID....
 setProductBusinessProfileID(String productBusinessIDValue) {
   SharedPreferenceUtils.setSecureValue(
-      SharedPreferenceUtils.productBusinessProfileIDIDKey, productBusinessIDValue.toString());
+      SharedPreferenceUtils.productBusinessProfileIDIDKey,
+      productBusinessIDValue.toString());
 }
 
 getProductBusinessProfileID() async {
   productBusinessProfileIDGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.productBusinessProfileIDIDKey);
 }
-
 
 ///SET HOTEL ID....
 setHotelID(String schoolIDValue) {
@@ -548,3 +553,17 @@ getLabID() async {
   }
 }
 
+///SET HOSPITAL ID....
+setHospitalID(String labIDValue) {
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.hospitalIDKey, labIDValue.toString());
+}
+
+getHospitalID() async {
+  try {
+    hospitalIDGlobal = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.hospitalIDKey);
+  } on Exception {
+    // TODO
+  }
+}

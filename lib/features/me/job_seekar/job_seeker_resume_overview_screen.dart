@@ -847,58 +847,6 @@ class _JobSeekerResumeOverviewScreenState
     // ),
   }
 
-  Widget _buildGallerySection(GetResumeDataModel data) {
-    final gallery = data.portfolios ?? [];
-    return _card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _title("Gallery"),
-          SizedBox(height: SizeConfig.size12),
-          if (gallery.isEmpty)
-            CustomText(
-              "No gallery items",
-              color: AppColors.grey9B,
-              fontSize: SizeConfig.medium,
-            )
-          else
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: SizeConfig.isTablet ? 4 : 3,
-                mainAxisSpacing: SizeConfig.size8,
-                crossAxisSpacing: SizeConfig.size8,
-                childAspectRatio: 1,
-              ),
-              itemCount: gallery.length,
-              itemBuilder: (context, index) {
-                final url = gallery[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.liteWhite,
-                    borderRadius: BorderRadius.circular(SizeConfig.size12),
-                    border: Border.all(color: AppColors.whiteE0),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (c, e, s) => Center(
-                      child: CustomText(
-                        "No Image",
-                        fontSize: SizeConfig.small,
-                        color: AppColors.grey9B,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
 
 
   String _formatPercentage(String? p) {
