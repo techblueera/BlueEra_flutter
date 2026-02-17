@@ -84,12 +84,7 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
     );
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    // controller.searchStates();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +220,6 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                               hintText: "Select State",
                               onChanged: (val) {
                                 controller.selectState(val ?? '');
-                                controller.searchCities(val ?? '');
                               },
                               displayValue: (value) => value
                           );

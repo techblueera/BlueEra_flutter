@@ -26,7 +26,7 @@ class _ComplaintMainPageState extends State<ComplaintMainPage>
   @override
   void initState() {
 
- tabController = TabController(length: 3, vsync: this);
+ tabController = TabController(length: 4, vsync: this);
     super.initState();
   }
   @override

@@ -12,8 +12,11 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_constant.dart';
+import '../../../common/franchise/franchise_google_sheet.dart';
 import '../repo/user_repo.dart';
 
 class VisitProfileController extends GetxController {
@@ -24,10 +27,25 @@ class VisitProfileController extends GetxController {
   Rx<ApiResponse> getUserChannelDetailsResponse =
       ApiResponse.initial('Initial').obs;
   var userData = Rxn<UserProfileRes>();
-
+  final fullNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final investmentController = TextEditingController();
+  final messageController = TextEditingController();
+  final cityController = TextEditingController();
+  final List<String> qualificationsList = AppConstants.qualificationList;
+  RxList<String> stateList = AppConstants.stateList.obs;
+  RxString selectQualification = ''.obs;
+  RxString haveYouWorkedHere = 'No'.obs;
+  RxString partnerType = ''.obs;
+  RxString selectedState = "Andhra Pradesh".obs;
+  RxBool enquiryBtnLoading=false.obs;
   @override
   void onInit() {
     super.onInit();
+  }
+  void selectState(String state) {
+    selectedState.value = state;
   }
 
   final personalController = Get.put(PersonalCreateProfileController());
@@ -393,6 +411,37 @@ class VisitProfileController extends GetxController {
       return null;
     }
     return null;
+  }
+
+  Future<void> enquiryFranchise()async{
+    try {
+      enquiryBtnLoading.value = true;
+      Map<String, dynamic> params = {
+        ApiKeys.firstName: fullNameController.text,
+        ApiKeys.lastName: "",
+        ApiKeys.email: emailController.text,
+        ApiKeys.phone: phoneController.text,
+        ApiKeys.educationalQualification: selectQualification.value,
+        ApiKeys.partnerType: "",
+        ApiKeys.investmentAmount: investmentController.text,
+        ApiKeys.state: selectedState.value,
+        ApiKeys.city: cityController.text,
+        ApiKeys.hasExistingBusiness: haveYouWorkedHere.value,
+        ApiKeys.businessName: "",
+        ApiKeys.businessPincode: "",
+        ApiKeys.businessCity: "",
+        ApiKeys.businessState: "",
+        ApiKeys.gstNumber: "",
+        ApiKeys.hasBusinessExperience: "",
+        ApiKeys.experienceCompany: "",
+        ApiKeys.message: messageController.text,
+        ApiKeys.agreeToPolicy: true
+      };
+      await askFranchiseEnquiryApi(params);
+      enquiryBtnLoading.value = false;
+    }catch(e){
+      enquiryBtnLoading.value = false;
+    }
   }
 }
 

@@ -1022,11 +1022,16 @@ class RouteHelper {
           ),
         );
       case RouteConstant.addDocumentScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final String argDocumentVia = args[ApiKeys.argDocumentVia] as String;
+        final Map<String, dynamic>? args =
+        settings.arguments as Map<String, dynamic>?;
+
+        final String argDocumentVia =
+            args?[ApiKeys.argDocumentVia] as String? ?? "";
+        final bool showViewDocProof =
+            args?[ApiKeys.showViewDocProof] as bool? ?? false;
 
         return MaterialPageRoute(
-            builder: (_) => AddDocumentScreen(
+            builder: (_) => AddDocumentScreen(showViewDocProof: showViewDocProof,
                 documentVia: argDocumentVia
             ),
             settings:

@@ -91,7 +91,6 @@ class _ReferralPageState extends State<ReferralPage> {
       body: Obx(() {
         ReferralGetBdmDetailsModel details = controller.referralBdmDetails
             .value;
-        print("lsdkml;ksdmsdlf ${details.isReferralCodeSaved}");
 
         return
         //   (details.panDocumentUploaded==true

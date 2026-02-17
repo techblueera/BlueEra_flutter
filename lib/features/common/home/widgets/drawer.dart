@@ -332,6 +332,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         onTap: () => Get.toNamed(
           RouteHelper.getAddDocumentScreenRoute(),
           arguments: {
+            ApiKeys.showViewDocProof:true,
             ApiKeys.argDocumentVia: isIndividual()
                 ? AppConstants.personalDocumentScreen
                 : AppConstants.businessDocumentScreen

@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 
@@ -20,20 +21,12 @@ final workLocationPinCodeController=TextEditingController();
 final cityController=TextEditingController();
 final addressController=TextEditingController();
 final mainReferralCode=TextEditingController();
-RxList<String> stateList = <String>[
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
-  "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
-  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
-  "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
-  "Uttarakhand", "West Bengal"
-].obs;
-final List<String> qualificationsList = ["10th", "12th", "Diploma", "Degree"];
+RxList<String> stateList = AppConstants.stateList.obs;
+final List<String> qualificationsList = AppConstants.qualificationList;
 
-RxList<String> cityList = <String>[].obs;
 RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 final FocusNode referralFocusNode = FocusNode();
-RxString selectedState = "".obs;
+RxString selectedState = "Andhra Pradesh".obs;
 RxString selectQualification = ''.obs;
 RxString selectedCity = "".obs;
 RxBool submitLoading = false.obs;
@@ -49,23 +42,11 @@ Rx<ApiResponse> referralBdmDetailsResponse = ApiResponse.initial('Initial').obs;
 
 
 /// Search Cities based on selected state
-Future<void> searchCities(String query) async {
-  if (selectedState.value.isEmpty) return;
 
-  final res = await PlaceRepo().getCitiesByState(query);
-
-  if (res.isSuccess) {
-    final predictions = res.data["predictions"] ?? [];
-
-    cityList.value = predictions
-        .map<String>((e) => e["description"].toString())
-        .toList();
-  }
-}
 void selectState(String state) {
   selectedState.value = state;
   selectedCity.value = "";
-  cityList.clear();
+
 }
 
 void selectCity(String city) {
@@ -157,7 +138,6 @@ void clearForm() {
   selectedYear?.value = 0;
 
   // Reset lists (important for dependent dropdown)
-  cityList.clear();
 
   // Reset other states
   termAccept.value = false;

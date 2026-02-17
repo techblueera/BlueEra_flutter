@@ -20,6 +20,17 @@ enum DocStatus {
   pending,     // Key found, isVerified: false
   verified     // Key found, isVerified: true
 }
+class DocumentMeta {
+  final DocStatus status;
+  final String? frontUrl;
+  final String? backUrl;
+
+  DocumentMeta({
+    required this.status,
+    this.frontUrl,
+    this.backUrl,
+  });
+}
 
 class MyDocumentsController extends GetxController {
   Rx<ApiResponse> fetchAllDocumentResponse = ApiResponse.initial('Initial').obs;
@@ -83,7 +94,7 @@ class MyDocumentsController extends GetxController {
     }
   }
 
-  var documentStatuses = <String, DocStatus>{}.obs;
+  var documentStatuses = <String, DocumentMeta>{}.obs;
   Future<void> fetchAllDocumentStatusApi() async {
     try {
       ResponseModel response = await MyDocumentRepo().getAllDocumentStatus();
@@ -121,7 +132,6 @@ class MyDocumentsController extends GetxController {
         case 'puc': localKey = DocumentKeys.puc; break;
         case 'fitnessCertificate': localKey = DocumentKeys.vehicleFitnessCertificate; break;
 
-      // --- Business Keys ---
         case 'gstCertificate': localKey = DocumentKeys.gstCertificate; break;
         case 'fssaiLicense': localKey = DocumentKeys.fssaiLicense; break;
         case 'medicalLicense': localKey = DocumentKeys.medicalLicense; break;
@@ -130,7 +140,6 @@ class MyDocumentsController extends GetxController {
         case 'msmeCertificate': localKey = DocumentKeys.msmeCertificate; break;
         case 'shopActCertificate': localKey = DocumentKeys.shopActCertificate; break;
 
-        // --- Hotel & Home Stay keys ---
         case 'hotelTradeLicense': localKey = DocumentKeys.hotelTradeLicense; break;
         case 'hotelPanCard': localKey = DocumentKeys.hotelPanCard; break;
         case 'hotelGstCertificate': localKey = DocumentKeys.hotelGstCertificate; break;
@@ -141,23 +150,26 @@ class MyDocumentsController extends GetxController {
         case 'hotelOwnerIdProof': localKey = DocumentKeys.hotelOwnerIdProof; break;
         case 'hotelOnboardingAgreement': localKey = DocumentKeys.hotelOnboardingAgreement; break;
         case 'hotelPropertyAgreement': localKey = DocumentKeys.hotelPropertyAgreement; break;
-
-        default: localKey = null;
       }
 
-      if (localKey != null && value is Map && value.containsKey('isVerified')) {
+      if (localKey != null && value is Map) {
         bool isVerified = value['isVerified'] ?? false;
-        DocStatus newStatus = isVerified ? DocStatus.verified : DocStatus.pending;
 
-        documentStatuses[localKey] = newStatus;
-        // print("[SUCCESS] Mapped '$apiKey' -> '$localKey' | Status: $newStatus");
+        String? frontUrl = value['files']?['front'];
+        String? backUrl = value['files']?['back'];
+
+        documentStatuses[localKey] = DocumentMeta(
+          status: isVerified ? DocStatus.verified : DocStatus.pending,
+          frontUrl: frontUrl,
+          backUrl: backUrl,
+        );
       }
     });
-
   }
 
+
   DocStatus getStatus(String key) {
-    return documentStatuses[key] ?? DocStatus.notUploaded;
+    return documentStatuses[key]?.status ?? DocStatus.notUploaded;
   }
 
   Future<ImageUploadResponseModel?> uploadInit(

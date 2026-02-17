@@ -14,6 +14,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/wid
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/hotel_all_documents.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/vehicle_document_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,9 +22,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddDocumentScreen extends StatefulWidget {
-  const AddDocumentScreen({super.key, this.documentVia});
+  const AddDocumentScreen({super.key, this.documentVia, required this.showViewDocProof});
 
   final String? documentVia;
+  final bool showViewDocProof;
 
   @override
   State<AddDocumentScreen> createState() => _AddDocumentScreenState();
@@ -76,14 +78,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                               document: DocumentKeys.aadhar,
                               status: controller.getStatus(DocumentKeys.aadhar),
                               onTap: () {
-                                // Get.bottomSheet(
-                                //   CommonDocumentBottomSheet(
-                                //     title: AppStrings.aadharCard,
-                                //     child: AadharDocumentWidget(),
-                                //   ),
-                                //   isScrollControlled: true,
-                                //   backgroundColor: Colors.transparent,
-                                // );
+
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
                                     title: AppStrings.aadharCard,
@@ -479,7 +474,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                         size: 20,
                       ),
                 SizedBox(width: SizeConfig.size8),
-                Flexible(
+                Expanded(
                   child: CustomText(
                     title,
                     color: isUploadable
@@ -489,11 +484,102 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                     fontSize: SizeConfig.large,
                   ),
                 ),
+                if(widget.showViewDocProof)
+                if(!isUploadable)
+                InkWell(
+                  onTap: () {
+                      showDocumentProofDialog(context, document);
+                  },
+
+                  child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.primaryColor
+                        )
+
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.remove_red_eye,color: AppColors.primaryColor,size: 16,),
+                          SizedBox(width: 6,),
+                          CustomText("View", color: AppColors.primaryColor)
+                        ],
+                      )),
+                ),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+  void showDocumentProofDialog(BuildContext context, String docKey) {
+    final meta = controller.documentStatuses[docKey];
+
+    if (meta == null ||
+        (meta.frontUrl == null && meta.backUrl == null)) {
+      Get.snackbar("Info", "No document uploaded");
+      return;
+    }
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                "Document Proof",
+               fontSize: 18, fontWeight: FontWeight.bold
+              ),
+              const SizedBox(height: 16),
+
+              if (meta.frontUrl != null)
+                Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                     CustomText("Front Side",fontSize: 14,fontWeight: FontWeight.w600,),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        meta.frontUrl!,
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ),
+
+              if (meta.backUrl != null) ...[
+                const SizedBox(height: 16),
+                 CustomText("Back Side",fontSize: 14,fontWeight: FontWeight.w600,),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    meta.backUrl!,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 20),
+              CustomBtn(onTap: (){
+                Get.back();
+              }, title: "Close",isValidate: true,)
+            ],
+          ),
+        ),
+      ),
     );
   }
 

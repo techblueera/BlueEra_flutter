@@ -696,4 +696,19 @@ class ApiKeys {
   static const bankDetailsDocumentId = 'bankDetailsDocumentId';
   static const tripType = 'tripType';
   static const orderForWhom = 'orderForWhom';
+  static const firstName = 'firstName';
+  static const lastName = 'lastName';
+  static const educationalQualification = 'educationalQualification';
+  static const partnerType = 'partnerType';
+  static const investmentAmount = 'investmentAmount';
+  static const hasExistingBusiness = 'hasExistingBusiness';
+  static const businessName = 'businessName';
+  static const businessPincode = 'businessPincode';
+  static const businessCity = 'businessCity';
+  static const businessState = 'businessState';
+  static const gstNumber = 'gstNumber';
+  static const hasBusinessExperience = 'hasBusinessExperience';
+  static const experienceCompany = 'experienceCompany';
+  static const agreeToPolicy = 'agreeToPolicy';
+  static const showViewDocProof = 'showViewDocProof';
 }

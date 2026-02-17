@@ -81,6 +81,16 @@ class AppConstants {
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
 
+  static const List<String> qualificationList=["10th", "12th", "Diploma", "Degree"];
+  static const List<String> stateList=[
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+    "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
+    "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+    "Uttarakhand", "West Bengal"
+  ];
+
   static const int inputCharterLimit = 150;
   static const int inputCharterLimit400 = 400;
   static const int inputCharterLimit250 = 250;

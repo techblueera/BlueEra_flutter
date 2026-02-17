@@ -1,19 +1,28 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:developer';
 
-Future<void> sendSeatData() async {
-  var url = Uri.parse(
-    "YOUR_GOOGLE_SCRIPT_WEBAPP_URL",
+Future<bool> askFranchiseEnquiryApi(Map<String, dynamic> params) async {
+  final url = Uri.parse(
+    "https://script.google.com/macros/s/AKfycbx-A4ByElwLzolMtuXTlB62N9fSFyxg1GXnBKP8EVrgZkYpUBGcOPEYwPhnJpvv0CAs/exec",
   );
 
-  var response = await http.post(
-    url,
-    body: jsonEncode({
-      "seat_id": "A1",
-      "user": "Rahul",
-      "status": "Booked"
-    }),
-  );
+  try {
+    final response = await http.post(
+      url,
+      body: params.map((k, v) => MapEntry(k, v.toString())),
+    );
 
-  print(response.body);
+    log("StatusCode:hh ${response.statusCode}");
+    log("Response: ${response.body}");
+
+    // 🔥 GOOGLE SCRIPT SUCCESS CODES
+    if (response.statusCode == 200 || response.statusCode == 302) {
+      return true; // SUCCESS (Sheet already updated)
+    }
+
+    return false;
+  } catch (e) {
+    log("API Error: $e");
+    return false;
+  }
 }
