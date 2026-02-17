@@ -7,7 +7,7 @@ class OnboardingCategoryModel {
   final String slugId;
   final String accountType;
   final BusinessType? businessType;
-  final IndividualType? individualType;
+  final IndividualProfileType? individualType;
 
 
   const OnboardingCategoryModel({

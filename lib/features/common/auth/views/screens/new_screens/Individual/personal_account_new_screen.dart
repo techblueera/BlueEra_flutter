@@ -34,7 +34,7 @@ import '../../../../model/get_categories_model.dart';
 
 class PersonalAccountNewScreen extends StatefulWidget {
   final String accountType;
-  final IndividualType profileType;
+  final IndividualProfileType profileType;
   final String profession;
   final String professionTagId;
 
@@ -89,7 +89,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   bool crBtnLoading = false;
 
   String? _imagePath;
-  IndividualType? _selectedProfileType;
+  IndividualProfileType? _selectedProfileType;
   String? _selectedProfileTypeTagId;
   String? _selectedProfession;
   String? _selectedProfessionTagId;

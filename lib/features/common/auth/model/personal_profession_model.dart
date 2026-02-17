@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/constants/app_enum.dart';
+
 PersonalProfessionModel personalProfessionModelFromJson(String str) =>
     PersonalProfessionModel.fromJson(json.decode(str));
 
@@ -45,13 +47,18 @@ class ProfessionTypeData {
     this.id,
     this.name,
     this.tagId,
+    this.profileType,
+    this.image,
     this.subcategoriesFiledName,
+    this.individualProfileType,
   });
 
   ProfessionTypeData.fromJson(dynamic json) {
     id = json['_id'];
     name = json['name'];
     tagId = json['tag_id'];
+    profileType = json['profileType'];
+    image = json['image'];
 
     if (json['subcategories_filedName'] != null) {
       subcategoriesFiledName = [];
@@ -59,23 +66,30 @@ class ProfessionTypeData {
         subcategoriesFiledName?.add(SubcategoriesFiledName.fromJson(v));
       });
     }
+    individualProfileType = json['individualProfileType'];
   }
 
   String? id;
   String? name;
   String? tagId;
+  String? profileType;
+  String? image;
   List<SubcategoriesFiledName>? subcategoriesFiledName;
+  IndividualProfileType? individualProfileType;  // custom Individual Profile type
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
     map['tag_id'] = tagId;
+    map['profileType'] = profileType;
+    map['image'] = image;
 
     if (subcategoriesFiledName != null) {
       map['subcategories_filedName'] =
           subcategoriesFiledName?.map((v) => v.toJson()).toList();
     }
+    map['individualProfileType'] = individualProfileType;
     return map;
   }
 }

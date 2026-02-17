@@ -22,7 +22,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
     required this.getIcon,
     required this.isSelected,
     required this.onTap,
-    this.width = 76.0,
+    this.width = 74.0,
     this.padding,
   });
 

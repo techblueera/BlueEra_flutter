@@ -12,7 +12,7 @@ enum ValidationTypeEnum {
   lNumber
 }
 
-enum IndividualType {
+enum IndividualProfileType {
   SOCIAL_PROFILE(
       tagId: "SOCIAL_PROFILE",
       name: "Social Profile",
@@ -33,16 +33,16 @@ enum IndividualType {
   final String tagId;
   final String name;
 
-  const IndividualType({
+  const IndividualProfileType({
     required this.tagId,
     required this.name,
   });
 
   /// Helper to convert a String from API back to this Enum
-  static IndividualType fromString(String value) {
-    return IndividualType.values.firstWhere(
+  static IndividualProfileType fromString(String value) {
+    return IndividualProfileType.values.firstWhere(
           (e) => e.tagId == value,
-      orElse: () => IndividualType.SOCIAL_PROFILE, // Default fallback
+      orElse: () => IndividualProfileType.SOCIAL_PROFILE, // Default fallback
     );
   }
 

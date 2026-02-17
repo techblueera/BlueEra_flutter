@@ -1946,40 +1946,7 @@ final List<MixedProfileCategory> mainCategories = [
 
 /// Business Categories
 
-// --- OnBoarding Category ---
 
-final List<OnboardingCategoryModel> businessOnboardingProfilesCategory = [
-  OnboardingCategoryModel(
-      name: 'Grocery, Food\nRestaurant',
-      slugId: FOOD,
-      icon: OnboardingBusinessAssets.groceryFoodRestaurant,
-      accountType: AppConstants.business,
-   ),
-  OnboardingCategoryModel(
-      name: 'Shop Or Store',
-      slugId: PRODUCT,
-      icon: OnboardingBusinessAssets.shopOrStore,
-      accountType: AppConstants.business,
-      ),
-  OnboardingCategoryModel(
-      name: 'Sectors',
-      slugId: SERVICE_OTHERS,
-      icon: OnboardingBusinessAssets.services,
-      accountType: AppConstants.business,
-  ),
-  OnboardingCategoryModel(
-      name: 'Services',
-      slugId: SERVICE,
-      icon: OnboardingBusinessAssets.services,
-      accountType: AppConstants.business,
-  ),
-  OnboardingCategoryModel(
-      name: 'Manufacturing /\nIndustry',
-      slugId: MANUFACTURING,
-      icon: OnboardingBusinessAssets.manufacturingIndustry,
-      accountType: AppConstants.business,
-     ),
-];
 final List<OnboardingCategoryModel> serviceContactCategories = [
   OnboardingCategoryModel(
       name: 'All Service',
@@ -2071,6 +2038,40 @@ final List<OnboardingCategoryModel> findServiceByContactSubCate = [
       businessType: BusinessType.Service),
 ];
 
+// --- OnBoarding Category ---
+
+final List<OnboardingCategoryModel> businessOnboardingProfilesCategory = [
+  OnboardingCategoryModel(
+      name: 'Grocery, Food\nRestaurant',
+      slugId: FOOD,
+      icon: OnboardingBusinessAssets.groceryFoodRestaurant,
+      accountType: AppConstants.business,
+   ),
+  OnboardingCategoryModel(
+      name: 'Shop Or Store',
+      slugId: PRODUCT,
+      icon: OnboardingBusinessAssets.shopOrStore,
+      accountType: AppConstants.business,
+      ),
+  OnboardingCategoryModel(
+      name: 'Sectors',
+      slugId: SERVICE_OTHERS,
+      icon: OnboardingBusinessAssets.services,
+      accountType: AppConstants.business,
+  ),
+  OnboardingCategoryModel(
+      name: 'Services',
+      slugId: SERVICE,
+      icon: OnboardingBusinessAssets.services,
+      accountType: AppConstants.business,
+  ),
+  OnboardingCategoryModel(
+      name: 'Manufacturing /\nIndustry',
+      slugId: MANUFACTURING,
+      icon: OnboardingBusinessAssets.manufacturingIndustry,
+      accountType: AppConstants.business,
+     ),
+];
 
 final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
   OnboardingCategoryModel(
@@ -3333,112 +3334,112 @@ final List<OnboardingCategoryModel> individualOnboardingSocialProfileList = [
     name: AppStrings.politician,
     slugId: POLITICIAN,
     icon: OnboardingIndividualAssets.politician,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.contentCreator,
     slugId: CONTENT_CREATOR,
     icon: OnboardingIndividualAssets.contentCreator,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.govtEmployee,
     slugId: GOVERNMENT_JOB,
     icon: OnboardingIndividualAssets.govtEmp,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.pvtEmployee,
     slugId: PRIVATE_JOB,
     icon: OnboardingIndividualAssets.pvtEmp,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.journalist,
     slugId: MEDIA,
     icon: OnboardingIndividualAssets.journalist,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.artist,
     slugId: ARTIST,
     icon: OnboardingIndividualAssets.artist,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.director,
     slugId: DIRECTOR,
     icon: OnboardingIndividualAssets.director,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.industrialist,
     slugId: INDUSTRIALIST,
     icon: OnboardingIndividualAssets.industrialist,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.socialist,
     slugId: SOCIALIST,
     icon: OnboardingIndividualAssets.socialist,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.student,
     slugId: STUDENT,
     icon: OnboardingIndividualAssets.student,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.homeMaker,
     slugId: HOMEMAKER,
     icon: OnboardingIndividualAssets.homeMaker,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.farmer,
     slugId: FARMER,
     icon: OnboardingIndividualAssets.farmer,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.ngo,
     slugId: NGO,
     icon: OnboardingIndividualAssets.ngo,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.societyOrUnion,
     slugId: REG_UNION,
     icon: OnboardingIndividualAssets.society,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.govtDepartment,
     slugId: GOVTPSU,
     icon: OnboardingIndividualAssets.govtDept,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.seniorCitizen,
     slugId: SENIOR_CITIZEN,
     icon: OnboardingIndividualAssets.seniorCitizen,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
 ];
@@ -3448,28 +3449,28 @@ final List<OnboardingCategoryModel> individualOnboardingGigWorkList = [
     name: 'Bike Rider',
     slugId: DELIVERY_RIDER,
     icon: OnboardingIndividualAssets.bikeRider,
-    individualType: IndividualType.GIG_WORKER,
+    individualType: IndividualProfileType.GIG_WORKER,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: 'Car Driver',
     slugId: CAR_TAXI,
     icon: OnboardingIndividualAssets.taxiCarDriver,
-    individualType: IndividualType.GIG_WORKER,
+    individualType: IndividualProfileType.GIG_WORKER,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: 'Goods Transporter',
     slugId: GOODS_TAXI,
     icon: OnboardingIndividualAssets.goodsSupplier,
-    individualType: IndividualType.GIG_WORKER,
+    individualType: IndividualProfileType.GIG_WORKER,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: 'Auto Driver',
     slugId: AUTO_TAXI,
     icon: OnboardingIndividualAssets.autoERickshaw,
-    individualType: IndividualType.GIG_WORKER,
+    individualType: IndividualProfileType.GIG_WORKER,
     accountType: AppConstants.individual,
   ),
 ];
@@ -3480,7 +3481,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: ELECTRICIAN,
     icon: OnboardingIndividualAssets.electrician,
     flagIcon: AppImageAssets.electrician,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3488,7 +3489,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: PLUMBER,
     icon: OnboardingIndividualAssets.plumber,
     flagIcon: AppImageAssets.plumber,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3496,7 +3497,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: TECHNICIAN,
     icon: OnboardingIndividualAssets.technician,
     flagIcon: AppImageAssets.technician,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3504,7 +3505,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: MECHANIC,
     icon: OnboardingIndividualAssets.mechanic,
     flagIcon: AppImageAssets.mechanic,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3512,7 +3513,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: PAINTER,
     icon: OnboardingIndividualAssets.painter,
     flagIcon: AppImageAssets.painter,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3520,7 +3521,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: CARPENTER,
     icon: OnboardingIndividualAssets.carpenter,
     flagIcon: AppImageAssets.carpenter,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3528,7 +3529,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: HOME_RENOVATOR,
     icon: OnboardingIndividualAssets.homeRenovator,
     flagIcon: AppImageAssets.homeRenovator,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3536,7 +3537,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: LABOUR,
     icon: OnboardingIndividualAssets.labour,
     flagIcon: AppImageAssets.homeRenovator,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3544,7 +3545,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: GARDENER,
     icon: OnboardingIndividualAssets.gardener,
     flagIcon: AppImageAssets.gardener,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3552,7 +3553,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: SECURITY_PERSON,
     icon: OnboardingIndividualAssets.securityPerson,
     flagIcon: AppImageAssets.securityPerson,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3560,7 +3561,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: MAID_FEMALE,
     icon: OnboardingIndividualAssets.homeMaker,
     flagIcon: AppImageAssets.maid,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3568,21 +3569,21 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     slugId: CLEANER,
     icon: OnboardingIndividualAssets.cleaner,
     flagIcon: AppImageAssets.cleaner,
-    individualType: IndividualType.SELF_EMPLOYED,
+    individualType: IndividualProfileType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.tailoring,
     slugId: TAILOR,
     icon: OnboardingIndividualAssets.tailoring,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.beautyCare,
     slugId: BEAUTICIAN,
     icon: OnboardingIndividualAssets.beautician,
-    individualType: IndividualType.SOCIAL_PROFILE,
+    individualType: IndividualProfileType.SOCIAL_PROFILE,
     accountType: AppConstants.individual,
   ),
 ];
@@ -3593,7 +3594,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: LEGAL_GOVT_CONSULTANT,
     icon: OnboardingIndividualAssets.legalGovtConsultant,
     flagIcon: AppImageAssets.legalGovtConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3601,7 +3602,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: FINANCE_TAX_CONSULTANT,
     icon: OnboardingIndividualAssets.financeTaxConsultant,
     flagIcon: AppImageAssets.financeTaxConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3609,7 +3610,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: SPIRITUAL_CONSULTANT,
     icon: OnboardingIndividualAssets.spiritualConsultant,
     flagIcon: AppImageAssets.spiritualConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3617,7 +3618,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: TRAINEE_CAREER_CONSULTANT,
     icon: OnboardingIndividualAssets.traineeCareerConsultant,
     flagIcon: AppImageAssets.traineeCareerConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3625,7 +3626,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: ADVERTISING_CONSULTANT,
     icon: OnboardingIndividualAssets.advertisingConsultant,
     flagIcon: AppImageAssets.advertisingConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3633,7 +3634,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: EVENT_PLANNER_DETECTIVE,
     icon: OnboardingIndividualAssets.eventPlanDetective,
     flagIcon: AppImageAssets.eventPlanDetective,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3641,7 +3642,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: PROPERTY_BROKER_ARCHITECT,
     icon: OnboardingIndividualAssets.propertyBrokerArchitect,
     flagIcon: AppImageAssets.propertyBrokerArchitect,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3649,7 +3650,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: BUSINESS_HR_CONSULTANT,
     icon: OnboardingIndividualAssets.businessHrConsultant,
     flagIcon: AppImageAssets.businessHrConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3657,7 +3658,7 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: INDUSTRY_QUALITY_CONSULTANT,
     icon: OnboardingIndividualAssets.industryQualityConsultant,
     flagIcon: AppImageAssets.industryQualityConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3665,17 +3666,18 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
     slugId: TECH_DIGITAL_FREELANCER,
     icon: OnboardingIndividualAssets.techDigitalFreelancer,
     flagIcon: AppImageAssets.techDigitalFreelancer,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
 ];
+
 final List<OnboardingCategoryModel> healthCareList = [
   OnboardingCategoryModel(
     name: 'Hospital',
     slugId: HOSPITAL,
     icon: OnboardingIndividualAssets.legalGovtConsultant,
     flagIcon: AppImageAssets.legalGovtConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3683,7 +3685,7 @@ final List<OnboardingCategoryModel> healthCareList = [
     slugId: PHARMACY,
     icon: OnboardingIndividualAssets.financeTaxConsultant,
     flagIcon: AppImageAssets.financeTaxConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
@@ -3691,7 +3693,7 @@ final List<OnboardingCategoryModel> healthCareList = [
     slugId: LABTEST,
     icon: OnboardingIndividualAssets.spiritualConsultant,
     flagIcon: AppImageAssets.spiritualConsultant,
-    individualType: IndividualType.PROFESSIONAL,
+    individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   // OnboardingCategoryModel(

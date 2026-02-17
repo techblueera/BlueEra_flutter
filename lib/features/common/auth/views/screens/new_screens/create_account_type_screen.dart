@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -13,17 +12,19 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/widget/business_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/business_sub_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/gradient_border_container.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-
 import '../../../model/get_categories_model.dart';
 
 class CreateAccountTypeScreen extends StatefulWidget {
@@ -40,6 +41,8 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   @override
   void initState() {
     super.initState();
+    authController.getAllIndividualProfession();
+    authController.getAllBusinessCategories();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authController.selectedIndividualOnboardingProfile.value = OnboardingCategoryModel(
         name: 'Social profile',
@@ -116,47 +119,57 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                     child: Obx(
                        () {
                         if (authController.selectedParentSlug.value == AppConstants.individual) {
+                          if(authController.isProfessionLoading.value)
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+
                           switch (authController.selectedIndividualOnboardingProfile.value?.slugId) {
                             case SOCIAL_PROFILE:
                               return _socialProfilesContent(
                                   key: ValueKey(SOCIAL_PROFILE),
-                                  arrIndividualCategory: individualOnboardingSocialProfileList);
+                                  arrIndividualCategory: authController.individualOnboardingSocialProfileList);
                             case SELF_EMPLOYED:
                               return _selfWorkContent(
                                   key: ValueKey(SELF_EMPLOYED),
-                                  arrSelfWorkTransportCategory: individualOnboardingGigWorkList,
-                                  arrSelfWorkSkilledCategory: individualOnboardingSkillWorkList
+                                  arrSelfWorkTransportCategory: authController.individualOnboardingGigWorkList,
+                                  arrSelfWorkSkilledCategory: authController.individualOnboardingSkillWorkList
                               );
                             case CONSULTANT:
                               return _consultationContent(
                                   key: ValueKey(CONSULTANT),
-                                  arrConsultationsCategory: individualOnboardingConsultationList);
+                                  arrConsultationsCategory: authController.individualOnboardingConsultationList);
                           }
                         } else {
+                          if(authController.isAllBusinessCategoriesLoading.value)
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+
                           switch (authController.selectedBusinessOnboardingProfile.value?.slugId) {
-                            case FOOD:
-                              return _foodNdGroceryContent(
+                              case FOOD:
+                                return _foodNdGroceryContent(
                                   key: ValueKey(FOOD),
-                                  arrGroceryCategory: businessOnboardingGroceriesCategories,
-                                  arrFoodNdRestaurantCategory: businessOnboardingFoodsCategories,
-                              );
-                            case PRODUCT:
-                              return _businessContent(
-                                  key: ValueKey(PRODUCT),
-                                  arrBusinessCategory: businessOnboardingProductsCategories);
-                            case SERVICE_OTHERS:
-                              return _businessOtherServiceContent(
+                                  arrGroceryCategory: authController.businessOnboardingGroceriesCategories,
+                                  arrFoodNdRestaurantCategory: authController.businessOnboardingFoodsCategories,
+                                );
+                              case PRODUCT:
+                                return _businessContent(
+                                    key: ValueKey(PRODUCT),
+                                    arrBusinessCategory: authController.businessOnboardingProductsCategories);
+                              case SERVICE_OTHERS:
+                                return _businessOtherServiceContent(
                                   key: ValueKey(SERVICE_OTHERS),
-                                  );
-                            case SERVICE:
-                              return _businessContent(
-                                  key: ValueKey(SERVICE),
-                                  arrBusinessCategory: businessOnboardingServicesCategories);
-                            case MANUFACTURING:
-                              return _businessContent(
-                                  key: ValueKey(MANUFACTURING),
-                                  arrBusinessCategory: businessOnboardingManufacturingCategories);
-                          }
+                                );
+                              case SERVICE:
+                                return _businessContent(
+                                    key: ValueKey(SERVICE),
+                                    arrBusinessCategory: authController.businessOnboardingServicesCategories);
+                              case MANUFACTURING:
+                                return _businessContent(
+                                    key: ValueKey(MANUFACTURING),
+                                    arrBusinessCategory: authController.businessOnboardingManufacturingCategories);
+                            }
                         }
 
                         return const SizedBox();
@@ -346,7 +359,12 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _socialProfilesContent({
     Key? key,
-    required List<OnboardingCategoryModel> arrIndividualCategory}) {
+    required List<ProfessionTypeData> arrIndividualCategory}) {
+    if(arrIndividualCategory.isEmpty )
+      return EmptyStateWidget(
+        message: 'No profession found',
+      );
+
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -360,7 +378,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               var item = arrIndividualCategory[index];
-              return _commonCard(item, textMaxLine: 1);
+              return _individualCommonCard(item, textMaxLine: 1);
             },
             padding: EdgeInsets.only(bottom: SizeConfig.size16),
             shrinkWrap: true,
@@ -374,9 +392,15 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _selfWorkContent({
     Key? key,
-    required List<OnboardingCategoryModel> arrSelfWorkTransportCategory,
-    required List<OnboardingCategoryModel> arrSelfWorkSkilledCategory,
+    required List<ProfessionTypeData> arrSelfWorkTransportCategory,
+    required List<ProfessionTypeData> arrSelfWorkSkilledCategory,
   }) {
+    if(arrSelfWorkTransportCategory.isEmpty ||
+        arrSelfWorkSkilledCategory.isEmpty)
+      return EmptyStateWidget(
+        message: 'No profession found',
+      );
+
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -400,7 +424,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               var item = arrSelfWorkTransportCategory[index];
-              return _commonCard(item, textMaxLine: 1);
+              return _individualCommonCard(item, textMaxLine: 1);
             },
             padding: EdgeInsets.zero,
             shrinkWrap: true,
@@ -425,7 +449,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               var item = arrSelfWorkSkilledCategory[index];
-              return _commonCard(item, textMaxLine: 1);
+              return _individualCommonCard(item, textMaxLine: 1);
             },
             padding: EdgeInsets.only(bottom: SizeConfig.size16),
             shrinkWrap: true,
@@ -439,7 +463,12 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _consultationContent({
     Key? key,
-    required List<OnboardingCategoryModel> arrConsultationsCategory}) {
+    required List<ProfessionTypeData> arrConsultationsCategory}) {
+    if(arrConsultationsCategory.isEmpty )
+      return EmptyStateWidget(
+        message: 'No profession found',
+      );
+
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -483,7 +512,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               var item = arrConsultationsCategory[index];
-              return _commonCard(item, textMaxLine: 2);
+              return _individualCommonCard(item, textMaxLine: 2);
             },
             padding: EdgeInsets.only(bottom: SizeConfig.size16),
             shrinkWrap: true,
@@ -497,9 +526,15 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _foodNdGroceryContent({
     Key? key,
-    required List<OnboardingCategoryModel> arrGroceryCategory,
-    required List<OnboardingCategoryModel> arrFoodNdRestaurantCategory,
+    required List<CategoryData> arrGroceryCategory,
+    required List<CategoryData> arrFoodNdRestaurantCategory,
   }) {
+    if(arrGroceryCategory.isEmpty ||
+        arrFoodNdRestaurantCategory.isEmpty)
+      return EmptyStateWidget(
+        message: 'No category found',
+      );
+
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -523,7 +558,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               var item = arrGroceryCategory[index];
-              return _commonCard(item, textMaxLine: 1);
+              return _businessCommonCard(item, textMaxLine: 1);
             },
             padding: EdgeInsets.zero,
             shrinkWrap: true,
@@ -548,7 +583,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               var item = arrFoodNdRestaurantCategory[index];
-              return _commonCard(item, textMaxLine: 2);
+              return _businessCommonCard(item, textMaxLine: 2);
             },
             padding: EdgeInsets.only(bottom: SizeConfig.size16),
             shrinkWrap: true,
@@ -562,7 +597,12 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _businessContent({
     Key? key,
-    required List<OnboardingCategoryModel> arrBusinessCategory}) {
+    required List<CategoryData> arrBusinessCategory}) {
+    if(arrBusinessCategory.isEmpty)
+      return EmptyStateWidget(
+        message: 'No category found',
+      );
+
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -576,7 +616,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             itemCount: arrBusinessCategory.length,
             itemBuilder: (context, index) {
               var item = arrBusinessCategory[index];
-              return _commonCard(item, textMaxLine: 2);
+              return _businessCommonCard(item, textMaxLine: 2);
             },
             padding: EdgeInsets.only(bottom: SizeConfig.size16),
             shrinkWrap: true,
@@ -588,35 +628,37 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     );
   }
 
-  Widget _commonCard(OnboardingCategoryModel category, {int? textMaxLine}) {
+  Widget _individualCommonCard(
+      ProfessionTypeData category,
+      {int? textMaxLine}) {
     return GestureDetector(
       onTap: () {
-        if(category.accountType == AppConstants.business){
-          if(category.businessType == BusinessType.Manufacturing){
-            if(category.businessType == null) return;
-            navigateToGstScreen(
-              context,
-              businessType: category.businessType!,
-              categorySlugId: category.slugId,
-              categoryName: category.name,
-            );
-          }
-          // else if(category.businessType == BusinessType.Motel ||
-          //     category.businessType == BusinessType.Healthcare ||
-          //     category.businessType == BusinessType.Siksha){
-          //   _showBusinessCategoryDialog(category.businessType!);
-          // }
-          else{
-            _showBusinessSubCategoryDialog(
-                businessType: category.businessType!,
-                categorySlugId: category.slugId,
-                categoryName: category.name
-            );
-          }
-        }else{
+        // if(category.accountType == AppConstants.business){
+        //   if(category.businessType == BusinessType.Manufacturing){
+        //     if(category.businessType == null) return;
+        //     navigateToGstScreen(
+        //       context,
+        //       businessType: category.businessType!,
+        //       categorySlugId: category.slugId,
+        //       categoryName: category.name,
+        //     );
+        //   }
+        //   // else if(category.businessType == BusinessType.Motel ||
+        //   //     category.businessType == BusinessType.Healthcare ||
+        //   //     category.businessType == BusinessType.Siksha){
+        //   //   _showBusinessCategoryDialog(category.businessType!);
+        //   // }
+        //   else{
+        //     _showBusinessSubCategoryDialog(
+        //       businessType: category.businessType!,
+        //       categorySlugId: category.slugId,
+        //       categoryName: category.name,
+        //     );
+        //   }
+        // }else{
           log("---------------- LOG DATA ----------------");
-          log("${ApiKeys.argProfileType} : ${category.individualType?.tagId}");
-          log("${ApiKeys.argProfessionTagId}    : ${category.slugId}");
+          log("${ApiKeys.argProfileType} : ${category.individualProfileType?.tagId}");
+          log("${ApiKeys.argProfessionTagId}    : ${category.tagId}");
           log("${ApiKeys.argProfession}    : ${category.name}");
           log("------------------------------------------");
 
@@ -624,13 +666,13 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             RouteHelper.getPersonalAccountNewScreenRoute(),
             arguments: {
               ApiKeys.argAccountType: AppConstants.individual,
-              ApiKeys.argProfileType: category.individualType,
-              ApiKeys.argProfessionTagId: category.slugId,
+              ApiKeys.argProfileType: category.individualProfileType,
+              ApiKeys.argProfessionTagId: category.tagId,
               ApiKeys.argProfession: category.name,
             },
           );
 
-        }
+        // }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -648,11 +690,133 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
               child: SizedBox(
                 height: SizeConfig.size130,
                 width: double.infinity,
-                child: LocalAssets(
-                  imagePath: category.icon,
-                  boxFix: BoxFit.fill,
-                  height: SizeConfig.size140,
-                  width: double.infinity,
+                child:
+                (category.image?.isNotEmpty ?? false)
+                    ? CachedNetworkImage(
+                  imageUrl: category.image!,
+                  fit: BoxFit.fill,
+                  // height: SizeConfig.size140,
+                  // width: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey.shade200,
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.cover,
+                  ),
+                )
+                    : LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  boxFix: BoxFit.cover,
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size8,
+                  vertical: SizeConfig.size8
+              ),
+              child: CustomText(
+                category.name,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.secondaryTextColor,
+                maxLines: textMaxLine,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _businessCommonCard(
+      CategoryData category,
+      {int? textMaxLine}) {
+    return GestureDetector(
+      onTap: () {
+        // if(category.accountType == AppConstants.business){
+          if(category.businessType == BusinessType.Manufacturing){
+            if(category.businessType == null) return;
+            navigateToGstScreen(
+              context,
+              businessType: category.businessType!,
+              categorySlugId: category.tagId!,
+              categoryName: category.name!,
+            );
+          }
+          // else if(category.businessType == BusinessType.Motel ||
+          //     category.businessType == BusinessType.Healthcare ||
+          //     category.businessType == BusinessType.Siksha){
+          //   _showBusinessCategoryDialog(category.businessType!);
+          // }
+          else{
+            _showBusinessSubCategoryDialog(
+                businessType: category.businessType!,
+              categorySlugId: category.tagId!,
+              categoryName: category.name!,
+            );
+          }
+        // }else{
+        //   log("---------------- LOG DATA ----------------");
+        //   log("${ApiKeys.argProfileType} : ${category.individualType?.tagId}");
+        //   log("${ApiKeys.argProfessionTagId}    : ${category.slugId}");
+        //   log("${ApiKeys.argProfession}    : ${category.name}");
+        //   log("------------------------------------------");
+        //
+        //   Get.toNamed(
+        //     RouteHelper.getPersonalAccountNewScreenRoute(),
+        //     arguments: {
+        //       ApiKeys.argAccountType: AppConstants.individual,
+        //       ApiKeys.argProfileType: category.individualType,
+        //       ApiKeys.argProfessionTagId: category.slugId,
+        //       ApiKeys.argProfession: category.name,
+        //     },
+        //   );
+        //
+        // }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+                color: AppColors.greyE5
+            )
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: SizedBox(
+                height: SizeConfig.size130,
+                width: double.infinity,
+                child:  (category.image?.isNotEmpty ?? false)
+                    ? CachedNetworkImage(
+                  imageUrl: category.image!,
+                  fit: BoxFit.fill,
+                  // height: SizeConfig.size140,
+                  // width: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey.shade200,
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.cover,
+                  ),
+                )
+                    : LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  boxFix: BoxFit.cover,
                 ),
               ),
             ),

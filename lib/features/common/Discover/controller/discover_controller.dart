@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -18,6 +19,7 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -60,7 +62,6 @@ class DiscoverController extends GetxController {
   final RxBool isHeaderVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
   double headerHeight = 0;
-  Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
 
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
@@ -142,6 +143,75 @@ class DiscoverController extends GetxController {
   RxBool isProductDataFirstLoading = false.obs;
   int productDataPage = 1;
   bool productDataHasMore = true;
+
+  final List<CollapsibleGridModel> discoverOptions = [
+    CollapsibleGridModel(
+      name: 'Suggested',
+      slugId: 'SUGGESTED_SECTOR',
+      icon: AppImageAssets.plumber,
+    ),
+    CollapsibleGridModel(
+        name: 'Grocery & Food',
+        slugId: 'GROCERY_FOOD_SECTOR',
+        icon: AppImageAssets.deliveryPartner),
+    CollapsibleGridModel(
+        name: AppStrings.homeMadeProducts,
+        slugId: 'HOME_MADE_PRODUCTS',
+        icon: AppImageAssets.homeMadeProduct
+    ),
+    CollapsibleGridModel(
+        name: 'Ride & Transport',
+        slugId: 'RIDE_TRANSPORT',
+        icon: AppImageAssets.homeMadeFood
+    ),
+    CollapsibleGridModel(
+        name: 'Shopping',
+        slugId: 'SHOPPING_SECTOR',
+        icon: AppImageAssets.homeService
+    ),
+    CollapsibleGridModel(
+        name: 'Book Professionals',
+        slugId: 'BOOK_PROFESSIONAL',
+        icon: AppImageAssets.consultation
+    ),
+    CollapsibleGridModel(
+        name: 'Home Made',
+        slugId: 'HOME_MADE_SECTOR',
+        icon: AppImageAssets.homeMadeProduct
+    ),
+    CollapsibleGridModel(
+        name: 'Hotel & Stay',
+        slugId: 'HOTEL_STAY',
+        icon: AppImageAssets.contentCreator
+    ),
+    CollapsibleGridModel(
+        name: 'Health Care',
+        slugId: 'HEALTH_CARE',
+        icon: OnboardingBusinessAssets.healthcareMedicalServices),
+    CollapsibleGridModel(
+        name: 'Rent & Property',
+        slugId: 'RENT_PROPERTY',
+        icon: AppImageAssets.rentalService),
+    CollapsibleGridModel(
+        name: 'Automotive Services',
+        slugId: 'AUTOMOTIVE_SERVICE',
+        icon: AppImageAssets.tutor),
+    CollapsibleGridModel(
+        name: 'Find Services',
+        slugId: 'FIND_SERVICE',
+        icon: AppImageAssets.tutor),
+    CollapsibleGridModel(
+        name: 'Education & Training',
+        slugId: 'EDUCATION_TRAINING',
+        icon: OnboardingBusinessAssets.educationAndTraining),
+    CollapsibleGridModel(
+        name: 'Jobs Near Me',
+        slugId: 'JOBS_NEAR_ME_SECTOR',
+        icon: AppImageAssets.tutor),
+  ];
+  final selectedOption = Rxn<CollapsibleGridModel>();
+
+
 
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy(

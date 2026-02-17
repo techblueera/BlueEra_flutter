@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/app_enum.dart';
+
 class CategoryModel {
   bool? status;
   List<CategoryData>? data;
@@ -29,26 +31,37 @@ class CategoryData {
   String? id;
   String? name;
   String? imageUrl;
+  String? tagId;
+  String? image;
   List<SubCategories>? subCategories;
+
+  BusinessType? businessType; // custom business type
 
   CategoryData(
       {this.type,
         this.id,
         this.name,
         this.imageUrl,
-        this.subCategories});
+        this.tagId,
+        this.image,
+        this.subCategories,
+        this.businessType,
+      });
 
   CategoryData.fromJson(Map<String, dynamic> json) {
     type = json['type'];
     id = json['_id'];
     name = json['name'];
     imageUrl = json['image_url'];
+    tagId = json['tag_id'];
+    image = json['image'];
     if (json['subcategories'] != null) {
       subCategories = <SubCategories>[];
       json['subcategories'].forEach((v) {
         subCategories!.add(new SubCategories.fromJson(v));
       });
     }
+    businessType = json['businessType'];
   }
 
   Map<String, dynamic> toJson() {
@@ -57,10 +70,13 @@ class CategoryData {
     data['_id'] = this.id;
     data['name'] = this.name;
     data['image_url'] = this.imageUrl;
+    data['tag_id'] = this.tagId;
+    data['image'] = this.image;
     if (this.subCategories != null) {
       data['subcategories'] =
           this.subCategories!.map((v) => v.toJson()).toList();
     }
+    data['businessType'] = this.businessType;
     return data;
   }
 }
