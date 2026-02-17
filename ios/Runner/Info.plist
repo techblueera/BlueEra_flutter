@@ -89,6 +89,8 @@
     <string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
     <key>NSContactsUsageDescription</key>
     <string>Blue Era needs access to your contacts to help you connect with friends, share services, or autofill contact details.</string>
     <key>NSFaceIDUsageDescription</key>

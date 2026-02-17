@@ -6,13 +6,11 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -346,48 +344,68 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 8.0),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: List.generate(postTab.length, (index) {
                                 bool isSelected = selectedIndex == index;
-                                return Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => _onTabTapped(index),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Flexible(child: LocalAssets(imagePath: iconTab[index],width: 15,height: 15,)),
-                                            SizedBox(width: 3,),
-                                            Flexible(
-                                              child: CustomText(
-                                                postTab[index],
-                                                fontSize: 12,
-                                                maxLines: 1,
-                                                fontWeight: FontWeight.w500,
-                                                overflow: TextOverflow.ellipsis,
-                                                color: isSelected
-                                                    ? AppColors.black28
-                                                    : AppColors.secondaryTextColor,
+                                return Flexible(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                        left: index == 0 ? 10.0 : 0),
+                                    child: GestureDetector(
+                                      onTap: () => _onTabTapped(index),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              LocalAssets(
+                                                imagePath: iconTab[index],
+                                                width: 15,
+                                                height: 15,
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 5,),
+                                              SizedBox(
+                                                width: 3,
+                                              ),
+                                              Flexible(
+                                                child: CustomText(
+                                                  // "postTab[index] dsdsdsdsds",
+                                                  postTab[index],
+                                                  fontSize: 11,
+                                                  maxLines: 1,
+                                                  fontWeight: FontWeight.w500,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  color: isSelected
+                                                      ? AppColors.black28
+                                                      : AppColors
+                                                          .secondaryTextColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
 
-                                        // The Blue Indicator Line
-                                        AnimatedContainer(
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          height: 3,
-                                          width: isSelected ? 500 : 0,
-                                          // width: isSelected ? double.infinity : 0,
-                                          color: AppColors.primaryColor,
-                                        )
-                                      ],
+                                          // The Blue Indicator Line
+                                          AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            height: 3,
+                                            width: isSelected ? 90 : 0,
+                                            // width: isSelected ? double.infinity : 0,
+                                            color: AppColors.primaryColor,
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );

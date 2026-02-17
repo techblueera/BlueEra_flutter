@@ -132,9 +132,6 @@ import '../../features/chat/view/contacts/contact_list_page.dart';
 import '../../features/me/grocery/model/my_grocery_products_reponse.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
-import '../../features/me/hospital/view/category/ipd_in_patient_department_page.dart';
-import '../../features/me/hospital/view/category/opd_out_patient_page.dart';
-import '../../features/me/hospital/view/widget/general_medicine.dart';
 import '../../features/me/medical/view/category/otc_items_page.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';
@@ -488,8 +485,7 @@ class RouteHelper {
   static String getEarnServiceAvailableOptionsScreenRoute() =>
       RouteConstant.earnServiceAvailableOptionsScreen;
 
-  static String getMedicalScreenRoute() =>
-      RouteConstant.medicalScreen;
+  static String getMedicalScreenRoute() => RouteConstant.medicalScreen;
 
   static String getMedicalCategoryScreenRoute() =>
       RouteConstant.medicalCategoryScreen;
@@ -497,8 +493,7 @@ class RouteHelper {
   static String getMedicalSubCategoryScreenRoute() =>
       RouteConstant.medicalSubCategoryScreen;
 
-  static String getAddMedicalScreenRoute  () =>
-      RouteConstant.addMedicalScreen;
+  static String getAddMedicalScreenRoute() => RouteConstant.addMedicalScreen;
 
   static String getAddMedicalVariantScreenRoute() =>
       RouteConstant.addMedicalVariantScreen;
@@ -512,12 +507,10 @@ class RouteHelper {
   static String getMedicalListingScreenRoute() =>
       RouteConstant.medicalListingScreen;
 
-  static String getMedicalCartScreenRoute() =>
-      RouteConstant.medicalCartScreen;
+  static String getMedicalCartScreenRoute() => RouteConstant.medicalCartScreen;
 
   static String getMedicalConfirmScreenRoute() =>
       RouteConstant.medicalConfirmScreen;
-
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1026,9 +1019,7 @@ class RouteHelper {
         final String argDocumentVia = args[ApiKeys.argDocumentVia] as String;
 
         return MaterialPageRoute(
-            builder: (_) => AddDocumentScreen(
-                documentVia: argDocumentVia
-            ),
+            builder: (_) => AddDocumentScreen(documentVia: argDocumentVia),
             settings:
                 RouteSettings(name: RouteHelper.getAddDocumentScreenRoute()));
       case RouteConstant.postDetailPage:
@@ -1249,8 +1240,8 @@ class RouteHelper {
       case RouteConstant.vehicleInformationRidingScreen:
         return MaterialPageRoute(
             builder: (_) => VehicleInformationRidingScreen(
-              screeName: '',
-            ),
+                  screeName: '',
+                ),
             settings:
                 RouteSettings(name: getVehicleInformationRidingScreenRoute()));
       case RouteConstant.homeStayRentalService:
@@ -1376,10 +1367,13 @@ class RouteHelper {
       case RouteConstant.groceryCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
-        final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
-        final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
+        final String argArrGroceryCatName =
+            args[ApiKeys.argArrGroceryCatName] as String;
+        final String argArrGroceryCatKey =
+            args[ApiKeys.argArrGroceryCatKey] as String;
         final List<CollapsibleGridModel> argArrGrocerySuperCat =
-            args[ApiKeys.argArrGrocerySuperCategory] as List<CollapsibleGridModel>;
+            args[ApiKeys.argArrGrocerySuperCategory]
+                as List<CollapsibleGridModel>;
         return MaterialPageRoute(
             builder: (_) => GroceryCategoryScreen(
                 argArrGrocerySuperCat: argArrGrocerySuperCat,
@@ -1395,9 +1389,9 @@ class RouteHelper {
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => GrocerySubCategoryScreen(
-                arrGroceries: argGroceries,
-                // selectedGroceryData: argSelectedGroceryData
-            ),
+                  arrGroceries: argGroceries,
+                  // selectedGroceryData: argSelectedGroceryData
+                ),
             settings: RouteSettings(name: getGrocerySubCategoryScreenRoute()));
       case RouteConstant.addGroceryScreen:
         return MaterialPageRoute(
@@ -1434,9 +1428,9 @@ class RouteHelper {
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => GroceryListingScreen(
-                arrGroceries: argGroceries,
-                // selectedGroceryData: argSelectedGroceryData
-            ),
+                  arrGroceries: argGroceries,
+                  // selectedGroceryData: argSelectedGroceryData
+                ),
             settings: RouteSettings(name: getGroceryListingScreenRoute()));
       case RouteConstant.riderServiceScreen:
         // final args = settings.arguments as Map<String, dynamic>;
@@ -1460,8 +1454,7 @@ class RouteHelper {
       // );
       case RouteConstant.grocerySuperCategoryScreen:
         return MaterialPageRoute(
-            builder: (_) =>
-                GrocerySuperCategoryScreen(),
+            builder: (_) => GrocerySuperCategoryScreen(),
             settings:
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
       case RouteConstant.paymentSettingScreen:
@@ -1486,40 +1479,7 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => GroceryConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getGroceryConfirmScreenRoute()));
-      case RouteConstant.hospitalOptCategory:
-        final args = settings.arguments as Map<String, dynamic>;
-        String categoryId = args[ApiKeys.category_id] as String;
-        String title = args[ApiKeys.title] as String;
-        String type = args[ApiKeys.type] as String;
-        return MaterialPageRoute(
-            builder: (_) => OpdOutPatientPage(
-                  type: type,
-                  title: title,
-                  categoryId: categoryId,
-                ),
-            settings: RouteSettings(name: getHospitalOptCategory()));
-      case RouteConstant.hospitalDoctorViewCategory:
-        final args = settings.arguments as Map<String, dynamic>;
-        // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
-        String categoryId = args[ApiKeys.category_id] as String;
-        String title = args[ApiKeys.title] as String;
-        return MaterialPageRoute(
-            builder: (_) => DoctorListView(
-                  title: title,
-                  documentId: categoryId,
-                ),
-            settings: RouteSettings(name: getHospitalDoctorViewCategory()));
-      case RouteConstant.hospitalWardViewCategory:
-        final args = settings.arguments as Map<String, dynamic>;
-        // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
-        String categoryId = args[ApiKeys.category_id] as String;
-        String title = args[ApiKeys.title] as String;
-        return MaterialPageRoute(
-            builder: (_) => IpdInPatientWardViewPage(
-                  title: title,
-                  documentId: categoryId,
-                ),
-            settings: RouteSettings(name: getHospitalWardViewCategory()));
+
       case RouteConstant.addSelfServiceScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final EarnServiceTypes serviceSubType =
@@ -1533,21 +1493,20 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => CreateAccountTypeScreen(),
             settings: RouteSettings(name: getCreateAccountTypeScreenRoute()));
-            // builder: (_) => CreateAccountTypeScreen(
-            // ),
-            // settings: RouteSettings(name: getCreateAccountTypeScreenRoute())
-        // );
+      // builder: (_) => CreateAccountTypeScreen(
+      // ),
+      // settings: RouteSettings(name: getCreateAccountTypeScreenRoute())
+      // );
       case RouteConstant.earnServiceAvailableOptionsScreen:
         return MaterialPageRoute(
             builder: (_) => EarnServiceAvailableOptionsScreen(),
-            settings: RouteSettings(name: getEarnServiceAvailableOptionsScreenRoute())
-        );
-
+            settings: RouteSettings(
+                name: getEarnServiceAvailableOptionsScreenRoute()));
 
       case RouteConstant.medicalScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool? argFromBottomNavBar =
-        args[ApiKeys.argFromBottomNavBar] as bool?;
+            args[ApiKeys.argFromBottomNavBar] as bool?;
         return MaterialPageRoute(
             builder: (_) =>
                 MedicalScreen(fromBottomNavBar: argFromBottomNavBar),
@@ -1561,13 +1520,13 @@ class RouteHelper {
       case RouteConstant.medicalSubCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<MedicalNestedCategoryModel> argGroceries =
-             args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
+            args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
         // final GroceryNestedCategoryModel argSelectedGroceryData =
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => MedicalSubCategoryScreen(
-              arrLevel3Category: argGroceries,
-            ),
+                  arrLevel3Category: argGroceries,
+                ),
             settings: RouteSettings(name: getMedicalSubCategoryScreenRoute()));
 
       case RouteConstant.addMedicalScreen:
@@ -1586,21 +1545,19 @@ class RouteHelper {
         final String argCategoryName = args[ApiKeys.argCategoryName] as String;
         return MaterialPageRoute(
             builder: (_) => MyMedicalProductsScreen(
-              categoryId: argCategoryId,
-              categoryName: argCategoryName,
-            ),
+                  categoryId: argCategoryId,
+                  categoryName: argCategoryName,
+                ),
             settings: RouteSettings(name: getMyMedicalProductsScreenRoute()));
 
       case RouteConstant.myMedicalVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<MedicalProductVariants> variants =
-        args[ApiKeys.argVariants] as List<MedicalProductVariants>;
+            args[ApiKeys.argVariants] as List<MedicalProductVariants>;
         final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
         return MaterialPageRoute(
             builder: (_) => MyMedicalVariantScreen(
-                variants: variants,
-                isShowInGrid: argIsShowInGrid
-            ),
+                variants: variants, isShowInGrid: argIsShowInGrid),
             settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
 
       case RouteConstant.medicalListingScreen:
@@ -1609,8 +1566,8 @@ class RouteHelper {
             args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
         return MaterialPageRoute(
             builder: (_) => MedicalListingScreen(
-              arrLevel3Category: argGroceries,
-            ),
+                  arrLevel3Category: argGroceries,
+                ),
             settings: RouteSettings(name: getMedicalListingScreenRoute()));
 
       case RouteConstant.medicalCartScreen:
@@ -1623,10 +1580,7 @@ class RouteHelper {
         final String argOrderId = args[ApiKeys.argOrderId] as String;
         return MaterialPageRoute(
             builder: (_) => MedicalConfirmScreen(orderId: argOrderId),
-            settings: RouteSettings(name: getMedicalConfirmScreenRoute())
-        );
-
-
+            settings: RouteSettings(name: getMedicalConfirmScreenRoute()));
 
       default:
         return MaterialPageRoute(

@@ -8,8 +8,6 @@ import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_update_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_full_details_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/no_lab_create_screen.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:get/get.dart';
@@ -112,59 +110,5 @@ class _LaboratoryMainState extends State<LaboratoryMain>
                 : NoLabCreateScreen(),
           );
         }));
-  }
-}
-
-class ServiceProgressScreen extends StatefulWidget {
-  @override
-  _ServiceProgressScreenState createState() => _ServiceProgressScreenState();
-}
-
-class _ServiceProgressScreenState extends State<ServiceProgressScreen> {
-  final controller = Get.put(AiLabControllerPIP());
-
-  @override
-  void initState() {
-    super.initState();
-    // Enable PiP because service is starting
-    controller.setPipStatus(true);
-  }
-
-  @override
-  void dispose() {
-    // Disable PiP when leaving this screen
-    controller.setPipStatus(false);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        // Also trigger PiP if they click the Back button
-        await controller.platformData.invokeMethod('enterPip');
-      },
-      child: Scaffold(
-        appBar: CommonBackAppBar(
-          title: "data",
-          onBackTap: () {
-            Get.back();
-          },
-        ),
-        body: Center(child: CustomText("Welcome To PIP Mode")),
-      ),
-    );
-  }
-}
-
-class AiLabControllerPIP extends GetxController {
-  final platformData = MethodChannel('com.vahcare.lab/pip');
-
-  // This updates the Android Master Switch
-  Future<void> setPipStatus(bool isEnabled) async {
-    await platformData
-        .invokeMethod('updatePipStatus', {"isEnabled": isEnabled});
   }
 }

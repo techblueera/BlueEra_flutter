@@ -18,7 +18,6 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/expandable_text.dart';
-import '../../../me/hospital/controller/hospital_model_controller.dart';
 
 class FranchiseHome extends StatefulWidget {
   const FranchiseHome({super.key});
@@ -29,7 +28,6 @@ class FranchiseHome extends StatefulWidget {
 
 class _FranchiseHomeState extends State<FranchiseHome> {
   int selectedTab = 0;
-  final controller = getOrPut(() => HospitalModelController());
   late GoogleMapController mapController;
   Set<Marker> _markers = {};
 

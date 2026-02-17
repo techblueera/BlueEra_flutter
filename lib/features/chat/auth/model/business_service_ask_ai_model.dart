@@ -1,6 +1,5 @@
 import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
 
-import '../../../me/hospital/model/hospital_main_page_model.dart';
 
 
 class BusinessServicesAskAiModel extends BaseAiChatModel {
@@ -675,7 +674,6 @@ class ContactUs {
   String? createdAt;
   String? updatedAt;
   int? iV;
-  List<Department>? departments;
 
   ContactUs({this.branch,
     this.sId,
@@ -690,7 +688,7 @@ class ContactUs {
     this.createdAt,
     this.updatedAt,
     this.iV,
-    this.departments});
+    });
 
   ContactUs.fromJson(Map<String, dynamic> json) {
     branch =
@@ -709,12 +707,7 @@ class ContactUs {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
-    if (json['departments'] != null) {
-      departments = <Department>[];
-      json['departments'].forEach((v) {
-        departments!.add(new Department.fromJson(v));
-      });
-    }
+
   }
 
   Map<String, dynamic> toJson() {
@@ -736,9 +729,7 @@ class ContactUs {
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     data['__v'] = this.iV;
-    if (this.departments != null) {
-      data['departments'] = this.departments!.map((v) => v.toJson()).toList();
-    }
+
     return data;
   }
 }

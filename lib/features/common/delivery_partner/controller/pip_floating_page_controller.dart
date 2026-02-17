@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
@@ -14,22 +15,24 @@ class PipFloatingPageController extends GetxController {
 
 
   Future<void> setPipStatus(bool isEnabled) async {
-    await platformData.invokeMethod(
-      'updatePipStatus',
-      {"isEnabled": isEnabled},
-    );
+    if(Platform.isAndroid) {
+      await platformData.invokeMethod(
+        'updatePipStatus',
+        {"isEnabled": isEnabled},
+      );
+    }
   }
 
 
 
-  Future<bool> isInPipMode() async {
+/*  Future<bool> isInPipMode() async {
     final result = await platformData.invokeMethod<bool>('isInPipMode');
     isPipModeOn.value = result ?? false;
     return result ?? false;
-  }
+  }*/
 }
 
-class FloatingController {
+/*class FloatingController {
   static final FloatingController _instance = FloatingController._internal();
   factory FloatingController() => _instance;
   FloatingController._internal();
@@ -112,4 +115,4 @@ class FloatingController {
       ],
     );
   }
-}
+}*/

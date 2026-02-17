@@ -187,7 +187,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   Widget build(BuildContext context) {
     final bool isSmallScreen = View.of(context).physicalSize.width < 400;
-
     return SafeArea(
       child: Scaffold(
           body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen))
@@ -381,7 +380,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
+
+
               _discoverWidget(),
+
               FindContactWithService(fromBottomNav: true),
               FavouriteCategoryListScreen(),
               SizedBox(),
@@ -396,12 +398,13 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     return SingleChildScrollView(
       child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(top: SizeConfig.paddingM),
-            child: _buildMapWidget(), // Extract your map code here
-          ),
+          ///COMMENT BY BM-Dev REASON CRASHING IN IOS DEVICE SO
+          // Padding(
+          //   padding: EdgeInsets.only(top: SizeConfig.paddingM),
+          //   child: _buildMapWidget(), // Extract your map code here
+          // ),
 
-          _buildGap(gap: SizeConfig.paddingM),
+          // _buildGap(gap: SizeConfig.paddingM),
 
           searchProductsViaAiWidget(),
 

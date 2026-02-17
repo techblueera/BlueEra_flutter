@@ -242,7 +242,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                right: 12, left: 12, top: 0),
+                                right: 0, left: 0, top: 0),
                             child: ChannelCardWidget(channelModel: channel),
                           ),
                         );
