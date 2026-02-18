@@ -511,6 +511,8 @@ class RouteHelper {
 
   static String getMedicalConfirmScreenRoute() =>
       RouteConstant.medicalConfirmScreen;
+  static String getHospitalDepartmentsScreenRoute() =>
+      RouteConstant.hospitalDepartmentsScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {

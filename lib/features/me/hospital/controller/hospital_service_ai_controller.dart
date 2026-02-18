@@ -7,9 +7,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/hospital/model/hospita_ai_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_repo.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_service_preview.dart';
-import 'package:BlueEra/features/me/laboratory/model/ai_lab_service_model_res.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_preview_screeen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

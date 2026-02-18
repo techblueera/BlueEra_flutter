@@ -1,0 +1,174 @@
+import 'dart:io';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_ipd_controller.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:BlueEra/widgets/ai_description_field_screen.dart';
+
+class IpdWardFormScreen extends StatefulWidget {
+  final String departmentId;
+  final String? hospitalId;
+
+  const IpdWardFormScreen(
+      {super.key, required this.departmentId, this.hospitalId});
+
+  @override
+  State<IpdWardFormScreen> createState() => _IpdWardFormScreenState();
+}
+
+class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
+  late final HospitalIpdController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = getOrPut(() => HospitalIpdController());
+    controller.departmentIdArg = widget.departmentId;
+    controller.hospitalIdArg = widget.hospitalId;
+    controller.selectedImage.value=null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    SizeConfig.init(context);
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: controller.editingWard == null ? "Add IPD" : "Edit IPD",
+        isLeading: true,
+        isShadowShow: true,
+      ),
+      body: CommonCardWidget(
+        child: SingleChildScrollView(
+          // padding: EdgeInsets.all(SizeConfig.paddingM),
+          child: Column(
+            children: [
+              if (controller.editingWard == null)...[_buildImageSection(context),
+
+                SizedBox(height: SizeConfig.size20),
+              ],
+              CommonTextField(
+                title: "Bed Name",
+                textEditController: controller.nameController,
+                hintText: AppStrings.fullName,
+                onChange: (_) {
+                  controller.validate();
+                  setState(() {});
+                },
+              ),
+              SizedBox(height: SizeConfig.size10),
+              CommonTextField(
+                title: "Bed Count",
+                textEditController: controller.bedCountController,
+                hintText: "4",
+                keyBoardType: TextInputType.number,
+                onChange: (_) {
+                  controller.validate();
+                  setState(() {});
+                },
+              ),
+              SizedBox(height: SizeConfig.size10),
+              CommonTextField(
+                title: "Price",
+                textEditController: controller.feesController,
+                hintText: "Rs 500/-",
+                keyBoardType: TextInputType.number,
+                onChange: (_) {
+                  controller.validate();
+                  setState(() {});
+                },
+              ),
+              SizedBox(height: SizeConfig.size10),
+              AiDescriptionField(
+                label: "Describe your hospital history",
+                hintText: "Tell us more about the Hospital history...",
+                controller: controller.historyController,
+                rxValue: RxString(controller.historyController.text),
+                aiType: "Hospital IPD (In-Patient Departments / Wards)",
+                aiData: {
+                  'bed_count': controller.bedCountController.text,
+                  'bed_name': controller.nameController.text
+                },
+              ),
+              SizedBox(height: SizeConfig.size30),
+              Obx(() => CustomBtn(
+                    isValidate: controller.isFormValid.value,
+                    title: controller.isSaving.value
+                        ? AppStrings.saving
+                        : (controller.editingWard == null
+                            ? AppStrings.add
+                            : AppStrings.update),
+                    onTap: controller.isFormValid.value
+                        ? controller.saveOrUpdate
+                        : null,
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection(BuildContext context) {
+    return Obx(() {
+      if (controller.selectedImage.value != null) {
+        return CommonImageUploadTile(
+          imageFile: controller.selectedImage,
+          onImageRemove: () {
+            controller.selectedImage.value = null;
+            controller.validate();
+          },
+          title: '',
+          context: context,
+        );
+      } else if (controller.initialImageUrl.isNotEmpty) {
+        return Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                controller.initialImageUrl,
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned(
+              right: 5,
+              top: 5,
+              child: CircleAvatar(
+                backgroundColor: Colors.red,
+                child: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  onPressed: () {
+                    controller.initialImageUrl = "";
+                    controller.validate();
+                    setState(() {});
+                  },
+                ),
+              ),
+            )
+          ],
+        );
+      }
+      return CommonImageUploadTile(
+        title: "Upload Photo",
+        context: context,
+        onImageSelected: () async {
+          final path = await CommonImageUploadTile.pickImage(context: context);
+          if (path != null) {
+            controller.selectedImage.value = File(path);
+            controller.validate();
+          }
+        },
+        imageFile: controller.selectedImage,
+      );
+    });
+  }
+}

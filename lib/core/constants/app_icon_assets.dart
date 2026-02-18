@@ -653,4 +653,21 @@ class AppIconAssets {
   static const String  opd = "${iconPath}opd.svg";
   static const String  medical_store= "${iconPath}medical_store.svg";
   static const String other_facilities = "${iconPath}other_facilities.svg";
+
+  static const String GeneralWard = "${iconPath}GeneralWard.svg";
+  static const String  SemiPrivateWard= "${iconPath}SemiPrivateWard.svg";
+  static const String PrivateWard = "${iconPath}PrivateWard.svg";
+  static const String IsolationWard = "${iconPath}IsolationWard.svg";
+  static const String  PediatricWard= "${iconPath}PediatricWard.svg";
+  static const String  MaternityWard= "${iconPath}MaternityWard.svg";
+  static const String  Casualty= "${iconPath}Casualty.svg";
+  static const String TraumaCare = "${iconPath}TraumaCare.svg";
+  static const String IntensiveCareUnit = "${iconPath}IntensiveCareUnit.svg";
+  static const String CardiacCareUnit = "${iconPath}CardiacCareUnit.svg";
+  static const String  Neonatal= "${iconPath}Neonatal.svg";
+  static const String  PICU= "${iconPath}PICU.svg";
+  static const String CashLessInsurance = "${iconPath}CashLessInsurance.svg";
+  static const String  PMYojana= "${iconPath}PMYojana.png";
+  static const String BloodBank = "${iconPath}BloodBank.svg";
+  static const String Ambulance  = "${iconPath}Ambulance.svg";
 }

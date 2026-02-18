@@ -50,7 +50,7 @@ class MeMenuCardDesign extends StatelessWidget {
               Row(
                 children: [
                   if (icon.isNotEmpty)...[
-                    LocalAssets(imagePath: icon),
+                    LocalAssets(imagePath: "${icon}"),
                     SizedBox(width: SizeConfig.size8),
                   ] ,
                   CustomText(

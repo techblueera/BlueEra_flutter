@@ -67,6 +67,7 @@ class ApiKeys {
   static const video = 'video';
   static const title = 'title';
   static const description = 'description';
+  static const hospitalId = 'hospitalId';
   static const channelId = 'channelId';
   static const visibility = 'visibility';
   static const allowComments = 'allowComments';
