@@ -144,75 +144,74 @@ class DiscoverController extends GetxController {
   int productDataPage = 1;
   bool productDataHasMore = true;
 
-  final List<CollapsibleGridModel> discoverOptions = [
-    CollapsibleGridModel(
-      name: 'Suggested',
-      slugId: 'SUGGESTED_SECTOR',
-      icon: AppImageAssets.plumber,
-    ),
-    CollapsibleGridModel(
-        name: 'Grocery & Food',
-        slugId: 'GROCERY_FOOD_SECTOR',
-        icon: AppImageAssets.deliveryPartner),
-    CollapsibleGridModel(
-        name: AppStrings.homeMadeProducts,
-        slugId: 'HOME_MADE_PRODUCTS',
-        icon: AppImageAssets.homeMadeProduct
-    ),
-    CollapsibleGridModel(
-        name: 'Ride & Transport',
-        slugId: 'RIDE_TRANSPORT',
-        icon: AppImageAssets.homeMadeFood
-    ),
-    CollapsibleGridModel(
-        name: 'Shopping',
-        slugId: 'SHOPPING_SECTOR',
-        icon: AppImageAssets.homeService
-    ),
-    CollapsibleGridModel(
-        name: 'Book Professionals',
-        slugId: 'BOOK_PROFESSIONAL',
-        icon: AppImageAssets.consultation
-    ),
-    CollapsibleGridModel(
-        name: 'Home Made',
-        slugId: 'HOME_MADE_SECTOR',
-        icon: AppImageAssets.homeMadeProduct
-    ),
-    CollapsibleGridModel(
-        name: 'Hotel & Stay',
-        slugId: 'HOTEL_STAY',
-        icon: AppImageAssets.contentCreator
-    ),
-    CollapsibleGridModel(
-        name: 'Health Care',
-        slugId: 'HEALTH_CARE',
-        icon: OnboardingBusinessAssets.healthcareMedicalServices),
-    CollapsibleGridModel(
-        name: 'Rent & Property',
-        slugId: 'RENT_PROPERTY',
-        icon: AppImageAssets.rentalService),
-    CollapsibleGridModel(
-        name: 'Automotive Services',
-        slugId: 'AUTOMOTIVE_SERVICE',
-        icon: AppImageAssets.tutor),
-    CollapsibleGridModel(
-        name: 'Find Services',
-        slugId: 'FIND_SERVICE',
-        icon: AppImageAssets.tutor),
-    CollapsibleGridModel(
-        name: 'Education & Training',
-        slugId: 'EDUCATION_TRAINING',
-        icon: OnboardingBusinessAssets.educationAndTraining),
-    CollapsibleGridModel(
-        name: 'Jobs Near Me',
-        slugId: 'JOBS_NEAR_ME_SECTOR',
-        icon: AppImageAssets.tutor),
-  ];
-  final selectedOption = Rxn<CollapsibleGridModel>();
+  // final List<CollapsibleGridModel> discoverOptions = [
+  //   CollapsibleGridModel(
+  //     name: 'Suggested',
+  //     slugId: 'SUGGESTED_SECTOR',
+  //     icon: AppImageAssets.plumber,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Grocery & Food',
+  //       slugId: 'GROCERY_FOOD_SECTOR',
+  //       icon: AppImageAssets.deliveryPartner),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.homeMadeProducts,
+  //       slugId: 'HOME_MADE_PRODUCTS',
+  //       icon: AppImageAssets.homeMadeProduct
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Ride & Transport',
+  //       slugId: 'RIDE_TRANSPORT',
+  //       icon: AppImageAssets.homeMadeFood
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Shopping',
+  //       slugId: 'SHOPPING_SECTOR',
+  //       icon: AppImageAssets.homeService
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Book Professionals',
+  //       slugId: 'BOOK_PROFESSIONAL',
+  //       icon: AppImageAssets.consultation
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Home Made',
+  //       slugId: 'HOME_MADE_SECTOR',
+  //       icon: AppImageAssets.homeMadeProduct
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Hotel & Stay',
+  //       slugId: 'HOTEL_STAY',
+  //       icon: AppImageAssets.contentCreator
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: 'Health Care',
+  //       slugId: 'HEALTH_CARE',
+  //       icon: OnboardingBusinessAssets.healthcareMedicalServices),
+  //   CollapsibleGridModel(
+  //       name: 'Rent & Property',
+  //       slugId: 'RENT_PROPERTY',
+  //       icon: AppImageAssets.rentalService),
+  //   CollapsibleGridModel(
+  //       name: 'Automotive Services',
+  //       slugId: 'AUTOMOTIVE_SERVICE',
+  //       icon: AppImageAssets.tutor),
+  //   CollapsibleGridModel(
+  //       name: 'Find Services',
+  //       slugId: 'FIND_SERVICE',
+  //       icon: AppImageAssets.tutor),
+  //   CollapsibleGridModel(
+  //       name: 'Education & Training',
+  //       slugId: 'EDUCATION_TRAINING',
+  //       icon: OnboardingBusinessAssets.educationAndTraining),
+  //   CollapsibleGridModel(
+  //       name: 'Jobs Near Me',
+  //       slugId: 'JOBS_NEAR_ME_SECTOR',
+  //       icon: AppImageAssets.tutor),
+  // ];
+  // final selectedOption = Rxn<CollapsibleGridModel>();
 
-
-
+  
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy(
       {ProviderType? providerType,
