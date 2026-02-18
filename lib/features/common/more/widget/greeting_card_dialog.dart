@@ -13,7 +13,7 @@ import 'package:BlueEra/features/common/more/widget/home_screen_card.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/visiting_card_helper.dart';
+import 'package:BlueEra/features/common/visiting_card/helper/visiting_card_helper.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

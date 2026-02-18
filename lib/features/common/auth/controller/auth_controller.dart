@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -692,7 +693,6 @@ clearSubCategoryData()
   //     isAllBusinessCategoriesLoading.value = false;
   //   }
   // }
-  //
   // void _updateAllSocialProfileLists(
   //     List<ProfessionTypeData> apiList,
   //     ) {
@@ -840,7 +840,6 @@ clearSubCategoryData()
     }
   }
 
-
   RxBool isIndividualFieldLoading = false.obs;
   RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
   RxList<SubCategories> arrIndividualSubCategories = <SubCategories>[].obs;
@@ -869,6 +868,188 @@ clearSubCategoryData()
     } finally {
       isIndividualFieldLoading.value = false;
     }
+  }
+
+  List<ProfessionTypeData> individualOnboardingSocialProfileList = [];
+  List<ProfessionTypeData> individualOnboardingGigWorkList = [];
+  List<ProfessionTypeData> individualOnboardingSkillWorkList = [];
+  List<ProfessionTypeData> individualOnboardingConsultationList = [];
+
+
+  Future<void> getAllIndividualProfession() async {
+    try {
+      isProfessionLoading.value = true;
+      professionTypeDataList.clear();
+
+      ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
+
+      if (responseModel.isSuccess) {
+        professionListingResponse = ApiResponse.complete(responseModel);
+        final data = responseModel.response?.data;
+        professionTypeDataList = PersonalProfessionModel.fromJson(data).data ?? [];
+        updateIndividualCategoriesFromApi(professionTypeDataList);
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        professionListingResponse = ApiResponse.error('error');
+
+      }
+    } catch (e) {
+      professionListingResponse = ApiResponse.error('error');
+      update();
+    }finally{
+      isProfessionLoading.value = false;
+    }
+  }
+
+  void updateIndividualCategoriesFromApi(List<ProfessionTypeData> categoryData) {
+
+    individualOnboardingSocialProfileList.clear();
+    individualOnboardingGigWorkList.clear();
+    individualOnboardingSkillWorkList.clear();
+    individualOnboardingConsultationList.clear();
+
+    for (var apiCategory in categoryData) {
+      final String apiType = apiCategory.profileType ?? "";
+      log('apitype-- $apiType');
+
+      switch (apiType) {
+        case 'Social Profile':
+          apiCategory.individualProfileType = IndividualProfileType.SOCIAL_PROFILE;
+          individualOnboardingSocialProfileList.add(apiCategory);
+          break;
+        case 'GigWork':
+          apiCategory.individualProfileType = IndividualProfileType.GIG_WORKER;
+          individualOnboardingGigWorkList.add(apiCategory);
+          break;
+        case 'Self Employed':
+          apiCategory.individualProfileType = IndividualProfileType.SELF_EMPLOYED;
+          individualOnboardingSkillWorkList.add(apiCategory);
+          break;
+        case 'Professional':
+          apiCategory.individualProfileType = IndividualProfileType.PROFESSIONAL;
+          individualOnboardingConsultationList.add(apiCategory);
+          break;
+      }
+    }
+
+    log('''
+✅ Category Sync Complete:
+- Social Profile: ${individualOnboardingSocialProfileList.length}
+- Gig Work: ${individualOnboardingGigWorkList.length}
+- Skill Work:  ${individualOnboardingSkillWorkList.length}
+- Consultation:     ${individualOnboardingConsultationList.length}
+  ''');
+
+  }
+
+  RxBool isAllBusinessCategoriesLoading = false.obs;
+  List<CategoryData> businessOnboardingServicesCategories = [];
+  List<CategoryData> businessOnboardingProductsCategories = [];
+  List<CategoryData> businessOnboardingGroceriesCategories = [];
+  List<CategoryData> businessOnboardingFoodsCategories = [];
+  List<CategoryData> businessOnboardingManufacturingCategories = [];
+  List<CategoryData> businessOnboardingAutomotiveServicesCategories = [];
+  List<CategoryData> businessOnboardingHealthcareSectorsCategories = [];
+  List<CategoryData> businessOnboardingHospitalityStayCategories = [];
+  List<CategoryData> businessOnboardingEducationTrainingCategories = [];
+  List<CategoryData> businessOnboardingFinancialSectorsCategories = [];
+
+  Future<void> getAllBusinessCategories() async {
+    try {
+      isAllBusinessCategoriesLoading.value = true;
+
+      final response = await AuthRepo().getBusinessCategoriesRepo();
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      List<CategoryData> businessCategories = CategoryModel.fromJson(jsonData).data ?? [];
+      updateBusinessCategoriesFromApi(businessCategories);
+      businessCategoryResponse = ApiResponse.complete(response);
+    } catch (e) {
+      businessCategoryResponse = ApiResponse.error('error');
+    }finally{
+      isAllBusinessCategoriesLoading.value = false;
+    }
+  }
+
+  void updateBusinessCategoriesFromApi(List<CategoryData> categoryData) {
+
+    businessOnboardingServicesCategories.clear();
+    businessOnboardingProductsCategories.clear();
+    businessOnboardingGroceriesCategories.clear();
+    businessOnboardingFoodsCategories.clear();
+    businessOnboardingManufacturingCategories.clear();
+    businessOnboardingAutomotiveServicesCategories.clear();
+    businessOnboardingHealthcareSectorsCategories.clear();
+    businessOnboardingHospitalityStayCategories.clear();
+    businessOnboardingEducationTrainingCategories.clear();
+    businessOnboardingFinancialSectorsCategories.clear();
+
+    for (var apiCategory in categoryData) {
+      final String apiType = apiCategory.type ?? "";
+      log('apitype-- $apiType');
+
+      switch (apiType) {
+        case 'Service':
+          apiCategory.businessType = BusinessType.Service;
+          businessOnboardingServicesCategories.add(apiCategory);
+          break;
+        case 'Product':
+          apiCategory.businessType = BusinessType.Product;
+          businessOnboardingProductsCategories.add(apiCategory);
+          break;
+        case 'Grocery':
+          apiCategory.businessType = BusinessType.Grocery;
+          businessOnboardingGroceriesCategories.add(apiCategory);
+          break;
+        case 'Food':
+          apiCategory.businessType = BusinessType.Food;
+          businessOnboardingFoodsCategories.add(apiCategory);
+          break;
+        case 'Manufacturing':
+          apiCategory.businessType = BusinessType.Manufacturing;
+          businessOnboardingManufacturingCategories.add(apiCategory);
+          break;
+        case 'Automotive':
+          apiCategory.businessType = BusinessType.Automotive;
+          businessOnboardingAutomotiveServicesCategories.add(apiCategory);
+          break;
+        case 'Healthcare':
+          apiCategory.businessType = BusinessType.Healthcare;
+          businessOnboardingHealthcareSectorsCategories.add(apiCategory);
+          break;
+        case 'Motel':
+          apiCategory.businessType = BusinessType.Motel;
+          businessOnboardingHospitalityStayCategories.add(apiCategory);
+          break;
+        case 'Siksha':
+          apiCategory.businessType = BusinessType.Siksha;
+          businessOnboardingEducationTrainingCategories.add(apiCategory);
+          break;
+        case 'Finance':
+          apiCategory.businessType = BusinessType.Finance;
+          businessOnboardingFinancialSectorsCategories.add(apiCategory);
+          break;
+      }
+    }
+
+    log('''
+✅ Category Sync Complete:
+- Services: ${businessOnboardingServicesCategories.length}
+- Products: ${businessOnboardingProductsCategories.length}
+- Grocery:  ${businessOnboardingGroceriesCategories.length}
+- Food:     ${businessOnboardingFoodsCategories.length}
+- Healthcare: ${businessOnboardingHealthcareSectorsCategories.length}
+- Finance:  ${businessOnboardingFinancialSectorsCategories.length}
+  ''');
+
   }
 
 }

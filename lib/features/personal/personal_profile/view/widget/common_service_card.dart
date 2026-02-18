@@ -1,4 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -14,6 +17,8 @@ class CommonServiceCard<T> extends StatelessWidget {
   final double? iconHeight;
   final double? spacing;
   final double? borderWidth;
+  final int? textMaxLine;
+  final List<BoxShadow>? boxShadow;
 
   const CommonServiceCard({
     Key? key,
@@ -25,10 +30,15 @@ class CommonServiceCard<T> extends StatelessWidget {
     this.iconHeight,
     this.spacing,
     this.borderWidth,
+    this.textMaxLine,
+    this.boxShadow,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final String iconPath = getIcon(service);
+    final bool isUrl = isNetworkImage(iconPath);
+
     return InkWell(
       borderRadius: BorderRadius.circular(10),
       onTap: () => onTap(service),
@@ -37,7 +47,7 @@ class CommonServiceCard<T> extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [AppShadows.textFieldShadow],
+          boxShadow: boxShadow ?? [AppShadows.textFieldShadow],
           border: Border.all(
               color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
               width: borderWidth ?? 1.0
@@ -48,10 +58,7 @@ class CommonServiceCard<T> extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            LocalAssets(
-              imagePath: getIcon(service),
-              height: iconHeight ?? SizeConfig.size50,
-            ),
+            _buildImage(isUrl, iconPath),
             SizedBox(height: spacing ?? SizeConfig.paddingXSL),
             Container(
               height: SizeConfig.size30,
@@ -62,7 +69,7 @@ class CommonServiceCard<T> extends StatelessWidget {
                 color: AppColors.secondaryTextColor,
                 fontWeight: FontWeight.w600,
                 textAlign: TextAlign.center,
-                maxLines: 2,
+                maxLines: textMaxLine ?? 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -72,4 +79,27 @@ class CommonServiceCard<T> extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildImage(bool isUrl, String image){
+    return !(isUrl)
+        ? LocalAssets(
+      imagePath: image,
+      height: iconHeight ?? SizeConfig.size50,
+    ) : CachedNetworkImage(
+      imageUrl: image,
+      // fit: BoxFit.fill,
+      height: iconHeight ?? SizeConfig.size50,
+      placeholder: (context, url) => Container(
+        color: Colors.grey.shade200,
+        child: Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      errorWidget: (context, url, error) => LocalAssets(
+        imagePath: AppIconAssets.place_holder_image,
+        boxFix: BoxFit.cover,
+      ),
+    );
+  }
+
 }

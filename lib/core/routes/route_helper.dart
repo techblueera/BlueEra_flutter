@@ -1305,7 +1305,7 @@ class RouteHelper {
       case RouteConstant.personalAccountNewScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
-        final profileType = args[ApiKeys.argProfileType] as IndividualType;
+        final profileType = args[ApiKeys.argProfileType] as IndividualProfileType;
         final argProfessionTagId = args[ApiKeys.argProfessionTagId] as String;
         final argProfession = args[ApiKeys.argProfession] as String;
 

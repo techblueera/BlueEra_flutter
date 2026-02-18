@@ -14,7 +14,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
-import 'package:BlueEra/widgets/visiting_card_helper.dart';
+import 'package:BlueEra/features/common/visiting_card/helper/visiting_card_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';

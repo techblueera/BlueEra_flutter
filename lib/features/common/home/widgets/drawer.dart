@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -203,7 +204,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primaryColor),
                 borderRadius: BorderRadius.circular(10),
-                color: AppColors.blueShade.withOpacity(0.1),
+                color: AppColors.blueShade.withValues(alpha: 0.1),
               ),
               child: Row(
                 children: [
@@ -233,10 +234,27 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(width: 8),
           InkWell(
             onTap: () {
-              Get.toNamed(
-                RouteHelper.getMoreCardsScreenRoute(),
-                arguments: {ApiKeys.isFromHomeScreen: false},
-              );
+
+              if(accountTypeGlobal == AppConstants.individual){
+                final viewProfileController = Get.find<ViewPersonalDetailsController>();
+                Get.to(()=> AllVisitingCards(
+                    personalDetails: viewProfileController.personalProfileDetails.value,
+                    showAppBar: true
+                )
+                );
+              }else{
+                final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+                Get.to(()=> AllVisitingCards(
+                    businessDetails: viewBusinessDetailsController.businessProfileDetails?.data,
+                    showAppBar: true
+                  )
+                );
+              }
+
+              // Get.toNamed(
+              //   RouteHelper.getMoreCardsScreenRoute(),
+              //   arguments: {ApiKeys.isFromHomeScreen: false},
+              // );
             },
             child: Container(
               padding: const EdgeInsets.symmetric(

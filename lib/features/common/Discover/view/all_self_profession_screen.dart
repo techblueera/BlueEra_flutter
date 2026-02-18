@@ -146,7 +146,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
       slugId: 'ALL_OPTION',
       icon: AppImageAssets.all,
       flagIcon: AppImageAssets.all,
-      individualType: IndividualType.SELF_EMPLOYED,
+      individualType: IndividualProfileType.SELF_EMPLOYED,
       accountType: AppConstants.individual,
     );
 
@@ -250,7 +250,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
             onTabSelected: (index, _) {
               final selectedEnum = controller.filters[index];
 
-              if (controller.filters == selectedEnum) return;
+              if (controller.selectedFilter.value == selectedEnum) return;
 
               controller.selectedFilter.value = selectedEnum;
               // controller.callApi();

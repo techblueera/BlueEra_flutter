@@ -131,7 +131,7 @@ class _AllProfessionConsultantScreenState
       slugId: 'ALL_OPTION',
       icon: AppImageAssets.all,
       flagIcon: AppImageAssets.all,
-      individualType: IndividualType.PROFESSIONAL,
+      individualType: IndividualProfileType.PROFESSIONAL,
       accountType: AppConstants.individual,
     );
 
