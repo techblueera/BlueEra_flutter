@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/env.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -99,22 +98,6 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
     try {
-      // final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-      //   const ImageConfiguration(size: Size(30, 30)),
-      //   AppImageAssets.markerBlue,
-      // );
-
-      // final Marker customMarker = Marker(
-      //   markerId: const MarkerId("custom_marker_id"),
-      //   position:  LatLng(LocationService.lat, LocationService.lng),
-      //   icon: customIcon,
-      // );
-      //
-      // setState(() {
-      //   _markers.add(customMarker);
-      // });
-
-      // Smoothly animate camera to marker
       await mapController.animateCamera(
         CameraUpdate.newLatLngZoom(
             LatLng(LocationService.lat, LocationService.lng), 14.0),

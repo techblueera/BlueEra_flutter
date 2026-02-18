@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -9,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../../../environment_config.dart';
 import '../../../auth/controller/live_trach_rider_controller.dart';
 
 class TrackRiderLiveLocationPage extends StatefulWidget {
@@ -45,7 +45,7 @@ class _TrackRiderLiveLocationPageState
       ),
       body: Obx(() {
         if ((orderController.liveLng.value == 0) ||
-            (orderController.liveLng.value == 0)) {
+            (orderController.liveLat.value == 0)) {
           return Center(
             child: CustomText(AppStrings.findingRiderLocation),
           );
@@ -82,11 +82,11 @@ class SimpleGoogleMapsTracking extends StatefulWidget {
 
 class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   List<LatLng> polylineCoordinates = []; // Store road points here
-  PolylinePoints polylinePoints = PolylinePoints(apiKey: AppConstants.googleMapKey);
+  // PolylinePoints polylinePoints = PolylinePoints(apiKey: googleMapKey);
   GoogleMapController? mapController;
   Marker? startMarker;
   Marker? endMarker;
-  Polyline? polyline;
+  Set<Polyline> _polylines = {};
   Circle? liveLocationCircle;
   final riderController = Get.find<LiveTrachRiderController>();
 
@@ -104,34 +104,51 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   }
 
   Future<void> _getRoutePolyline() async {
+    // final riderLat = 11.6940;
+    // final riderLng = 77.9710;
+    final riderLat = riderController.liveLat.value;
+    final riderLng = riderController.liveLng.value;
+
+    if (riderLat == 0 || riderLng == 0) return;
+
+    PolylinePoints polylinePoints =
+    PolylinePoints(apiKey: googleMapKey);
+
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       request: PolylineRequest(
-        origin: PointLatLng(widget.startLat, widget.startLng),
+        origin: PointLatLng(riderLat, riderLng), // 🔥 LIVE rider location
         destination: PointLatLng(widget.endLat, widget.endLng),
         mode: TravelMode.driving,
       ),
     );
 
     if (result.points.isNotEmpty) {
-      setState(() {
-        polylineCoordinates.clear();
-        result.points.forEach((PointLatLng point) {
-          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-        });
+      final List<LatLng> routeCoords = result.points
+          .map((point) => LatLng(point.latitude, point.longitude))
+          .toList();
 
-        // Initialize the blue line with road points
-        polyline = Polyline(
-          polylineId: const PolylineId('route_polyline'),
-          color: Colors.blue,
-          width: 6,
-          points: polylineCoordinates,
-          jointType: JointType.round,
-        );
+      setState(() {
+        _polylines = {
+          Polyline(
+            polylineId: const PolylineId("route"),
+            points: routeCoords,
+            width: 6,
+            color: Colors.blue,
+            geodesic: true,
+            jointType: JointType.round,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+          ),
+        };
       });
+    } else {
+      print("NO ROUTE FOUND: ${result.errorMessage}");
     }
   }
 
-  @override
+
+
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _getRoutePolyline(); // Call the road-fetching function here
@@ -160,16 +177,20 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     final newPosition = LatLng(newLat, newLng);
 
     setState(() {
-      // 1. Move the Rider Marker
-      startMarker = startMarker!.copyWith(positionParam: newPosition);
-
-      // 2. Update only the starting point of the blue line so it stays attached to rider
-      if (polylineCoordinates.isNotEmpty) {
-        polylineCoordinates[0] = newPosition;
-        polyline = polyline!.copyWith(pointsParam: polylineCoordinates);
-      }
+      startMarker = startMarker?.copyWith(positionParam: newPosition);
     });
+
+    // 🔥 REFRESH ROAD ROUTE FROM LIVE RIDER
+    await _getRoutePolyline();
+
+    // Optional smooth camera follow
+    mapController?.animateCamera(
+      CameraUpdate.newLatLng(newPosition),
+    );
   }
+
+
+
   Future<void> _startLocationTracking() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return;
@@ -211,46 +232,46 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     }
   }
 
-  Future<void> _addInitialMarkersAndPolyline() async {
-    final start = LatLng(widget.startLat, widget.startLng);
-    final end = LatLng(widget.endLat, widget.endLng);
+  // Future<void> _addInitialMarkersAndPolyline() async {
+  //   final start = LatLng(widget.startLat, widget.startLng);
+  //   final end = LatLng(widget.endLat, widget.endLng);
+  //
+  //   setState(() {
+  //     startMarker = Marker(
+  //       markerId: MarkerId('start_marker'),
+  //       position: start,
+  //     );
+  //     endMarker = Marker(
+  //       markerId: MarkerId('end_marker'),
+  //       position: end,
+  //     );
+  //     polyline = Polyline(
+  //       polylineId: PolylineId('route_polyline'),
+  //       points: [start, end],
+  //       color: Colors.blue,
+  //       width: 5,
+  //     );
+  //   });
+  // }
 
-    setState(() {
-      startMarker = Marker(
-        markerId: MarkerId('start_marker'),
-        position: start,
-      );
-      endMarker = Marker(
-        markerId: MarkerId('end_marker'),
-        position: end,
-      );
-      polyline = Polyline(
-        polylineId: PolylineId('route_polyline'),
-        points: [start, end],
-        color: Colors.blue,
-        width: 5,
-      );
-    });
-  }
 
-  
 
-  Future<void> _fitBounds() async {
-    if (mapController == null || startMarker == null || endMarker == null) return;
-
-    final LatLng southwest = LatLng(
-      widget.startLat < widget.endLat ? widget.startLat : widget.endLat,
-      widget.startLng < widget.endLng ? widget.startLng : widget.endLng,
-    );
-    final LatLng northeast = LatLng(
-      widget.startLat > widget.endLat ? widget.startLat : widget.endLat,
-      widget.startLng > widget.endLng ? widget.startLng : widget.endLng,
-    );
-
-    final LatLngBounds bounds = LatLngBounds(southwest: southwest, northeast: northeast);
-
-    mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
-  }
+  // Future<void> _fitBounds() async {
+  //   if (mapController == null || startMarker == null || endMarker == null) return;
+  //
+  //   final LatLng southwest = LatLng(
+  //     widget.startLat < widget.endLat ? widget.startLat : widget.endLat,
+  //     widget.startLng < widget.endLng ? widget.startLng : widget.endLng,
+  //   );
+  //   final LatLng northeast = LatLng(
+  //     widget.startLat > widget.endLat ? widget.startLat : widget.endLat,
+  //     widget.startLng > widget.endLng ? widget.startLng : widget.endLng,
+  //   );
+  //
+  //   final LatLngBounds bounds = LatLngBounds(southwest: southwest, northeast: northeast);
+  //
+  //   mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+  // }
 
   @override
   void dispose() {
@@ -274,9 +295,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
             if (startMarker != null) startMarker!,
             if (endMarker != null) endMarker!,
           },
-          polylines: {
-            if (polyline != null) polyline!,
-          },
+          polylines: _polylines, // 🔥 THIS WILL SHOW REAL ROAD ROUTE
           circles: {
             if (liveLocationCircle != null) liveLocationCircle!,
           },

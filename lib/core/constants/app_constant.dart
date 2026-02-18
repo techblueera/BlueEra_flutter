@@ -39,7 +39,6 @@ import '../../features/chat/view/symbol_view/symbol_view_images.dart';
 
 class AppConstants {
   static const String appName = 'BlueEra';
-  static const String googleMapKey = 'AIzaSyDdU2Ji6dCQ4Hq0TbLHILxMsdR-M27Ie2g';
   static const String shareAppMsg = 'Created By BlueEra jobs app!\n\n'
       "Hey! I'm using BlueEraJobs and join me there. "
       "I'm sending you an invite—download the app, and let's connect! "
