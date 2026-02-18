@@ -48,7 +48,7 @@ class ProfessionTypeData {
     this.name,
     this.tagId,
     this.profileType,
-    this.image,
+    this.imageUrl,
     this.subcategoriesFiledName,
     this.individualProfileType,
   });
@@ -58,7 +58,7 @@ class ProfessionTypeData {
     name = json['name'];
     tagId = json['tag_id'];
     profileType = json['profileType'];
-    image = json['image'];
+    imageUrl = json['image_url'];
 
     if (json['subcategories_filedName'] != null) {
       subcategoriesFiledName = [];
@@ -73,7 +73,7 @@ class ProfessionTypeData {
   String? name;
   String? tagId;
   String? profileType;
-  String? image;
+  String? imageUrl;
   List<SubcategoriesFiledName>? subcategoriesFiledName;
   IndividualProfileType? individualProfileType;  // custom Individual Profile type
 
@@ -83,7 +83,7 @@ class ProfessionTypeData {
     map['name'] = name;
     map['tag_id'] = tagId;
     map['profileType'] = profileType;
-    map['image'] = image;
+    map['image_url'] = imageUrl;
 
     if (subcategoriesFiledName != null) {
       map['subcategories_filedName'] =

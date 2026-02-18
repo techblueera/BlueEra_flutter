@@ -24,6 +24,7 @@ import 'package:BlueEra/features/common/auth/model/individual_field_response_mod
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
+import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
@@ -45,6 +46,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
+import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -1630,31 +1632,98 @@ class _PersonalProfileSetupNewScreenState
                         ),
                         const SizedBox(width: 8),
                         InkWell(
-                          onTap: () async {
-                            try {
-                              // 🧩 Generate deep link for this profile
-                              final link = profileDeepLink(
-                                  userId: userId,
-                                  accountType: AppConstants.individual);
+                          // onTap: () async {
+                          //   try {
+                          //     // 🧩 Generate deep link for this profile
+                          //     final link = profileDeepLink(
+                          //         userId: userId,
+                          //         accountType: AppConstants.individual);
+                          //
+                          //     // 🧩 Message to share
+                          //     final message =
+                          //         "See my profile on BlueEra:\n$link\n";
+                          //
+                          //     // 🧩 Use SharePlus to share link
+                          //     await SharePlus.instance.share(
+                          //       ShareParams(
+                          //           text: message,
+                          //           subject: viewProfileController
+                          //                   .personalProfileDetails
+                          //                   .value
+                          //                   .user
+                          //                   ?.name ??
+                          //               ""),
+                          //     );
+                          //   } catch (e) {
+                          //     debugPrint("Error while sharing profile: $e");
+                          //   }
+                          // },
+                          onTap: (){
+                            if (viewProfileController.personalProfileDetails
+                                .value.isProfileCreated ==
+                                false) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          CreateProfileScreen()));
+                            }else{
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) {
+                                  return CommonDraggableBottomSheet(
+                                    initialChildSize: 0.8,
+                                    minChildSize: 0.5,
+                                    maxChildSize: 0.95,
+                                    backgroundColor: AppColors.whiteF3,
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                                    padding: EdgeInsets.only(
+                                      left: SizeConfig.size12,
+                                      right: SizeConfig.size12,
+                                      top: SizeConfig.size12,
+                                    ),
+                                    builder: (ScrollController scrollController) {
+                                      return Column(
+                                        children: [
+                                          Center(
+                                            child: Container(
+                                              height: 4,
+                                              width: 100,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(4),
+                                                color: AppColors.secondaryTextColor,
+                                              ),
+                                            ),
+                                          ),
 
-                              // 🧩 Message to share
-                              final message =
-                                  "See my profile on BlueEra:\n$link\n";
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: IconButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              icon: const Icon(
+                                                  Icons.close,
+                                                  color: AppColors.secondaryTextColor),
+                                            ),
+                                          ),
 
-                              // 🧩 Use SharePlus to share link
-                              await SharePlus.instance.share(
-                                ShareParams(
-                                    text: message,
-                                    subject: viewProfileController
-                                            .personalProfileDetails
-                                            .value
-                                            .user
-                                            ?.name ??
-                                        ""),
+
+                                          Expanded(
+                                            child: AllVisitingCards(
+                                                scrollController: scrollController,
+                                                personalDetails: viewProfileController.personalProfileDetails.value
+                                            ),
+                                          )
+
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                               );
-                            } catch (e) {
-                              debugPrint("Error while sharing profile: $e");
                             }
+
                           },
                           child: LocalAssets(
                             imagePath: AppIconAssets.shareIcon,

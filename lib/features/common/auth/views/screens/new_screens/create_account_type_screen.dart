@@ -16,12 +16,12 @@ import 'package:BlueEra/features/common/auth/model/personal_profession_model.dar
 import 'package:BlueEra/features/common/auth/views/widget/business_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/business_sub_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/gradient_border_container.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -550,18 +550,21 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
           SizedBox(height: SizeConfig.paddingXSL),
 
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            itemCount: arrGroceryCategory.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = arrGroceryCategory[index];
-              return _businessCommonCard(item, textMaxLine: 1);
-            },
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
+          CustomFormCard(
+            padding: EdgeInsets.all(SizeConfig.paddingXSL),
+            child: MasonryGridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              itemCount: arrGroceryCategory.length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var item = arrGroceryCategory[index];
+                return _businessCommonCard(item, textMaxLine: 1);
+              },
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+            ),
           ),
 
           SizedBox(height: SizeConfig.paddingM),
@@ -575,18 +578,21 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
           SizedBox(height: SizeConfig.paddingXSL),
 
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            itemCount: arrFoodNdRestaurantCategory.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = arrFoodNdRestaurantCategory[index];
-              return _businessCommonCard(item, textMaxLine: 2);
-            },
-            padding: EdgeInsets.only(bottom: SizeConfig.size16),
-            shrinkWrap: true,
+          CustomFormCard(
+            padding: EdgeInsets.all(SizeConfig.paddingXSL),
+            child: MasonryGridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              itemCount: arrFoodNdRestaurantCategory.length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var item = arrFoodNdRestaurantCategory[index];
+                return _businessCommonCard(item, textMaxLine: 2);
+              },
+              padding: EdgeInsets.only(bottom: SizeConfig.size16),
+              shrinkWrap: true,
+            ),
           ),
 
           _otherOptionCreation()
@@ -631,227 +637,50 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   Widget _individualCommonCard(
       ProfessionTypeData category,
       {int? textMaxLine}) {
-    return GestureDetector(
-      onTap: () {
-        // if(category.accountType == AppConstants.business){
-        //   if(category.businessType == BusinessType.Manufacturing){
-        //     if(category.businessType == null) return;
-        //     navigateToGstScreen(
-        //       context,
-        //       businessType: category.businessType!,
-        //       categorySlugId: category.slugId,
-        //       categoryName: category.name,
-        //     );
-        //   }
-        //   // else if(category.businessType == BusinessType.Motel ||
-        //   //     category.businessType == BusinessType.Healthcare ||
-        //   //     category.businessType == BusinessType.Siksha){
-        //   //   _showBusinessCategoryDialog(category.businessType!);
-        //   // }
-        //   else{
-        //     _showBusinessSubCategoryDialog(
-        //       businessType: category.businessType!,
-        //       categorySlugId: category.slugId,
-        //       categoryName: category.name,
-        //     );
-        //   }
-        // }else{
-          log("---------------- LOG DATA ----------------");
-          log("${ApiKeys.argProfileType} : ${category.individualProfileType?.tagId}");
-          log("${ApiKeys.argProfessionTagId}    : ${category.tagId}");
-          log("${ApiKeys.argProfession}    : ${category.name}");
-          log("------------------------------------------");
 
-          Get.toNamed(
-            RouteHelper.getPersonalAccountNewScreenRoute(),
-            arguments: {
-              ApiKeys.argAccountType: AppConstants.individual,
-              ApiKeys.argProfileType: category.individualProfileType,
-              ApiKeys.argProfessionTagId: category.tagId,
-              ApiKeys.argProfession: category.name,
-            },
-          );
+    return CommonServiceCard(
+      service: category,
+      getName: (item) => item.name ?? '',
+      getIcon: (item) => item.imageUrl ?? '',
+      iconHeight: SizeConfig.size60,
+      boxShadow: [],
+      textMaxLine: textMaxLine,
+      onTap: (category) {
+        log("---------------- LOG DATA ----------------");
+        log("${ApiKeys.argProfileType} : ${category.individualProfileType?.tagId}");
+        log("${ApiKeys.argProfessionTagId}    : ${category.tagId}");
+        log("${ApiKeys.argProfession}    : ${category.name}");
+        log("------------------------------------------");
 
-        // }
+        Get.toNamed(
+          RouteHelper.getPersonalAccountNewScreenRoute(),
+          arguments: {
+            ApiKeys.argAccountType: AppConstants.individual,
+            ApiKeys.argProfileType: category.individualProfileType,
+            ApiKeys.argProfessionTagId: category.tagId,
+            ApiKeys.argProfession: category.name,
+          },
+        );
       },
-      child: Container(
-        decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: AppColors.greyE5
-            )
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: SizedBox(
-                height: SizeConfig.size130,
-                width: double.infinity,
-                child:
-                (category.image?.isNotEmpty ?? false)
-                    ? CachedNetworkImage(
-                  imageUrl: category.image!,
-                  fit: BoxFit.fill,
-                  // height: SizeConfig.size140,
-                  // width: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.cover,
-                  ),
-                )
-                    : LocalAssets(
-                  imagePath: AppIconAssets.place_holder_image,
-                  boxFix: BoxFit.cover,
-                ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8,
-                  vertical: SizeConfig.size8
-              ),
-              child: CustomText(
-                category.name,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryTextColor,
-                maxLines: textMaxLine,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _businessCommonCard(
-      CategoryData category,
-      {int? textMaxLine}) {
-    return GestureDetector(
-      onTap: () {
-        // if(category.accountType == AppConstants.business){
-          if(category.businessType == BusinessType.Manufacturing){
-            if(category.businessType == null) return;
-            navigateToGstScreen(
-              context,
-              businessType: category.businessType!,
-              categorySlugId: category.tagId!,
-              categoryName: category.name!,
-            );
-          }
-          // else if(category.businessType == BusinessType.Motel ||
-          //     category.businessType == BusinessType.Healthcare ||
-          //     category.businessType == BusinessType.Siksha){
-          //   _showBusinessCategoryDialog(category.businessType!);
-          // }
-          else{
-            _showBusinessSubCategoryDialog(
-                businessType: category.businessType!,
-              categorySlugId: category.tagId!,
-              categoryName: category.name!,
-            );
-          }
-        // }else{
-        //   log("---------------- LOG DATA ----------------");
-        //   log("${ApiKeys.argProfileType} : ${category.individualType?.tagId}");
-        //   log("${ApiKeys.argProfessionTagId}    : ${category.slugId}");
-        //   log("${ApiKeys.argProfession}    : ${category.name}");
-        //   log("------------------------------------------");
-        //
-        //   Get.toNamed(
-        //     RouteHelper.getPersonalAccountNewScreenRoute(),
-        //     arguments: {
-        //       ApiKeys.argAccountType: AppConstants.individual,
-        //       ApiKeys.argProfileType: category.individualType,
-        //       ApiKeys.argProfessionTagId: category.slugId,
-        //       ApiKeys.argProfession: category.name,
-        //     },
-        //   );
-        //
-        // }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: AppColors.greyE5
-            )
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: SizedBox(
-                height: SizeConfig.size130,
-                width: double.infinity,
-                child:  (category.image?.isNotEmpty ?? false)
-                    ? CachedNetworkImage(
-                  imageUrl: category.image!,
-                  fit: BoxFit.fill,
-                  // height: SizeConfig.size140,
-                  // width: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.cover,
-                  ),
-                )
-                    : LocalAssets(
-                  imagePath: AppIconAssets.place_holder_image,
-                  boxFix: BoxFit.cover,
-                ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8,
-                  vertical: SizeConfig.size8
-              ),
-              child: CustomText(
-                category.name,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryTextColor,
-                maxLines: textMaxLine,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _businessOtherServiceContent({Key? key}) {
-    final Map<String, List<OnboardingCategoryModel>> onboardingBusinessMap = {
-      'Automotive Services': businessOnboardingAutomotiveServicesCategories,
-      'Health Care Sectors': businessOnboardingHealthcareSectorsCategories,
-      'Hospitality & Stay': businessOnboardingHospitalityStayCategories,
-      'Education & Training Sectors': businessOnboardingEducationTrainingCategories,
-      'Financial Sectors': businessOnboardingFinancialSectorsCategories,
+    final Map<String, List<CategoryData>> onboardingBusinessMap = {
+      'Automotive Services': authController.businessOnboardingAutomotiveServicesCategories,
+      'Health Care Sectors': authController.businessOnboardingHealthcareSectorsCategories,
+      'Hospitality & Stay': authController.businessOnboardingHospitalityStayCategories,
+      'Education & Training Sectors': authController.businessOnboardingEducationTrainingCategories,
+      'Financial Sectors': authController.businessOnboardingFinancialSectorsCategories,
     };
 
     return SingleChildScrollView(
       key: key,
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8,
+          vertical: SizeConfig.size10,
+      ),
       child: Column(
         children: onboardingBusinessMap.entries.map((entry) {
           return Padding(
@@ -870,9 +699,21 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
                   SizedBox(height: SizeConfig.paddingXSL),
 
-                  _commonCard2(
-                    items: entry.value
-                  ),
+                  MasonryGridView.count(
+                    shrinkWrap: true,
+                    primary: false,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: entry.value.length,
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 6,
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (context, index) {
+                      var category = entry.value[index];
+                      return _businessCommonCard(category);
+                    },
+                  )
+
                 ],
               ),
             ),
@@ -882,64 +723,34 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     );
   }
 
-  Widget _commonCard2({
-    required List<OnboardingCategoryModel> items,
-  }) {
-    return MasonryGridView.count(
-      shrinkWrap: true,
-      primary: false,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      crossAxisCount: 3,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
-        var category = items[index];
-        return InkWell(
-          onTap: (){
-            _showBusinessSubCategoryDialog(
-                businessType: category.businessType!,
-                categorySlugId: category.slugId,
-                categoryName: category.name
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.all(SizeConfig.size5),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                color: AppColors.greyE5,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Icon Section
-                LocalAssets(
-                  imagePath: category.icon,
-                  height: SizeConfig.size60,
-                ),
 
-                SizedBox(height: SizeConfig.paddingXSL),
-
-                // Label Section
-                CustomText(
-                  category.name,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w600,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-              ],
-            ),
-          ),
-        );
+  Widget _businessCommonCard(
+      CategoryData category,
+      {int? textMaxLine}) {
+    return CommonServiceCard(
+      service: category,
+      getName: (item) => item.name ?? '',
+      getIcon: (item) => item.imageUrl ?? '',
+      iconHeight: SizeConfig.size60,
+      boxShadow: [],
+      textMaxLine: textMaxLine,
+      onTap: (category) {
+        if(category.businessType == BusinessType.Manufacturing){
+          if(category.businessType == null) return;
+          navigateToGstScreen(
+            context,
+            businessType: category.businessType!,
+            categorySlugId: category.tagId!,
+            categoryName: category.name!,
+          );
+        }
+        else{
+          _showBusinessSubCategoryDialog(
+            businessType: category.businessType!,
+            categorySlugId: category.tagId!,
+            categoryName: category.name!,
+          );
+        }
       },
     );
   }

@@ -32,7 +32,6 @@ class CategoryData {
   String? name;
   String? imageUrl;
   String? tagId;
-  String? image;
   List<SubCategories>? subCategories;
 
   BusinessType? businessType; // custom business type
@@ -43,7 +42,6 @@ class CategoryData {
         this.name,
         this.imageUrl,
         this.tagId,
-        this.image,
         this.subCategories,
         this.businessType,
       });
@@ -54,7 +52,6 @@ class CategoryData {
     name = json['name'];
     imageUrl = json['image_url'];
     tagId = json['tag_id'];
-    image = json['image'];
     if (json['subcategories'] != null) {
       subCategories = <SubCategories>[];
       json['subcategories'].forEach((v) {
@@ -71,7 +68,6 @@ class CategoryData {
     data['name'] = this.name;
     data['image_url'] = this.imageUrl;
     data['tag_id'] = this.tagId;
-    data['image'] = this.image;
     if (this.subCategories != null) {
       data['subcategories'] =
           this.subCategories!.map((v) => v.toJson()).toList();

@@ -6,7 +6,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart
 import 'package:BlueEra/features/chat/view/group_chat/add_new_group_page.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/visiting_card_helper.dart';
+import 'package:BlueEra/features/common/visiting_card/helper/visiting_card_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -625,7 +625,8 @@ class _NonExistingContactTile extends StatelessWidget {
       ),
       subtitle: CustomText(phone,
         fontSize: 12,
-        color: AppColors.grayText,),
+        color: AppColors.grayText
+      ),
       trailing: TextButton(
         onPressed: () => VisitingCardHelper.buildAndShareVisitingCard(context),
         child: const CustomText(AppStrings.invite, fontWeight: FontWeight.w600),

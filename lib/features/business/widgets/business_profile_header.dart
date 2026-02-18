@@ -5,11 +5,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
 import 'package:BlueEra/features/business/widgets/blinking_verify_button.dart';
 import 'package:BlueEra/features/business/widgets/business_common_widget.dart';
-import 'package:BlueEra/features/business/widgets/visiting_card_preview_widget.dart';
+import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
+import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -597,68 +597,57 @@ class BusinessProfileHeader extends StatelessWidget {
   }
 
   Future<void> _showVisitingCardDialog(BuildContext context) {
-    return showModalBottomSheet(
+      return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.grey,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return SizedBox(
-          height: Get.height * 0.8,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Center(
-                    child: Container(
-                      height: 4,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: AppColors.white,
-                      ),
+        return CommonDraggableBottomSheet(
+          initialChildSize: 0.8,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          backgroundColor: AppColors.whiteF3,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          padding: EdgeInsets.only(
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            top: SizeConfig.size12,
+          ),
+          builder: (ScrollController scrollController) {
+            return Column(
+              children: [
+                Center(
+                  child: Container(
+                    height: 4,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: AppColors.secondaryTextColor,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: EdgeInsets.all(SizeConfig.size12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        VisitingCardPreview(details: details),
-                        SizedBox(height: SizeConfig.size20),
+                ),
 
-                        // visiting card designs
-                        buildCard1(details!),
-                        SizedBox(height: 20),
-                        buildCard2(details!),
-                        SizedBox(height: 20),
-                        buildCard3(details!),
-                        SizedBox(height: 20),
-                        buildCard4(details!),
-                        SizedBox(height: 20),
-                        buildCard5(details!),
-                        SizedBox(height: 20),
-                        buildCard6(details!),
-                        SizedBox(height: 20),
-                        buildCard7(details!),
-                        SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                        Icons.close,
+                        color: AppColors.secondaryTextColor),
+                  ),
+                ),
 
-                        buildCard8(details!),
-                        SizedBox(height: 20),
-                        buildCard9(details!),
-                        SizedBox(height: 20),
 
-                        buildCard10(details!),
-                        SizedBox(height: 20),
-                        buildCard11(details!),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
+                Expanded(
+                  child: AllVisitingCards(
+                      scrollController: scrollController,
+                      businessDetails: details
+                  ),
+                )
+
+              ],
+            );
+          },
         );
       },
     );
