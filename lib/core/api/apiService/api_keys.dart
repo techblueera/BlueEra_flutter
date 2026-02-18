@@ -711,4 +711,5 @@ class ApiKeys {
   static const experienceCompany = 'experienceCompany';
   static const agreeToPolicy = 'agreeToPolicy';
   static const showViewDocProof = 'showViewDocProof';
+  static const subscriptionPlanId = 'subscriptionPlanId';
 }

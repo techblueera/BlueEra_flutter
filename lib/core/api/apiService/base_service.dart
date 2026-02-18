@@ -744,5 +744,6 @@ abstract class BaseService {
   final String  getBdm= 'wallet-service/bdm';
   final String  saveNewReferralCode= 'wallet-service/referral/save';
   final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
+  final String  userCurrentPlan= 'subscription-service/subscription/user-subscriptions';
 
 }
