@@ -46,18 +46,19 @@ class ViewGroupMembers extends StatefulWidget {
 class _ViewGroupMembersState extends State<ViewGroupMembers> {
   final chatViewController = Get.find<ChatViewController>();
   bool publicGroup = false;
-  int selectedIndex=0;
+  int selectedIndex = 0;
 
   @override
   void initState() {
+    publicGroup = widget.publicGroup;
+    chatViewController.groupNameController.text = widget.name ?? "";
     Map<String, dynamic> data = {
       ApiKeys.conversation_id: widget.conversationId
     };
-    publicGroup=widget.publicGroup;
-    chatViewController.groupNameController.text=widget.name??"";
     chatViewController.getGroupMembersApi(data);
     super.initState();
   }
+
   void showEditGroupDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -75,38 +76,45 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-
-
                       Stack(
                         alignment: Alignment.center,
                         children: [
                           CircleAvatar(
                             radius: 45,
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            backgroundImage:
-                            (chatViewController.editedGroupFile!=null)?
-                            FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
-                                widget.profileImage!.trim().isNotEmpty)
-                                ? (widget.profileImage!.startsWith('http')
-                                ? NetworkImage(widget.profileImage!)
-                                : (File(widget.profileImage!).existsSync()
-                                ? FileImage(File(widget.profileImage!)) as ImageProvider
-                                : null))
-                                : null,
-                            child: (chatViewController.editedGroupFile == null &&
-                                (widget.profileImage == null ||
-                                    widget.profileImage!.isEmpty))
-                                ? Text(
-                              widget.name != null && widget.name!.isNotEmpty
-                                  ? widget.name![0].toUpperCase()
-                                  : '',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                                : null,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            backgroundImage: (chatViewController
+                                        .editedGroupFile !=
+                                    null)
+                                ? FileImage(chatViewController.editedGroupFile!)
+                                    as ImageProvider
+                                : (widget.profileImage != null &&
+                                        widget.profileImage!.trim().isNotEmpty)
+                                    ? (widget.profileImage!.startsWith('http')
+                                        ? NetworkImage(widget.profileImage!)
+                                        : (File(widget.profileImage!)
+                                                .existsSync()
+                                            ? FileImage(
+                                                    File(widget.profileImage!))
+                                                as ImageProvider
+                                            : null))
+                                    : null,
+                            child:
+                                (chatViewController.editedGroupFile == null &&
+                                        (widget.profileImage == null ||
+                                            widget.profileImage!.isEmpty))
+                                    ? Text(
+                                        widget.name != null &&
+                                                widget.name!.isNotEmpty
+                                            ? widget.name![0].toUpperCase()
+                                            : '',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 36,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
                           ),
 
                           /// ✏️ EDIT ICON
@@ -115,9 +123,9 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                             right: 0,
                             child: InkWell(
                               onTap: () async {
-                                final newPath =
-                                await SelectProfilePictureDialog.showLogoDialog(
-                                    context, "Change Group Profile");
+                                final newPath = await SelectProfilePictureDialog
+                                    .showLogoDialog(
+                                        context, "Change Group Profile");
 
                                 if (newPath != null && newPath.isNotEmpty) {
                                   chatViewController.editedGroupFile =
@@ -131,7 +139,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   shape: BoxShape.circle,
                                   color: AppColors.primaryColor,
                                   border:
-                                  Border.all(color: Colors.white, width: 2),
+                                      Border.all(color: Colors.white, width: 2),
                                 ),
                                 child: Icon(
                                   Icons.edit,
@@ -147,7 +155,8 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                       const SizedBox(height: 20),
                       // Divider(color: AppColors.grey9B),
 
-                      ListTile(contentPadding: EdgeInsets.symmetric(horizontal: 6),
+                      ListTile(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 6),
                         leading: Icon(
                           (!publicGroup) ? Icons.lock_outline : Icons.lock_open,
                           color: AppColors.black,
@@ -175,7 +184,8 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                       /// 🔹 GROUP NAME FIELD
                       CommonTextField(
                         title: "Group Name",
-                        textEditController:chatViewController.groupNameController,
+                        textEditController:
+                            chatViewController.groupNameController,
                         // controller: chatViewController.groupNameController,
                         hintText: "Group Name",
                       ),
@@ -185,28 +195,32 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                       /// 🔹 GROUP DESCRIPTION FIELD
                       CommonTextField(
                         title: "Group Description",
-                        textEditController:chatViewController.groupDescriptionController,
+                        textEditController:
+                            chatViewController.groupDescriptionController,
                         // controller: chatViewController.groupDescriptionController,
                         hintText: "Enter Group Description",
                         // maxLines: 3,
                       ),
                       const SizedBox(height: 20),
+
                       /// 🔹 SUBMIT BUTTON
                       SizedBox(
                         width: double.infinity,
                         child: CustomBtn(
-                          isValidate: true,
-                            onTap: ()async{
+                            isValidate: true,
+                            onTap: () async {
                               Map<String, dynamic> data = {};
 
                               if (chatViewController.editedGroupFile != null) {
-                                String path = chatViewController.editedGroupFile!.path;
+                                String path =
+                                    chatViewController.editedGroupFile!.path;
                                 File selectedFiles = File(path);
 
                                 List<String?> fileNames = [];
                                 List<String?> fileTypes = [];
 
-                                Map<String, String?> info = cmd.getFileInfo(selectedFiles);
+                                Map<String, String?> info =
+                                    cmd.getFileInfo(selectedFiles);
                                 fileNames.add(info['fileName']);
                                 fileTypes.add(info['mimeType']);
 
@@ -216,13 +230,17 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                 };
 
                                 data = {
-                                  ApiKeys.group_name: chatViewController.groupNameController.text,
-                                  ApiKeys.description:chatViewController.groupDescriptionController.text,
-                                  ApiKeys.public_group:true,
-                                  ApiKeys.conversation_id:widget.conversationId,
+                                  ApiKeys.group_name: chatViewController
+                                      .groupNameController.text,
+                                  ApiKeys.description: chatViewController
+                                      .groupDescriptionController.text,
+                                  ApiKeys.public_group: true,
+                                  ApiKeys.conversation_id:
+                                      widget.conversationId,
                                 };
 
-                                bool value = await chatViewController.updateGroupInfo(
+                                bool value =
+                                    await chatViewController.updateGroupInfo(
                                   data,
                                   isFromFile: true,
                                   fileParams: uploadParams,
@@ -234,22 +252,26 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   Navigator.pop(context);
                                   Navigator.pop(context);
                                 }
-                              }else{
-                                 data={
-                                  ApiKeys.group_name:chatViewController.groupNameController.text,
-                                  ApiKeys.description:chatViewController.groupDescriptionController.text,
-                                  ApiKeys.public_group:true,
-                                  ApiKeys.conversation_id:widget.conversationId,
+                              } else {
+                                data = {
+                                  ApiKeys.group_name: chatViewController
+                                      .groupNameController.text,
+                                  ApiKeys.description: chatViewController
+                                      .groupDescriptionController.text,
+                                  ApiKeys.public_group: true,
+                                  ApiKeys.conversation_id:
+                                      widget.conversationId,
                                 };
-                                 bool value = await chatViewController.updateGroupInfo(data);
-                                 if (value == true) {
-                                   Navigator.pop(context);
-                                   Navigator.pop(context);
-                                   Navigator.pop(context);
-                                 }
+                                bool value = await chatViewController
+                                    .updateGroupInfo(data);
+                                if (value == true) {
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                }
                               }
-
-                        }, title: "Edit"),
+                            },
+                            title: "Edit"),
                       ),
                     ],
                   ),
@@ -267,18 +289,18 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: CommonBackAppBar(
-      ),
+      appBar: CommonBackAppBar(),
       body: Obx(() {
         if (chatViewController.getGroupMembersResponse.value.status ==
             Status.COMPLETE) {
           List<GroupMembersListModel> members =
               chatViewController.getGroupMembersResponse.value.data;
-            
+
           return SafeArea(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -288,360 +310,470 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                           color: AppColors.white,
                         ),
                         child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _groupBanner(),
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 38,),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: AppColors.primaryColor
-                                      )
-                                    ),
-                                    padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
-                                    child: Center(
-                                      child: CustomText("${members.length}  ${AppStrings.members.tr}",color: AppColors.primaryColor,
-                                      fontSize: 10,
+                            _groupBanner(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(
+                                  height: 38,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            border: Border.all(
+                                                color: AppColors.primaryColor)),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        child: Center(
+                                          child: CustomText(
+                                            "${members.length}  ${AppStrings.members.tr}",
+                                            color: AppColors.primaryColor,
+                                            fontSize: 10,
+                                          ),
+                                        ),
                                       ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      LocalAssets(
+                                        imagePath: AppIconAssets.shareIcon,
+                                        imgColor: AppColors.black,
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    widget.name != null
+                                        ? GetStringUtils(widget.name!)
+                                            .capitalize
+                                        : '',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.size8,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                                color: AppColors.whiteE5)),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 2),
+                                        child: Center(
+                                          child: CustomText(
+                                            "01/01/2025",
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 6,
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                                color: AppColors.whiteE5)),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 2),
+                                        child: Center(
+                                          child: CustomText(
+                                            "Manish Kumar (Admin)",
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.size8,
+                                  ),
+                                  ExpandableText(
+                                    text: "N/A",
+                                    trimLines: 4,
+                                    style: TextStyle(
+                                      fontSize: SizeConfig.small,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.secondaryTextColor,
+                                      height: 1.5,
                                     ),
                                   ),
-                                  SizedBox(width: 10,),
-                                  LocalAssets(imagePath: AppIconAssets.shareIcon,imgColor: AppColors.black,),
-                                  SizedBox(width: 10,),
+                                  SizedBox(
+                                    height: SizeConfig.size10,
+                                  ),
                                 ],
                               ),
                             )
                           ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(widget.name != null
-                                  ? GetStringUtils(widget.name!).capitalize
-                                  : '',
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              SizedBox(height: SizeConfig.size8,),
-                              Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: AppColors.whiteE5
-                                      )
-                                    ),
-                                    padding: EdgeInsets.symmetric(horizontal: 4,vertical: 2),
-                                    child: Center(
-                                      child: CustomText("01/01/2025",fontSize: 12,),
-                                    ),
-                                  ),
-                                  SizedBox(width: 6,),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: AppColors.whiteE5
-                                      )
-                                    ),
-                                    padding: EdgeInsets.symmetric(horizontal: 4,vertical: 2),
-                                    child: Center(
-                                      child: CustomText("Manish Kumar (Admin)",fontSize: 12,),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: SizeConfig.size8,),
-                          ExpandableText(
-                            text: "N/A",
-                            trimLines: 4,
-                            style: TextStyle(
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                              height: 1.5,
-                            ),),
-                              SizedBox(height: SizeConfig.size10,),
-                            ],
-                          ),
-                        )
-                      ],
-                    )),
-                    SizedBox(height: 16,),
-                    HorizontalTabSelector(tabs: ["Members","Pinned","Gallery","Add","Documents"],
-                        selectedIndex: selectedIndex, onTabSelected: (index,dd){
-                          selectedIndex=index;
-                          setState(() {
-
-                          });
-                    }, labelBuilder: (value)=>value),
-                    SizedBox(height: 16,),
+                        )),
+                    SizedBox(
+                      height: 16,
+                    ),
+                    HorizontalTabSelector(
+                        tabs: [
+                          "Members",
+                          "Pinned",
+                          "Gallery",
+                          "Add",
+                          "Documents"
+                        ],
+                        selectedIndex: selectedIndex,
+                        onTabSelected: (index, dd) {
+                          selectedIndex = index;
+                          setState(() {});
+                        },
+                        labelBuilder: (value) => value),
+                    SizedBox(
+                      height: 16,
+                    ),
 
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: AppColors.white
-                      ),
+                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.white),
                       height: 500,
-                      child: selectedIndex==0? Container(
-
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: CustomText(
-                                "${members.length} ${AppStrings.members.tr}",
-                                // style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade800,
-                                // ),
-                              ),
-                            ),
-                            ListView.builder(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              itemCount: chatViewController.viewAllMembers.value
-                                  ? members.length + 1   // +1 for Add Members card
-                                  : (members.length > 6 ? 8 : members.length + 1),
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                // First item — Add Members card
-
-                                if (index == 0) {
-                                  return InkWell(
-                                    onTap: () {
-                                      Get.to(()=>BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,));
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            backgroundColor: AppColors.primaryColor,
-                                            radius: 22,
-                                            child: const Icon(Icons.person_add, color: Colors.white),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          const CustomText(
-                                            AppStrings.addedMembers,
-                                            // style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            // ),
-                                          ),
-                                        ],
-                                      ),
+                      child: selectedIndex == 0
+                          ? Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
+                                    child: CustomText(
+                                      "${members.length} ${AppStrings.members.tr}",
+                                      // style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade800,
+                                      // ),
                                     ),
-                                  );
-                                }
+                                  ),
+                                  ListView.builder(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    itemCount:
+                                        chatViewController.viewAllMembers.value
+                                            ? members.length +
+                                                1 // +1 for Add Members card
+                                            : (members.length > 6
+                                                ? 8
+                                                : members.length + 1),
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, index) {
+                                      // First item — Add Members card
 
-                                // Show current user ("You") right after Add Members
-                                if (index == 1) {
-                                  GroupMembersListModel? me = members.firstWhere(
-                                        (m) => m.id == userId,
-                                  );
+                                      if (index == 0) {
+                                        return InkWell(
+                                          onTap: () {
+                                            Get.to(
+                                                () => BeAvailableContactsList(
+                                                      isFromAddMember: true,
+                                                      members: members,
+                                                      conversationId:
+                                                          widget.conversationId,
+                                                    ));
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 8),
+                                            child: Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  backgroundColor:
+                                                      AppColors.primaryColor,
+                                                  radius: 22,
+                                                  child: const Icon(
+                                                      Icons.person_add,
+                                                      color: Colors.white),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                const CustomText(
+                                                  AppStrings.addedMembers,
+                                                  // style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                  // ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }
 
-                                  final String displayName =
-                                  (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
-                                  final String initial =
-                                  displayName.isNotEmpty ? displayName[0] : '?';
-                                  return ListTile(
-                                    contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    leading: CircleAvatar(
-                                      backgroundColor: theme.colorScheme.primary,
-                                      radius: 22,
-                                      child: (me.profileImage != null)
-                                          ? ClipOval(
-                                        child: CachedNetworkImage(
-                                          imageUrl: me.profileImage!,
-                                          fit: BoxFit.cover,
-                                          width: 44,
-                                          height: 44,
-                                          placeholder: (context, url) => Container(
-                                            color: Colors.grey.shade300,
-                                            child: const Center(
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Colors.grey,
+                                      // Show current user ("You") right after Add Members
+                                      if (index == 1) {
+                                        GroupMembersListModel? me =
+                                            members.firstWhere(
+                                          (m) => m.id == userId,
+                                        );
+
+                                        final String displayName =
+                                            (me.name?.trim().isNotEmpty == true)
+                                                ? me.name!.trim()
+                                                : "-";
+                                        final String initial =
+                                            displayName.isNotEmpty
+                                                ? displayName[0]
+                                                : '?';
+                                        return ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 16, vertical: 4),
+                                          leading: CircleAvatar(
+                                            backgroundColor:
+                                                theme.colorScheme.primary,
+                                            radius: 22,
+                                            child: (me.profileImage != null)
+                                                ? ClipOval(
+                                                    child: CachedNetworkImage(
+                                                      imageUrl:
+                                                          me.profileImage!,
+                                                      fit: BoxFit.cover,
+                                                      width: 44,
+                                                      height: 44,
+                                                      placeholder:
+                                                          (context, url) =>
+                                                              Container(
+                                                        color: Colors
+                                                            .grey.shade300,
+                                                        child: const Center(
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      errorWidget: (context,
+                                                              url, error) =>
+                                                          Center(
+                                                        child: CustomText(
+                                                          initial,
+                                                          // style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          fontSize: 18,
+                                                          // ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : Center(
+                                                    child: CustomText(
+                                                      initial,
+                                                      // style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      fontSize: 18,
+                                                      // ),
+                                                    ),
+                                                  ),
+                                          ),
+                                          title:
+                                              const CustomText(AppStrings.you,
+                                                  // style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold
+                                                  // ),
+                                                  ),
+                                          trailing: (me.isAdmin ?? false)
+                                              ? Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade200,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    border: Border.all(
+                                                        color: Colors
+                                                            .grey.shade400),
+                                                  ),
+                                                  child: const CustomText(
+                                                      AppStrings.admin,
+                                                      // style: TextStyle(
+                                                      fontSize: 14
+                                                      // ),
+                                                      ),
+                                                )
+                                              : null,
+                                        );
+                                      }
+
+                                      // Last item — View All button if more than 6 members
+                                      // Last item — View All button if list is collapsed
+                                      if (!chatViewController
+                                              .viewAllMembers.value &&
+                                          members.length > 6 &&
+                                          index == 7) {
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          child: Center(
+                                            child: OutlinedButton.icon(
+                                              onPressed: () {
+                                                setState(() {
+                                                  chatViewController
+                                                      .viewAllMembers
+                                                      .value = true;
+                                                });
+                                              },
+                                              icon: const Icon(
+                                                  Icons.expand_more,
+                                                  size: 18),
+                                              label: const CustomText(
+                                                AppStrings.viewAll,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.primaryColor,
                                               ),
                                             ),
                                           ),
-                                          errorWidget: (context, url, error) => Center(
-                                            child: CustomText(
-                                              initial,
-                                              // style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 18,
-                                              // ),
-                                            ),
-                                          ),
+                                        );
+                                      }
+
+                                      // Normal member tile (excluding "You")
+                                      final nonMeMembers = members
+                                          .where((m) => m.id != userId)
+                                          .toList(); // exclude current user
+                                      final member = nonMeMembers[
+                                          index - 2]; // shift by 2 (Add + You)
+
+                                      final String displayName =
+                                          (member.name?.trim().isNotEmpty ==
+                                                  true)
+                                              ? member.name!.trim()
+                                              : "-";
+                                      final String initial =
+                                          displayName.isNotEmpty
+                                              ? displayName[0]
+                                              : '?';
+
+                                      return ListTile(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 4),
+                                        leading: CircleAvatar(
+                                          backgroundColor:
+                                              theme.colorScheme.primary,
+                                          radius: 22,
+                                          child: (member.profileImage != null)
+                                              ? ClipOval(
+                                                  child: CachedNetworkImage(
+                                                    imageUrl:
+                                                        member.profileImage!,
+                                                    fit: BoxFit.cover,
+                                                    width: 44,
+                                                    height: 44,
+                                                    placeholder:
+                                                        (context, url) =>
+                                                            Container(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      child: const Center(
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    errorWidget:
+                                                        (context, url, error) =>
+                                                            Center(
+                                                      child: CustomText(
+                                                        initial,
+                                                        // style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        fontSize: 18,
+                                                        // ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : Center(
+                                                  child: CustomText(
+                                                    initial,
+                                                    // style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w800,
+                                                    fontSize: 18,
+                                                    // ),
+                                                  ),
+                                                ),
                                         ),
-                                      )
-                                          : Center(
-                                        child: CustomText(
-                                          initial,
+                                        title: CustomText(
+                                          displayName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           // style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 18,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                           // ),
                                         ),
-                                      ),
-                                    ),
-                                    title: const CustomText(
-                                        AppStrings.you,
-                                        // style: TextStyle(
-                                        fontSize: 16, fontWeight: FontWeight.bold
-                                      // ),
-                                    ),
-                                    trailing: (me.isAdmin ?? false)
-                                        ? Container(
-                                      padding:
-                                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.grey.shade400),
-                                      ),
-                                      child: const CustomText(
-                                          AppStrings.admin,
-                                          // style: TextStyle(
-                                          fontSize: 14
-                                        // ),
-                                      ),
-                                    )
-                                        : null,
-                                  );
-                                }
-
-                                // Last item — View All button if more than 6 members
-                                // Last item — View All button if list is collapsed
-                                if (!chatViewController.viewAllMembers.value && members.length > 6 && index == 7) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    child: Center(
-                                      child: OutlinedButton.icon(
-                                        onPressed: () {
-                                          setState(() {
-                                            chatViewController.viewAllMembers.value = true;
-                                          });
-                                        },
-                                        icon: const Icon(Icons.expand_more, size: 18),
-                                        label: const CustomText(
-                                          AppStrings.viewAll,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.primaryColor,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }
-
-
-                                // Normal member tile (excluding "You")
-                                final nonMeMembers =
-                                members.where((m) => m.id != userId).toList(); // exclude current user
-                                final member = nonMeMembers[index - 2]; // shift by 2 (Add + You)
-
-                                final String displayName =
-                                (member.name?.trim().isNotEmpty == true) ? member.name!.trim() : "-";
-                                final String initial = displayName.isNotEmpty ? displayName[0] : '?';
-
-                                return ListTile(
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                  leading: CircleAvatar(
-                                    backgroundColor: theme.colorScheme.primary,
-                                    radius: 22,
-                                    child: (member.profileImage != null)
-                                        ? ClipOval(
-                                      child: CachedNetworkImage(
-                                        imageUrl: member.profileImage!,
-                                        fit: BoxFit.cover,
-                                        width: 44,
-                                        height: 44,
-                                        placeholder: (context, url) => Container(
-                                          color: Colors.grey.shade300,
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Center(
-                                          child: CustomText(
-                                            initial,
-                                            // style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 18,
-                                            // ),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                        : Center(
-                                      child: CustomText(
-                                        initial,
-                                        // style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 18,
-                                        // ),
-                                      ),
-                                    ),
-                                  ),
-                                  title: CustomText(
-                                    displayName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    // style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    // ),
-                                  ),
-                                  trailing: (member.isAdmin ?? false)
-                                      ? Container(
-                                    padding:
-                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.grey.shade400),
-                                    ),
-                                    child: const CustomText(
-                                        AppStrings.admin,
-                                        // style: TextStyle(
-                                        fontSize: 14
-                                      // ),
-                                    ),
+                                        trailing: (member.isAdmin ?? false)
+                                            ? Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade200,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade400),
+                                                ),
+                                                child: const CustomText(
+                                                    AppStrings.admin,
+                                                    // style: TextStyle(
+                                                    fontSize: 14
+                                                    // ),
+                                                    ),
+                                              )
+                                            : null,
+                                      );
+                                    },
                                   )
-                                      : null,
-                                );
-                              },
+                                ],
+                              ),
                             )
-
-                          ],
-                        ),
-                      ):Center(
-                        child: CustomText("No Record Found We Update You Soon"),
-                      ),
+                          : Center(
+                              child: CustomText(
+                                  "No Record Found We Update You Soon"),
+                            ),
                     ),
                     // Column(
                     //   children: [
@@ -862,7 +994,6 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                     // SizedBox(
                     //   height: SizeConfig.size12,
                     // )
-
                   ],
                 ),
               ),
@@ -880,6 +1011,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
       }),
     );
   }
+
   Widget _groupBanner() {
     return Stack(
       clipBehavior: Clip.none,
@@ -921,81 +1053,82 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
             child: CircleAvatar(
               // backgroundColor: theme.colorScheme.primary,
               radius: 32,
-              backgroundImage:  (chatViewController.editedGroupFile!=null)?
-              FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
-                  widget.profileImage!.trim().isNotEmpty)
-                  ? (widget.profileImage!.startsWith('http')
-                  ? NetworkImage(widget.profileImage!)
-                  : (File(widget.profileImage!).existsSync()
-                  ? FileImage(File(widget.profileImage!)) as ImageProvider
-                  : null))
-                  : null,
-              child:(widget.profileImage != null &&
-                  widget.profileImage!.trim().isNotEmpty &&
-                  (widget.profileImage!.startsWith('http') ||
-                      File(widget.profileImage!).existsSync()))
+              backgroundImage: (chatViewController.editedGroupFile != null)
+                  ? FileImage(chatViewController.editedGroupFile!)
+                      as ImageProvider
+                  : (widget.profileImage != null &&
+                          widget.profileImage!.trim().isNotEmpty)
+                      ? (widget.profileImage!.startsWith('http')
+                          ? NetworkImage(widget.profileImage!)
+                          : (File(widget.profileImage!).existsSync()
+                              ? FileImage(File(widget.profileImage!))
+                                  as ImageProvider
+                              : null))
+                      : null,
+              child: (widget.profileImage != null &&
+                      widget.profileImage!.trim().isNotEmpty &&
+                      (widget.profileImage!.startsWith('http') ||
+                          File(widget.profileImage!).existsSync()))
                   ? null
                   : (widget.name != null && widget.name!.isNotEmpty)
-                  ? Center(
-                child: CustomText(
-                  "${widget.name!.split('')[0]}",
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize:32, // scale font with avatar
-                ),
-              )
-                  : Center(
-                child: Icon(
-                  Icons.person,
-                  color:AppColors.white,
-                  size: 24, // scale icon too
-                ),
-              ),
+                      ? Center(
+                          child: CustomText(
+                            "${widget.name!.split('')[0]}",
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 32, // scale font with avatar
+                          ),
+                        )
+                      : Center(
+                          child: Icon(
+                            Icons.person,
+                            color: AppColors.white,
+                            size: 24, // scale icon too
+                          ),
+                        ),
             ),
           ),
         ),
-
-
       ],
     );
   }
-  //
-  // Row _groupFeature({String? icon, String? title}) {
-  //   return Row(
-  //     crossAxisAlignment: CrossAxisAlignment.center,
-  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //     children: [
-  //       Container(
-  //         padding: EdgeInsets.all(10),
-  //         margin: EdgeInsets.all(10),
-  //         width: SizeConfig.size80,
-  //         decoration: BoxDecoration(
-  //             borderRadius: BorderRadius.circular(10),
-  //             color: Colors.grey.shade200,
-  //             border: Border.all(color: Colors.grey.shade400)),
-  //         child: Column(
-  //           children: [
-  //             if (icon != null && icon.isNotEmpty)
-  //               SvgPicture.asset(
-  //                 height: title == "Add" ? SizeConfig.size25 : null,
-  //                 icon,
-  //                 color: Colors.black54,
-  //               )
-  //             else
-  //               Icon(
-  //                 Icons.image_not_supported,
-  //                 color: Colors.black54,
-  //               ),
-  //             // SizedBox(
-  //             //   height: SizeConfig.size5,
-  //             // ),
-  //             // CustomText(title ?? '')
-  //           ],
-  //         ),
-  //       )
-  //     ],
-  //   );
-  // }
+//
+// Row _groupFeature({String? icon, String? title}) {
+//   return Row(
+//     crossAxisAlignment: CrossAxisAlignment.center,
+//     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//     children: [
+//       Container(
+//         padding: EdgeInsets.all(10),
+//         margin: EdgeInsets.all(10),
+//         width: SizeConfig.size80,
+//         decoration: BoxDecoration(
+//             borderRadius: BorderRadius.circular(10),
+//             color: Colors.grey.shade200,
+//             border: Border.all(color: Colors.grey.shade400)),
+//         child: Column(
+//           children: [
+//             if (icon != null && icon.isNotEmpty)
+//               SvgPicture.asset(
+//                 height: title == "Add" ? SizeConfig.size25 : null,
+//                 icon,
+//                 color: Colors.black54,
+//               )
+//             else
+//               Icon(
+//                 Icons.image_not_supported,
+//                 color: Colors.black54,
+//               ),
+//             // SizedBox(
+//             //   height: SizeConfig.size5,
+//             // ),
+//             // CustomText(title ?? '')
+//           ],
+//         ),
+//       )
+//     ],
+//   );
+// }
 }
 //   InkWell(
 //                                         onTap: (){

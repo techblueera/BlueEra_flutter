@@ -59,6 +59,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     chatThemeController.resetSelection();
 
     checkPendingMessages();
+    Map<String, dynamic> data = {
+      ApiKeys.conversation_id: widget.conversationId
+    };
+    chatViewController.getGroupMembersApi(data);
+
     super.initState();
   }
 

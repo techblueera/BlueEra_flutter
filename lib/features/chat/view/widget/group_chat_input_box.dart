@@ -26,6 +26,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
+import '../../auth/model/view_group_members_model.dart';
 import 'component_widgets.dart';
 
 class GroupChatInputBar extends StatefulWidget {
@@ -314,144 +315,261 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                           ),
 
                         ) :
-                        Row(crossAxisAlignment: CrossAxisAlignment.end,
+                        Column(
                           children: [
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(30),
-                                overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                      (states) {
-                                    if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey..withValues(alpha: 0.4); // pressed
-                                    }
-                                    if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withValues(alpha: 0.2); // hover
-                                    }
-                                    return null;
+                            Obx(() {
+                              if (!chatViewController.showMentionList.value) {
+                                return const SizedBox();
+                              }
+
+                              final list = chatViewController.filteredMembers;
+
+                              return Container(
+                                constraints: const BoxConstraints(maxHeight: 290),
+
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: list.length,
+                                  itemBuilder: (context, index) {
+                                    final member = list[index];
+                                    final String? imageUrl = member.profileImage;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                      child: InkWell(
+                                        onTap: (){
+                                          _insertMention(member.name??'');
+                                        },
+                                        child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 18,
+                                                  backgroundImage: (imageUrl != null &&
+                                                      imageUrl.isNotEmpty &&
+                                                      imageUrl != "null")
+                                                      ? NetworkImage(imageUrl)
+                                                      : null,
+
+                                                  // 🔥 Only attach error handler when image exists
+                                                  onBackgroundImageError: (imageUrl != null &&
+                                                      imageUrl.isNotEmpty &&
+                                                      imageUrl != "null")
+                                                      ? (_, __) {
+                                                    debugPrint("Image load failed: $imageUrl");
+                                                  }
+                                                      : null,
+
+                                                  child: (imageUrl == null ||
+                                                      imageUrl.isEmpty ||
+                                                      imageUrl == "null")
+                                                      ? const Icon(Icons.person, size: 18,color: AppColors.white,)
+                                                      : null,
+                                                ),
+                                                SizedBox(
+                                                  width: 12,
+                                                ),
+                                                    Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        CustomText(member.name ?? "",
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w600,),
+                                                        CustomText(member.contact ?? "",
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w400,),
+                                                      ],
+                                                    ),
+                                          ],
+                                            ),
+                                            SizedBox(height: 6,),
+                                            Container(
+                                              height: 1,
+                                              color: AppColors.whiteE5,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    );
+
+                                    //   ListTile(
+                                    //   leading: CircleAvatar(radius: 14,
+                                    //     backgroundImage: NetworkImage(
+                                    //       member.profileImage ?? "",
+                                    //     ),
+                                    //   ),
+                                    //   title: ,
+                                    //   onTap: () {
+                                    //     _insertMention(member.name ?? "");
+                                    //   },
+                                    // );
                                   },
                                 ),
-                                onTap: _toggleEmojiKeyboard,
-                                child: Ink(
-                                  decoration: BoxDecoration(
+                              );
+                            }),
+                            Row(crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
                                     borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 3.0),
-                                    child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
-                                        .chat_box_smile, color: AppColors
-                                        .chat_input_icon_color,),
+                                    overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                                          (states) {
+                                        if (states.contains(WidgetState.pressed)) {
+                                          return Colors.grey..withValues(alpha: 0.4); // pressed
+                                        }
+                                        if (states.contains(WidgetState.hovered)) {
+                                          return Colors.grey.withValues(alpha: 0.2); // hover
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    onTap: _toggleEmojiKeyboard,
+                                    child: Ink(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(bottom: 3.0),
+                                        child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
+                                            .chat_box_smile, color: AppColors
+                                            .chat_input_icon_color,),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            Expanded(
-                              child: TextFormField(
-                                scrollController: _scrollController,
-                                keyboardType: TextInputType.text,
-                                textCapitalization: TextCapitalization.words,
-                                controller: chatViewController.sendMessageController
-                                    .value,
-                                minLines: 1,
-                                maxLines: 5,
-                                onChanged: (value) {
-                                  if (!value.isEmpty) {
-                                    chatViewController.isTextFieldEmpty.value =
-                                    true;
-                                  } else {
-                                    chatViewController.isTextFieldEmpty.value =
-                                    false;
-                                  }
-                                },
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16),
-                                decoration: InputDecoration(
-                                  hintText: "Type Message...",
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500
-                                  ),
-                                  contentPadding: EdgeInsets.only(left: 6,bottom: 10,top: 8),
-                                  fillColor: Colors.transparent,
-                                  filled: true,
-                                  isDense: true,
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  disabledBorder: InputBorder.none,
-                                ),
-                              ),
-                            ),
+                                Expanded(
+                                  child:  TextFormField(
+                                    scrollController: _scrollController,
+                                    keyboardType: TextInputType.text,
+                                    textCapitalization: TextCapitalization.words,
+                                    controller: chatViewController.sendMessageController.value,
+                                    minLines: 1,
+                                    maxLines: 5,
+                                    onChanged: (value) {
+                                      // Existing logic
+                                      chatViewController.isTextFieldEmpty.value = value.isNotEmpty;
 
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
+                                      /// 🔥 MENTION DETECTION LOGIC
+                                      final cursorPos = chatViewController
+                                          .sendMessageController.value.selection.baseOffset;
 
-                                onTap: () {
-                                  _showMediaOptions(context);
-                                },
-                                borderRadius: BorderRadius.circular(30),
-                                overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                      (states) {
-                                    if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey..withValues(alpha: 0.4); // pressed
-                                    }
-                                    if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withValues(alpha: 0.2); // hover
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                child: Ink(
-                                  decoration: BoxDecoration(
+                                      if (cursorPos > 0 && value.contains("@")) {
+                                        final lastAtIndex = value.lastIndexOf("@");
+
+                                        if (lastAtIndex != -1) {
+                                          String query = value.substring(lastAtIndex + 1);
+
+                                          chatViewController.mentionQuery.value = query;
+                                          chatViewController.showMentionList.value = true;
+
+                                          // final members = chatViewController
+                                          //     .getGroupMembersResponse.value.data ?? [];
+
+                                          List<GroupMembersListModel> members= chatViewController
+                                              .getGroupMembersResponse.value.data ?? [];
+                                          chatViewController.filteredMembers.value = members
+                                              .where((member) => (member.name ?? "")
+                                              .toLowerCase()
+                                              .contains(query.toLowerCase()))
+                                              .toList();
+                                        }
+                                      } else {
+                                        chatViewController.showMentionList.value = false;
+                                      }
+                                    },
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      hintText: "Type Message...",
+                                      hintStyle: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      contentPadding: EdgeInsets.only(left: 6, bottom: 10, top: 8),
+                                      border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      errorBorder:  InputBorder.none,
+                                      focusedBorder:  InputBorder.none,
+                                      focusedErrorBorder:  InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                    ),
+                                  ),
+                                )
+                                ,
+
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+
+                                    onTap: () {
+                                      _showMediaOptions(context);
+                                    },
                                     borderRadius: BorderRadius.circular(30),
-                                    // background if you want
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                  child: SvgPicture.asset(
-                                    AppIconAssets.chat_pick_media,
-                                    height: 22,
-                                    width: 22,
-                                    color: AppColors.chat_input_icon_color,
+                                    overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                                          (states) {
+                                        if (states.contains(WidgetState.pressed)) {
+                                          return Colors.grey..withValues(alpha: 0.4); // pressed
+                                        }
+                                        if (states.contains(WidgetState.hovered)) {
+                                          return Colors.grey.withValues(alpha: 0.2); // hover
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    child: Ink(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                        // background if you want
+                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                      child: SvgPicture.asset(
+                                        AppIconAssets.chat_pick_media,
+                                        height: 22,
+                                        width: 22,
+                                        color: AppColors.chat_input_icon_color,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            ( chatViewController.isTextFieldEmpty.value)?SizedBox():SizedBox(width: 8),
-                            ( chatViewController.isTextFieldEmpty.value)?SizedBox():Material(
-                              color: Colors.transparent,
+                                ( chatViewController.isTextFieldEmpty.value)?SizedBox():SizedBox(width: 8),
+                                ( chatViewController.isTextFieldEmpty.value)?SizedBox():Material(
+                                  color: Colors.transparent,
 
-                              child: InkWell(
-                                onTap: () {
-                                  _pickFromCamera();
-                                },
-                                borderRadius: BorderRadius.circular(30),
-                                overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                      (states) {
-                                    if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey..withValues(alpha: 0.4); // pressed
-                                    }
-                                    if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withValues(alpha: 0.2); // hover
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                child: Ink(
-                                  decoration: BoxDecoration(
+                                  child: InkWell(
+                                    onTap: () {
+                                      _pickFromCamera();
+                                    },
                                     borderRadius: BorderRadius.circular(30),
-                                    // background if you want
+                                    overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                                          (states) {
+                                        if (states.contains(WidgetState.pressed)) {
+                                          return Colors.grey..withValues(alpha: 0.4); // pressed
+                                        }
+                                        if (states.contains(WidgetState.hovered)) {
+                                          return Colors.grey.withValues(alpha: 0.2); // hover
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    child: Ink(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                        // background if you want
+                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                      child: Icon(Icons.camera_alt_outlined,
+                                          color: AppColors.chat_input_icon_color,
+                                          size: 24),
+                                    ),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                  child: Icon(Icons.camera_alt_outlined,
-                                      color: AppColors.chat_input_icon_color,
-                                      size: 24),
                                 ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
@@ -590,6 +708,24 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
         }),
       ],
     );
+  }
+  void _insertMention(String name) {
+    final controller = chatViewController.sendMessageController.value;
+    String text = controller.text;
+
+    int lastAtIndex = text.lastIndexOf("@");
+
+    if (lastAtIndex != -1) {
+      String newText =
+          text.substring(0, lastAtIndex) + "@$name ";
+
+      controller.text = newText;
+      controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: newText.length),
+      );
+    }
+
+    chatViewController.showMentionList.value = false;
   }
 
   Future<void> submitRecordedAudio(String filePath) async {

@@ -73,6 +73,10 @@ class ChatViewController extends GetxController {
       GetChatRequestListModel().obs;
   Rx<GetChatRequestProfileDetailsModel>? getChatRequestProfileDetailsModel =
       GetChatRequestProfileDetailsModel().obs;
+  RxBool showMentionList = false.obs;
+  RxString mentionQuery = "".obs;
+  RxList<GroupMembersListModel> filteredMembers = <GroupMembersListModel>[].obs;
+
   static final Map<String, dynamic> aiChatListModel = {
     "last_message": "Ask anything with friend",
     "last_message_type": "text",
@@ -1671,6 +1675,7 @@ class ChatViewController extends GetxController {
       List dataList = responseModel.data as List;
       List<GroupMembersListModel> members =
           dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
+
 
       getGroupMembersResponse.value = ApiResponse.complete(members);
       ;

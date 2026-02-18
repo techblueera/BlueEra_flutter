@@ -987,17 +987,25 @@ AppBar getChatTitleAppBar(BuildContext context, {
           CircleAvatar(
             backgroundColor: theme.colorScheme.primary,
             radius: SizeConfig.size18,
-            backgroundImage: profileImage != null
+            backgroundImage: (profileImage != null &&
+                profileImage != 'null' &&
+                profileImage.isNotEmpty)
                 ? ((profileImage.contains('http'))
                 ? NetworkImage(profileImage)
                 : FileImage(File(profileImage)) as ImageProvider)
                 : null,
-            child: (profileImage == 'null') ? CustomText(
+            onBackgroundImageError: (_, __) {
+              // Prevent crash if image URL fails
+              debugPrint("Profile image load failed: $profileImage");
+            },
+            child: (profileImage == 'null')
+                ? CustomText(
               "${name!.split('')[0]}",
               color: Colors.white,
               fontWeight: FontWeight.w800,
               fontSize: SizeConfig.size18,
-            ) : (profileImage != null)
+            )
+                : (profileImage != null)
                 ? null
                 : (name != null)
                 ? Center(
