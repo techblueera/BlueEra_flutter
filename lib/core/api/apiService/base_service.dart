@@ -725,5 +725,6 @@ abstract class BaseService {
   String hospitalVisionMissionById(String id) => 'hospital-service/vision-mission/$id';
   final String hospitalHistoryBase = 'hospital-service/history';
   String hospitalHistoryById(String id) => 'hospital-service/history/$id';
+  final String  userCurrentPlan= 'subscription-service/subscription/user-subscriptions';
 
 }

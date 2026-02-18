@@ -1,16 +1,20 @@
 
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/subscription_create_model.dart';
 import 'package:BlueEra/core/api/model/subscription_offer_model.dart';
 import 'package:BlueEra/core/api/model/subscription_plan_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/api/apiService/api_keys.dart';
 import '../model/subscription_list_details_model.dart';
+import '../model/user_subscription_model.dart';
 
 class SubscriptionController extends GetxController {
   Rx<ApiResponse> createSubscriptionResponse =
@@ -23,9 +27,11 @@ class SubscriptionController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getSubscriptionOfferResponse =
       ApiResponse.initial('Initial').obs;
-
+  RxInt myPlanSelectedTab=0.obs;
+  RxBool mySubscriptionAvailable=false.obs;
   var selectedMethod = PaymentMethod.upi.obs;
-
+  RxList<UserSubscription> currentPlansList=<UserSubscription>[].obs;
+  RxList<int> selectedSubscriptionIndex = <int>[].obs;
   void selectMethod(PaymentMethod? method) {
     selectedMethod.value = method ?? selectedMethod.value;
   }
@@ -177,6 +183,28 @@ class SubscriptionController extends GetxController {
           await SubscriptionRepo().cancelSubscriptionRepo(params);
       if (responseModel.isSuccess) {
         cancelSubscriptionResponse.value = ApiResponse.complete(responseModel);
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      cancelSubscriptionResponse.value = ApiResponse.error('error');
+    }
+  }
+  Future<void> userCurrentPlanApi(Map<String, dynamic> params) async {
+    try {
+      ResponseModel responseModel =
+          await SubscriptionRepo().userCurrentPlanApi(params);
+      if (responseModel.isSuccess) {
+        List details=responseModel.data;
+
+        currentPlansList.value=details.map((e)=>UserSubscription.fromJson(e)).toList();
+        cancelSubscriptionResponse.value = ApiResponse.complete(responseModel);
+        if(params[ApiKeys.status]==AppConstants.active){
+          if(currentPlansList.isEmpty){
+            mySubscriptionAvailable.value=true;
+          }
+        }
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);

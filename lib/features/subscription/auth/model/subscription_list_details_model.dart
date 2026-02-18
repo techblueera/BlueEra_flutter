@@ -44,8 +44,12 @@ class SubscriptionPlanData {
   int? amount;
   String? currency;
   String? createdBy;
+  String? tier;
+  List<String>? perks;
+  int? rangeInKm;
   String? createdAt;
   String? updatedAt;
+  int? v;
 
   SubscriptionPlanData({
     this.id,
@@ -58,28 +62,44 @@ class SubscriptionPlanData {
     this.amount,
     this.currency,
     this.createdBy,
+    this.tier,
+    this.perks,
+    this.rangeInKm,
     this.createdAt,
     this.updatedAt,
+    this.v,
   });
 
   factory SubscriptionPlanData.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanData(
-      id: json['_id'],
-      planId: json['plan_id'],
+      id: json['_id']?.toString(),
+      planId: json['plan_id']?.toString(),
       interval: json['interval'] is int
           ? json['interval']
           : int.tryParse('${json['interval']}'),
-      period: json['period'],
-      active: json['active'],
-      name: json['name'],
-      description: json['description'],
+      period: json['period']?.toString(),
+      active: json['active'] is bool
+          ? json['active']
+          : json['active'] == true,
+      name: json['name']?.toString(),
+      description: json['description']?.toString(),
       amount: json['amount'] is int
           ? json['amount']
           : int.tryParse('${json['amount']}'),
-      currency: json['currency'],
-      createdBy: json['created_by'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      currency: json['currency']?.toString(),
+      createdBy: json['created_by']?.toString(),
+      tier: json['tier']?.toString(),
+      perks: json['perks'] != null
+          ? List<String>.from(json['perks'])
+          : [],
+      rangeInKm: json['rangeInKm'] is int
+          ? json['rangeInKm']
+          : int.tryParse('${json['rangeInKm']}'),
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
+      v: json['__v'] is int
+          ? json['__v']
+          : int.tryParse('${json['__v']}'),
     );
   }
 
@@ -95,8 +115,50 @@ class SubscriptionPlanData {
       'amount': amount,
       'currency': currency,
       'created_by': createdBy,
+      'tier': tier,
+      'perks': perks,
+      'rangeInKm': rangeInKm,
       'created_at': createdAt,
       'updated_at': updatedAt,
+      '__v': v,
     };
+  }
+
+  SubscriptionPlanData copyWith({
+    String? id,
+    String? planId,
+    int? interval,
+    String? period,
+    bool? active,
+    String? name,
+    String? description,
+    int? amount,
+    String? currency,
+    String? createdBy,
+    String? tier,
+    List<String>? perks,
+    int? rangeInKm,
+    String? createdAt,
+    String? updatedAt,
+    int? v,
+  }) {
+    return SubscriptionPlanData(
+      id: id ?? this.id,
+      planId: planId ?? this.planId,
+      interval: interval ?? this.interval,
+      period: period ?? this.period,
+      active: active ?? this.active,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      createdBy: createdBy ?? this.createdBy,
+      tier: tier ?? this.tier,
+      perks: perks ?? this.perks,
+      rangeInKm: rangeInKm ?? this.rangeInKm,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      v: v ?? this.v,
+    );
   }
 }

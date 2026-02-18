@@ -36,6 +36,7 @@ import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/chat_theme/chat_theme.dart';
 import '../../features/chat/view/contacts/contact_list_page.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
+import '../../features/subscription/view/subscrption_new.dart';
 
 class AppConstants {
   static const String appName = 'BlueEra';
@@ -108,7 +109,31 @@ class AppConstants {
   static const String SMS = 'SMS';
   static const String WhatsApp = 'WhatsApp';
 
+  static const String active = 'active';
+  static const String created = 'created';
+  static const String paused = 'paused';
+  static const String completed = 'completed';
+  static const String expired = 'expired';
+  static const String halted = 'halted';
+  static const String pending = 'pending';
 
+  static  List<SubscriptionPlanStyleModel> listOfSubsBg = [
+    SubscriptionPlanStyleModel(
+        bg: AppImageAssets.basic_subscription_plan_bg,
+        textColor: AppColors.darkBlueShade),
+    SubscriptionPlanStyleModel(
+        bg: AppImageAssets.basic_subscription_plan_bg,
+        textColor: AppColors.darkBlueShade),
+    SubscriptionPlanStyleModel(
+        bg: AppImageAssets.basic_subscription_plan_bg,
+        textColor: AppColors.darkBlueShade),
+    SubscriptionPlanStyleModel(
+        bg: AppImageAssets.basic_subscription_plan_bg,
+        textColor: AppColors.darkBlueShade),
+    SubscriptionPlanStyleModel(
+        bg: AppImageAssets.basic_subscription_plan_bg,
+        textColor: AppColors.darkBlueShade),
+  ];
 
   static const String group_Chat_Type = 'group';
   static const String order_Chat_Type = 'order';
