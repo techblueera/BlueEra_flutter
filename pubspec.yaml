@@ -120,7 +120,6 @@ flutter:
     - assets/sound/
 
     - assets/category/grocery/menu/
-    - assets/category/foods/all_food_category/
     - assets/category/medical/
 
     - assets/category/hotel_service/

@@ -12,7 +12,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
   final String Function(T item) getIcon;
   final bool Function(T item) isSelected;
   final Function(T item, int index) onTap;
-  final double width;
+  final double? width;
   final EdgeInsetsGeometry? padding;
 
   const CommonGenericLeftSideCategoryList({
@@ -22,14 +22,14 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
     required this.getIcon,
     required this.isSelected,
     required this.onTap,
-    this.width = 74.0,
+    this.width,
     this.padding,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
+      width: width ?? SizeConfig.screenWidth * 0.18,
       height: SizeConfig.screenHeight,
       color: AppColors.white,
       child: ListView.builder(
@@ -49,7 +49,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: selected ? 10 : 6),
+                  padding: EdgeInsets.symmetric(vertical: selected ? 10 : 6,  horizontal: 4.0),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.white : null,
                     gradient: selected
