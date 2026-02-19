@@ -672,6 +672,7 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -1488,6 +1489,27 @@ class ChatViewController extends GetxController {
         getListOfMessageData?.add(sendLoadingFile.value);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
+      }
+      String? message=params[ApiKeys.message];
+      if(message!=null&&message.contains("@")){
+        final RegExp mentionRegex = RegExp(r'@(\w+)');
+
+        // Get all matches
+        final matches = mentionRegex.allMatches(message);
+
+        // Convert to list of names (without @)
+        List<String> mentionedNames =
+        matches.map((match) => match.group(1)!.toString().toLowerCase()).toList();
+
+        List<String?> mentionedUserIds = filteredMembers
+            .where((member) {
+          final name = member.name?.toLowerCase() ?? "";
+          return mentionedNames.any((mention) => name.contains(mention));
+        })
+            .map((member) => member.id)
+            .toList();
+
+        params[ApiKeys.tagged_users] = mentionedUserIds;
       }
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);

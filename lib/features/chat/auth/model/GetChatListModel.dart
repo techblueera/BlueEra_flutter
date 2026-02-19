@@ -65,6 +65,7 @@ class ChatList {
     this.groupProfileImage,
     this.lastMessageType,
     this.createdAt,
+    this.tagged,
     this.updatedAt,
     this.unreadCount,
     this.publicGroup,
@@ -82,6 +83,7 @@ class ChatList {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     unreadCount = json['unread_count'];
+    tagged = json['tagged'];
     publicGroup = json['public_group'];
 
     sender = json['sender'] != null ? Sender.fromJson(json['sender']) : null;
@@ -104,6 +106,7 @@ class ChatList {
   String? groupProfileImage;
   num? unreadCount;
   bool? publicGroup;
+  bool? tagged;
   Sender? sender;
 
   /// NEW FIELD
@@ -120,6 +123,7 @@ class ChatList {
     map['group_profile_image'] = groupProfileImage;
     map['updated_at'] = updatedAt;
     map['unread_count'] = unreadCount;
+    map['tagged'] = tagged;
     map['public_group'] = publicGroup;
 
     if (sender != null) {

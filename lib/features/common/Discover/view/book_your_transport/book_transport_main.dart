@@ -264,19 +264,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                               MaterialPageRoute(
                                                 builder: (context) =>
                                                     SearchTransportAddress(
-                                                      onPlaceSelected: (lat, long,
-                                                          address) {
-                                                        discoverController
-                                                            .selectedFromLat
-                                                            ?.value =
-                                                            lat ?? 0;
-                                                        discoverController
-                                                            .selectedFromLong
-                                                            ?.value =
-                                                            long ?? 0;
-                                                        discoverController
-                                                            .selectedFromAddress
-                                                            ?.value = address ?? "";
+                                                      onPlaceSelected: () {
                                                         discoverController
                                                             .getBookingRidersApi();
                                                       },
@@ -310,17 +298,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                               MaterialPageRoute(
                                                 builder: (context) =>
                                                     SearchTransportAddress(
-                                                      onPlaceSelected: (lat, long,
-                                                          address) {
-                                                        discoverController
-                                                            .selectedToLat?.value =
-                                                            lat ?? 0;
-                                                        discoverController
-                                                            .selectedToLong?.value =
-                                                            long ?? 0;
-                                                        discoverController
-                                                            .selectedToAddress
-                                                            ?.value = address ?? "";
+                                                      onPlaceSelected: () {
+
                                                         discoverController
                                                             .getBookingRidersApi();
                                                       },

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -22,11 +23,11 @@ import '../../../map/view/searchLocationScreen.dart';
 import '../../controller/discover_controller.dart';
 
 class SearchTransportAddress extends StatefulWidget {
-  final Function(double?, double?, String?)? onPlaceSelected;
+  final Function() onPlaceSelected;
 
   const SearchTransportAddress({
     Key? key,
-    this.onPlaceSelected,
+    required this.onPlaceSelected,
   }) : super(key: key);
 
   @override
@@ -35,7 +36,8 @@ class SearchTransportAddress extends StatefulWidget {
 
 class _SearchTransportAddressState extends State<SearchTransportAddress> {
   final authController = getOrPut(() => AuthController());
-  late GoogleMapController mapController;
+  GoogleMapController? mapController;
+
 
   final discoverController = getOrPut(() => DiscoverController());
   Set<Polyline> _polylines = {};
@@ -49,9 +51,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setInitialCurrentLocation();
+      authController.isSearchOpen.value = true;
     });
-
-    authController.isSearchOpen.value = true;
   }
 
   @override
@@ -61,18 +62,17 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
   Future<void> _setInitialCurrentLocation() async {
     try {
-      // Get current location from your LocationService
-
-      // Get address
       String address = await LocationService.getAddressUsingLatLng(
         latitude: LocationService.lat,
         longitude: LocationService.lng,
       );
+
+      if (!mounted) return; // 🔥 add this
+
       discoverController.selectedFromLat?.value = LocationService.lat;
       discoverController.selectedFromLong?.value = LocationService.lng;
       discoverController.selectedFromAddress?.value = address;
 
-      // Add blue marker (FROM)
       final fromLatLng = LatLng(LocationService.lat, LocationService.lng);
 
       discoverController.markers.clear();
@@ -81,26 +81,34 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
           markerId: const MarkerId("from"),
           position: fromLatLng,
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueBlue, // 🔵 FROM = Blue
+            BitmapDescriptor.hueBlue,
           ),
         ),
       );
 
-      // Move camera to current location
-      mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(fromLatLng, 15),
-      );
+      // 🔥 SAFE camera move
+      if (mapController != null) {
+        await mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(fromLatLng, 15),
+        );
+      }
     } catch (e) {
       log("Error setting initial location: $e");
     }
   }
 
+
   Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
+
+    if (!mounted) return;
+
     try {
-      await mapController.animateCamera(
+      await mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
-            LatLng(LocationService.lat, LocationService.lng), 14.0),
+          LatLng(LocationService.lat, LocationService.lng),
+          14.0,
+        ),
       );
     } catch (e) {
       debugPrint("Error loading marker: $e");
@@ -150,23 +158,23 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       ),
     );
 
+    if (!mounted) return; // 🔥 VERY IMPORTANT
+
     if (result.points.isNotEmpty) {
       List<LatLng> routeCoords = result.points
           .map((point) => LatLng(point.latitude, point.longitude))
           .toList();
 
       setState(() {
-        _polylines.clear(); // Important (avoid dotted layering)
+        _polylines.clear();
         _polylines.add(
           Polyline(
             polylineId: const PolylineId("route"),
             points: routeCoords,
             width: 8,
-            // 🔥 Increase width for smooth road look
             color: Colors.blue,
             geodesic: true,
             jointType: JointType.round,
-            // 🔥 Smooth corners
             startCap: Cap.roundCap,
             endCap: Cap.roundCap,
           ),
@@ -174,6 +182,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       });
     }
   }
+
 
   void _updateMarkersAndRoute() {
     discoverController.markers.clear();
@@ -218,7 +227,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       // Call your existing polyline (UNCHANGED)
       _getRoutePolyline(fromLatLng!, toLatLng!);
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -527,6 +538,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
   Widget _rideBookingBottomSheet() {
     return SafeArea(
+      top: false,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -544,8 +556,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
             ),
           ],
         ),
-        child: SafeArea(
-          top: false,
+        child: SingleChildScrollView(
+
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,7 +578,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           _selectableChip(
                             text: "One Way",
                             isSelected: discoverController.selectedRideType
-                                .value ==AppConstants.oneWay,
+                                .value == AppConstants.oneWay,
                             onTap: () {
                               discoverController.selectedRideType.value =
                                   AppConstants.oneWay;
@@ -657,6 +669,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: CommonTextField(
+                                    textEditController: discoverController
+                                        .myFriendPhoneController,
                                     sIcon: IconButton(
                                         onPressed: () {},
                                         icon: LocalAssets(
@@ -665,19 +679,227 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                           height: 20,
                                           width: 20,
                                         )),
-                                    hintText: "1234567890",
+                                    hintText: "E.g. 1234567890",
                                   ),
                                 ),
                               ],
                             ),
                           ],
                         ),
+                    ],
+                  );
+                }),
+              if(discoverController.selectedHorizontalTab
+                  .value == 3)
+                Obx(() {
+                  return Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CommonTextField(
+                          textEditController: discoverController
+                              .receiversNameController,
+                          title: "Receiver's Name",
+                          hintText: "E.g. Ramesh"
+                      ),
+                      const SizedBox(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CustomText("Receiver's Mobile Number",
+                              fontSize: 14, fontWeight: FontWeight.w400),
+                          const SizedBox(height: 10),
 
-                      const SizedBox(height: 18),
+                          /// Phone Field
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12),
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: Colors.grey.shade300),
+                                ),
+                                child: Center(
+                                  child: CustomText("+91",
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: CommonTextField(
+                                  textEditController: discoverController
+                                      .receiversNumberController,
+                                  sIcon: IconButton(
+                                      onPressed: () {
+
+                                      },
+                                      icon: LocalAssets(
+                                        imagePath: AppIconAssets
+                                            .get_contacts_person,
+                                        height: 20,
+                                        width: 20,
+                                      )),
+                                  hintText: "E.g. 1234567890",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const CustomText("Parcel Details",
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                          InkWell(
+                            onTap: () {
+                              discoverController.clearParcelField();
+                              Get.dialog(Dialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12.0, vertical: 18),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+
+                                      Row(mainAxisAlignment: MainAxisAlignment
+                                          .spaceBetween,
+                                        children: [
+                                          const CustomText("Parcel Details",
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600),
+                                          InkWell(
+                                              onTap: () {
+                                                Get.back();
+                                              },
+                                              child: Icon(Icons.cancel_outlined,
+                                                color: AppColors.red,)),
+                                        ],
+                                      ),
+                                      SizedBox(height: 16,),
+                                      const CustomText("Category",
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400),
+                                      SizedBox(height: 10,),
+                                      Obx(() {
+                                        return CommonDropdown(
+                                          items: [
+                                          "Document",
+                                          "Product",
+                                          "Others"
+                                        ],
+                                          selectedValue: discoverController
+                                              .selectedParcelCategory.value,
+                                          hintText: "Choose Parcel Category",
+                                          onChanged: (value) {
+                                            discoverController
+                                                .selectedParcelCategory.value =
+                                                value ?? '';
+                                          },
+                                          displayValue: (value) => value,);
+                                      }),
+                                      const SizedBox(height: 16),
+                                      CommonTextField(
+                                        textEditController: discoverController
+                                            .parcelWeightController,
+                                        title: "Weight in Kg (optional)",
+                                        hintText: "E.g. 0.5kg",
+                                        validator: (value) {
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      CommonTextField(
+                                        maxLine: 3,
+                                        textEditController: discoverController
+                                            .parcelDescriptionController,
+                                        title: "Description",
+                                        hintText: "E.g. Take this parcel with care",
+                                        validator: (value) {
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 26,),
+                                      CustomBtn(
+                                          isValidate: true,
+                                          onTap: () {
+                                            discoverController
+                                                .addParcelDetails();
+                                            Get.back();
+                                          }, title: "Save"),
+
+                                    ],
+                                  ),
+                                ),
+                              ));
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.add, color: AppColors.primaryColor,),
+                                const CustomText(" Add",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryColor,),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10,),
+                      ...discoverController.parcelDetailsList.map((e) =>
+                          Container(
+                            margin: EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: AppColors.whiteE5
+                                )
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween,
+                                    children: [
+                                      CustomText(e.category, fontSize: 14,fontWeight: FontWeight.w600,),
+                                      Row(
+                                        children: [
+
+                                          SizedBox(width: 8,),
+                                          InkWell(
+                                              onTap: () {
+                                                discoverController
+                                                    .removeParcelDetails(e);
+                                              },
+                                              child: Icon(Icons.delete,
+                                                color: AppColors.red,size: 22,))
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4,),
+                                  CustomText(e.weightKg, fontSize: 12,color: AppColors.secondaryTextColor),
+                                  SizedBox(height: 6,),
+                                  CustomText(e.description, fontSize: 12,color: AppColors.secondaryTextColor,),
+                                ]),
+                          )).toList()
+
+
                     ],
                   );
                 }),
 
+              const SizedBox(height: 28),
 
               /// Submit Button
               CustomBtn(
@@ -686,6 +908,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       discoverController.selectedToLat?.value != 0.0),
                   onTap: () {
                     Get.back();
+                    widget.onPlaceSelected();
                   },
                   title: "Submit"),
               const SizedBox(height: 28),
