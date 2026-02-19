@@ -33,6 +33,7 @@ import '../../../personal/personal_profile/view/help_and_support_screen/help_and
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/profile_setup_new_screen.dart';
+import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
@@ -146,6 +147,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   }
 
   Widget _header() {
+    String? imageUrl = accountProfileImage();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: InkWell(
@@ -163,7 +165,17 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           children: [
             CircleAvatar(
               radius: 26,
-              backgroundImage: NetworkImage(accountProfileImage()),
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: (imageUrl.isNotEmpty &&
+                  imageUrl != "null" &&
+                  Uri.tryParse(imageUrl)?.hasAbsolutePath == true &&
+                  Uri.tryParse(imageUrl)?.hasScheme == true)
+                  ? NetworkImage(imageUrl)
+                  : null,
+              child: (imageUrl.isEmpty ||
+                  imageUrl == "null")
+                  ? Icon(Icons.person)
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -197,36 +209,40 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primaryColor),
-                borderRadius: BorderRadius.circular(10),
-                color: AppColors.blueShade.withOpacity(0.1),
-              ),
-              child: Row(
-                children: [
-                  LocalAssets(
-                    imagePath: AppIconAssets.walletIcon,
-                    height: 20,
-                    width: 20,
-                    imgColor: AppColors.secondaryTextColor,
-                  ),
-                  const SizedBox(width: 6),
-                  const CustomText(
-                    "Wallet",
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  const CustomText(
-                    "  ₹0",
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
-                ],
+            child: InkWell(
+              onTap: () => Get.to(WalletScreen()),
+
+              child: Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.primaryColor),
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.blueShade.withOpacity(0.1),
+                ),
+                child: Row(
+                  children: [
+                    LocalAssets(
+                      imagePath: AppIconAssets.walletIcon,
+                      height: 20,
+                      width: 20,
+                      imgColor: AppColors.secondaryTextColor,
+                    ),
+                    const SizedBox(width: 6),
+                    const CustomText(
+                      "Wallet",
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    const CustomText(
+                      "  ₹0",
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
