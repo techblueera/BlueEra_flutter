@@ -302,7 +302,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                           backgroundColor:
                               AppColors.black.withValues(alpha: 0.3),
                           child: LocalAssets(
-                              imagePath: 'assets/diwali_card/image.png'),
+                              imagePath: 'assets/images/image.png'),
                         )))
               ],
             ),

@@ -426,25 +426,25 @@ class _SuggestedDiscoverScreenState extends State<SuggestedDiscoverScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 commonCategoryItem(
-                  iconPath: AppIconAssets.groceryItemsColorful,
+                  iconPath: AppImageAssets.groceryItemsColorful,
                   label: 'Grocery',
                   onTap: () {},
                 ),
                 _buildHorizontalGap(),
                 commonCategoryItem(
-                  iconPath: AppIconAssets.vegetablesColorful,
+                  iconPath: AppImageAssets.vegetablesColorful,
                   label: 'Veg',
                   onTap: () {},
                 ),
                 _buildHorizontalGap(),
                 commonCategoryItem(
-                  iconPath: AppIconAssets.fruitsColorful,
+                  iconPath: AppImageAssets.fruitsColorful,
                   label: 'Fruits',
                   onTap: () {},
                 ),
                 _buildHorizontalGap(),
                 commonCategoryItem(
-                  iconPath: AppIconAssets.bakeryNamkeenItemsColorful,
+                  iconPath: AppImageAssets.bakeryNamkeenItemsColorful,
                   label: 'Bakery',
                   onTap: () {},
 

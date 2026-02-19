@@ -103,7 +103,8 @@ class Children {
       this.name, 
       this.key, 
       this.type, 
-      this.isActive, 
+      this.image,
+      this.isActive,
       this.parentId, 
       this.level, 
       this.createdAt, 
@@ -116,6 +117,7 @@ class Children {
     name = json['name'];
     key = json['key'];
     type = json['type'];
+    image = json['image'];
     isActive = json['isActive'];
     parentId = json['parentId'];
     level = json['level'];
@@ -128,6 +130,7 @@ class Children {
   String? name;
   String? key;
   String? type;
+  String? image;
   bool? isActive;
   String? parentId;
   int? level;
@@ -141,6 +144,7 @@ class Children {
     map['name'] = name;
     map['key'] = key;
     map['type'] = type;
+    map['image'] = image;
     map['isActive'] = isActive;
     map['parentId'] = parentId;
     map['level'] = level;

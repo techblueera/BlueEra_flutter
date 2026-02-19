@@ -181,7 +181,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.asset(
-                          "assets/diwali_card/rentalhome.png",
+                          "assets/images/rentalhome.png",
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,

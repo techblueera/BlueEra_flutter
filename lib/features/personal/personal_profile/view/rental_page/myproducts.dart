@@ -30,7 +30,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
       "title": "Banerjee Inn - ${index + 1}",
       "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
       "phone": "+91 1234567890",
-      "image": "assets/diwali_card/rentalhome.png"
+      "image": "assets/images/rentalhome.png"
     };
   });
 

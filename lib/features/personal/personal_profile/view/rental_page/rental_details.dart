@@ -84,7 +84,7 @@ class RentalDetailsScreen extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   children: [
                     Image.asset(
-                      "assets/diwali_card/rentalhome.png",
+                      "assets/images/rentalhome.png",
                       height: SizeConfig.size200,
                       width: double.infinity,
                       fit: BoxFit.cover,

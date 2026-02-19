@@ -277,7 +277,7 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                 //       mainAxisAlignment: MainAxisAlignment.center,
                 //       children: [
                 //         Image.asset(
-                //           'assets/diwali_card/upload.png',
+                //           'assets/images/upload.png',
                 //           color: AppColors.secondaryTextColor,
                 //         ),
                 //         SizedBox(width: SizeConfig.size10),

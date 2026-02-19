@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
@@ -82,60 +83,78 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       ),
       body: Row(
         children: [
+
           // 1. Left Side: Category List
-          Container(
-            width: 100,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(right: BorderSide(color: Colors.grey.shade200)),
-            ),
-            child: ListView.builder(
-              itemCount: widget.foodCategoryData.children?.length,
-              itemBuilder: (context, index) {
-                final cat = widget.foodCategoryData.children?[index];
-                bool isSelected =
-                    controller.selectedCategoryId.value == cat?.id;
-                return GestureDetector(
-                  onTap: () {
-                    controller.changeCategory(cat?.id ?? "");
-                    controller.getFoodByCategoryIDController(
-                        categoryId: cat?.id ?? "");
-                    setState(() {});
-                  },
-                  child: Container(
-                    color: isSelected
-                        ? Colors.blue.withOpacity(0.1)
-                        : Colors.transparent,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundColor: Colors.blue.shade50,
-                          child: LocalAssets(
-                              imagePath:
-                                  "assets/category/foods/${cat?.key}.svg"),
-                          // backgroundImage:,
-                        ),
-                        const SizedBox(height: 8),
-                        CustomText(
-                          cat?.name,
-                          fontSize: 12,
-                          textAlign: TextAlign.center,
-                          color: isSelected
-                              ? AppColors.primaryColor
-                              : AppColors.secondaryTextColor,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+          CommonGenericLeftSideCategoryList<Children>(
+          items: widget.foodCategoryData.children ?? [],
+            getIcon: (cat) => cat.image ?? '',
+            getLabel: (cat) => cat.name ?? '',
+            isSelected: (cat) =>
+            controller.selectedCategoryId.value == cat.id,
+            onTap: (cat, index) {
+              controller.changeCategory(cat.id ?? "");
+              controller.getFoodByCategoryIDController(
+                  categoryId: cat.id ?? "");
+              setState(() {});
+            },
           ),
 
+
+          // 1. Left Side: Category List
+          // Container(
+          //   width: 100,
+          //   decoration: BoxDecoration(
+          //     color: Colors.white,
+          //     border: Border(right: BorderSide(color: Colors.grey.shade200)),
+          //   ),
+          //   child: ListView.builder(
+          //     itemCount: widget.foodCategoryData.children?.length,
+          //     itemBuilder: (context, index) {
+          //       final cat = widget.foodCategoryData.children?[index];
+          //       bool isSelected =
+          //           controller.selectedCategoryId.value == cat?.id;
+          //       return GestureDetector(
+          //         onTap: () {
+          //           controller.changeCategory(cat?.id ?? "");
+          //           controller.getFoodByCategoryIDController(
+          //               categoryId: cat?.id ?? "");
+          //           setState(() {});
+          //         },
+          //         child: Container(
+          //           color: isSelected
+          //               ? Colors.blue.withValues(alpha: 0.1)
+          //               : Colors.transparent,
+          //           padding:
+          //               const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          //           child: Column(
+          //             children: [
+          //               CircleAvatar(
+          //                 radius: 25,
+          //                 backgroundColor: Colors.blue.shade50,
+          //                 child: CachedNetworkImage(
+          //                     imageUrl: cat?.image ?? ''
+          //                 ),
+          //                 // backgroundImage:,
+          //               ),
+          //               const SizedBox(height: 8),
+          //               CustomText(
+          //                 cat?.name,
+          //                 fontSize: 12,
+          //                 textAlign: TextAlign.center,
+          //                 color: isSelected
+          //                     ? AppColors.primaryColor
+          //                     : AppColors.secondaryTextColor,
+          //               ),
+          //             ],
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //   ),
+          // ),
+
           // 2. Right Side: Product List
+
           Expanded(
             child: Obx(() => ListView.builder(
                   padding: const EdgeInsets.all(12),

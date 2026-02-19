@@ -113,7 +113,9 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
               ))),
           bottomNavigationBar: Obx(() {
             if (controller.selectedGroceriesVariants.isEmpty)
-              return SizedBox();
+              return EmptyStateWidget(
+                  message: 'No products found.'
+              );
             else
               return Material(
                 elevation: 8.0,

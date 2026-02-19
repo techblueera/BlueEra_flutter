@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/view/grocery_product_selection_screen.dart';
@@ -63,7 +64,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                               horizontal: 16, vertical: 4),
                           leading: LocalAssets(
                             imagePath:
-                                "assets/category/grocery/menu/${item.key ?? " "}.svg",
+                                "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
                             width: 30,
                             height: 30,
                           ),

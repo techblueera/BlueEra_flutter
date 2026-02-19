@@ -150,7 +150,7 @@ class _RentalScreenState extends State<RentalScreen>
                                         topLeft: Radius.circular(12),
                                         topRight: Radius.circular(12)),
                                     child: Image.asset(
-                                      "assets/diwali_card/rentalhome.png", // Replace with your image
+                                      "assets/images/rentalhome.png", // Replace with your image
                                       height: 160,
                                       width: double.infinity,
                                       fit: BoxFit.cover,

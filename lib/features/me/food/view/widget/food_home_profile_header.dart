@@ -165,7 +165,7 @@ class FoodHomeProfileHeader extends StatelessWidget {
                                 message: AppStrings.updatePictureFailed);
                           }
                         },
-                        child: Image.asset('assets/diwali_card/camera.png'))),
+                        child: Image.asset('assets/images/camera.png'))),
 
                 // Follow button & menu
               ],

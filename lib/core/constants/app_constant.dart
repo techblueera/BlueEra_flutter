@@ -21,6 +21,7 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
@@ -69,6 +70,8 @@ class AppConstants {
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
+  static const String baseGroceryAssetsPath = "assets/category/grocery/menu/";
+  static const String baseFoodAssetsPath = "assets/category/foods/menu/";
   static const String porterLink =
       "https://porter.in/two-wheelers/pune?gads=search&utm_source=google&utm_medium=cpc&utm_campaign=20818387432&utm_term=155699175106&utm_content=proter&click_id=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE&gad_source=1&gad_campaignid=20818387432&gbraid=0AAAAAoulZ9ihaB8xOb2NnDAf_6AJckFkq&gclid=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE";
   static const String rapidoLink = "https://www.rapido.bike/Home";
@@ -4045,6 +4048,77 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   ),
 ];
 
+/// Super Grocery Categories (Discover)
+const List<CollapsibleGridModel> grocerySuperCategories = [
+  CollapsibleGridModel(
+      icon: AppImageAssets.groceryItemsColorful,
+      name: AppStrings.labelGroceryItems,
+      slugId: GroceryConstant.GROCERY_ITEMS),
+  CollapsibleGridModel(
+      icon: AppImageAssets.vegetablesColorful,
+      name: AppStrings.labelVegetable,
+      slugId: GroceryConstant.VEGETABLES),
+  CollapsibleGridModel(
+      icon: AppImageAssets.fruitsColorful,
+      name: AppStrings.labelFruit,
+      slugId: GroceryConstant.FRUITS),
+  CollapsibleGridModel(
+      icon: AppImageAssets.bakeryNamkeenItemsColorful,
+      name: AppStrings.labelBakeryBreadItems,
+      slugId: GroceryConstant.BAKERY_NAMKEEN_ITEMS),
+  CollapsibleGridModel(
+      icon: AppImageAssets.dairyFrozenItemsColorful,
+      name: AppStrings.labelDairyProducts,
+      slugId: GroceryConstant.DAIRY_FROZEN_ITEMS),
+  CollapsibleGridModel(
+      icon: AppImageAssets.crockeryColorful,
+      name: AppStrings.labelCrockery,
+      slugId: GroceryConstant.CROCKERY),
+  CollapsibleGridModel(
+      icon: AppImageAssets.homeEssentialsColorful,
+      name: AppStrings.labelHomeEssentials,
+      slugId: GroceryConstant.HOME_ESSENTIALS),
+  CollapsibleGridModel(
+      icon: AppImageAssets.cleaningMaintenanceColorful,
+      name: AppStrings.labelCleaningMaintenance,
+      slugId: GroceryConstant.CLEANING_MAINTENANCE),
+  CollapsibleGridModel(
+      icon: AppImageAssets.beautyHealthCareColorful,
+      name: AppStrings.labelBeautyHealthCare,
+      slugId: GroceryConstant.BEAUTY_HEALTH_CARE),
+  CollapsibleGridModel(
+      icon: AppImageAssets.stationaryColorful,
+      name: AppStrings.labelStationary,
+      slugId: GroceryConstant.STATIONARY),
+];
+
+/// food Categories (Discover)
+const List<CollapsibleGridModel> foodCategories = [
+  CollapsibleGridModel(
+      icon: AppImageAssets.tiffinColorful,
+      name: 'Tiffin',
+      slugId: 'TIFFIN'),
+  CollapsibleGridModel(
+      icon: AppImageAssets.breakfastColorful,
+      name: 'Breakfast',
+      slugId: 'BREAKFAST'),
+  CollapsibleGridModel(
+      icon: AppImageAssets.lunchDinnerColorful,
+      name: 'Lunch, Dinner',
+      slugId: 'LUNCH_DINNER'),
+  CollapsibleGridModel(
+      icon: AppImageAssets.fastFoodColorful,
+      name: 'Fast-Food',
+      slugId: 'FAST_FOOD'),
+  CollapsibleGridModel(
+      icon: AppImageAssets.sweetsColorful,
+      name: 'Sweets',
+      slugId: 'SWEETS'),
+  CollapsibleGridModel(
+      icon: AppImageAssets.restaurantColorful,
+      name: 'Restaurant',
+      slugId: 'RESTAURANT'),
+];
 
 final List<CollapsibleGridModel> transportItemsCategories = [
   CollapsibleGridModel(

@@ -199,6 +199,29 @@ class AppImageAssets {
   static String find_consulting_img = "${imgPath}find_consulting_img.png";
   static String locationMarkerIcon = "${imgPath}location_marker_icon.png";
 
+  /// colorful icons(grocery)
+  static const groceryIconPath = AppConstants.baseGroceryAssetsPath;
+
+  static const String groceryItemsColorful = "${groceryIconPath}grocery_items_colorful.png";
+  static const String vegetablesColorful = "${groceryIconPath}vegetables_colorful.png";
+  static const String fruitsColorful = "${groceryIconPath}fruits_colorful.png";
+  static const String bakeryNamkeenItemsColorful = "${groceryIconPath}bakery_colorful.png";
+  static const String dairyFrozenItemsColorful = "${groceryIconPath}dairy_products_colorful.png";
+  static const String crockeryColorful = "${groceryIconPath}crockery_colorful.png";
+  static const String homeEssentialsColorful = "${groceryIconPath}home_essentials_colorful.png";
+  static const String cleaningMaintenanceColorful = "${groceryIconPath}cleaning_maintenance_colorful.png";
+  static const String beautyHealthCareColorful = "${groceryIconPath}beauty_body_care_colorful.png";
+  static const String stationaryColorful = "${groceryIconPath}stationary_colorful.png";
+
+  /// colorful icons(foods)
+  static const foodIconPath = AppConstants.baseFoodAssetsPath;
+  static const String tiffinColorful = "${foodIconPath}tiffin_colorful.png";
+  static const String breakfastColorful = "${foodIconPath}breakfast_colorful.png";
+  static const String lunchDinnerColorful = "${foodIconPath}lunch_dinner_colorful.png";
+  static const String fastFoodColorful = "${foodIconPath}fast_food_colorful.png";
+  static const String sweetsColorful = "${foodIconPath}sweets_colorful.png";
+  static const String restaurantColorful = "${foodIconPath}restaurant_colorful.png";
+
 }
 
 class OnboardingIndividualAssets{
