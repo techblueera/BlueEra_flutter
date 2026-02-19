@@ -5,6 +5,9 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_other_facilities_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/about_us/hospital_about_us.dart';
+import 'package:BlueEra/features/me/hospital/view/gallery/hospital_photos_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_contact_us.dart';
+import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/ipd/hospital_ipd_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/opd/hospital_opd_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/hospital_emergency_care_screen.dart';
@@ -57,23 +60,22 @@ class HospitalUpdateScreen extends StatelessWidget {
       page: () => const HospitalOtherFacilitiesScreen(),
     ),
     ServiceMenuItem(
-      title: "Careers ",
+      title: "Careers",
       icon: AppIconAssets.career_jobs,
-      page: () => const ComingSoon(),
+      page: () => const HospitalJobListingScreen(isReadOnly: false,),
     ),
     ServiceMenuItem(
       title: "Gallery",
       icon: AppIconAssets.other_gallery,
-      page: () => const ComingSoon(),
+      page: () =>  HospitalPhotosScreen(),
     ),
     ServiceMenuItem(
       title: "Contact Us",
       icon: AppIconAssets.contact_us,
-      page: () => const ComingSoon(),
+      page: () => const HospitalContactUs(),
     ),
   ];
-  final
-  controller = getOrPut(() => HospitalOtherFacilitiesController());
+  final controller = getOrPut(() => HospitalOtherFacilitiesController());
 
   @override
   Widget build(BuildContext context) {
@@ -86,43 +88,44 @@ class HospitalUpdateScreen extends StatelessWidget {
             ...serviceMenus.map((item) {
               return item.key == "diagnostic"
                   ? Obx(() {
-                return MeMenuCardDesign(
-                  title: "Diagnostic Departments",
-                  icon: AppIconAssets.diag_dept,
-                  showToggleButton: true,
-                  // isToggleOn: false,
-                  isToggleOn: controller.diagnosticStatus.value,
-                  onToggleChanged: (v) {
-                    controller.diagnosticStatus.value = v;
-                    controller.updateStatus(keyParm: "diagnosticDepartments");
-                    // controller.updateToggle();
-                  },
-                );
-              })
+                      return MeMenuCardDesign(
+                        title: "Diagnostic Departments",
+                        icon: AppIconAssets.diag_dept,
+                        showToggleButton: true,
+                        // isToggleOn: false,
+                        isToggleOn: controller.diagnosticStatus.value,
+                        onToggleChanged: (v) {
+                          controller.diagnosticStatus.value = v;
+                          controller.updateStatus(
+                              keyParm: "diagnosticDepartments");
+                          // controller.updateToggle();
+                        },
+                      );
+                    })
                   : item.key == "medical"
-                  ? Obx(() {
-                return MeMenuCardDesign(
-                  title: "Medical Store",
-                  icon: AppIconAssets.medical_store,
-                  showToggleButton: true,
-                  isToggleOn: controller.medicalStoreStatus.value,
-                  onToggleChanged: (v) {
-                    controller.medicalStoreStatus.value= v;
-                    controller.updateStatus(keyParm: "medicalStore");
+                      ? Obx(() {
+                          return MeMenuCardDesign(
+                            title: "Medical Store",
+                            icon: AppIconAssets.medical_store,
+                            showToggleButton: true,
+                            isToggleOn: controller.medicalStoreStatus.value,
+                            onToggleChanged: (v) {
+                              controller.medicalStoreStatus.value = v;
+                              controller.updateStatus(keyParm: "medicalStore");
 
-                    // controller.updateToggle();
-                  },
-                );
-              })
-                  : InkWell(
-                onTap: () {
-                  Get.to(item.page); // 👈 recommended GetX syntax
-                },
-                child: MeMenuCardDesign(
-                  title: item.title,
-                  icon: item.icon,
-                ),
-              );
+                              // controller.updateToggle();
+                            },
+                          );
+                        })
+                      : InkWell(
+                          onTap: () {
+                            Get.to(item.page); // 👈 recommended GetX syntax
+                          },
+                          child: MeMenuCardDesign(
+                            title: item.title,
+                            icon: item.icon,
+                          ),
+                        );
             }).toList(),
             SizedBox(height: SizeConfig.size100),
           ],

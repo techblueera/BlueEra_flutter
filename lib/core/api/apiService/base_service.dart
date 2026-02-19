@@ -755,4 +755,12 @@ abstract class BaseService {
   String otherFacilitiesByHospital = 'hospital-service/other-facilities/hospital/$hospitalIDGlobal';
   String otherFacilitiesById(String id) => 'hospital-service/other-facilities/status/$hospitalIDGlobal';
 
+
+  String hospitalUpdate = '/hospital-service/hospitals/';
+  String hospitalContact = 'hospital-service/contact';
+  String hospitalDepartmentContact = 'hospital-service/contact/';
+  final String hospitalPhotos = 'hospital-service/gallery';
+  final String hospitalRemovePhotos = 'hospital-service/gallery/';
+  final String hospitalGetAllPhotos = 'hospital-service/gallery/hospital/$hospitalIDGlobal';
+
 }

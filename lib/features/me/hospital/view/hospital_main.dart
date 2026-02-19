@@ -1,10 +1,8 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
-import 'package:BlueEra/features/me/hospital/repo/hospital_repo.dart';
+import 'package:BlueEra/features/me/hospital/view/hospital_home_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_update_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/no_hospital_create_screen.dart';
 import 'package:flutter/material.dart';
@@ -28,38 +26,13 @@ class _HospitalMainState extends State<HospitalMain>
 
   @override
   void initState() {
-    apiCalling();
+    hospitalServiceAiController.getHospitalFullDetailsController();
     _tabController = TabController(length: 3, vsync: this);
 
     super.initState();
   }
 
-  apiCalling() async {
-    try {
-      if (hospitalIDGlobal.isEmpty) {
-        ResponseModel response =
-            await HospitalRepo().getHospitalFullDetailsRepo();
-        if (response.isSuccess) {
-          hospitalIDGlobal = response.response?.data['data']['_id'];
-          if (hospitalIDGlobal.isNotEmpty) {
-            await setHospitalID(hospitalIDGlobal);
-          } else {
-            hospitalIDGlobal = "";
-            await setHospitalID("");
-          }
-        } else {
-          hospitalIDGlobal = "";
-          await setHospitalID("");
-        }
-      }
-      await getHospitalID();
-      hospitalServiceAiController.hasHospitalCreated.value =
-          hospitalIDGlobal.isNotEmpty;
-      setState(() {});
-    } on Exception {
-      // TODO
-    }
-  }
+
 
   @override
   void dispose() {
@@ -99,9 +72,7 @@ class _HospitalMainState extends State<HospitalMain>
                           child: TabBarView(
                         controller: _tabController,
                         children: [
-                          // LabFullDetailsScreen(),
-                          // LabUpdateScreen(),
-                          ComingSoon(),
+                          HospitalHomeScreen(),
                           HospitalUpdateScreen(),
                           ComingSoon(),
                         ],

@@ -11,7 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class UploadPropertyPhotosScreen extends StatelessWidget {
+class UploadHospitalPhotosScreen extends StatelessWidget {
   final controller = Get.find<HospitalPhotoController>();
 
   @override
