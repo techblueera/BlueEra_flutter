@@ -61,8 +61,8 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     controller.userGuideLineControllers.clear();
     controller.selectedColors.clear();
     controller.dynamicAttributes.clear();
-    controller.selectedCategory.value = '';
-    controller.selectedCategoryId.value = '';
+    // controller.selectedCategory.value = '';
+    // controller.selectedCategoryId.value = '';
     controller.listedProducts.clear();
     controller.selectedVariantIndex.value = 0;
     controller.selectedProductOrVariantPrice = '00,000'.obs;
@@ -78,7 +78,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     controller.productDescriptionController.text = widget.generateAiProductContent.description??'';
     controller.brandController.text = widget.generateAiProductContent.brand??'';
     controller.tags.value = widget.generateAiProductContent.tags??[];
-    log('selectedCategory-- ${controller.selectedCategory.value}');
     List<String> features = widget.generateAiProductContent.features ?? [];
     if(features.isNotEmpty){
       for (final feature in features) {
@@ -141,8 +140,8 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     log('Selected colors count: ${controller.selectedColors.length}');
     log('Dynamic attributes: ${controller.dynamicAttributes}');
 
-    controller.selectedCategory.value = widget.generateAiProductContent.amazonCategory??'';
-    controller.performSearch(controller.selectedCategory.value);
+    // controller.selectedCategory.value = widget.generateAiProductContent.amazonCategory??'';
+    // controller.performSearch(controller.selectedCategory.value);
 
     // setState(() {});
 
@@ -304,65 +303,65 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       //   ),
                       // ),
 
-                      SizedBox(height: SizeConfig.size10),
-
-                      /// category
-                      CustomText(
-                        AppStrings.category,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.black,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      Obx(() => InkWell(
-                        onTap: () async {
-                          await showCategoryBottomSheet(context);
-                          // controller.openCategoryBottomSheet(context);
-                        },
-                        child: Container(
-                          width: SizeConfig.screenWidth,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size16,
-                            vertical: SizeConfig.size10,
-                          ),
-                          decoration: BoxDecoration(
-                              color: AppColors.white,
-                              boxShadow: [AppShadows.textFieldShadow],
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: AppColors.greyE5,
-                              )),
-                          child: controller.selectedCategory.isNotEmpty
-                              ? Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CustomText(
-                                  controller.selectedCategory.value,
-                                  fontSize:  SizeConfig.medium,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.black
-                              ),
-                            ],
-                          )
-                              : Container(
-                            // padding: EdgeInsets.all(SizeConfig.size12),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                CustomText(
-                                  AppStrings.selectCategory,
-                                  color: AppColors.grey9A,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: SizeConfig.large,
-                                ),
-                                const Icon(Icons.arrow_forward_ios,
-                                    size: 16, color: AppColors.grey9A)
-                              ],
-                            ),
-                          ),
-                        ),
-                      )),
+                      // SizedBox(height: SizeConfig.size10),
+                      //
+                      // /// category
+                      // CustomText(
+                      //   AppStrings.category,
+                      //   fontSize: SizeConfig.medium,
+                      //   fontWeight: FontWeight.w500,
+                      //   color: AppColors.black,
+                      // ),
+                      // SizedBox(height: SizeConfig.size8),
+                      // Obx(() => InkWell(
+                      //   onTap: () async {
+                      //     await showCategoryBottomSheet(context);
+                      //     // controller.openCategoryBottomSheet(context);
+                      //   },
+                      //   child: Container(
+                      //     width: SizeConfig.screenWidth,
+                      //     padding: EdgeInsets.symmetric(
+                      //       horizontal: SizeConfig.size16,
+                      //       vertical: SizeConfig.size10,
+                      //     ),
+                      //     decoration: BoxDecoration(
+                      //         color: AppColors.white,
+                      //         boxShadow: [AppShadows.textFieldShadow],
+                      //         borderRadius: BorderRadius.circular(10),
+                      //         border: Border.all(
+                      //           color: AppColors.greyE5,
+                      //         )),
+                      //     child: controller.selectedCategory.isNotEmpty
+                      //         ? Row(
+                      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //       children: [
+                      //         CustomText(
+                      //             controller.selectedCategory.value,
+                      //             fontSize:  SizeConfig.medium,
+                      //             fontWeight: FontWeight.w600,
+                      //             color: AppColors.black
+                      //         ),
+                      //       ],
+                      //     )
+                      //         : Container(
+                      //       // padding: EdgeInsets.all(SizeConfig.size12),
+                      //       child: Row(
+                      //         mainAxisSize: MainAxisSize.min,
+                      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //         children: [
+                      //           CustomText(
+                      //             AppStrings.selectCategory,
+                      //             color: AppColors.grey9A,
+                      //             fontWeight: FontWeight.w400,
+                      //             fontSize: SizeConfig.large,
+                      //           ),
+                      //           const Icon(Icons.arrow_forward_ios,
+                      //               size: 16, color: AppColors.grey9A)
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // )),
 
                     ]
                 )

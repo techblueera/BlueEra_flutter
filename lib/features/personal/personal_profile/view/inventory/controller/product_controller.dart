@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -26,25 +27,29 @@ class AddProductViaAiRequest {
   final String? productName;
   final String? productDescription;
   // final String? category;
+  final String? key;
   final List<String>? images;
 
   AddProductViaAiRequest({
     this.productName,
     this.productDescription,
     // this.category,
+    this.key,
     this.images,
   });
 
   AddProductViaAiRequest copyWith({
     String? productName,
     String? productDescription,
-    String? category,
+    // String? category,
+    String? key,
     List<String>? images,
   }) {
     return AddProductViaAiRequest(
       productName: productName ?? this.productName,
       productDescription: productDescription ?? this.productDescription,
       // category: category ?? this.category,
+      key: key ?? this.key,
       images: images ?? this.images,
     );
   }
@@ -184,7 +189,7 @@ class ProductController extends GetxController{
 
   String? productId;
 
-  final selectedCategory = ''.obs;
+  final Rxn<String> selectedCategory = Rxn<String>();
   final RxString selectedCategoryId = ''.obs;
 
   final RxBool showLinkField = false.obs;
@@ -200,6 +205,14 @@ class ProductController extends GetxController{
 
   /// Images used on Step 2 (second screen, preloaded + new)
   RxList<String> allProductImages = <String>[].obs;
+
+  final List<Map<String, String>> categoryDropdownList = businessProductsCategories.map((category) {
+    return {
+      'display': category.name,
+      'value': category.slugId,
+    };
+  }).toList();
+  final Rxn<Map<String, String>> selectedProductCategory = Rxn<Map<String, String>>();
 
   @override
   void onClose() {
@@ -224,6 +237,7 @@ class ProductController extends GetxController{
     _searchDebounce?.cancel();
     super.onClose();
   }
+
 
   void addColor(Color color, String name) {
     // if (selectedColors.length == 5) {
@@ -362,6 +376,7 @@ class ProductController extends GetxController{
     final request = AddProductViaAiRequest(
       productName: productNameStep1Controller.text.trim(),
       productDescription: productDescriptionStep1Controller.text.trim(),
+      key: selectedProductCategory.value!['value'],
       // category: Get.find<ManualListingScreenController>()
       //     .selectedBreadcrumb
       //     .value
@@ -382,6 +397,16 @@ class ProductController extends GetxController{
       return false;
     }
 
+    if(selectedProductCategory.value==null){
+      commonSnackBar(message: 'Please select product main category');
+      return false;
+    }
+
+    // if(selectedCategory.value?.isEmpty==null){
+    //   commonSnackBar(message: 'Please select product sub category');
+    //   return false;
+    // }
+
     if(!formKey.currentState!.validate()) return false;
 
     return true;
@@ -396,7 +421,7 @@ class ProductController extends GetxController{
       final productDetailsMap = {
         "product_name": request.productName,
         "description": request.productDescription,
-        // "category": request.category,
+        "key": request.key,
       };
       String productDetailsString = jsonEncode(productDetailsMap);
       params[ApiKeys.productDetails] = productDetailsString;
@@ -478,14 +503,14 @@ class ProductController extends GetxController{
         searchResults.clear();
         searchResults.assignAll(categoryData);
 
-        /// set initially category id (If user didn't choose category itSelf)
-        if(searchResults.isNotEmpty){
-          selectedCategoryId.value = searchResults[0].sId??'';
-        }
-        else{
-          selectedCategoryId.value = otherCategoryId;
-        }
-        log('category id--> $selectedCategoryId');
+        // /// set initially category id (If user didn't choose category itSelf)
+        // if(searchResults.isNotEmpty){
+        //   selectedCategoryId.value = searchResults[0].sId??'';
+        // }
+        // else{
+        //   selectedCategoryId.value = otherCategoryId;
+        // }
+        // log('category id--> $selectedCategoryId');
       } else {
         searchProductCategoryResponse.value = ApiResponse.error('error');
       }
@@ -533,6 +558,7 @@ class ProductController extends GetxController{
       Map<String, dynamic> params = {
         if(productNameController.text.trim().isNotEmpty) ApiKeys.name: productNameController.text.trim(),
         if(productDescriptionController.text.trim().isNotEmpty) ApiKeys.description: productDescriptionController.text.trim(),
+        if(selectedProductCategory.value!=null) ApiKeys.key: selectedProductCategory.value!['value'],
         ApiKeys.category_id: selectedCategoryId,
         if(brandController.text.trim().isNotEmpty) ApiKeys.brand: brandController.text.trim(),
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),

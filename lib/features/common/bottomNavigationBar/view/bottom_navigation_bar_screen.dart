@@ -37,9 +37,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -354,7 +352,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 2:
-        return getHomeScreen();
+        return meScreens();
 
       case 3:
       default:
@@ -373,7 +371,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  Widget getHomeScreen() {
+  Widget meScreens() {
     if (isGuestUser()) return GuestDashBoardScreen();
     if (isBusinessUser()) return resolveBusinessScreen();
     if (isIndividualUser()) return resolveIndividualScreen();
@@ -384,7 +382,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveBusinessScreen() {
     log('Resolving Screen... Type: ${businessTypeGlobal.toUpperCase()}');
-    log('Resolving Screen. businessCategoryGlobal .. Type: ${businessCategoryGlobal.toUpperCase()}');
+    // log('Resolving Screen. businessCategoryGlobal .. Type: ${businessCategoryGlobal.toUpperCase()}');
 
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() ==

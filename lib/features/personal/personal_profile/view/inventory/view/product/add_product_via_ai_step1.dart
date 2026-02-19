@@ -7,8 +7,11 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/category_bottom_sheet.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +27,7 @@ class AddProductViaAiStep1 extends StatefulWidget {
 }
 
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
-  final ProductController addProductViaAiController = Get.put(ProductController());
+  final ProductController controller = Get.put(ProductController());
 
   @override
   void dispose() {
@@ -43,9 +46,9 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
         padding: EdgeInsets.all(SizeConfig.size16),
         child: CustomFormCard(
             child: Form(
-              key: addProductViaAiController.formKey,
+              key: this.controller.formKey,
               child: Obx(()=> AbsorbPointer(
-                absorbing: addProductViaAiController.isLoading.value,
+                absorbing: this.controller.isLoading.value,
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -55,7 +58,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-                      SizedBox(height: SizeConfig.size20),
+                      SizedBox(height: SizeConfig.paddingL),
                       CustomText(
                         AppStrings.uploadProductImages,
                         fontSize: SizeConfig.small,
@@ -125,11 +128,11 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         ),
                       ),
 
-                      SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.paddingXSL),
 
                       /// Product Name
                       CommonTextField(
-                          textEditController: addProductViaAiController.productNameStep1Controller,
+                          textEditController: this.controller.productNameStep1Controller,
                           title: AppStrings.productNameBrand,
                           hintText: AppStrings.egTShirtMobile,
                           validator: ValidationMethod().validateProductName,
@@ -138,11 +141,85 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                           isCounterVisible: true
                       ),
 
-                      SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      /// category 1
+                      CustomText(
+                        '${AppStrings.category.tr} 1',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      Obx(() => CommonDropdownDialog<Map<String, String>>(
+                        title: '${AppStrings.category.tr} 1',
+                        hintText: "Eg. Home Appliances",
+                        items: controller.categoryDropdownList,
+                        selectedValue: controller.selectedProductCategory.value,
+                        displayValue: (value) => (value['display']??'').replaceAll('\n', ' '),
+                        onChanged: (value) {
+                          if(controller.selectedProductCategory.value == value) return;
+
+                          controller.selectedProductCategory.value = value;
+                          print('product category-- ${controller.selectedProductCategory.value}');
+
+                        },
+                      )),
+
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      /// category 2
+                      CustomText(
+                        '${AppStrings.category.tr} 2',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      Obx(() => InkWell(
+                        onTap: () async {
+                          await showCategoryBottomSheet(context);
+                        },
+                        child: Container(
+                          width: SizeConfig.screenWidth,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size16,
+                            vertical: SizeConfig.size10,
+                          ),
+                          decoration: BoxDecoration(
+                              color: AppColors.white,
+                              boxShadow: [AppShadows.textFieldShadow],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.greyE5,
+                              )),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              controller.selectedCategory.value!=null
+                                  ? CustomText(
+                                  controller.selectedCategory.value,
+                                  fontSize: SizeConfig.large,
+                                  color: AppColors.black
+                              ) : CustomText(
+                                AppStrings.selectCategory,
+                                color: AppColors.grey9A,
+                                fontWeight: FontWeight.w400,
+                                fontSize: SizeConfig.large,
+                              ),
+                              const Icon(Icons.keyboard_arrow_down_outlined,
+                                  color: AppColors.grey9A)
+                            ],
+                          )
+                        ),
+                      )),
+
+                      SizedBox(height: SizeConfig.paddingXSL),
 
                       /// Product Description
                       CommonTextField(
-                          textEditController: addProductViaAiController.productDescriptionStep1Controller,
+                          textEditController: this.controller.productDescriptionStep1Controller,
                           title: AppStrings.productDescSpec,
                           hintText: AppStrings.hintProductDesc,
                           maxLine: 4,
@@ -151,22 +228,23 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                           isCounterVisible: true
                       ),
 
-                      SizedBox(height: SizeConfig.size20),
+                      SizedBox(height: SizeConfig.paddingL),
 
                       CustomBtn(
-                        title: addProductViaAiController.isLoading.value
+                        title: this.controller.isLoading.value
                           ? null // hide text
                           : AppStrings.generate,
-                        onTap: ()=> addProductViaAiController.onGenerate(
-                            addProductViaAiController,
+                        onTap: ()=> this.controller.onGenerate(
+                            this.controller,
                             widget.id,
-                            widget.providerType
+                            widget.providerType,
+
                         ),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,
                         radius: 10.0,
-                        isLoading: addProductViaAiController.isLoading.value
+                        isLoading: this.controller.isLoading.value
                       ),
 
                     ]

@@ -163,7 +163,7 @@ class _Step2SectionState extends State<Step2Section> {
                         //     ?.map((e) => e.name.toString())
                         //     .join(' - ') ?? ''
                         // : '-',
-                        widget.controller.selectedCategory.isNotEmpty
+                        widget.controller.selectedCategory.isNotEmpty??false
                             ? widget.controller.selectedCategory.value
                             : '-',
                         fontSize: SizeConfig.medium,

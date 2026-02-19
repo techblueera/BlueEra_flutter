@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/anim/pulse_animation.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -13,9 +14,9 @@ import 'package:get/get.dart';
 import '../model/sub_category_root_category_response.dart';
 
 Future<void> showCategoryBottomSheet(BuildContext context) async {
-  final controller = Get.put(ProductController());
+  final controller = Get.find<ProductController>();
   controller.searchResults.clear();
-  controller.searchController.text = controller.selectedCategory.value;
+  controller.searchController.text = controller.selectedCategory.value??'';
   controller.onSearchChanged(controller.searchController.text);
 
   await showModalBottomSheet<List<CategoryData>>(
@@ -133,15 +134,20 @@ Future<void> showCategoryBottomSheet(BuildContext context) async {
 
               const SizedBox(height: 8),
 
+
               // --- Categories List ---
               Expanded(
                   child: controller.loading.value
-                      ? Center(child:  CustomText(
-                      AppStrings.searching,
-                      fontSize: SizeConfig.extraLarge22,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor
-                  ))
+                      ? Center(
+                      child:     PulseAnimation( // Using the helper class from the previous step
+                        child: CustomText(
+                          '${AppStrings.searching.tr}...',
+                          fontSize: SizeConfig.extraLarge22,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                          )
                       : controller.isSearchActive.value
                       ? _buildSearchResults(controller, context)
                       : _buildSearchIndicationWidget()
@@ -186,37 +192,44 @@ Future<void> showCategoryBottomSheet(BuildContext context) async {
 }
 
 Widget _buildSearchResults(ProductController controller, BuildContext context) {
-  return controller.searchResults.isNotEmpty ? ListView.separated(
-    itemCount: controller.searchResults.length,
-    separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
-    itemBuilder: (_, index) {
-      final cat = controller.searchResults[index];
-      return ListTile(
-        title: CustomText(
-          cat.name ?? '',
-          color: AppColors.mainTextColor,
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.w400,
-          fontFamily: AppConstants.OpenSans,
-        ),
-        trailing: PositiveCustomBtn(
-          onTap: () {
-            controller.selectedCategoryId.value = cat.sId??'';
-            controller.selectedCategory.value = cat.name??'';
-            Navigator.pop(context);
-            // controller.breadcrumb.add(cat);
-            // Navigator.pop(context, controller.breadcrumb);
-          },
-          title: AppStrings.select,
-          width: SizeConfig.size60,
-          height: SizeConfig.size30,
-          bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
-          borderColor: AppColors.primaryColor,
-          textColor: AppColors.primaryColor,
-          radius: 10.0,
-        ),
-      );
-    },
+  return controller.searchResults.isNotEmpty ? Scrollbar(
+    thumbVisibility: true,
+    thickness: 6.0,
+    radius: const Radius.circular(10),
+    child: ListView.separated(
+      itemCount: controller.searchResults.length,
+      physics: BouncingScrollPhysics(),
+      primary: true,
+      separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
+      itemBuilder: (_, index) {
+        final cat = controller.searchResults[index];
+        return ListTile(
+          title: CustomText(
+            cat.name ?? '',
+            color: AppColors.mainTextColor,
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w400,
+            fontFamily: AppConstants.OpenSans,
+          ),
+          trailing: PositiveCustomBtn(
+            onTap: () {
+              controller.selectedCategoryId.value = cat.sId??'';
+              controller.selectedCategory.value = cat.name??'';
+              Navigator.pop(context);
+              // controller.breadcrumb.add(cat);
+              // Navigator.pop(context, controller.breadcrumb);
+            },
+            title: AppStrings.select,
+            width: SizeConfig.size60,
+            height: SizeConfig.size30,
+            bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+            borderColor: AppColors.primaryColor,
+            textColor: AppColors.primaryColor,
+            radius: 10.0,
+          ),
+        );
+      },
+    ),
   ) : ListTile(
     title: CustomText(
       AppStrings.other,
@@ -248,20 +261,82 @@ Widget _buildSearchIndicationWidget() {
   return Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(
-          Icons.search,
-          size: 40,
+        Container(
+          height: 140,
+          width: 140,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 1. Soft Background Glow
+              Container(
+                height: 140,
+                width: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.primaryColor.withValues(alpha: 0.15),
+                      AppColors.primaryColor.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 2. Animated Background Pulse Rings
+              ...List.generate(3, (index) => PulseAnimation(
+                child: Container(
+                  width: 70.0 * (index + 1),
+                  height: 70.0 * (index + 1),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.15 / (index + 1)),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              )),
+
+              // 3. Central Icon with slight shadow for depth
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    )
+                  ],
+                ),
+                child: const Icon(
+                  Icons.manage_search_rounded,
+                  size: 50,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ],
+          ),
         ),
-        CustomText(
+        const SizedBox(height: 20),
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [AppColors.secondaryTextColor, AppColors.primaryColor],
+          ).createShader(bounds),
+          child: CustomText(
             AppStrings.pleaseSearchForCategory,
-             fontSize: SizeConfig.extraLarge22,
-             fontWeight: FontWeight.w600,
-             color: AppColors.mainTextColor
-        )
+            fontSize: SizeConfig.extraLarge22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ],
     ),
   );
 }
+
+
 
