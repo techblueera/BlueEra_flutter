@@ -436,19 +436,36 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                     color: AppColors.grey9A,
                                   ),
                                   SizedBox(height: 6),
-                                  (index == 0 || index == 1 || index == 2)
-                                      ? (chat?.unreadCount == 0)
-                                          ? SizedBox()
-                                          : CircleAvatar(
-                                              radius: 12,
-                                              backgroundColor: Colors.lightBlue,
-                                              child: CustomText(
-                                                "${chat?.unreadCount}",
-                                                color: AppColors.white,
-                                                fontSize: 12,
-                                              ),
-                                            )
-                                      : SizedBox(),
+
+                                  Row(
+                                    children: [
+                                      if(chat?.tagged == true)
+                                           CircleAvatar(
+                                        radius: 12,
+                                        backgroundColor: Colors.lightBlue,
+                                        child: CustomText(
+                                          "@",
+                                          color: AppColors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      if(chat?.tagged == true)
+                                        SizedBox(width: 6,),
+                                      (index == 0 || index == 1 || index == 2)
+                                          ? (chat?.unreadCount == 0)
+                                              ? SizedBox()
+                                              : CircleAvatar(
+                                                  radius: 12,
+                                                  backgroundColor: Colors.lightBlue,
+                                                  child: CustomText(
+                                                    "${chat?.unreadCount}",
+                                                    color: AppColors.white,
+                                                    fontSize: 12,
+                                                  ),
+                                                )
+                                          : SizedBox(),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ],

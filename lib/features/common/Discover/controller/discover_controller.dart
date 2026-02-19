@@ -4,7 +4,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -19,7 +18,6 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
-import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -116,7 +114,26 @@ class DiscoverController extends GetxController {
   Rx<RiderUser> selectedRider = RiderUser().obs;
   Rxn<OnboardingCategoryModel> selectedStayCategory =
       Rxn<OnboardingCategoryModel>();
-
+  RxString selectedParcelCategory = "Document".obs;
+  final receiversNameController = TextEditingController();
+  final receiversNumberController = TextEditingController();
+  final parcelDescriptionController = TextEditingController();
+  final parcelWeightController = TextEditingController();
+  RxList<ParcelCategoryModel> parcelDetailsList=<ParcelCategoryModel>[].obs;
+  void addParcelDetails(){
+    parcelDetailsList.add(ParcelCategoryModel(
+      category: selectedParcelCategory.value,
+      description:parcelDescriptionController.text ,
+      weightKg: parcelWeightController.text
+    ));
+  }
+  void clearParcelField(){
+    parcelDescriptionController.clear();
+    parcelWeightController.clear();
+  }
+  void removeParcelDetails(ParcelCategoryModel value){
+    parcelDetailsList.remove(value);
+  }
   var selectedRoomType = "".obs;
 
   List<String> getDynamicRoomTypes(HotelServiceData hotelData) {
@@ -795,5 +812,34 @@ class DiscoverController extends GetxController {
         isRentalServiceLoading.value = false;
       }
     }
+  }
+}
+class ParcelCategoryModel {
+  String? category;
+  String? weightKg;
+  String? description;
+
+  ParcelCategoryModel({
+    this.category,
+    this.weightKg,
+    this.description,
+  });
+
+  /// From JSON
+  factory ParcelCategoryModel.fromJson(Map<String, dynamic> json) {
+    return ParcelCategoryModel(
+      category: json['category'] as String?,
+      weightKg: (json['weightKg'] as num?)?.toString(),
+      description: json['description'] as String?,
+    );
+  }
+
+  /// To JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'category': category,
+      'weightKg': weightKg,
+      'description': description,
+    };
   }
 }

@@ -338,7 +338,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                       padding: const EdgeInsets.symmetric(vertical: 6.0),
                                       child: InkWell(
                                         onTap: (){
-                                          _insertMention(member.name??'');
+                                          _insertMention(member);
                                         },
                                         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
@@ -709,7 +709,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       ],
     );
   }
-  void _insertMention(String name) {
+  void _insertMention(GroupMembersListModel members) {
     final controller = chatViewController.sendMessageController.value;
     String text = controller.text;
 
@@ -717,7 +717,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
 
     if (lastAtIndex != -1) {
       String newText =
-          text.substring(0, lastAtIndex) + "@$name ";
+          text.substring(0, lastAtIndex) + "@${members.name} ";
 
       controller.text = newText;
       controller.selection = TextSelection.fromPosition(
