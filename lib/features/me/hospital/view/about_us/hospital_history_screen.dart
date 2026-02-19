@@ -20,13 +20,13 @@ class HospitalHistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HospitalHistoryScreen> {
-  late final HospitalHistoryController controller;
+   final HospitalHistoryController
+  controller = Get.put(HospitalHistoryController());
 
 
 
   @override
   Widget build(BuildContext context) {
-    controller = Get.put(HospitalHistoryController());
     return Scaffold(
       appBar: CommonBackAppBar(title: "History"),
       body: SingleChildScrollView(

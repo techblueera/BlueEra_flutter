@@ -2,10 +2,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/hospital_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -50,8 +52,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
     // Listener for Pagination
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-      }
+          scrollController.position.maxScrollExtent) {}
     });
   }
 
@@ -156,8 +157,9 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
   }
 
   Widget rightContent() {
+    logs("controller.selectedProfessionalConsultantData.value?.slugId= ${controller.selectedProfessionalConsultantData.value?.slugId}");
     return Obx(() {
-     if (controller.selectedProfessionalConsultantData.value?.slugId ==
+      if (controller.selectedProfessionalConsultantData.value?.slugId ==
           PHARMACY) {
         return NearestPharmaciesListScreen(
           pincode: '',
@@ -166,11 +168,13 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
       } else if (controller.selectedProfessionalConsultantData.value?.slugId ==
           LABTEST) {
         return LabProfilesListScreen();
+      } else if (controller.selectedProfessionalConsultantData.value?.slugId ==
+          HOSPITAL) {
+        return HospitalListScreen();
       } else {
         return ComingSoon();
       }
     });
-
   }
 
   Widget selfProfessionCard(ProfessionalConsData service) {
@@ -247,10 +251,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                   // Icon(Icons.more_vert, color: AppColors.black)
                 ],
               ),
-
               SizedBox(height: SizeConfig.size6),
-
-
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
@@ -265,9 +266,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                   ],
                 ),
               ),
-
               SizedBox(height: SizeConfig.size8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -497,9 +496,6 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     ],
                   ),
                 ),
-
-
-
 
                 SizedBox(height: SizeConfig.size15),
 

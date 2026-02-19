@@ -134,22 +134,23 @@ class SchoolHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget cardViewWidget({required String title}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8),
-      child: CommonCardWidget(
-          cardMargin: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(title, fontSize: 18, fontWeight: FontWeight.bold),
-              CustomText(
-                "View ",
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryColor,
-              ),
-            ],
-          )),
-    );
-  }
 }
+Widget cardViewWidget({required String title}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8),
+    child: CommonCardWidget(
+        cardMargin: 0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(title, fontSize: 18, fontWeight: FontWeight.bold),
+            CustomText(
+              "View ",
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        )),
+  );
+}
+

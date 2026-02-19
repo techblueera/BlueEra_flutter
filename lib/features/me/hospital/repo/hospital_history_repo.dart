@@ -5,7 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 class HospitalHistoryRepo extends BaseService {
   Future<ResponseModel> get() async {
     final response = await ApiBaseHelper().getHTTP(
-      hospitalHistoryBase,
+      hospitalHistoryGet,
       onError: (error) {},
       onSuccess: (data) {},
     );

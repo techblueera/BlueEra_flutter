@@ -92,11 +92,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
-    if(Platform.isAndroid) {
-
+    if (Platform.isAndroid) {
       final pipController = getOrPut(() => PipFloatingPageController());
       pipController.setPipStatus(false);
-
     }
     if (isGuestUser()) {
       logs("DIALOGE CALL");
@@ -274,7 +272,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton: kDebugMode
       //     ? FloatingActionButton(onPressed: () {
-      //       Get.to(PersonalProfileSetupNewScreen());
+      //         Get.to(HomeScreenNewBottom());
       //       })
       //     : null,
       body: ValueListenableBuilder(
@@ -396,8 +394,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const SchoolMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Healthcare.name.toUpperCase()) {
-      if(businessCategoryGlobal.toUpperCase() ==
-          AppConstants.HOSPITALS.toUpperCase()){
+      if (businessCategoryGlobal.toUpperCase() ==
+          AppConstants.HOSPITALS.toUpperCase()) {
         return const HospitalMain();
       } else if (businessCategoryGlobal.toUpperCase() ==
           AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
@@ -409,8 +407,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // }
 
       return const MedicalScreen(fromBottomNavBar: true);
-    }
-    else if (businessTypeGlobal.toUpperCase() ==
+    } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
     }
@@ -432,12 +429,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     log("userProfileTypeGlobal: $currentType");
 
     return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
-          ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
-          : currentType == SOCIAL_PROFILE
-          ? SocialMainScreen()
-          : (currentType == PROFESSIONAL)
-          ? ProfessionalsMainScreen()
-          : PersonalProfileSetupNewScreen();
+        ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
+        : currentType == SOCIAL_PROFILE
+            ? SocialMainScreen()
+            : (currentType == PROFESSIONAL)
+                ? ProfessionalsMainScreen()
+                : PersonalProfileSetupNewScreen();
 
     // return Obx(() {
     //   String currentType = viewPersonalDetailsController.userProfileType.value;
@@ -450,7 +447,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     //               ? ProfessionalsMainScreen()
     //               : PersonalProfileSetupNewScreen();
     // });
-
   }
 
   void _checkAndShowDialog() async {

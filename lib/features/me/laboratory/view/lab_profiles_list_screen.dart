@@ -147,7 +147,6 @@ class _LabCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Icon(Icons.more_vert, color: AppColors.grey9B, size: 20),
                       ],
                     ),
                     SizedBox(height: SizeConfig.size6),

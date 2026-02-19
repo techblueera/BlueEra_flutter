@@ -115,7 +115,6 @@ class HospitalServicePreview extends StatelessWidget {
   }
 
   Widget _buildIPDList(IpdInpatientDepartment ipd) {
-    if (ipd == null) return Container();
     return Container(
       width: 200,
       margin: EdgeInsets.only(right: 12),

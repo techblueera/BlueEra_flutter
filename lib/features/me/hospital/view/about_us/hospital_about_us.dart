@@ -3,14 +3,12 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/view/about_us/hospital_vision_mission_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/about_us/hospital_history_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/management/hospital_management_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/view/category/about_school/history_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/about_school/management_and_trust.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 
 class HospitalAboutUsScreen extends StatefulWidget {
   const HospitalAboutUsScreen({super.key});
@@ -35,7 +33,7 @@ class _SchoolAboutUsState extends State<HospitalAboutUsScreen> {
     ServiceMenuItem(
       title: "Management / Trust",
       icon: AppIconAssets.management_trust,
-      page: () => ManagementAndTrust(),
+      page: () => HospitalManagementScreen(),
     ),
   ];
 
