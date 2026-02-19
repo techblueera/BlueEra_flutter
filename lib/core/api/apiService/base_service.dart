@@ -410,10 +410,10 @@ abstract class BaseService {
   final String setDefaultBankApi = "/wallet-service/payment/setDefaultBank/";
 
   // Wallet
-  final String WithdrawalApi = "/wallet-service/wallet/withdrawal-request";
-  final String WalletApi = "/wallet-service/wallet/me";
+  final String WithdrawalApi = "wallet-service/withdrawals";
+  final String WalletApi = "wallet-service/wallet";
   final String WalletTransctionApi =
-      "/wallet-service/wallet/transactions?";
+      "wallet-service/transactions?";
 
 
 

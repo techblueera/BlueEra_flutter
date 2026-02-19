@@ -712,4 +712,6 @@ class ApiKeys {
   static const agreeToPolicy = 'agreeToPolicy';
   static const showViewDocProof = 'showViewDocProof';
   static const subscriptionPlanId = 'subscriptionPlanId';
+  static const amount = 'amount';
+  static const withdrawalMethodId = 'withdrawalMethodId';
 }

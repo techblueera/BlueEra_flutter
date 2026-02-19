@@ -1,13 +1,28 @@
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/withdrawal_response_modal.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_Repo/wallet_repo.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/wallet_transaction_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/wallet_response_modal.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AmountWithdrawScreenController extends GetxController {
+import '../../../../../../core/api/apiService/api_response.dart';
+import '../../../../../../core/constants/app_colors.dart';
+import '../../../../../../core/constants/app_strings.dart';
+import '../../../../../../core/constants/size_config.dart';
+import '../../../../../../widgets/custom_text_cm.dart';
+import '../all_transactions/withdrawal_response_modal.dart';
+import '../repo/wallet_repo.dart';
+
+class WalletController extends GetxController {
+  Rx<WalletResponseModalClass> walletResponseModalClass=WalletResponseModalClass().obs;
+  Rx<WalletTransactionResponseModalClass> walletTransactionResponseModalClass=WalletTransactionResponseModalClass().obs;
+  Rx<ApiResponse> viewWalletBalanceResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> viewTransactionHistoryResponse = ApiResponse.initial('Initial').obs;
+  String? selectedStatus;
+  String? selectedType;
+  String? selectedSource;
   final TextEditingController amountController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   WithdrawalResponseModalClass? withdrawalResponseModalClass;
@@ -17,10 +32,95 @@ class AmountWithdrawScreenController extends GetxController {
   bool paymentMethod = true;
   bool isLoading = false;
 
+  ScrollController listScrollController = ScrollController();
+
+  int page = 1;
+  bool isMoreDataInList = true;
+  bool isLoadingMore = false;
   @override
   void onInit() {
-    // args();
     super.onInit();
+    listScrollController.addListener(_scrollListener);
+  }
+  @override
+  void onClose() {
+    listScrollController.dispose();
+    super.onClose();
+  }
+  void _scrollListener() {
+    if (listScrollController.position.pixels >=
+        listScrollController.position.maxScrollExtent - 200 &&
+        !isLoadingMore &&
+        isMoreDataInList) {
+      page++;
+      getWalletTransactionApi(isFromFilter: false);
+    }
+  }
+  Future<void> getwalletApi() async {
+    try {
+      ResponseModel response = await WalletRepo().getWalletApi();
+      if (response.isSuccess) {
+        walletResponseModalClass.value =
+            WalletResponseModalClass.fromJson(response.response!.data);
+        viewWalletBalanceResponse.value=ApiResponse.complete(walletResponseModalClass);
+      }else{
+        viewWalletBalanceResponse.value=ApiResponse.error(response.message?? AppStrings.somethingWentWrong);
+      }
+    }catch(e){
+      viewWalletBalanceResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  Future<void> getWalletTransactionApi({bool isFromFilter = true}) async {
+    if (isLoadingMore) return;
+
+    if (isFromFilter) {
+      page = 1;
+      isMoreDataInList = true;
+      walletTransactionResponseModalClass.value.data = [];
+    }
+
+    isLoadingMore = true;
+
+    ResponseModel response = await WalletRepo().walletTransactionApi(
+      source: selectedSource,
+      status: selectedStatus,
+      type: selectedType,
+      page: page,
+    );
+
+    if (response.isSuccess) {
+      WalletTransactionResponseModalClass value =
+      WalletTransactionResponseModalClass.fromJson(
+          response.response?.data);
+
+      if (isFromFilter) {
+        // First page (replace list)
+        walletTransactionResponseModalClass.value = value;
+      } else {
+        // Next pages (append list)
+        walletTransactionResponseModalClass.value.data?.addAll(
+          value.data ?? [],
+        );
+
+        // Update pagination also
+        walletTransactionResponseModalClass.value.pagination =
+            value.pagination;
+      }
+
+      // Stop calling API when last page reached
+      isMoreDataInList = (value.pagination?.page ?? 1) <
+          (value.pagination?.totalPages ?? 1);
+
+      viewTransactionHistoryResponse.value =
+          ApiResponse.complete(walletTransactionResponseModalClass);
+    } else {
+      page--; // rollback page if API fails
+      viewTransactionHistoryResponse.value =
+          ApiResponse.error(response.message ?? "Something went wrong");
+    }
+
+    isLoadingMore = false;
   }
 
   String? amountValidate(String? value) {
@@ -46,8 +146,8 @@ class AmountWithdrawScreenController extends GetxController {
     isLoading = false;
     try {
       ResponseModel response = await WalletRepo().addWithdrawApi(params: {
-        "amount": amountController.text,
-        "type": selectedBank == "Bank Account" ? "BANK" : "UPI"
+        ApiKeys.amount: amountController.text,
+        ApiKeys.withdrawalMethodId: selectedBank == "Bank Account" ? "BANK" : "UPI"
       });
 
       if (response.isSuccess) {
@@ -130,7 +230,7 @@ class AmountWithdrawScreenController extends GetxController {
                               height: SizeConfig.size45,
                               decoration: BoxDecoration(
                                   border:
-                                      Border.all(color: AppColors.primaryColor),
+                                  Border.all(color: AppColors.primaryColor),
                                   borderRadius: BorderRadius.circular(12)),
                               child: Center(
                                 child: CustomText(
@@ -157,7 +257,7 @@ class AmountWithdrawScreenController extends GetxController {
                               decoration: BoxDecoration(
                                   color: AppColors.primaryColor,
                                   border:
-                                      Border.all(color: AppColors.primaryColor),
+                                  Border.all(color: AppColors.primaryColor),
                                   borderRadius: BorderRadius.circular(12)),
                               child: Center(
                                 child: CustomText(
