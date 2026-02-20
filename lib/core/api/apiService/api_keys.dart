@@ -714,4 +714,14 @@ class ApiKeys {
   static const subscriptionPlanId = 'subscriptionPlanId';
   static const amount = 'amount';
   static const withdrawalMethodId = 'withdrawalMethodId';
+  static const methodType = 'methodType';
+  static const bankDetails = 'bankDetails';
+  static const bankName = 'bankName';
+  static const accountNo = 'accountNo';
+  static const ifscCode = 'ifscCode';
+  static const holderName = 'holderName';
+  static const isDefault = 'isDefault';
+  static const accountNumber = 'accountNumber';
+  static const upiDetails = 'upiDetails';
+  static const upiId = 'upiId';
 }

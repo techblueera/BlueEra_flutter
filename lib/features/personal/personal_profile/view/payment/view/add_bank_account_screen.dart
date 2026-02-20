@@ -40,162 +40,184 @@ class AddBankAccountScreen extends StatelessWidget {
                 vertical: SizeConfig.size20,
                 horizontal: SizeConfig.size8,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Form Container
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              child: Obx(() {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Form Container
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
 
-                      /// Bank Holder Name
-                      CustomText(
-                        'Bank Holder Name',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      CommonTextField(
-                        textEditController:
-                        controller.bankHolderNameController,
-                        hintText: 'E.g.Bank Holder Name',
-                        keyBoardType: TextInputType.text,
-                        validator: ValidationMethod.validateBankHolderName,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16,
-                          vertical: SizeConfig.size12,
+                        /// IFSC Code Field
+                        CustomText(
+                          'Select Account Type',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
                         ),
-                      ),
-                      SizedBox(height: SizeConfig.paddingM),
-
-                      /// Bank Name Field
-                      CustomText(
-                        'Bank Name',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      CommonTextField(
-                        textEditController: controller.bankNameController,
-                        hintText: 'E.g. State Bank Of India',
-                        keyBoardType: TextInputType.text,
-                        validator: ValidationMethod.validateBankName,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16,
-                          vertical: SizeConfig.size12,
+                        SizedBox(height: SizeConfig.size16),
+                        CommonDropdown<String>(
+                          items: ['Bank Account', "UPI"],
+                          selectedValue: controller.selectedBankAccountType
+                              .value,
+                          hintText: 'Select Account',
+                          onChanged: (val) {
+                            controller.selectedBankAccountType.value =
+                                val ?? '';
+                          },
+                          displayValue: (item) => item,
                         ),
-                      ),
+                        SizedBox(height: SizeConfig.paddingM),
 
-                      SizedBox(height: SizeConfig.paddingM),
-
-                      /// Account Number Field
-                      CustomText(
-                        'Account Number',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      CommonTextField(
-                        textEditController:
-                        controller.accountNumberController,
-                        hintText: 'E.g. 1234567890',
-                        keyBoardType: TextInputType.number,
-                        validator: ValidationMethod.validateAccountNumber,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16,
-                          vertical: SizeConfig.size12,
+                        /// Bank Name Field
+                        CustomText(
+                          'Bank Name',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
                         ),
-                        inputLength: 18,
-                      ),
-                      SizedBox(height: SizeConfig.paddingM),
-
-                      /// IFSC Code Field
-                      CustomText(
-                        'IFSC code',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      CommonTextField(
-                        textEditController: controller.ifscCodeController,
-                        hintText: 'E.g. SBIN0001234',
-                        keyBoardType: TextInputType.text,
-                        inputLength: 11,
-                        validator: ValidationMethod.validateIfscCode,
-                        isCapitalize: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16,
-                          vertical: SizeConfig.size12,
+                        SizedBox(height: SizeConfig.size8),
+                        CommonTextField(
+                          textEditController: controller.bankNameController,
+                          hintText: 'E.g. State Bank Of India',
+                          keyBoardType: TextInputType.text,
+                          validator: ValidationMethod.validateBankName,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size16,
+                            vertical: SizeConfig.size12,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: SizeConfig.paddingM),
+                        SizedBox(height: SizeConfig.paddingM),
+                        if(controller.selectedBankAccountType.value == "Bank Account")
+                          Column(crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                'Bank Holder Name',
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.mainTextColor,
+                              ),
+                              SizedBox(height: SizeConfig.size8),
+                              CommonTextField(
+                                textEditController:
+                                controller.bankHolderNameController,
+                                hintText: 'E.g.Bank Holder Name',
+                                keyBoardType: TextInputType.text,
+                                validator: ValidationMethod
+                                    .validateBankHolderName,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size16,
+                                  vertical: SizeConfig.size12,
+                                ),
+                              ),
+                              SizedBox(height: SizeConfig.paddingM),
 
-                      /// IFSC Code Field
-                      CustomText(
-                        'Account Type',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size16),
-                      Obx(()=> CommonDropdown<BankAccountType>(
-                        items: BankAccountType.values,
-                        selectedValue: controller.selectedBankAccountType.value,
-                        hintText: 'Select Account',
-                        onChanged: (val) {
-                          controller.selectedBankAccountType.value = val;
-                        },
-                        displayValue: (item) => item.displayName,
-                      )),
+                              /// Account Number Field
+                              CustomText(
+                                'Account Number',
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.mainTextColor,
+                              ),
+                              SizedBox(height: SizeConfig.size8),
+                              CommonTextField(
+                                textEditController:
+                                controller.accountNumberController,
+                                hintText: 'E.g. 1234567890',
+                                keyBoardType: TextInputType.number,
+                                validator: ValidationMethod
+                                    .validateAccountNumber,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size16,
+                                  vertical: SizeConfig.size12,
+                                ),
+                                inputLength: 18,
+                              ),
+                              SizedBox(height: SizeConfig.paddingM),
 
-                      SizedBox(height: SizeConfig.paddingXSL),
-                      // Row(
-                      //   crossAxisAlignment: CrossAxisAlignment.center,
-                      //   children: [
-                      //     CustomText(
-                      //       'Set account as default',
-                      //       fontSize: SizeConfig.small,
-                      //       fontWeight: FontWeight.w600,
-                      //       color: AppColors.mainTextColor,
-                      //     ),
-                      //     Obx(()=> Checkbox(
-                      //       value: controller.isDefault.value,
-                      //       onChanged: (value) {
-                      //         controller.isDefault.value = !controller.isDefault.value;
-                      //       },
-                      //       checkColor: AppColors.white,
-                      //     ))
-                      //   ],
-                      // )
-                    ],
-                  ),
+                              /// IFSC Code Field
+                              CustomText(
+                                'IFSC code',
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.mainTextColor,
+                              ),
+                              SizedBox(height: SizeConfig.size8),
+                              CommonTextField(
+                                textEditController: controller
+                                    .ifscCodeController,
+                                hintText: 'E.g. SBIN0001234',
+                                keyBoardType: TextInputType.text,
+                                inputLength: 11,
+                                validator: ValidationMethod.validateIfscCode,
+                                isCapitalize: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size16,
+                                  vertical: SizeConfig.size12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if(controller.selectedBankAccountType.value =="UPI")
+                          Column(crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                'UPI ID',
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.mainTextColor,
+                              ),
+                              SizedBox(height: SizeConfig.size8),
+                              CommonTextField(
+                                textEditController: controller.upiIdController,
+                                hintText: 'E.g.0123456789',
+                                keyBoardType: TextInputType.text,
+                                validator: controller.upiValidate,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size16,
+                                  vertical: SizeConfig.size12,
+                                ),
+                                borderColor: AppColors.greyE5,
+                                borderWidth: 1,
+                              ),
+                            ],
+                          ),
 
-                  SizedBox(height: SizeConfig.paddingL),
+                            SizedBox(height: SizeConfig.paddingXSL),
+                      ],
+                    ),
 
-                  // Add Button
-                  Obx(() =>
-                      CustomBtn(
-                        onTap: controller.isLoading.value
-                            ? null
-                            : controller.isupdate.value
-                            ? controller.updateAccount
-                            : controller.addAccount,
-                        title: controller.isupdate.value ? 'Update' : 'Add',
-                        isLoading: controller.isLoading.value,
-                        bgColor: AppColors.primaryColor,
-                        textColor: AppColors.white,
-                        radius: SizeConfig.size8,
-                        height: SizeConfig.buttonXL,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.bold,
-                      )),
-                ],
-              ),
+                    SizedBox(height: SizeConfig.paddingL),
+
+                    // Add Button
+                    Obx(() =>
+                        CustomBtn(
+                          onTap: (){
+                            if(controller.selectedBankAccountType.value == "Bank Account"){
+                              if(controller.isupdate.value){
+                                controller.updateAccount();
+                              }else{
+                                controller.addAccount();
+                              }
+                            }else{
+                              controller.AddUpiApi();
+                            }
+
+                          },
+                          title: controller.isupdate.value ? 'Update' : 'Add',
+                          isLoading: controller.isLoading.value,
+                          bgColor: AppColors.primaryColor,
+                          textColor: AppColors.white,
+                          radius: SizeConfig.size8,
+                          height: SizeConfig.buttonXL,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.bold,
+                        )),
+                  ],
+                );
+              }),
             ),
           ),
         ),

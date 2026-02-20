@@ -403,7 +403,7 @@ abstract class BaseService {
 
 // Payment Setting;
 
-  final String addAccountApi = "/wallet-service/payment/addAccount";
+  final String addAccountApi = "wallet-service/withdrawal-methods";
   final String getAccountApi = "/wallet-service/payment/getAccounts";
   final String updateAccountIdApi = "/wallet-service/payment/updateAccount/";
   final String accountDeleteApi = "/wallet-service/payment/deleteAccount/";
@@ -412,6 +412,7 @@ abstract class BaseService {
   // Wallet
   final String WithdrawalApi = "wallet-service/withdrawals";
   final String WalletApi = "wallet-service/wallet";
+  final String walletWithdrawalMethod = "wallet-service/withdrawal-methods";
   final String WalletTransctionApi =
       "wallet-service/transactions?";
 
