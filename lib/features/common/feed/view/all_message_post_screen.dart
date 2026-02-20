@@ -337,57 +337,6 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
           ),
         ),
 
-        /*    // 4. Right Side Interaction Bar
-                  Positioned(
-                    right: 10,
-                    bottom: 100,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Avatar
-                        _buildAvatar(post.user?.profileImage),
-                        const SizedBox(height: 20),
-
-                        // Like
-                        _buildActionButton(
-                          icon: (post.isLiked ?? false)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color:
-                              (post.isLiked ?? false) ? Colors.red : Colors.white,
-                          label: (post.likesCount.toString()),
-                          onTap: () => controller.toggleLike(post.id),
-                        ),
-
-                        // Comment
-                        _buildActionButton(
-                          icon: Icons.comment,
-                          label: "${post.commentsCount}",
-                          onTap: () {
-                            // Open Comment BottomSheet
-                          },
-                        ),
-
-                        // Share
-                        _buildActionButton(
-                          icon: Icons.share,
-                          label: "${post.sharesCount ?? '0'}",
-                          // JSON has shares_count
-                          onTap: () {
-                            // Share Logic
-                          },
-                        ),
-
-                        // Menu
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: () {
-                            // Existing Popup logic
-                          },
-                        ),
-                      ],
-                    ),
-                  ),*/
 
         // 5. Bottom Info (Username & Caption)
         Positioned(
@@ -477,8 +426,8 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                           children: [
                             LocalAssets(
                               imagePath: AppIconAssets.like_new,
-                              width: SizeConfig.size18,
-                              height: SizeConfig.size18,
+                              width: SizeConfig.size24,
+                              height: SizeConfig.size24,
                               imgColor: (post.isLiked ?? false)
                                   ? AppColors.primaryColor
                                   : AppColors.white,
@@ -489,7 +438,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                             CustomText(
                               formatNumberLikePost(post.likesCount ?? 0),
                               color: AppColors.white,
-                              fontSize: SizeConfig.size10,
+                              fontSize: SizeConfig.size12,
                             ),
                           ],
                         ),
@@ -546,6 +495,8 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                         child: LocalAssets(
                           imagePath: AppIconAssets.share_bold,
                           imgColor: AppColors.white,
+                          height: 18,
+                          width: 18,
                         ),
                       ),
                     ),

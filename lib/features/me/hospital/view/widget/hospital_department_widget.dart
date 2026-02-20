@@ -70,7 +70,7 @@ class HospitalBookingScreen extends StatelessWidget {
               // --- HORIZONTAL LIST VIEW ---
               Obx(() {
                 final items = controller.currentCategoryItems;
-                if (items.isEmpty) return Center(child: Text("No data available"));
+                if (items.isEmpty) return Center(child: CustomText("No data available"));
 
                 return Container(
                   height: 280,
@@ -153,7 +153,7 @@ class HospitalBookingScreen extends StatelessWidget {
               // --- HORIZONTAL LIST VIEW ---
               Obx(() {
                 final items = controller.currentCategoryItemsIpd;
-                if (items.isEmpty) return Center(child: Text("No data available"));
+                if (items.isEmpty) return Center(child: CustomText("No data available"));
 
                 return Container(
                   height: 280,
@@ -243,12 +243,11 @@ class DoctorOrBedCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
+                  CustomText(
                     title,
-                    style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16),
+                        fontSize: 16,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -261,16 +260,16 @@ class DoctorOrBedCard extends StatelessWidget {
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
+                    child: CustomText(
                       tag,
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                     color: Colors.white, fontSize: 11
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  CustomText(
                     description,
-                    style: TextStyle(
-                        color: Colors.white.withOpacity(0.8), fontSize: 11),
+
+                        color: Colors.white.withOpacity(0.8), fontSize: 11,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

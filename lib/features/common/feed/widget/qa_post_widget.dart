@@ -133,8 +133,8 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                             children: [
                               LocalAssets(
                                 imagePath: AppIconAssets.like_new,
-                                width: SizeConfig.size18,
-                                height: SizeConfig.size18,
+                                width: SizeConfig.size24,
+                                height: SizeConfig.size24,
                                 imgColor: (widget.post?.isLiked ?? false)
                                     ? AppColors.primaryColor
                                     : AppColors.secondaryTextColor,
@@ -145,7 +145,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                               CustomText(
                                 formatNumberLikePost(widget.post?.likesCount ?? 0),
                                 color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.size10,
+                                fontSize: SizeConfig.size12,
                               ),
                             ],
                           ),

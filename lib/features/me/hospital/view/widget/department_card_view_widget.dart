@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -56,15 +57,15 @@ class CategoryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                  CustomText(title, color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                   if (tag != null)
                     Container(
                       margin: EdgeInsets.symmetric(vertical: 4),
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8)),
-                      child: Text(tag!, style: TextStyle(color: Colors.white, fontSize: 12)),
+                      child: CustomText(tag??"",color: Colors.white, fontSize: 12),
                     ),
-                  Text(description, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white70, fontSize: 11)),
+                  CustomText(description, maxLines: 2, overflow: TextOverflow.ellipsis,color: Colors.white70, fontSize: 11),
                 ],
               ),
             ),

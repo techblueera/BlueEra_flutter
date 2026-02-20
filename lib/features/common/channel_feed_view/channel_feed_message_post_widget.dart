@@ -550,8 +550,8 @@ ViewFeedActionWidget(
       children: [
         LocalAssets(
           imagePath: iconPath,
-          width: SizeConfig.size18,
-          height: SizeConfig.size18,
+          width: SizeConfig.size24,
+          height: SizeConfig.size24,
           imgColor: fontColor ?? AppColors.secondaryTextColor,
         ),
         SizedBox(
@@ -560,7 +560,7 @@ ViewFeedActionWidget(
         CustomText(
           data,
           color: fontColor ?? AppColors.secondaryTextColor,
-          fontSize: SizeConfig.size10,
+          fontSize: SizeConfig.size12,
         ),
       ],
     ),

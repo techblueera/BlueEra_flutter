@@ -109,7 +109,7 @@ class VisitingHoursSelector extends StatelessWidget {
               value: timeStr,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
-                child: Text(timeStr),
+                child: CustomText(timeStr),
               ),
             );
           }).toList(),

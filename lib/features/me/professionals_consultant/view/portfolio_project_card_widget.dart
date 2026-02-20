@@ -88,13 +88,13 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
+                    child: CustomText(
                       "+$additionalImages Img",
-                      style: const TextStyle(
+
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold),
-                    ),
+
                   ),
                 ),
             ],
@@ -110,10 +110,10 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: CustomText(
                         project.projectTitle ?? "Untitled Project",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+
+                            fontSize: 18, fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -179,10 +179,10 @@ class PortfolioProjectCardWidget extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(value: 'edit', child: Text("Edit")),
+        PopupMenuItem(value: 'edit', child: CustomText("Edit")),
         PopupMenuItem(
             value: 'delete',
-            child: Text("Delete", style: TextStyle(color: Colors.red))),
+            child: CustomText("Delete",color: Colors.red)),
       ],
     );
   }
@@ -417,12 +417,12 @@ class _JobSeekerPortfolioProjectCardWidgetState
                       color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
+                    child: CustomText(
                       "+$additionalImages Img",
-                      style: const TextStyle(
+
                           color: Colors.white,
                           fontSize: 12,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -439,10 +439,10 @@ class _JobSeekerPortfolioProjectCardWidgetState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: CustomText(
                         widget.project.projectTitle ?? "Untitled Project",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+
+                            fontSize: 18, fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -511,10 +511,10 @@ class _JobSeekerPortfolioProjectCardWidgetState
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(value: 'edit', child: Text("Edit")),
+        PopupMenuItem(value: 'edit', child: CustomText("Edit")),
         PopupMenuItem(
             value: 'delete',
-            child: Text("Delete", style: TextStyle(color: Colors.red))),
+            child: CustomText("Delete",color: Colors.red)),
       ],
     );
   }

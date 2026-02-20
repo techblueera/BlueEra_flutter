@@ -235,8 +235,8 @@ class HotelPoliciesScreen extends StatelessWidget {
             ],
           ),
           if (controller.foodRestrictionsEnabled.value) ...[
-            const Text("Kindly Indicate Which Food Habits You Allow.",
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const CustomText("Kindly Indicate Which Food Habits You Allow.",
+             fontSize: 12, color: Colors.grey),
             _checkBoxTile("All"),
             _checkBoxTile("Vegetarian"),
             _checkBoxTile("Non-Vegetarian"),

@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class CommonIconContainerButton extends StatelessWidget {
@@ -54,13 +55,11 @@ class CommonIconContainerButton extends StatelessWidget {
             Flexible(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(
+                child: CustomText(
                   label,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  color: textColor,
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             )
