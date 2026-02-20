@@ -246,6 +246,8 @@ class ViewBusinessDetailsController extends GetxController {
           businessProfileDetails?.data?.logo ?? "";
       log('business type -- ${businessProfileDetails?.data?.typeOfBusiness}');
       await SharedPreferenceUtils.userLoggedInBusiness(
+        // contactNo: businessProfileDetails?.data?.userContactNo ?? '',
+        email: businessProfileDetails?.data?.ownerDetails?[0].email ?? '',
         profileImage: businessProfileDetails?.data?.logo ?? '',
         businessName: businessProfileDetails?.data?.businessName ?? '',
         businessOwnerName:

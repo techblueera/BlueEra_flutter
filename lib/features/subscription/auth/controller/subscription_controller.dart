@@ -1,5 +1,3 @@
-
-
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/subscription_create_model.dart';
@@ -8,11 +6,11 @@ import 'package:BlueEra/core/api/model/subscription_plan_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
 import 'package:get/get.dart';
-
-import '../../../../core/api/apiService/api_keys.dart';
 import '../model/subscription_list_details_model.dart';
 import '../model/user_subscription_model.dart';
 
@@ -27,6 +25,9 @@ class SubscriptionController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getSubscriptionOfferResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> userSubscriptionResponse =
+      ApiResponse.initial('Initial').obs;
+
   RxInt myPlanSelectedTab=0.obs;
   RxBool mySubscriptionAvailable=false.obs;
   var selectedMethod = PaymentMethod.upi.obs;
@@ -67,6 +68,32 @@ class SubscriptionController extends GetxController {
                 .toInt() ??
             0) -
         (selectedOffer.value?.offerAmount?.toInt() ?? 0);
+  }
+
+  int get finalAmount {
+    final index = selectedSubscriptionIndex.first;
+
+    if (index < 0 ||
+        index >= (subscriptionPlanDetailsNewModel.value.data?.length ?? 0)) {
+      return 0;
+    }
+
+    final amount = subscriptionPlanDetailsNewModel
+        .value.data?[index].amount
+        ?.toInt() ??
+        0;
+
+    // 🔎 Logs
+    print("💰 api amount: ${subscriptionPlanDetailsNewModel
+        .value.data?[index].amount
+        ?.toInt()}");
+    print("💰 Original Amount: $amount");
+
+    return amount;
+
+    // final offerAmount = selectedOffer.value?.offerAmount?.toInt() ?? 0;
+    //
+    // return amount - offerAmount;
   }
 
   Future getSubscriptionPlan() async {
@@ -112,9 +139,49 @@ class SubscriptionController extends GetxController {
 
   Future<void> subscriptionPlansGetApi() async {
     try {
+
+
+      // Gig Worker
+      // Skill Worker
+      // Grocery
+      // Food
+      // Product
+      // Other
+
+      String entityType;
+      if(userProfileTypeGlobal == GIG_WORKER){
+        entityType = 'Gig Worker';
+      }else if(userProfileTypeGlobal == SKILL_WORKER ||
+          userProfileTypeGlobal == PROFESSIONAL){
+        entityType = 'Skill Worker';
+      }
+      else if(
+      businessTypeGlobal.equalsIgnoreCase(BusinessType.Grocery.name)
+      ){
+        entityType = 'Grocery';
+      }else if(businessTypeGlobal.equalsIgnoreCase(BusinessType.Food.name) ||
+          (businessTypeGlobal.equalsIgnoreCase(BusinessType.Healthcare.name) &&
+              businessCategoryGlobal.equalsIgnoreCase(AppConstants.INSTRUMENTS_PHARMACY)
+          )){
+        entityType = 'Food';
+      }else if(businessTypeGlobal.equalsIgnoreCase(BusinessType.Product.name) ||
+          businessTypeGlobal.equalsIgnoreCase(BusinessType.Automotive.name) &&
+              [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
+                  .any((s) => s.equalsIgnoreCase(businessCategoryGlobal))
+      ){
+        entityType = 'Product';
+      }else{
+        entityType = 'Other';
+      }
+
+      Map<String, String> _queryParams = {
+          'entity_type': entityType
+        };
+
+
       getSubscriptionOfferResponse.value = ApiResponse.initial('Initial');
 
-      ResponseModel response = await SubscriptionRepo().subscriptionPlansGetApi();
+      ResponseModel response = await SubscriptionRepo().subscriptionPlansGetApi(queryParams: _queryParams);
       if (response.isSuccess) {
         subscriptionPlanDetailsNewModel.value =
             SubscriptionPlanDetailsNewModel.fromJson(response.response?.data);
@@ -177,7 +244,7 @@ class SubscriptionController extends GetxController {
   }
 
   ///CANCEL SUBSCRIPTION...
-  Future<void> cancelSubscriptionController(Map<String, dynamic> params) async {
+  Future<void> cancelSubscriptionController({required Map<String, dynamic> params}) async {
     try {
       ResponseModel responseModel =
           await SubscriptionRepo().cancelSubscriptionRepo(params);
@@ -198,19 +265,20 @@ class SubscriptionController extends GetxController {
       if (responseModel.isSuccess) {
         List details=responseModel.data;
 
-        currentPlansList.value=details.map((e)=>UserSubscription.fromJson(e)).toList();
-        cancelSubscriptionResponse.value = ApiResponse.complete(responseModel);
-        if(params[ApiKeys.status]==AppConstants.active){
-          if(currentPlansList.isEmpty){
+        currentPlansList.value = details.map((e)=>UserSubscription.fromJson(e)).toList();
+        userSubscriptionResponse.value = ApiResponse.complete(responseModel);
+        // if(params[ApiKeys.status] == AppConstants.active){
+          if(currentPlansList.isNotEmpty){
             mySubscriptionAvailable.value=true;
           }
-        }
+        // }
       } else {
+        userSubscriptionResponse.value = ApiResponse.error(responseModel.message ?? AppStrings.somethingWentWrong);
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      cancelSubscriptionResponse.value = ApiResponse.error('error');
+      userSubscriptionResponse.value = ApiResponse.error('error');
     }
   }
 }

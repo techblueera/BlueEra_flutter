@@ -75,6 +75,7 @@ class BusinessProfileDetails {
       this.total_ratings,
       this.specification,
       this.avg_rating,
+      this.userContactNo,
   });
 
   BusinessProfileDetails.fromJson(dynamic json) {
@@ -130,8 +131,10 @@ class BusinessProfileDetails {
     avg_rating = json['avg_rating'];
     total_ratings = json['total_ratings'];
     specification = json['specification'];
+    userContactNo = json['userContactNo'];
 
   }
+
   DateOfIncorporation? dateOfIncorporation;
   Gst? gst;
   BusinessLocation? businessLocation;
@@ -173,6 +176,7 @@ class BusinessProfileDetails {
   String? specification;
   num? avg_rating;
   num? total_ratings;
+  String? userContactNo;
 
 
   Map<String, dynamic> toJson() {
@@ -233,6 +237,7 @@ class BusinessProfileDetails {
     if (this.businessNumber != null) {
       map['business_number'] = this.businessNumber!.toJson();
     }
+    map['userContactNo']=userContactNo;
     return map;
   }
 

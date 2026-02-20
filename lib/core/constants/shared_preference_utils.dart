@@ -153,6 +153,7 @@ class SharedPreferenceUtils {
   }
 
   static Future<void> userLoggedInBusiness({
+    required String email,
     required String profileImage,
     required String businessName,
     required String businessOwnerName,
@@ -165,6 +166,8 @@ class SharedPreferenceUtils {
     required String typeOfBusiness,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
+    // await SharedPreferenceUtils.setSecureValue(
+    //     userLoginMobile, email);
     await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.userBusinessId, businessId);
     await SharedPreferenceUtils.setSecureValue(

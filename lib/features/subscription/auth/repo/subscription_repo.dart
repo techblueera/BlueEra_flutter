@@ -60,9 +60,10 @@ class SubscriptionRepo extends BaseService {
 
     return response;
   }
-  Future<ResponseModel> subscriptionPlansGetApi() async {
+  Future<ResponseModel> subscriptionPlansGetApi({required Map<String, String> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
         subscriptionPlansGet,
+        params: queryParams,
         onError: (error) {},
         showProgress: false,
         onSuccess: (data) {});

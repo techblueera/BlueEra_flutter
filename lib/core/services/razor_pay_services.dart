@@ -40,15 +40,20 @@ class RazorpayService {
 
     this.onExternalWallet = onExternalWallet;
     var options = {
+      // 'key': 'rzp_test_SxJzWVt7su8vd7',
       'key': razorpayKey,
-      'amount': (amount * 100).toInt(),
       'name': name,
-      if (subscriptionId.isNotEmpty) 'subscription_id': subscriptionId,
+      if (subscriptionId.isNotEmpty) ...{
+        'subscription_id': 'sub_SIOkkVnd7NiSyG',
+      } else ...{
+        'amount': (amount * 100).toInt(),
+        'currency': currency,
+        if (orderId != null) 'order_id': orderId,
+      },
       'description': description,
-      'currency': currency,
       'timeout': 180, // in seconds
       'retry': {'enabled': true, 'max_count': 3},
-      'prefill': {'contact': contact, 'email': email},
+      'prefill': {'contact': contact, 'email': 'himanshu@gmail.com'},
     };
 
     try {
@@ -70,7 +75,9 @@ class RazorpayService {
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
-    debugPrint("Payment Error: ${response.message}");
+    debugPrint("Payment Error: ${response.error}");
+    debugPrint("Payment Error Message: ${response.message}");
+    debugPrint("Payment Error Code: ${response.code}");
     if (onError != null) {
       onError!(response);
     } else {

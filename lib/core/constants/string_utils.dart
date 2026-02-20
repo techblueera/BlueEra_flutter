@@ -59,3 +59,12 @@ String formatToTwoLines(String? text) {
 
   return text;
 }
+
+extension StringExtensions on String? {
+  /// Compares two strings ignoring case.
+  /// Handles null values safely.
+  bool equalsIgnoreCase(String? other) {
+    if (this == null || other == null) return this == other;
+    return this!.toLowerCase() == other.toLowerCase();
+  }
+}
