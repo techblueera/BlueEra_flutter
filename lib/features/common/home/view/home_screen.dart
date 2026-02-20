@@ -125,18 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
         List<SharedAttachment?>? attachments = media.attachments ?? [];
 
         if (_sharedText != null && _sharedText.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BeAvailableContactsList(sharedText: _sharedText),
-            ),
-          );
+         Get.to(BeAvailableContactsList(sharedText: _sharedText));
         } else if ((attachments.isNotEmpty)) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BeAvailableContactsList(sharedFiles: attachments),
-            ),
+          Get.to( BeAvailableContactsList(sharedFiles: attachments),
           );
         }
       }

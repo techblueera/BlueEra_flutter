@@ -1089,6 +1089,30 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
             ),
           ),
         ),
+        Positioned(
+            bottom: 10,
+            right: 10,
+            child:InkWell(
+              onTap: (){
+                chatViewController.editedGroupFile=null;
+               showEditGroupDialog(context);
+              },
+              child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+              color: AppColors.whiteE5.withOpacity(0.5)
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+              child: Center(child: Row(
+                children: [
+                  CustomText("Edit Group",fontSize: 10,),
+                  SizedBox(width: 4,),
+                  LocalAssets(imagePath: AppIconAssets.pencilEditIcon,imgColor: AppColors.black,height: 14,width: 14,),
+                ],
+              ))),
+            )
+        ),
+
       ],
     );
   }

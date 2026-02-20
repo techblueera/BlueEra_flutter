@@ -210,7 +210,6 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bool isGroupMode = true;
-
     return WillPopScope(
       onWillPop: () async {
         return true;
@@ -402,7 +401,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                             params: uploadParams,
                             listFile: selectedFiles,
                             isInitialMessage:
-                                _selectedUsers.first.conversationId == null
+                                (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='')
                                     ? true
                                     : false,
                             userId: _selectedUsers.first.id ?? '',
@@ -412,7 +411,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                           );
                         } else if (widget.sharedText != null) {
                           Map<String, dynamic> data = {
-                            if (_selectedUsers.first.conversationId == null)
+                            if (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='')
                               ApiKeys.other_user_id: _selectedUsers.first.id
                             else
                               ApiKeys.conversation_id:
@@ -420,7 +419,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                             ApiKeys.message: "${widget.sharedText}",
                             ApiKeys.message_type: "text",
                           };
-                          if (_selectedUsers.first.conversationId == null) {
+                          if (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='') {
                             chatViewController.sendInitialMessage(data);
                           } else {
                             chatViewController.sendMessage(data);
