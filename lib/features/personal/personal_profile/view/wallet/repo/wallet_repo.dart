@@ -25,6 +25,16 @@ class WalletRepo extends BaseService {
     );
     return response;
   }
+  Future<ResponseModel> getWalletWithdrawalMethod(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().getHTTP(
+      walletWithdrawalMethod,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
   Future<ResponseModel> walletTransactionApi({
     String? status,

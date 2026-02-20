@@ -272,8 +272,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                                               url, error) =>
                                                           Center(
                                                         child: Text(
-                                                          chat.sender!.name!
-                                                              .substring(0, 1),
+                                                          chat.groupName?[0]??'',
                                                           style: TextStyle(
                                                             color: Colors.white,
                                                             fontWeight:
@@ -295,7 +294,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                             )
                                           : Center(
                                               child: Text(
-                                                chat?.sender?.name
+                                                chat?.groupName
                                                         ?.substring(0, 1) ??
                                                     '',
                                                 style: TextStyle(

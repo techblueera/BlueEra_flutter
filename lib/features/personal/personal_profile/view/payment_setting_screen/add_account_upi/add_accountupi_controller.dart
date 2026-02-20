@@ -4,6 +4,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/payment/repo/pay
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../../core/constants/shared_preference_utils.dart';
+
 class AddAccountupiController extends GetxController {
   final TextEditingController bankNameController = TextEditingController();
   final TextEditingController upiController = TextEditingController();
@@ -74,13 +77,18 @@ class AddAccountupiController extends GetxController {
     }
     isLoading.value = false;
     try {
-      ResponseModel response = await PaymentRepo().postAddAccount(params: {
-        "type": "UPI",
-        "bank_name": bankNameController.text,
-        "account_number": "",
-        "ifsc_code": "",
-        "upi_id": upiController.text
-      });
+      ResponseModel response = await PaymentRepo().postAddAccount(params:
+        {
+          ApiKeys.userId: "${userId}",
+          ApiKeys.methodType: "UPI",
+          ApiKeys.upiDetails: {
+            ApiKeys.upiId: upiController.text,
+            ApiKeys.bankName:  bankNameController.text
+          },
+
+          ApiKeys.isDefault:  false
+        }
+      );
       if (response.isSuccess) {
         addAccountResponseModalClass =
             AddAccountResponseModalClass.fromJson(response.response!.data);

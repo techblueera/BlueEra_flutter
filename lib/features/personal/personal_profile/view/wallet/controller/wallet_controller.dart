@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/wallet_transaction_response.dart';
@@ -11,13 +13,20 @@ import '../../../../../../core/api/apiService/api_response.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/constants/app_strings.dart';
 import '../../../../../../core/constants/size_config.dart';
+import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
-import '../all_transactions/withdrawal_response_modal.dart';
+import '../model/upi_details_model.dart';
+import '../model/withdrawal_response_modal.dart';
+import '../model/bank_details_model.dart';
 import '../repo/wallet_repo.dart';
 
 class WalletController extends GetxController {
   Rx<WalletResponseModalClass> walletResponseModalClass=WalletResponseModalClass().obs;
   Rx<WalletTransactionResponseModalClass> walletTransactionResponseModalClass=WalletTransactionResponseModalClass().obs;
+  Rx<BankListModel> bankListModel=BankListModel().obs;
+  Rx<UpiListModel> upiListModel=UpiListModel().obs;
+  Rx<UpiData> selectedUpiDetails=UpiData().obs;
+  Rx<BankData> selectedBankDetails=BankData().obs;
   Rx<ApiResponse> viewWalletBalanceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewTransactionHistoryResponse = ApiResponse.initial('Initial').obs;
   String? selectedStatus;
@@ -26,11 +35,11 @@ class WalletController extends GetxController {
   final TextEditingController amountController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   WithdrawalResponseModalClass? withdrawalResponseModalClass;
-  String? selectedBank = "Select Payment"; // Stores the selected value
-  final List<String> bankStatus = ["Bank Account", "UPI Account"];
+  RxString selectedBank = "Select Payment".obs; // Stores the selected value
+  final List<String> bankStatus = ["Bank", "UPI"];
   bool isAmount = true;
   bool paymentMethod = true;
-  bool isLoading = false;
+  RxBool isLoading = false.obs;
 
   ScrollController listScrollController = ScrollController();
 
@@ -68,6 +77,25 @@ class WalletController extends GetxController {
       }
     }catch(e){
       viewWalletBalanceResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getWalletWithdrawalMethod(Map<String,dynamic> params) async {
+    try {
+      ResponseModel response = await WalletRepo().getWalletWithdrawalMethod(params);
+      if (response.isSuccess) {
+        if(params[ApiKeys.methodType]=="UPI"){
+          upiListModel.value=UpiListModel.fromJson(response.response?.data);
+        }else{
+          bankListModel.value=BankListModel.fromJson(response.response?.data);
+
+        }
+      }else{
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    }catch(e){
+      commonSnackBar(
+          message:  AppStrings.somethingWentWrong);
     }
   }
 
@@ -143,11 +171,11 @@ class WalletController extends GetxController {
     if (!formKey.currentState!.validate()) {
       return;
     }
-    isLoading = false;
+    isLoading.value = false;
     try {
       ResponseModel response = await WalletRepo().addWithdrawApi(params: {
         ApiKeys.amount: amountController.text,
-        ApiKeys.withdrawalMethodId: selectedBank == "Bank Account" ? "BANK" : "UPI"
+        ApiKeys.withdrawalMethodId: selectedBank.value == "UPI"?selectedUpiDetails.value.id:selectedBankDetails.value.id
       });
 
       if (response.isSuccess) {
@@ -155,24 +183,14 @@ class WalletController extends GetxController {
             WithdrawalResponseModalClass.fromJson(response.response!.data);
         showSuccessPopup();
       } else {
-        Get.snackbar(
-          'Error',
-          response.message.toString(),
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to withdraw. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(
+          message: AppStrings.somethingWentWrong);
     } finally {
-      isLoading = false;
+      isLoading.value = false;
     }
   }
 

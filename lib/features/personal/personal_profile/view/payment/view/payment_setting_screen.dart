@@ -6,125 +6,117 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PaymentSettingScreen extends StatelessWidget {
+import '../../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../../core/constants/getx_utils.dart';
+import '../../../../../../core/routes/route_helper.dart';
+import '../../wallet/controller/wallet_controller.dart';
+
+class PaymentSettingScreen extends StatefulWidget {
   const PaymentSettingScreen({super.key});
 
   @override
+  State<PaymentSettingScreen> createState() => _PaymentSettingScreenState();
+}
+
+class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
+  final controller = getOrPut(() => WalletController());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    controller.getWalletWithdrawalMethod({
+      ApiKeys.methodType: "BANK"
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return GetBuilder<PaymentSettingController>(
-      init: PaymentSettingController(),
-      builder: (controller) {
-        return Scaffold(
-          backgroundColor: AppColors.appBackgroundColor,
-          appBar: const CommonBackAppBar(
-            title: "Payment Setting",
-            isLeading: true,
-          ),
-          body: Column(
-            children: [
+    return Scaffold(
+      backgroundColor: AppColors.appBackgroundColor,
+      appBar: const CommonBackAppBar(
+        title: "Payment Setting",
+        isLeading: true,
+      ),
+      body: Column(
+        children: [
 
-              /// HEADER
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size16,
-                  vertical: SizeConfig.size12,
+          /// HEADER
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16,
+              vertical: SizeConfig.size12,
+            ),
+            color: AppColors.appBackgroundColor,
+            child: Row(
+              mainAxisAlignment:
+              MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  "All Bank Accounts",
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w400,
                 ),
-                color: AppColors.appBackgroundColor,
-                child: Row(
-                  mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      "All Bank Accounts",
-                      fontSize: SizeConfig.size16,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    InkWell(
-                      onTap: () =>
-                          controller.addBankAccount(),
-                      child: Row(
-                        children: [
-                          Icon(Icons.add,
-                              size: 18,
-                              color: AppColors.primaryColor),
-                          SizedBox(width: 4),
-                          CustomText(
-                            "Add Account",
-                            fontSize: SizeConfig.size14,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.primaryColor,
-                          ),
-                        ],
+                InkWell(
+                  onTap: () {
+                    Get.toNamed(
+                      RouteHelper.getAddBankAccountScreenRoute(),
+                    )?.then((val){
+                      controller.getWalletWithdrawalMethod({
+                        ApiKeys.methodType: "BANK"
+                      });
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.add,
+                          size: 18,
+                          color: AppColors.primaryColor),
+                      SizedBox(width: 4),
+                      CustomText(
+                        "Add Account",
+                        fontSize: SizeConfig.size14,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.primaryColor,
                       ),
-                    )
-                  ],
-                ),
-              ),
-
-
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16),
-                  child: Column(
-                    children: _buildBankList(controller),
+                    ],
                   ),
+                )
+              ],
+            ),
+          ),
+
+
+          Obx(() {
+            return Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16),
+                child: Column(
+                  children: _buildBankList(controller),
                 ),
               ),
-            ],
-          ),
-        );
-      },
+            );
+          }),
+        ],
+      ),
     );
   }
 
-
-  List<Widget> _buildBankList(
-      PaymentSettingController controller) {
-    final apiData =
-        controller.getAccountResponseModalClass?.data;
-
-    if (apiData != null && apiData.isNotEmpty) {
-      return apiData
-          .where((e) => e.type?.toUpperCase() == "BANK")
-          .map((e) => _bankCard(
-        bankName: e.bankName ?? "",
-        accountNo: e.accountNumber ?? "",
-        ifsc: e.ifscCode ?? "",
-        isDefault: e.isDefault ?? false,
-        color: _getColor(e.bankName ?? ""),
-        onTapDefault: () => controller
-            .setAccountAsDefault(id: e.id ?? ""),
-      ))
-          .toList();
-    }
-
+  List<Widget> _buildBankList(WalletController controller) {
     return [
-      _bankCard(
-        bankName: "State Bank Of India",
-        accountNo: "1234567894",
-        ifsc: "SBIN7878DG",
-        isDefault: true,
-        color: Colors.blue,
-        onTapDefault: () {},
-      ),
-      _bankCard(
-        bankName: "ICICI Bank",
-        accountNo: "1234567894",
-        ifsc: "ICICI7878DG",
-        isDefault: false,
-        color: Colors.red,
-        onTapDefault: () {},
-      ),
-      _bankCard(
-        bankName: "HDFC Bank",
-        accountNo: "1234567894",
-        ifsc: "HDFC7878DG",
-        isDefault: false,
-        color: Colors.indigo,
-        onTapDefault: () {},
-      ),
+      ...controller.bankListModel.value.data?.map((e) =>
+          _bankCard(
+            holderName: e.bankDetails?.holderName??'',
+            bankName: e.bankDetails?.bankName ?? '',
+            accountNo: e.bankDetails?.accountNo ?? '',
+            ifsc: e.bankDetails?.ifscCode ?? '',
+            isDefault: true,
+            color: Colors.blue,
+            onTapDefault: () {},
+          )).toList() ?? [],
+
     ];
   }
 
@@ -134,6 +126,7 @@ class PaymentSettingScreen extends StatelessWidget {
   Widget _bankCard({
     required String bankName,
     required String accountNo,
+    required String holderName,
     required String ifsc,
     required bool isDefault,
     required Color color,
@@ -161,8 +154,8 @@ class PaymentSettingScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: CustomText(
-                    bankName.isNotEmpty
-                        ? bankName[0]
+                    holderName.isNotEmpty
+                        ? holderName[0]
                         : "B",
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -173,21 +166,31 @@ class PaymentSettingScreen extends StatelessWidget {
               SizedBox(width: SizeConfig.size12),
 
               Expanded(
-                child: Row(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                      bankName,
+                    CustomText("${holderName}",
                       fontSize: SizeConfig.size20,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                     ),
-                    if (isDefault) ...[
-                      SizedBox(width: 6),
-                      CustomText(
-                        "(Default)",
-                        fontSize: SizeConfig.size16,
-                        color: Colors.grey,
-                      ),
-                    ]
+                    Row(
+                      children: [
+                        CustomText(
+                          bankName,
+                          fontSize: SizeConfig.size12,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.grayText,
+                        ),
+                        // if (isDefault) ...[
+                        //   SizedBox(width: 6),
+                        //   CustomText(
+                        //     "(Default)",
+                        //     fontSize: SizeConfig.size12,
+                        //     color: Colors.grey,
+                        //   ),
+                        // ]
+                      ],
+                    ),
+
                   ],
                 ),
               ),
@@ -223,7 +226,8 @@ class PaymentSettingScreen extends StatelessWidget {
                       onTapDefault();
                     }
                   },
-                  itemBuilder: (context) => [
+                  itemBuilder: (context) =>
+                  [
                     const PopupMenuItem(
                       value: "default",
                       child: Text("Set as Default"),
@@ -243,7 +247,7 @@ class PaymentSettingScreen extends StatelessWidget {
             //   vertical: SizeConfig.size12,
             // ),
             decoration: BoxDecoration(
-             // color: Colors.grey.shade100,
+              // color: Colors.grey.shade100,
               border: Border.all(color: AppColors.boxBg),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -252,51 +256,51 @@ class PaymentSettingScreen extends StatelessWidget {
               MainAxisAlignment.spaceEvenly,
               children: [
                 Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size14,
-                vertical: SizeConfig.size12,
-              ),                  child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "Account No.",
-                        fontSize: SizeConfig.size12,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 4),
-                      CustomText(
-                        accountNo,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size14,
+                    vertical: SizeConfig.size12,
+                  ), child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      "Account No.",
+                      fontSize: SizeConfig.size12,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 4),
+                    CustomText(
+                      accountNo,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
                 ),
-             Container(
-               color:AppColors.boxBg ,
-               height: 56,width: 1,
-             ),
-             Padding(
-             padding: EdgeInsets.symmetric(
-               horizontal: SizeConfig.size14,
-               vertical: SizeConfig.size12,
-             ),               child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "IFSC Code",
-                        fontSize: SizeConfig.size12,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 4),
-                      CustomText(
-                        ifsc,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
-             ),
+                ),
+                Container(
+                  color: AppColors.boxBg,
+                  height: 56, width: 1,
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size14,
+                    vertical: SizeConfig.size12,
+                  ), child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      "IFSC Code",
+                      fontSize: SizeConfig.size12,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 4),
+                    CustomText(
+                      ifsc,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                ),
+                ),
               ],
             ),
           )
