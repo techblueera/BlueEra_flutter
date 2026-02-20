@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
@@ -397,7 +398,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       if (businessCategoryGlobal.toUpperCase() ==
           AppConstants.HOSPITALS.toUpperCase()) {
         return const HospitalMain();
-      } else if (businessCategoryGlobal.toUpperCase() ==
+      } else if (businessCategoryGlobal.toUpperCase( ) ==
           AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
         return const LaboratoryMain();
       }
@@ -415,13 +416,49 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     //     BusinessType.Healthcare.name.toUpperCase()) {
     //   return MedicalMain();
     // }
-    else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Service.name.toUpperCase()) {
+    else if (_isServiceOrSpecificAutomotive()) {
       return const OthersMain();
-    } else {
-      // Product , Manufacturing Unit
+    } else if (
+        checkInventoryEligibility(businessTypeGlobal, businessCategoryGlobal)
+    ) {
+      return const InventoryScreen(fromBottomNavBar: true);
+    } else{
+      /// right now showing inventory (will remove this)
       return const InventoryScreen(fromBottomNavBar: true);
     }
+  }
+
+  bool _isServiceOrSpecificAutomotive() {
+    final type = businessTypeGlobal.toUpperCase();
+    final category = businessCategoryGlobal.toUpperCase();
+
+    // 1. Check if it's a Service type
+    if (type == BusinessType.Service.name.toUpperCase()) return true;
+
+    // 2. Define the Automotive sectors that count as "Others"
+    final automotiveOthersSectors = {
+      AppConstants.RENTAL_SECTOR.toUpperCase(),
+      AppConstants.SERVICE_SECTOR.toUpperCase(),
+      AppConstants.SUPPORT_SECTOR.toUpperCase(),
+      AppConstants.TRANSPORT_LOGISTIC.toUpperCase(),
+    };
+
+    // 3. Check if it's Automotive AND in one of those sectors
+    return type == BusinessType.Automotive.name.toUpperCase() &&
+        automotiveOthersSectors.contains(category);
+  }
+
+  bool checkInventoryEligibility(String type, String category) {
+    final isProductOrMfg = [
+      BusinessType.Product.name,
+      BusinessType.Manufacturing.name
+    ].any((t) => t.equalsIgnoreCase(type));
+
+    final isAutoEligible = type.equalsIgnoreCase(BusinessType.Automotive.name) &&
+        [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
+            .any((s) => s.equalsIgnoreCase(category));
+
+    return isProductOrMfg || isAutoEligible;
   }
 
   Widget resolveIndividualScreen() {

@@ -267,6 +267,16 @@ class AppConstants {
   static const HOSPITALS = "HOSPITAL SECTOR";
   static const MEDICAL_EDUCATION_INSTITUTIONS = "Medical Education Institutions";
   static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC SECTOR";
+  static const INSTRUMENTS_PHARMACY = "Instruments Pharmacy";
+
+  /// Automotive Categories
+  static const SALES_SECTOR = "Sales Sector";
+  static const PARTS_SECTOR = "Parts Sector";
+  static const RENTAL_SECTOR = "Rental Sector";
+  static const SERVICE_SECTOR = "Service Sector";
+  static const SUPPORT_SECTOR = "Support Sector";
+  static const TRANSPORT_LOGISTIC = "Transport Logistic";
+
   // static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC AND TESTING CENTERS";
 
   // static const hostelsStayService = "Hotels Hostels & Stay Service";

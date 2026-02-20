@@ -704,7 +704,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                     primary: false,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: entry.value.length,
-                    crossAxisCount: 3,
+                    crossAxisCount: 2,
                     crossAxisSpacing: 6,
                     mainAxisSpacing: 6,
                     padding: EdgeInsets.zero,

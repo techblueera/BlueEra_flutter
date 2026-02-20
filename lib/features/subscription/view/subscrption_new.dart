@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -28,14 +30,13 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
 
   final controller = getOrPut(() => SubscriptionController());
   late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
-    controller.subscriptionPlansGetApi();
     getInitial();
+    controller.subscriptionPlansGetApi();
     _tabController = TabController(length: 2, vsync: this);
-
-
   }
 
   void getInitial() {
@@ -48,49 +49,67 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-
       appBar: CommonBackAppBar(
-
           appBarColor: AppColors.white,
-
-          title: "Subscription"
+          title: "Contribution"
+          // title: "Subscription"
       ),
 
       body: Obx(() {
-        if (controller.mySubscriptionAvailable.value) {
-          return AllSubscriptionPlansWidget();
-        } else {
-          return Column(
-            children: [
-              TabBar(
-                controller: _tabController,
-                labelColor: AppColors.mainTextColor,
-                unselectedLabelColor: AppColors.secondaryTextColor,
-                indicatorColor: AppColors.primaryColor,
-                indicatorWeight: 4,
-                tabAlignment: TabAlignment.fill,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontFamily: AppConstants.OpenSans),
-                tabs: [
-                  Tab(text: "My Plan"),
-                  Tab(text: "Other Plans"),
-                ],
-              ),
-              Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      MySubscriptionDetails(),
-                      AllSubscriptionPlansWidget(),
-                    ],
-                  ))
-            ],
-          );
-
+        if(controller.userSubscriptionResponse.value == Status.INITIAL){
+          return Center(child: CircularProgressIndicator());
         }
-        return Container();
+
+        if(controller.userSubscriptionResponse.value == Status.ERROR){
+          return Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  LocalAssets(imagePath: AppIconAssets.warningRedIcon),
+                  SizedBox(height: SizeConfig.paddingXSL),
+                  CustomText(
+                    "oops.. something went wrong.",
+                    fontSize: SizeConfig.extraLarge22,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ]
+            ),
+          );
+        }
+
+        return  (controller.mySubscriptionAvailable.value)
+            ? Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              labelColor: AppColors.mainTextColor,
+              unselectedLabelColor: AppColors.secondaryTextColor,
+              indicatorColor: AppColors.primaryColor,
+              indicatorWeight: 4,
+              tabAlignment: TabAlignment.fill,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontFamily: AppConstants.OpenSans),
+              tabs: [
+                Tab(text: "My Plan"),
+                Tab(text: "Other Plans"),
+              ],
+            ),
+            Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    MySubscriptionDetails(),
+                    AllSubscriptionPlansWidget(),
+                  ],
+                ))
+          ],
+        )
+            : AllSubscriptionPlansWidget();
+
       }),
     );
   }
@@ -113,6 +132,7 @@ class _AllSubscriptionPlansWidgetState extends State<AllSubscriptionPlansWidget>
     return Obx(() {
       if (controller.getSubscriptionOfferResponse.value.status ==
           Status.COMPLETE) {
+
         List<SubscriptionPlanData>? subsList = controller
             .subscriptionPlanDetailsNewModel.value.data;
         return Padding(
@@ -126,109 +146,147 @@ class _AllSubscriptionPlansWidgetState extends State<AllSubscriptionPlansWidget>
                 separatorBuilder: (_, __) => const SizedBox(height: 14),
                 itemBuilder: (context, index) {
                   SubscriptionPlanData? details = subsList?[index];
+
+                  int styleIndex = index % AppConstants.listOfSubsBg.length;
+
                   return GestureDetector(
                     onTap: () {
-                      if (controller.selectedSubscriptionIndex.isNotEmpty) {
-                        controller.selectedSubscriptionIndex.removeAt(0);
-                        controller.selectedSubscriptionIndex.add(index);
-                      } else {
-                        controller.selectedSubscriptionIndex.add(index);
-                      }
+                      if(controller.selectedSubscriptionIndex.contains(index)) return;
+                      controller.selectedSubscriptionIndex.clear();
+                      controller.selectedSubscriptionIndex.add(index);
+                      print('final amount to pay -- ${controller.finalAmount}');
                     },
                     child: CommonSubscriptionCard(
                       details: details,
                       index: index,
                       controller: controller,
-                      style: AppConstants.listOfSubsBg[index],
+                      style: AppConstants.listOfSubsBg[styleIndex],
                       tagText: details?.tier ?? "Basic",
                     ),
                   );
                 },
               )),
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: CustomBtn(
-                  height: 48,
-                  isValidate: controller.selectedSubscriptionIndex.isNotEmpty,
-                  width: double.infinity,
-                  textColor: AppColors.white,
-                  title: "Pay",
-                  onTap: () async{
-                    SubscriptionPlanData?
-                    subscriptionPlanData = controller
-                        .subscriptionPlanDetailsNewModel
-                        .value
-                        .data?[controller
-                        .selectedSubscriptionIndex.first];
 
-                    final offerID = controller
-                        .selectedOffer.value?.offerId;
-                    await controller
-                        .createSubscriptionController(
-                        params: {
-                          ApiKeys.planId: subscriptionPlanData?.planId,
-                          ApiKeys.auto_pay: controller.isAutoPayEnabled.value,
-                          // ApiKeys.offerId: "",
-                          ApiKeys.subscriptionPlanId: subscriptionPlanData?.id,
-                        });
-                    if (controller
-                        .createSubscriptionResponse
-                        .value
-                        .status ==
-                        Status.COMPLETE) {
-                      if (controller
-                          .subscriptionData
-                          .value
-                          .success ??
-                          false) {
-                        final razorpayService =
-                        RazorpayService();
+              (controller.selectedSubscriptionIndex.isNotEmpty)
+                ? Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 30),
+                child: Column(
+                  children: [
+                    // CustomBtn(
+                    //   width: double.infinity,
+                    //   textColor: AppColors.red,
+                    //   bgColor: Colors.transparent,
+                    //   borderColor: AppColors.red,
+                    //   title: "Cancel",
+                    //   onTap: () async {
+                    //     SubscriptionPlanData?
+                    //     subscriptionPlanData = controller
+                    //         .subscriptionPlanDetailsNewModel
+                    //         .value
+                    //         .data?[controller.selectedSubscriptionIndex.first];
+                    //
+                    //     await controller
+                    //         .cancelSubscriptionController(
+                    //         params: {
+                    //           ApiKeys.subscriptionId: subscriptionPlanData?.id,
+                    //           ApiKeys.cancel_at_cycle_end: true,
+                    //         });
+                    //     if (controller
+                    //         .cancelSubscriptionResponse
+                    //         .value
+                    //         .status ==
+                    //         Status.COMPLETE) {
+                    //
+                    //       controller.mySubscriptionAvailable.value = false;
+                    //
+                    //     }
+                    //   },
+                    // ),
+                    // SizedBox(height: SizeConfig.paddingXSL),
+                    CustomBtn(
+                      // height: 48,
+                      // isValidate: controller.selectedSubscriptionIndex.isNotEmpty,
+                      width: double.infinity,
+                      textColor: AppColors.white,
+                      bgColor: AppColors.primaryColor,
+                      title: "Pay",
+                      onTap: () async {
+                        SubscriptionPlanData?
+                        subscriptionPlanData = controller
+                            .subscriptionPlanDetailsNewModel
+                            .value
+                            .data?[controller.selectedSubscriptionIndex.first];
 
-                        razorpayService.openCheckout(
-                          name: AppConstants.appName,
-                          subscriptionId:
-                          controller
+                        // final offerID = controller
+                        //     .selectedOffer.value?.offerId;
+                        await controller
+                            .createSubscriptionController(
+                            params: {
+                              ApiKeys.planId: subscriptionPlanData?.planId,
+                              ApiKeys.auto_pay: controller.isAutoPayEnabled.value,
+                              // ApiKeys.offerId: "",
+                              ApiKeys.subscriptionPlanId: subscriptionPlanData?.id,
+                            });
+                        if (controller
+                            .createSubscriptionResponse
+                            .value
+                            .status ==
+                            Status.COMPLETE) {
+                          if (controller
                               .subscriptionData
                               .value
-                              .data
-                              ?.subscriptionId ??
-                              "",
-                          description:
-                          'Subscription Payment',
-                          amount: controller
-                              .finalPayAmount.value
-                              ?.toDouble() ??
-                              -1,
-                          contact: userMobileGlobal,
-                          email:
-                          '$userMobileGlobal@gmail.com',
-                          onPaymentSuccess:
-                              (response) async {
-                            await controller
-                                .verifySubscriptionController(
-                                params: {
-                                  ApiKeys.razorpay_payment_id:
-                                  response.paymentId ??
-                                      "",
-                                  ApiKeys.razorpay_signature:
-                                  response.signature ??
-                                      "",
-                                  ApiKeys.razorpay_subscription_id:
-                                  response.data![
-                                  'razorpay_subscription_id'],
-                                });
-                          },
-                          onPaymentError: (response) {
-                            commonSnackBar(
-                                message:
-                                "Payment Failed ${response.message}");
-                          },
-                        );
-                      }
-                    }
-                  },
+                              .success ??
+                              false) {
+                            final razorpayService =
+                            RazorpayService();
+
+                            razorpayService.openCheckout(
+                              name: AppConstants.appName,
+                              subscriptionId:
+                              controller
+                                  .subscriptionData
+                                  .value
+                                  .data
+                                  ?.subscriptionId ??
+                                  "",
+                              description:
+                              'Subscription Payment',
+                              amount: controller
+                                  .finalAmount.
+                                  toDouble(),
+                              contact: userMobileGlobal,
+                              email:
+                              '$userMobileGlobal@gmail.com',
+                              onPaymentSuccess:
+                                  (response) async {
+                                await controller
+                                    .verifySubscriptionController(
+                                    params: {
+                                      ApiKeys.razorpay_payment_id:
+                                      response.paymentId ??
+                                          "",
+                                      ApiKeys.razorpay_signature:
+                                      response.signature ??
+                                          "",
+                                      ApiKeys.razorpay_subscription_id:
+                                      response.data![
+                                      'razorpay_subscription_id'],
+                                    });
+                              },
+                              onPaymentError: (response) {
+                                commonSnackBar(
+                                    message:
+                                    "Payment Failed ${response.message}");
+                              },
+                            );
+                          }
+                        }
+                      },
+                    )
+                  ],
                 ),
-              ),
+              )
+                : SizedBox(),
             ],
           ),
         );
@@ -270,11 +328,9 @@ class _AllSubscriptionPlansWidgetState extends State<AllSubscriptionPlansWidget>
       ],
     );
   }
-
-
-
-
 }
+
+
 class CommonSubscriptionCard extends StatelessWidget {
   final SubscriptionPlanData? details;
   final int index;
@@ -312,7 +368,7 @@ class CommonSubscriptionCard extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color:
-                  AppColors.primaryColor.withOpacity(0.3),
+                  AppColors.primaryColor.withValues(alpha: 0.3),
                   blurRadius: 12,
                   spreadRadius: 1,
                   offset: const Offset(0, 6),
@@ -367,7 +423,7 @@ class CommonSubscriptionCard extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           CustomText(
-            "₹${details?.amount ?? ''}",
+            "₹${details?.amount != null ? (details!.amount! / 100) : '0'}",
             fontSize:
             (details?.amount.toString().length ?? 0) > 3
                 ? 24
@@ -447,11 +503,11 @@ class CommonSubscriptionCard extends StatelessWidget {
       padding:
       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.15),
+        color: AppColors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
           ),
         ],

@@ -271,6 +271,7 @@ class ApiKeys {
   static const razorpay_payment_id = 'razorpay_payment_id';
   static const razorpay_subscription_id = 'razorpay_subscription_id';
   static const razorpay_signature = 'razorpay_signature';
+  static const cancel_at_cycle_end = 'cancel_at_cycle_end';
   static const shorts = 'shorts';
   static const authorId = 'authorId';
   static const additional_message = 'additional_message';
@@ -713,6 +714,7 @@ class ApiKeys {
   static const agreeToPolicy = 'agreeToPolicy';
   static const showViewDocProof = 'showViewDocProof';
   static const subscriptionPlanId = 'subscriptionPlanId';
+  static const subscriptionId = 'subscriptionId';
   static const amount = 'amount';
   static const withdrawalMethodId = 'withdrawalMethodId';
 }

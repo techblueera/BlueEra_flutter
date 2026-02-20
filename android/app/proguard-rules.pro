@@ -1,9 +1,11 @@
 # Keep Razorpay classes
+-keepattributes *Annotation*
 -keep class com.razorpay.** { *; }
 -dontwarn com.razorpay.**
-
--keepattributes *Annotation*
-
+-optimizations !method/inlining/
+-keepclasseswithmembers class * {
+  public void onPayment*(...);
+}
 
 # Keep Gson classes
 -keep class com.google.gson.** { *; }
@@ -59,5 +61,6 @@
 
 -keep class org.jitsi.** { *; }
 -dontwarn org.webrtc.**
+
 
 

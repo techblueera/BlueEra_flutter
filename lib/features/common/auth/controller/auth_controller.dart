@@ -161,7 +161,11 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.userBusinessId, data.data?.business);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.authToken, data.token);
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
 
+              await getMobileNo();
+              log('contact number -- $userMobileGlobal');
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
               await getUserAuthToken();
@@ -173,7 +177,6 @@ class AuthController extends GetxController {
                 AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
-
               await getMobileNo();
 
               await SharedPreferenceUtils.setSecureValue(

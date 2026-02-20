@@ -324,19 +324,20 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       MenuItemModel(
         title: "Saved",
         onTap: (){
-          Get.to( SavedFeedScreen(
+          Get.to(()=> SavedFeedScreen(
               selectedTab:SavedFeedTab.posts,
               headerHeight: SizeConfig.size30));
          ;
         },
       ),
       MenuItemModel(
-        title: "Subscription",
-        onTap: () => Get.to(SubscriptionScreenNew()),
+        title: "Contribution",
+        // title: "Subscription",
+        onTap: () => Get.to(()=> SubscriptionScreenNew()),
       ),
       MenuItemModel(
         title: "Payment",
-        onTap: () => Get.to(PaymentSettingScreen()),
+        onTap: () => Get.to(()=> PaymentSettingScreen()),
       ),
       MenuItemModel(
         title: "Channel & Community",

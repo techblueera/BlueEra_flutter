@@ -60,6 +60,18 @@ final List<BusinessCategory> typeOfBusinessList = [
     type: BusinessType.Service.name,
   ),
   BusinessCategory(
+    title: "Automotive Sector",
+    subTitle: "Vehicle service, Parts, Sales, Rental, Support Services & Transport Logistic",
+    icon: AppIconAssets.service_provider,
+    type: BusinessType.Automotive.name,
+  ),
+  BusinessCategory(
+    title: "Financial Sector",
+    subTitle: "banking, Loan, Insurance, Data, Advisory Sector & Capital Sector",
+    icon: AppIconAssets.service_provider,
+    type: BusinessType.Finance.name,
+  ),
+  BusinessCategory(
     title: "Manufacturing Units",
     subTitle: "Factories, Industries, Production Plants & Product Creation Units",
     icon: AppIconAssets.other_type,

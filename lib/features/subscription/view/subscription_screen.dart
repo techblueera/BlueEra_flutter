@@ -359,7 +359,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                               false) {
                                             final razorpayService =
                                                 RazorpayService();
-
                                             razorpayService.openCheckout(
                                               name: AppConstants.appName,
                                               subscriptionId:
