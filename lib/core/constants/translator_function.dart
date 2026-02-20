@@ -63,7 +63,7 @@ class FeedTranslationController extends GetxController {
     originalTitleText = title;
     // Use .value but don't trigger logic that calls refresh during build
     if (currentTitleText.value.isEmpty) {
-      currentTitleText.value = text;
+      currentTitleText.value = title;
     }
     if (currentText.value.isEmpty) {
       currentText.value = text;

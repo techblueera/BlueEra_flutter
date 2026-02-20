@@ -963,13 +963,13 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             padding: EdgeInsets.only(right: SizeConfig.size20),
             child: TextButton(
               onPressed: onRightTextButtonTap ?? () {},
-              child: Text(
+              child: CustomText(
                 rightTextButtonText ?? '',
-                style: TextStyle(
+
                   color: rightTextButtonColor ?? AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
                   fontSize: SizeConfig.medium,
-                ),
+
               ),
             ),
           ),

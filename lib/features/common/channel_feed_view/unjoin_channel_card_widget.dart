@@ -32,7 +32,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
     return Card(
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.only(top: 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,18 +65,17 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                     children: [
                       CustomText(
                         '${channelModel.name}',
-                        // displayUsername(channelModel.username ?? ""),
                         fontWeight: FontWeight.w700,
                         fontSize: SizeConfig.large,
                         maxLines: 1,
                         color: AppColors.black,
                         overflow: TextOverflow.ellipsis,
                       ),
+
                       const SizedBox(height: 4),
                       Container(
                         width: Get.width,
                         child: Row(
-                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                           children: [
                             InkWell(

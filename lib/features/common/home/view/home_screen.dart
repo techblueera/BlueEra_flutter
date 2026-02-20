@@ -368,8 +368,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             children: [
                                               LocalAssets(
                                                 imagePath: iconTab[index],
-                                                width: 15,
-                                                height: 15,
+                                                width: 16,
+                                                height: 16,
                                               ),
                                               SizedBox(
                                                 width: 3,
@@ -378,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 child: CustomText(
                                                   // "postTab[index] dsdsdsdsds",
                                                   postTab[index],
-                                                  fontSize: 11,
+                                                  fontSize: 14,
                                                   maxLines: 1,
                                                   fontWeight: FontWeight.w500,
                                                   overflow:
@@ -413,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           if (selectedIndex == 0) _buildSubFilterRow(),
-                          if (selectedIndex == 1) _buildCommunitySubFilterRow()
+                          if (selectedIndex == 1) _buildCommunitySubFilterRow(),
                         ],
                       ),
                     ),
@@ -452,8 +452,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCommunitySubFilterRow() {
     return Container(
-      padding: const EdgeInsets.only(top: 12, right: 16, left: 16),
-      color: AppColors.appBackgroundColor,
+      padding: const EdgeInsets.only(top: 12, right: 16, left: 16,bottom: 0),
+      color: AppColors.white,
       // Slight grey background like the image
       child: Row(
         children: [
@@ -468,6 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 20),
           _communitysubFilterItem("Suggested", index: 1),
+
           // const SizedBox(width: 20),
           // _communitysubFilterItem("Community", index: 2),
           // const SizedBox(width: 20),

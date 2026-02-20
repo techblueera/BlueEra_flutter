@@ -102,13 +102,11 @@ class HospitalManagementCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text(
+                    CustomText(
                       person.name ?? "Unknown",
-                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -120,12 +118,10 @@ class HospitalManagementCard extends StatelessWidget {
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
+                      child: CustomText(
                         person.position ?? "Staff",
-                        style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
-                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

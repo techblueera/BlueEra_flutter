@@ -54,24 +54,25 @@ class BusinessProfileFullController extends GetxController {
 
   Future<void> getBusinessProfileFull() async {
     isLoading.value = true;
-    try {
+    // try {
       final response =
           await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
       if (response != null && response.isSuccess) {
         final model =
-            BusinessProfileFullModel.fromJson(response.response?.healthCareData);
+            BusinessProfileFullModel.fromJson(response.response?.data);
+            // BusinessProfileFullModel.fromJson(response.response?.healthCareData);
         if (model.success == true && model.data != null) {
           businessProfile.value = model.data;
         }
       } else {
         commonSnackBar(message: response?.message ?? "Failed to fetch profile");
       }
-    } catch (e) {
-      print("Error fetching profile: $e");
-      // commonSnackBar(message: "Error: $e");
-    } finally {
+    // } catch (e) {
+    //   print("Error fetching profile: $e");
+    //   // commonSnackBar(message: "Error: $e");
+    // } finally {
       isLoading.value = false;
-    }
+    // }
   }
 
   uploadSchoolLogoOrBannerImage(

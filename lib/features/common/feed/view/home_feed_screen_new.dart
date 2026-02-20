@@ -152,16 +152,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     }
 
     for (final item in items) {
-      // if (gridTypes.contains(item.type)) {
-      //   buffer.add(item);
-      //   // keep buffering consecutive grid-type items
-      // } else {
-      // encountered a normal item -> flush any grid buffer first
       flushBuffer();
       blocks.add(FeedBlock(isGrid: false, items: [item]));
-      // }
     }
-
     // end: flush remaining buffer
     flushBuffer();
     return blocks;
@@ -178,11 +171,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         if (posts.isEmpty) {
           return Column(
             children: [
-              // isIndividual()
-              //     ? _buildEarnWithBlueEraWidget()
-              //     : (inventoryController.allProducts.isNotEmpty)
-              //     ? _buildProductCard()
-              //     : SizedBox.shrink(),
+
               Expanded(
                 child: Center(
                   child: Padding(
@@ -213,240 +202,32 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           itemBuilder: (context, indexFeed) {
             int index = indexFeed;
             final block = blocks[index];
-
-            /* if (block.isGrid) {
-              // Render a 4-column grid of thumbnails inside the list
-              // We use shrinkWrap + NeverScrollableScrollPhysics so ListView handles scrolling
-              return Padding(
-                padding: EdgeInsets.only(
-                    left: SizeConfig.size8,
-                    right: SizeConfig.size8,
-                    top: SizeConfig.size10,
-                    bottom: SizeConfig.size5),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: block.items.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 0.70,
-                  ),
-                  itemBuilder: (c, postIndex) {
-                    final imgPostData = block.items[postIndex];
-                    if (imgPostData.type == "image_post") {
-                      trackPostView(imgPostData.id);
-
-                      return ClipRRect(
-                        borderRadius: (BorderRadius.circular(12)),
-                        child: InkWell(
-                          onTap: () {
-                            // Get.to(StatusViewer(
-                            //   posts: posts
-                            //       .where((data) =>
-                            //           data.type?.toLowerCase() == "image_post")
-                            //       .toList(),
-                            //   currentViewIndex: postIndex,
-                            // ));
-
-                            navigatePushTo(
-                              context,
-                              ImageViewScreen(
-                                subTitle: imgPostData.subTitle,
-                                appBarTitle:
-                                    AppStrings.imageViewer,
-                                imageUrls: imgPostData.media ?? [],
-                                initialIndex: postIndex,
-                                postData: imgPostData,
-                              ),
-                            );
-                          },
-                          child: SizedBox(
-                            width: SizeConfig.size220,
-                            height: 300,
-                            child: Stack(children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(0),
-                                child: CachedNetworkImage(
-                                  width: double.infinity,
-                                  height: 310,
-                                  // height: widget.imageHeight ?? SizeConfig.size220,
-                                  fit: BoxFit.cover,
-                                  imageUrl:
-                                      imgPostData.media?.firstOrNull ?? "",
-                                  placeholder: (context, str) {
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: LocalAssets(
-                                        imagePath:
-                                            AppIconAssets.place_holder_image,
-                                        boxFix: BoxFit.fill,
-                                      ),
-                                    );
-                                  },
-                                  errorWidget: (context, url, error) =>
-                                      Container(
-                                    // width: double.infinity,
-                                    // height: 310,
-                                    width: SizeConfig.size220,
-                                    height: 300,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: AppColors.white, width: 1),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: LocalAssets(
-                                        imagePath:
-                                            AppIconAssets.place_holder_image,
-                                        boxFix: BoxFit.fill,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (imgPostData.subTitle != null &&
-                                  (imgPostData.subTitle?.isNotEmpty ?? false) &&
-                                  imgPostData.subTitle?.toLowerCase() != "null")
-                                Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    left: 0,
-                                    // right: SizeConfig.size6,
-                                    child: Container(
-                                      alignment: Alignment.centerLeft,
-                                      padding: EdgeInsets.only(
-                                          bottom: 10,
-                                          left: SizeConfig.size10,
-                                          right: SizeConfig.size10,
-                                          top: 20),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            Colors.black.withValues(alpha: 0.0),
-                                            // Top transparent
-                                            Colors.black.withValues(alpha: 0.9),
-                                            // Bottom dark
-                                          ],
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                      ),
-                                      child: CustomText(
-                                        "${imgPostData.subTitle}",
-                                        color: AppColors.white,
-                                        fontWeight: FontWeight.w400,
-                                        maxLines: 2,
-                                        // fontFamily: "arialround",
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    )),
-                              if (imgPostData.user?.profileImage != null &&
-                                  (imgPostData.user?.profileImage?.isNotEmpty ??
-                                      false) &&
-                                  imgPostData.user?.profileImage
-                                          ?.toLowerCase() !=
-                                      "null")
-                                Positioned(
-                                  top: 10,
-                                  left: 10,
-                                  child: InkWell(
-                                    onTap: () {
-                                      final authorId = imgPostData.user?.id;
-                                      final business_id =
-                                          imgPostData.user?.business_id;
-                                      final accountType = imgPostData
-                                          .user?.accountType
-                                          ?.toUpperCase();
-                                      if (accountType ==
-                                          AppConstants.individual) {
-                                        if (userId == authorId) {
-                                          navigatePushTo(context,
-                                              PersonalProfileSetupNewScreen());
-                                        } else {
-                                          Get.to(() => NewVisitProfileScreen(
-                                                authorId: authorId ?? "",
-                                                screenFromName:
-                                                    AppConstants.feedScreen,
-                                              ));
-                                        }
-                                      }
-                                      if (accountType ==
-                                          AppConstants.business) {
-                                        if (businessId == business_id) {
-                                          navigatePushTo(context,
-                                              BusinessOwnProfileScreen());
-                                        } else {
-                                          Get.to(() => VisitBusinessProfileNew(
-                                                businessId: business_id ?? "",
-                                                screenName:
-                                                    AppConstants.feedScreen,
-                                              ));
-                                        }
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(3),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(50.0),
-                                        border: Border.all(
-                                            color: AppColors.primaryColor,
-                                            width: 1.5),
-                                      ),
-                                      child: CachedAvatarWidget(
-                                          imageUrl:
-                                              imgPostData.user?.profileImage,
-                                          size: 30,
-                                          showProfileOnFullScreen: false,
-                                          borderRadius: 100),
-                                    ),
-                                  ),
-                                ),
-                            ]),
-                          ),
-                        ),
-                      );
-                    }
-
-
-                    return null;
-                  },
-                ),
-              );
-            }*/
-
-            // Single full-width item
             final item = block.items.first;
-
             if (item.type?.toLowerCase() == "message_post" ||
                 item.type?.toLowerCase() == "poll_post") {
               trackPostView(item.id);
               // widget.post?.media_types?.firstOrNull == "video/mp4"
 
               return Padding(
+                // padding: EdgeInsetsGeometry.zero,
                 padding: EdgeInsets.only(
                     left: item.type?.toLowerCase() == "poll_post"
-                        ? SizeConfig.size10
-                        : SizeConfig.size2,
+                        ? SizeConfig.size5
+                        : SizeConfig.size1,
                     right: item.type?.toLowerCase() == "poll_post"
-                        ? SizeConfig.size10
+                        ? 0
                         : SizeConfig.size2,
                     top: item.type?.toLowerCase() == "poll_post"
                         ? SizeConfig.size10
-                        : SizeConfig.size10,
+                        : 1,
                     bottom: item.type?.toLowerCase() == "message_post"
-                        ? SizeConfig.size5
+                        ?0
                         : 0),
                 child: FeedCard(
                   post: item,
                   index: index,
                   postFilteredType: PostType.all,
-                  bottomPadding: 0,
+                  bottomPadding: 0,horizontalPadding: 1,
                   isRepost: false,
                 ),
               );
@@ -524,77 +305,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       return const SizedBox();
     });
   }
-
-// Widget _buildProductCard() {
-//   return Padding(
-//     padding: EdgeInsets.only(
-//         left: SizeConfig.size8,
-//         right: SizeConfig.size8,
-//         top: SizeConfig.size8),
-//     child: BusinessAllProductCard(
-//         allProducts: Get.find<InventoryController>().allProducts),
-//   );
-// }
-
-// Widget _buildEarnWithBlueEraWidget() {
-//   return Container(
-//     margin: EdgeInsets.only(
-//         bottom: SizeConfig.paddingXS,
-//         left: SizeConfig.paddingXS,
-//         right: SizeConfig.paddingXS),
-//     decoration: BoxDecoration(
-//         color: AppColors.white,
-//         boxShadow: [AppShadows.cardShadow],
-//         borderRadius: BorderRadius.circular(12)),
-//     child: Padding(
-//       padding: EdgeInsets.only(
-//           left: SizeConfig.size8,
-//           right: SizeConfig.size8,
-//           top: SizeConfig.size10,
-//           bottom: SizeConfig.size10),
-//       child: Column(children: [
-//         Row(
-//           children: [
-//             _buildCircleIcon(AppIconAssets.earnWithBlueEra),
-//             SizedBox(width: SizeConfig.size6),
-//             _buildTitleWidget(AppStrings.earnWithBlueEra),
-//           ],
-//         ),
-//         SizedBox(height: SizeConfig.size16),
-//         HorizontalVideoPlayer(
-//           isAutoPlay: true,
-//         ),
-//         SizedBox(height: SizeConfig.size16),
-//         Align(
-//           alignment: Alignment.bottomRight,
-//           child: CustomBtn(
-//             width: SizeConfig.size160,
-//             title: AppStrings.letsStartEarningNow,
-//             onTap: () {
-//               // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
-//               final ViewPersonalDetailsController
-//                   viewPersonalDetailsController =
-//                   Get.isRegistered<ViewPersonalDetailsController>()
-//                       ? Get.find<ViewPersonalDetailsController>()
-//                       : Get.put(ViewPersonalDetailsController());
-//               if (viewPersonalDetailsController
-//                       .personalProfileDetails.value.isProfileCreated ==
-//                   false) {
-//                 Get.to(()=> CreateProfileScreen());
-//               } else {
-//                 Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-//               }
-//             },
-//             bgColor: AppColors.primaryColor,
-//             textColor: AppColors.white,
-//             height: SizeConfig.size34,
-//             radius: 10.0,
-//           ),
-//         ),
-//       ]),
-//     ),
-//   );
-// }
 }
 
 ShortFeedItem getVideoData(Post video) {
