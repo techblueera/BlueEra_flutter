@@ -436,6 +436,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                   ),
                                   SizedBox(height: 6),
 
+
                                   Row(
                                     children: [
                                       if(chat?.tagged == true)

@@ -262,6 +262,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   ],
                 ),
               );
+
             } else {
               return SafeArea(
                   child: Stack(

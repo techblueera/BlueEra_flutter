@@ -152,6 +152,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       widget.onHeaderVisibilityChanged?.call(true);
     });
 
+
     return Scaffold(
       floatingActionButton: (_isFromForward()) ||
               chatViewController.chatMainTabController?.index == 1

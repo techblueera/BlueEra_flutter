@@ -1258,6 +1258,7 @@ class ChatViewController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
+        log("skjdcnskdjcnsdc ${data}");
 
         await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.saved_contacts,

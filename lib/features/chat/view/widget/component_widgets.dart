@@ -981,6 +981,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           _navigateToProfile(authorId: userId ?? '', type: type ?? "");
         }
       }
+
           : () {},
       child: Row(
         children: [
