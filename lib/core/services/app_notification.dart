@@ -22,6 +22,9 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
+// import 'package:http/http.dart' as http;
+// import 'package:googleapis_auth/auth_io.dart' as auth;
+
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
@@ -161,11 +164,19 @@ class AppNotificationHandler {
 
   ///show notification msg
   Future<void> showMsg(RemoteMessage message)async {
+    print("SHOW MSG 1");
     // callUnreadCount();
-      if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
-        NotificationData rideNotification=NotificationData.fromJson(message.data);
-        showFullCallScreen(rideNotification);
-        // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+      try {
+        if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
+          NotificationData rideNotification=NotificationData.fromJson(message.data);
+          showFullCallScreen(rideNotification);
+          // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+        }
+      } on Exception catch (e) {
+        print("SHOW MSG 2");
+
+        logs("NOTI $e");
+        // TODO
       }
     ///FOR GROUND....
     showNotification(message);
@@ -267,6 +278,8 @@ class AppNotificationHandler {
   Future<void> showNotification(
     RemoteMessage notification,
   ) async {
+    print("SHOW MSG 3");
+
     flutterLocalNotificationsPlugin.show(
       notification.hashCode,
       notification.notification?.title ?? "",
@@ -290,6 +303,8 @@ class AppNotificationHandler {
           )),
       payload: jsonEncode(notification.data),
     );
+    print("SHOW MSG 4");
+
   }
 
   ///WORKING CODE..
@@ -364,6 +379,7 @@ class AppNotificationHandler {
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       RemoteNotification? notification = message.notification;
+
       AndroidNotification? android = message.notification?.android;
 
       ///FOR APP IS IN FOR GROUND....
@@ -563,6 +579,86 @@ class AppNotificationHandler {
       );
     }
   }
+
+
+/*
+  static Future<void> sendMessage(
+      {required List<DeviceTokenListModel> deviceTokenList,
+        required String msg,
+        required String title,
+        bool isChatting = false,
+        Map<String, dynamic>? data}) async {
+    /// PROD MODE SERVER KEY
+    // var serverKey =
+    //     'AAAAnb0-ipw:APA91bHfom7DxO6tHfaPnlprGIfMVTwdZyBCIiXMR5IIDkkcYw7WkLB9G56-TveFLit6I7bGL38SMc0R5nkmyB16Etdq4O9bnzXQNGYyN-QEgHiDkoMB-t_oNmVsg1HE1ZepgS04U0lN';
+
+    /// DEV MODE SERVER KEY
+    // var serverKey =
+    //     'AAAAWSZoobU:APA91bHUGhYAylnYQFo2vYd2CDtrfCH6sqL7DmeJpQNKH204dkl9CmciNaZ_v_IcDdfRY5Y6942JCcyihgL4arlvQqkwUyMbPnBqkPOIHublu3KB8n4v_xSx7HY7ZHQ6puTVUXs1GlVJ';
+
+    if (deviceTokenList.isEmpty) {
+      return;
+    }
+    final serverKey = await getServerToken();
+
+    for (int index = 0; index < deviceTokenList.length; index++) {
+      String body = jsonEncode(
+        <String, dynamic>{
+          "message": {
+            "notification": {
+              "body": msg,
+              "title": title,
+              // "badge": "1",
+              // "sound": "default",
+            },
+            // "priority": "high",
+            "android": {
+              "notification": {
+                'body': msg,
+                'title': title,
+                "sound": deviceTokenList[index].defaultSound ?? "default"
+              }
+            },
+            "apns": {
+              "headers": {
+                "apns-priority": "10",
+              },
+              "payload": {
+                "aps": {
+                  "sound": deviceTokenList[index].defaultSound ?? "default"
+                }
+              }
+            },
+            "data": data ??
+                <String, dynamic>{
+                  "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                  'id': DateTime.now().millisecond.toString(),
+                  "status": "done",
+                },
+            // "to": tokenData.token,
+            "token": deviceTokenList[index].token,
+          }
+        },
+      );
+
+      try {
+        http.Response response = await http.post(
+          Uri.parse(
+              'https://fcm.googleapis.com/v1/projects/clubgrub-e0/messages:send'),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $serverKey',
+          },
+          body: body,
+        );
+        print("RESPONSE CODE ${response.statusCode}");
+        print("RESPONSE BODY ${response.body}");
+      } catch (e) {
+        print("error push notification");
+      }
+    }
+  }*/
+
 }
 class OpenedMessageDataModel {
   final String? conversationId;
