@@ -39,6 +39,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/p
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -272,8 +273,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return Scaffold(
       key: _scaffoldKey,
       // floatingActionButton: kDebugMode
-      //     ? FloatingActionButton(onPressed: () {
-      //         Get.to(HomeScreenNewBottom());
+      //     ? FloatingActionButton(onPressed: () async {
+      // // var data= await AppNotificationHandler.getServerToken();
+      // // logs("RES TOKEN $data");
+      //         // Get.to(HomeScreenNewBottom());
       //       })
       //     : null,
       body: ValueListenableBuilder(
