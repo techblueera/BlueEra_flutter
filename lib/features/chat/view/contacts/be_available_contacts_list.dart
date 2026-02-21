@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -12,16 +12,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/foundation.dart';
 import 'package:share_handler/share_handler.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_btn.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/contactListModel.dart';
-import '../../auth/model/view_group_members_model.dart';
+import '../../auth/model/group_details_model.dart';
 
 class BeAvailableContactsList extends StatefulWidget {
   final String? sharedText;
@@ -116,15 +114,15 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   }
 
   Future<void> _loadContactsFromStorage() async {
-    String? storedData = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.saved_contacts);
-    if (storedData != null) {
-      Map<String, dynamic> decoded =
-          await compute(jsonDecode, storedData) as Map<String, dynamic>;
-      chatViewController.loadContactsFromLocalStorage(decoded);
-    } else {
+    // String? storedData = await SharedPreferenceUtils.getSecureValue(
+    //     SharedPreferenceUtils.saved_contacts);
+    // if (storedData != null) {
+    //   Map<String, dynamic> decoded =
+    //       await compute(jsonDecode, storedData) as Map<String, dynamic>;
+    //   chatViewController.loadContactsFromLocalStorage(decoded);
+    // } else {
       await _refreshContacts();
-    }
+    // }
   }
 
 // This is the isolate function → runs in background
@@ -425,7 +423,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                             chatViewController.sendMessage(data);
                           }
                         }
-
+                        log(" gggg ${_selectedUsers.first.toJson()}");
                         chatViewController.openAnyOneChatFunction(
                           type: _selectedUsers.first.accountType,
                           isInitialMessage: true,

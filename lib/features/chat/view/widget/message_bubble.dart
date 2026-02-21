@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
+import 'package:any_link_preview/any_link_preview.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
@@ -38,11 +39,33 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
+  Widget buildLinkPreview(String message) {
+    final hasLink = message.contains("http");
 
+    if (!hasLink) return const SizedBox();
+
+    return AnyLinkPreview(
+      link: message,
+      // ❌ remove UIDirection (causing your crash)
+      displayDirection: UIDirection.uiDirectionVertical, // REMOVE if error persists
+      showMultimedia: true,
+      bodyMaxLines: 1,
+      titleStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      ),
+      bodyStyle: const TextStyle(fontSize: 14),
+
+      // 🔥 IMPORTANT: Error Handler (prevents crash)
+      errorWidget: const SizedBox.shrink(),
+      errorImage: "https://via.placeholder.com/150",
+    );
+  }
   @override
   Widget build(BuildContext context) {
 
     chatThemeController.isMessageSelectionActive;
+
     return GestureDetector(
       onLongPress: (){
         chatThemeController.activateSelection(widget.messages);
@@ -126,52 +149,70 @@ class _MessageBubbleState extends State<MessageBubble> {
                         ],
                       )),
                     ):SizedBox(),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.max,
+                    Column(crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?buildAiWithCallButtons(widget.message): RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: (widget.message.length <= 100)
-                                      ? widget.message
-                                      : widget.message.substring(0, 100),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: widget.isReceiveMsg ? Colors.black : Colors.black,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                if (widget.message.length > 100)
-                                  TextSpan(
-                                    text: '... Read more',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.grey9A,
-                                      fontSize: 16,
-                                    ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        FocusScope.of(context).unfocus();
-                                        _showFullMessageDialog(
-                                          context: context,
-                                          message: widget.message,
-                                          time: widget.time,
-                                          isReceiveMsg: widget.isReceiveMsg,
-                                        );
-                                      },
-                                  ),
-                              ],
+                        if ((widget.message.contains("https://")))
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: SizedBox(
+                              height: 260,
+                              width:328,
+                              child:buildLinkPreview(widget.message),
                             ),
                           ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Expanded(
+                              child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?buildAiWithCallButtons(widget.message): InkWell(
+                                onTap: (widget.message.contains("https://"))?(){
+                                  UrlLauncher.launchUrl(Uri.parse(widget.message));
+                                }:null,
+                                child: RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: (widget.message.length <= 100)
+                                            ? widget.message
+                                            : widget.message.substring(0, 100),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: (widget.message.contains("https://"))?AppColors.navy:widget.isReceiveMsg ? Colors.black :Colors.black,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      if (widget.message.length > 100)
+                                        TextSpan(
+                                          text: '... Read more',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.grey9A,
+                                            fontSize: 16,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              FocusScope.of(context).unfocus();
+                                              _showFullMessageDialog(
+                                                context: context,
+                                                message: widget.message,
+                                                time: widget.time,
+                                                isReceiveMsg: widget.isReceiveMsg,
+                                              );
+                                            },
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8,),
+                            Align(
+                                alignment: Alignment.bottomRight,
+                                child: timeAndReadInfoWidget(indicateColor: Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.black : Colors.black54,)
+                            )
+                          ],
                         ),
-                        const SizedBox(width: 8,),
-                        Align(
-                            alignment: Alignment.bottomRight,
-                            child: timeAndReadInfoWidget(indicateColor: Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.black : Colors.black54,)
-                        )
                       ],
                     ),
                   ],

@@ -957,11 +957,10 @@ AppBar getChatTitleAppBar(BuildContext context, {
               transitionDuration: const Duration(milliseconds: 400),
               pageBuilder: (context, animation, secondaryAnimation) =>
                   ViewGroupMembers(
-                    publicGroup: isGroupPrivate??false,
+
                     conversationId: conversationId,
                     type: type,
-                    name: name,
-                    profileImage: profileImage,
+
                   ),
               transitionsBuilder: (context, animation, secondaryAnimation,
                   child) {
@@ -986,7 +985,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: theme.colorScheme.primary,
             radius: SizeConfig.size18,
             backgroundImage: (profileImage != null &&
                 profileImage != 'null' &&
@@ -1113,11 +1111,9 @@ AppBar getChatTitleAppBar(BuildContext context, {
                     transitionDuration: const Duration(milliseconds: 400),
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         ViewGroupMembers(
-                          publicGroup: isGroupPrivate??false,
                           conversationId: conversationId,
                           type: type,
-                          name: name,
-                          profileImage: profileImage,
+
                         ),
                     transitionsBuilder: (context, animation, secondaryAnimation,
                         child) {

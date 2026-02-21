@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -540,6 +541,7 @@ class _ExistingContactTile extends StatelessWidget {
           if (userId.isNotEmpty) onSelect(userId);
         } else {
           if (contact?.id != null) {
+            log("skljdcnksljdcnsdc ${contact?.toJson()}");
             chatViewController.openAnyOneChatFunction(
               type: contact?.accountType,
               isInitialMessage: true,

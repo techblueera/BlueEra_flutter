@@ -26,7 +26,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
-import '../../auth/model/view_group_members_model.dart';
+import '../../auth/model/group_details_model.dart';
 import 'component_widgets.dart';
 
 class GroupChatInputBar extends StatefulWidget {
