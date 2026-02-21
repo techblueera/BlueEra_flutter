@@ -277,6 +277,7 @@ class AppConstants {
   static const SUPPORT_SECTOR = "Support Sector";
   static const TRANSPORT_LOGISTIC = "Transport Logistic";
 
+  static const SUPPORT_SERVICES = "SUPPORT SERVICES";
   // static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC AND TESTING CENTERS";
 
   // static const hostelsStayService = "Hotels Hostels & Stay Service";

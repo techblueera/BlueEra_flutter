@@ -201,11 +201,11 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
                 color: AppColors.black.withValues(alpha: 0.7), // Black background
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
+              child: CustomText(
                 'Reported posts are reviewed by BlueEra. Repeated violations may lead to account restrictions.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 16), // White text
+
+                    color: Colors.white, fontSize: 16, // White text
               ),
             ),
           ),
@@ -239,11 +239,11 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
                 color: AppColors.black.withValues(alpha: 0.7), // Black background
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
+              child: CustomText(
                 'Reported posts are reviewed by BlueEra. When you block someone, you won’t see their posts, and their posts will be removed from feed.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 16), // White text
+
+                    color: Colors.white, fontSize: 16, // White text
               ),
             ),
           ),

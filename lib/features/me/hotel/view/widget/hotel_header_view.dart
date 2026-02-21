@@ -208,7 +208,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
                 CustomText(
                     widget
                         .schoolAboutUsController.hotelData.value?.profile?.name,
-                    fontSize: 18,
+                    // fontSize: 18,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.bold),
@@ -217,7 +217,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
                   text: widget.schoolAboutUsController.hotelData.value?.profile
                           ?.description ??
                       "",
-                  trimLines: 4,
+                  trimLines: 2,
                   isReadMoreNewLine: false,
                   expandMode: ExpandMode.dialog,
                   style: TextStyle(
@@ -227,7 +227,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
                     fontFamily: AppConstants.OpenSans,
                   ),
                 ),
-                const SizedBox(height: 10),
+                // const SizedBox(height: 10),
               ],
             ),
           ),

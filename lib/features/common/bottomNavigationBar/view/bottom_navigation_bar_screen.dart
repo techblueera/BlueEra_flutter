@@ -381,7 +381,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveBusinessScreen() {
     log('Resolving Screen... Type: ${businessTypeGlobal.toUpperCase()}');
-    // log('Resolving Screen. businessCategoryGlobal .. Type: ${businessCategoryGlobal.toUpperCase()}');
+    log('Resolving Screen. businessCategoryGlobal .. Type: ${businessCategoryGlobal.toUpperCase()}');
 
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() ==
@@ -401,6 +401,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       } else if (businessCategoryGlobal.toUpperCase( ) ==
           AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
         return const LaboratoryMain();
+      } else if (businessCategoryGlobal.toUpperCase() ==
+          AppConstants.SUPPORT_SERVICES) {
+        return const OthersMain();
       }
       // else if(businessCategoryGlobal.toUpperCase() ==
       //     AppConstants.MEDICAL_EDUCATION_INSTITUTIONS.toUpperCase()){

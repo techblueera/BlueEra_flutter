@@ -81,7 +81,7 @@ class HotelImageUploadScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+              CustomText(title, fontWeight: FontWeight.w500),
               CustomText("Min-2 Images",
                color: AppColors.secondaryTextColor, fontSize: SizeConfig.size12),
             ],

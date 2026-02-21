@@ -81,239 +81,237 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final myWidget = RefreshIndicator(
-        onRefresh: () async {
-          channelFeedController.clearList();
-          await Future.delayed(Duration(microseconds: 200));
+    final myWidget = Material(
+      color: AppColors.white,
+      child: RefreshIndicator(
+          onRefresh: () async {
+            channelFeedController.clearList();
+            await Future.delayed(Duration(microseconds: 200));
 
-          await channelFeedController.fetchChannelData(loadMore: false);
+            await channelFeedController.fetchChannelData(loadMore: false);
 
-          await channelFeedController.fetchUnJoinChannelData(loadMore: false);
-        },
-        child: CustomScrollView(
-          controller: scrollController, // 👈 attach this!
-          slivers: [
-            // Header
-            if (isIndividualUser() && channelId.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: CustomFormCard(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size10,
-                    ),
-                    child: channelId.isNotEmpty
-                        ? Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
+            await channelFeedController.fetchUnJoinChannelData(loadMore: false);
+          },
+          child: CustomScrollView(
+            controller: scrollController, // 👈 attach this!
+            slivers: [
+              // Header
+              if (isIndividualUser() && channelId.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: CustomFormCard(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size16,
+                        vertical: SizeConfig.size10,
+                      ),
+                      child: channelId.isNotEmpty
+                          ? Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        _buildCircleIcon(
+                                            AppIconAssets.channelNew),
+                                        SizedBox(width: SizeConfig.size6),
+                                        _buildTitleWidget(AppStrings.myChannel),
+                                      ],
+                                    ),
+                                    SizedBox(width: SizeConfig.size6),
+                                    InkWell(
+                                      onTap: () {
+                                        Get.toNamed(
+                                          RouteHelper.getChannelScreenRoute(),
+                                          arguments: {
+                                            ApiKeys.argAccountType:
+                                                accountTypeGlobal,
+                                            ApiKeys.channelId: channelId,
+                                            ApiKeys.authorId:
+                                                (accountTypeGlobal ==
+                                                        AppConstants.individual)
+                                                    ? userId
+                                                    : businessId
+                                          },
+                                        );
+                                      },
+                                      child: CustomText(
+                                        AppStrings.view,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: SizeConfig.size16,
+                                        color: AppColors.primaryColor,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.size16,
+                                ),
+                                _buildContainerOverlay(
+                                  child: Row(
                                     children: [
-                                      _buildCircleIcon(
-                                          AppIconAssets.channelNew),
+                                      CustomText(
+                                        channelName,
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.primaryColor,
+                                      ),
                                       SizedBox(width: SizeConfig.size6),
-                                      _buildTitleWidget(AppStrings.myChannel),
+                                      CustomText(
+                                        '@$channelOwner',
+                                        fontSize: SizeConfig.small,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
                                     ],
                                   ),
+                                )
+                              ],
+                            )
+                          : InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteHelper.getManageChannelScreenRoute(),
+                                );
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildCircleIcon(AppIconAssets.channelNew),
                                   SizedBox(width: SizeConfig.size6),
-                                  InkWell(
-                                    onTap: () {
-                                      Get.toNamed(
-                                        RouteHelper.getChannelScreenRoute(),
-                                        arguments: {
-                                          ApiKeys.argAccountType:
-                                              accountTypeGlobal,
-                                          ApiKeys.channelId: channelId,
-                                          ApiKeys.authorId:
-                                              (accountTypeGlobal ==
-                                                      AppConstants.individual)
-                                                  ? userId
-                                                  : businessId
-                                        },
-                                      );
-                                    },
-                                    child: CustomText(
-                                      AppStrings.view,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: SizeConfig.size16,
-                                      color: AppColors.primaryColor,
-                                    ),
+                                  _buildTitleWidget(AppStrings.myChannel),
+                                  Spacer(),
+                                  CustomText(
+                                    AppStrings.create,
+                                    fontSize: SizeConfig.small,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryColor,
                                   )
                                 ],
                               ),
-                              SizedBox(
-                                height: SizeConfig.size16,
-                              ),
-                              _buildContainerOverlay(
-                                child: Row(
-                                  children: [
-                                    CustomText(
-                                      channelName,
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.primaryColor,
-                                    ),
-                                    SizedBox(width: SizeConfig.size6),
-                                    CustomText(
-                                      '@$channelOwner',
-                                      fontSize: SizeConfig.small,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.secondaryTextColor,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          )
-                        : InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                RouteHelper.getManageChannelScreenRoute(),
-                              );
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildCircleIcon(AppIconAssets.channelNew),
-                                SizedBox(width: SizeConfig.size6),
-                                _buildTitleWidget(AppStrings.myChannel),
-                                Spacer(),
-                                CustomText(
-                                  AppStrings.create,
-                                  fontSize: SizeConfig.small,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryColor,
-                                )
-                              ],
                             ),
-                          ),
+                    ),
                   ),
                 ),
-              ),
-
-            if (channelFeedController.communityIndex.value == 0) ...[
-              /*   SliverToBoxAdapter(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Obx(() {
-                      //   return Padding(
-                      //     padding: const EdgeInsets.only(top: 8.0),
-                      //     child: CustomText(
-                      //       "${AppStrings.joined.tr}  ${AppStrings.channels.tr}",
-                      //       fontWeight: FontWeight.w500,
-                      //       fontSize: SizeConfig.size16,
-                      //       color: AppColors.mainTextColor,
-                      //     ),
-                      //   );
-                      // }),
-                      InkWell(
-                        onTap: () => Get.to(ViewAllJoinedChannelListScreen()),
-                        child: CustomText(
-                          AppStrings.viewAll,
-                          fontWeight: FontWeight.w500,
-                          fontSize: SizeConfig.size16,
-                          color: AppColors.primaryColor,
+              if (channelFeedController.communityIndex.value == 0) ...[
+                /*   SliverToBoxAdapter(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Obx(() {
+                        //   return Padding(
+                        //     padding: const EdgeInsets.only(top: 8.0),
+                        //     child: CustomText(
+                        //       "${AppStrings.joined.tr}  ${AppStrings.channels.tr}",
+                        //       fontWeight: FontWeight.w500,
+                        //       fontSize: SizeConfig.size16,
+                        //       color: AppColors.mainTextColor,
+                        //     ),
+                        //   );
+                        // }),
+                        InkWell(
+                          onTap: () => Get.to(ViewAllJoinedChannelListScreen()),
+                          child: CustomText(
+                            AppStrings.viewAll,
+                            fontWeight: FontWeight.w500,
+                            fontSize: SizeConfig.size16,
+                            color: AppColors.primaryColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),*/
+                ),*/
 
-              // Joined Channels
-              Obx(() => SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final channel =
-                            channelFeedController.channelDataList[index];
-                        return InkWell(
-                          onTap: () => Get.to(
-                            () => ChannelFeedPostListingScreen(
-                                channelData: channel),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                right: 0, left: 0, top: 0),
-                            child: ChannelCardWidget(channelModel: channel),
-                          ),
-                        );
-                      },
-                      childCount: channelFeedController.channelDataList.length,
-                    ),
-                  )),
-            ],
-
-            if (channelFeedController.communityIndex.value == 1) ...[
-              // Suggested Header
-              // SliverToBoxAdapter(
-              //   child: Padding(
-              //     padding:
-              //         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              //     child: Row(
-              //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //       children: [
-              //         CustomText(
-              //           AppStrings.suggested,
-              //           fontWeight: FontWeight.w500,
-              //           fontSize: SizeConfig.size16,
-              //           color: AppColors.mainTextColor,
-              //         ),
-              //         InkWell(
-              //           onTap: () => Get.to(WhatsNewChannelListScreen()),
-              //           child: CustomText(
-              //             AppStrings.viewAll,
-              //             fontWeight: FontWeight.w500,
-              //             fontSize: SizeConfig.size16,
-              //             color: AppColors.primaryColor,
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ),
-
-              // Suggested Channels
-              Obx(() => SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final newChannel =
-                            channelFeedController.unJoinChannelDataList[index];
-                        return InkWell(
-                          onTap: () async {
-                            await Get.to(() => ChannelFeedPostListingScreen(
-                                channelData: newChannel));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                right: 12, left: 12, top: 5),
-                            child: UnjoinChannelCardWidget(
-                              channelModel: newChannel,
-                              index: index,
+                // Joined Channels
+                Obx(() => SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final channel =
+                              channelFeedController.channelDataList[index];
+                          return InkWell(
+                            onTap: () => Get.to(
+                              () => ChannelFeedPostListingScreen(
+                                  channelData: channel),
                             ),
-                          ),
-                        );
-                      },
-                      childCount:
-                          channelFeedController.unJoinChannelDataList.length,
-                    ),
-                  )),
-            ],
+                            child: ChannelCardWidget(channelModel: channel),
+                          );
+                        },
+                        childCount: channelFeedController.channelDataList.length,
+                      ),
+                    )),
+              ],
 
-            // Bottom Spacer
-            const SliverToBoxAdapter(
-              child: SizedBox(height: kBottomNavigationBarHeight + 20),
-            ),
-          ],
-        ));
+              if (channelFeedController.communityIndex.value == 1) ...[
+                // Suggested Header
+                // SliverToBoxAdapter(
+                //   child: Padding(
+                //     padding:
+                //         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                //     child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //       children: [
+                //         CustomText(
+                //           AppStrings.suggested,
+                //           fontWeight: FontWeight.w500,
+                //           fontSize: SizeConfig.size16,
+                //           color: AppColors.mainTextColor,
+                //         ),
+                //         InkWell(
+                //           onTap: () => Get.to(WhatsNewChannelListScreen()),
+                //           child: CustomText(
+                //             AppStrings.viewAll,
+                //             fontWeight: FontWeight.w500,
+                //             fontSize: SizeConfig.size16,
+                //             color: AppColors.primaryColor,
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+
+                // Suggested Channels
+                Obx(() => SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final newChannel =
+                              channelFeedController.unJoinChannelDataList[index];
+                          return InkWell(
+                            onTap: () async {
+                              await Get.to(() => ChannelFeedPostListingScreen(
+                                  channelData: newChannel));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  right: 12, left: 12, top: 10),
+                              child: UnjoinChannelCardWidget(
+                                channelModel: newChannel,
+                                index: index,
+                              ),
+                            ),
+                          );
+                        },
+                        childCount:
+                            channelFeedController.unJoinChannelDataList.length,
+                      ),
+                    )),
+              ],
+
+              // Bottom Spacer
+              const SliverToBoxAdapter(
+                child: SizedBox(height: kBottomNavigationBarHeight + 20),
+              ),
+            ],
+          )),
+    );
     return setupScrollVisibilityNotification(
       controller: scrollController,
       headerHeight: (widget.headerHeight),

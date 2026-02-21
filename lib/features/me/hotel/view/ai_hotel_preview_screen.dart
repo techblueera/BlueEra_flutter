@@ -103,7 +103,7 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
                 showEditBottomSheet();
               },
               icon: Icon(Icons.edit, size: 16),
-              label: Text("Edit"),
+              label: CustomText("Edit"),
             )
           ],
         ),

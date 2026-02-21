@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -523,6 +524,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
   Widget _buildContactUs(
       List<ContactUs>? contacts, Timings? timings, Profile? profile) {
+   logs("profile?.profileName ${contacts?.length}");
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

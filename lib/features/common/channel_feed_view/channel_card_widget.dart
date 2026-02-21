@@ -19,7 +19,7 @@ class ChannelCardWidget extends StatelessWidget {
       color: AppColors.transparent,
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.only(bottom: 0,left: 10,right: 10,top: 15),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -81,12 +81,12 @@ class PropertyPhotoScreen extends StatelessWidget {
                                 color: Colors.black.withOpacity(0.6),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text(
+                              child: CustomText(
                                 "+${images.length} Images",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+
                                     color: Colors.white, fontSize: 10),
-                              ),
+
                             ),
                           )
                         ],
