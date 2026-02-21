@@ -206,7 +206,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                         : widget.message.substring(0, 100),
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
-                                      color: widget.isReceiveMsg ? Colors.black : Colors.white,
+                                      color: widget.isReceiveMsg ? Colors.black : AppColors.primaryColor,
                                       fontSize: 15,
                                     ),
                                   ),

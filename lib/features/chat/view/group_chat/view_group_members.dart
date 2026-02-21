@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:intl/intl.dart';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -21,23 +22,17 @@ import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../../../widgets/local_assets.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/view_group_members_model.dart';
+import '../../auth/model/group_details_model.dart';
 import '../contacts/be_available_contacts_list.dart';
 
 class ViewGroupMembers extends StatefulWidget {
   const ViewGroupMembers(
       {required this.conversationId,
-      this.profileImage,
       required this.type,
-      required this.publicGroup,
-      this.name,
       super.key});
 
   final String? conversationId;
-  final String? profileImage;
-  final String? name;
   final String? type;
-  final bool publicGroup;
 
   @override
   State<ViewGroupMembers> createState() => _ViewGroupMembersState();
@@ -50,12 +45,13 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
 
   @override
   void initState() {
-    publicGroup = widget.publicGroup;
-    chatViewController.groupNameController.text = widget.name ?? "";
+    // publicGroup = widget.publicGroup;
+    // chatViewController.groupNameController.text = widget.name ?? "";
     Map<String, dynamic> data = {
       ApiKeys.conversation_id: widget.conversationId
     };
-    chatViewController.getGroupMembersApi(data);
+    // chatViewController.getGroupMembersApi(data);
+    chatViewController.getGroupDetailsApi(data);
     super.initState();
   }
 
@@ -76,81 +72,81 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 45,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            backgroundImage: (chatViewController
-                                        .editedGroupFile !=
-                                    null)
-                                ? FileImage(chatViewController.editedGroupFile!)
-                                    as ImageProvider
-                                : (widget.profileImage != null &&
-                                        widget.profileImage!.trim().isNotEmpty)
-                                    ? (widget.profileImage!.startsWith('http')
-                                        ? NetworkImage(widget.profileImage!)
-                                        : (File(widget.profileImage!)
-                                                .existsSync()
-                                            ? FileImage(
-                                                    File(widget.profileImage!))
-                                                as ImageProvider
-                                            : null))
-                                    : null,
-                            child:
-                                (chatViewController.editedGroupFile == null &&
-                                        (widget.profileImage == null ||
-                                            widget.profileImage!.isEmpty))
-                                    ? Text(
-                                        widget.name != null &&
-                                                widget.name!.isNotEmpty
-                                            ? widget.name![0].toUpperCase()
-                                            : '',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null,
-                          ),
-
-                          /// ✏️ EDIT ICON
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: InkWell(
-                              onTap: () async {
-                                final newPath = await SelectProfilePictureDialog
-                                    .showLogoDialog(
-                                        context, "Change Group Profile");
-
-                                if (newPath != null && newPath.isNotEmpty) {
-                                  chatViewController.editedGroupFile =
-                                      File(newPath);
-                                  setState(() {});
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primaryColor,
-                                  border:
-                                      Border.all(color: Colors.white, width: 2),
-                                ),
-                                child: Icon(
-                                  Icons.edit,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      // Stack(
+                      //   alignment: Alignment.center,
+                      //   children: [
+                      //     CircleAvatar(
+                      //       radius: 45,
+                      //       backgroundColor:
+                      //           Theme.of(context).colorScheme.primary,
+                      //       backgroundImage: (chatViewController
+                      //                   .editedGroupFile !=
+                      //               null)
+                      //           ? FileImage(chatViewController.editedGroupFile!)
+                      //               as ImageProvider
+                      //           : (groupProfileImage != null &&
+                      //                   groupProfileImage!.trim().isNotEmpty)
+                      //               ? (groupProfileImage!.startsWith('http')
+                      //                   ? NetworkImage(groupProfileImage!)
+                      //                   : (File(groupProfileImage!)
+                      //                           .existsSync()
+                      //                       ? FileImage(
+                      //                               File(groupProfileImage!))
+                      //                           as ImageProvider
+                      //                       : null))
+                      //               : null,
+                      //       child:
+                      //           (chatViewController.editedGroupFile == null &&
+                      //                   (groupProfileImage == null ||
+                      //                       groupProfileImage!.isEmpty))
+                      //               ? Text(
+                      //                   widget.name != null &&
+                      //                           widget.name!.isNotEmpty
+                      //                       ? widget.name![0].toUpperCase()
+                      //                       : '',
+                      //                   style: const TextStyle(
+                      //                     color: Colors.white,
+                      //                     fontSize: 36,
+                      //                     fontWeight: FontWeight.bold,
+                      //                   ),
+                      //                 )
+                      //               : null,
+                      //     ),
+                      //
+                      //     /// ✏️ EDIT ICON
+                      //     Positioned(
+                      //       bottom: 0,
+                      //       right: 0,
+                      //       child: InkWell(
+                      //         onTap: () async {
+                      //           final newPath = await SelectProfilePictureDialog
+                      //               .showLogoDialog(
+                      //                   context, "Change Group Profile");
+                      //
+                      //           if (newPath != null && newPath.isNotEmpty) {
+                      //             chatViewController.editedGroupFile =
+                      //                 File(newPath);
+                      //             setState(() {});
+                      //           }
+                      //         },
+                      //         child: Container(
+                      //           padding: const EdgeInsets.all(8),
+                      //           decoration: BoxDecoration(
+                      //             shape: BoxShape.circle,
+                      //             color: AppColors.primaryColor,
+                      //             border:
+                      //                 Border.all(color: Colors.white, width: 2),
+                      //           ),
+                      //           child: Icon(
+                      //             Icons.edit,
+                      //             size: 16,
+                      //             color: Colors.white,
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
 
                       const SizedBox(height: 20),
                       // Divider(color: AppColors.grey9B),
@@ -284,6 +280,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     );
   }
 
+  String formatDate(DateTime? date) {
+    if (date == null) return '';
+    return DateFormat('dd/MM/yyyy').format(date.toLocal());
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -291,10 +291,12 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: Obx(() {
-        if (chatViewController.getGroupMembersResponse.value.status ==
+        if (chatViewController.groupDetailsResponse.value.status ==
             Status.COMPLETE) {
-          List<GroupMembersListModel> members =
-              chatViewController.getGroupMembersResponse.value.data;
+          GroupDetailsModel details=chatViewController.groupDetailsModel.value;
+          List<GroupMembersListModel> members =details.members??[];
+          String groupName=details.groupName??'';
+          String groupProfileImage=details.groupProfileImage??'';
 
           return SafeArea(
             child: SingleChildScrollView(
@@ -312,12 +314,12 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _groupBanner(),
+                            _groupBanner(groupProfileImage,groupName),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
-                                  height: 38,
+                                  height: 8,
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
@@ -360,13 +362,26 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CustomText(
-                                    widget.name != null
-                                        ? GetStringUtils(widget.name!)
-                                            .capitalize
-                                        : '',
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
+                                  Row(
+                                    children: [
+                                      CustomText(
+                                        groupName != ''
+                                            ? GetStringUtils(groupName)
+                                                .capitalize
+                                            : '',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      SizedBox(
+                                        width: 6,
+                                      ),
+                                      InkWell(
+                                          onTap: (){
+                                            chatViewController.editedGroupFile=null;
+                                            showEditGroupDialog(context);
+                                          },
+                                          child: LocalAssets(imagePath: AppIconAssets.pencilEditIcon,imgColor: AppColors.black,height: 16,width: 16,))
+                                    ],
                                   ),
                                   SizedBox(
                                     height: SizeConfig.size8,
@@ -380,10 +395,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                             border: Border.all(
                                                 color: AppColors.whiteE5)),
                                         padding: EdgeInsets.symmetric(
-                                            horizontal: 4, vertical: 2),
+                                            horizontal: 8, vertical: 2),
                                         child: Center(
                                           child: CustomText(
-                                            "01/01/2025",
+                                            "${formatDate(details.createdAt)}",
                                             fontSize: 12,
                                           ),
                                         ),
@@ -398,10 +413,12 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                             border: Border.all(
                                                 color: AppColors.whiteE5)),
                                         padding: EdgeInsets.symmetric(
-                                            horizontal: 4, vertical: 2),
+                                            horizontal: 8, vertical: 2),
                                         child: Center(
                                           child: CustomText(
-                                            "Manish Kumar (Admin)",
+                                            "${details
+                                                .members?.firstWhereOrNull(
+                                                    (e)=>e.isAdmin==true)?.name}",
                                             fontSize: 12,
                                           ),
                                         ),
@@ -409,10 +426,11 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     ],
                                   ),
                                   SizedBox(
-                                    height: SizeConfig.size8,
+                                    height: SizeConfig.size10,
                                   ),
                                   ExpandableText(
-                                    text: "N/A",
+                                    text: " ${(details.description!=null&&details.description!='')?
+                                    details.description:"No group description added yet"}",
                                     trimLines: 4,
                                     style: TextStyle(
                                       fontSize: SizeConfig.small,
@@ -422,7 +440,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     ),
                                   ),
                                   SizedBox(
-                                    height: SizeConfig.size10,
+                                    height: SizeConfig.size12,
                                   ),
                                 ],
                               ),
@@ -867,18 +885,18 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                     //                             backgroundColor: theme.colorScheme.primary,
                     //                             radius: radius,
                     //                             backgroundImage:  (chatViewController.editedGroupFile!=null)?
-                    //                             FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
-                    //                                 widget.profileImage!.trim().isNotEmpty)
-                    //                                 ? (widget.profileImage!.startsWith('http')
-                    //                                 ? NetworkImage(widget.profileImage!)
-                    //                                 : (File(widget.profileImage!).existsSync()
-                    //                                 ? FileImage(File(widget.profileImage!)) as ImageProvider
+                    //                             FileImage(chatViewController.editedGroupFile!) as ImageProvider:(groupProfileImage != null &&
+                    //                                 groupProfileImage!.trim().isNotEmpty)
+                    //                                 ? (groupProfileImage!.startsWith('http')
+                    //                                 ? NetworkImage(groupProfileImage!)
+                    //                                 : (File(groupProfileImage!).existsSync()
+                    //                                 ? FileImage(File(groupProfileImage!)) as ImageProvider
                     //                                 : null))
                     //                                 : null,
-                    //                             child:(widget.profileImage != null &&
-                    //                                 widget.profileImage!.trim().isNotEmpty &&
-                    //                                 (widget.profileImage!.startsWith('http') ||
-                    //                                     File(widget.profileImage!).existsSync()))
+                    //                             child:(groupProfileImage != null &&
+                    //                                 groupProfileImage!.trim().isNotEmpty &&
+                    //                                 (groupProfileImage!.startsWith('http') ||
+                    //                                     File(groupProfileImage!).existsSync()))
                     //                                 ? null
                     //                                 : (widget.name != null && widget.name!.isNotEmpty)
                     //                                 ? Center(
@@ -1012,13 +1030,16 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     );
   }
 
-  Widget _groupBanner() {
+  Widget _groupBanner(String? groupProfileImage,String? groupName) {
     return Stack(
-      clipBehavior: Clip.none,
+      // clipBehavior: Clip.none,
       children: [
         /// Banner Image
-        ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        Container(
+         decoration:BoxDecoration(
+           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+         ),
+
           child: Image.network(
             "",
             height: 150,
@@ -1042,11 +1063,14 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
             },
           ),
         ),
-
+        SizedBox(
+          height: 170,
+        ),
         /// Avatar
         Positioned(
+          bottom: 0,
           left: 16,
-          bottom: -32,
+          // bottom: -32,
           child: CircleAvatar(
             radius: 36,
             backgroundColor: Colors.white,
@@ -1056,24 +1080,24 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
               backgroundImage: (chatViewController.editedGroupFile != null)
                   ? FileImage(chatViewController.editedGroupFile!)
                       as ImageProvider
-                  : (widget.profileImage != null &&
-                          widget.profileImage!.trim().isNotEmpty)
-                      ? (widget.profileImage!.startsWith('http')
-                          ? NetworkImage(widget.profileImage!)
-                          : (File(widget.profileImage!).existsSync()
-                              ? FileImage(File(widget.profileImage!))
+                  : (groupProfileImage != null &&
+                          groupProfileImage.trim().isNotEmpty)
+                      ? (groupProfileImage.startsWith('http')
+                          ? NetworkImage(groupProfileImage)
+                          : (File(groupProfileImage).existsSync()
+                              ? FileImage(File(groupProfileImage))
                                   as ImageProvider
                               : null))
                       : null,
-              child: (widget.profileImage != null &&
-                      widget.profileImage!.trim().isNotEmpty &&
-                      (widget.profileImage!.startsWith('http') ||
-                          File(widget.profileImage!).existsSync()))
+              child: (groupProfileImage != null &&
+                      groupProfileImage.trim().isNotEmpty &&
+                      (groupProfileImage.startsWith('http') ||
+                          File(groupProfileImage).existsSync()))
                   ? null
-                  : (widget.name != null && widget.name!.isNotEmpty)
+                  : (groupName != null && (groupName.isNotEmpty??false))
                       ? Center(
                           child: CustomText(
-                            "${widget.name!.split('')[0]}",
+                            "${groupName.split('')[0]}",
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
                             fontSize: 32, // scale font with avatar
@@ -1090,92 +1114,88 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
           ),
         ),
         Positioned(
-            bottom: 10,
-            right: 10,
-            child:InkWell(
-              onTap: (){
-                chatViewController.editedGroupFile=null;
-               showEditGroupDialog(context);
-              },
-              child: Container(
+          bottom: 4,
+          left: 60,
+          child: InkWell(
+            onTap: () async {
+              final newPath = await SelectProfilePictureDialog
+                  .showLogoDialog(
+                  context, "Change Group Profile");
+
+              if (newPath != null && newPath.isNotEmpty) {
+                chatViewController.editedGroupFile = File(newPath);
+                String path =
+                    chatViewController.editedGroupFile!.path;
+                File selectedFiles = File(path);
+
+                List<String?> fileNames = [];
+                List<String?> fileTypes = [];
+
+                Map<String, String?> info =
+                cmd.getFileInfo(selectedFiles);
+                fileNames.add(info['fileName']);
+                fileTypes.add(info['mimeType']);
+
+                Map<String, dynamic> uploadParams = {
+                  ApiKeys.fileName: fileNames,
+                  ApiKeys.fileType: fileTypes,
+                };
+
+               Map<String,dynamic> data = {
+                  ApiKeys.conversation_id: widget.conversationId,
+                };
+                await chatViewController.updateGroupInfo(
+                  data,
+                  isFromFile: true,
+                  fileParams: uploadParams,
+                  fileSended: selectedFiles,
+                );
+
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-              color: AppColors.whiteE5.withOpacity(0.5)
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor,
+                border:
+                Border.all(color: Colors.white, width: 2),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
-              child: Center(child: Row(
-                children: [
-                  CustomText("Edit Group",fontSize: 10,),
-                  SizedBox(width: 4,),
-                  LocalAssets(imagePath: AppIconAssets.pencilEditIcon,imgColor: AppColors.black,height: 14,width: 14,),
-                ],
-              ))),
-            )
+              child: Icon(
+                Icons.edit,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
+        // Positioned(
+        //     bottom: 8,
+        //     right: 10,
+        //     child:InkWell(
+        //       onTap: (){
+        //         chatViewController.editedGroupFile=null;
+        //        showEditGroupDialog(context);
+        //       },
+        //       child: Container(
+        //       decoration: BoxDecoration(
+        //         borderRadius: BorderRadius.circular(4),
+        //       color: AppColors.whiteE5.withOpacity(0.5)
+        //       ),
+        //       padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+        //       child: Center(child: Row(
+        //         children: [
+        //           CustomText("Edit Group",fontSize: 10,),
+        //           SizedBox(width: 4,),
+        //           LocalAssets(imagePath: AppIconAssets.pencilEditIcon,imgColor: AppColors.black,height: 14,width: 14,),
+        //         ],
+        //       ))),
+        //     )
+        // ),
 
       ],
     );
   }
-//
-// Row _groupFeature({String? icon, String? title}) {
-//   return Row(
-//     crossAxisAlignment: CrossAxisAlignment.center,
-//     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//     children: [
-//       Container(
-//         padding: EdgeInsets.all(10),
-//         margin: EdgeInsets.all(10),
-//         width: SizeConfig.size80,
-//         decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(10),
-//             color: Colors.grey.shade200,
-//             border: Border.all(color: Colors.grey.shade400)),
-//         child: Column(
-//           children: [
-//             if (icon != null && icon.isNotEmpty)
-//               SvgPicture.asset(
-//                 height: title == "Add" ? SizeConfig.size25 : null,
-//                 icon,
-//                 color: Colors.black54,
-//               )
-//             else
-//               Icon(
-//                 Icons.image_not_supported,
-//                 color: Colors.black54,
-//               ),
-//             // SizedBox(
-//             //   height: SizeConfig.size5,
-//             // ),
-//             // CustomText(title ?? '')
-//           ],
-//         ),
-//       )
-//     ],
-//   );
-// }
+
 }
-//   InkWell(
-//                                         onTap: (){
-//                                           chatViewController.editedGroupFile=null;
-//                                           showEditGroupDialog(context);
-//                                         },
-//                                         child: Container(
-//                                           decoration: BoxDecoration(
-//                                             borderRadius: BorderRadius.circular(6),
-//                                             color: AppColors.primaryColor
-//                                           ),
-//                                           padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
-//                                           child: Row(
-//                                             children: [
-//                                               LocalAssets(
-//                                                 imagePath: AppIconAssets.editIcon,
-//                                                 height: SizeConfig.size14,
-//                                                 width: SizeConfig.size14,
-//                                                 imgColor: Colors.white,
-//                                               ),
-//                                               SizedBox(width: 6,),
-//                                               CustomText("Edit",color: AppColors.white,),
-//                                             ],
-//                                           ),
-//                                         ),
-//                                       )
+

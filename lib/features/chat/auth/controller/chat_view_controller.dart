@@ -41,8 +41,8 @@ import '../model/find_service_by_contact_model.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
 import '../model/getMediaMsgCommentsModel.dart';
+import '../model/group_details_model.dart';
 import '../model/inventory_ask_ai_model.dart';
-import '../model/view_group_members_model.dart';
 import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../socket/ai_socket.dart';
@@ -66,6 +66,8 @@ class ChatViewController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> chatMessageRequestResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> groupDetailsResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewContactsListResponse = ApiResponse.initial('Initial').obs;
   final chatSocket = ChatSocketService();
   final aiSocket = AiSocketService();
@@ -76,6 +78,7 @@ class ChatViewController extends GetxController {
   RxBool showMentionList = false.obs;
   RxString mentionQuery = "".obs;
   RxList<GroupMembersListModel> filteredMembers = <GroupMembersListModel>[].obs;
+  Rx<GroupDetailsModel> groupDetailsModel=GroupDetailsModel().obs;
 
   static final Map<String, dynamic> aiChatListModel = {
     "last_message": "Ask anything with friend",
@@ -672,7 +675,7 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-
+        log("sdklclksdcmsldkc ${data}");
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -1790,7 +1793,7 @@ class ChatViewController extends GetxController {
           ApiKeys.group_profile_image: sharedFile,
         });
         ResponseModel responseModelCreas =
-        await ChatViewRepo().createNewGroupApi(params);
+        await ChatViewRepo().updateGroupApi(params);
         if (responseModelCreas.isSuccess) {
           emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
           return true;
@@ -1826,7 +1829,27 @@ class ChatViewController extends GetxController {
   String getCurrentIsoTime() {
     return DateTime.now().toUtc().toIso8601String();
   }
+  Future<void> getGroupDetailsApi(Map<String, dynamic> params) async {
+    // try {
 
+      ResponseModel responseModel =
+          await ChatViewRepo().getGroupDetailsApi(params);
+
+      if (responseModel.isSuccess) {
+        final data = responseModel.data;
+        groupDetailsModel.value=GroupDetailsModel.fromJson(data);
+        groupDetailsResponse.value=ApiResponse.complete(groupDetailsModel.value);
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        groupDetailsResponse.value=ApiResponse.error( responseModel.message ?? AppStrings.somethingWentWrong);
+
+      }
+    // } catch (e) {
+    //   groupDetailsResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
+    //
+    // }
+  }
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
     try {
       clearMessageControllerCommon();

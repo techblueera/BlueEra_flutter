@@ -317,7 +317,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                     SizedBox(
                                       width: 140,
                                       child: CustomText(
-                                        "${chat?.groupName?.capitalize}",
+                                        "${chat?.groupName}",
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         // 👈 ensures "..."

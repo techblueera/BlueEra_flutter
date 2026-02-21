@@ -178,6 +178,7 @@ abstract class BaseService {
   final String forwardMessage = 'chat-service/chat/forward-messages';
   final String createGroup = 'chat-service/group/create';
   final String updateGroup = 'chat-service/group/update';
+  final String getGroupDetails = 'chat-service/group/details';
   final String getGroupMembersChat = 'chat-service/group/members';
   final String addGroupMember = "chat-service/group/add-members";
   final String checkChatConnection = 'chat-service/connections/check-connection';
