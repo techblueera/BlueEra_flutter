@@ -220,10 +220,10 @@ class _AllSubscriptionPlansWidgetState extends State<AllSubscriptionPlansWidget>
                         // final offerID = controller
                         //     .selectedOffer.value?.offerId;
                         await controller
-                            .createSubscriptionController(
+                            .subscriptionTrialInitiate(
                             params: {
-                              ApiKeys.planId: subscriptionPlanData?.planId,
-                              ApiKeys.auto_pay: controller.isAutoPayEnabled.value,
+                              // ApiKeys.planId: subscriptionPlanData?.planId,
+                              // ApiKeys.auto_pay: controller.isAutoPayEnabled.value,
                               // ApiKeys.offerId: "",
                               ApiKeys.subscriptionPlanId: subscriptionPlanData?.id,
                             });
@@ -233,7 +233,7 @@ class _AllSubscriptionPlansWidgetState extends State<AllSubscriptionPlansWidget>
                             .status ==
                             Status.COMPLETE) {
                           if (controller
-                              .subscriptionData
+                              .subscriptionTrialData
                               .value
                               .success ??
                               false) {
@@ -244,33 +244,34 @@ class _AllSubscriptionPlansWidgetState extends State<AllSubscriptionPlansWidget>
                               name: AppConstants.appName,
                               subscriptionId:
                               controller
-                                  .subscriptionData
+                                  .subscriptionTrialData
                                   .value
                                   .data
                                   ?.subscriptionId ??
                                   "",
                               description:
                               'Subscription Payment',
-                              amount: controller
-                                  .finalAmount.
-                                  toDouble(),
+                              amount:  controller
+                                  .subscriptionTrialData
+                                  .value
+                                  .data
+                                  ?.amount?.toDouble() ?? 0.0,
                               contact: userMobileGlobal,
                               email:
                               '$userMobileGlobal@gmail.com',
                               onPaymentSuccess:
                                   (response) async {
                                 await controller
-                                    .verifySubscriptionController(
+                                    .verifySubscriptionTrial(
                                     params: {
-                                      ApiKeys.razorpay_payment_id:
-                                      response.paymentId ??
+                                      ApiKeys.razorpay_payment_id: response.paymentId ??
                                           "",
-                                      ApiKeys.razorpay_signature:
-                                      response.signature ??
+                                      ApiKeys.razorpay_signature: response.signature ??
                                           "",
-                                      ApiKeys.razorpay_subscription_id:
-                                      response.data![
+                                      ApiKeys.razorpay_subscription_id: response.data![
                                       'razorpay_subscription_id'],
+                                      ApiKeys.planId: subscriptionPlanData?.planId,
+                                      ApiKeys.subscriptionPlanId: subscriptionPlanData?.id,
                                     });
                               },
                               onPaymentError: (response) {
@@ -360,7 +361,7 @@ class CommonSubscriptionCard extends StatelessWidget {
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: AppColors.primaryColor,
                 width: 2,
@@ -380,6 +381,7 @@ class CommonSubscriptionCard extends StatelessWidget {
               : _background();
         }),
 
+
         /// Content
         Positioned.fill(
           child: Padding(
@@ -387,41 +389,52 @@ class CommonSubscriptionCard extends StatelessWidget {
             child: Row(
               children: [
                 _priceBlock(),
-                const SizedBox(width: 34),
-                Expanded(child: _features()),
+                SizedBox(
+                    width: SizeConfig.screenWidth * 0.07,
+                ),
+                Expanded(
+                    flex: 2,
+                    child: _features()),
               ],
             ),
           ),
         ),
 
         /// Tag
-        Positioned(
-          left: 36,
-          top: 16,
-          child: _planTag(),
-        ),
+        // Positioned(
+        //   left: 36,
+        //   top: 16,
+        //   child: _planTag(),
+        // ),
       ],
     );
   }
 
   Widget _background() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(10.0),
       child: LocalAssets(
         imagePath: style.bg,
+        height: SizeConfig.screenHeight * 0.2,
         width: double.infinity,
-        boxFix: BoxFit.cover,
+        boxFix: BoxFit.fill,
       ),
     );
   }
 
   Widget _priceBlock() {
-    return SizedBox(
-      width: 110,
+    return Container(
+      // color: Colors.yellow,
+      width: SizeConfig.screenWidth * 0.25,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 16),
+          /// Tag
+          _planTag(),
+          // const SizedBox(height: 16),
+
+          /// Amount
           CustomText(
             "₹${details?.amount != null ? (details!.amount! / 100) : '0'}",
             fontSize:
@@ -430,14 +443,18 @@ class CommonSubscriptionCard extends StatelessWidget {
                 : 36,
             fontWeight: FontWeight.w700,
             color: style.textColor,
+            textAlign: TextAlign.center,
           ),
+
+         /// period
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: CustomText(
               details?.period ?? "",
-              fontSize: 12,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
               textAlign: TextAlign.center,
-              color: style.textColor,
+              color: AppColors.secondaryTextColor,
             ),
           ),
         ],
@@ -446,36 +463,55 @@ class CommonSubscriptionCard extends StatelessWidget {
   }
 
   Widget _features() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          "Features",
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: style.textColor,
-        ),
-        const SizedBox(height: 6),
+    return Builder(
+      builder: (context) {
 
-        /// Description
-        _featureItem(
-            details?.description == '' || details?.description == null
-                ? "N/A"
-                : details!.description??''),
+        double _bottomPadding = 4.0;
+        if((details?.perks?.length??0) < 5){
+          _bottomPadding = 12.0;
+        }else if((details?.perks?.length??0) < 7){
+          _bottomPadding = 8.0;
+        }else {
+          _bottomPadding = 4.0;
+        }
 
-        /// Perks
-        ...details?.perks?.map(
-              (e) => _featureItem(
-              e == '' ? "N/A" : e),
-        ) ??
-            [],
-      ],
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // CustomText(
+            //   "Features",
+            //   fontSize: 16,
+            //   fontWeight: FontWeight.w600,
+            //   color: style.textColor,
+            // ),
+            // const SizedBox(height: 6),
+
+            /// Description
+            _featureItem(
+                details?.description == '' || details?.description == null
+                    ? "N/A"
+                    : details!.description??'',
+                bottomPadding: _bottomPadding
+            ),
+
+            /// Perks
+            ...details?.perks?.map(
+                  (e) => _featureItem(
+                  e == '' ? "N/A" : e,
+                  bottomPadding: _bottomPadding
+                  ),
+            ) ??
+                [],
+          ],
+        );
+      }
     );
   }
 
-  Widget _featureItem(String text) {
+  Widget _featureItem(String text, {required double bottomPadding}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: Row(
         children: [
           Icon(
@@ -503,20 +539,21 @@ class CommonSubscriptionCard extends StatelessWidget {
       padding:
       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.15),
+        color: AppColors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
+            blurRadius: 10,
+            offset: Offset(0, 2)
           ),
         ],
       ),
       child: CustomText(
         tagText.toUpperCase(),
-        fontSize: 12,
+        fontSize: SizeConfig.small,
         fontWeight: FontWeight.w600,
-        color: AppColors.white,
+        color: style.textColor,
       ),
     );
   }

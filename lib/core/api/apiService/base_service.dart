@@ -348,6 +348,10 @@ abstract class BaseService {
       'subscription-service/subscription/subscription-offers';
   final String getAllProducts = 'inventory-service/product/getAllProducts';
   final String getParticularRating = 'user-service/business/rating';
+  final String subscriptionTrialInitiate =
+      'subscription-service/subscription/trial/initiate';
+  final String verifyTrialSubscription =
+      'subscription-service/subscription/trial/verify';
 
   ///SAVED,DELETE,GET
   final String savedJob = 'job-service/saved-jobs';

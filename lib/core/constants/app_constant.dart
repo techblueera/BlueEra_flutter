@@ -125,17 +125,17 @@ class AppConstants {
         bg: AppImageAssets.basic_subscription_plan_bg,
         textColor: AppColors.darkBlueShade),
     SubscriptionPlanStyleModel(
-        bg: AppImageAssets.basic_subscription_plan_bg,
-        textColor: AppColors.darkBlueShade),
+        bg: AppImageAssets.popular_subscription_plan_bg,
+        textColor: AppColors.darkYellowShade),
     SubscriptionPlanStyleModel(
-        bg: AppImageAssets.basic_subscription_plan_bg,
-        textColor: AppColors.darkBlueShade),
+        bg: AppImageAssets.advance_subscription_plan_bg,
+        textColor: AppColors.darkGreenShade),
     SubscriptionPlanStyleModel(
-        bg: AppImageAssets.basic_subscription_plan_bg,
-        textColor: AppColors.darkBlueShade),
+        bg: AppImageAssets.pro_subscription_plan_bg,
+        textColor: AppColors.darkPurpleShade),
     SubscriptionPlanStyleModel(
-        bg: AppImageAssets.basic_subscription_plan_bg,
-        textColor: AppColors.darkBlueShade),
+        bg: AppImageAssets.pro_plus_subscription_plan_bg,
+        textColor: AppColors.darkPinkShade),
   ];
 
   static const String group_Chat_Type = 'group';

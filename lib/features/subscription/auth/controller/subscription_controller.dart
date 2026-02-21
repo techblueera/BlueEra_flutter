@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
+import 'package:BlueEra/features/subscription/auth/model/subscription_trial_initiate.dart';
 import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
 import 'package:get/get.dart';
 import '../model/subscription_list_details_model.dart';
@@ -281,4 +282,53 @@ class SubscriptionController extends GetxController {
       userSubscriptionResponse.value = ApiResponse.error('error');
     }
   }
+
+  ///SUBSCRIPTION TRIAL INITIATE...
+
+  Rx<SubscriptionTrialInitiate> subscriptionTrialData = SubscriptionTrialInitiate().obs;
+
+  Future<void> subscriptionTrialInitiate(
+      {required Map<String, dynamic>? params}) async {
+    try {
+      createSubscriptionResponse.value = ApiResponse.initial('Initial');
+
+      ResponseModel responseModel =
+      await SubscriptionRepo().subscriptionTrialInitiateRepo(params: params ?? {});
+      if (responseModel.isSuccess) {
+        subscriptionTrialData.value =
+            SubscriptionTrialInitiate.fromJson(responseModel.response?.data);
+        // commonSnackBar(
+        //     message: subscriptionData.value.message ?? AppStrings.success);
+        createSubscriptionResponse.value = ApiResponse.complete(responseModel);
+      } else {
+        createSubscriptionResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      createSubscriptionResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  ///VERIFY SUBSCRIPTION Trial...
+  Future<void> verifySubscriptionTrial(
+      {required Map<String, dynamic> params}) async {
+    try {
+      ResponseModel responseModel =
+      await SubscriptionRepo().verifyTrialSubscriptionRepo(params: params);
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: responseModel.message ?? AppStrings.success);
+        mySubscriptionAvailable.value = true;
+        verificationSubscriptionResponse.value =
+            ApiResponse.complete(responseModel);
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      verificationSubscriptionResponse.value = ApiResponse.error('error');
+    }
+  }
+
 }

@@ -40,20 +40,20 @@ class RazorpayService {
 
     this.onExternalWallet = onExternalWallet;
     var options = {
-      // 'key': 'rzp_test_SxJzWVt7su8vd7',
       'key': razorpayKey,
       'name': name,
       if (subscriptionId.isNotEmpty) ...{
-        'subscription_id': 'sub_SIOkkVnd7NiSyG',
+        'subscription_id': subscriptionId,
       } else ...{
-        'amount': (amount * 100).toInt(),
+        'amount': (amount/100).toInt(),
         'currency': currency,
         if (orderId != null) 'order_id': orderId,
+        // 'recurring': 1,
       },
       'description': description,
       'timeout': 180, // in seconds
       'retry': {'enabled': true, 'max_count': 3},
-      'prefill': {'contact': contact, 'email': 'himanshu@gmail.com'},
+      'prefill': {'contact': contact, 'email': email},
     };
 
     try {

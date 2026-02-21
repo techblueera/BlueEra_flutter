@@ -80,4 +80,29 @@ class SubscriptionRepo extends BaseService {
 
     return response;
   }
+
+  /// Trial SUBSCRIPTION....
+  Future<ResponseModel> subscriptionTrialInitiateRepo(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        subscriptionTrialInitiate,
+        onError: (error) {},
+        onSuccess: (data) {});
+
+    return response;
+  }
+
+  /// VERIFY TRIAL SUBSCRIPTION .....
+  Future<ResponseModel> verifyTrialSubscriptionRepo(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        subscriptionVerification,
+        onError: (error) {},
+        onSuccess: (data) {});
+
+    return response;
+  }
+
 }

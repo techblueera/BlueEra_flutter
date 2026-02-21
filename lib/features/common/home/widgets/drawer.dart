@@ -211,7 +211,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () => Get.to(WalletScreen()),
+              onTap: () => Get.to(()=> WalletScreen()),
 
               child: Container(
                 padding:

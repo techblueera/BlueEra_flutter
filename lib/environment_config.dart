@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/env.dart';
+import 'package:flutter/foundation.dart';
 
 String? baseUrl, razorpayKey,  chatSocketUrl, liveTrackSocket;
 bool isProdEnvironment = false;
@@ -43,7 +44,11 @@ Future<void> projectKeys({required String environmentType}) async {
   if (environmentType == AppConstants.prod) {
     isProdEnvironment = true;
     baseUrl = Env.prodBaseUrl;
-    razorpayKey = Env.prodRazorPayKey;
+    if(kDebugMode){
+      razorpayKey = Env.devRazorPayKey;
+    }else{
+      razorpayKey = Env.prodRazorPayKey;
+    }
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
   } else if (environmentType == AppConstants.dev) {

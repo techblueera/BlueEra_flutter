@@ -153,4 +153,8 @@ class AppColors {
   static const placeHolder = Color(0xFFB0B4BF);
   static const greyPlaceHolder = Color(0xFFFAFAFA);
   static const darkBlueShade = Color(0xFF003B6C);
+  static const darkYellowShade = Color(0xFF5F4700);
+  static const darkGreenShade = Color(0xFF005305);
+  static const darkPurpleShade = Color(0xFF2F0044);
+  static const darkPinkShade = Color(0xFF600020);
 }
