@@ -1,10 +1,9 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/features/subscription/view/subscrption_new.dart';
+import 'package:BlueEra/features/subscription/widget/paid_subscription_plan_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-
 import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/constants/getx_utils.dart';
 import '../auth/controller/subscription_controller.dart';
@@ -38,7 +37,7 @@ class MySubscriptionDetails extends StatelessWidget {
               selectedIndex: controller.myPlanSelectedTab.value,
               onTabSelected: (index, val) {
                 controller.myPlanSelectedTab.value=index;
-                controller.userCurrentPlanApi({
+                controller.userCurrentPlanApi(params: {
                   ApiKeys.status: val.toLowerCase(),
                 });
               },
@@ -63,11 +62,11 @@ class MySubscriptionDetails extends StatelessWidget {
               itemCount: controller.currentPlansList.length,
               itemBuilder: (context, index) {
                 final details =
-                    controller.currentPlansList[index].subscriptionPlanId;
+                    controller.currentPlansList[index].subscriptionPlanData;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: CommonSubscriptionCard(
+                  child: PaidSubscriptionPlanCard(
                     details: details,
                     index: index,
                     controller: controller,

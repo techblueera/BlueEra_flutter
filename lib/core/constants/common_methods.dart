@@ -398,7 +398,7 @@ Map<String, String?> getFileInfo(File file) {
 
 bool isNetworkImage(dynamic image) =>
     image is String &&
-    (image.startsWith('http://') || image.startsWith('https://'));
+    (image.trim().toLowerCase().startsWith('http://') || image.trim().toLowerCase().startsWith('https://'));
 
 bool isFileImage(dynamic image) => image is File || image is XFile;
 
