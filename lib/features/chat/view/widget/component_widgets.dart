@@ -1103,6 +1103,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isGroupAppBar != null)
         PopupMenuButton<String>(
             icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
+            padding: EdgeInsets.zero,
+            offset: const Offset(-6, 36),
+            color: AppColors.white,
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             onSelected: (value) {
               if (value == "group_info") {
                 Navigator.push(
@@ -1131,20 +1136,8 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 );
               }
             },
-            itemBuilder: (context) =>
-            [
-              // PopupMenuItem(
-              //   value: "group_members",
-              //   child: Text("Group Members"),
-              // ),
-              PopupMenuItem(
-                onTap: () {
-
-                },
-                value: "group_info",
-                child: Text("Group Info"),
-              ),
-            ])
+          itemBuilder: (context) => popPupMenuForGroupChat(),
+        )
       else
         SvgPicture.asset(AppIconAssets.chat_info_pop),
       SizedBox(width: SizeConfig.size8),

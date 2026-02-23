@@ -209,6 +209,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                     ),
                                   ),
                                 )
+
                               : LayoutBuilder(
                                   builder: (context, constraints) {
                                     return ConstrainedBox(

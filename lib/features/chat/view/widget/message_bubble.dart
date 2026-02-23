@@ -67,9 +67,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     chatThemeController.isMessageSelectionActive;
 
     return GestureDetector(
-      onLongPress: (){
-        chatThemeController.activateSelection(widget.messages);
-      },
+
       onTap: (){
         if(chatThemeController.isMessageSelectionActive.value){
           chatThemeController.selectMoreMessage(widget.messages);

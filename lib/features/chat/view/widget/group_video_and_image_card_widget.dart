@@ -366,7 +366,7 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
   {
     int displayCount = paths.length > 4 ? 4 : paths.length;
     return Container(
-      width: 256,
+      width:  SizeConfig.screenWidth*0.72,
       decoration: BoxDecoration(
         color: (isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
         borderRadius: BorderRadius.circular(12),
@@ -390,7 +390,7 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
               height: 4,
             ):SizedBox(),
             Container(
-              width: 254,
+              width:  SizeConfig.screenWidth*0.72,
               height: 256,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),

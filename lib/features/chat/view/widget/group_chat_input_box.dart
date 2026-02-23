@@ -439,6 +439,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                     ),
                                   ),
                                 ),
+
                                 Expanded(
                                   child:  TextFormField(
                                     scrollController: _scrollController,

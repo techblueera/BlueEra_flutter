@@ -247,8 +247,7 @@ class ChatViewController extends GetxController {
   RxBool socketConnectedCalled = false.obs;
   final ScrollController scrollController = ScrollController();
   Rx<Messages?>? replyMessage = Messages().obs;
-  // Rx<NewConvoContactVisitDetails?>? newVisitContactApiResponse =
-  //     NewConvoContactVisitDetails().obs;
+
   RxString userOnlineStatus = ''.obs;
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
@@ -270,7 +269,13 @@ class ChatViewController extends GetxController {
   RxInt businessTabIndexSelected = 0.obs;
   RxBool chatBotReading = false.obs;
   RxBool viewAllMembers = false.obs;
+
   File? editedGroupFile;
+  File? editedGroupCoverFile;
+  RxBool isPublicGroup = false.obs;
+  RxBool isEditGroupBtnLoading = false.obs;
+  final groupNameController=TextEditingController();
+  final groupDescriptionController=TextEditingController();
 
   final List<String> tabs = [
     'Chat',
@@ -1687,8 +1692,7 @@ class ChatViewController extends GetxController {
       }
     }
   }
-  final groupNameController=TextEditingController();
-  final groupDescriptionController=TextEditingController();
+
 
   Future<void> getGroupMembersApi(
     Map<String, dynamic> params,
@@ -1756,12 +1760,14 @@ class ChatViewController extends GetxController {
     Map<String, dynamic> params,
   {
   bool? isFromFile,
+  bool? isFromCoverImage,
   Map<String, dynamic>? fileParams,
   File? fileSended
   }
   ) async {
     try {
-      if (isFromFile != null) {
+      isEditGroupBtnLoading.value=true;
+      if (isFromFile != null||isFromCoverImage!=null) {
         ResponseModel responseModel =
         await ChatViewRepo().generateUploadUrlsApi(fileParams!);
         clearMessageControllerCommon();
@@ -1790,38 +1796,66 @@ class ChatViewController extends GetxController {
         }).toList() ??
             [];
         params.addAll({
+          if(isFromCoverImage!=null)
+            ApiKeys.group_cover_image: sharedFile
+            else
           ApiKeys.group_profile_image: sharedFile,
         });
         ResponseModel responseModelCreas =
         await ChatViewRepo().updateGroupApi(params);
         if (responseModelCreas.isSuccess) {
+
+          groupDetailsModel.value.copyWith(
+              groupProfileImage:responseModelCreas.data['group_profile_image'],
+            groupCoverImage: responseModelCreas.data['group_cover_image'],
+            groupName: responseModelCreas.data['group_name'],
+            publicGroup: responseModelCreas.data['public_group'],
+          );
           emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+          isEditGroupBtnLoading.value=false;
           return true;
         } else {
+          isEditGroupBtnLoading.value=false;
+
           commonSnackBar(
               message:
               responseModelCreas.message ?? AppStrings.somethingWentWrong);
           return false;
         }
       }else{
-        ResponseModel responseModel =
+        ResponseModel responseModelCreas =
         await ChatViewRepo().updateGroupApi(params);
         clearMessageControllerCommon();
         emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
 
-        if (responseModel.isSuccess) {
+        if (responseModelCreas.isSuccess) {
+
           clearMessageControllerCommon();
+          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+
+          groupDetailsModel.value.copyWith(
+            groupProfileImage:responseModelCreas.data['group_profile_image'],
+            groupCoverImage: responseModelCreas.data['group_cover_image'],
+            groupName: responseModelCreas.data['group_name'],
+            publicGroup: responseModelCreas.data['public_group'],
+          );
+          isEditGroupBtnLoading.value=false;
+
           return true;
         } else {
           clearMessageControllerCommon();
           commonSnackBar(
-              message: responseModel.message ?? AppStrings.somethingWentWrong);
+              message: responseModelCreas.message ?? AppStrings.somethingWentWrong);
+          isEditGroupBtnLoading.value=false;
 
           return false;
       }
 
       }
+
     } catch (e) {
+      isEditGroupBtnLoading.value=false;
+
       return false;
     }
   }
