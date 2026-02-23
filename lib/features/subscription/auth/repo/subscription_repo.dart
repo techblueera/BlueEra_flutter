@@ -70,7 +70,7 @@ class SubscriptionRepo extends BaseService {
 
     return response;
   }
-  Future<ResponseModel> userCurrentPlanApi(Map<String,dynamic> params) async {
+  Future<ResponseModel> userCurrentPlanApi(Map<String,dynamic>? params) async {
     final response = await ApiBaseHelper().getHTTP(
         userCurrentPlan,
         onError: (error) {},

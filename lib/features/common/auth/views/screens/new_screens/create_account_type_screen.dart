@@ -669,7 +669,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   Widget _businessOtherServiceContent({Key? key}) {
     final Map<String, List<CategoryData>> onboardingBusinessMap = {
       'Automotive Services': authController.businessOnboardingAutomotiveServicesCategories,
-      'Health Care Sectors': authController.businessOnboardingHealthcareSectorsCategories,
+      'Health Care': authController.businessOnboardingHealthcareSectorsCategories,
       'Hospitality & Stay': authController.businessOnboardingHospitalityStayCategories,
       'Education & Training Sectors': authController.businessOnboardingEducationTrainingCategories,
       'Financial Sectors': authController.businessOnboardingFinancialSectorsCategories,

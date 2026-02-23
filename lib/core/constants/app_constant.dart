@@ -24,6 +24,7 @@ import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -123,19 +124,19 @@ class AppConstants {
   static  List<SubscriptionPlanStyleModel> listOfSubsBg = [
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.basic_subscription_plan_bg,
-        textColor: AppColors.darkBlueShade),
+        color: AppColors.darkBlueShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.popular_subscription_plan_bg,
-        textColor: AppColors.darkYellowShade),
+        color: AppColors.darkYellowShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.advance_subscription_plan_bg,
-        textColor: AppColors.darkGreenShade),
+        color: AppColors.darkGreenShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.pro_subscription_plan_bg,
-        textColor: AppColors.darkPurpleShade),
+        color: AppColors.darkPurpleShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.pro_plus_subscription_plan_bg,
-        textColor: AppColors.darkPinkShade),
+        color: AppColors.darkPinkShade),
   ];
 
   static const String group_Chat_Type = 'group';

@@ -33,6 +33,7 @@ class SubscriptionController extends GetxController {
   RxBool mySubscriptionAvailable=false.obs;
   var selectedMethod = PaymentMethod.upi.obs;
   RxList<UserSubscription> currentPlansList=<UserSubscription>[].obs;
+  RxString planStatus = ''.obs;
   RxList<int> selectedSubscriptionIndex = <int>[].obs;
   void selectMethod(PaymentMethod? method) {
     selectedMethod.value = method ?? selectedMethod.value;
@@ -116,10 +117,6 @@ class SubscriptionController extends GetxController {
   }
 
   ///GET PLAN OFFER..
-  Rx<SubscriptionOfferModel> subscriptionOfferModel =
-      SubscriptionOfferModel().obs;
-  Rx<SubscriptionPlanDetailsNewModel> subscriptionPlanDetailsNewModel = SubscriptionPlanDetailsNewModel().obs;
-
   Future getSubscriptionOffer() async {
     try {
       getSubscriptionOfferResponse.value = ApiResponse.initial('Initial');
@@ -137,6 +134,13 @@ class SubscriptionController extends GetxController {
       getSubscriptionOfferResponse.value = ApiResponse.error('error');
     }
   }
+
+
+  ///GET SUBSCRIPTION PLAN ..
+  Rx<SubscriptionOfferModel> subscriptionOfferModel =
+      SubscriptionOfferModel().obs;
+  String? bannerVideoUrl;
+  Rx<SubscriptionPlanDetailsNewModel> subscriptionPlanDetailsNewModel = SubscriptionPlanDetailsNewModel().obs;
 
   Future<void> subscriptionPlansGetApi() async {
     try {
@@ -180,19 +184,19 @@ class SubscriptionController extends GetxController {
         };
 
 
-      getSubscriptionOfferResponse.value = ApiResponse.initial('Initial');
+      getSubscriptionPlanResponse.value = ApiResponse.initial('Initial');
 
       ResponseModel response = await SubscriptionRepo().subscriptionPlansGetApi(queryParams: _queryParams);
       if (response.isSuccess) {
         subscriptionPlanDetailsNewModel.value =
             SubscriptionPlanDetailsNewModel.fromJson(response.response?.data);
-        getSubscriptionOfferResponse.value = ApiResponse.complete(response);
+        getSubscriptionPlanResponse.value = ApiResponse.complete(response);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        getSubscriptionOfferResponse.value = ApiResponse.error('error');
+        getSubscriptionPlanResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      getSubscriptionOfferResponse.value = ApiResponse.error('error');
+      getSubscriptionPlanResponse.value = ApiResponse.error('error');
     }
   }
 
@@ -259,7 +263,7 @@ class SubscriptionController extends GetxController {
       cancelSubscriptionResponse.value = ApiResponse.error('error');
     }
   }
-  Future<void> userCurrentPlanApi(Map<String, dynamic> params) async {
+  Future<void> userCurrentPlanApi({Map<String, dynamic>? params}) async {
     try {
       ResponseModel responseModel =
           await SubscriptionRepo().userCurrentPlanApi(params);
@@ -270,7 +274,7 @@ class SubscriptionController extends GetxController {
         userSubscriptionResponse.value = ApiResponse.complete(responseModel);
         // if(params[ApiKeys.status] == AppConstants.active){
           if(currentPlansList.isNotEmpty){
-            mySubscriptionAvailable.value=true;
+            planStatus.value = currentPlansList.first.status;
           }
         // }
       } else {
@@ -319,9 +323,12 @@ class SubscriptionController extends GetxController {
       await SubscriptionRepo().verifyTrialSubscriptionRepo(params: params);
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
-        mySubscriptionAvailable.value = true;
         verificationSubscriptionResponse.value =
             ApiResponse.complete(responseModel);
+
+        // Payment success Popup
+
+
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
