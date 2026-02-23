@@ -2,11 +2,13 @@ class SubscriptionPlanDetailsNewModel {
   bool? success;
   String? message;
   List<SubscriptionPlanData>? data;
+  String? bannerVideoUrl;
 
   SubscriptionPlanDetailsNewModel({
     this.success,
     this.message,
     this.data,
+    this.bannerVideoUrl,
   });
 
   factory SubscriptionPlanDetailsNewModel.fromJson(
@@ -20,6 +22,7 @@ class SubscriptionPlanDetailsNewModel {
             .map((e) => SubscriptionPlanData.fromJson(e ?? {})),
       )
           : <SubscriptionPlanData>[],
+      bannerVideoUrl: json['bannerVideoUrl']?.toString(),
     );
   }
 
@@ -28,6 +31,7 @@ class SubscriptionPlanDetailsNewModel {
       'success': success,
       'message': message,
       'data': data?.map((e) => e.toJson()).toList(),
+      'bannerVideoUrl': bannerVideoUrl,
     };
   }
 }
@@ -42,6 +46,7 @@ class SubscriptionPlanData {
   String? name;
   String? description;
   int? amount;
+  int? amountBeforeDiscount;
   String? currency;
   String? createdBy;
   String? tier;
@@ -60,6 +65,7 @@ class SubscriptionPlanData {
     this.name,
     this.description,
     this.amount,
+    this.amountBeforeDiscount,
     this.currency,
     this.createdBy,
     this.tier,
@@ -86,6 +92,9 @@ class SubscriptionPlanData {
       amount: json['amount'] is int
           ? json['amount']
           : int.tryParse('${json['amount']}'),
+      amountBeforeDiscount: json['amountBeforeDiscount'] is int
+          ? json['amountBeforeDiscount']
+          : int.tryParse('${json['amountBeforeDiscount']}'),
       currency: json['currency']?.toString(),
       createdBy: json['created_by']?.toString(),
       tier: json['tier']?.toString(),
@@ -113,6 +122,7 @@ class SubscriptionPlanData {
       'name': name,
       'description': description,
       'amount': amount,
+      'amountBeforeDiscount': amountBeforeDiscount,
       'currency': currency,
       'created_by': createdBy,
       'tier': tier,
@@ -133,6 +143,7 @@ class SubscriptionPlanData {
     String? name,
     String? description,
     int? amount,
+    int? amountBeforeDiscount,
     String? currency,
     String? createdBy,
     String? tier,
@@ -151,6 +162,7 @@ class SubscriptionPlanData {
       name: name ?? this.name,
       description: description ?? this.description,
       amount: amount ?? this.amount,
+      amountBeforeDiscount: amountBeforeDiscount ?? this.amountBeforeDiscount,
       currency: currency ?? this.currency,
       createdBy: createdBy ?? this.createdBy,
       tier: tier ?? this.tier,

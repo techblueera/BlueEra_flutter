@@ -24,6 +24,7 @@ import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -123,19 +124,19 @@ class AppConstants {
   static  List<SubscriptionPlanStyleModel> listOfSubsBg = [
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.basic_subscription_plan_bg,
-        textColor: AppColors.darkBlueShade),
+        color: AppColors.darkBlueShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.popular_subscription_plan_bg,
-        textColor: AppColors.darkYellowShade),
+        color: AppColors.darkYellowShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.advance_subscription_plan_bg,
-        textColor: AppColors.darkGreenShade),
+        color: AppColors.darkGreenShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.pro_subscription_plan_bg,
-        textColor: AppColors.darkPurpleShade),
+        color: AppColors.darkPurpleShade),
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.pro_plus_subscription_plan_bg,
-        textColor: AppColors.darkPinkShade),
+        color: AppColors.darkPinkShade),
   ];
 
   static const String group_Chat_Type = 'group';
@@ -1178,6 +1179,49 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
     if ((is_reposted == null) || (is_reposted == false))
       {'title': AppStrings.editPost, "slud_id": 'Edit Post'},
     {'title': AppStrings.deletePost, "slud_id": "Delete Post"},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['slud_id'],
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+List<PopupMenuEntry<String>> popPupMenuForGroupChat() {
+  final items = <Map<String, dynamic>>[
+      {'title':"Clear Chat", "slud_id": 'clear_chat'},
+    {'title': "Background Change", "slud_id": "background_change"},
+    {'title': "Exit Group", "slud_id": "exit_group"},
+    {'title': "Pin Group", "slud_id": "pin_group"},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];

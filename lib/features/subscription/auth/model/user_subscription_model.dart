@@ -4,7 +4,7 @@ class UserSubscription {
   final String id;
   final String userId;
   final String planId;
-  final SubscriptionPlanData subscriptionPlanId;
+  final SubscriptionPlanData subscriptionPlanData;
   final bool autoPay;
   final String status;
   final bool isSubscribed;
@@ -13,6 +13,10 @@ class UserSubscription {
   final int remainingCount;
   final String subscriptionId;
   final bool cancelAtCycleEnd;
+  final bool isTrial;
+  final String trialStart;
+  final String trialEnd;
+  final bool trialPaid;
   final DateTime createdAt;
   final DateTime updatedAt;
   final int v;
@@ -21,7 +25,7 @@ class UserSubscription {
     required this.id,
     required this.userId,
     required this.planId,
-    required this.subscriptionPlanId,
+    required this.subscriptionPlanData,
     required this.autoPay,
     required this.status,
     required this.isSubscribed,
@@ -30,6 +34,10 @@ class UserSubscription {
     required this.remainingCount,
     required this.subscriptionId,
     required this.cancelAtCycleEnd,
+    required this.isTrial,
+    required this.trialStart,
+    required this.trialEnd,
+    required this.trialPaid,
     required this.createdAt,
     required this.updatedAt,
     required this.v,
@@ -40,7 +48,7 @@ class UserSubscription {
       id: json['_id'] ?? '',
       userId: json['user_id'] ?? '',
       planId: json['plan_id'] ?? '',
-      subscriptionPlanId:
+      subscriptionPlanData:
       SubscriptionPlanData.fromJson(json['subscriptionPlanId'] ?? {}),
       autoPay: json['auto_pay'] ?? false,
       status: json['status'] ?? '',
@@ -50,6 +58,10 @@ class UserSubscription {
       remainingCount: json['remaining_count'] ?? 0,
       subscriptionId: json['subscription_id'] ?? '',
       cancelAtCycleEnd: json['cancel_at_cycle_end'] ?? false,
+      isTrial: json['is_trial'] ?? false,
+      trialStart: json['trial_start'] ?? '',
+      trialEnd: json['trial_end'] ?? '',
+      trialPaid: json['trial_paid'] ?? false,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
       v: json['__v'] ?? 0,
@@ -61,7 +73,7 @@ class UserSubscription {
       '_id': id,
       'user_id': userId,
       'plan_id': planId,
-      'subscriptionPlanId': subscriptionPlanId.toJson(),
+      'subscriptionPlanId': subscriptionPlanData.toJson(),
       'auto_pay': autoPay,
       'status': status,
       'isSubscribed': isSubscribed,
@@ -70,6 +82,10 @@ class UserSubscription {
       'remaining_count': remainingCount,
       'subscription_id': subscriptionId,
       'cancel_at_cycle_end': cancelAtCycleEnd,
+      'is_trial': isTrial,
+      'trial_start': trialStart,
+      'trial_end': trialEnd,
+      'trial_paid': trialPaid,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       '__v': v,

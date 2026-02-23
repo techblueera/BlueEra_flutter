@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -9,7 +10,14 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 class HorizontalVideoPlayer extends StatefulWidget {
   final bool isAutoPlay;
-  const HorizontalVideoPlayer({super.key, this.isAutoPlay = false});
+  final List<String>? videoUrls;
+  final bool? isNetworkUrl;
+  const HorizontalVideoPlayer({
+    super.key,
+    this.isAutoPlay = false,
+    this.videoUrls,
+    this.isNetworkUrl
+  });
 
   @override
   State<HorizontalVideoPlayer> createState() => _HorizontalVideoPlayerState();
@@ -19,7 +27,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     with WidgetsBindingObserver {
   final PageController _pageController = PageController(viewportFraction: 1.0);
 
-  final List<String> videoUrls = ['assets/video/earn_with_blue_era_video.mp4'];
+  late List<String> _videoUrls;
   final List<String> thumbnailUrls = [
     AppImageAssets.earnWithBlueeraVideoThumbnail
   ];
@@ -31,8 +39,9 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _videoUrls = widget.videoUrls ?? ['assets/video/earn_with_blue_era_video.mp4'];
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeController(videoUrls[_currentPage]);
+      _initializeController(_videoUrls[_currentPage]);
     });
   }
 
@@ -53,11 +62,26 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     // Don't auto-resume on app resume - let user control it
   }
 
+  // void _getVideoThumbnail(){
+  //   XFile thumbnailFile = await VideoThumbnail.thumbnailFile(
+  //       video: "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
+  //       thumbnailPath: (await getTemporaryDirectory()).path,
+  //       imageFormat: ImageFormat.WEBP,
+  //       maxHeight: 64, // specify the height of the thumbnail, let the width auto-scaled to keep the source aspect ratio
+  //       quality: 75,
+  //   );
+  // }
+
   Future<void> _initializeController(String path) async {
     _disposeController();
     // if (!mounted) return; // ← ADD THIS
 
-    _controller = VideoPlayerController.asset(path);
+    if(widget.isNetworkUrl!=null){
+      _controller = VideoPlayerController.networkUrl(Uri.parse(path));
+    }else{
+      _controller = VideoPlayerController.asset(path);
+    }
+
 
     try {
       await _controller!.initialize();
@@ -84,7 +108,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   void _togglePlayPause() {
     if (_controller == null) {
-      _initializeController(videoUrls[_currentPage]);
+      _initializeController(_videoUrls[_currentPage]);
       return;
     }
 
@@ -107,7 +131,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
   }
 
   void _goToNext() {
-    if (_currentPage < videoUrls.length - 1) {
+    if (_currentPage < _videoUrls.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
@@ -131,10 +155,10 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
         child: PageView.builder(
           controller: _pageController,
           scrollDirection: Axis.horizontal,
-          itemCount: videoUrls.length,
+          itemCount: _videoUrls.length,
           onPageChanged: (index) async {
             _currentPage = index;
-            await _initializeController(videoUrls[index]);
+            await _initializeController(_videoUrls[index]);
           },
           itemBuilder: (context, index) {
             final isCurrent = index == _currentPage;
@@ -149,7 +173,9 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
                   // Thumbnail (before load)
                   if (isCurrent &&
                       (controller == null || !controller.value.isInitialized))
-                    _buildThumbnail(thumbnailUrls[index]),
+                    (widget.isNetworkUrl!=null)
+                    ? Center(child: CircularProgressIndicator())
+                    : _buildThumbnail(thumbnailUrls[index]),
 
                   // Video player
                   if (isCurrent &&
@@ -160,10 +186,12 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
                   if (!isCurrent) _buildDimmedBackground(),
 
                   // Play/Pause overlay
-                  if (isCurrent) _buildPlayPauseOverlay(controller),
+                  if (isCurrent &&
+                      controller != null &&
+                      controller.value.isInitialized) _buildPlayPauseOverlay(controller),
 
                   // Navigation buttons
-                  if (videoUrls.length > 1) _buildNavigationButtons(),
+                  if (_videoUrls.length > 1) _buildNavigationButtons(),
                 ],
               ),
             );

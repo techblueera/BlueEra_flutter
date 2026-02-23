@@ -5,9 +5,12 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
+import '../../../../widgets/custom_text_cm.dart';
+import '../../../../widgets/local_assets.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
@@ -219,6 +222,77 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                   },
                                 ),
                         ),
+                        if(chatThemeController.isMessageSelectionActive.value)
+                        Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.lightBlueShade.withOpacity(0.2)
+                            ),
+
+                            margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                            padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: EdgeInsets.only(right: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
+                                      SizedBox(width: 6,),
+                                      CustomText("Reminder",fontWeight: FontWeight.w500,fontSize: 12,),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: EdgeInsets.only(right: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
+                                      SizedBox(width: 6,),
+                                      CustomText("Copy",fontWeight: FontWeight.w500,fontSize: 12,),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: EdgeInsets.only(right: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      LocalAssets(imagePath: AppIconAssets.deleteIcon,height: 14,width: 14,),
+                                      SizedBox(width: 6,),
+                                      CustomText("Delete",fontWeight: FontWeight.w500,fontSize: 12,),
+                                    ],
+                                  ),
+                                ), Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
+                                      SizedBox(width: 6,),
+                                      CustomText("Forward",fontWeight: FontWeight.w500,fontSize: 12,),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ) ),
                         const SizedBox(
                           height: 6,
                         ),
@@ -232,6 +306,82 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                         const SizedBox(height: 14),
                       ],
                     ),
+                    // if(chatThemeController.isMessageSelectionActive.value)
+                    // Positioned(
+                    //   left: 10,
+                    //   right: 10,
+                    //   bottom: 200,
+                    //   child: Container(
+                    //       decoration: BoxDecoration(
+                    //           borderRadius: BorderRadius.circular(10),
+                    //           color: AppColors.lightBlueShade.withOpacity(0.2)
+                    //       ),
+                    //
+                    //       margin: EdgeInsets.symmetric(horizontal: 10),
+                    //       padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                    //       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //         children: [
+                    //           Container(
+                    //             decoration: BoxDecoration(
+                    //               color: AppColors.white,
+                    //               borderRadius: BorderRadius.circular(10),
+                    //             ),
+                    //             margin: EdgeInsets.only(right: 8),
+                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                    //             child: Row(
+                    //               children: [
+                    //                 LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
+                    //                 SizedBox(width: 6,),
+                    //                 CustomText("Reminder",fontWeight: FontWeight.w500,fontSize: 12,),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //           Container(
+                    //             decoration: BoxDecoration(
+                    //               color: AppColors.white,
+                    //               borderRadius: BorderRadius.circular(10),
+                    //             ),
+                    //             margin: EdgeInsets.only(right: 8),
+                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                    //             child: Row(
+                    //               children: [
+                    //                 LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
+                    //                 SizedBox(width: 6,),
+                    //                 CustomText("Copy",fontWeight: FontWeight.w500,fontSize: 12,),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //           Container(
+                    //             decoration: BoxDecoration(
+                    //               color: AppColors.white,
+                    //               borderRadius: BorderRadius.circular(10),
+                    //             ),
+                    //             margin: EdgeInsets.only(right: 8),
+                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                    //             child: Row(
+                    //               children: [
+                    //                 LocalAssets(imagePath: AppIconAssets.deleteIcon,height: 14,width: 14,),
+                    //                 SizedBox(width: 6,),
+                    //                 CustomText("Delete",fontWeight: FontWeight.w500,fontSize: 12,),
+                    //               ],
+                    //             ),
+                    //           ), Container(
+                    //             decoration: BoxDecoration(
+                    //               color: AppColors.white,
+                    //               borderRadius: BorderRadius.circular(10),
+                    //             ),
+                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                    //             child: Row(
+                    //               children: [
+                    //                 LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
+                    //                 SizedBox(width: 6,),
+                    //                 CustomText("Forward",fontWeight: FontWeight.w500,fontSize: 12,),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         ],
+                    //       ) ),
+                    // )
                   ],
                 ),
               );
