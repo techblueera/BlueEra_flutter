@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/school/view/category/school_home/school_mana
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -25,7 +26,7 @@ class SchoolHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.whiteE5,
+      color: AppColors.appBackgroundColor,
       child: RefreshIndicator(onRefresh: () async {
         await schoolAboutUsController.getSchoolByIdController();
       }, child: Obx(() {
@@ -143,7 +144,9 @@ Widget cardViewWidget({required String title}) {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CustomText(title, fontSize: 18, fontWeight: FontWeight.bold),
+            ServiceHomeTitleWidget(
+              title: title,
+            ),
             CustomText(
               "View ",
               fontWeight: FontWeight.bold,

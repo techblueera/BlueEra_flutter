@@ -5,6 +5,7 @@ import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/acada
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,8 +31,9 @@ class SchoolCourseSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CustomText("Our Courses",
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                ServiceHomeTitleWidget(
+                  title: "Our Courses",
+                ),
                 if (courses.length > 5)
                   InkWell(
                     onTap: () {
@@ -48,7 +50,7 @@ class SchoolCourseSection extends StatelessWidget {
 
           // Horizontal List of Course Cards
           SizedBox(
-            height: 200, // Adjusted for the badges and pricing
+            height: 160, // Adjusted for the badges and pricing
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -88,7 +90,7 @@ class SchoolCourseSection extends StatelessWidget {
                   CustomText(
                     course.name ?? "N/A",
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    // fontSize: 16,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -103,7 +105,7 @@ class SchoolCourseSection extends StatelessWidget {
                     expandMode: ExpandMode.dialog,
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.medium,
+                      fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       fontFamily: AppConstants.OpenSans,
                     ),
@@ -129,7 +131,7 @@ class SchoolCourseSection extends StatelessWidget {
                   CustomText(
                       "₹${formatNumber(course.courseFees?.yearly ?? 0)}/Year",
                       fontWeight: FontWeight.bold,
-                      fontSize: 16),
+                     ),
                 ],
               ),
             ),

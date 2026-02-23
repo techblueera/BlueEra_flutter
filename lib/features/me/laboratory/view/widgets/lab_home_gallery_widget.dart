@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
@@ -29,8 +29,9 @@ class LabHomeGalleryWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          CustomText("Gallery",  fontWeight: FontWeight.bold),
+          ServiceHomeTitleWidget(
+            title:"Gallery",
+          ),
           const SizedBox(height: 16),
           StaggeredGrid.count(
             crossAxisCount: 4, // Total grid columns

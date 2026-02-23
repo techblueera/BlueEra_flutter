@@ -252,13 +252,6 @@ class _AllProfessionConsultantScreenState
       onTap: (){
         Get.to(DiscoverProfessionalsViewScreen(professionalConsData:service ,));
       },
-      // onTap: () => showFullProfessionDetails(
-      //   service,
-      //   // timingMap: timingMap,
-      //   priceDisplay: priceDisplay,
-      //   priceBadgeText: badgeText,
-      //   priceBadgeColor: badgeColor,
-      // ),
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: EdgeInsets.only(bottom: SizeConfig.size10),

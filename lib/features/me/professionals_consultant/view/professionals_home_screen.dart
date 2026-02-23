@@ -125,7 +125,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   padding: 10,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
                     children: [
                       if ((data.gallery?.signedUrls ?? []).isNotEmpty)
                         _buildSectionTitle("Gallery"),
@@ -140,7 +139,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   padding: 10,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
                     children: [
                       _buildSectionTitle("Contact Us"),
                       _buildContact(data),
@@ -155,9 +153,11 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   child: BusinessLocationWidget(
                       locationText: data.basicDetails?.fullName,
                       latitude: double.parse(
-                          data.contact?.location?.coordinates?[0].toString() ?? "0.0"),
+                          data.contact?.location?.coordinates?[0].toString() ??
+                              "0.0"),
                       longitude: double.parse(
-                          data.contact?.location?.coordinates?[1].toString() ?? "0.0"),
+                          data.contact?.location?.coordinates?[1].toString() ??
+                              "0.0"),
                       businessName: "",
                       padding: 10,
                       isTitleShow: true),
@@ -168,11 +168,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   padding: 10,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
                     children: [
                       _buildSectionTitle("Working Hours"),
                       _buildTimings(data.timings),
-
                     ],
                   ),
                 ),
@@ -301,8 +299,8 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                         child: CircleAvatar(
                           backgroundColor:
                               AppColors.black.withValues(alpha: 0.3),
-                          child: LocalAssets(
-                              imagePath: 'assets/images/image.png'),
+                          child:
+                              LocalAssets(imagePath: 'assets/images/image.png'),
                         )))
               ],
             ),
@@ -364,10 +362,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     );
   }
 
-
-
-
-
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
@@ -383,19 +377,42 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     final desc =
         data.about?.majorProjectsDescription ?? data.about?.description ?? "";
     if (desc.isEmpty) return const SizedBox();
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(SizeConfig.size12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: CustomText(
-        desc,
-        color: AppColors.secondaryTextColor,
-      ),
+    List<String> rawExpertise = data.about?.expertise??[];
+
+// 1. Split by comma
+// 2. Expand into a single flat list
+// 3. Trim whitespace from each item
+    List<String> cleanedList = rawExpertise
+        .expand((item) => item.split(','))
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)   // Safety check for empty strings
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: cleanedList.map((expertise) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // The Bullet Symbol
+              const Text("• ", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              // The Text
+              Expanded(
+                child: Text(
+                  expertise,
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
+    // If you want to display these on your main page after selection:
+  
   }
 
   List<String> _extractPortfolioMedia(ProfessionalProfileData data,
@@ -430,7 +447,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildCertificates(List<Certificates> certs) {
     final items = certs;
@@ -603,7 +619,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
           if ((contact?.address ?? "").isNotEmpty)
             _contactRow(AppIconAssets.location_new, contact!.address!,
                 color: AppColors.secondaryTextColor),
-
         ],
       ),
     );

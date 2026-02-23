@@ -11,6 +11,8 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -42,7 +44,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               labViewHeader(d),
-              SizedBox(height: SizeConfig.size12),
+              SizedBox(height: SizeConfig.size14),
               _basicTest(tests),
               SizedBox(height: SizeConfig.size16),
               CommonCardWidget(
@@ -123,36 +125,8 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           ),
 
           // --- FORM SECTION ---
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                CustomText(profile?.name,
-                    fontSize: 18,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold),
-                const SizedBox(height: 10),
-                ExpandableText(
-                  text: profile?.description ?? "",
-                  trimLines: 4,
-                  isReadMoreNewLine: false,
-                  expandMode: ExpandMode.dialog,
-                  style: TextStyle(
-                    color: AppColors.secondaryTextColor,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: AppConstants.OpenSans,
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          ),
+          ServiceHomeHeaderTitleWidget(title: profile?.name??"", description: profile?.description ?? "",),
+
         ],
       ),
     );
@@ -171,9 +145,11 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Test Report", fontWeight: FontWeight.w700),
+          ServiceHomeTitleWidget(
+            title:"Test Report",
+          ),
           SizedBox(
-            height: 200, // Adjusted height to accommodate the layout
+            height: 150, // Adjusted height to accommodate the layout
             child: ListView.builder(
               itemCount: tests.length,
               scrollDirection: Axis.horizontal,
@@ -211,7 +187,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                             child: CustomText(
                               t.testName ?? "Test Name",
                               fontWeight: FontWeight.w700,
-                              fontSize: 18,
+                              fontSize: 16,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -224,6 +200,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                         t.description ?? "",
                         color: Colors.grey.shade600,
                         maxLines: 1,
+                        fontSize: SizeConfig.small,
                         overflow: TextOverflow.ellipsis,
                       ),
 
@@ -244,20 +221,6 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                         ],
                       ),
 
-                      SizedBox(height: 12),
-
-                      // Bottom Row: Home Collection status
-                      Row(
-                        children: [
-                          Icon(Icons.circle, size: 8, color: Colors.grey),
-                          SizedBox(width: 8),
-                          CustomText(
-                            "Home sample collection available",
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 );
@@ -280,12 +243,10 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade100),
       ),
-      child: Text(
+      child: CustomText(
         text,
-        style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          fontSize: 13,
-        ),
+          fontSize: 12,
       ),
     );
   }
@@ -295,7 +256,9 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText("Our Popular Services", fontWeight: FontWeight.w700),
+        ServiceHomeTitleWidget(
+          title:"Our Popular Services",
+        ),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
           height: 70,
@@ -349,7 +312,9 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Our All Services", fontWeight: FontWeight.w700),
+          ServiceHomeTitleWidget(
+            title:"Our All Services",
+          ),
           SizedBox(height: SizeConfig.size8),
           Wrap(
             spacing: 8,
@@ -411,10 +376,16 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 6),
-            child: const CustomText("Contact Us", fontWeight: FontWeight.bold),
+              padding: const EdgeInsets.only(top: 8.0, left: 6),
+            child: ServiceHomeTitleWidget(
+              title:"Contact Us",
+            ),
           ),
-          const SizedBox(height: 20),
+          // Padding(
+          //   padding: const EdgeInsets.only(top: 8.0, left: 6),
+          //   child: const CustomText("Contact Us", fontWeight: FontWeight.bold),
+          // ),
+          const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -441,19 +412,19 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                   ),
                 const SizedBox(height: 10),
                 CustomText(data.name,
-                    fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 16, fontWeight: FontWeight.bold),
 
                 const SizedBox(height: 5),
                 CustomText(
                   data.description ?? "",
-                  color: Colors.grey,
-                  fontSize: 14,
+                  color: AppColors.secondaryTextColor,
+                  // fontSize: 12,
                 ),
-                const Divider(height: 30),
+                const Divider(height: 15),
 
                 // Contact List
                 _contactItem(AppIconAssets.website_click,
-                    profile?.websiteUrl ?? "", Colors.blue),
+                    profile?.websiteUrl ?? "", AppColors.primaryColor),
                 _contactItem(
                     AppIconAssets.principal, "Reception", Colors.grey[700]!),
                 _contactItem(AppIconAssets.email, profile?.email ?? "",
@@ -478,10 +449,12 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           LocalAssets(
             imagePath: icon,
             imgColor: iconColor,
+            height: 20,
+            width: 20,
           ),
           const SizedBox(width: 12),
           Expanded(
-              child: CustomText(label, fontSize: 15, color: Colors.black87)),
+              child: CustomText(label, color:AppColors.mainTextColor)),
         ],
       ),
     );

@@ -108,7 +108,9 @@ class AiProfessionalsController extends GetxController {
   final expYearController = TextEditingController();
   final expMonthController = TextEditingController();
   final descriptionController = TextEditingController();
+  final expertiseController = TextEditingController();
   var description = "".obs; // For AiDescriptionField
+  var expertiseText = "".obs; // For AiDescriptionField
 
   // Dropdown Data
   final List<String> indianLanguages = [
@@ -276,6 +278,8 @@ class AiProfessionalsController extends GetxController {
             "years": expYearController.text,
             "months": expMonthController.text
           },
+          "expertise":
+              expertiseText.value,
           "description": description.value
         }
       };

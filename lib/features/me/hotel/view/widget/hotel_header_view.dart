@@ -1,14 +1,11 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -65,53 +62,50 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
               clipBehavior: Clip.none,
               children: [
                 // Banner Image
-                if(widget
-                    .schoolAboutUsController
-                    .hotelData
-                    .value
-                    ?.profile
-                    ?.photos?.isNotEmpty??false)
-                GestureDetector(
-                  onTap: () => null,
-                  // onTap: () => _pickImage(true),
-                  child: Container(
-                    width: double.infinity,
-                    height: size.height * 0.17,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[100],
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                      image: _bannerImage != null
-                          ? DecorationImage(
-                              image: FileImage(_bannerImage ?? File("")),
-                              fit: BoxFit.cover)
-                          : DecorationImage(
-                              image: NetworkImage((widget
-                                          .schoolAboutUsController
-                                          .hotelData
-                                          .value
-                                          ?.profile
-                                          ?.coverUrl
-                                          ?.isNotEmpty ??
-                                      false)
-                                  ? (widget.schoolAboutUsController.hotelData
-                                          .value?.profile?.coverUrl ??
-                                      "")
-                                  : widget
-                                          .schoolAboutUsController
-                                          .hotelData
-                                          .value
-                                          ?.profile
-                                          ?.photos
-                                          ?.first
-                                          .imageReferences
-                                          ?.first ??
-                                      ""),
-                              fit: BoxFit.cover),
+                if (widget.schoolAboutUsController.hotelData.value?.profile
+                        ?.photos?.isNotEmpty ??
+                    false)
+                  GestureDetector(
+                    onTap: () => null,
+                    // onTap: () => _pickImage(true),
+                    child: Container(
+                      width: double.infinity,
+                      height: size.height * 0.17,
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey[100],
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10)),
+                        image: _bannerImage != null
+                            ? DecorationImage(
+                                image: FileImage(_bannerImage ?? File("")),
+                                fit: BoxFit.cover)
+                            : DecorationImage(
+                                image: NetworkImage((widget
+                                            .schoolAboutUsController
+                                            .hotelData
+                                            .value
+                                            ?.profile
+                                            ?.coverUrl
+                                            ?.isNotEmpty ??
+                                        false)
+                                    ? (widget.schoolAboutUsController.hotelData
+                                            .value?.profile?.coverUrl ??
+                                        "")
+                                    : widget
+                                            .schoolAboutUsController
+                                            .hotelData
+                                            .value
+                                            ?.profile
+                                            ?.photos
+                                            ?.first
+                                            .imageReferences
+                                            ?.first ??
+                                        ""),
+                                fit: BoxFit.cover),
+                      ),
                     ),
                   ),
-                ),
                 Positioned(
                   right: 20,
                   top: 10,
@@ -164,7 +158,8 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
                                             .value
                                             ?.profile
                                             ?.photos
-                                            ?.firstOrNull?.imageReferences
+                                            ?.firstOrNull
+                                            ?.imageReferences
                                             ?.first ??
                                         ""),
                                 fit: BoxFit.cover),
@@ -197,39 +192,13 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
           ),
 
           // --- FORM SECTION ---
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                CustomText(
-                    widget
-                        .schoolAboutUsController.hotelData.value?.profile?.name,
-                    // fontSize: 18,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold),
-                const SizedBox(height: 10),
-                ExpandableText(
-                  text: widget.schoolAboutUsController.hotelData.value?.profile
-                          ?.description ??
-                      "",
-                  trimLines: 2,
-                  isReadMoreNewLine: false,
-                  expandMode: ExpandMode.dialog,
-                  style: TextStyle(
-                    color: AppColors.secondaryTextColor,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: AppConstants.OpenSans,
-                  ),
-                ),
-                // const SizedBox(height: 10),
-              ],
-            ),
+          ServiceHomeHeaderTitleWidget(
+            title:
+                widget.schoolAboutUsController.hotelData.value?.profile?.name ??
+                    "",
+            description: widget.schoolAboutUsController.hotelData.value?.profile
+                    ?.description ??
+                "",
           ),
         ],
       ),

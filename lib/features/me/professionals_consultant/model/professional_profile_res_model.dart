@@ -878,6 +878,7 @@ String aboutToJson(About data) => json.encode(data.toJson());
 class About {
   About({
     this.totalExperience,
+    this.expertise,
     this.description,
     this.majorProjectsDescription,
   });
@@ -886,12 +887,18 @@ class About {
     totalExperience = json['totalExperience'] != null
         ? TotalExperience.fromJson(json['totalExperience'])
         : null;
+    if (json['expertise'] != null) {
+      expertise = json['expertise'] != null
+          ? json['expertise'].cast<String>()
+          : [];
+    }
     description = json['description'];
     majorProjectsDescription = json['majorProjectsDescription'];
   }
 
   TotalExperience? totalExperience;
   String? description;
+  List<String>? expertise;
   String? majorProjectsDescription;
 
   Map<String, dynamic> toJson() {
@@ -899,6 +906,7 @@ class About {
     if (totalExperience != null) {
       map['totalExperience'] = totalExperience?.toJson();
     }
+    map['expertise'] = expertise;
     map['description'] = description;
     map['majorProjectsDescription'] = majorProjectsDescription;
     return map;

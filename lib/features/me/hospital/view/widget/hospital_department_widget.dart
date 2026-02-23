@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,38 +15,43 @@ class HospitalBookingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-
-
         // --- DEPARTMENT CATEGORY CHIPS ---
         CommonCardWidget(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText("Doctors ",fontWeight: FontWeight.w600,fontSize: 20,),
+              ServiceHomeTitleWidget(
+                title: "Doctors",
+              ),
               SizedBox(height: 10),
 
               Obx(() => SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: List.generate(controller.filteredOpdDepartments.length,
-                          (index) {
+                      children: List.generate(
+                          controller.filteredOpdDepartments.length, (index) {
                         final dept = controller.filteredOpdDepartments[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
-                          child:ChoiceChip(
+                          child: ChoiceChip(
                             label: CustomText(
                               dept.name ?? "",
                               // White text when selected, dark text when unselected for contrast
                               color: controller.selectedDeptIndex.value == index
                                   ? AppColors.white
-                                  : Colors.black87,
+                                  : AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.small,
                             ),
                             showCheckmark: false,
+
                             selectedColor: AppColors.primaryColor,
-                            backgroundColor: Colors.transparent, // Background stays clear when not selected
-                            selected: controller.selectedDeptIndex.value == index,
+                            backgroundColor: Colors.transparent,
+                            // Background stays clear when not selected
+                            selected:
+                                controller.selectedDeptIndex.value == index,
                             onSelected: (val) {
-                              if (val) controller.selectedDeptIndex.value = index;
+                              if (val)
+                                controller.selectedDeptIndex.value = index;
                             },
                             // Pill shape matching the design
                             shape: RoundedRectangleBorder(
@@ -58,8 +65,10 @@ class HospitalBookingScreen extends StatelessWidget {
                               width: 1,
                             ),
                             // Ensuring the chip doesn't take up extra vertical space
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 0),
                           ),
                         );
                       }),
@@ -70,7 +79,8 @@ class HospitalBookingScreen extends StatelessWidget {
               // --- HORIZONTAL LIST VIEW ---
               Obx(() {
                 final items = controller.currentCategoryItems;
-                if (items.isEmpty) return Center(child: CustomText("No data available"));
+                if (items.isEmpty)
+                  return Center(child: CustomText("No data available"));
 
                 return Container(
                   height: 280,
@@ -88,7 +98,6 @@ class HospitalBookingScreen extends StatelessWidget {
                         imageUrl: item.imageUrl,
                         description: item.description ?? "",
                         tag: "${item.timing ?? 0}",
-
                       );
                     },
                   ),
@@ -98,19 +107,21 @@ class HospitalBookingScreen extends StatelessWidget {
           ),
         ),
 
-
         // --- DEPARTMENT CATEGORY CHIPS ---
         CommonCardWidget(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText("IPD ",fontWeight: FontWeight.w600,fontSize: 20,),
+              ServiceHomeTitleWidget(
+                title: "IPD",
+              ),
+
               SizedBox(height: 10),
               Obx(() => SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: List.generate(controller.filteredIpdDepartments.length,
-                          (index) {
+                      children: List.generate(
+                          controller.filteredIpdDepartments.length, (index) {
                         final dept = controller.filteredIpdDepartments[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
@@ -120,29 +131,36 @@ class HospitalBookingScreen extends StatelessWidget {
                               // Change text color based on selection state
                               color: controller.selectedIpdDeptIndex.value == index
                                   ? AppColors.white
-                                  : Colors.black54,
+                                  : AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.small,
                             ),
                             showCheckmark: false,
                             selectedColor: AppColors.primaryColor,
                             // Use transparent background for unselected to show the border clearly
                             backgroundColor: Colors.transparent,
-                            selected: controller.selectedIpdDeptIndex.value == index,
+                            selected:
+                                controller.selectedIpdDeptIndex.value == index,
                             onSelected: (val) {
-                              if (val) controller.selectedIpdDeptIndex.value = index;
+                              if (val)
+                                controller.selectedIpdDeptIndex.value = index;
                             },
                             // Customizing the border and shape
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                             side: BorderSide(
-                              color: controller.selectedIpdDeptIndex.value == index
-                                  ? AppColors.primaryColor
-                                  : Colors.grey.shade700, // Border color for unselected chips
+                              color:
+                                  controller.selectedIpdDeptIndex.value == index
+                                      ? AppColors.primaryColor
+                                      : Colors.grey.shade700,
+                              // Border color for unselected chips
                               width: 1,
                             ),
                             // Removes default material padding/shadows to match your clean UI
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 0),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
                           ),
                         );
                       }),
@@ -153,7 +171,8 @@ class HospitalBookingScreen extends StatelessWidget {
               // --- HORIZONTAL LIST VIEW ---
               Obx(() {
                 final items = controller.currentCategoryItemsIpd;
-                if (items.isEmpty) return Center(child: CustomText("No data available"));
+                if (items.isEmpty)
+                  return Center(child: CustomText("No data available"));
 
                 return Container(
                   height: 280,
@@ -164,7 +183,7 @@ class HospitalBookingScreen extends StatelessWidget {
                       final item = items[index];
                       return DoctorOrBedCard(
                         title: item.name ?? "",
-                        subtitle:"",
+                        subtitle: "",
                         imageUrl: item.imageUrl,
                         description: item.description ?? "",
                         tag: "${item.bedCount ?? 0} Beds",
@@ -222,32 +241,26 @@ class DoctorOrBedCard extends StatelessWidget {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              height: 140,
+              // height: 140,
               // Height of the text area
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 borderRadius:
                     const BorderRadius.vertical(bottom: Radius.circular(20)),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0),
-                    Colors.black.withOpacity(0.7),
-                    Colors.black.withOpacity(0.9),
-                  ],
-                ),
+                color: Colors.black.withOpacity(0.5),
+
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
                     title,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -260,16 +273,13 @@ class DoctorOrBedCard extends StatelessWidget {
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: CustomText(
-                      tag,
-                     color: Colors.white, fontSize: 11
-                    ),
+                    child: CustomText(tag, color: Colors.white, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
                   CustomText(
                     description,
-
-                        color: Colors.white.withOpacity(0.8), fontSize: 11,
+                    color: Colors.white,
+                    fontSize:SizeConfig.small,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -277,16 +287,7 @@ class DoctorOrBedCard extends StatelessWidget {
               ),
             ),
           ),
-          // Heart Icon
-          // Positioned(
-          //   top: 10,
-          //   right: 10,
-          //   child: CircleAvatar(
-          //     radius: 14,
-          //     backgroundColor: Colors.white,
-          //     child: Icon(Icons.favorite, color: Colors.red[400], size: 16),
-          //   ),
-          // ),
+
         ],
       ),
     );

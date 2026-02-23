@@ -2,12 +2,13 @@ import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_cont
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class ManagementCardListWidget extends StatelessWidget {
-   ManagementCardListWidget({super.key});
+  ManagementCardListWidget({super.key});
+
   final controller = Get.find<HospitalServiceAiController>();
 
   @override
@@ -18,16 +19,18 @@ class ManagementCardListWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header
-
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child:          CustomText("Management ",fontWeight: FontWeight.w600,fontSize: 20,),
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
+            child: ServiceHomeTitleWidget(
+              title: "Management",
+            ),
           ),
 
           // Horizontal List
           Obx(() {
             // Accessing management list from your response model
-            final managementList = controller.hospitalDataResModel?.value.data?.management ?? [];
+            final managementList =
+                controller.hospitalDataResModel?.value.data?.management ?? [];
 
             if (managementList.isEmpty) {
               return const SizedBox.shrink();
@@ -51,13 +54,12 @@ class ManagementCardListWidget extends StatelessWidget {
   }
 }
 
-
-
 class HospitalManagementCard extends StatelessWidget {
+  final HospitalManagement person;
 
-   final HospitalManagement person;
+  const HospitalManagementCard({Key? key, required this.person})
+      : super(key: key);
 
-   const HospitalManagementCard({Key? key, required this.person}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -77,51 +79,45 @@ class HospitalManagementCard extends StatelessWidget {
                 person.imageUrl ?? "",
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
-                const Center(child: Icon(Icons.person, size: 50)),
+                    const Center(child: Icon(Icons.person, size: 50)),
               ),
             ),
             // Bottom Gradient Overlay
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
-                height: 120,
+                // height: 120,
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.5),
-                      Colors.black.withOpacity(0.8),
-                    ],
-                  ),
+                  color: Colors.black.withOpacity(0.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText(
                       person.name ?? "Unknown",
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     // Position Tag (Pill shape)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: CustomText(
                         person.position ?? "Staff",
-                          color: Colors.white70,
-                          fontSize: 12,
+                        color: Colors.white70,
+                        fontSize: 12,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

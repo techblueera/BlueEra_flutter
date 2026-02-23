@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/job_seekar/job_seeker_resume_overview_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/update_job_seekar_screen.dart';
 import 'package:BlueEra/features/me/social/view/event_schedule_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_achievements/social_certificates_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_activity_list_screen.dart';

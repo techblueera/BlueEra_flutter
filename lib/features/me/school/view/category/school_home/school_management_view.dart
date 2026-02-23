@@ -1,7 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/management_and_trust.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,8 +29,9 @@ class SchoolManagementSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CustomText("Management",
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                ServiceHomeTitleWidget(
+                  title: "Management",
+                ),
                 if ((managementData?.length ?? 0) > 5)
                   InkWell(
                     onTap: () {
@@ -44,7 +48,7 @@ class SchoolManagementSection extends StatelessWidget {
           ),
 
           Container(
-            height: 230,
+            height: 200,
             padding: EdgeInsets.symmetric(horizontal: 5),
             // Height for the horizontal cards
             child: ListView.builder(
@@ -84,14 +88,17 @@ class SchoolManagementSection extends StatelessWidget {
               child: ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(12)),
-                child:     ( person.photo ?.isNotEmpty ??
-                  false)?Image.network(
-                  person.photo ?? "",
-                  height: 110,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-
-                ):SizedBox.shrink(),
+                child: (person.photo?.isNotEmpty ?? false)
+                    ? Image.network(
+                        person.photo ?? "",
+                        height: 110,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                errorBuilder: (context,error,stack){
+                          return LocalAssets(imagePath: AppIconAssets.place_holder_image);
+                },
+                )
+                    : SizedBox.shrink(),
               ),
             ),
             // Text Content
@@ -105,15 +112,15 @@ class SchoolManagementSection extends StatelessWidget {
                       person.name ?? "",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                     ),
                     const SizedBox(height: 2),
                     CustomText(
                       person.position ?? "",
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      color: Colors.grey.shade600,
-                      fontSize: 11,
+                      color: AppColors.secondaryTextColor,
+                      fontSize: 12,
                     ),
                   ],
                 ),

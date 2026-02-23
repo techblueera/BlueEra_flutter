@@ -101,9 +101,8 @@ class _LabCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: 8.0,bottom: 10),
       child: InkWell(
-        // onTap: () => _openDetailsSheet(context, item),
         onTap: () {
           Get.to(DiscoverLabViewScreen(detailsData: item,));
         },

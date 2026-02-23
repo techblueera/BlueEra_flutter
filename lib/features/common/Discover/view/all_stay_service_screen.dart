@@ -298,9 +298,14 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         service.location?.coordinates?[0].toDouble() ?? 0.0);
 
     return InkWell(
-      onTap: ()=> showFullRentalDetails(
-        service
-      ),
+      onTap: (){
+        (service.type == AppConstants.property || service.type == AppConstants.flat)
+            ?Get.to( HomeStayDetailsWidget(service: service))
+            :Get.to( VehicleDetailsWidget(service: service));
+      },
+      // onTap: ()=> showFullRentalDetails(
+      //   service
+      // ),
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: EdgeInsets.only(bottom: SizeConfig.size10),

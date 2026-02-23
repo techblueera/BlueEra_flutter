@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -29,10 +30,10 @@ class ContactUsSection extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CustomText(
-                  "Contact Us",
-                fontSize: 18, fontWeight: FontWeight.bold
+                ServiceHomeTitleWidget(
+                  title: "Contact Us",
                 ),
+
                 IconButton(onPressed: () {
                   Get.to(SchoolContactUs());
                 }, icon: const Icon(Icons.edit_outlined, size: 20)),

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -18,6 +19,7 @@ import 'package:get/get.dart';
 
 class VehicleDetailsWidget extends StatelessWidget {
   final RentalServiceData service;
+
   const VehicleDetailsWidget({super.key, required this.service});
 
   @override
@@ -25,571 +27,518 @@ class VehicleDetailsWidget extends StatelessWidget {
     final distance = calculateDistance(
         service.location?.coordinates?[1].toDouble() ?? 0.0,
         service.location?.coordinates?[0].toDouble() ?? 0.0);
-   var vehicleDetails = service.vehicleDetails;
+    var vehicleDetails = service.vehicleDetails;
 
     bool hasAnyRequirement =
         (vehicleDetails?.documentRequired?.adharCard == true) ||
             (vehicleDetails?.documentRequired?.addressProof == true) ||
             (vehicleDetails?.documentRequired?.drivingLicence == true);
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-                color: AppColors.greyE5,
-                width: 0.5),
-          ),
-          child: Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  // Navigate to details
-                },
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    (service.images?.isNotEmpty ?? false)
-                        ? CustomImageSlideshow(
-                      isLoading: false,
-                      width: double.infinity,
-                      height: SizeConfig.size150,
-                      imagePaths: service.images!,
-                      borderRadius: BorderRadius.circular(10),
-                    ) : ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        height: SizeConfig.size150,
-                        width: double.infinity,
-                      ),
-                    ),
-                    Positioned(
-                        left: 20,
-                        bottom: -(SizeConfig.size34),
-                        child: Container(
-                          padding: EdgeInsets.all(3.0),
-                          decoration: BoxDecoration(
-                              color: AppColors.white,
-                              shape: BoxShape.circle
-                          ),
-                          child: (service.images?.isNotEmpty ?? false)
-                              ? CachedAvatarWidget(
-                            imageUrl: service.images![0],
-                            size: SizeConfig.size65,
-                            borderColor: Colors.white,
-                            borderRadius: SizeConfig.size40,
-                          )
-                              : ClipRRect(
-                            borderRadius: BorderRadius.circular(SizeConfig.size40),
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              height: SizeConfig.size65,
-                              width: SizeConfig.size65,
-                            ),
-                          ),
-                        )
-                    )
-
-                  ],
-                ),
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: service.name,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(color: AppColors.greyE5, width: 0.5),
               ),
-
-              SizedBox(
-                height: SizeConfig.size60,
-              ),
-
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: CustomText(
-                          service.name ?? 'Unknown User',
-                          fontSize: SizeConfig.large,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w700
-                      ),
-                    ),
-                    SizedBox(
-                      width: SizeConfig.size8,
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size3,
-                        horizontal: SizeConfig.size10,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(color: AppColors.secondaryTextColor, width: 0.5),
-                      ),
-                      child: CustomText(
-                          '5 Star',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(
-                height: SizeConfig.size8,
-              ),
-              Row(
+              child: Column(
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.size3,
-                      horizontal: SizeConfig.size10,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(color: AppColors.secondaryTextColor, width: 0.5),
-                    ),
-                    child: CustomText(
-                        '5 Star',
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400
+                  InkWell(
+                    onTap: () {
+                      // Navigate to details
+                    },
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        (service.images?.isNotEmpty ?? false)
+                            ? CustomImageSlideshow(
+                                isLoading: false,
+                                width: double.infinity,
+                                height: SizeConfig.size150,
+                                imagePaths: service.images!,
+                                borderRadius: BorderRadius.circular(10),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: LocalAssets(
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  height: SizeConfig.size150,
+                                  width: double.infinity,
+                                ),
+                              ),
+                        Positioned(
+                            left: 20,
+                            bottom: -(SizeConfig.size34),
+                            child: Container(
+                              padding: EdgeInsets.all(3.0),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white, shape: BoxShape.circle),
+                              child: (service.images?.isNotEmpty ?? false)
+                                  ? CachedAvatarWidget(
+                                      imageUrl: service.images![0],
+                                      size: SizeConfig.size65,
+                                      borderColor: Colors.white,
+                                      borderRadius: SizeConfig.size40,
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                          SizeConfig.size40),
+                                      child: LocalAssets(
+                                        imagePath:
+                                            AppIconAssets.place_holder_image,
+                                        height: SizeConfig.size65,
+                                        width: SizeConfig.size65,
+                                      ),
+                                    ),
+                            ))
+                      ],
                     ),
                   ),
                   SizedBox(
-                    width: SizeConfig.size5,
+                    height: SizeConfig.size60,
                   ),
-                  CommonRatingRow(
-                    rating: double.tryParse(service.rating.toString()) ?? 0.0,
-                    reviews: service.reviews ?? 0,
-                    distance: '${distance?.toStringAsFixed(2)} KM',
-                  )
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: CustomText(service.name ?? 'Unknown User',
+                              fontSize: SizeConfig.large,
+                              color: AppColors.mainTextColor,
+                              fontWeight: FontWeight.w700),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.size3,
+                            horizontal: SizeConfig.size10,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(
+                                color: AppColors.secondaryTextColor, width: 0.5),
+                          ),
+                          child: CustomText('5 Star',
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size8,
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: SizeConfig.size3,
+                          horizontal: SizeConfig.size10,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.0),
+                          border: Border.all(
+                              color: AppColors.secondaryTextColor, width: 0.5),
+                        ),
+                        child: CustomText('5 Star',
+                            fontSize: SizeConfig.small,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      SizedBox(
+                        width: SizeConfig.size5,
+                      ),
+                      CommonRatingRow(
+                        rating: double.tryParse(service.rating.toString()) ?? 0.0,
+                        reviews: service.reviews ?? 0,
+                        distance: '${distance?.toStringAsFixed(2)} KM',
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size12,
+                  ),
+                  ExpandableText(
+                    text: service.description ?? AppStrings.na,
+                    trimLines: 3,
+                    expandMode: ExpandMode.dialog,
+                    style: TextStyle(
+                      color: AppColors.mainTextColor,
+                      fontFamily: AppConstants.OpenSans,
+                      fontWeight: FontWeight.w400,
+                      fontSize: SizeConfig.medium,
+                    ),
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
                 ],
               ),
+            ),
 
-              SizedBox(
-                height: SizeConfig.size12,
+            SizedBox(height: SizeConfig.size15),
+
+            // Price, security deposit , pickup location
+            Container(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(color: AppColors.greyE5, width: 0.5),
               ),
-
-              ExpandableText(
-                text: service.description ?? AppStrings.na,
-                trimLines: 3,
-                expandMode: ExpandMode.dialog,
-                style: TextStyle(
-                  color: AppColors.mainTextColor,
-                  fontFamily: AppConstants.OpenSans,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeConfig.medium,
-                ),
-              ),
-
-              SizedBox(
-                height: SizeConfig.size10,
-              ),
-
-            ],
-          ),
-        ),
-
-        SizedBox(height: SizeConfig.size15),
-
-        // Price, security deposit , pickup location
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-                color: AppColors.greyE5,
-                width: 0.5),
-          ),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
+              child: Column(
                 children: [
-                  CustomText(
-                    '${AppStrings.price.tr}: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    '₹${service.price}/${service.priceUnit}',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Security Deposit: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.securityDeposit,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Pickup Location: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.pickupLocation,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        SizedBox(height: SizeConfig.size15),
-
-        // Vehicle Details
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-                color: AppColors.greyE5,
-                width: 0.5),
-          ),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Brand: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.brand,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Registration Type: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.registrationType,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Registration Number: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.registrationNumber,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Vehicle Type: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.vehicleType,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Fuel Type: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    vehicleDetails?.fuelType,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Year Of Manufacture: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    '${vehicleDetails?.yearOfManufacture}',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Seating Capacity: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  CustomText(
-                    '${vehicleDetails?.seatingCapacity}',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                  ),
-
-
-                ],
-              ),
-
-              if(vehicleDetails?.registrationType=='commercialGoods')
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Load Capacity: ',
+                        '${AppStrings.price.tr}: ',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
-
                       CustomText(
-                        vehicleDetails?.loadCapacity,
+                        '₹${service.price}/${service.priceUnit}',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondaryTextColor,
                       ),
-
-
                     ],
                   ),
-                ),
-
-            ],
-          ),
-        ),
-
-        SizedBox(height: SizeConfig.size15),
-
-        Container(
-          width: SizeConfig.screenWidth,
-          padding: EdgeInsets.all(SizeConfig.size10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-                color: AppColors.greyE5,
-                width: 0.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                'Document Required For Rent',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
-              ),
-
-              SizedBox(height: SizeConfig.size8),
-
-              Container(
-                color: AppColors.greyE5,
-                height: 0.5,
-                width: SizeConfig.screenWidth,
-              ),
-
-              if (!hasAnyRequirement)
-                Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.size8),
-                  child: CustomText(
-                    'No document is required',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ),
-
-              if(vehicleDetails?.documentRequired?.adharCard==true)
-              ...[
-                SizedBox(height: SizeConfig.size8),
-                _buildRequirementRow('Aadhar Card required'),
-              ],
-              if(vehicleDetails?.documentRequired?.addressProof==true)
-                ...[
                   SizedBox(height: SizeConfig.size8),
-                  _buildRequirementRow('Address Proof required'),
-                ],
-              if(vehicleDetails?.documentRequired?.drivingLicence==true)
-                ...[
-                  SizedBox(height: SizeConfig.size8),
-                  _buildRequirementRow('Driving License required'),
-                ]
-
-            ],
-          ),
-        ),
-
-        // Highlights
-        if(service.highlights?.isNotEmpty ?? false)
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          margin: EdgeInsets.only(top: SizeConfig.size15),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-                color: AppColors.greyE5,
-                width: 0.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: service.highlights!.map((e) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    height: SizeConfig.size6,
-                    width: SizeConfig.size6,
-                    decoration: BoxDecoration(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Security Deposit: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.securityDeposit,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.secondaryTextColor,
-                        shape: BoxShape.circle
-                    ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(
-                    child: CustomText(
-                      e,
-                      fontSize: SizeConfig.medium,
-                    ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Pickup Location: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.pickupLocation,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ))
-                .toList(),
-          ),
-        ),
-
-        if(service.additionalRules?.isNotEmpty ?? false)
-          Container(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            margin: EdgeInsets.only(top: SizeConfig.size15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                  color: AppColors.greyE5,
-                  width: 0.5),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: service.additionalRules!.map((e) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: CustomText(
-                  '⚠️${e}',
-                  fontSize: SizeConfig.medium,
+
+            SizedBox(height: SizeConfig.size15),
+
+            // Vehicle Details
+            Container(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(color: AppColors.greyE5, width: 0.5),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Brand: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.brand,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Registration Type: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.registrationType,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Registration Number: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.registrationNumber,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Vehicle Type: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.vehicleType,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Fuel Type: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        vehicleDetails?.fuelType,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Year Of Manufacture: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        '${vehicleDetails?.yearOfManufacture}',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Seating Capacity: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      CustomText(
+                        '${vehicleDetails?.seatingCapacity}',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                  if (vehicleDetails?.registrationType == 'commercialGoods')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            'Load Capacity: ',
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.mainTextColor,
+                          ),
+                          CustomText(
+                            vehicleDetails?.loadCapacity,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: SizeConfig.size15),
+
+            Container(
+              width: SizeConfig.screenWidth,
+              padding: EdgeInsets.all(SizeConfig.size10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(color: AppColors.greyE5, width: 0.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    'Document Required For Rent',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Container(
+                    color: AppColors.greyE5,
+                    height: 0.5,
+                    width: SizeConfig.screenWidth,
+                  ),
+                  if (!hasAnyRequirement)
+                    Padding(
+                      padding: EdgeInsets.only(top: SizeConfig.size8),
+                      child: CustomText(
+                        'No document is required',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ),
+                  if (vehicleDetails?.documentRequired?.adharCard == true) ...[
+                    SizedBox(height: SizeConfig.size8),
+                    _buildRequirementRow('Aadhar Card required'),
+                  ],
+                  if (vehicleDetails?.documentRequired?.addressProof == true) ...[
+                    SizedBox(height: SizeConfig.size8),
+                    _buildRequirementRow('Address Proof required'),
+                  ],
+                  if (vehicleDetails?.documentRequired?.drivingLicence ==
+                      true) ...[
+                    SizedBox(height: SizeConfig.size8),
+                    _buildRequirementRow('Driving License required'),
+                  ]
+                ],
+              ),
+            ),
+
+            // Highlights
+            if (service.highlights?.isNotEmpty ?? false)
+              Container(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                margin: EdgeInsets.only(top: SizeConfig.size15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: AppColors.greyE5, width: 0.5),
                 ),
-              ))
-                  .toList(),
-            ),
-          ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: service.highlights!
+                      .map((e) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  height: SizeConfig.size6,
+                                  width: SizeConfig.size6,
+                                  decoration: BoxDecoration(
+                                      color: AppColors.secondaryTextColor,
+                                      shape: BoxShape.circle),
+                                ),
+                                SizedBox(width: SizeConfig.size6),
+                                Expanded(
+                                  child: CustomText(
+                                    e,
+                                    fontSize: SizeConfig.medium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
 
-        SizedBox(height: SizeConfig.size15),
+            if (service.additionalRules?.isNotEmpty ?? false)
+              Container(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                margin: EdgeInsets.only(top: SizeConfig.size15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: AppColors.greyE5, width: 0.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: service.additionalRules!
+                      .map((e) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: CustomText(
+                              '⚠️${e}',
+                              fontSize: SizeConfig.medium,
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
 
-        Builder(
-            builder: (BuildContext context) {
+            SizedBox(height: SizeConfig.size15),
+
+            Builder(builder: (BuildContext context) {
               final v = service.vehicleDetails;
               List<String> allImages = [
                 ...?v?.vehicleFrontImage,
@@ -600,16 +549,18 @@ class VehicleDetailsWidget extends StatelessWidget {
               return _buildPhotoGrid(allImages, context);
             }),
 
-        SizedBox(height: SizeConfig.paddingL),
+            SizedBox(height: SizeConfig.paddingL),
 
-        CustomBtn(
-          onTap: () {},
-          isValidate: true,
-          radius: SizeConfig.size10,
-          title: 'Book Now',
-          // isLoading: authController.isAddBusinessUserLoading.value
+            CustomBtn(
+              onTap: () {},
+              isValidate: true,
+              radius: SizeConfig.size10,
+              title: 'Book Now',
+              // isLoading: authController.isAddBusinessUserLoading.value
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -666,7 +617,8 @@ class VehicleDetailsWidget extends StatelessWidget {
                           color: Colors.grey[200],
                           width: SizeConfig.size80,
                           height: SizeConfig.size80,
-                          child: const Icon(Icons.broken_image, color: Colors.grey),
+                          child: const Icon(Icons.broken_image,
+                              color: Colors.grey),
                         ),
                       ),
                     ),
@@ -704,5 +656,4 @@ class VehicleDetailsWidget extends StatelessWidget {
       ],
     );
   }
-
 }

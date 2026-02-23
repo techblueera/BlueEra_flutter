@@ -15,8 +15,9 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -100,8 +101,11 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 6),
-            child: const CustomText("Contact Us", fontWeight: FontWeight.bold),
+            child:  ServiceHomeTitleWidget(
+              title: "Contact Us",
+            ),
           ),
+
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
@@ -116,14 +120,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
                 CustomText(
                     viewProfileController
                         .personalProfileDetails.value.user?.name,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold),
 
                 const SizedBox(height: 5),
 
                 // Contact List
                 _contactItem(AppIconAssets.website_click,
-                    profile?.contact?.websiteUrl ?? "", Colors.blue),
+                    profile?.contact?.websiteUrl ?? "", AppColors.primaryColor),
                 _contactItem(
                     AppIconAssets.principal, "Reception", Colors.grey[700]!),
                 _contactItem(AppIconAssets.email, profile?.contact?.email ?? "",
@@ -150,10 +154,12 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
           LocalAssets(
             imagePath: icon,
             imgColor: iconColor,
+            width: 20,
+            height: 20,
           ),
           const SizedBox(width: 12),
           Expanded(
-              child: CustomText(label, fontSize: 15, color: Colors.black87)),
+              child: CustomText(label, fontSize: 15, color: AppColors.mainTextColor)),
         ],
       ),
     );
@@ -282,120 +288,18 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
             // const SizedBox(height: 48),
 
             // === Name + Role ===
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomText(
-                    _capitalizeFirstLetter(
-                      viewProfileController
-                              .personalProfileDetails.value.user?.name ??
-                          '',
-                    ),
-                    fontSize: SizeConfig.size24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-                  // const SizedBox(height: 8),
-                 /* Row(
-                    children: [
-                      (viewProfileController
-                                  .personalProfileDetails.value.user?.name ==
-                              '')
-                          ? SizedBox()
-                          : Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 4),
-                              decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: BoxBorder.all(
-                                    color: AppColors.secondaryTextColor,
-                                  )),
-                              child: CustomText(
-                                viewProfileController.personalProfileDetails
-                                        .value.user?.username ??
-                                    '',
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                      const SizedBox(
-                        width: 6,
-                      ),
-                      if (viewProfileController.personalProfileDetails.value
-                              .user?.profession?.isNotEmpty ??
-                          false)
-                        InkWell(
-                          onTap: () {
-                            // _showCategoryBottomSheet();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 4),
-                            decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: BoxBorder.all(
-                                  color: AppColors.secondaryTextColor,
-                                )),
-                            child: Row(
-                              children: [
-                                CustomText(
-                                  viewProfileController.personalProfileDetails
-                                          .value.user?.designation ??
-                                      '',
-                                  color: AppColors.secondaryTextColor,
-                                  fontSize: SizeConfig.small,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                SizedBox(width: SizeConfig.size10),
-                                LocalAssets(
-                                  imagePath: AppIconAssets.editIcon,
-                                  height: SizeConfig.size12,
-                                  width: SizeConfig.size12,
-                                  imgColor: AppColors.primaryColor,
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                    ],
-                  ),*/
-                ],
+            ServiceHomeHeaderTitleWidget(
+              title:
+              _capitalizeFirstLetter(
+                viewProfileController
+                    .personalProfileDetails.value.user?.name ??
+                    '',
               ),
+              description:  viewProfileController
+                  .personalProfileDetails.value.user?.bio ??
+                  "",
             ),
-            // === Bio Section ===
-            viewProfileController
-                        .personalProfileDetails.value.user?.bio?.isNotEmpty ??
-                    false
-                ? Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-                    child: ExpandableText(
-                      text: viewProfileController
-                              .personalProfileDetails.value.user?.bio ??
-                          "",
-                      trimLines: 3,
-                      style: TextStyle(
-                        color: AppColors.mainTextColor,
-                        fontSize: 14,
-                        wordSpacing: 0.4,
-                        letterSpacing: 0.2,
-                        fontWeight: FontWeight.w400,
-                        height:
-                            1.5, // 👈 increases vertical gap between lines (default is ~1.0)
-                      ),
-                      expandMode: ExpandMode.dialog,
-                      dialogTitle: AppStrings.bio,
-                    ),
-                  )
-                : SizedBox(),
 
-            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -409,19 +313,28 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText("Short Bio", fontWeight: FontWeight.w600),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(identity?.bio ?? "-"),
-            SizedBox(height: SizeConfig.size10),
-            CustomText("Journey", fontWeight: FontWeight.w600),
-            SizedBox(height: SizeConfig.size8),
+            ServiceHomeTitleWidget(
+              title: "Short Bio",
+            ),
+            SizedBox(height: SizeConfig.size5),
+            CustomText(identity?.bio ?? "-", color: AppColors.black28,),
+            SizedBox(height: SizeConfig.size5),
+            Divider(color: AppColors.whiteE5,thickness: 0.5,),
+            SizedBox(height: SizeConfig.size5),            ServiceHomeTitleWidget(
+              title: "Journey",
+            ),
+            SizedBox(height: SizeConfig.size5),
             CustomText(identity?.journey ?? "-",
-                color: AppColors.black28, fontSize: SizeConfig.small),
-            SizedBox(height: SizeConfig.size10),
-            CustomText("Family Background", fontWeight: FontWeight.w600),
+                color: AppColors.black28, ),
+            SizedBox(height: SizeConfig.size5),
+            Divider(color: AppColors.whiteE5,thickness: 0.5,),
+            SizedBox(height: SizeConfig.size5),
+            ServiceHomeTitleWidget(
+              title: "Family Background",
+            ),
             SizedBox(height: SizeConfig.size8),
             CustomText(identity?.familyBackground ?? "-",
-                color: AppColors.black28, fontSize: SizeConfig.small),
+                color: AppColors.black28, ),
           ],
         ),
       ),
@@ -433,11 +346,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText("Mission & Vision", fontWeight: FontWeight.w600),
-            ],
+
+          ServiceHomeTitleWidget(
+            title: "Mission & Vision",
           ),
           SizedBox(height: SizeConfig.size10),
           if (mv?.mediaUrl != null && (mv?.mediaUrl as String).isNotEmpty)
@@ -451,7 +362,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
               ),
             ),
           SizedBox(height: SizeConfig.size10),
-          CustomText(mv?.description ?? "-"),
+          CustomText(mv?.description ?? "-",),
         ],
       ),
     );
@@ -462,11 +373,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText("Activities", fontWeight: FontWeight.w600),
-            ],
+
+          ServiceHomeTitleWidget(
+            title: "Activities",
           ),
           SizedBox(height: SizeConfig.size10),
           _responsiveGrid(
@@ -491,7 +400,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Events", fontWeight: FontWeight.w600),
+          ServiceHomeTitleWidget(
+            title: "Events",
+          ),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -518,7 +429,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Achievements", fontWeight: FontWeight.w600),
+          ServiceHomeTitleWidget(
+            title: "Achievements",
+          ),
           SizedBox(height: SizeConfig.size10),
           _responsiveGrid(
             itemCount: achievements.length,
@@ -538,8 +451,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Social Activities", fontWeight: FontWeight.w600),
-          SizedBox(height: SizeConfig.size10),
+          ServiceHomeTitleWidget(
+            title: "Social Activities",
+          ),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -628,7 +542,6 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   color: AppColors.black28,
-                  fontSize: SizeConfig.small,
                 ),
               ],
             ),

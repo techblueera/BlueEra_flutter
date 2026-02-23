@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/custom_checkbox.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -322,14 +323,14 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                   final email = emailController.text.trim();
 
                   if (name.isEmpty || mobile.isEmpty || email.isEmpty || _selectedDay == null || _selectedMonth == null || _selectedYear == null || _selectedFromTime == null) {
-                    Get.snackbar('Error', 'Please fill all required fields');
+                    commonSnackBar(message:'Error Please fill all required fields');
                     return;
                   }
 
                   // Parse the selected time slot (format: "startTime - endTime")
                   final timeSlotParts = _selectedFromTime!.split(' - ');
                   if (timeSlotParts.length != 2) {
-                    Get.snackbar('Error', 'Invalid time slot format');
+                    commonSnackBar(message:'Error Invalid time slot format');
                     return;
                   }
 

@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_photo_controller.dart';
+import 'package:BlueEra/features/me/hotel/controller/property_photo_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -12,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class UploadPropertyPhotosScreen extends StatelessWidget {
-  final controller = Get.find<HospitalPhotoController>();
+  final controller = getOrPut(() => PropertyPhotoController());
 
   @override
   Widget build(BuildContext context) {

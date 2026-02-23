@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_contact_us.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,8 +31,12 @@ class HospitalContactUsView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CustomText("Contact Us",
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: ServiceHomeTitleWidget(
+                    title: "Contact Us",
+                  ),
+                ),
                 if (!isReadOnly)
                   IconButton(
                       onPressed: () {
@@ -40,19 +45,21 @@ class HospitalContactUsView extends StatelessWidget {
                       icon: const Icon(Icons.edit_outlined, size: 20)),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 10,),
             // Loop through the contact list from JSON
             ...contacts.map((contactData) {
               return Container(
+
                 margin: EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: ExpansionTile(
+                  initiallyExpanded: true,
                   shape: const RoundedRectangleBorder(side: BorderSide.none),
                   title: CustomText(contactData.branch?.location?.name ?? "N/A",
-                      fontWeight: FontWeight.bold, fontSize: 15),
+                      fontWeight: FontWeight.bold, fontSize: 14),
                   childrenPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   children: [
@@ -111,12 +118,12 @@ class HospitalContactUsView extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon,
-              size: 20, color: isLink ? Colors.blue : Colors.grey.shade600),
+              size: 20, color: isLink ? AppColors.mainTextColor : AppColors.secondaryTextColor),
           const SizedBox(width: 12),
           Expanded(
             child: CustomText(
               text,
-              color: isLink ? AppColors.primaryColor : Colors.black87,
+              color: isLink ? AppColors.primaryColor : AppColors.mainTextColor,
             ),
           ),
         ],

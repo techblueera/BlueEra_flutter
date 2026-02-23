@@ -626,7 +626,7 @@ class ViewPersonalDetailsController extends GetxController {
         }
         break;
       default:
-        Get.snackbar('Action', 'Tapped on ${item.title}');
+        commonSnackBar(message:'Action Tapped on ${item.title}');
     }
   }
 

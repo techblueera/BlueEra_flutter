@@ -44,7 +44,7 @@ class RoomAmenityController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to load amenities");
+      commonSnackBar(message:"Error Failed to load amenities");
     } finally {
       isLoading(false);
     }

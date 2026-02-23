@@ -1,12 +1,15 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/expertise_ai_genereted_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -34,6 +37,8 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
         about?.totalExperience?.months.toString() ?? "";
     controller.descriptionController.text = about?.description ?? "";
     controller.description.value = about?.description ?? "";
+    controller.expertiseController.text = about?.expertise?.join(',') ?? "";
+    controller.expertiseText.value = about?.expertise?.join(',')  ?? "";
 
     super.initState();
   }
@@ -47,7 +52,35 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CustomText("Total Experience", fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText("Your Expertise", fontWeight: FontWeight.w400),
+                  AIExpertiseGeneratorButton(
+
+                    onSelected: (generatedText) {
+                      controller
+                          .expertiseText.value = generatedText;
+                      controller.expertiseController.text = generatedText;
+
+                    },
+                  ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.auto_awesome, color: AppColors.primaryColor),
+                  //   onPressed: () =>null,
+                  // )
+                ],
+              ),
+              CommonTextField(
+                title: "",
+                textEditController: controller.expertiseController,
+                hintText: "To lead the org and support team",
+                maxLine: 3,
+                maxLength: 400,
+              ),
+              const SizedBox(height: 20),
+
+              const CustomText("Total Experience",),
               const SizedBox(height: 10),
               Row(
                 children: [

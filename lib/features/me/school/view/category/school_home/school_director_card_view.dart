@@ -34,12 +34,12 @@ class DirectorCard extends StatelessWidget {
                     schoolAboutUsController.schoolDetailsData?.value.aboutId
                             ?.principalMessage?.photo ??
                         "", // Replace with your actual URL
-                    width: 120,
-                    height: 134,
+                    width: 110,
+                    height: 110,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      width: 120,
-                      height: 134,
+                      width: 110,
+                      height: 110,
                       color: Colors.grey[300],
                       child: const Icon(Icons.person),
                     ),
@@ -61,7 +61,7 @@ class DirectorCard extends StatelessWidget {
                       expandMode: ExpandMode.dialog,
                       style: TextStyle(
                         color: AppColors.secondaryTextColor,
-                        fontSize: 16,
+                        fontSize: 14,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -75,7 +75,7 @@ class DirectorCard extends StatelessWidget {
                         Container(
                           width: 3,
                           height: 35,
-                          color: Colors.blueAccent,
+                          color: AppColors.primaryColor,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -86,7 +86,7 @@ class DirectorCard extends StatelessWidget {
                                 schoolAboutUsController.schoolDetailsData?.value
                                     .aboutId?.principalMessage?.name,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 16,
+                                // fontSize: 16,
                                 color: Colors.blueGrey[900],
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -96,7 +96,7 @@ class DirectorCard extends StatelessWidget {
                                         .aboutId?.principalMessage?.position ??
                                     "",
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: AppColors.secondaryTextColor,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                               ),

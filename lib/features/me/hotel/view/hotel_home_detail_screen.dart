@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -61,8 +62,9 @@ class HotelHomeDetailScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CustomText("Choose Room",
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          ServiceHomeTitleWidget(
+                            title: "Choose Room",
+                          ),
                           const SizedBox(height: 12),
 
                           // Dynamic Category Chips
@@ -154,7 +156,6 @@ class HotelHomeDetailScreen extends StatelessWidget {
                     HotelHomeGalleryWidget(photos: profile?.photos),
 
                     // 4. Amenities Section
-                    SizedBox(height: 24),
                     CommonCardWidget(
                       padding: 10,
                       cardMargin: 0,
@@ -164,8 +165,8 @@ class HotelHomeDetailScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomText("Hotel Amenities",
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                            CustomText("Hotel Amenities",fontSize: 18, fontWeight: FontWeight.bold),
+
                             SizedBox(height: 15),
                             _buildAmenities(profile?.amenities),
                           ],
@@ -174,12 +175,13 @@ class HotelHomeDetailScreen extends StatelessWidget {
                     ),
 
                     // 5. Contact Section
-                    SizedBox(height: 24),
+                    SizedBox(height: 20),
                     _buildContactCard(profile),
-                    SizedBox(height: 24),
+                    SizedBox(height: 20),
 
                     CommonCardWidget(
                       padding: 5,
+                      cardMargin: 0,
                       child: BusinessLocationWidget(
                           locationText: profile?.locationHotel?.name,
                           latitude: double.parse(
@@ -206,12 +208,14 @@ class HotelHomeDetailScreen extends StatelessWidget {
 
   Widget _buildContactCard(Profile? profile) {
     return CommonCardWidget(
-      padding: 15,
+      // padding: 15,
+      cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Contact Us",
-              fontSize: 24, fontWeight: FontWeight.bold),
+          ServiceHomeTitleWidget(
+            title:"Contact Us",
+          ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
@@ -223,7 +227,7 @@ class HotelHomeDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                if (profile?.photos?.isNotEmpty ?? false)
+                if (profile?.photos?.isNotEmpty ?? false)...[
                   Container(
                     width: 100,
                     height: 100,
@@ -241,33 +245,36 @@ class HotelHomeDetailScreen extends StatelessWidget {
                           fit: BoxFit.cover),
                     ),
                   ),
-                const SizedBox(height: 10),
+
+                  const SizedBox(height: 10),
+
+                ],
                 CustomText(profile?.name,
-                    fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 18, fontWeight: FontWeight.bold),
 
                 const SizedBox(height: 5),
                 CustomText(
                   profile?.description,
-                  color: Colors.grey,
-                  fontSize: 14,
+                  color: AppColors.secondaryTextColor,
+                  fontSize: 12,
                 ),
                 const Divider(height: 30),
 
                 // Contact List
                 _contactItem(AppIconAssets.website_click,
-                    profile?.website ?? "", Colors.blue),
+                    profile?.website ?? "",AppColors.primaryColor),
                 _contactItem(
                     AppIconAssets.principal, "Reception", Colors.grey[700]!),
                 _contactItem(
                     AppIconAssets.email,
-                    profile?.contacts?.firstOrNull?.email ?? "",
+                    profile?.contacts?.firstOrNull?.email ?? "N/A",
                     AppColors.secondaryTextColor),
                 _contactItem(
                     AppIconAssets.phone_outline,
-                    profile?.contacts?.firstOrNull?.phone ?? "",
+                    profile?.contacts?.firstOrNull?.phone ?? "N/A",
                     AppColors.secondaryTextColor),
                 _contactItem(AppIconAssets.location_new,
-                    profile?.locationHotel?.name ?? "", Colors.grey[700]!),
+                    profile?.locationHotel?.name ?? "N/A", Colors.grey[700]!),
               ],
             ),
           ),
@@ -284,10 +291,12 @@ class HotelHomeDetailScreen extends StatelessWidget {
           LocalAssets(
             imagePath: icon,
             imgColor: iconColor,
+            width: 20,
+            height: 20,
           ),
           const SizedBox(width: 12),
           Expanded(
-              child: CustomText(label, fontSize: 15, color: Colors.black87)),
+              child: CustomText(label,  color: AppColors.mainTextColor)),
         ],
       ),
     );
@@ -437,16 +446,28 @@ class HotelHomeDetailScreen extends StatelessWidget {
         // if (amen.swimmingPool ?? false) _amenityIcon(Icons.pool, "Pool"),
         if (amen.freeWifi ?? true) _amenityIcon(Icons.wifi, "Wifi"),
         if (amen.airConditioning ?? true) _amenityIcon(Icons.ac_unit, "AC"),
+        if (amen.television ?? true) _amenityIcon(Icons.tv, "TV"),
+        if (amen.roomService ?? true) _amenityIcon(Icons.room_service, "Room Service"),
+        if (amen.powerBackup ?? true) _amenityIcon(Icons.battery_charging_full_sharp, "Power Bank"),
+        if (amen.balcony ?? true) _amenityIcon(Icons.balcony, "Balcony"),
+        if (amen.attachedBathroom ?? true) _amenityIcon(Icons.bathroom, "Bathroom"),
+        if (amen.wardrobe ?? true) _amenityIcon(Icons.devices_other, "wardrobe"),
+        if (amen.deskChair ?? true) _amenityIcon(Icons.chair, "Desk Chair"),
+        if (amen.roomRefrigerators ?? true) _amenityIcon(Icons.cabin_sharp, "Room Refrigerators"),
+        if (amen.electricKettle ?? true) _amenityIcon(Icons.electric_bolt, "Electric Kettle"),
       ],
     );
   }
 
   Widget _amenityIcon(IconData icon, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.primaryColor),
-        CustomText(label, fontSize: 12),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: Column(
+        children: [
+          Icon(icon, color: AppColors.primaryColor),
+          CustomText(label, fontSize: 12),
+        ],
+      ),
     );
   }
 

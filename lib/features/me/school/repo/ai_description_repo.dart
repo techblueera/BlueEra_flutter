@@ -20,4 +20,19 @@ class AIService extends BaseService {
     return null;
     // return response;
   }
+
+  Future<List<String>?> generateExpertiseDescriptionRepo() async {
+    final response = await ApiBaseHelper().postHTTP(aiExpertise,
+        params: {
+
+        },
+        onError: (error) {},
+        onSuccess: (data) {});
+
+    if (response.response?.data['success'] == true) {
+      return List<String>.from(response.response?.data['data']);
+    }
+    return null;
+    // return response;
+  }
 }

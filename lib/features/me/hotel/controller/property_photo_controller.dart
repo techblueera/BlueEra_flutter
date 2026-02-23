@@ -81,7 +81,7 @@ class PropertyPhotoController extends GetxController {
     if (selectedImages.length < 6) {
       selectedImages.add(path);
     } else {
-      Get.snackbar("Limit Reached", "You can upload a maximum of 6 images.");
+      commonSnackBar(message:"Limit Reached You can upload a maximum of 6 images.");
     }
   }
 

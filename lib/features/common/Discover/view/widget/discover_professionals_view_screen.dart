@@ -17,6 +17,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -159,7 +161,12 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildSectionTitle("Working Hours"),
-                    _buildTimings(data.timings),
+                    CommonCardWidget(
+                      child: _buildTimings(data.timings),
+                      borderColorColor:     Colors.grey.shade200,
+                      cardMargin: 0,
+                      padding: 10,
+                    ),
                   ],
                 ),
               ),
@@ -176,8 +183,8 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
       if (text.isEmpty) return '';
       return text[0].toUpperCase() + text.substring(1).toLowerCase();
     }
-    final banner = professionalConsData.basicDetails?.profilePhotoUrl ??
-        '';
+
+    final banner = professionalConsData.basicDetails?.profilePhotoUrl ?? '';
     return CustomFormCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -208,17 +215,16 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                     child: banner.isNotEmpty
                         ? Image.network(banner, fit: BoxFit.cover)
                         : CachedNetworkImage(
-                      imageUrl: banner,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        width: SizeConfig.size32,
-                        height: SizeConfig.size32,
-                        color: Colors.grey[300],
-                      ),
-                      errorWidget: (context, url, error) => Icon(
-                          Icons.person,
-                          size: SizeConfig.size32 / 2),
-                    ),
+                            imageUrl: banner,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              width: SizeConfig.size32,
+                              height: SizeConfig.size32,
+                              color: Colors.grey[300],
+                            ),
+                            errorWidget: (context, url, error) =>
+                                Icon(Icons.person, size: SizeConfig.size32 / 2),
+                          ),
                   ),
                 ),
 
@@ -227,8 +233,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                   left: 20,
                   top: 90,
                   child: CommonProfileImage(
-                    imagePath:
-                    banner,
+                    imagePath: banner,
                     onImageUpdate: (image) async {},
                     dialogTitle: AppStrings.uploadProfilePicture,
                     //radius: 36,
@@ -239,51 +244,14 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
               ],
             ),
           ),
-
-          // === Name + Role ===
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                CustomText(
-                  _capitalizeFirstLetter(
-                    professionalConsData.basicDetails?.fullName ??
-                        '',
-                  ),
-                  fontSize: SizeConfig.size24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                ),
-              ],
+          ServiceHomeHeaderTitleWidget(
+            title: _capitalizeFirstLetter(
+              professionalConsData.basicDetails?.fullName ?? '',
             ),
+            description: professionalConsData.about?.description ?? "",
           ),
 
-          // === Bio Section ===
-        professionalConsData.about?.description?.isNotEmpty ??
-                  false
-              ? Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-                  child: ExpandableText(
-                    text: professionalConsData.about?.description ??
-                        "",
-                    trimLines: 3,
-                    style: TextStyle(
-                      color: AppColors.mainTextColor,
-                      fontSize: 14,
-                      wordSpacing: 0.4,
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w400,
-                      height:
-                          1.5, // 👈 increases vertical gap between lines (default is ~1.0)
-                    ),
-                    expandMode: ExpandMode.dialog,
-                    dialogTitle: AppStrings.bio,
-                  ),
-                )
-              : SizedBox(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 5),
         ],
       ),
     );
@@ -292,10 +260,8 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-      child: CustomText(
-        title,
-        fontWeight: FontWeight.w600,
-        fontSize: SizeConfig.size16,
+      child: ServiceHomeTitleWidget(
+        title: title,
       ),
     );
   }
@@ -312,9 +278,17 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: CustomText(
-        desc,
-        color: AppColors.secondaryTextColor,
+      child: ExpandableText(
+        text: desc,
+        trimLines: 4,
+        isReadMoreNewLine: false,
+        expandMode: ExpandMode.dialog,
+        style: TextStyle(
+          color: AppColors.secondaryTextColor,
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w400,
+          fontFamily: AppConstants.OpenSans,
+        ),
       ),
     );
   }
@@ -365,70 +339,65 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 0),
         itemBuilder: (context, index) {
           final cert = items[index];
+
           return Container(
-            width: 240, // Width as per design aspect ratio
-            margin: EdgeInsets.only(right: SizeConfig.size12),
+            width: 260, // Slightly wider based on your reference image
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.grey[100],
+            ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: Stack(
                 children: [
-                  // 1. Background Image
+                  // Background Image
                   Positioned.fill(
-                    child: CachedNetworkImage(
-                      imageUrl: cert.fileKey ?? "",
+                    child: Image.network(
+                      cert.fileKey ?? "",
                       fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          Container(color: Colors.grey[300]),
-                      errorWidget: (context, url, error) => Image.asset(
-                          'assets/images/placeholder.png',
-                          fit: BoxFit.cover),
+                      errorBuilder: (context, error, stackTrace) => LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
                     ),
                   ),
-
-                  // 2. Gradient Overlay for Text Readability
-                  Positioned.fill(
+                  // Bottom Gradient Overlay
+                  Align(
+                    alignment: Alignment.bottomCenter,
                     child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.1),
-                            Colors.black.withOpacity(0.8),
-                          ],
-                          stops: const [0.5, 0.7, 1.0],
-                        ),
+                        color: Colors.black.withOpacity(0.5),
                       ),
-                    ),
-                  ),
-
-                  // 3. Text Content Overlaid at the Bottom
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Padding(
-                      padding: EdgeInsets.all(SizeConfig.size12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomText(
-                            cert.title ?? "Certificate Name",
+                            cert.title ?? "Unknown",
                             color: Colors.white,
-                            fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: SizeConfig.size4),
-                          CustomText(
-                            cert.description ?? "Description goes here...",
-                            color: Colors.white,
-                            fontSize: SizeConfig.small,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          const SizedBox(height: 6),
+                          // Position Tag (Pill shape)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: CustomText(
+                              cert.description ?? "Staff",
+                              color: Colors.white70,
+                              fontSize: 12,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -546,7 +515,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
               onTap: isLink ? () => launchUrl(Uri.parse(text)) : null,
               child: CustomText(
                 text,
-                color: color ?? AppColors.black,
+                color: color ?? AppColors.mainTextColor,
                 decoration:
                     isLink ? TextDecoration.underline : TextDecoration.none,
               ),
@@ -572,7 +541,10 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CustomText(day, fontWeight: FontWeight.w500),
+          CustomText(
+            day,
+            color: AppColors.secondaryTextColor,
+          ),
           CustomText(
             text,
             color: isOpen ? Colors.green : Colors.red,

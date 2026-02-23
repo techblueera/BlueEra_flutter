@@ -1,14 +1,11 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -91,11 +88,12 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
                   top: 10,
                   child: InkWell(
                     onTap: () => _pickImage(true),
-                    child:Container(
+                    child: Container(
                         width: 30,
                         height: 30,
-
-                        child: LocalAssets(imagePath: AppIconAssets.edit_banner_icon,)),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.edit_banner_icon,
+                        )),
                   ),
                 ),
 
@@ -156,38 +154,13 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
           ),
 
           // --- FORM SECTION ---
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                CustomText(
-                    widget.schoolAboutUsController.schoolDetailsData?.value.name ,
-                    fontSize: 20,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold),
-                const SizedBox(height: 10),
-                ExpandableText(
-                  text: widget.schoolAboutUsController.schoolDetailsData?.value
-                          .aboutId?.visionAndMission ??
-                      "",
-                  trimLines: 4,
-                  isReadMoreNewLine: false,
-                  expandMode: ExpandMode.dialog,
-                  style: TextStyle(
-                    color: AppColors.secondaryTextColor,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: AppConstants.OpenSans,
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
+          ServiceHomeHeaderTitleWidget(
+            title:
+                widget.schoolAboutUsController.schoolDetailsData?.value.name ??
+                    "",
+            description: widget.schoolAboutUsController.schoolDetailsData?.value
+                    .aboutId?.visionAndMission ??
+                "",
           ),
         ],
       ),

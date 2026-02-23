@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -19,6 +18,7 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -54,14 +54,14 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         }
         final data = controller.businessProfile.value;
         if (data == null) {
-          return const Center(child: Text("No Profile Data Found"));
+          return const Center(child: CustomText("No Profile Data Found"));
         }
 
         return CustomScrollView(
           slivers: [
             // 1. Header Image
             SliverAppBar(
-              expandedHeight: Get.height * 0.35,
+              expandedHeight: Get.height * 0.38,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: AppColors.appBackgroundColor,
@@ -74,7 +74,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 5),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -227,10 +227,13 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CustomText(
-          title,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
+        // CustomText(
+        //   title,
+        //   fontSize: 18,
+        //   fontWeight: FontWeight.bold,
+        // ),
+        ServiceHomeTitleWidget(
+          title:title
         ),
         if (onSeeAll != null)
           InkWell(
@@ -238,7 +241,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             child: const CustomText(
               "View All",
               color: AppColors.primaryColor,
-              fontWeight: FontWeight.bold,
+              // fontWeight: FontWeight.bold,
             ),
           ),
       ],
@@ -350,17 +353,14 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      CustomText(
                         service.title ?? "",
-                        style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 16),
-                      ),
-                      Text(
+                      CustomText(
                         service.description ?? "",
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 12),
+                            color: AppColors.whiteE5, fontSize: 12,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -429,7 +429,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                           fontSize: 16),
                       CustomText(
                         service.blog ?? "",
-                        color: Colors.white70,
+                        color: AppColors.whiteE5,
                         fontSize: 12,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -524,7 +524,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
   Widget _buildContactUs(
       List<ContactUs>? contacts, Timings? timings, Profile? profile) {
-   logs("profile?.profileName ${contacts?.length}");
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -535,9 +534,9 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (profile?.profileName != null)
-            Text(
+            CustomText(
               profile!.profileName!,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+             fontWeight: FontWeight.w500,
             ),
           const SizedBox(height: 8),
           if (contacts != null && contacts.isNotEmpty) ...[

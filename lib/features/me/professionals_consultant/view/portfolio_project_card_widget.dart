@@ -68,15 +68,24 @@ class PortfolioProjectCardWidget extends StatelessWidget {
               Container(
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(project.media?.first.url ??
-                        'https://via.placeholder.com/150'),
+                  child: Image.network(
+                    project.media?.first.url ?? "",
                     fit: BoxFit.cover,
+                    // This handles the network error
+                    errorBuilder: (context, error, stackTrace) {
+                      return LocalAssets(imagePath: AppIconAssets.place_holder_image);
+                    },
+                    // Optional: Show a loading spinner
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                    },
                   ),
                 ),
               ),
+
               if (additionalImages > 0)
                 Positioned(
                   bottom: 8,
@@ -113,7 +122,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       child: CustomText(
                         project.projectTitle ?? "Untitled Project",
 
-                            fontSize: 18, fontWeight: FontWeight.bold,
+                            fontSize: 16, fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -139,6 +148,8 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                   project.description ?? "",
                   color: AppColors.secondaryTextColor,
                   maxLines: 3,
+                  fontSize: 12,
+
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
