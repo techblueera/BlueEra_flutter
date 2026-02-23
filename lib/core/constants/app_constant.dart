@@ -1215,6 +1215,49 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
 
   return entries;
 }
+List<PopupMenuEntry<String>> popPupMenuForGroupChat() {
+  final items = <Map<String, dynamic>>[
+      {'title':"Clear Chat", "slud_id": 'clear_chat'},
+    {'title': "Background Change", "slud_id": "background_change"},
+    {'title': "Exit Group", "slud_id": "exit_group"},
+    {'title': "Pin Group", "slud_id": "pin_group"},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['slud_id'],
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 
 List<PopupMenuEntry<String>> popupVideoMenuItems() {
   final items = <Map<String, dynamic>>[

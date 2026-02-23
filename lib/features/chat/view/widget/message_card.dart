@@ -116,7 +116,7 @@ class _MessageCardState extends State<MessageCard>
       final senderId = widget.message.senderId;
       isReceive = currentUserId != senderId;
    }
-   print("dnvlsdkvmsldkv ${widget.message.messageType}");
+
     final time = formatChatTime(widget.message.createdAt ?? '');
     Widget messageWidget;
     switch (widget.message.messageType) {
@@ -315,6 +315,10 @@ class _MessageCardState extends State<MessageCard>
               );
             },
             child: GestureDetector(
+              onLongPress: (){
+                chatThemeController.activateSelection(widget.message);
+
+              },
               onHorizontalDragUpdate: (details) {
                 setState(() {
                   _dragOffset = (_dragOffset + details.delta.dx)
@@ -343,7 +347,6 @@ class _MessageCardState extends State<MessageCard>
             ),
           ),
         ),
-
         (chatThemeController.isMessageSelectionActive.value &&
                 chatThemeController.selectedId
                     .contains(widget.message.id ?? ""))

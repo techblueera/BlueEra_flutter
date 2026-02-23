@@ -306,6 +306,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                             ),
                                 ),
                               ),
+
                               SizedBox(
                                 width: SizeConfig.size15,
                               ),
