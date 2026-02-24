@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
@@ -31,10 +32,8 @@ class AllStayServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> stayCategories;
   final OnboardingCategoryModel? selectedStayCategory;
 
-  const  AllStayServiceScreen({
-    super.key,
-    required this.stayCategories,
-    this.selectedStayCategory});
+  const AllStayServiceScreen(
+      {super.key, required this.stayCategories, this.selectedStayCategory});
 
   @override
   State<AllStayServiceScreen> createState() => _AllStayServiceScreenState();
@@ -47,47 +46,42 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   late String _category;
 
   @override
-  initState(){
+  initState() {
     super.initState();
     _stayCategories = widget.stayCategories;
     controller.selectedStayCategory.value = widget.selectedStayCategory;
     _category = controller.selectedStayCategory.value!.slugId;
 
-    if(controller.selectedStayCategory.value!=null){
-    if(controller.selectedStayCategory.value?.accountType.toUpperCase() == AppConstants.individual) {
-      var serviceType = _category.toRentalServiceType();
+    if (controller.selectedStayCategory.value != null) {
+      if (controller.selectedStayCategory.value?.accountType.toUpperCase() ==
+          AppConstants.individual) {
+        var serviceType = _category.toRentalServiceType();
         controller.fetchRentalServices(
           rentalServiceType: serviceType,
         );
 
         // Listener for Pagination
         scrollController.addListener(() {
-          if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+          if (scrollController.position.pixels ==
+              scrollController.position.maxScrollExtent) {
             controller.fetchRentalServices(
-                rentalServiceType: serviceType,
-                isLoadMore: true);
+                rentalServiceType: serviceType, isLoadMore: true);
+          }
+        });
+      } else {
+        // handle business rental api call
+        controller.fetchHotelServices(category: _category);
+
+        // Listener for Pagination
+        scrollController.addListener(() {
+          if (scrollController.position.pixels ==
+              scrollController.position.maxScrollExtent) {
+            controller.fetchHotelServices(
+                category: _category, isLoadMore: true);
           }
         });
       }
-    else {
-
-      // handle business rental api call
-      controller.fetchHotelServices(
-          category: _category
-      );
-
-      // Listener for Pagination
-      scrollController.addListener(() {
-        if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
-          controller.fetchHotelServices(
-              category: _category,
-              isLoadMore: true);
-        }
-      });
     }
-
-    }
-
   }
 
   @override
@@ -97,18 +91,13 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       body: SafeArea(
         child: Column(
           children: [
-
             SizedBox(
               height: SizeConfig.paddingM,
             ),
-
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
               child: InkWell(
-                onTap: () {
-
-                },
+                onTap: () {},
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.size10,
@@ -127,8 +116,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                         width: SizeConfig.size30,
                       ),
                       SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                          AppStrings.bookViaBlueEraPartner,
+                      CustomText(AppStrings.bookViaBlueEraPartner,
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400),
@@ -137,11 +125,9 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 ),
               ),
             ),
-
             SizedBox(
               height: SizeConfig.paddingXSL,
             ),
-
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,9 +136,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   SizedBox(
                     width: SizeConfig.size6,
                   ),
-                  Expanded(
-                      child: rightContent()
-                  ),
+                  Expanded(child: rightContent()),
                 ],
               ),
             )
@@ -167,141 +151,149 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       items: _stayCategories,
       getIcon: (item) => item.icon,
       getLabel: (item) => item.name,
-      isSelected: (item) => controller.selectedStayCategory.value?.slugId == item.slugId,
+      isSelected: (item) =>
+          controller.selectedStayCategory.value?.slugId == item.slugId,
       onTap: (item, index) {
         controller.selectedStayCategory.value = item;
         controller.selectedTabIndex.value = index;
 
         _category = controller.selectedStayCategory.value!.slugId;
 
-        if(controller.selectedStayCategory.value?.accountType ==
-            AppConstants.individual){
+        if (controller.selectedStayCategory.value?.accountType ==
+            AppConstants.individual) {
           var serviceType = _category.toRentalServiceType();
           controller.fetchRentalServices(
             rentalServiceType: serviceType,
           );
-        }else{
+        } else {
           // handle business rental api call
-          controller.fetchHotelServices(
-            category: _category
-          );
+          controller.fetchHotelServices(category: _category);
         }
       },
     );
   }
 
   Widget rightContent() {
-    return Obx(()=> Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HorizontalTabSelector<CategoryFilter>(
-            tabs: controller.filters,
-            selectedIndex: controller.filters.indexOf(controller.selectedFilter.value),
-            horizontalMargin: 0.0,
-            onTabSelected: (index, _) {
-              final selectedEnum = controller.filters[index];
+    return Obx(() => Padding(
+          padding: EdgeInsets.only(right: SizeConfig.size8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HorizontalTabSelector<CategoryFilter>(
+                tabs: controller.filters,
+                selectedIndex:
+                    controller.filters.indexOf(controller.selectedFilter.value),
+                horizontalMargin: 0.0,
+                onTabSelected: (index, _) {
+                  final selectedEnum = controller.filters[index];
 
-              if (controller.filters == selectedEnum) return;
+                  if (controller.filters == selectedEnum) return;
 
-              controller.selectedFilter.value = selectedEnum;
-              // controller.callApi();
-            },
-            labelBuilder: (r) => r.label,
-            unSelectedBackgroundColor: AppColors.white,
+                  controller.selectedFilter.value = selectedEnum;
+                  // controller.callApi();
+                },
+                labelBuilder: (r) => r.label,
+                unSelectedBackgroundColor: AppColors.white,
+              ),
+              SizedBox(
+                height: SizeConfig.size5,
+              ),
+              Expanded(
+                child: (controller.selectedStayCategory.value?.accountType ==
+                        AppConstants.individual)
+                    ? Obx(() {
+                        if (controller.isRentalServiceLoading.value &&
+                            controller.rentalServices.isEmpty) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        if (controller.rentalServices.isEmpty) {
+                          return Center(
+                              child: EmptyStateWidget(
+                                  message: "No stay service found"));
+                        }
+
+                        return ListView.builder(
+                            controller: scrollController,
+                            itemCount: controller.rentalServices.length +
+                                (controller.isRentalServiceLoadingMore.value
+                                    ? 1
+                                    : 0),
+                            shrinkWrap: true,
+                            padding:
+                                EdgeInsets.only(bottom: SizeConfig.paddingL),
+                            itemBuilder: (context, index) {
+                              if (index == controller.rentalServices.length) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                );
+                              }
+
+                              var service = controller.rentalServices[index];
+
+                              return rentalServiceCard(service);
+                            });
+                      })
+                    : Obx(() {
+                        if (controller.isRentalServiceLoading.value &&
+                            controller.hotelServices.isEmpty) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        if (controller.hotelServices.isEmpty) {
+                          return Center(
+                              child: EmptyStateWidget(
+                                  message: "No hotel service found"));
+                        }
+
+                        return ListView.builder(
+                            controller: scrollController,
+                            itemCount: controller.hotelServices.length +
+                                (controller.isRentalServiceLoadingMore.value
+                                    ? 1
+                                    : 0),
+                            shrinkWrap: true,
+                            padding:
+                                EdgeInsets.only(bottom: SizeConfig.paddingL),
+                            itemBuilder: (context, index) {
+                              if (index == controller.hotelServices.length) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                );
+                              }
+
+                              var service = controller.hotelServices[index];
+
+                              return hotelServiceCard(service);
+                            });
+                      }),
+              )
+            ],
           ),
-
-          SizedBox(
-            height: SizeConfig.size5,
-          ),
-
-          Expanded(
-            child: (controller.selectedStayCategory.value?.accountType == AppConstants.individual)
-                ? Obx(() {
-              if (controller.isRentalServiceLoading.value &&
-                  controller.rentalServices.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (controller.rentalServices.isEmpty) {
-                return Center(child: EmptyStateWidget(message: "No stay service found"));
-              }
-
-              return ListView.builder(
-                  controller: scrollController,
-                  itemCount: controller.rentalServices.length +
-                      (controller.isRentalServiceLoadingMore.value ? 1 : 0),
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-                  itemBuilder: (context, index) {
-
-                    if (index == controller.rentalServices.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    }
-
-                    var service = controller.rentalServices[index];
-
-                    return rentalServiceCard(service);
-                  }
-              );
-            })
-                : Obx(() {
-              if (controller.isRentalServiceLoading.value &&
-                  controller.hotelServices.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (controller.hotelServices.isEmpty) {
-                return Center(child: EmptyStateWidget(message: "No hotel service found"));
-              }
-
-              return ListView.builder(
-                  controller: scrollController,
-                  itemCount: controller.hotelServices.length +
-                      (controller.isRentalServiceLoadingMore.value ? 1 : 0),
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-                  itemBuilder: (context, index) {
-
-                    if (index == controller.hotelServices.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    }
-
-                    var service = controller.hotelServices[index];
-
-                    return hotelServiceCard(service);
-                  }
-              );
-            }),
-          )
-
-        ],
-      ),
-    ));
+        ));
   }
 
-  Widget rentalServiceCard(RentalServiceData service){
-
+  Widget rentalServiceCard(RentalServiceData service) {
     final distance = calculateDistance(
         service.location?.coordinates?[1].toDouble() ?? 0.0,
         service.location?.coordinates?[0].toDouble() ?? 0.0);
 
     return InkWell(
-      onTap: (){
-        (service.type == AppConstants.property || service.type == AppConstants.flat)
-            ?Get.to( HomeStayDetailsWidget(service: service))
-            :Get.to( VehicleDetailsWidget(service: service));
+      onTap: () {
+        (service.type == AppConstants.property ||
+                service.type == AppConstants.flat)
+            ? Get.to(HomeStayDetailsWidget(service: service))
+            : Get.to(VehicleDetailsWidget(service: service));
       },
       // onTap: ()=> showFullRentalDetails(
       //   service
@@ -316,66 +308,57 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   (service.images?.isNotEmpty ?? false)
-                  ? InkWell(
-                    onTap: () {
-                      // Navigate to details
-                    },
-                    child: CachedAvatarWidget(
-                      imageUrl: service.images?[0] ?? '',
-                      size: SizeConfig.size40,
-                      borderColor: Colors.white,
-                      borderRadius: SizeConfig.size20,
-                    ),
-                  ) : ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size20),
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      height: SizeConfig.size40,
-                      width: SizeConfig.size40,
-
-                    ),
-                  ),
+                      ? InkWell(
+                          onTap: () {
+                            // Navigate to details
+                          },
+                          child: CachedAvatarWidget(
+                            imageUrl: service.images?[0] ?? '',
+                            size: SizeConfig.size40,
+                            borderColor: Colors.white,
+                            borderRadius: SizeConfig.size20,
+                          ),
+                        )
+                      : ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size20),
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            height: SizeConfig.size40,
+                            width: SizeConfig.size40,
+                          ),
+                        ),
                   SizedBox(width: SizeConfig.size6),
                   Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                              service.name ?? 'Unknown User',
-                              fontSize: SizeConfig.small,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w600
-                          ),
-                          SizedBox(height: SizeConfig.size6),
-                          CommonRatingRow(
-                            rating: double.tryParse(service.rating.toString()) ?? 0.0,
-                            reviews: service.reviews ?? 0,
-                            distance: '${distance?.toStringAsFixed(2)} KM',
-                          )
-                        ],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(service.name ?? 'Unknown User',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w600),
+                      SizedBox(height: SizeConfig.size6),
+                      CommonRatingRow(
+                        rating:
+                            double.tryParse(service.rating.toString()) ?? 0.0,
+                        reviews: service.reviews ?? 0,
+                        distance: '${distance?.toStringAsFixed(2)} KM',
                       )
-                  ),
+                    ],
+                  )),
                   Icon(Icons.more_vert, color: AppColors.black)
                 ],
               ),
-
-
-              if(service.highlights?.isNotEmpty??false)
-                ...[
-                  SizedBox(height: SizeConfig.size6),
-                  CustomText(
-                      service.highlights?.join(", ") ?? "",
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w400
-                  ),
-                ],
-
-
+              if (service.highlights?.isNotEmpty ?? false) ...[
+                SizedBox(height: SizeConfig.size6),
+                CustomText(service.highlights?.join(", ") ?? "",
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400),
+              ],
               SizedBox(height: SizeConfig.size8),
-
-              if(service.price!=null && service.priceUnit!=null)
+              if (service.price != null && service.priceUnit != null)
                 CustomText(
                   '₹${service.price}/${service.priceUnit}',
                   fontSize: SizeConfig.medium,
@@ -383,56 +366,54 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   color: AppColors.mainTextColor,
                 ),
               SizedBox(height: SizeConfig.size8),
-
-              if(service.type == AppConstants.property || service.type == AppConstants.flat)
-               FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  children: [
-                    CustomText(
-                      "Check In: ",
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.green00,
-                    ),
-                    CustomText(
-                      service.checkInTime,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                    ),
-                    CustomText(
-                      ' | ',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    CustomText(
-                      "Check Out: ",
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.redB4,
-                      maxLines: 1,
-                    ),
-                    CustomText(
-                      service.checkOutTime,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.grayText,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
+              if (service.type == AppConstants.property ||
+                  service.type == AppConstants.flat)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    children: [
+                      CustomText(
+                        "Check In: ",
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.green00,
+                      ),
+                      CustomText(
+                        service.checkInTime,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                      ),
+                      CustomText(
+                        ' | ',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      CustomText(
+                        "Check Out: ",
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.redB4,
+                        maxLines: 1,
+                      ),
+                      CustomText(
+                        service.checkOutTime,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.grayText,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-
-              if(service.type == AppConstants.vehicle)
-              ...[
+              if (service.type == AppConstants.vehicle) ...[
                 Row(
                   children: [
                     CustomText(
@@ -468,25 +449,23 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   ],
                 ),
               ]
-
             ],
-          )
-      ),
+          )),
     );
-
   }
 
-  Widget hotelServiceCard(HotelServiceData service){
-
+  Widget hotelServiceCard(HotelServiceData service) {
     final distance = calculateDistance(
         service.profile?.location?.coordinates?[1].toDouble() ?? 0.0,
         service.profile?.location?.coordinates?[0].toDouble() ?? 0.0);
     Profile? profile = service.profile;
 
     return InkWell(
-      onTap: ()=> showFullHotelDetails(
-          service
-      ),
+      onTap: () {
+        Get.to(HotelDiscoverHomeScreen(
+          data: service,
+        ));
+      },
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -498,60 +477,56 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 children: [
                   (profile?.coverUrl?.isNotEmpty ?? false)
                       ? InkWell(
-                    onTap: () {
-                      // Navigate to details
-                    },
-                    child: CachedAvatarWidget(
-                      imageUrl: profile?.coverUrl,
-                      size: SizeConfig.size40,
-                      borderColor: Colors.white,
-                      borderRadius: SizeConfig.size20,
-                    ),
-                  ) : ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size20),
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      height: SizeConfig.size40,
-                      width: SizeConfig.size40,
-
-                    ),
-                  ),
+                          onTap: () {
+                            // Navigate to details
+                          },
+                          child: CachedAvatarWidget(
+                            imageUrl: profile?.coverUrl,
+                            size: SizeConfig.size40,
+                            borderColor: Colors.white,
+                            borderRadius: SizeConfig.size20,
+                          ),
+                        )
+                      : ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size20),
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            height: SizeConfig.size40,
+                            width: SizeConfig.size40,
+                          ),
+                        ),
                   SizedBox(width: SizeConfig.size6),
                   Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                              service.profile?.name ?? AppStrings.na,
-                              fontSize: SizeConfig.small,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w600
-                          ),
-                          SizedBox(height: SizeConfig.size6),
-                          CommonRatingRow(
-                            rating: double.tryParse(profile?.rating.toString() ?? '0.0') ?? 0.0,
-                            reviews: profile?.reviews ?? 0,
-                            distance: '${distance?.toStringAsFixed(2)} KM',
-                          )
-                        ],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(service.profile?.name ?? AppStrings.na,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w600),
+                      SizedBox(height: SizeConfig.size6),
+                      CommonRatingRow(
+                        rating: double.tryParse(
+                                profile?.rating.toString() ?? '0.0') ??
+                            0.0,
+                        reviews: profile?.reviews ?? 0,
+                        distance: '${distance?.toStringAsFixed(2)} KM',
                       )
-                  ),
+                    ],
+                  )),
                   Icon(Icons.more_vert, color: AppColors.black)
                 ],
               ),
 
-              if(profile?.description?.isNotEmpty??false)
-                ...[
-                  SizedBox(height: SizeConfig.size6),
-                  CustomText(
-                      profile?.description ?? "",
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w400
-                  ),
-                ],
-
+              if (profile?.description?.isNotEmpty ?? false) ...[
+                SizedBox(height: SizeConfig.size6),
+                CustomText(profile?.description ?? "",
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400),
+              ],
 
               // SizedBox(height: SizeConfig.size8),
               //
@@ -610,17 +585,14 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
               //       ],
               //     ),
               //   ),
-
             ],
-          )
-      ),
+          )),
     );
-
   }
 
   void showFullRentalDetails(
-      RentalServiceData service,
-    ) {
+    RentalServiceData service,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -636,24 +608,19 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
             left: SizeConfig.size12,
             right: SizeConfig.size12,
             top: SizeConfig.size10,
-
           ),
           builder: (scrollController) {
             return ListView(
               controller: scrollController,
               children: [
                 _dragHandle(),
-
                 _header(context),
-
                 const SizedBox(height: 4),
-
-                (service.type == AppConstants.property || service.type == AppConstants.flat)
-                ? HomeStayDetailsWidget(service: service)
-                : VehicleDetailsWidget(service: service),
-
+                (service.type == AppConstants.property ||
+                        service.type == AppConstants.flat)
+                    ? HomeStayDetailsWidget(service: service)
+                    : VehicleDetailsWidget(service: service),
                 SizedBox(height: SizeConfig.paddingL)
-
               ],
             );
           },
@@ -663,8 +630,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   }
 
   void showFullHotelDetails(
-      HotelServiceData service,
-      ) {
+    HotelServiceData service,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -680,22 +647,16 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
             left: SizeConfig.size12,
             right: SizeConfig.size12,
             top: SizeConfig.size10,
-
           ),
           builder: (scrollController) {
             return ListView(
               controller: scrollController,
               children: [
                 _dragHandle(),
-
                 _header(context),
-
                 const SizedBox(height: 4),
-
                 HotelsDetailsWidget(hotelServiceData: service),
-
                 SizedBox(height: SizeConfig.paddingL)
-
               ],
             );
           },
@@ -705,32 +666,31 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   }
 
   Widget _dragHandle() => Center(
-    child: Container(
-      width: 50,
-      height: 5,
-      margin: const EdgeInsets.only(bottom: 5),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryTextColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-    ),
-  );
+        child: Container(
+          width: 50,
+          height: 5,
+          margin: const EdgeInsets.only(bottom: 5),
+          decoration: BoxDecoration(
+            color: AppColors.secondaryTextColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
 
   Widget _header(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: CustomText(
-          "Details",
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mainTextColor,
-        ),
-      ),
-      IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.close),
-      ),
-    ],
-  );
-
+        children: [
+          Expanded(
+            child: CustomText(
+              "Details",
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      );
 }

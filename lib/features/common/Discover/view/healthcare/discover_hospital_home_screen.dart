@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DiscoverHospitalHomeScreen extends StatefulWidget {
   const DiscoverHospitalHomeScreen({super.key});
@@ -58,7 +59,11 @@ class _DiscoverHospitalHomeScreenState
             ),
             EmergencyActionCard(),
             HospitalBookingScreen(),
-            CommonCardWidget(child: EmergencyCriticalCareView()),
+            CommonCardWidget(
+              padding: 10,
+              child: EmergencyCriticalCareView(),
+              bgColor: Color(0xff0085FE).withOpacity(0.08),
+            ),
             ManagementCardListWidget(),
             Padding(
               padding: const EdgeInsets.all(10),
@@ -143,7 +148,6 @@ class _DiscoverHospitalHomeScreenState
     );
   }
 }
-
 class EmergencyActionCard extends StatelessWidget {
   EmergencyActionCard({super.key});
 
@@ -151,148 +155,137 @@ class EmergencyActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCardWidget(
-      padding: 9,
-      // padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-      // decoration: BoxDecoration(
-      //   color: Colors.white,
-      //   borderRadius: BorderRadius.circular(16),
-      //   boxShadow: [
-      //     BoxShadow(
-      //       color: Colors.black.withOpacity(0.05),
-      //       blurRadius: 10,
-      //       spreadRadius: 2,
-      //     ),
-      //   ],
-      // ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // If the screen is too narrow, we stack them or use a scrollable row
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildActionItem(
-                icon: "assets/svg/call_24.svg",
-                // Replace with your custom assets
-                title: "Emergency Number",
-                buttonText: controller
-                        .hospitalDataResModel
-                        ?.value
-                        .data
-                        ?.contacts
-                        ?.firstOrNull
-                        ?.departments
-                        ?.firstOrNull
-                        ?.phone ??
-                    "",
-                isButton: false,
-              ),
-              _buildDivider(),
-              _buildActionItem(
-                icon: "assets/svg/support_helth.svg",
-                title: "Appointment",
-                buttonText: controller
-                        .hospitalDataResModel
-                        ?.value
-                        .data
-                        ?.contacts
-                        ?.firstOrNull
-                        ?.departments
-                        ?.firstOrNull
-                        ?.phone ??
-                    "",
-                isButton: false,
-                hasDropdown: true,
-              ),
-              // _buildDivider(),
-              // _buildActionItem(
-              //   icon: "assets/svg/helth_calender.svg",
-              //   title: "Book",
-              //   subtitle: "Appointment",
-              //   buttonText: "Book Now",
-              //   isButton: true,
-              // ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+    // Extracting numbers for cleaner code
+    final emergencyNo = controller.hospitalDataResModel?.value.data?.emergencyContactData?.emergencyNumber ?? "";
+    final appointmentNo = controller.hospitalDataResModel?.value.data?.emergencyContactData?.appointmentNumber ?? "";
 
-  Widget _buildDivider() {
-    return Container(
-      height: 80,
-      width: 1,
-      color: Colors.grey.withOpacity(0.3),
-    );
-  }
-
-  Widget _buildActionItem({
-    required String icon,
-    required String title,
-    required String buttonText,
-    bool isButton = false,
-    bool hasDropdown = false,
-  }) {
-    return Expanded(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Column(
         children: [
-          LocalAssets(imagePath: icon),
-          // Use Image.asset for your specific icons
-          const SizedBox(height: 8),
-          CustomText(title,
-              textAlign: TextAlign.center,
-              fontSize: 12,
-              color: AppColors.secondaryTextColor),
-          // CustomText(subtitle,
-          //     textAlign: TextAlign.center,
-          //     fontSize: 10,
-          //     color: AppColors.secondaryTextColor),
-          const SizedBox(height: 12),
-          isButton
-              ? _buildBlueButton(buttonText)
-              : _buildGreyPill(buttonText, hasDropdown),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGreyPill(String text, bool hasDropdown) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.phone_outlined, size: 14, color: Colors.black54),
-          const SizedBox(width: 4),
-          CustomText(
-            text,
-            fontSize: 12,
-            color: AppColors.secondaryTextColor,
+          _buildActionCard(
+            icon: "assets/svg/call_24.svg", // Your 24/7 Phone Icon
+            title: "Emergency Number",
+            subtitle: "24/7 Immediate Help",
+            buttonText: "Call Now",
+            isEmergency: true,
+            phoneNo: emergencyNo,
+            onTap: () => _launchCaller(emergencyNo),
           ),
-          // if (hasDropdown) const Icon(Icons.keyboard_arrow_down, size: 16),
+          const SizedBox(height: 12),
+          _buildActionCard(
+            icon: "assets/svg/helth_calender.svg", // Your Calendar Icon
+            title: "Book Appointment",
+            subtitle: "Schedule Your Visit Easily",
+            buttonText: "Call Now",
+            isEmergency: false,
+            phoneNo: appointmentNo,
+
+            onTap: () => _launchCaller(appointmentNo),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBlueButton(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primaryColor),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: CustomText(
-        text,
-        color: AppColors.primaryColor,
-        fontWeight: FontWeight.w400,
-        fontSize: 10,
+  Widget _buildActionCard({
+    required String icon,
+    required String title,
+    required String subtitle,
+    required String buttonText,
+    required String phoneNo,
+    required bool isEmergency,
+    required VoidCallback onTap,
+  }) {
+    return CommonCardWidget(
+      cardMargin: 0,
+      child: Row(
+        children: [
+          // 1. Icon Section
+          LocalAssets(imagePath: icon, height: 50, width: 50),
+          const SizedBox(width: 16),
+
+          // 2. Text Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  title,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                ),
+                const SizedBox(height: 4),
+                CustomText(
+                  phoneNo,
+                    color: Colors.grey.shade600,
+                ),
+              ],
+            ),
+          ),
+
+          // 3. Action Button
+          _buildCallButton(buttonText, isEmergency, onTap),
+        ],
       ),
     );
+  }
+
+  Widget _buildCallButton(String text, bool isEmergency, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isEmergency ? const Color(0xFFC8554D) : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: isEmergency ? null : Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.phone,
+              size: 18,
+              color: isEmergency ? Colors.white : Colors.black54,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                color: isEmergency ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  void _launchCaller(String number) async {
+    // Remove any spaces or special characters from the string
+    final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: cleanNumber,
+    );
+
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        // Handle the error if the dialer cannot be opened (e.g., on a Tablet without a SIM)
+        commonSnackBar(message:
+          "Error Could not open the dialer",
+        );
+      }
+    } catch (e) {
+      debugPrint("Error launching dialer: $e");
+    }
   }
 }
+

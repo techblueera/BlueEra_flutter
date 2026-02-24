@@ -72,15 +72,7 @@ class EmergencyCriticalCareView extends StatelessWidget {
           false)
         {
           "title": "Diagnostic Departments",
-          "icon": AppIconAssets.diag_dept,
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.otherFacilities
-              ?.diagnosticDepartments ??
-          false)
-        {
-          "title": "Diagnostic Departments",
-          "icon": AppIconAssets.diag_dept,
+          "icon": AppIconAssets.diag_dept_view,
           "desc": ""
         },
       if (controller.hospitalDataResModel?.value.data?.otherFacilities
@@ -88,7 +80,7 @@ class EmergencyCriticalCareView extends StatelessWidget {
           false)
         {
           "title": "Medical Store",
-          "icon": AppIconAssets.medical_store,
+          "icon": AppIconAssets.medical_view,
           "desc": ""
         },
       if (controller.hospitalDataResModel?.value.data?.otherFacilities
@@ -100,58 +92,41 @@ class EmergencyCriticalCareView extends StatelessWidget {
           "desc": ""
         },
     ];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ServiceHomeTitleWidget(
-            title: "Our Facility",
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (services.length.isEven)
-                // If screen width is > 600 (Tablet/Landscape), use 2 columns
-                return GridView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: services.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // Number of columns
-                    crossAxisSpacing: 8, // Horizontal space between cards
-                    mainAxisSpacing: 8, // Vertical space between cards
-                    childAspectRatio:
-                        1.2, // Ratio of width to height (1.0 = square)
-                  ),
-                  itemBuilder: (context, index) {
-                    return VerticalEmergencyServiceCard(
-                      title: services[index]['title']!,
-                      description: services[index]['desc']!,
-                      icon: services[index]['icon']!,
-                    );
-                  },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ServiceHomeTitleWidget(
+          title: "Our Facility",
+        ),
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // If screen width is > 600 (Tablet/Landscape), use 2 columns
+            return GridView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: services.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // Number of columns
+                crossAxisSpacing: 10, // Horizontal space between cards
+                mainAxisSpacing: 10, // Vertical space between cards
+                childAspectRatio:
+                    1, // Ratio of width to height (1.0 = square)
+              ),
+              itemBuilder: (context, index) {
+                return VerticalEmergencyServiceCard(
+                  title: services[index]['title']!,
+                  description: services[index]['desc']!,
+                  icon: services[index]['icon']!,
                 );
-              if (services.length.isOdd)
-                return ListView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: services.length,
-                  itemBuilder: (context, index) {
-                    return EmergencyServiceCard(
-                      title: services[index]['title']!,
-                      description: services[index]['desc']!,
-                      icon: services[index]['icon']!,
-                    );
-                  },
-                );
-              return SizedBox();
-            },
-          ),
-        ],
-      ),
+              },
+            );
+
+            return SizedBox();
+          },
+        ),
+      ],
     );
   }
 }

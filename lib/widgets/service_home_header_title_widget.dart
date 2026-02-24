@@ -19,6 +19,7 @@ class ServiceHomeHeaderTitleWidget extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
           const SizedBox(height: 10),
           CustomText(title,
@@ -27,20 +28,23 @@ class ServiceHomeHeaderTitleWidget extends StatelessWidget {
               color: AppColors.mainTextColor,
               overflow: TextOverflow.ellipsis,
               fontWeight: FontWeight.bold),
-          const SizedBox(height: 10),
-          ExpandableText(
-            text: description,
-            trimLines: 4,
-            isReadMoreNewLine: false,
-            expandMode: ExpandMode.dialog,
-            style: TextStyle(
-              color: AppColors.secondaryTextColor,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w400,
-              fontFamily: AppConstants.OpenSans,
+          // if(description.isNotEmpty)...[
+            const SizedBox(height: 10),
+            ExpandableText(
+              text: description,
+              trimLines: 4,
+              isReadMoreNewLine: false,
+              expandMode: ExpandMode.dialog,
+              style: TextStyle(
+                color: AppColors.secondaryTextColor,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w400,
+                fontFamily: AppConstants.OpenSans,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          // ],
+
         ],
       ),
     );

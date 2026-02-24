@@ -109,22 +109,22 @@ class HomeStayDetailsWidget extends StatelessWidget {
                         SizedBox(
                           width: SizeConfig.size8,
                         ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            vertical: SizeConfig.size3,
-                            horizontal: SizeConfig.size10,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(
-                                color: AppColors.secondaryTextColor,
-                                width: 0.5),
-                          ),
-                          child: CustomText('5 Star',
-                              fontSize: SizeConfig.small,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w400),
-                        ),
+                        // Container(
+                        //   padding: EdgeInsets.symmetric(
+                        //     vertical: SizeConfig.size3,
+                        //     horizontal: SizeConfig.size10,
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //     borderRadius: BorderRadius.circular(12.0),
+                        //     border: Border.all(
+                        //         color: AppColors.secondaryTextColor,
+                        //         width: 0.5),
+                        //   ),
+                        //   child: CustomText('5 Star',
+                        //       fontSize: SizeConfig.small,
+                        //       color: AppColors.secondaryTextColor,
+                        //       fontWeight: FontWeight.w400),
+                        // ),
                       ],
                     ),
                   ),
@@ -136,21 +136,21 @@ class HomeStayDetailsWidget extends StatelessWidget {
                     EdgeInsets.only(left: SizeConfig.size20,right: SizeConfig.size10),
                     child: Row(
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            vertical: SizeConfig.size3,
-                            horizontal: SizeConfig.size10,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(
-                                color: AppColors.secondaryTextColor, width: 0.5),
-                          ),
-                          child: CustomText('5 Star',
-                              fontSize: SizeConfig.small,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w400),
-                        ),
+                        // Container(
+                        //   padding: EdgeInsets.symmetric(
+                        //     vertical: SizeConfig.size3,
+                        //     horizontal: SizeConfig.size10,
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //     borderRadius: BorderRadius.circular(12.0),
+                        //     border: Border.all(
+                        //         color: AppColors.secondaryTextColor, width: 0.5),
+                        //   ),
+                        //   child: CustomText('5 Star',
+                        //       fontSize: SizeConfig.small,
+                        //       color: AppColors.secondaryTextColor,
+                        //       fontWeight: FontWeight.w400),
+                        // ),
                         SizedBox(
                           width: SizeConfig.size5,
                         ),

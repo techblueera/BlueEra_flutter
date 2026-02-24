@@ -758,13 +758,13 @@ class DiscoverController extends GetxController {
       // String pinCode = LocationService.userCurrentAddress.value.postalCode;
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.city: city,
+        // ApiKeys.city: city,
         ApiKeys.category: category,
         // ApiKeys.state: state,
         // ApiKeys.pincode: pinCode,
         // ApiKeys.lat: lat,
         // ApiKeys.lng: lng,
-        ApiKeys.radius: kmRadius1500,
+        // ApiKeys.radius: kmRadius1500,
         ApiKeys.page: rentalServicePage,
         ApiKeys.limit: limit,
       };

@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/features/me/hospital/model/hospital_emergency_contact_model.dart';
 HospitalFullDetailsResModel hospitalFullDetailsResModelFromJson(String str) => HospitalFullDetailsResModel.fromJson(json.decode(str));
 String hospitalFullDetailsResModelToJson(HospitalFullDetailsResModel data) => json.encode(data.toJson());
 class HospitalFullDetailsResModel {
@@ -43,8 +45,9 @@ class HospitalFullData {
       this.management, 
       this.departments, 
       this.emergencyCare, 
-      this.otherFacilities, 
-      this.gallery, 
+      this.emergencyContactData,
+      this.otherFacilities,
+      this.gallery,
       this.contacts,});
 
   HospitalFullData.fromJson(dynamic json) {
@@ -92,6 +95,12 @@ class HospitalFullData {
         contacts?.add(HospitalContacts.fromJson(v));
       });
     }
+    final d = json['emergencyContact'];
+    if (d is Map<String, dynamic>) {
+      emergencyContactData = EmergencyContactData.fromJson(d);
+    } else {
+      emergencyContactData = null;
+    }
   }
   Location? location;
   String? id;
@@ -111,6 +120,7 @@ class HospitalFullData {
   OtherFacilities? otherFacilities;
   List<HospitalGallery>? gallery;
   List<HospitalContacts>? contacts;
+  EmergencyContactData? emergencyContactData;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -126,6 +136,7 @@ class HospitalFullData {
     map['__v'] = v;
     map['coverUrl'] = coverUrl;
     map['logoUrl'] = logoUrl;
+
     if (visionMission != null) {
       map['visionMission'] = visionMission?.toJson();
     }
@@ -143,6 +154,9 @@ class HospitalFullData {
     }
     if (otherFacilities != null) {
       map['otherFacilities'] = otherFacilities?.toJson();
+    }
+    if (emergencyContactData != null) {
+      map['emergencyContact'] = emergencyContactData?.toJson();
     }
     if (gallery != null) {
       map['gallery'] = gallery?.map((v) => v.toJson()).toList();

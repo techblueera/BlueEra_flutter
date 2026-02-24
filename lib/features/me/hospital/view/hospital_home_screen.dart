@@ -1,11 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_contact_us_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_department_widget.dart';
+import 'package:BlueEra/features/me/hospital/view/widget/hospital_faq_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
@@ -45,18 +47,27 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         HospitalHeaderView(
           isReadOnly: false,
         ),
+        EmergencyActionCard(),
+
         HospitalBookingScreen(),
-        CommonCardWidget(child: EmergencyCriticalCareView()),
+        CommonCardWidget(child: EmergencyCriticalCareView(),
+
+          bgColor: Color(0xff0085FE).withOpacity(0.08),
+        ),
         ManagementCardListWidget(),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: HospitalHomeGalleryWidget(
-            photos: controller.hospitalDataResModel?.value.data?.gallery,
+        if (controller.hospitalDataResModel?.value.data?.gallery?.isNotEmpty ??
+            false) ...[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: HospitalHomeGalleryWidget(
+              photos: controller.hospitalDataResModel?.value.data?.gallery,
+            ),
           ),
-        ),
-        SizedBox(
-          height: 10,
-        ),
+          SizedBox(
+            height: 10,
+          ),
+        ],
+        // HospitalFaqWidget(),
         InkWell(
           onTap: () {
             Get.to(HospitalJobListingScreen(
@@ -75,9 +86,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         SizedBox(
           height: 10,
         ),
-        SizedBox(
-          height: 10,
-        ),
+
         if ((controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
                     ?.branch?.location?.coordinates?.isNotEmpty ??
                 false) &&

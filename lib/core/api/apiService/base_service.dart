@@ -757,6 +757,10 @@ abstract class BaseService {
   String emergencyCareByHospital= 'hospital-service/emergency-care/hospital/$hospitalIDGlobal';
   String emergencyCareById = 'hospital-service/emergency-care/status/$hospitalIDGlobal';
 
+  /// Emergency Contact
+  final String hospitalEmergencyContactBase = 'hospital-service/emergency-contact';
+  String hospitalEmergencyContactByHospital = 'hospital-service/emergency-contact/hospital/$hospitalIDGlobal';
+
   /// Other Facilities
   final String otherFacilitiesBase = 'hospital-service/other-facilities';
   String otherFacilitiesByHospital = 'hospital-service/other-facilities/hospital/$hospitalIDGlobal';

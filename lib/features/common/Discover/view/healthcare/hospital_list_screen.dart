@@ -111,7 +111,6 @@ class _HospitalCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 10.0, bottom: 15, left: 8),
       child: InkWell(
-        // onTap: () => _openDetailsSheet(context, item),
         onTap: () {
           final controller = Get.find<HospitalServiceAiController>();
           controller.hospitalDataResModel?.value =

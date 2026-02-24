@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_lab_view_screen.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profiles_list_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -96,15 +98,18 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
 
 class _LabCard extends StatelessWidget {
   final LabProfileListItem item;
+
   const _LabCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0,bottom: 10),
+      padding: const EdgeInsets.only(right: 8.0, bottom: 10),
       child: InkWell(
         onTap: () {
-          Get.to(DiscoverLabViewScreen(detailsData: item,));
+          Get.to(DiscoverLabViewScreen(
+            detailsData: item,
+          ));
         },
         child: CommonCardWidget(
           cardMargin: 0,
@@ -126,7 +131,8 @@ class _LabCard extends StatelessWidget {
                               size: SizeConfig.size32),
                         )
                       : Icon(Icons.image,
-                          color: AppColors.placeHolder, size: SizeConfig.size32),
+                          color: AppColors.placeHolder,
+                          size: SizeConfig.size32),
                 ),
               ),
               SizedBox(width: SizeConfig.size12),
@@ -149,18 +155,23 @@ class _LabCard extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: SizeConfig.size6),
-                    CustomText(
-                      item.description.isNotEmpty
-                          ? item.description
-                          : "No description available",
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+
+                    if (item.description.isNotEmpty)
+                      ExpandableText(
+                        text: item.description,
+                        trimLines: 1,
+                        isReadMoreNewLine: false,
+                        expandMode: ExpandMode.dialog,
+                        style: TextStyle(
+                          color: AppColors.secondaryTextColor,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: AppConstants.OpenSans,
+                        ),
+                      ),
                     SizedBox(height: SizeConfig.size6),
                     CustomText(
-                      "Open: 9:00 AM",
+                      "Open: ${item.fullDetails?.healthCamps?.firstOrNull?.startTime}",
                       fontSize: SizeConfig.small,
                       color: AppColors.green00,
                       fontWeight: FontWeight.w600,

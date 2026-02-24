@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/hospital/view/about_us/hospital_emergency_contact.dart';
 import 'package:BlueEra/features/me/hospital/view/about_us/hospital_vision_mission_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/about_us/hospital_history_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/management/hospital_management_screen.dart';
@@ -34,6 +35,11 @@ class _SchoolAboutUsState extends State<HospitalAboutUsScreen> {
       title: "Management / Trust",
       icon: AppIconAssets.management_trust,
       page: () => HospitalManagementScreen(),
+    ),
+    ServiceMenuItem(
+      title: "Emergency Contact Details",
+      icon: AppIconAssets.emerg_call,
+      page: () => HospitalEmergencyContactScreen(),
     ),
   ];
 
