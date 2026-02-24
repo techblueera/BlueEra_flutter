@@ -240,7 +240,6 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                     HorizontalTabSelector(
                         tabs: [
                           "Members",
-                          "Pinned",
                           "Gallery",
                           "Add",
                           "Documents"
@@ -248,6 +247,11 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                         selectedIndex: selectedIndex,
                         onTabSelected: (index, dd) {
                           selectedIndex = index;
+                          if(index==1){
+                            chatViewController.getPinMessageListDataApi({
+                              ApiKeys.conversation_id:widget.conversationId
+                            });
+                          }
                           setState(() {});
                         },
                         labelBuilder: (value) => value),
@@ -260,7 +264,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                           borderRadius: BorderRadius.circular(10),
                           color: AppColors.white),
                       width: double.infinity,
-                      child: _buildTabContent(selectedIndex, members, mediaList),
+                      child: _buildTabContent(selectedIndex,groupProfileImage,groupName, members, mediaList),
                     ),
                   ],
                 ),
@@ -280,42 +284,11 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     );
   }
 
-  Widget _buildTabContent(int index, List<GroupMembersListModel> members, List<GroupMediaModel> mediaList, ) {
+  Widget _buildTabContent(int index,String profileImage,String groupName, List<GroupMembersListModel> members, List<GroupMediaModel> mediaList, ) {
     switch (index) {
       case 0:
         return GroupMembersList(conversationId: widget.conversationId,members: members,);
-      case 1: // Pinned
-        return ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: 10,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            bool isMe = index % 2 != 0;
-            return Align(
-              alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isMe ? AppColors.primaryColor : Colors.grey.shade200,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(12),
-                    topRight: const Radius.circular(12),
-                    bottomLeft: Radius.circular(isMe ? 12 : 0),
-                    bottomRight: Radius.circular(isMe ? 0 : 12),
-                  ),
-                ),
-                child: CustomText(
-                  " Hi This message was pinned message kjcsdcjk kjdsbdch sdjkcbsdhc",
-                  color: isMe ? Colors.white : Colors.black87,
-                  fontSize: 14,
-                ),
-              ),
-            );
-          },
-        );
-      case 2: // Gallery
+      case 1: // Gallery
         return GroupMediasList(mediaList: mediaList,);
       default:
         return Center(

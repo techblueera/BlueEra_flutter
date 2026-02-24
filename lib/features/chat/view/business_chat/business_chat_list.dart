@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
+import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../ai_chat/view/ai_chat_screen.dart';
@@ -44,38 +45,52 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
               ApiKeys.type:"business"
             });
           },
-          child:Container(
-            margin: EdgeInsets.only(bottom: SizeConfig.size70),
-            child: (data?.chatList?.isEmpty??true)?noChatsFound(): ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              itemCount:  (data?.chatList?.length ?? 0) + 1,
-              itemBuilder: (context, index) {
-                final chat =(index == 0)? ChatViewController.businessAiChatModule:data?.chatList?[index - 1];
-                return ChatListTile(onTab: (index == 0)?(){
-                  Get.to(()=> AiChatScreen(
-                    profileImage: chat?.sender?.profileImage,
-                    name: chat?.sender?.name,
-                    contactNo: chat?.sender?.contactNo,
-                    conversationId: '',
-                    userId: '',
-                    businessId: '',
-                    type: chat?.sender?.accountType,
-                    isInitialMessage: false,));
-                }:null,
-                    isFromGroupSelect: widget.isNewGroupUI,
-                    onSelect: (){
-                  setState(() {
+          child:Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16,),
+              HorizontalTabSelector(horizontalMargin: 14,
+                  horizontalPadding: 10,
+                  tabs: ['All',"Selling","Buying"],
+                  selectedIndex: 0,
+                  onTabSelected: (index,val){
 
-                  });
-                },type: "business",
-                    index: index,
-                    chatViewController: chatViewController,
-                    chat: chat,
-                    theme: theme,
-                    isForwardUI: widget.isForwardUI,
-                    context: context);
-              }
-            ),
+                  },
+                  labelBuilder: (value)=>value),
+              SizedBox(height: 12,),
+              Container(
+                margin: EdgeInsets.only(bottom: SizeConfig.size70),
+                child: (data?.chatList?.isEmpty??true)?noChatsFound(): ListView.builder(
+                    shrinkWrap: true,
+                  itemCount:  (data?.chatList?.length ?? 0) + 1,
+                  itemBuilder: (context, index) {
+                    final chat =(index == 0)? ChatViewController.businessAiChatModule:data?.chatList?[index - 1];
+                    return ChatListTile(onTab: (index == 0)?(){
+                      Get.to(()=> AiChatScreen(
+                        profileImage: chat?.sender?.profileImage,
+                        name: chat?.sender?.name,
+                        contactNo: chat?.sender?.contactNo,
+                        conversationId: '',
+                        userId: '',
+                        businessId: '',
+                        type: chat?.sender?.accountType,
+                        isInitialMessage: false,));
+                    }:null,
+                        isFromGroupSelect: widget.isNewGroupUI,
+                        onSelect: (){
+                      setState(() {
+
+                      });
+                    },type: "business",
+                        index: index,
+                        chatViewController: chatViewController,
+                        chat: chat,
+                        theme: theme,
+                        isForwardUI: widget.isForwardUI,
+                        context: context);
+                  }
+                ),
+              ),
+            ],
           ),
         );
 

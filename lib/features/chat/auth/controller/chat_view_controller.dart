@@ -86,11 +86,11 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "BlueEra Friend",
       "contact_no": "BlueEra Friend",
-      "profile_image":
-          "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "profile_image":AppImageAssets.app_logo,
       "account_type": AppConstants.personal_Chat_Type,
     }
   };
+
   static final Map<String, dynamic> businessAiChatListModel = {
     "last_message": "Ask anything about business",
     "last_message_type": "text",
@@ -98,7 +98,7 @@ class ChatViewController extends GetxController {
       "name": "BlueEra Business Friend",
       "contact_no": "BlueEra Friend",
       "profile_image":
-          "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+          AppImageAssets.app_logo,
       "account_type": AppConstants.business_Chat_Type,
     }
   };
@@ -109,7 +109,7 @@ class ChatViewController extends GetxController {
       "name": "BlueEra Friend",
       "contact_no": "BlueEra Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.search_Chat_Type,
     }
   };
@@ -120,7 +120,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Inventory Friend",
       "profile_image":
-          "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+          AppImageAssets.app_logo,
       "account_type": AppConstants.askInventory_Chat_Type,
     }
   };
@@ -131,7 +131,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Food Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askFood_Chat_Type,
     }
   };
@@ -142,7 +142,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Service Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askService_Chat_Type,
     }
   };
@@ -153,7 +153,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Health Care Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askHealthCare_Chat_Type,
     }
   };
@@ -164,7 +164,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Education Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askEducation_Chat_Type,
     }
   };
@@ -175,7 +175,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Home Service Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askHomeService_Chat_Type,
     }
   };
@@ -186,7 +186,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Travel and Stay Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askTravelStay_Chat_Type,
     }
   };
@@ -197,7 +197,7 @@ class ChatViewController extends GetxController {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Consulting Talk Friend",
       "profile_image":
-      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      AppImageAssets.app_logo,
       "account_type": AppConstants.askConsultingTalk_Chat_Type,
     }
   };
@@ -273,10 +273,14 @@ class ChatViewController extends GetxController {
   File? editedGroupFile;
   File? editedGroupCoverFile;
   RxBool isPublicGroup = false.obs;
+  RxBool isDeleteBtnLoading = false.obs;
+  RxBool isPinMessageLoading = false.obs;
   RxBool isEditGroupBtnLoading = false.obs;
   final groupNameController=TextEditingController();
   final groupDescriptionController=TextEditingController();
 
+  RxInt groupChatScreenSelectedTab = 0.obs;
+  final RxInt selectedDays = 1.obs;
   final List<String> tabs = [
     'Chat',
     'Products',
@@ -348,6 +352,30 @@ class ChatViewController extends GetxController {
     return "${now.toIso8601String().substring(0, 23)}Z";
   }
 
+  Future<bool?> clearChatHistory(Map<String, dynamic> params) async {
+    try {
+      isDeleteBtnLoading.value=true;
+      ResponseModel responseModel =
+      await ChatViewRepo().clearChatHistoryApi(params);
+
+      if (responseModel.isSuccess) {
+        isDeleteBtnLoading.value=false;
+        getListOfMessageData?.clear();
+         getListOfMessageResponse.value =ApiResponse.complete(getListOfMessageData);
+        return true;
+      } else {
+        isDeleteBtnLoading.value=false;
+
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      isDeleteBtnLoading.value=false;
+
+      commonSnackBar(message: e.toString());
+    }
+    return null;
+  }
   void parseAiChatHistory(List<dynamic> jsonList) {
     for (var item in jsonList) {
       final details = AiChatHistoryMessageModel.fromJson(item);
@@ -376,6 +404,7 @@ class ChatViewController extends GetxController {
     String? conversationId,
     required String type,
     String? message,
+    String? tag,
     Uint8List? imageBytes,
     String? mimeType,
   }) async {
@@ -680,7 +709,6 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-        log("sdklclksdcmsldkc ${data}");
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -748,10 +776,10 @@ class ChatViewController extends GetxController {
 
         if (message?.conversation?.type == AppConstants.personal_Chat_Type) {
           emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
+              {ApiKeys.type: AppConstants.personal_Chat_Type}, );
         } else {
           emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.business_Chat_Type}, true);
+              {ApiKeys.type: AppConstants.business_Chat_Type}, );
         }
         String chekedConversationId = userOpenConversationId.value;
         if (chekedConversationId == message?.conversationId) {
@@ -1185,7 +1213,7 @@ class ChatViewController extends GetxController {
   }
 
   void emitEvent(String event, dynamic data,
-      [bool? isFromInitial, String? conversationId]) async {
+      [ String? conversationId]) async {
     if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "") != userOpenConversationId) {
       getListOfMessageResponse.value = ApiResponse.initial('Initial');
@@ -1903,7 +1931,7 @@ class ChatViewController extends GetxController {
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message, params);
         emitEvent(ChatEmitEvents.ChatList,
-            {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
+            {ApiKeys.type: AppConstants.personal_Chat_Type},);
         clearMessageControllerCommon();
       } else {
         clearMessageControllerCommon();
@@ -1962,21 +1990,49 @@ class ChatViewController extends GetxController {
 
   Future<bool> addToPinMessage(Map<String, dynamic> params) async {
     try {
+      isPinMessageLoading.value=true;
       ResponseModel responseModel =
           await ChatViewRepo().addToPinMultiMessage(params);
-      clearMessageControllerCommon();
-
       if (responseModel.isSuccess) {
+        isPinMessageLoading.value=false;
+        commonSnackBar(
+            message:responseModel.message?? "Message Pinned Successfully");
         return true;
       } else {
-        clearMessageControllerCommon();
+        isPinMessageLoading.value=false;
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         return false;
       }
     } catch (e) {
+      isPinMessageLoading.value=false;
+      commonSnackBar(
+          message: AppStrings.somethingWentWrong);
       return false;
     }
+  }
+  Future<bool> getPinMessageListDataApi(Map<String, dynamic> params) async {
+    // try {
+
+      ResponseModel responseModel =
+          await ChatViewRepo().getPinMessageListData(params);
+      if (responseModel.isSuccess) {
+        getListOfMessageData?.clear();
+        List<dynamic> details=responseModel.response?.data['messages'];
+        getListOfMessageData?.addAll(details.map((e) => Messages.fromJson(e)).toList());
+        getListOfMessageResponse.value =ApiResponse.complete(getListOfMessageData);
+        return true;
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    // } catch (e) {
+    //
+    //   commonSnackBar(
+    //       message: AppStrings.somethingWentWrong);
+    //   return false;
+    // }
   }
 
   Future<void> generateUploadUrlsApi({

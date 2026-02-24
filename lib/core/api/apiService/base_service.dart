@@ -776,5 +776,6 @@ abstract class BaseService {
   final String hospitalRemovePhotos = 'hospital-service/gallery/';
   final String hospitalGetAllPhotos = 'hospital-service/gallery/hospital/$hospitalIDGlobal';
   final String aiExpertise = 'ai-service/api/ai-expertise/generate';
+  final String clearChatHistory = 'chat-service/group/clear';
 
 }

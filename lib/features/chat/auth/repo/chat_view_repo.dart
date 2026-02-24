@@ -212,7 +212,9 @@ class ChatViewRepo extends BaseService {
   Future<ResponseModel> getPinMessageListData(
       Map<String, dynamic> params) async {
     final response = await ApiBaseHelper()
-        .getHTTP(getPinMessageList, onError: (error) {}, onSuccess: (data) {});
+        .getHTTP(getPinMessageList,
+        showProgress: true,
+        onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -249,6 +251,26 @@ class ChatViewRepo extends BaseService {
       Map<String, dynamic> params) async {
     final response = await ApiBaseHelper()
         .postHTTP(messageLikeUnlike,params: params,showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> clearChatHistoryApi(
+      Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper()
+        .deleteHTTP(clearChatHistory,
+        params: params,
+        showProgress: true,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> addPinMessage(
+      Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper()
+        .deleteHTTP(clearChatHistory,
+        params: params,
+        showProgress: true,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
   Future<ResponseModel> checkTrackOrderStatusApi(

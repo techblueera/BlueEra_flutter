@@ -27,6 +27,8 @@ import '../../auth/model/GetChatListModel.dart';
 import '../chat_screen_new.dart';
 import '../contacts/contact_list_page.dart';
 import '../group_chat/view_group_members.dart';
+import '../group_chat/widgets/delete_chat_history_dialog.dart';
+import '../group_chat/widgets/pin_message_dialoge_widget.dart';
 import '../symbol_view/symbol_view_images.dart';
 
 Widget timeAndReadInfoWidget({required Messages message,
@@ -921,6 +923,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
+
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,
@@ -929,7 +932,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
       onTap: onBackCallback ?? () {
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
-              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, );
           bottomBarController.onChangeIndex(4);
           Navigator.popUntil(context, ModalRoute.withName(
               RouteHelper.getBottomNavigationBarScreenRoute()));
@@ -937,7 +940,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         } else {
           Get.back();
           chatViewController.emitEvent(
-              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"},);
         }
       },
       child: Padding(
@@ -993,10 +996,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 ? NetworkImage(profileImage)
                 : FileImage(File(profileImage)) as ImageProvider)
                 : null,
-            onBackgroundImageError: (_, __) {
-              // Prevent crash if image URL fails
-              debugPrint("Profile image load failed: $profileImage");
-            },
+
             child: (profileImage == 'null')
                 ? CustomText(
               "${name!.split('')[0]}",
@@ -1109,32 +1109,35 @@ AppBar getChatTitleAppBar(BuildContext context, {
             elevation: 8,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             onSelected: (value) {
-              if (value == "group_info") {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    transitionDuration: const Duration(milliseconds: 400),
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        ViewGroupMembers(
-                          conversationId: conversationId,
-                          type: type,
-
-                        ),
-                    transitionsBuilder: (context, animation, secondaryAnimation,
-                        child) {
-                      return ScaleTransition(
-                        scale: Tween<double>(begin: 0.9, end: 1.0)
-                            .animate(CurvedAnimation(
-                            parent: animation, curve: Curves.easeOut)),
-                        child: FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        ),
-                      );
-                    },
-                  ),
-                );
+              if(value=="clear_chat"){
+                showDeleteChatDialog(conversationId??'');
               }
+              // if (value == "group_info") {
+              //   Navigator.push(
+              //     context,
+              //     PageRouteBuilder(
+              //       transitionDuration: const Duration(milliseconds: 400),
+              //       pageBuilder: (context, animation, secondaryAnimation) =>
+              //           ViewGroupMembers(
+              //             conversationId: conversationId,
+              //             type: type,
+              //
+              //           ),
+              //       transitionsBuilder: (context, animation, secondaryAnimation,
+              //           child) {
+              //         return ScaleTransition(
+              //           scale: Tween<double>(begin: 0.9, end: 1.0)
+              //               .animate(CurvedAnimation(
+              //               parent: animation, curve: Curves.easeOut)),
+              //           child: FadeTransition(
+              //             opacity: animation,
+              //             child: child,
+              //           ),
+              //         );
+              //       },
+              //     ),
+              //   );
+              // }
             },
           itemBuilder: (context) => popPupMenuForGroupChat(),
         )
@@ -1145,7 +1148,18 @@ AppBar getChatTitleAppBar(BuildContext context, {
     ],
   );
 }
-
+void showDeleteChatDialog(String conId) {
+  Get.dialog(
+    Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      child:DeleteChatHistoryDialog(conversationId:conId ,),
+    ),
+    barrierDismissible: false, // user must tap button
+  );
+}
 PreferredSize getChatOptionsAppBar(BuildContext context, {
   required String? userId,
   required String? conversationId,
@@ -1294,10 +1308,13 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           },
         )
             : SizedBox(),
-        // IconButton(
-        //   icon:  Icon(Icons.push_pin_outlined,color: AppColors.chat_input_icon_color,size: 22,),
-        //   onPressed: _showPinDialog,
-        // ),
+        IconButton(
+          icon:  Icon(Icons.push_pin_outlined,color: AppColors.chat_input_icon_color,size: 22,),
+          onPressed: (){
+            showPinDialog(conversationId??'');
+          },
+        // onPressed: (){},
+        ),
         Padding(
           padding: EdgeInsets.only(left: SizeConfig.size6),
           child: InkWell(
@@ -1323,25 +1340,36 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           ),
         ),
 
-        /// 🔽 Three Dots Menu (Edit option)
-        PopupMenuButton<String>(
-          icon: Icon(Icons.more_vert, color: AppColors.chat_input_icon_color),
-          offset: const Offset(20, 60), // 👈 shift menu 40 pixels downward
-          onSelected: (value) {
-            if (value == 'edit') {
-              print("Edit selected");
-              // Handle your edit logic
-            }
-          },
-          itemBuilder: (context) => [],
-        ),
+
+        // PopupMenuButton<String>(
+        //   icon: Icon(Icons.more_vert, color: AppColors.chat_input_icon_color),
+        //   offset: const Offset(20, 60), // 👈 shift menu 40 pixels downward
+        //   onSelected: (value) {
+        //     if (value == 'edit') {
+        //       print("Edit selected");
+        //       // Handle your edit logic
+        //     }
+        //   },
+        //   itemBuilder: (context) => [],
+        // ),
 
         SizedBox(width: SizeConfig.size8),
       ],
     ),
   );
 }
-
+void showPinDialog(String conId) {
+  Get.dialog(
+    Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      child:PinMessageDurationDialog(conversationId:conId ,),
+    ),
+    barrierDismissible: false, // user must tap button
+  );
+}
 void launchDialPad(String phoneNumber) async {
   final Uri url = Uri(scheme: 'tel', path: phoneNumber);
 
