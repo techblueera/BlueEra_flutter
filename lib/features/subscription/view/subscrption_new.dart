@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/subscription/view/paid_subscription_plans_screen.dart';
@@ -16,7 +17,6 @@ import 'package:get/get.dart';
 import '../../../core/api/apiService/api_response.dart';
 import '../../../core/constants/getx_utils.dart';
 import '../auth/controller/subscription_controller.dart';
-import 'my_subscription_details.dart';
 
 class SubscriptionScreenNew extends StatefulWidget {
   const SubscriptionScreenNew({super.key});
@@ -28,14 +28,12 @@ class SubscriptionScreenNew extends StatefulWidget {
 class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with SingleTickerProviderStateMixin{
 
   final controller = getOrPut(() => SubscriptionController());
-  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     getInitial();
     controller.subscriptionPlansGetApi();
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   void getInitial() {
@@ -239,21 +237,21 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  "your Free 7 Days Trial on-Going",
+                  "Enjoying Premium? Your 7-day free trial is currently active!",
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
                 ),
                 SizedBox(height: SizeConfig.size2),
                 CustomText(
-                  "Start Date - ${controller.currentPlansList.first.trialStart}",
+                  "Start Date - ${formatISO8601Date(controller.currentPlansList.first.trialStart)}",
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
                 ),
                 SizedBox(height: SizeConfig.size2),
                 CustomText(
-                  "End date - ${controller.currentPlansList.first.trialEnd}",
+                  "End date - ${formatISO8601Date(controller.currentPlansList.first.trialEnd)}",
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,

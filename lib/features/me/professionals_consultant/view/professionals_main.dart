@@ -26,9 +26,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
 
   @override
   void initState() {
-    controller.professionalsFullDetailsController();
     _tabController = TabController(length: 3, vsync: this);
-
+    controller.professionalsFullDetailsController();
     super.initState();
   }
 

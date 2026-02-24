@@ -1,30 +1,50 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_list_details_model.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
+import 'package:BlueEra/features/subscription/auth/model/user_subscription_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
-class ActiveSubscriptionCard extends StatelessWidget {
-  final SubscriptionPlanData? details;
+class ActiveSubscriptionCard extends StatefulWidget {
+  final UserSubscription? userSubscription;
   final int index;
   final SubscriptionController controller;
   final SubscriptionPlanStyleModel style;
-  final String tagText;
 
   const ActiveSubscriptionCard({
     Key? key,
-    required this.details,
+    required this.userSubscription,
     required this.index,
     required this.controller,
     required this.style,
-    this.tagText = "BASIC",
   }) : super(key: key);
 
   @override
+  State<ActiveSubscriptionCard> createState() => _ActiveSubscriptionCardState();
+}
+
+class _ActiveSubscriptionCardState extends State<ActiveSubscriptionCard> {
+
+  late SubscriptionPlanData? _details;
+  late bool _isSubscribed;
+  late String _validUpTo;
+
+  @override
+  initState(){
+    super.initState();
+    _details = widget.userSubscription?.subscriptionPlanData;
+    _isSubscribed = widget.userSubscription?.isSubscribed ?? false;
+    _validUpTo = widget.userSubscription?.validUpto ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+
     return Stack(
       children: [
         _background(),
@@ -55,7 +75,7 @@ class ActiveSubscriptionCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
       child: LocalAssets(
-        imagePath: style.bg,
+        imagePath: widget.style.bg,
         height: SizeConfig.screenHeight * 0.2,
         width: double.infinity,
         boxFix: BoxFit.fill,
@@ -85,13 +105,13 @@ class ActiveSubscriptionCard extends StatelessWidget {
 
             /// Amount
             CustomText(
-              "₹${details?.amount != null ? (details!.amount! / 100) : '0'}",
+              "₹${_details?.amount != null ? (_details!.amount! / 100) : '0'}",
               fontSize:
-              (details?.amount.toString().length ?? 0) > 3
+              (_details?.amount.toString().length ?? 0) > 3
                   ? 24
                   : 36,
               fontWeight: FontWeight.w700,
-              color: style.color,
+              color: widget.style.color,
               textAlign: TextAlign.center,
             ),
 
@@ -99,7 +119,7 @@ class ActiveSubscriptionCard extends StatelessWidget {
              decoration: BoxDecoration(
                borderRadius: BorderRadius.circular(10.0),
                border: Border.all(
-                 color: style.color.withValues(alpha: 0.1),
+                 color: widget.style.color.withValues(alpha: 0.1),
                ),
              ),
              padding: EdgeInsets.symmetric(
@@ -113,7 +133,7 @@ class ActiveSubscriptionCard extends StatelessWidget {
                    "Used:",
                    fontSize: SizeConfig.small,
                    fontWeight: FontWeight.w400,
-                   color: style.color,
+                   color: widget.style.color,
                    textAlign: TextAlign.center,
                  ),
                  SizedBox(height: SizeConfig.size4),
@@ -121,7 +141,7 @@ class ActiveSubscriptionCard extends StatelessWidget {
                    "25 Rides",
                    fontSize: SizeConfig.small,
                    fontWeight: FontWeight.w600,
-                   color: style.color,
+                   color: widget.style.color,
                    textAlign: TextAlign.center,
                  ),
                ],
@@ -148,17 +168,16 @@ class ActiveSubscriptionCard extends StatelessWidget {
             Icon(
               Icons.check_circle_outline,
               size: 14,
-              color: style.color,
+              color: widget.style.color,
             ),
             const SizedBox(width: 6),
             Expanded(
               child: CustomText(
-                'Valid Up to : ',
-                // 'Valid Up to : ${details.}',
+                'Valid Up to : ${formatISO8601Date(_validUpTo)}',
                 fontSize: 12,
                 maxLines: 1,
                 fontWeight: FontWeight.w400,
-                color: style.color,
+                color: widget.style.color,
               ),
             ),
           ],
@@ -169,11 +188,11 @@ class ActiveSubscriptionCard extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(10.0),
           decoration: BoxDecoration(
-            color: (tagText == "Active")
-                ? AppColors.greenLight.withValues(alpha: 0.1)
+            color: (_isSubscribed)
+                ? AppColors.blueLight.withValues(alpha: 0.1)
                 : AppColors.redLight.withValues(alpha: 0.1),
             border: Border.all(
-              color: (tagText == "Active")
+              color: (_isSubscribed)
                     ? AppColors.greenLight
                     : AppColors.redLight
             ),
@@ -184,22 +203,22 @@ class ActiveSubscriptionCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CustomText(
-                 'Balance: ${details?.amount}',
+                 'Balance: ₹${_details?.amount != null ? (_details!.amount! / 100) : '0'}',
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.redLight
+                  color: _isSubscribed ? widget.style.color : AppColors.redLight
               ),
               CustomText(
-                tagText,
+                _isSubscribed ? 'Active' : 'In-Active',
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
-                color: AppColors.redLight
+                color: _isSubscribed ? widget.style.color : AppColors.redLight
               ),
             ],
           ),
         ),
 
-        if(tagText!='Active')
+        if(!_isSubscribed)
         ...[
           SizedBox(height: SizeConfig.paddingL),
           Align(
@@ -213,22 +232,18 @@ class ActiveSubscriptionCard extends StatelessWidget {
           )
         ]
 
-        
+
       ],
     );
   }
-  
 
   Widget _planTag() {
     return Container(
       padding:
       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: style.color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(6),
-          topRight: Radius.circular(6),
-        ),
+        color: widget.style.color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(6.0),
         boxShadow: [
           BoxShadow(
               color: Colors.white.withValues(alpha: 0.5),
@@ -238,10 +253,10 @@ class ActiveSubscriptionCard extends StatelessWidget {
         ],
       ),
       child: CustomText(
-        tagText.toUpperCase(),
+        _details?.tier ?? 'Basic',
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w600,
-        color: style.color,
+        color: widget.style.color,
       ),
     );
   }

@@ -67,7 +67,7 @@ class SubscriptionSuccessDialog extends StatelessWidget {
               width: double.infinity,
               textColor: AppColors.white,
               bgColor: AppColors.primaryColor,
-              title: "Go to Hom",
+              title: "Go to Home",
               onTap: onBtnPressed,
             )
 
