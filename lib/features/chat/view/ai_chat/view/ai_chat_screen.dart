@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,8 +19,8 @@ import '../../../auth/controller/chat_theme_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../widget/component_widgets.dart';
-import '../../widget/message_card.dart';
 import '../../widget/picked_media_preview.dart';
+import 'ai_chat_message_view_screen.dart';
 
 class AiChatScreen extends StatefulWidget {
   AiChatScreen(
@@ -46,13 +48,14 @@ class AiChatScreen extends StatefulWidget {
   State<AiChatScreen> createState() => _AiChatScreenState();
 }
 
-class _AiChatScreenState extends State<AiChatScreen> {
+class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderStateMixin {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
   final TextEditingController editingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _isEmojiVisible = false;
   final _scrollController = ScrollController();
+  TabController? aiChatTapbarController;
 
   @override
   void initState() {
@@ -60,6 +63,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.isTextFieldEmpty.value = false;
     chatThemeController.resetSelection();
     chatViewController.connectAiSocket(widget.type ?? '');
+    aiChatTapbarController=TabController(length: 3, vsync: this);
     super.initState();
   }
 
@@ -68,7 +72,16 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.disposeAiSocket();
     super.dispose();
   }
-
+  final List<Map<String, String>> topics = [
+    {"title": "News", "tag": "news"},
+    {"title": "Jokes", "tag": "jokes"},
+    {"title": "Debate", "tag": "debate"},
+    {"title": "Personality", "tag": "personality"},
+    {"title": "Finance", "tag": "finance"},
+    {"title": "Politics", "tag": "politics"},
+    {"title": "Health", "tag": "health"},
+    {"title": "Event", "tag": "event"},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -129,91 +142,75 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     ),
                     Column(
                       children: [
-                        Expanded(
-                          child: (messages.isEmpty)
-                              ? Center(
-                            child: InkWell(
-                              onTap: () {
-                                chatViewController.sendMessageToAiSocket(
-                                    type: widget.type ?? '',
-                                    message: "Namaste"
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: "No conversation yet. ",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: "Say Namaste 🙏",
-                                        style: TextStyle(
-                                          color: Colors
-                                              .blue, // blue from theme
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                        Container(
+                          color: AppColors.white,
+                          child: TabBar(
+                            dividerColor: AppColors.primaryColor.withOpacity(0.4),
+                            onTap: (index) {
+                              setState(() {
+
+                              });
+
+                            },
+                            controller: aiChatTapbarController,
+                            labelColor: Colors.black,
+                            unselectedLabelColor: Colors.black54,
+                            indicatorColor: Colors.lightBlue,
+                            tabs:  [
+                              Tab(
+                                child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    LocalAssets(imagePath: AppImageAssets.chat_tab_view,height: 18,width: 18,),
+                                   SizedBox(width: 12,),
+                                    CustomText("New Chat",fontSize: 14,
+                                    fontWeight: FontWeight.w500,),
+                                  ],
                                 ),
                               ),
-                            ),
-                          )
-                              : LayoutBuilder(
-                            builder: (context, constraints) {
-                              return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
+                              Tab(
+                                child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    LocalAssets(imagePath: AppIconAssets.clock_new,height: 18,width: 18,),
+                                   SizedBox(width: 12,),
+                                    CustomText("Reminder",fontSize: 14,
+                                    fontWeight: FontWeight.w500,),
+                                  ],
                                 ),
-                                child: IntrinsicHeight(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: SingleChildScrollView(
-                                      padding: EdgeInsets.zero,
-                                      controller: chatViewController
-                                          .scrollController,
-                                      reverse: (widget.type == AppStrings.Admin)
-                                          ? false
-                                          : true,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.end,
-                                        children: messages.map((message) {
-                                          return MessageCard(
-                                            message: message,
-                                            isInitialMessage:
-                                            widget.isInitialMessage,
-                                            conversationId:
-                                            widget.conversationId,
-                                            userId: widget.userId,
-                                            name: widget.name,
-                                            contactNo: widget.contactNo,
-                                            profileImage:
-                                            widget.profileImage,
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  ),
+                              ),   Tab(
+                                child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    LocalAssets(imagePath: AppImageAssets.chat_tab_to_do,height: 18,width: 18,),
+                                   SizedBox(width: 12,),
+                                    CustomText("To Do List",fontSize: 14,
+                                    fontWeight: FontWeight.w500,),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
                         ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: aiChatTapbarController,
+                            children: [
+
+                              AiChatMessageViewScreen(
+                                  messages: messages,
+                                type: widget.type,
+                                isInitialMessage: widget.isInitialMessage,
+                                profileImage: widget.profileImage,
+                                conversationId: widget.conversationId,
+                                userId: widget.userId,
+                                name: widget.name,
+                                contactNo: widget.contactNo,
+                                businessId: widget.businessId,
+                              ),
+                              SizedBox(),
+                              SizedBox(),
+                            ],
+                          ),
+                        ),
+
 
                         (chatViewController.chatBotReading.value==true)
                             ? staggeredDotsWaveLoading(
@@ -381,7 +378,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                       overlayColor: WidgetStateProperty.resolveWith<Color?>(
                                             (states) {
                                           if (states.contains(WidgetState.pressed)) {
-                                            return Colors.grey..withValues(alpha: 0.4); // pressed
+                                            return Colors.grey.withValues(alpha: 0.4); // pressed
                                           }
                                           if (states.contains(WidgetState.hovered)) {
                                             return Colors.grey.withValues(alpha: 0.2); // hover
@@ -425,6 +422,118 @@ class _AiChatScreenState extends State<AiChatScreen> {
                         const SizedBox(height: 14),
                       ],
                     ),
+                    if(messages.isEmpty&&aiChatTapbarController?.index==0)
+                    Positioned(
+                        left: 10,
+                        top: 70,
+                        child:  Container(
+                      width: 340,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                      ),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+
+                          /// Title
+                           Container(
+                             width: 270,
+                             decoration: BoxDecoration(
+                               borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10),bottomRight: Radius.circular(10),)
+                             ,
+                               color: AppColors.white
+                             ),
+                             padding: EdgeInsets.symmetric(horizontal: 24,vertical: 10),
+                             child: CustomText(
+                              "Hi ${userNameGlobal} Choose Your Topic",
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black,
+                              textAlign: TextAlign.center,
+                                                       ),
+                           ),
+
+                          const SizedBox(height: 6),
+
+                          /// Grid Topics
+                          Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10),bottomRight: Radius.circular(10),)
+                                ,
+                                color: AppColors.white
+                            ),
+                            width: 270,
+                            padding: EdgeInsets.all(10),
+                            child:GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 3,
+                              ),
+                              itemCount: topics.length,
+                              itemBuilder: (context, index) {
+                                final topic = topics[index];
+
+                                return TopicButton(
+                                  title: topic["title"]!,
+                                  onTab: () {
+                                    SendMessageToAI(
+                                      message: topic["title"]!,
+                                      tag: topic["tag"]!,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          Container(
+                            width: 270,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10),bottomRight: Radius.circular(10),)
+                                ,
+                                color: AppColors.white
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 24,vertical: 10),
+                            child: CustomText(
+                              "Or How Can I Help You?",
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 270,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10),bottomRight: Radius.circular(10),)
+                                ,
+                                color: AppColors.white
+                            ),
+                            padding: EdgeInsets.all(10),
+                            child:  Row(
+                              children:  [
+                                Expanded(child: TopicButton(title: "Create Reply", onTab: () {
+                                  SendMessageToAI(message: "Create Reply",tag: "create reply");
+                                },)),
+                                SizedBox(width: 12),
+                                Expanded(child: TopicButton(title: "Draft Email", onTab: () {
+                                  SendMessageToAI(message: "Draft Email",tag: "draft email");
+                                },)),
+                              ],
+                            ),
+                          ),
+                          /// Bottom Buttons
+
+                        ],
+                      ),
+                    ))
                   ],
                 ),
               );
@@ -452,6 +561,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
           }),
         );
       }),
+    );
+  }
+  void SendMessageToAI({required String message, String? tag}){
+    chatViewController
+        .sendMessageToAiSocket(
+        type: widget.type ?? '',
+        tag:tag,
+        message: message
     );
   }
   void _toggleEmojiKeyboard() {

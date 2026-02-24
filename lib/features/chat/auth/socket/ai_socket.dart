@@ -112,6 +112,7 @@ class AiSocketService {
   void sendMessage({
     String? conversationId,
     String? message,
+    String? tag,
     String? serviceType,
     Uint8List? imageBytes,
     String? mimeType,
@@ -121,6 +122,9 @@ class AiSocketService {
     }
 
     socket?.emit('send_message', {
+      if(tag!=null)
+        "tag": tag
+      else
       "message": message,
       if(conversationId!=null)"conversationId": conversationId,
       if(serviceType!=null) "serviceType": serviceType,

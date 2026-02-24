@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,6 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_image_assets.dart';
+import '../../../../core/constants/getx_utils.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -41,8 +43,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final Color sentMessageColor = Color(0xFF255DF6);
   final Color receivedMessageColor = Color(0xFFECECEC);
   final Color backgroundColor = Color(0xFFF5F5F5);
-  final chatViewController = Get.find<ChatViewController>();
-  final chatThemeController = Get.find<ChatThemeController>();
+  final chatViewController = getOrPut(() => ChatViewController());
+  final chatThemeController = getOrPut(() => ChatThemeController());
   final TextEditingController editingController = TextEditingController();
 
   @override
@@ -106,7 +108,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
-            ChatEmitEvents.ChatList, {ApiKeys.type: "group"}, true);
+            ChatEmitEvents.ChatList, {ApiKeys.type: "group"}, );
         return true;
       },
       child: Obx(() {
@@ -159,8 +161,32 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       width: SizeConfig.screenWidth,
                       height: SizeConfig.screenHeight,
                     ),
-                    Column(
+                    Column(crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        SizedBox(height: 12,),
+                        HorizontalTabSelector(
+                            unSelectedBackgroundColor: AppColors.white,
+                            horizontalMargin: 14,
+                            horizontalPadding: 10,
+                            tabs: ['All',"Mentioned","Assigned","Pinned"],
+                            selectedIndex: chatViewController.groupChatScreenSelectedTab.value,
+                            onTabSelected: (index,val){
+                              chatViewController.groupChatScreenSelectedTab.value=index;
+                              if(index==0){
+                                chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+                                  ApiKeys.conversation_id: widget.conversationId,
+                                  ApiKeys.page: 1,
+                                  ApiKeys.is_online_user: userId,
+                                  ApiKeys.per_page_message: 30,
+                                });;
+                              }else if(index==3){
+                                chatViewController.getPinMessageListDataApi({
+                                  ApiKeys.conversation_id:widget.conversationId
+                                });
+                              }
+                            },
+                            labelBuilder: (value)=>value),
+                        SizedBox(height: 8,),
                         Expanded(
                           child: (messages.isEmpty)
                               ? Center(
@@ -291,119 +317,4 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     );
   }
 
-  void showMessageEditDialog() {
-    Get.dialog(
-      AlertDialog(
-        insetPadding: EdgeInsets.symmetric(vertical: 12),
-        // Reduced outer spacing
-        contentPadding: const EdgeInsets.only(bottom: 10),
-        backgroundColor: AppColors.appBackgroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText(
-                    AppStrings.message,
-                    color: AppColors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Divider(color: AppColors.greyB4),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: TextFormField(
-                controller: editingController,
-                maxLines: 6,
-                minLines: 6,
-                keyboardType: TextInputType.text,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  hintText: AppStrings.typeMessage.tr,
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  InkWell(
-                    onTap: () => Get.back(),
-                    child: CustomText(
-                      AppStrings.close,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  InkWell(
-                    onTap: () async {
-                      ApiKeys;
-                      Map<String, dynamic> data = {
-                        ApiKeys.id:
-                            "${chatThemeController.selectedFirstMessage?.value?.id}",
-                        ApiKeys.type: "message",
-                        ApiKeys.message: "${editingController.text}"
-                      };
-                      bool value =
-                          await chatViewController.updateMessageApi(data);
-                      if (value) {
-                        chatViewController
-                            .emitEvent(ChatEmitEvents.messageReceived, {
-                          ApiKeys.conversation_id: widget.conversationId,
-                          ApiKeys.page: 1,
-                          ApiKeys.is_online_user: '',
-                          ApiKeys.per_page_message: 30,
-                        });
-                        chatThemeController.resetSelection();
-                        Get.back();
-                      }
-                    },
-                    child: CustomText(
-                      AppStrings.edit,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-          ],
-        ),
-      ),
-      useSafeArea: true,
-    );
-  }
 }
