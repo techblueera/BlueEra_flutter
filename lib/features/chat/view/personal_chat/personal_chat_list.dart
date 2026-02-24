@@ -1,5 +1,6 @@
 
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -37,42 +38,57 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
         return RefreshIndicator(
           onRefresh: () async {
             chatViewController.emitEvent(
-                ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
+                ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, );
           },
-          child: Container(
-            margin: EdgeInsets.only(bottom: SizeConfig.size70),
-            child: (data?.chatList?.isEmpty ?? true)
-                ? noChatsFound()
-                : ListView.builder(
-              itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
-                return ChatListTile(onTab: (index == 0)?(){
-                 Get.to(()=> AiChatScreen(
-                   profileImage: chat?.sender?.profileImage,
-                   name: chat?.sender?.name,
-                   contactNo: chat?.sender?.contactNo,
-                   conversationId: '',
-                   userId: '',
-                     businessId: '',
-                   type: chat?.sender?.accountType,
-                   isInitialMessage: false,));
-                }:null,
-                  isFromGroupSelect: widget.isNewGroupUI,
-                  onSelect: () {
-                    setState(() {});
+          child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16,),
+              HorizontalTabSelector(horizontalMargin: 14,
+                horizontalPadding: 10,
+                  tabs: ['All',"Unread","Reminder"],
+                  selectedIndex: 0,
+                  onTabSelected: (index,val){
+
                   },
-                  type: chat?.sender?.accountType ?? AppConstants.individual,
-                  index: index - 1, // correct index for chat list
-                  chatViewController: chatViewController,
-                  chat: chat,
-                  theme: theme,
-                  isForwardUI: widget.isForwardUI,
-                  context: context,
-                );
-              },
-            ),
+                  labelBuilder: (value)=>value),
+              SizedBox(height: 12,),
+              Container(
+                margin: EdgeInsets.only(bottom: SizeConfig.size70),
+                child: (data?.chatList?.isEmpty ?? true)
+                    ? noChatsFound()
+                    : ListView.builder(
+                  itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
+                    return ChatListTile(onTab: (index == 0)?(){
+                     Get.to(()=> AiChatScreen(
+                       profileImage: chat?.sender?.profileImage,
+                       name: chat?.sender?.name,
+                       contactNo: chat?.sender?.contactNo,
+                       conversationId: '',
+                       userId: '',
+                         businessId: '',
+                       type: chat?.sender?.accountType,
+                       isInitialMessage: false,));
+                    }:null,
+                      isFromGroupSelect: widget.isNewGroupUI,
+                      onSelect: () {
+                        setState(() {});
+                      },
+                      type: chat?.sender?.accountType ?? AppConstants.individual,
+                      index: index - 1, // correct index for chat list
+                      chatViewController: chatViewController,
+                      chat: chat,
+                      theme: theme,
+                      isForwardUI: widget.isForwardUI,
+                      context: context,
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       } else {

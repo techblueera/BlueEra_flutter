@@ -107,7 +107,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
       onWillPop: () async {
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
-              ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
           chatViewController.onSelectChatTab(1);
           bottomBarController.onChangeIndex(4);
           Navigator.popUntil(
@@ -116,7 +116,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                   RouteHelper.getBottomNavigationBarScreenRoute()));
         } else {
           chatViewController.emitEvent(
-              ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
         }
         return true;
       },

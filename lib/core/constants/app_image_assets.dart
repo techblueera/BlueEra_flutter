@@ -31,6 +31,9 @@ class AppImageAssets {
   static const String visitingCardBg = "${imgPath}visiting_card_background.jpg";
   static const String playStore = "${imgPath}play_store.png";
   static const String appStore = "${imgPath}app_store.png";
+  static const String app_logo = "assets/images/app_logo.png";
+  static const String chat_tab_view = "assets/images/chat_tab_view.png";
+  static const String chat_tab_to_do = "assets/images/chat_tab_to_do.png";
 
   static String leftQuotation = "${imgPath}left_quotation.png";
   static String rightQuotation = "${imgPath}right_quotation.png";
