@@ -59,6 +59,7 @@ class ProfessionalProfileData {
     this.contact,
     this.certificates,
     this.portfolio,
+    this.servicesOffered,
   });
 
   ProfessionalProfileData.fromJson(dynamic json) {
@@ -96,6 +97,9 @@ class ProfessionalProfileData {
         portfolio?.add(ProfessionalPortfolio.fromJson(v));
       });
     }
+    if (json['servicesOffered'] != null) {
+      servicesOffered = List<String>.from(json['servicesOffered']);
+    }
   }
 
   String? id;
@@ -116,6 +120,7 @@ class ProfessionalProfileData {
   Contact? contact;
   List<Certificates>? certificates;
   List<ProfessionalPortfolio>? portfolio;
+  List<String>? servicesOffered;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -152,6 +157,9 @@ class ProfessionalProfileData {
     }
     if (portfolio != null) {
       map['portfolio'] = portfolio?.map((v) => v.toJson()).toList();
+    }
+    if (servicesOffered != null) {
+      map['servicesOffered'] = servicesOffered;
     }
     return map;
   }

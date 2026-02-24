@@ -58,23 +58,93 @@ class PaidSubscriptionPlansScreen extends StatelessWidget {
 
     if (controller.currentPlansList.isEmpty) return const SizedBox();
 
-    return CustomFormCard(
-      padding: EdgeInsets.zero,
-      child: ListView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        padding: EdgeInsets.all(SizeConfig.size10),
-        itemCount: controller.currentPlansList.length,
-        itemBuilder: (context, index) {
-          final details = controller.currentPlansList[index].subscriptionPlanData;
-          return ActiveSubscriptionCard(
-            details: details,
-            index: index,
+    // 1. Find the first active plan in the list
+    final activePlan = controller.currentPlansList.firstWhereOrNull(
+            (plan) => plan.status == 'active'
+    );
+
+    // 2. If an active plan exists, show the ActiveSubscriptionCard
+    if (activePlan != null) {
+      return CustomFormCard(
+        padding: EdgeInsets.zero,
+        child: Padding(
+          padding: EdgeInsets.all(SizeConfig.size10),
+          child: ActiveSubscriptionCard(
+            userSubscription: activePlan,
+            index: 0,
             controller: controller,
-            style: AppConstants.listOfSubsBg[index % AppConstants.listOfSubsBg.length],
-            tagText: details.tier ?? "Active",
-          );
-        },
+            style: AppConstants.listOfSubsBg[0],
+          ),
+        ),
+      );
+    }
+
+    // 3. Fallback logic for other statuses if no active plan is found
+    final String status = controller.currentPlansList.first.status;
+
+    switch (status) {
+      case 'cancelled':
+      case 'paused':
+      case 'halted':
+        return _expiredBanner();
+
+      default:
+        return Center(
+          child: CustomText(
+            'No active subscription found.',
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+          ),
+        );
+    }
+  }
+
+  Widget _expiredBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Row(
+        children: [
+          // Icon
+          CircleAvatar(
+            backgroundColor: Colors.red.shade100,
+            child: Icon(Icons.timer_off_outlined, color: Colors.red.shade700),
+          ),
+          const SizedBox(width: 12),
+
+          // Text Logic
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 CustomText(
+                  "Plan Expired",
+                  fontWeight: FontWeight.bold,
+                  fontSize: SizeConfig.large,
+                  color: AppColors.secondaryTextColor,
+                ),
+                CustomText(
+                  "Recharge now to resume features.",
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+
+          // Action Button
+          CustomText(
+              "Recharge Now",
+            fontWeight: FontWeight.bold,
+            fontSize: SizeConfig.small,
+            color: AppColors.red,
+          ),
+        ],
       ),
     );
   }

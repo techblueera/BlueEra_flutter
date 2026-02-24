@@ -15,20 +15,20 @@ class ProfessionalsRepo extends BaseService {
   }
 
   ///GET FULL PROFILE VIA USER ID...
-  Future<dynamic> getByUserIdProfessionalsRepo() async {
+  Future<dynamic> getByUserIdProfessionalsRepo(bool showProgress) async {
     return await ApiBaseHelper().getHTTP(
       professionalsFull,
-      showProgress: true,
+      showProgress: showProgress,
       onSuccess: (res) {},
       onError: (error) {},
     );
   }
 
-  Future<dynamic> createProfessionalsRepo({required dynamic bodyREQ}) async {
+  Future<dynamic> createProfessionalsRepo({required dynamic bodyREQ, bool showProgress = true}) async {
     return await ApiBaseHelper().putHTTP(
       professionalsUpdate,
       params: bodyREQ,
-      showProgress: true,
+      showProgress: showProgress,
       onSuccess: (res) {},
       onError: (error) {},
     );
@@ -177,4 +177,16 @@ class ProfessionalsRepo extends BaseService {
       onError: (error) {},
     );
   }
+
+  ///Fetch Professional services offered...
+  Future<ResponseModel> fetchServiceOfferedRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        predefinedProfessionServices(userProfessionGlobal),
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
+
+    return response;
+  }
+
 }

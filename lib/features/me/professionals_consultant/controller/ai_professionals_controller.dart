@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/ai_professionals_res_model.dart';
+import 'package:BlueEra/features/me/professionals_consultant/model/profession_service_offered_response.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_repo.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/profile_preview_screen.dart';
@@ -18,13 +20,19 @@ class AiProfessionalsController extends GetxController {
   ProfessionalsRepo _repo = ProfessionalsRepo();
   RxBool hasProfile = false.obs;
 
-  Rx<AiProfessionalsResModel>? aiServiceRes = AiProfessionalsResModel().obs;
+  Rx<AiProfessionalsResModel>? aiServiceRes =
+      AiProfessionalsResModel().obs;
   Rx<ProfessionalProfileResModel>? getProfessionalServiceRes =
       ProfessionalProfileResModel().obs;
-  Rx<ApiResponse> generateViaAIResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> generateViaAIResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createProfProfileResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getFullProfessionalsResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> servicesOfferedResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> updateServicesOfferedResponse =
       ApiResponse.initial('Initial').obs;
 
   Future<void> aiGenerateServiceFetchController() async {
@@ -48,9 +56,9 @@ class AiProfessionalsController extends GetxController {
   }
 
   ///GET FULL PROFILE...
-  Future<void> professionalsFullDetailsController() async {
+  Future<void> professionalsFullDetailsController({bool showProgress = true}) async {
     try {
-      ResponseModel response = await _repo.getByUserIdProfessionalsRepo();
+      ResponseModel response = await _repo.getByUserIdProfessionalsRepo(showProgress);
       if (response.isSuccess) {
         hasProfile.value = true;
         final data = response.response?.data;
@@ -327,4 +335,109 @@ class AiProfessionalsController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
+
+  RxBool isLoading = false.obs;
+  var selectedServicesOffered = <String>[].obs;
+  Future<void> loadAllServices() async {
+    try {
+      isLoading.value = true;
+      selectedServicesOffered.clear();
+
+      await Future.wait([
+        fetchServicesOffered(),
+        professionalsFullDetailsController(showProgress: false),
+      ]);
+
+      _prepareServiceList();
+
+      print("Both services fetched successfully!");
+    } catch (e) {
+      print("Error fetching services: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _prepareServiceList() {
+    // Get user's existing choices
+    List<String> userCurrent = getProfessionalServiceRes?.value.data?.servicesOffered ?? [];
+
+    // Merge user choices into the master list if they don't exist
+    for (var item in userCurrent) {
+      if (!servicesOffered.contains(item)) {
+        servicesOffered.add(item);
+      }
+    }
+
+    // Sync the selected state
+    selectedServicesOffered.assignAll(userCurrent);
+  }
+
+
+  ///GET SERVICES OFFERED...
+  final RxList<String> servicesOffered = <String>[].obs;
+  Future<void> fetchServicesOffered() async {
+    try {
+
+      final repo = ProfessionalsRepo();
+      final response = await repo.fetchServiceOfferedRepo();
+
+      if (response.isSuccess) {
+        servicesOfferedResponse.value = ApiResponse.complete(response);
+        final professionServiceOfferedResponse = ProfessionServiceOfferedResponse.fromJson(response.response?.data);
+        servicesOffered.value = professionServiceOfferedResponse.data?.servicesOffered ?? [];
+
+      } else {
+        servicesOfferedResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      servicesOfferedResponse.value = ApiResponse.error('error');
+      print("stack trace: $s");
+    } finally {
+    }
+  }
+
+  /// Update Earn Service Data
+  RxBool isUpdateServiceOfferedLoading = false.obs;
+  Future<void> updateServicesOffered() async {
+
+    if (selectedServicesOffered.isEmpty) {
+      commonSnackBar(message: 'Please select at least one Service Offered');
+      return;
+    }
+
+    try {
+
+      isUpdateServiceOfferedLoading.value = true;
+
+      Map<String, dynamic> params = {
+        ApiKeys.servicesOffered: selectedServicesOffered
+      };
+
+      final _repo = ProfessionalsRepo();
+      final ResponseModel responseModel = await _repo.createProfessionalsRepo(
+          bodyREQ: params,
+          showProgress: false
+      );
+
+      if (responseModel.isSuccess) {
+        updateServicesOfferedResponse.value = ApiResponse.complete(responseModel);
+        // await professionalsFullDetailsController(showProgress: false);
+        commonSnackBar(message: 'update services offered');
+        Get.back();
+      } else {
+        updateServicesOfferedResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: responseModel.message);
+      }
+    } catch (e, s) {
+      print('stack trace -- $s');
+      updateServicesOfferedResponse.value = ApiResponse.error('error');
+    } finally {
+      isUpdateServiceOfferedLoading.value = false;
+    }
+  }
+
+
+
 }

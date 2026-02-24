@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_scre
 import 'package:BlueEra/features/me/professionals_consultant/view/pricing_engagement_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_contact_us_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_profile_screen.dart';
+import 'package:BlueEra/features/me/professionals_consultant/view/professional_service_offered.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_certificates_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_timing_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
@@ -42,7 +43,7 @@ class _UpdateProfessionalsServicesScreenState
     ServiceMenuItem(
       title: "Services Offered",
       icon: AppIconAssets.servicesOffered,
-      page: () => ComingSoon(), // Update to your actual page
+      page: () => ProfessionalServiceOffered(),
     ),
     ServiceMenuItem(
       title: "Gallery & Certifications",

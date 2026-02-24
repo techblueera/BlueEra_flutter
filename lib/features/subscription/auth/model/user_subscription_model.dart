@@ -17,6 +17,7 @@ class UserSubscription {
   final String trialStart;
   final String trialEnd;
   final bool trialPaid;
+  final String validUpto;
   final DateTime createdAt;
   final DateTime updatedAt;
   final int v;
@@ -38,6 +39,7 @@ class UserSubscription {
     required this.trialStart,
     required this.trialEnd,
     required this.trialPaid,
+    required this.validUpto,
     required this.createdAt,
     required this.updatedAt,
     required this.v,
@@ -48,8 +50,7 @@ class UserSubscription {
       id: json['_id'] ?? '',
       userId: json['user_id'] ?? '',
       planId: json['plan_id'] ?? '',
-      subscriptionPlanData:
-      SubscriptionPlanData.fromJson(json['subscriptionPlanId'] ?? {}),
+      subscriptionPlanData: SubscriptionPlanData.fromJson(json['subscriptionPlanId'] ?? {}),
       autoPay: json['auto_pay'] ?? false,
       status: json['status'] ?? '',
       isSubscribed: json['isSubscribed'] ?? false,
@@ -62,6 +63,7 @@ class UserSubscription {
       trialStart: json['trial_start'] ?? '',
       trialEnd: json['trial_end'] ?? '',
       trialPaid: json['trial_paid'] ?? false,
+      validUpto: json['valid_upto'] ?? '',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
       v: json['__v'] ?? 0,
@@ -86,6 +88,7 @@ class UserSubscription {
       'trial_start': trialStart,
       'trial_end': trialEnd,
       'trial_paid': trialPaid,
+      'valid_upto': validUpto,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       '__v': v,

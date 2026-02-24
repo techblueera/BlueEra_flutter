@@ -105,10 +105,10 @@ class SubscriptionPlanData {
           ? json['rangeInKm']
           : int.tryParse('${json['rangeInKm']}'),
       createdAt: json['created_at']?.toString(),
-      updatedAt: json['updated_at']?.toString(),
-      v: json['__v'] is int
-          ? json['__v']
-          : int.tryParse('${json['__v']}'),
+        updatedAt: json['updated_at']?.toString(),
+        v: json['__v'] is int
+            ? json['__v']
+            : int.tryParse('${json['__v']}'),
     );
   }
 

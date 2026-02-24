@@ -626,6 +626,8 @@ abstract class BaseService {
   String getBusinessSubCategory(String tagId) => 'user-service/business/by-tag/$tagId/subcategories';
   String getIndividualFields(String tagId) => 'user-service/individual-professions/$tagId/designation';
   String getBusinessCategoryByType(String type) => 'user-service/business/by-type/$type';
+  String predefinedProfessionServices(String professionSlugId) => 'earn-service/predefined-professional/$professionSlugId';
+
 
   ///HOTEL....
   final String hotelAmenities = 'hotel-service/api/hotel-amenities';
