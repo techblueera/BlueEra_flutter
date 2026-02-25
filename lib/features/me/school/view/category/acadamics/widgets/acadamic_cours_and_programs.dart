@@ -12,7 +12,9 @@ import 'package:get/get.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';
 
 class CourseListScreen extends StatefulWidget {
-  CourseListScreen({super.key});
+  CourseListScreen({super.key, required this.isEdit});
+
+  final bool isEdit;
 
   @override
   State<CourseListScreen> createState() => _CourseListScreenState();
@@ -39,15 +41,18 @@ class _CourseListScreenState extends State<CourseListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: "Courses"),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(left: 15, right: 15, bottom: 30, top: 10),
-        child: AddMoreIconButton(
-          onTapEvent: () {
-            Get.to(AddMoreCourseScreen());
-          },
-          buttonName: "Add More Course",
-        ),
-      ),
+      bottomNavigationBar: widget.isEdit
+          ? Padding(
+              padding:
+                  EdgeInsets.only(left: 15, right: 15, bottom: 30, top: 10),
+              child: AddMoreIconButton(
+                onTapEvent: () {
+                  Get.to(AddMoreCourseScreen());
+                },
+                buttonName: "Add More Course",
+              ),
+            )
+          : null,
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value)
@@ -61,7 +66,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
               padding: EdgeInsets.all(12),
               itemCount: controller.coursesList.length,
               itemBuilder: (context, index) =>
-                  CourseCard(data: controller.coursesList[index]),
+                  CourseCard(data: controller.coursesList[index], isEdit: widget.isEdit,),
             ),
           );
         }),
@@ -72,8 +77,9 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
 class CourseCard extends StatelessWidget {
   final SchoolCourseData data;
+  final bool isEdit;
 
-  CourseCard({required this.data});
+  CourseCard({required this.data, required this.isEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -95,16 +101,18 @@ class CourseCard extends StatelessWidget {
                 child: CustomText("Course: ${data.name}",
                     fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              _buildPopupMenu(context),
+              if (isEdit) _buildPopupMenu(context),
             ],
           ),
           SizedBox(height: 8),
           _infoRow("Admission: ", data.admissionProcess ?? "N/A"),
           _infoRow("Eligibility: ", data.eligibility ?? "N/A"),
           if ((data.courseFees?.yearly ?? 0) > 0)
-            _infoRow("Course Fee: ", "₹${formatNumber(data.courseFees?.yearly??0)}/Year"),
+            _infoRow("Course Fee: ",
+                "₹${formatNumber(data.courseFees?.yearly ?? 0)}/Year"),
           if ((data.courseFees?.monthly ?? 0) > 0)
-            _infoRow("Course Fee: ", "₹${formatNumber(data.courseFees?.monthly??0)}/Monthly"),
+            _infoRow("Course Fee: ",
+                "₹${formatNumber(data.courseFees?.monthly ?? 0)}/Monthly"),
           _infoRow("Course Duration: ", data.duration ?? "N/A"),
           SizedBox(height: 4),
           CustomText("Description: ${data.description}",
@@ -163,6 +171,4 @@ class CourseCard extends StatelessWidget {
       ),
     );
   }
-
 }
-

@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SchoolJobListingScreen extends StatefulWidget {
-  const SchoolJobListingScreen({super.key});
+   SchoolJobListingScreen({super.key, required this.isEdit});
+  final bool isEdit;
 
   @override
   State<SchoolJobListingScreen> createState() => _SchoolJobListingScreenState();
@@ -21,7 +22,8 @@ class _SchoolJobListingScreenState extends State<SchoolJobListingScreen> {
       appBar: CommonBackAppBar(
         title: "School Jobs",
       ),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar: (widget.isEdit) ?
+      SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(
               right: 10.0, left: 10.0, bottom: 40, top: 10),
@@ -39,7 +41,7 @@ class _SchoolJobListingScreenState extends State<SchoolJobListingScreen> {
               },
               title: "Create Job"),
         ),
-      ),
+      ):null,
 
       body: AllJobPostScreen(
         key: ValueKey(AppConstants.All),

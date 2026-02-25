@@ -10,13 +10,14 @@ import '../../../../../../core/api/model/school_contact_us_res_model.dart';
 
 class ContactUsSection extends StatelessWidget {
   final List<Contacts> contacts;
+  final bool isEdit;
 
-  const ContactUsSection({super.key, required this.contacts});
+  ContactUsSection({super.key, required this.contacts, required this.isEdit});
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10,vertical: 0),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -27,38 +28,41 @@ class ContactUsSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 10,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ServiceHomeTitleWidget(
                   title: "Contact Us",
                 ),
-
-                IconButton(onPressed: () {
-                  Get.to(SchoolContactUs());
-                }, icon: const Icon(Icons.edit_outlined, size: 20)),
+                if (isEdit)
+                  IconButton(
+                      onPressed: () {
+                        Get.to(SchoolContactUs());
+                      },
+                      icon: const Icon(Icons.edit_outlined, size: 20)),
               ],
             ),
             const SizedBox(height: 8),
             // Loop through the contact list from JSON
             ...contacts.map((contactData) {
               return Container(
-                margin:  EdgeInsets.only(bottom: 12),
+                margin: EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: ExpansionTile(
                   shape: const RoundedRectangleBorder(side: BorderSide.none),
-                  title: CustomText(
-                    contactData.branch?.name ?? "N/A",
-                   fontWeight: FontWeight.bold, fontSize: 15),
-                  childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  title: CustomText(contactData.branch?.name ?? "N/A",
+                      fontWeight: FontWeight.bold, fontSize: 15),
+                  childrenPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   children: [
                     // Website link
                     _buildContactItem(
                       Icons.language_outlined,
-                      contactData.branch?.website?? "",
+                      contactData.branch?.website ?? "",
                       isLink: true,
                     ),
                     // Departments loop
@@ -68,9 +72,7 @@ class ContactUsSection extends StatelessWidget {
                         children: [
                           // Department Name/Role
                           _buildContactItem(
-                              Icons.badge_outlined,
-                              dept.department ?? "N/A"
-                          ),
+                              Icons.badge_outlined, dept.department ?? "N/A"),
 
                           // Email
                           _buildContactItem(
@@ -87,7 +89,11 @@ class ContactUsSection extends StatelessWidget {
                           // Add a subtle divider between departments, but not after the last one
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8.0),
-                            child: Divider(height: 1, thickness: 0.5,color: AppColors.secondaryTextColor,),
+                            child: Divider(
+                              height: 1,
+                              thickness: 0.5,
+                              color: AppColors.secondaryTextColor,
+                            ),
                           ),
                         ],
                       );
@@ -107,12 +113,13 @@ class ContactUsSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: isLink ? Colors.blue : Colors.grey.shade600),
+          Icon(icon,
+              size: 20, color: isLink ? Colors.blue : Colors.grey.shade600),
           const SizedBox(width: 12),
           Expanded(
             child: CustomText(
               text,
-                color: isLink ? AppColors.primaryColor : Colors.black87,
+              color: isLink ? AppColors.primaryColor : Colors.black87,
             ),
           ),
         ],

@@ -663,7 +663,24 @@ double? calculateDistance(double targetLat, double targetLng){
   // Road factor ≈ 1.27 (very close to Google distance)
   const double roadFactor = 1.27;
 
-  return (distanceMeters * roadFactor) / 1000;
+  return ((distanceMeters * roadFactor) / 1000);
+}
+
+String? calculateDistanceInt(double targetLat, double targetLng){
+  double userLat = LocationService.lat;
+  double userLng = LocationService.lng;
+  if(userLat == 0.0 || userLng == 0.0) return null;
+  double distanceMeters = geo.Geolocator.distanceBetween(
+    userLat,
+    userLng,
+    targetLat,
+    targetLng,
+  );
+
+  // Road factor ≈ 1.27 (very close to Google distance)
+  const double roadFactor = 1.27;
+
+  return ((distanceMeters * roadFactor) / 1000).toStringAsFixed(0);
 }
 
 

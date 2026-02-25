@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
@@ -32,6 +33,7 @@ class _HotelMainState extends State<HotelMain>
   }
 
   apiCalling() async {
+    logs("hotelIDGlobal=== ${hotelIDGlobal}");
     try {
       if (hotelIDGlobal.isEmpty) {
         ResponseModel response = await HotelServiceRepo().getHotelRepo();
@@ -43,6 +45,11 @@ class _HotelMainState extends State<HotelMain>
             await setHotelID("");
           }
         }
+        else{
+          await setHotelID("");
+
+        }
+
       }
       await getHotelID();
       setState(() {

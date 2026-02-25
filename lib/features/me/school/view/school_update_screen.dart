@@ -31,12 +31,12 @@ class SchoolUpdateScreen extends StatelessWidget {
     ServiceMenuItem(
       title: "Academics",
       icon: AppIconAssets.academics,
-      page: () => SchoolAcademicsPage(),
+      page: () => SchoolAcademicsPage(isEdit: true,),
     ),
     ServiceMenuItem(
       title: "Student Corner",
       icon: AppIconAssets.student_corner,
-      page: () => SchoolStudentCorner(),
+      page: () => SchoolStudentCorner(isEdit: true,),
     ),
     ServiceMenuItem(
       title: "Campus Life",
@@ -46,13 +46,13 @@ class SchoolUpdateScreen extends StatelessWidget {
     ServiceMenuItem(
       title: "Notices & News",
       icon: AppIconAssets.notices_news,
-      page: () => NoticeNewsScreen(),
+      page: () => NoticeNewsScreen(isEdit: true,),
       // page: () => SchoolNoticeAndNews(),
     ),
     ServiceMenuItem(
       title: "Career / Jobs",
       icon: AppIconAssets.career_jobs,
-      page: () => SchoolJobListingScreen(),
+      page: () => SchoolJobListingScreen(isEdit: true,),
     ),
     ServiceMenuItem(
       title: "Contact Us",

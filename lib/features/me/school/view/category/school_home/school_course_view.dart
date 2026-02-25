@@ -13,8 +13,9 @@ import '../../../../../../core/api/model/school_details_res_model.dart';
 
 class SchoolCourseSection extends StatelessWidget {
   final List<Courses> courses;
+  final bool isEdit;
 
-  const SchoolCourseSection({super.key, required this.courses});
+   SchoolCourseSection({super.key, required this.courses, required this.isEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,7 @@ class SchoolCourseSection extends StatelessWidget {
                 if (courses.length > 5)
                   InkWell(
                     onTap: () {
-                      Get.to(CourseListScreen());
+                      Get.to(CourseListScreen(isEdit: isEdit,));
                     },
                     child: const CustomText(
                       "View All",

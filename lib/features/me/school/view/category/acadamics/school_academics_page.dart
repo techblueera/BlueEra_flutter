@@ -11,37 +11,43 @@ import 'package:get/get.dart';
 import '../../../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class SchoolAcademicsPage extends StatefulWidget {
-  const SchoolAcademicsPage({super.key});
+   SchoolAcademicsPage({super.key, required this.isEdit});
+  final bool isEdit;
 
   @override
   State<SchoolAcademicsPage> createState() => _SchoolAcademicsPageState();
 }
 
 class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
-  final List<ServiceMenuItem> academicMenus = [
+   List<ServiceMenuItem> academicMenus=[];
+@override
+  void initState() {
+    // TODO: implement initState
+  academicMenus = [
     ServiceMenuItem(
       title: "Departments",
       icon: AppIconAssets.departments,
-      page: () => DepartmentScreen(),
+      page: () => DepartmentScreen(isEdit: widget.isEdit,),
     ),
     ServiceMenuItem(
       title: "Courses / Programs",
       icon: AppIconAssets.courses_programs,
-      page: () => CourseListScreen(),
+      page: () => CourseListScreen(isEdit: widget.isEdit,),
       // page: () => AcadamicCoursAndPrograms(),
     ),
     ServiceMenuItem(
       title: "Faculty Details",
       icon: AppIconAssets.faculty_details,
-      page: () => FacultyProfileListScreen(),
+      page: () => FacultyProfileListScreen(isEdit: widget.isEdit,),
     ),
     ServiceMenuItem(
       title: "Academic Calendar",
       icon: AppIconAssets.academic_calendar,
-      page: () => AcademicCalenderScreen(),
+      page: () => AcademicCalenderScreen(isEdit: widget.isEdit,),
     ),
   ];
-
+  super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

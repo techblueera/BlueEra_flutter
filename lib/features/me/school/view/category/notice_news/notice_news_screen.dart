@@ -17,7 +17,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class NoticeNewsScreen extends StatefulWidget {
-  const NoticeNewsScreen({super.key});
+   NoticeNewsScreen({super.key, required this.isEdit});
+  final bool isEdit;
 
   @override
   State<NoticeNewsScreen> createState() => _NoticeNewsScreenState();
@@ -39,7 +40,8 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
       appBar: CommonBackAppBar(
         title: "Notice & News",
       ),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar:widget.isEdit?
+      SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(
               right: 10.0, left: 10.0, bottom: 40, top: 10),
@@ -52,12 +54,12 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
               },
               title: "Add Notice & News"),
         ),
-      ),
+      ):null,
       body: SafeArea(
         child: Obx(() {
           if (noticeController.getNoticeNewsResponse.value.status ==
               Status.ERROR) {
-            return CustomText(AppStrings.somethingWentWrong);
+            return Center(child: CustomText(AppStrings.somethingWentWrong));
           }
           if (noticeController.getNoticeNewsResponse.value.status ==
               Status.COMPLETE) {
@@ -75,7 +77,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                             title: "Title",
                             value: "${data.title}",
                             noticeIndex: index,
-                            isEditOption: true,
+                            isEditOption: widget.isEdit,
                             noticeID: data.id ?? ""),
                         SizedBox(
                           height: SizeConfig.size5,
@@ -84,6 +86,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                             noticeIndex: index,
                             title: "Description",
                             value: "${data.description}",
+
                             noticeID: data.id ?? ""),
                         SizedBox(
                           height: SizeConfig.size5,

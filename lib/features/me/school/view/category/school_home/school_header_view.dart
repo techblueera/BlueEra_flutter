@@ -11,10 +11,12 @@ import 'package:image_picker/image_picker.dart';
 
 class SchoolHeaderView extends StatefulWidget {
   final SchoolAboutUsController schoolAboutUsController;
+  final bool? isEdit;
 
-  const SchoolHeaderView({
+  SchoolHeaderView({
     super.key,
     required this.schoolAboutUsController,
+    this.isEdit = false,
   });
 
   @override
@@ -60,49 +62,46 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
               clipBehavior: Clip.none,
               children: [
                 // Banner Image
-                GestureDetector(
-                  onTap: () => null,
-                  // onTap: () => _pickImage(true),
-                  child: Container(
-                    width: double.infinity,
-                    height: size.height * 0.15,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[100],
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                      image: _bannerImage != null
-                          ? DecorationImage(
-                              image: FileImage(_bannerImage ?? File("")),
-                              fit: BoxFit.cover)
-                          : DecorationImage(
-                              image: NetworkImage(widget.schoolAboutUsController
-                                      .schoolDetailsData?.value.bannerUrl ??
-                                  ""),
-                              fit: BoxFit.cover),
+                Container(
+                  width: double.infinity,
+                  height: size.height * 0.15,
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey[100],
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10)),
+                    image: _bannerImage != null
+                        ? DecorationImage(
+                            image: FileImage(_bannerImage ?? File("")),
+                            fit: BoxFit.cover)
+                        : DecorationImage(
+                            image: NetworkImage(widget.schoolAboutUsController
+                                    .schoolDetailsData?.value.bannerUrl ??
+                                ""),
+                            fit: BoxFit.cover),
+                  ),
+                ),
+                if (widget.isEdit ?? false)
+                  Positioned(
+                    right: 20,
+                    top: 10,
+                    child: InkWell(
+                      onTap: () => _pickImage(true),
+                      child: Container(
+                          width: 30,
+                          height: 30,
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.edit_banner_icon,
+                          )),
                     ),
                   ),
-                ),
-                Positioned(
-                  right: 20,
-                  top: 10,
-                  child: InkWell(
-                    onTap: () => _pickImage(true),
-                    child: Container(
-                        width: 30,
-                        height: 30,
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.edit_banner_icon,
-                        )),
-                  ),
-                ),
 
                 // Logo Image
                 Positioned(
                   bottom: 0,
                   left: 20,
                   child: GestureDetector(
-                    onTap: () => _pickImage(false),
+                    onTap: () =>                 (widget.isEdit ?? false)?_pickImage(false):null,
                     child: Container(
                       width: 100,
                       height: 100,
@@ -129,26 +128,27 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
                     ),
                   ),
                 ),
-                Positioned(
-                    bottom: 10,
-                    left: 90,
-                    child: InkWell(
-                      onTap: () => _pickImage(false),
-                      child: Container(
-                          width: 25,
-                          height: 25,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            // color: AppColors.red00,
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.3),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 15,
-                          )),
-                    ))
+                if (widget.isEdit ?? false)
+                  Positioned(
+                      bottom: 10,
+                      left: 90,
+                      child: InkWell(
+                        onTap: () => _pickImage(false),
+                        child: Container(
+                            width: 25,
+                            height: 25,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              // color: AppColors.red00,
+                              color: AppColors.secondaryTextColor
+                                  .withValues(alpha: 0.3),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 15,
+                            )),
+                      ))
               ],
             ),
           ),

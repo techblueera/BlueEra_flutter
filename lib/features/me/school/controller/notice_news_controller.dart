@@ -40,7 +40,7 @@ class NoticeController extends GetxController {
       if (response.isSuccess) {
         getNoticeNewsResponse.value = ApiResponse.complete(noticeNewsModel);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        // commonSnackBar(message: AppStrings.somethingWentWrong);
         getNoticeNewsResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }

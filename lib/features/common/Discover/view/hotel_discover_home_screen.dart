@@ -1,10 +1,10 @@
-import 'package:BlueEra/core/api/model/hotel_details_home_res_model.dart'
-    hide Profile, Rooms, Amenities;
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -65,7 +65,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     // TODO: implement initState
     profile = widget.data.profile;
     types = dynamicRoomTypes;
-    selectedRoomType=types.first;
+    selectedRoomType = types.first;
     super.initState();
   }
 
@@ -75,16 +75,60 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
       appBar: CommonBackAppBar(
         title: profile?.name,
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 12.0,right: 12,bottom: 15,top: 10),
-          child: PositiveCustomBtn(
-              onTap: () {
-                commonSnackBar(message: 'Coming Soon....');
-              },
-              title: "Book Inquiry"),
-        ),
-      ),
+      bottomNavigationBar: profile?.businessId != userId
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 12.0, right: 12, bottom: 15, top: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PositiveCustomBtn(
+                          onTap: () async {
+                            final chatViewController =
+                                Get.find<ChatViewController>();
+                            Map<String, dynamic> detas = {
+                              ApiKeys.user_id: profile?.businessId,
+                            };
+                            Map<String, dynamic>? checkCompleted =
+                                await chatViewController
+                                    .checkChatConnection(detas);
+                            chatViewController.openAnyOneChatFunction(
+                              profileImage: profile?.logoUrl,
+                              otherUserId:
+                                  (checkCompleted?[ApiKeys.conversation_id] ==
+                                          '')
+                                      ? (checkCompleted?[ApiKeys.other_user_id])
+                                      : null,
+                              // businessId: widget.businessProfileDetails.id,
+                              type: "business",
+                              isInitialMessage: true,
+                              userId: profile?.businessId,
+                              conversationId:
+                                  checkCompleted?[ApiKeys.conversation_id] ??
+                                      '',
+                              contactName: profile?.name,
+                              contactNo: profile?.contacts?.firstOrNull?.phone
+                                  .toString(),
+                            );
+                          },
+                          title: "Chat"),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: PositiveCustomBtn(
+                          onTap: () {
+                            commonSnackBar(message: 'Coming Soon....');
+                          },
+                          title: "Book Inquiry"),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
       body: CustomScrollView(
         slivers: [
           // 1. Header Image
@@ -229,7 +273,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                         isTitleShow: true),
                   ),
 
-                  SizedBox(height:  30),
+                  SizedBox(height: 30),
                 ],
               ),
             ),

@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class DepartmentScreen extends StatefulWidget {
-  DepartmentScreen({super.key});
+  DepartmentScreen({super.key, required this.isEdit});
+
+  final bool isEdit;
 
   @override
   State<DepartmentScreen> createState() => _DepartmentScreenState();
@@ -37,20 +39,22 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: "Departments"),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding:
-              EdgeInsets.only(left: 15.0, right: 15.0, bottom: 30, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              borderColor: AppColors.primaryColor,
-              textColor: AppColors.primaryColor,
-              onTap: () {
-                Get.to(() => AddMoreDepartmentScreen());
-              },
-              title: "Add Department"),
-        ),
-      ),
+      bottomNavigationBar: widget.isEdit
+          ? SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                    left: 15.0, right: 15.0, bottom: 30, top: 10),
+                child: PositiveCustomBtn(
+                    bgColor: AppColors.white,
+                    borderColor: AppColors.primaryColor,
+                    textColor: AppColors.primaryColor,
+                    onTap: () {
+                      Get.to(() => AddMoreDepartmentScreen());
+                    },
+                    title: "Add Department"),
+              ),
+            )
+          : null,
       body: Obx(() {
         if (controller.isLoading.value && controller.departmentList.isEmpty) {
           return const Center(child: CircularProgressIndicator());
@@ -68,6 +72,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
             itemBuilder: (context, index) {
               if (index < controller.departmentList.length) {
                 return DepartmentCard(
+                  isEdit: widget.isEdit,
                   data: controller.departmentList[index],
                   onEdit: () {
                     Get.to(() => AddMoreDepartmentScreen(
@@ -104,11 +109,15 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
 class DepartmentCard extends StatelessWidget {
   final dynamic data;
+  final bool isEdit;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const DepartmentCard(
-      {required this.data, required this.onEdit, required this.onDelete});
+      {required this.isEdit,
+      required this.data,
+      required this.onEdit,
+      required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -129,16 +138,17 @@ class DepartmentCard extends StatelessWidget {
                 Expanded(
                     child: CustomText(data.name ?? "",
                         fontSize: 18, fontWeight: FontWeight.bold)),
-                PopupMenuButton(
-                  onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                        value: 'edit', child: CustomText("Edit")),
-                    const PopupMenuItem(
-                        value: 'delete',
-                        child: CustomText("Delete", color: AppColors.red00)),
-                  ],
-                )
+                if (isEdit)
+                  PopupMenuButton(
+                    onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                          value: 'edit', child: CustomText("Edit")),
+                      const PopupMenuItem(
+                          value: 'delete',
+                          child: CustomText("Delete", color: AppColors.red00)),
+                    ],
+                  )
               ],
             ),
             const SizedBox(height: 10),

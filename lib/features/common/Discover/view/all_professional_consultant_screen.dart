@@ -75,32 +75,29 @@ class _AllProfessionConsultantScreenState
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: InkWell(
-                onTap: () {},
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size10,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 1.2),
-                      boxShadow: [AppShadows.textFieldShadow]),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.franchiseIcon,
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(AppStrings.bookViaBlueEraPartner,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400),
-                    ],
-                  ),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size10,
+                  horizontal: SizeConfig.size10,
+                ),
+                decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(color: AppColors.greyE5, width: 1.2),
+                    boxShadow: [AppShadows.textFieldShadow]),
+                child: Row(
+                  children: [
+                    LocalAssets(
+                      imagePath: AppIconAssets.franchiseIcon,
+                      height: SizeConfig.size30,
+                      width: SizeConfig.size30,
+                    ),
+                    SizedBox(width: SizeConfig.size10),
+                    CustomText(AppStrings.bookViaBlueEraPartner,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w400),
+                  ],
                 ),
               ),
             ),
@@ -261,16 +258,11 @@ class _AllProfessionConsultantScreenState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      // Navigate to details
-                    },
-                    child: CachedAvatarWidget(
-                      imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
-                      size: SizeConfig.size40,
-                      borderColor: Colors.white,
-                      borderRadius: SizeConfig.size20,
-                    ),
+                  CachedAvatarWidget(
+                    imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
+                    size: SizeConfig.size40,
+                    borderColor: Colors.white,
+                    borderRadius: SizeConfig.size20,
                   ),
                   SizedBox(width: SizeConfig.size6),
                   Expanded(

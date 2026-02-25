@@ -13,7 +13,12 @@ import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HotelHomeDetailScreen extends StatelessWidget {
+class HotelHomeDetailScreen extends StatefulWidget {
+  @override
+  State<HotelHomeDetailScreen> createState() => _HotelHomeDetailScreenState();
+}
+
+class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
   final controller = Get.put(HotelDetailController());
 
 // Helper to clean up API strings (e.g., "standardRoom" -> "Standard Room")
@@ -22,6 +27,13 @@ class HotelHomeDetailScreen extends StatelessWidget {
     String result = type.replaceAllMapped(
         RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}');
     return result[0].toUpperCase() + result.substring(1);
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    controller.loadHotelData();
+
+    super.initState();
   }
 
   @override
@@ -470,5 +482,4 @@ class HotelHomeDetailScreen extends StatelessWidget {
       ),
     );
   }
-
 }

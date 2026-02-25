@@ -19,7 +19,7 @@ class HotelDetailController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadHotelData();
+    // loadHotelData();
   }
 
   void loadHotelData() async {

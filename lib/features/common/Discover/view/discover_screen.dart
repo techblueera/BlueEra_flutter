@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/find_contact_with_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/all_education_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_professional_consultant_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
@@ -662,20 +663,20 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 Row(
                   children: [
                     Expanded(
-                      child: _title('Book Your Stay'),
+                      child: _title('Book Your Hotel &  Stay'),
                     ),
                     SizedBox(
                       width: SizeConfig.size8,
                     ),
-                    _viewAll(),
+                    // _viewAll(),
                   ],
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
                 _buildMasonryGridWithIcons(
-                    items: stayItemsCategories
-                        .where((item) =>
-                            discoverShownStayCategories.contains(item.slugId))
-                        .toList(),
+                    items: stayItemsCategories,
+                      /*  .where((item) =>
+                            discoverShownStayCategories.contains(item.slugId))*/
+                        // .toList(),
                     crossAxisCount: 2,
                     getName: (item) => item.name,
                     getIcon: (item) => item.icon,
@@ -697,6 +698,39 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       // } else {
                       //   // Handle unknown slug (optional)
                       // }
+                    }),
+              ],
+            ),
+          ),
+
+          _buildGap(),
+
+   /// Stay Service
+          CustomFormCard(
+            color: AppColors.yellowLight,
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title('Education & Training Sectors'),
+                    ),
+
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildMasonryGridWithIcons(
+                    items: businessOnboardingEducationTrainingCategories,
+                    crossAxisCount: 3,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (c) {
+                      Get.to(() => AllEducationServiceScreen(
+                          professionalConsultantCategories: businessOnboardingEducationTrainingCategories,
+                          selectedProfessionConsultantData: c));
+
                     }),
               ],
             ),

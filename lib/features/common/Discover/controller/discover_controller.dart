@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -10,12 +11,14 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/all_education_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +53,7 @@ class DiscoverController extends GetxController {
   var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
 
   var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;
+  var educationServiceResponse = ApiResponse.initial('Initial').obs;
   var rentalServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
   Set<Marker> markers = {};
@@ -77,17 +81,23 @@ class DiscoverController extends GetxController {
   RxList<ServiceData> earnServiceList = <ServiceData>[].obs;
   RxList<ProfessionalConsData> professionalConsDataList =
       <ProfessionalConsData>[].obs;
+  RxList<SchoolDetailsData> schoolDetailsDataDataList =
+      <SchoolDetailsData>[].obs;
   RxBool isEarnServiceLoading = false.obs;
   RxBool isProfConServiceLoading = false.obs;
+  RxBool isEducationServiceLoading = false.obs;
   int earnServicePage = 1;
   int profConsServicePage = 1;
+  int educationServicePage = 1;
   var isEarnServiceLoadingMore = false.obs;
   var isProfConServiceLoadingMore = false.obs;
+  var isEducationServiceLoadingMore = false.obs;
   Rx<VehicleAllResponse> ridersDetailsList = VehicleAllResponse().obs;
   var bookingRiderListResponse = ApiResponse.initial('Initial').obs;
 
   bool hasMoreEarnServiceData = true;
   bool hasMoreProfConServiceData = true;
+  bool hasMoreEducationServiceData = true;
 
   RxBool findRiderDetailsLoading = false.obs;
   RxBool bookRiderBtnLoading = false.obs;
@@ -152,6 +162,8 @@ class DiscoverController extends GetxController {
 
   /// Consultant Service
   Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData =
+      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?> selectedEducationServiceData =
       Rx<OnboardingCategoryModel?>(null);
 
   /// Products
@@ -430,6 +442,66 @@ class DiscoverController extends GetxController {
   }
 
   /// fetch Earn service
+  Future<void> fetchEducationServiceServices(
+      {bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isEducationServiceLoadingMore.value || !hasMoreEducationServiceData) {
+        return;
+      }
+      isEducationServiceLoadingMore.value = true;
+    } else {
+      schoolDetailsDataDataList.clear();
+      isEducationServiceLoading.value = true;
+      educationServicePage = 1;
+      hasMoreEducationServiceData = true;
+    }
+
+    final Map<String, dynamic> queryParams = {
+      if (selectedEducationServiceData.value?.slugId != null)
+        "search": selectedEducationServiceData.value?.slugId,
+      ApiKeys.page: educationServicePage,
+      ApiKeys.limit: limit,
+    };
+
+    ResponseModel response = await SchoolRepo()
+        .getSearchSchoolRepo(reqParm: queryParams);
+
+    try {
+      if (response.isSuccess) {
+        educationServiceResponse.value = ApiResponse.complete(response);
+        final responseModel =
+        AllEducationResModel.fromJson(response.response?.data);
+
+        List<SchoolDetailsData> tempNewItems = responseModel.data ?? [];
+        if (tempNewItems.length < limit) {
+          hasMoreEducationServiceData = false;
+        }
+
+        if (isLoadMore) {
+          schoolDetailsDataDataList.addAll(tempNewItems);
+        } else {
+          schoolDetailsDataDataList.assignAll(tempNewItems);
+        }
+
+        if (tempNewItems.isNotEmpty) {
+          educationServicePage++;
+        }
+      } else {
+        if (!isLoadMore) {
+          educationServiceResponse.value = ApiResponse.error('error');
+        }
+      }
+    } catch (e, s) {
+      print('stack trace --> $s');
+      educationServiceResponse.value = ApiResponse.error('error');
+    } finally {
+      if (isLoadMore) {
+        isEducationServiceLoadingMore.value = false;
+      } else {
+        isEducationServiceLoading.value = false;
+      }
+    }
+  }
   Future<void> fetchProfessionalConsultantServices(
       {bool isLoadMore = false}) async {
     if (isLoadMore) {

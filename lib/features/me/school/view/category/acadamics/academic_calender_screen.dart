@@ -18,7 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AcademicCalenderScreen extends StatefulWidget {
-  const AcademicCalenderScreen({super.key});
+   AcademicCalenderScreen({super.key, required this.isEdit});
+  final bool isEdit;
 
   @override
   State<AcademicCalenderScreen> createState() => _AcademicCalenderScreenState();
@@ -40,7 +41,8 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
       appBar: CommonBackAppBar(
         title: "Academic Calender",
       ),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar: widget.isEdit?
+      SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(
               right: 10.0, left: 10.0, bottom: 40, top: 10),
@@ -53,7 +55,7 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
               },
               title: "Add Academic Calender"),
         ),
-      ),
+      ):null,
       body: SafeArea(
         child: Obx(() {
           if (academicCalenderController
@@ -78,7 +80,7 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                             title: "Title",
                             value: "${data.title}",
                             noticeIndex: index,
-                            isEditOption: true,
+                            isEditOption: widget.isEdit,
                             noticeID: data.id ?? ""),
                         SizedBox(
                           height: SizeConfig.size5,
@@ -86,6 +88,8 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                         rowWidget(
                             noticeIndex: index,
                             title: "Description",
+                            isEditOption: widget.isEdit,
+
                             value: "${data.description}",
                             noticeID: data.id ?? ""),
                         SizedBox(
@@ -120,6 +124,8 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                               value: (data.uploadPhoto?.isNotEmpty ?? false)
                                   ? "View"
                                   : "N/A",
+                              isEditOption: widget.isEdit,
+
                               noticeID: data.id ?? "",
                               isDecoration:
                                   (data.uploadPhoto?.isNotEmpty ?? false)

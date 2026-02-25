@@ -85,14 +85,41 @@ class AppConstants {
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
 
-  static const List<String> qualificationList=["10th", "12th", "Diploma", "Degree"];
-  static const List<String> stateList=[
-    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
-    "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
-    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
-    "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
-    "Uttarakhand", "West Bengal"
+  static const List<String> qualificationList = [
+    "10th",
+    "12th",
+    "Diploma",
+    "Degree"
+  ];
+  static const List<String> stateList = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal"
   ];
 
   static const int inputCharterLimit = 150;
@@ -121,7 +148,7 @@ class AppConstants {
   static const String halted = 'halted';
   static const String pending = 'pending';
 
-  static  List<SubscriptionPlanStyleModel> listOfSubsBg = [
+  static List<SubscriptionPlanStyleModel> listOfSubsBg = [
     SubscriptionPlanStyleModel(
         bg: AppImageAssets.basic_subscription_plan_bg,
         color: AppColors.darkBlueShade),
@@ -165,7 +192,6 @@ class AppConstants {
   static const String sharing = 'Sharing';
   static const String mySelf = 'My Self';
   static const String myFriend = 'My Friend';
-
 
   static const String recruiter = 'recruiter';
 
@@ -250,6 +276,7 @@ class AppConstants {
   static const String postpaid = "postpaid";
   static const String manufacturingIndustry = "manufacturingIndustry";
   static const String personal = 'personal';
+
   /// Services Category
   static const consulting = "Consulting Services";
   static const automotive = "Automotive Services";
@@ -266,7 +293,8 @@ class AppConstants {
   static const healthcareMedicalServices = "Healthcare & Medical Services";
   static const hostelsStayService = "Hostels & Stay Service";
   static const HOSPITALS = "HOSPITAL SECTOR";
-  static const MEDICAL_EDUCATION_INSTITUTIONS = "Medical Education Institutions";
+  static const MEDICAL_EDUCATION_INSTITUTIONS =
+      "Medical Education Institutions";
   static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC SECTOR";
   static const INSTRUMENTS_PHARMACY = "Instruments Pharmacy";
 
@@ -279,6 +307,7 @@ class AppConstants {
   static const TRANSPORT_LOGISTIC = "Transport Logistic";
 
   static const SUPPORT_SERVICES = "SUPPORT SERVICES";
+
   // static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC AND TESTING CENTERS";
 
   // static const hostelsStayService = "Hotels Hostels & Stay Service";
@@ -332,7 +361,6 @@ class AppConstants {
   static const accept = "accept";
   static const cancelled = "cancelled";
 
-
   static const InCity = "InCity";
   static const OutStation = "OutStation";
   static const HourlyRental = "HourlyRental";
@@ -342,7 +370,6 @@ class AppConstants {
   static const property = "Property";
   static const flat = "Flat";
   static const vehicle = "Vehicle";
-
 }
 
 class DocumentKeys {
@@ -1216,9 +1243,10 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
 
   return entries;
 }
+
 List<PopupMenuEntry<String>> popPupMenuForGroupChat() {
   final items = <Map<String, dynamic>>[
-      {'title':"Clear Chat", "slud_id": 'clear_chat'},
+    {'title': "Clear Chat", "slud_id": 'clear_chat'},
     {'title': "Background Change", "slud_id": "background_change"},
     {'title': "Exit Group", "slud_id": "exit_group"},
     {'title': "Pin Group", "slud_id": "pin_group"},
@@ -1572,7 +1600,6 @@ const String ARTS_CRAFTS_SEWING = "ARTS_CRAFTS_SEWING";
 const String CLOTHING_SHOWS_JEWELRY = "CLOTHING_SHOES_JEWELRY";
 const String FARMING_LAWN_GARDEN = "FARMING_LAWN_GARDEN";
 
-
 const String ALL_INDIVIDUAL = "ALL_INDIVIDUAL";
 const String skilledWork = "skilledWork";
 const String consultant = "consultant";
@@ -1671,12 +1698,17 @@ const String SUPPORT_SERVICES = "SUPPORT_SERVICES";
 
 // Hotel
 const String HOTELS_RESORT = "HOTELS";
-// const String HOTELS_RESORT = "HOTELS_RESORT";
-const String ECONOMIC_STAYS = "ECONOMIC_STAYS";
-const String HOSTELS_PAYING_GUEST = "HOSTELS_PAYING_GUEST";
-const String ALTERNATIVE_STAYS = "ALTERNATIVE_STAYS";
-const String FUNCTIONS_VACATION = "FUNCTIONS_VACATION";
-const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
+// const String HOTELS_RESORT = "HOTELSRESORT";
+const String ECONOMIC_STAYS = "ECONOMIC";
+// const String ECONOMIC_STAYS = "ECONOMIC_STAYS";
+const String HOSTELS_PAYING_GUEST = "PAYING";
+// const String HOSTELS_PAYING_GUEST = "HOSTELS_PAYING_GUEST";
+const String ALTERNATIVE_STAYS = "ALTERNATIVE";
+// const String ALTERNATIVE_STAYS = "ALTERNATIVE_STAYS";
+// const String FUNCTIONS_VACATION = "FUNCTIONS_VACATION";
+const String FUNCTIONS_VACATION = "FUNCTIONS";
+const String CELEBRATION_EVENT_SERVICES = "CELEBRATION";
+// const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
 
 // Education
 const String SCHOOL_EDUCATION = "SCHOOL_EDUCATION";
@@ -1693,7 +1725,6 @@ const String INSURANCE_SECTOR = "INSURANCE_SECTOR";
 const String CAPITAL_MARKET = "CAPITAL_MARKET";
 const String DATA_SECTOR = "DATA_SECTOR";
 const String ADVISORY_SECTOR = "ADVISORY_SECTOR";
-
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1888,6 +1919,7 @@ class ChatEmitEvents {
   static const messageStatusUpdate = "messageStatusUpdate";
   static const update_data = "update_data";
 }
+
 class LiveTrackEmitEvents {
   static const updateLocation = "updateLocation";
   static const subscribeToProviders = "subscribeToProviders";
@@ -2039,7 +2071,6 @@ final List<MixedProfileCategory> mainCategories = [
 
 /// Business Categories
 
-
 final List<OnboardingCategoryModel> serviceContactCategories = [
   OnboardingCategoryModel(
       name: 'All Service',
@@ -2056,7 +2087,6 @@ final List<OnboardingCategoryModel> findServiceByContactSubCate = [
       icon: AppImageAssets.find_consulting_img,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-
   OnboardingCategoryModel(
       name: 'Beauty',
       slugId: BEAUTY_PERSONAL_CARE,
@@ -2135,35 +2165,35 @@ final List<OnboardingCategoryModel> findServiceByContactSubCate = [
 
 final List<OnboardingCategoryModel> businessOnboardingProfilesCategory = [
   OnboardingCategoryModel(
-      name: 'Grocery, Food\nRestaurant',
-      slugId: FOOD,
-      icon: OnboardingBusinessAssets.groceryFoodRestaurant,
-      accountType: AppConstants.business,
-   ),
-  OnboardingCategoryModel(
-      name: 'Shop Or Store',
-      slugId: PRODUCT,
-      icon: OnboardingBusinessAssets.shopOrStore,
-      accountType: AppConstants.business,
-      ),
-  OnboardingCategoryModel(
-      name: 'Sectors',
-      slugId: SERVICE_OTHERS,
-      icon: OnboardingBusinessAssets.services,
-      accountType: AppConstants.business,
+    name: 'Grocery, Food\nRestaurant',
+    slugId: FOOD,
+    icon: OnboardingBusinessAssets.groceryFoodRestaurant,
+    accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
-      name: 'Services',
-      slugId: SERVICE,
-      icon: OnboardingBusinessAssets.services,
-      accountType: AppConstants.business,
+    name: 'Shop Or Store',
+    slugId: PRODUCT,
+    icon: OnboardingBusinessAssets.shopOrStore,
+    accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
-      name: 'Manufacturing /\nIndustry',
-      slugId: MANUFACTURING,
-      icon: OnboardingBusinessAssets.manufacturingIndustry,
-      accountType: AppConstants.business,
-     ),
+    name: 'Sectors',
+    slugId: SERVICE_OTHERS,
+    icon: OnboardingBusinessAssets.services,
+    accountType: AppConstants.business,
+  ),
+  OnboardingCategoryModel(
+    name: 'Services',
+    slugId: SERVICE,
+    icon: OnboardingBusinessAssets.services,
+    accountType: AppConstants.business,
+  ),
+  OnboardingCategoryModel(
+    name: 'Manufacturing /\nIndustry',
+    slugId: MANUFACTURING,
+    icon: OnboardingBusinessAssets.manufacturingIndustry,
+    accountType: AppConstants.business,
+  ),
 ];
 
 final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
@@ -2488,7 +2518,8 @@ final List<OnboardingCategoryModel> businessOnboardingFoodsCategories = [
       businessType: BusinessType.Food),
 ];
 
-final List<OnboardingCategoryModel> businessOnboardingManufacturingCategories = [
+final List<OnboardingCategoryModel> businessOnboardingManufacturingCategories =
+    [
   OnboardingCategoryModel(
       name: 'Fashion &\nWearables',
       slugId: FASHION_WEARABLES,
@@ -2653,7 +2684,8 @@ final List<OnboardingCategoryModel> businessOnboardingManufacturingCategories = 
       businessType: BusinessType.Manufacturing),
 ];
 
-final List<OnboardingCategoryModel> businessOnboardingAutomotiveServicesCategories = [
+final List<OnboardingCategoryModel>
+    businessOnboardingAutomotiveServicesCategories = [
   OnboardingCategoryModel(
       name: 'Vehicle\nSales',
       slugId: SALES_SECTOR,
@@ -2692,11 +2724,13 @@ final List<OnboardingCategoryModel> businessOnboardingAutomotiveServicesCategori
       businessType: BusinessType.Automotive),
 ];
 
-final List<OnboardingCategoryModel> businessOnboardingHealthcareSectorsCategories = [
+final List<OnboardingCategoryModel>
+    businessOnboardingHealthcareSectorsCategories = [
   OnboardingCategoryModel(
       name: 'Hospital',
       slugId: HOSPITAL_SECTOR,
-      icon: OnboardingBusinessAssets.healthcareMedicalServices, // Use your relevant asset
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      // Use your relevant asset
       accountType: AppConstants.business,
       businessType: BusinessType.Healthcare),
   OnboardingCategoryModel(
@@ -2731,6 +2765,7 @@ final List<OnboardingCategoryModel> businessOnboardingHealthcareSectorsCategorie
       businessType: BusinessType.Healthcare),
 ];
 
+/*
 final List<OnboardingCategoryModel> businessOnboardingHospitalityStayCategories = [
   OnboardingCategoryModel(
       name: 'Hotel/\nResort',
@@ -2769,47 +2804,50 @@ final List<OnboardingCategoryModel> businessOnboardingHospitalityStayCategories 
       accountType: AppConstants.business,
       businessType: BusinessType.Motel),
 ];
+*/
 
-final List<OnboardingCategoryModel> businessOnboardingEducationTrainingCategories = [
+final List<OnboardingCategoryModel>
+    businessOnboardingEducationTrainingCategories = [
   OnboardingCategoryModel(
       name: 'School\nEducation',
       slugId: SCHOOL_EDUCATION,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: OnboardingBusinessAssets.EduSchoolEducation,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Collage/\nUniversity',
       slugId: COLLEGE_UNIVERSITY,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: OnboardingBusinessAssets.EduUniversity,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Coaching/\nInstitute',
       slugId: COACHING_EXAM_PREPARATION,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: OnboardingBusinessAssets.EduCoaching,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Sports &\nHobby',
       slugId: CREATIVE_SPORT_HOBBY,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: OnboardingBusinessAssets.EduSports,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Professional\nLearn',
       slugId: PROFESSIONAL_SUPPORT_EDUCATION,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: OnboardingBusinessAssets.EduProfessional,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Skill\nTraining',
       slugId: TECHNICAL_SKILL_TRAINING,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: OnboardingBusinessAssets.EduSkill,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
 ];
 
-final List<OnboardingCategoryModel> businessOnboardingFinancialSectorsCategories = [
+final List<OnboardingCategoryModel>
+    businessOnboardingFinancialSectorsCategories = [
   OnboardingCategoryModel(
       name: 'Banking\nSector',
       slugId: BANKING_SECTOR,
@@ -2895,7 +2933,7 @@ final List<BusinessProfileCategory> businessServicesCategories = [
       type: AppConstants.service),
   BusinessProfileCategory(
       name: 'Beauty &\nPersonal care',
-       slugId: AppConstants.beautyCare,
+      slugId: AppConstants.beautyCare,
       icon: AppImageAssets.beautyPersonalCare,
       type: AppConstants.service),
   BusinessProfileCategory(
@@ -3126,21 +3164,21 @@ final List<OnboardingCategoryModel> findShoppingByContactCate = [
 
 final List<OnboardingCategoryModel> businessProductStoreCategories = [
   OnboardingCategoryModel(
-    // name: AppStrings.fashionLifestyle,
+      // name: AppStrings.fashionLifestyle,
       name: 'Fashion',
       slugId: FASHION_LIFESTYLE,
       icon: AppImageAssets.fashionLifestyle,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.electronicsAppliances,
+      // name: AppStrings.electronicsAppliances,
       name: 'Electronics',
       slugId: ELECTRONICS_APPLIANCES_STORE,
       icon: AppImageAssets.electronicsApplianceStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.automotiveStore,
+      // name: AppStrings.automotiveStore,
       name: 'Spare Parts',
       slugId: AUTOMOTIVE_STORE_SHOWROOM,
       icon: AppImageAssets.automotiveStore,
@@ -3159,7 +3197,7 @@ final List<OnboardingCategoryModel> businessProductStoreCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.furnitureHomeDecor,
+      // name: AppStrings.furnitureHomeDecor,
       name: 'Furniture',
       slugId: FURNITURE_HOME_DECOR,
       icon: AppImageAssets.furnitureHomeDecor,
@@ -3178,14 +3216,14 @@ final List<OnboardingCategoryModel> businessProductStoreCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.booksStationaryGifts,
+      // name: AppStrings.booksStationaryGifts,
       name: 'Stationery',
       slugId: BOOKS_STATIONERY_GIFTS_STORE,
       icon: AppImageAssets.booksStationary,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.toysBabyProducts,
+      // name: AppStrings.toysBabyProducts,
       name: 'Toys',
       slugId: TOYS_BABY_PRODUCTS_STORE,
       icon: AppImageAssets.babyToysProductStore,
@@ -3198,14 +3236,14 @@ final List<OnboardingCategoryModel> businessProductStoreCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.sportsFitness,
+      // name: AppStrings.sportsFitness,
       name: 'Sports',
       slugId: SPORTS_FITNESS_STORE,
       icon: AppImageAssets.sportsFitnessStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-    // name: AppStrings.petSupplies,
+      // name: AppStrings.petSupplies,
       name: 'Pets',
       slugId: PET_SUPPLIES_STORE,
       icon: AppImageAssets.petSuppliesStore,
@@ -3346,7 +3384,6 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       icon: AppImageAssets.agricultureAndFarming,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
-
 ];
 
 final List<BusinessProfileCategory> businessFoodsCategories = [
@@ -3831,34 +3868,27 @@ final List<CollapsibleGridModel> earnWithBlueEraServiceList = [
   CollapsibleGridModel(
       name: AppStrings.homeMadeProducts,
       slugId: HOME_MADE_PRODUCTS,
-      icon: AppImageAssets.homeMadeProduct
-  ),
+      icon: AppImageAssets.homeMadeProduct),
   CollapsibleGridModel(
       name: 'Home Made\nFood Items',
       slugId: HOME_MADE_FOOD,
-      icon: AppImageAssets.homeMadeFood
-  ),
+      icon: AppImageAssets.homeMadeFood),
   CollapsibleGridModel(
       name: '${AppStrings.homeServices.tr}\n(Work From Home)',
       slugId: HOME_SERVICES,
-      icon: AppImageAssets.homeService
-  ),
+      icon: AppImageAssets.homeService),
   CollapsibleGridModel(
       name: AppStrings.rentalServices,
       slugId: RENTAL_SERVICES,
-      icon: AppImageAssets.rentalService
-  ),
+      icon: AppImageAssets.rentalService),
   CollapsibleGridModel(
       name: AppStrings.counsellingConsulting,
       slugId: PROFESSIONAL,
-      icon: AppImageAssets.consultation
-  ),
+      icon: AppImageAssets.consultation),
   CollapsibleGridModel(
       name: AppStrings.contentCreator,
       slugId: CONTENT_CREATOR,
-
-      icon: AppImageAssets.contentCreator
-  ),
+      icon: AppImageAssets.contentCreator),
   CollapsibleGridModel(
       name: AppStrings.tuitionClassesOnlineOffline,
       slugId: TUTOR,
@@ -3880,11 +3910,7 @@ final List<CollapsibleGridModel> gigWorkServiceList = [
       name: 'Auto Driver', slugId: AUTO_TAXI, icon: AppImageAssets.autoDriver),
 ];
 
-final homeServiceLiteCategories = [
-  BEAUTICIAN,
-  TAILOR,
-  OTHER
-];
+final homeServiceLiteCategories = [BEAUTICIAN, TAILOR, OTHER];
 
 final List<OnboardingCategoryModel> homeServicesCategories = [
   // CollapsibleGridModel(
@@ -3896,26 +3922,22 @@ final List<OnboardingCategoryModel> homeServicesCategories = [
       name: AppStrings.tuitionClassesOnlineOffline,
       slugId: TUTOR,
       icon: AppImageAssets.tutor,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: AppStrings.beautyServices,
       slugId: BEAUTICIAN,
       icon: AppImageAssets.beautician,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: AppStrings.tailoring,
       slugId: TAILOR,
       icon: AppImageAssets.tailor,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: 'Other Services',
       slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   // OnboardingCategoryModel(
   //     name: 'Matchmaking Consultant',
   //     slugId: DIGITAL_MARKETING,
@@ -3946,7 +3968,6 @@ final List<OnboardingCategoryModel> homeServicesCategories = [
   //     icon: AppImageAssets.interiorDesigner,
   //     accountType: AppConstants.individual
   // ),
-
 ];
 
 final List<OnboardingCategoryModel> homeMadeFoodCategories = [
@@ -3954,38 +3975,30 @@ final List<OnboardingCategoryModel> homeMadeFoodCategories = [
       name: AppStrings.tiffin,
       slugId: TIFFIN,
       icon: AppImageAssets.tiffin,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: AppStrings.bakery,
       slugId: BAKERY,
       icon: AppImageAssets.bakery,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: AppStrings.sweets,
       slugId: SWEETS,
       icon: AppImageAssets.sweets,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: AppStrings.other,
       slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
 ];
 
 final List<CollapsibleGridModel> rentalServiceCategories = [
   CollapsibleGridModel(
-      name: 'Hotel',
-      slugId: Flat_ROOM, icon: AppImageAssets.hotelStay),
+      name: 'Hotel', slugId: Flat_ROOM, icon: AppImageAssets.hotelStay),
   CollapsibleGridModel(
-      name: 'Homestay',
-      slugId: HOME_STAY, icon: AppImageAssets.homeStay),
-  CollapsibleGridModel(
-      name: 'Cabs',
-      slugId: VEHICLE, icon: AppImageAssets.cab),
+      name: 'Homestay', slugId: HOME_STAY, icon: AppImageAssets.homeStay),
+  CollapsibleGridModel(name: 'Cabs', slugId: VEHICLE, icon: AppImageAssets.cab),
 ];
 
 final List<OnboardingCategoryModel> homeMadeProductCategories = [
@@ -3993,58 +4006,55 @@ final List<OnboardingCategoryModel> homeMadeProductCategories = [
       name: 'Home Made Product',
       slugId: TIFFIN,
       icon: AppImageAssets.tiffin,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: 'Handicrafts',
       slugId: BAKERY,
       icon: AppImageAssets.bakery,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: 'Gift Items',
       slugId: SWEETS,
       icon: AppImageAssets.sweets,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: 'Textile & Fashion',
       slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: 'Utility Products',
       slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
   OnboardingCategoryModel(
       name: 'Other Products',
       slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.individual),
 ];
-
 
 final List<CollapsibleGridModel> homeMadeItemsCategories = [
   CollapsibleGridModel(
       name: 'Home Made\nFood',
-      slugId: FOOD, icon: AppImageAssets.homeMadeFoodBanner),
+      slugId: FOOD,
+      icon: AppImageAssets.homeMadeFoodBanner),
   CollapsibleGridModel(
       name: 'Home Made\nProducts',
-      slugId: PRODUCT, icon: AppImageAssets.homeMadeProductsBanner),
+      slugId: PRODUCT,
+      icon: AppImageAssets.homeMadeProductsBanner),
   CollapsibleGridModel(
       name: 'Home\nServices',
-      slugId: SERVICE, icon: AppImageAssets.homeServicesBanner),
+      slugId: SERVICE,
+      icon: AppImageAssets.homeServicesBanner),
 ];
 
 final discoverShownStayCategories = [
   HOTELS_RESORT,
-  AppConstants.property,
-  AppConstants.flat,
-  AppConstants.vehicle
+  FUNCTIONS_VACATION, HOSTELS_PAYING_GUEST, ECONOMIC_STAYS
+  // AppConstants.property,
+  // AppConstants.flat,
+  // AppConstants.vehicle
 ];
 
 final List<OnboardingCategoryModel> stayItemsCategories = [
@@ -4052,43 +4062,37 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       name: 'Hotel & Resort',
       slugId: HOTELS_RESORT,
       icon: AppImageAssets.hotelStay,
-      accountType: AppConstants.business
-  ),
-  OnboardingCategoryModel(
-      name: 'Home Stay',
-      slugId: AppConstants.property,
-      icon: AppImageAssets.homeStay,
-      accountType: AppConstants.individual
-  ),
+      accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Economy Stay',
       slugId: ECONOMIC_STAYS,
       icon: AppImageAssets.economyStay,
-      accountType: AppConstants.business
-  ),
+      accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Hostels and Paying Guest',
       slugId: HOSTELS_PAYING_GUEST,
       icon: AppImageAssets.hostelsAndPG,
-      accountType: AppConstants.business
-  ),
+      accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Functions & Vacation',
       slugId: FUNCTIONS_VACATION,
       icon: AppImageAssets.functionsVacation,
-      accountType: AppConstants.business
-  ),
+      accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Alternative Stays',
       slugId: ALTERNATIVE_STAYS,
-      icon: AppImageAssets.alternativeStays,
-      accountType: AppConstants.business
-  ),
+      icon: AppImageAssets.economyStay,
+      accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Celebration\n& Event',
       slugId: CELEBRATION_EVENT_SERVICES,
       icon: AppImageAssets.celebrationEvent,
-      accountType: AppConstants.business
+      accountType: AppConstants.business),
+  /*  OnboardingCategoryModel(
+      name: 'Home Stay',
+      slugId: AppConstants.property,
+      icon: AppImageAssets.homeStay,
+      accountType: AppConstants.individual
   ),
   OnboardingCategoryModel(
       name: 'House On Rent',
@@ -4101,7 +4105,7 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       slugId: AppConstants.vehicle,
       icon: AppImageAssets.otherRental,
       accountType: AppConstants.individual
-  ),
+  ),*/
 ];
 
 /// Super Grocery Categories (Discover)
@@ -4151,9 +4155,7 @@ const List<CollapsibleGridModel> grocerySuperCategories = [
 /// food Categories (Discover)
 const List<CollapsibleGridModel> foodCategories = [
   CollapsibleGridModel(
-      icon: AppImageAssets.tiffinColorful,
-      name: 'Tiffin',
-      slugId: 'TIFFIN'),
+      icon: AppImageAssets.tiffinColorful, name: 'Tiffin', slugId: 'TIFFIN'),
   CollapsibleGridModel(
       icon: AppImageAssets.breakfastColorful,
       name: 'Breakfast',
@@ -4167,9 +4169,7 @@ const List<CollapsibleGridModel> foodCategories = [
       name: 'Fast-Food',
       slugId: 'FAST_FOOD'),
   CollapsibleGridModel(
-      icon: AppImageAssets.sweetsColorful,
-      name: 'Sweets',
-      slugId: 'SWEETS'),
+      icon: AppImageAssets.sweetsColorful, name: 'Sweets', slugId: 'SWEETS'),
   CollapsibleGridModel(
       icon: AppImageAssets.restaurantColorful,
       name: 'Restaurant',
@@ -4179,37 +4179,43 @@ const List<CollapsibleGridModel> foodCategories = [
 final List<CollapsibleGridModel> transportItemsCategories = [
   CollapsibleGridModel(
       name: '2 Wheeler',
-      slugId: 'TWO_WHEELER', icon: AppImageAssets.twoWheelerBike),
+      slugId: 'TWO_WHEELER',
+      icon: AppImageAssets.twoWheelerBike),
   CollapsibleGridModel(
       name: 'Passenger',
-      slugId: 'PASSENGER', icon: AppImageAssets.passengerCar),
+      slugId: 'PASSENGER',
+      icon: AppImageAssets.passengerCar),
   CollapsibleGridModel(
-      name: 'Goods',
-      slugId: 'GOODS', icon: AppImageAssets.goodsMiniBus),
+      name: 'Goods', slugId: 'GOODS', icon: AppImageAssets.goodsMiniBus),
   CollapsibleGridModel(
-      name: 'Out Station',
-      slugId: 'OUR_STATION', icon: AppImageAssets.car),
+      name: 'Out Station', slugId: 'OUR_STATION', icon: AppImageAssets.car),
 ];
 
 final List<CollapsibleGridModel> automotiveServiceItemsCategories = [
   CollapsibleGridModel(
       name: '2 Wheeler\nShowroom',
-      slugId: 'TWO_WHEELER_SHOWROOM', icon: AppImageAssets.twoWheelerBike),
+      slugId: 'TWO_WHEELER_SHOWROOM',
+      icon: AppImageAssets.twoWheelerBike),
   CollapsibleGridModel(
       name: '4 Wheeler\nShowroom',
-      slugId: 'FOUR_WHEELER_SHOWROOM', icon: AppImageAssets.vehicleShowroom),
+      slugId: 'FOUR_WHEELER_SHOWROOM',
+      icon: AppImageAssets.vehicleShowroom),
   CollapsibleGridModel(
       name: 'Pre Owned\nShowroom',
-      slugId: 'PRE_OWNED_SHOWROOM', icon: AppImageAssets.preOwnedShowroom),
+      slugId: 'PRE_OWNED_SHOWROOM',
+      icon: AppImageAssets.preOwnedShowroom),
   CollapsibleGridModel(
       name: 'Vehicle\nService',
-      slugId: 'VEHICLE_SERVICE', icon: AppImageAssets.vehicleService),
+      slugId: 'VEHICLE_SERVICE',
+      icon: AppImageAssets.vehicleService),
   CollapsibleGridModel(
       name: 'Auto Parts\nShop',
-      slugId: 'AUTO_PARTS_SHOP', icon: AppImageAssets.autoPartsShop),
+      slugId: 'AUTO_PARTS_SHOP',
+      icon: AppImageAssets.autoPartsShop),
   CollapsibleGridModel(
       name: 'Vehicle\nAccessories',
-      slugId: 'VEHICLE_ACCESSORIES', icon: AppImageAssets.vehicleAccessories),
+      slugId: 'VEHICLE_ACCESSORIES',
+      icon: AppImageAssets.vehicleAccessories),
 ];
 
 final List<CollapsibleGridModel> bookingList = [
@@ -4232,19 +4238,16 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
       name: 'Home Made\nProducts',
       // name: AppStrings.homeMadeProducts,
       slugId: HOME_MADE_PRODUCTS,
-      icon: AppImageAssets.homeMadeProduct
-  ),
+      icon: AppImageAssets.homeMadeProduct),
   CollapsibleGridModel(
       name: 'Home Made\nFood Items',
       slugId: HOME_MADE_FOOD,
-      icon: AppImageAssets.homeMadeFood
-  ),
+      icon: AppImageAssets.homeMadeFood),
   CollapsibleGridModel(
       name: 'Rental\nServices',
       // name: AppStrings.rentalServices,
       slugId: RENTAL_SERVICES,
-      icon: AppImageAssets.rentalService
-  ),
+      icon: AppImageAssets.rentalService),
 ];
 
 // final List<CollapsibleGridModel> individualSocialProfileList = [

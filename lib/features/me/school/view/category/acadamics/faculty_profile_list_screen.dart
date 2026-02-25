@@ -12,6 +12,9 @@ import 'package:get/get.dart';
 
 class FacultyProfileListScreen extends StatelessWidget {
   final controller = Get.put(FacultyController());
+  final bool isEdit;
+
+   FacultyProfileListScreen({super.key, required this.isEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +22,7 @@ class FacultyProfileListScreen extends StatelessWidget {
       appBar: CommonBackAppBar(
         title: "Faculty",
       ),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar:isEdit? SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(
               right: 10.0, left: 10.0, bottom: 40, top: 10),
@@ -32,7 +35,7 @@ class FacultyProfileListScreen extends StatelessWidget {
               },
               title: "Add Faculty"),
         ),
-      ),
+      ):null,
       body: Obx(() {
         if (controller.getAllFacultyResponse.value.status == Status.COMPLETE) {
           if (controller.profiles.isEmpty) {
@@ -74,7 +77,8 @@ class FacultyProfileListScreen extends StatelessWidget {
                         CustomText(user.email ?? ""),
                       ],
                     ),
-                    trailing: PopupMenuButton<String>(
+                    trailing:isEdit?
+                    PopupMenuButton<String>(
                       onSelected: (value) async {
                         if (value == 'edit') {
                           Get.to(FacultyFormScreen(isEdit: true,facultyData: user,));
@@ -114,7 +118,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                               ],
                             )),
                       ],
-                    ),
+                    ):null,
                   ),
                 );
               },

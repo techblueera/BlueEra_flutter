@@ -9,7 +9,6 @@ import 'package:BlueEra/features/me/hospital/view/widget/hospital_contact_us_vie
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_department_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
-import 'package:BlueEra/features/me/school/view/category/school_home/school_contact_us_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';

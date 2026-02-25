@@ -19,12 +19,14 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/model/ren
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -455,11 +457,34 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   }
 
   Widget hotelServiceCard(HotelServiceData service) {
-    final distance = calculateDistance(
+    final distance = calculateDistanceInt(
         service.profile?.location?.coordinates?[1].toDouble() ?? 0.0,
         service.profile?.location?.coordinates?[0].toDouble() ?? 0.0);
-    Profile? profile = service.profile;
-
+    List<String> allImages = service.profile?.photos
+            ?.expand((photo) =>
+                photo.imageReferences ?? []) // Flatten all image lists
+            .map((url) => url.toString()) // Ensure they are strings
+            .take(5) // Stop after 5 items
+            .toList() ??
+        []; // Fallback to empty list
+    return InkWell(
+      onTap: () {
+        Get.to(HotelDiscoverHomeScreen(
+          data: service,
+        ));
+      },
+      child: PropertyCard(
+        imageUrls: allImages ?? [],
+        hotelName: service.profile?.name ?? "N/A",
+        hotelDescr: '',
+        distance: distance.toString(),
+        totalRoom:
+            service.rooms?.firstOrNull?.totalRooms.toString() ?? 0.toString(),
+        bedType: service.rooms?.firstOrNull?.bedType ?? "",
+        rent: service.rooms?.firstOrNull?.pricePerDay.toString() ?? "",
+      ),
+    );
+/*
     return InkWell(
       onTap: () {
         Get.to(HotelDiscoverHomeScreen(
@@ -516,11 +541,12 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                       )
                     ],
                   )),
-                  Icon(Icons.more_vert, color: AppColors.black)
+                  // Icon(Icons.more_vert, color: AppColors.black)
                 ],
               ),
 
-              if (profile?.description?.isNotEmpty ?? false) ...[
+              if (profile?.photos?.firstOrNull?.imageReferences?.isNotEmpty ??
+                  false) ...[
                 SizedBox(height: SizeConfig.size6),
                 CustomText(profile?.description ?? "",
                     fontSize: SizeConfig.small,
@@ -588,6 +614,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
             ],
           )),
     );
+*/
   }
 
   void showFullRentalDetails(
@@ -693,4 +720,153 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
           ),
         ],
       );
+}
+
+class PropertyCard extends StatefulWidget {
+  final List<String> imageUrls;
+  final String hotelName, hotelDescr, distance, totalRoom, bedType, rent;
+
+  const PropertyCard(
+      {super.key,
+      required this.imageUrls,
+      required this.hotelName,
+      required this.hotelDescr,
+      required this.distance,
+      required this.totalRoom,
+      required this.bedType,
+      required this.rent});
+
+  @override
+  State<PropertyCard> createState() => _PropertyCardState();
+}
+
+class _PropertyCardState extends State<PropertyCard> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    bool hasMultipleImages = widget.imageUrls.length > 1;
+
+    return CommonCardWidget(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            widget.hotelName,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          // 1. The Image Stack
+          Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CarouselSlider(
+                  options: CarouselOptions(
+                    height: 300,
+                    viewportFraction: 1.0,
+                    enableInfiniteScroll: hasMultipleImages,
+                    onPageChanged: (index, reason) {
+                      setState(() => _currentIndex = index);
+                    },
+                  ),
+                  items: widget.imageUrls.map((url) {
+                    return Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              // // 2. The Floating "Guest Favourite" Badge
+              // Positioned(
+              //   top: 12,
+              //   left: 12,
+              //   child: Container(
+              //     padding:
+              //         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              //     decoration: BoxDecoration(
+              //       color: Colors.white,
+              //       borderRadius: BorderRadius.circular(20),
+              //     ),
+              //     child: const Text(
+              //       'Guest favourite',
+              //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              //     ),
+              //   ),
+              // ),
+
+              // 3. The Indicators (Only visible if > 1 image)
+              if (hasMultipleImages)
+                Positioned(
+                  bottom: 12,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.imageUrls.asMap().entries.map((entry) {
+                      return Container(
+                        width: 6.0,
+                        height: 6.0,
+                        margin: const EdgeInsets.symmetric(horizontal: 3.0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(
+                            _currentIndex == entry.key ? 1.0 : 0.5,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          ),
+
+          // 4. The Text Content
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  "Room Type : ${widget.bedType}",
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: CustomText("${widget.totalRoom} Room",
+                          color: AppColors.secondaryTextColor),
+                    ),
+                    SizedBox(width: 4),
+                    Flexible(
+                      child: CustomText("INR ${widget.rent}/day",
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 16),
+                    CustomText("${widget.distance} km away"),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

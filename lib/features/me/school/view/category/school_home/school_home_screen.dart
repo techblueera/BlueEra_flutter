@@ -33,7 +33,7 @@ class SchoolHomeScreen extends StatelessWidget {
         return SingleChildScrollView(
             child: Column(
           children: [
-            SchoolHeaderView(schoolAboutUsController: schoolAboutUsController),
+            SchoolHeaderView(schoolAboutUsController: schoolAboutUsController,isEdit: true,),
             DirectorCard(
               schoolAboutUsController: schoolAboutUsController,
             ),
@@ -44,7 +44,7 @@ class SchoolHomeScreen extends StatelessWidget {
             SchoolCourseSection(
               courses:
                   schoolAboutUsController.schoolDetailsData?.value.courses ??
-                      [],
+                      [], isEdit: true,
             ),
             CampusPhotoGallery(
               campusLife:
@@ -53,31 +53,31 @@ class SchoolHomeScreen extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolJobListingScreen());
+                Get.to(SchoolJobListingScreen(isEdit: true,));
               },
               child: cardViewWidget(title: "Job Vacancy"),
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolAcademicsPage());
+                Get.to(SchoolAcademicsPage(isEdit: true,));
               },
               child: cardViewWidget(title: "Academics"),
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolStudentCorner());
+                Get.to(SchoolStudentCorner(isEdit: true,));
               },
               child: cardViewWidget(title: "Student Corner"),
             ),
+            // InkWell(
+            //   onTap: () {
+            //     Get.to(CampusLifeListingScreen());
+            //   },
+            //   child: cardViewWidget(title: "Campus Life"),
+            // ),
             InkWell(
               onTap: () {
-                Get.to(CampusLifeListingScreen());
-              },
-              child: cardViewWidget(title: "Campus Life"),
-            ),
-            InkWell(
-              onTap: () {
-                Get.to(NoticeNewsScreen());
+                Get.to(NoticeNewsScreen(isEdit: true,));
               },
               child: cardViewWidget(title: "Notices & News"),
             ),
@@ -85,6 +85,7 @@ class SchoolHomeScreen extends StatelessWidget {
               height: 10,
             ),
             ContactUsSection(
+              isEdit: true,
               contacts:
                   schoolAboutUsController.schoolDetailsData?.value.contacts ??
                       [],

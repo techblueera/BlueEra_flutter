@@ -65,7 +65,7 @@ class CommonServiceCard<T> extends StatelessWidget {
               alignment: Alignment.center,
               child: CustomText(
                 getName(service),
-                fontSize: SizeConfig.small,
+                fontSize: SizeConfig.small11,
                 color: AppColors.secondaryTextColor,
                 fontWeight: FontWeight.w600,
                 textAlign: TextAlign.center,
@@ -73,7 +73,6 @@ class CommonServiceCard<T> extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
           ],
         ),
       ),

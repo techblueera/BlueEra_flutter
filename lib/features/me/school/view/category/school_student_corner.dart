@@ -11,7 +11,8 @@ import 'package:get/get.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class SchoolStudentCorner extends StatefulWidget {
-  const SchoolStudentCorner({super.key});
+   SchoolStudentCorner({super.key, required this.isEdit});
+  final bool isEdit;
 
   @override
   State<SchoolStudentCorner> createState() => _SchoolStudentCornerState();
@@ -19,19 +20,26 @@ class SchoolStudentCorner extends StatefulWidget {
 
 class _SchoolStudentCornerState extends State<SchoolStudentCorner> {
   final controller = Get.put(StudentCornerController());
-  final List<ServiceMenuItem> studentExamMenus = [
+   List<ServiceMenuItem> studentExamMenus=[];
+@override
+  void initState() {
+    // TODO: implement initState
+  studentExamMenus = [
     ServiceMenuItem(
       title: "Time Table",
       icon: AppIconAssets.time_table,
       page: () => CommonStudentCornerScreen(
         title: "Time Table",
         screenName: timeTable,
+        isEdit: widget.isEdit,
       ),
     ),
     ServiceMenuItem(
       title: "Syllabus",
       icon: AppIconAssets.syllabus,
       page: () => CommonStudentCornerScreen(
+        isEdit: widget.isEdit,
+
         title: 'Syllabus',
         screenName: syllabus,
       ),
@@ -40,6 +48,8 @@ class _SchoolStudentCornerState extends State<SchoolStudentCorner> {
       title: "Exam Schedule",
       icon: AppIconAssets.exam_schedule,
       page: () => CommonStudentCornerScreen(
+        isEdit: widget.isEdit,
+
         title: 'Exam Schedule',
         screenName: examSchedule,
       ),
@@ -48,6 +58,8 @@ class _SchoolStudentCornerState extends State<SchoolStudentCorner> {
       title: "Results",
       icon: AppIconAssets.result,
       page: () => CommonStudentCornerScreen(
+        isEdit: widget.isEdit,
+
         title: 'Results',
         screenName: results,
       ),
@@ -56,12 +68,15 @@ class _SchoolStudentCornerState extends State<SchoolStudentCorner> {
       title: "Downloads",
       icon: AppIconAssets.downloads_new,
       page: () => CommonStudentCornerScreen(
+        isEdit: widget.isEdit,
+
         title: 'Downloads',
         screenName: downloads,
       ),
     ),
   ];
-
+  super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

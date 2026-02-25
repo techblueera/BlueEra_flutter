@@ -1,11 +1,15 @@
 import 'dart:math';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart'
     hide Timings;
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
@@ -13,6 +17,7 @@ import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_proj
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -41,6 +46,59 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
       appBar: CommonBackAppBar(
         title: data.basicDetails?.professionalTitle,
       ),
+      bottomNavigationBar: data.userId != userId
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 12.0, right: 12, bottom: 15, top: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PositiveCustomBtn(
+                          onTap: () async {
+                            final chatViewController =
+                                Get.find<ChatViewController>();
+                            Map<String, dynamic> detas = {
+                              ApiKeys.user_id: data.userId
+                            };
+                            Map<String, dynamic>? checkCompleted =
+                                await chatViewController
+                                    .checkChatConnection(detas);
+                            chatViewController.openAnyOneChatFunction(
+                              profileImage: data.userDetails?.profileImage,
+                              otherUserId:
+                                  (checkCompleted?[ApiKeys.conversation_id] ==
+                                          '')
+                                      ? (checkCompleted?[ApiKeys.other_user_id])
+                                      : null,
+                              // businessId: widget.businessProfileDetails.id,
+                              type: "business",
+                              isInitialMessage: true,
+                              userId: data.userId,
+                              conversationId:
+                                  checkCompleted?[ApiKeys.conversation_id] ??
+                                      '',
+                              contactName: data.userDetails?.name,
+                              contactNo: data.userDetails?.contactNo.toString(),
+                            );
+                          },
+                          title: "Chat"),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: PositiveCustomBtn(
+                          onTap: () {
+                            commonSnackBar(message: 'Coming Soon....');
+                          },
+                          title: "Book Inquiry"),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingXS),
         child: SingleChildScrollView(
@@ -163,7 +221,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                     _buildSectionTitle("Working Hours"),
                     CommonCardWidget(
                       child: _buildTimings(data.timings),
-                      borderColorColor:     Colors.grey.shade200,
+                      borderColorColor: Colors.grey.shade200,
                       cardMargin: 0,
                       padding: 10,
                     ),

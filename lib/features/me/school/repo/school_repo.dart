@@ -28,6 +28,13 @@ class SchoolRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  ///GET SCHOOL/UNIVERSITY DETAILS...
+  Future<ResponseModel> getSearchSchoolRepo({required Map<String, dynamic> reqParm}) async {
+    // education-service/schools?page=1&limit=10&search=computer%20science
+    final response = await ApiBaseHelper().getHTTP("education-service/schools",params: reqParm,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
   ///GET SCHOOL/UNIVERSITY DETAILS...
   Future<ResponseModel> getSchoolBranchRepo({required String schoolID}) async {

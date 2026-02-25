@@ -19,7 +19,8 @@ import 'package:get/get.dart';
 
 class CommonStudentCornerScreen extends StatefulWidget {
   const CommonStudentCornerScreen(
-      {super.key, required this.title, required this.screenName});
+      {super.key, required this.title, required this.screenName, required this.isEdit});
+  final bool isEdit;
 
   final String title;
   final String screenName;
@@ -39,7 +40,8 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
       appBar: CommonBackAppBar(
         title: widget.title,
       ),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar:widget.isEdit?
+      SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(
               right: 10.0, left: 10.0, bottom: 40, top: 10),
@@ -55,12 +57,12 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
               },
               title: "Add ${widget.title}"),
         ),
-      ),
+      ):null,
       body: SafeArea(
         child: Obx(() {
           if (studentCornerController.getStudentCornerResponse.value.status ==
               Status.ERROR) {
-            return CustomText(AppStrings.somethingWentWrong);
+            return Center(child: CustomText(AppStrings.somethingWentWrong));
           }
           if (studentCornerController.getStudentCornerResponse.value.status ==
               Status.COMPLETE) {
@@ -90,7 +92,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                             title: "Title",
                             value: "${data.title}",
                             noticeIndex: index,
-                            isEditOption: true,
+                            isEditOption: widget.isEdit,
                             noticeID: data.id ?? ""),
                         SizedBox(
                           height: SizeConfig.size5,
@@ -98,6 +100,8 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                         rowWidget(
                             noticeIndex: index,
                             title: "Description",
+                            isEditOption: widget.isEdit,
+
                             value: "${data.description}",
                             noticeID: data.id ?? ""),
                         SizedBox(
