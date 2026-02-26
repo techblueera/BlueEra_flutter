@@ -400,7 +400,7 @@ class MedicalController extends GetxController {
     List<Map<String, dynamic>> payload = [];
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
     String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
-    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode ?? LocationService.userCurrentAddress.value.postalCode;
+    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 
     if(postalCode.isEmpty){
       commonSnackBar(message: 'Please enable your location permission for adding grocery');

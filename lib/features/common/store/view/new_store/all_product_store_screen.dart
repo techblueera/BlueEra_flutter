@@ -8,6 +8,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class AllProductStoreScreen extends StatefulWidget {
@@ -108,19 +109,22 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
               //
               // final childAspectRatio = itemWidth / approximateItemHeight;
 
-              return GridView.builder(
+              return MasonryGridView.count(
                 controller: storesScrollController,
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossSpacing,
+                mainAxisSpacing: mainSpacing,
                 padding: EdgeInsets.symmetric(
                     horizontal: SizeConfig.size8,
                     vertical: SizeConfig.size15
                 ),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: crossSpacing,
-                  mainAxisSpacing: mainSpacing,
-                  mainAxisExtent: SizeConfig.size265    ,
-                  // childAspectRatio: childAspectRatio,
-                ),
+                // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                //   crossAxisCount: crossAxisCount,
+                //   crossAxisSpacing: crossSpacing,
+                //   mainAxisSpacing: mainSpacing,
+                //   mainAxisExtent: SizeConfig.size265,
+                //   // childAspectRatio: childAspectRatio,
+                // ),
                 itemCount: productList.length +
                     (controller.isProductDataLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {

@@ -34,7 +34,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
         title: "Management",
         isLeading: true,
         isShadowShow: true,
-        buildCustomWidget: () => Padding(
+        buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 10.0),
           child: GestureDetector(
             onTap: () {

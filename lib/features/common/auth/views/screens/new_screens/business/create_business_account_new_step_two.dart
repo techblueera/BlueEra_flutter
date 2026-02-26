@@ -358,7 +358,6 @@ class _CreateBusinessAccountNewStepTwoState
                           title: AppStrings.pincodeTitle,
                           hintText: AppStrings.pincodeHint,
                           isValidate: true,
-                          //  readOnly: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return AppStrings.pleaseEnterPinCode.tr;

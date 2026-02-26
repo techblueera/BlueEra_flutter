@@ -42,7 +42,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
           ? CommonBackAppBar(
         title: AppStrings.vehicleInformation,
         // onBackTap: onBackPressed,
-        buildCustomWidget: ()=> Padding(
+        buildCustomActionWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(

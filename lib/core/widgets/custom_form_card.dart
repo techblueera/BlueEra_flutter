@@ -34,16 +34,16 @@ class CustomFormCard extends StatelessWidget {
       padding: padding ?? EdgeInsets.all(SizeConfig.size15),
       decoration: BoxDecoration(
         color: color ?? AppColors.white,
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: borderRadius ?? BorderRadius.circular(10.0),
         boxShadow: (isBorderAvailable??false)?[
           BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           blurRadius: 5,
           spreadRadius: 0.5,
           offset: Offset(-5, 0), // 👈 Left side shadow
         ),
           BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           blurRadius: 5,
           spreadRadius: 0.5,
           offset: Offset(5, 0), // 👈 Left side shadow

@@ -8,6 +8,7 @@ import 'package:BlueEra/features/subscription/auth/model/subscription_list_detai
 import 'package:BlueEra/features/subscription/widget/free_subscription_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_banner_video.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_payment_handler.dart';
+import 'package:BlueEra/features/subscription/widget/welcome_subscription_offer_text.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -42,35 +43,46 @@ class FreeTrialPlanScreen extends StatelessWidget {
               SizedBox(height: SizeConfig.paddingXSL),
               CustomFormCard(
                 padding: EdgeInsets.zero,
-                child: ListView.separated(
-                itemCount: subsList?.length ?? 0,
-                physics: NeverScrollableScrollPhysics(),
-                primary: false,
-                shrinkWrap: true,
-                padding: EdgeInsets.all(SizeConfig.size10),
-                separatorBuilder: (_, __) => const SizedBox(height: 14),
-                itemBuilder: (context, index) {
-                  SubscriptionPlanData? details = subsList?[index];
+                child: Column(
+                  children: [
 
-                  int styleIndex = index % AppConstants.listOfSubsBg.length;
+                    SizedBox(height: SizeConfig.paddingXSL),
 
-                  return GestureDetector(
-                    onTap: () {
-                      if(controller.selectedSubscriptionIndex.contains(index)) return;
-                      controller.selectedSubscriptionIndex.clear();
-                      controller.selectedSubscriptionIndex.add(index);
-                      print('final amount to pay -- ${controller.finalAmount}');
+                    WelcomeSubscriptionOfferText(),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    ListView.separated(
+                    itemCount: subsList?.length ?? 0,
+                    physics: NeverScrollableScrollPhysics(),
+                    primary: false,
+                    shrinkWrap: true,
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    separatorBuilder: (_, __) => const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      SubscriptionPlanData? details = subsList?[index];
+
+                      int styleIndex = index % AppConstants.listOfSubsBg.length;
+
+                      return GestureDetector(
+                        onTap: () {
+                          if(controller.selectedSubscriptionIndex.contains(index)) return;
+                          controller.selectedSubscriptionIndex.clear();
+                          controller.selectedSubscriptionIndex.add(index);
+                          print('final amount to pay -- ${controller.finalAmount}');
+                        },
+                        child: FreeTrialSubscriptionCard(
+                          details: details,
+                          index: index,
+                          controller: controller,
+                          style: AppConstants.listOfSubsBg[styleIndex],
+                          tagText: details?.tier ?? "Basic",
+                        ),
+                      );
                     },
-                    child: FreeTrialSubscriptionCard(
-                      details: details,
-                      index: index,
-                      controller: controller,
-                      style: AppConstants.listOfSubsBg[styleIndex],
-                      tagText: details?.tier ?? "Basic",
-                    ),
-                  );
-                },
-                                ),
+                                    ),
+                  ],
+                ),
               ),
 
               (controller.selectedSubscriptionIndex.isNotEmpty)

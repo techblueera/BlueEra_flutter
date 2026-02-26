@@ -700,3 +700,25 @@ Future<Uint8List> getBytesFromSvgAsset(
   return byteData!.buffer.asUint8List();
 }
 
+Future<void> copyToClipboard(BuildContext context, String textToCopy) async {
+  await Clipboard.setData(ClipboardData(text: textToCopy));
+
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Copied to clipboard!"),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  // await Clipboard.setData(ClipboardData(text: textToCopy));
+  //
+  // Get.snackbar(
+  //   "Success",
+  //   "Copied to clipboard!",
+  //   snackPosition: SnackPosition.BOTTOM,
+  // );
+
+}

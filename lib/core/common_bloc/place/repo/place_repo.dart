@@ -16,19 +16,7 @@ class PlaceRepo{
   //
   // "cities" → Only cities.
 
-  Future<ResponseModel> getCitiesByState(String state) async {
-    return await ApiBaseHelper().getHTTP(
-      googleAutocomplete,
-      showProgress: false,
-      params: {
-        "input": "$state",
-        "key": googleMapKey,
-        "types": "(cities)",
-        "components": "country:in",
-        "language": "en",
-      },
-    );
-  }
+
   ///Auto complete Search....
   Future<ResponseModel> autoCompleteSearch({
     required String query,
@@ -50,6 +38,20 @@ class PlaceRepo{
     return response;
   }
 
+
+  Future<ResponseModel> getCitiesByState(String state) async {
+    return await ApiBaseHelper().getHTTP(
+      googleAutocomplete,
+      showProgress: false,
+      params: {
+        "input": "$state",
+        "key": googleMapKey,
+        "types": "(cities)",
+        "components": "country:in",
+        "language": "en",
+      },
+    );
+  }
 
   Future<ResponseModel> getCompletePlaceDetails({
     required String placeId,

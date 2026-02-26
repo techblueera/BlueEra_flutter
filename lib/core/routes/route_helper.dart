@@ -1030,7 +1030,8 @@ class RouteHelper {
             args?[ApiKeys.showViewDocProof] as bool? ?? false;
 
         return MaterialPageRoute(
-            builder: (_) => AddDocumentScreen(showViewDocProof: showViewDocProof,
+            builder: (_) => AddDocumentScreen(
+                showViewDocProof: showViewDocProof,
                 documentVia: argDocumentVia
             ),
             settings:

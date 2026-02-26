@@ -1187,3 +1187,16 @@ enum ServiceType {
   // Helper: Get just the labels for Dropdowns
   static List<String> get labels => values.map((e) => e.label).toList();
 }
+
+enum Qualification {
+  below10('BELOW_10', 'Below 10th'),
+  pass10('10_PASS', '10th Pass'),
+  pass12('12_PASS', '12th Pass'),
+  graduate('GRADUATE', 'Graduate / Degree'),
+  postGraduate('POST_GRADUATE', 'Post Graduate');
+
+  final String value;
+  final String displayName;
+
+  const Qualification(this.value, this.displayName);
+}

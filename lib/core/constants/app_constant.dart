@@ -85,7 +85,9 @@ class AppConstants {
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
 
-  static const List<String> qualificationList=["10th", "12th", "Diploma", "Degree"];
+  static const List<String> qualificationList=[
+
+    "10th", "12th", "Diploma", "Degree"];
   static const List<String> stateList=[
     "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
     "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
@@ -351,6 +353,7 @@ class DocumentKeys {
   static const addressProof = "addressProof";
   static const noc = "noc";
   static const drivingLicense = "drivingLicense";
+  static const bankDetails = "bankDetails";
   static const bankersCancelledCheque = "bankersCancelledCheque";
 
   // Vehicle Keys

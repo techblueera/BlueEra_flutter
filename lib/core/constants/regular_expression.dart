@@ -476,6 +476,28 @@ class ValidationMethod {
     return null;
   }
 
+  static String? referralCodeValidation(String? value) {
+    final trimmedValue = value?.trim();
+
+    // 1. Check if empty
+    if (trimmedValue == null || trimmedValue.isEmpty) {
+      return 'Referral code cannot be empty';
+    }
+
+    // 2. Check exact length
+    if (trimmedValue.length != 6) {
+      return 'Referral code must be exactly 6 characters';
+    }
+
+    // 3. Check for valid format (Alphanumeric only)
+    // This prevents users from entering spaces, symbols, or emojis
+    if (!RegExp(r'^[A-Za-z0-9]+$').hasMatch(trimmedValue)) {
+      return 'Only letters and numbers are allowed';
+    }
+
+    return null; // Valid
+  }
+
 }
 
 

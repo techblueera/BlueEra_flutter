@@ -71,7 +71,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
       appBar: CommonBackAppBar(
         title: controller.selectedGroceryData.value?.name,
         isShadowShow: false,
-        buildCustomWidget:()=>
+        buildCustomActionWidget:()=>
         Obx(()=> controller.selectedGroceries.isEmpty
             ?  Padding(
           padding: const EdgeInsets.only(right: 20.0),

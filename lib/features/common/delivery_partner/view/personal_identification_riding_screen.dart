@@ -31,7 +31,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
       appBar: CommonBackAppBar(
         title: AppStrings.personalIdentification,
         // onBackTap: onBackPressed,
-        buildCustomWidget: ()=> Padding(
+        buildCustomActionWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(

@@ -101,7 +101,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                                 : controller.currentStep.value == 3
                                   ? AppStrings.rentalInformation : AppStrings.vehicleImages,
           onBackTap: controller.previousStep,
-          buildCustomWidget: ()=> Padding(
+          buildCustomActionWidget: ()=> Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Center(
                   child: Text(

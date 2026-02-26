@@ -76,7 +76,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
           appBar: CommonBackAppBar(
               title: controller.selectedGroceryData.value?.name,
               isShadowShow: false,
-              buildCustomWidget: () => Obx(()=> controller
+              buildCustomActionWidget: () => Obx(()=> controller
                   .selectedGroceriesVariants.isEmpty
                   ? Padding(
                 padding: const EdgeInsets.only(right: 20.0),

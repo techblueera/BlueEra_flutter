@@ -1,5 +1,4 @@
-import 'ReleatedStoresList.dart';
-
+import 'package:BlueEra/features/business/auth/model/ReleatedStoresList.dart';
 
 class ViewBusinessProfileModel {
   ViewBusinessProfileModel({
@@ -164,7 +163,7 @@ class BusinessProfileDetails {
   String? websiteUrl;
   String? openTime;
   String? closeTime;
-  dynamic pincode;
+  num? pincode;
   CategoryDetails? categoryDetails;
   SubCategoryDetails? subCategoryDetails;
   int? rating;
@@ -425,8 +424,8 @@ class BusinessNumber {
 }
 
 class OfficeMobNo {
-  int? pre;
-  int? number;
+  String? pre;
+  String? number;
 
   OfficeMobNo({this.pre, this.number});
 

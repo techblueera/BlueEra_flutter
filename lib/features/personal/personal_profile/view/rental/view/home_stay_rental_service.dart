@@ -85,7 +85,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                        ? AppStrings.homeLocation :
           controller.currentStep.value == 1 ? AppStrings.details : AppStrings.homeImages,
           onBackTap: controller.onBackPressed,
-          buildCustomWidget: ()=>
+          buildCustomActionWidget: ()=>
               Obx(() => Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Center(

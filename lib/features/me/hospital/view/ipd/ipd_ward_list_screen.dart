@@ -38,7 +38,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: "IPD Wards/Rooms",
-        buildCustomWidget: () => Padding(
+        buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 10.0),
           child: GestureDetector(
             onTap: () {

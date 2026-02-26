@@ -188,7 +188,9 @@ class StoreProductCard extends StatelessWidget {
 
                   ],
                 ),
-              )
+              ),
+
+              SizedBox(height: SizeConfig.paddingXSL),
 
             ],
           )

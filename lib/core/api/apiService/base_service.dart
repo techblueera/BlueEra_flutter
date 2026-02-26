@@ -671,8 +671,8 @@ abstract class BaseService {
   final String getFaqs = 'earn-service/help-support/faqs';
   final String createQueries = 'earn-service/help-support/queries';
   final String mediaUploadUrlEarn = 'earn-service/s3/generate-upload-urls?';
-  final String getMyReferralCode = 'wallet-service/referral/code';
-  final String getMyReferralHistory = 'wallet-service/referral/history';
+  // final String getMyReferralCode = 'wallet-service/referral/code';
+  // final String getMyReferralHistory = 'wallet-service/referral/history';
   String getQueriesById(String QueriesId) => 'earn-service/help-support/queries/$QueriesId';
 
 
@@ -720,9 +720,14 @@ abstract class BaseService {
   final String  testPathology= 'lab-service/pathology-tests';
   final String  testLabServiceFullDetails= 'lab-service/laboratory-profiles/full-details';
   final String  professionalSearch= 'earn-service/professional/search';
-  final String  joinAsBdm= 'wallet-service/bdm';
+  // final String  joinAsBdm= 'wallet-service/bdm';
   final String  getBdm= 'wallet-service/bdm';
-  final String  saveNewReferralCode= 'wallet-service/referral/save';
+  // final String  saveNewReferralCode= 'wallet-service/referral/save';
+  final String  bdmRegisterStepOne = 'wallet-service/bdm/register/step1';
+  final String  bdmRegisterStepTwo = 'wallet-service/bdm/register/step2';
+  final String  getBdmStatus = 'wallet-service/bdm/status';
+  final String  walletReferralStats = 'wallet-service/wallet/referral-stats';
+  final String  walletReferralHistory = 'wallet-service//wallet/referral-history';
   final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
   ///HOSPITAL NEW...
   final String  aiCreateHospital= 'hospital-service/ai/create-hospital';

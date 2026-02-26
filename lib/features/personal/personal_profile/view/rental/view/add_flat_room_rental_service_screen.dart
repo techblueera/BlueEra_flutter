@@ -95,7 +95,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
         appBar: CommonBackAppBar(
           title: AppStrings.flatRoomTitle,
           onBackTap: controller.onBackPressed,
-          buildCustomWidget: ()=>
+          buildCustomActionWidget: ()=>
             Obx(() => Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Center(

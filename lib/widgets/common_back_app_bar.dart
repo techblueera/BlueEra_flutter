@@ -99,7 +99,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.currentCity,
       this.isGuestLogout,
       this.transactionFilterSelectedValue,
-      this.buildCustomWidget,
+      this.buildCustomActionWidget,
       // this.isAddProduct = false,
       // this.isAddProductCategory = false,
       this.bottomWidget,
@@ -198,7 +198,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? rightTextButtonColor;
   final OnTab? onRightTextButtonTap;
   final String? currentCity;
-  final Widget Function()? buildCustomWidget;
+  final Widget Function()? buildCustomActionWidget;
 
   // final bool isAddProduct;
   // final bool isAddProductCategory;
@@ -556,6 +556,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         }),
       ),
       actions: [
+        if (buildCustomActionWidget != null)
+          Builder(
+            builder: (context) => buildCustomActionWidget!(),
+          ),
         if(showTransactionFilter??false)
           PopupMenuButton<int>(
               offset: const Offset(-6, 36),
@@ -972,10 +976,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
               ),
             ),
-          ),
-        if (buildCustomWidget != null)
-          Builder(
-            builder: (context) => buildCustomWidget!(),
           ),
         if (isCurrentAddress ?? false)
           Builder(

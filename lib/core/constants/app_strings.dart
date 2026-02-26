@@ -1821,6 +1821,7 @@ class AppStrings {
   static const businessDocument = "businessDocument";
   static const hotelNdHomeStayDocument = "hotelNdHomeStayDocument";
   static const uploadAadhar = "uploadAadhar";
+  static const uploadBankDetails = "uploadBankDetails";
   static const uploadDrivingLicense = "uploadDrivingLicense";
   static const uploadVehicleRC = "uploadVehicleRC";
   static const uploadAddressProof = "uploadAddressProof";

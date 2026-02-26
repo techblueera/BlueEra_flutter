@@ -454,7 +454,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
                     _buildMasonryGridWithIcons(
                         items: [...grocerySuperCategories.take(5).toList(), ...foodCategories.take(3).toList()],
-                        crossAxisCount: 4,
+                        crossAxisCount: 3,
                         getName: (item) => item.name,
                         getIcon: (item) => item.icon,
                         onTap: (item) =>Get.toNamed(RouteHelper.getRiderStoreScreenRoute())
