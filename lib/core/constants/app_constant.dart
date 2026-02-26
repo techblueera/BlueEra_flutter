@@ -380,6 +380,7 @@ class DocumentKeys {
   static const addressProof = "addressProof";
   static const noc = "noc";
   static const drivingLicense = "drivingLicense";
+  static const bankDetails = "bankDetails";
   static const bankersCancelledCheque = "bankersCancelledCheque";
 
   // Vehicle Keys
