@@ -1,13 +1,18 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profiles_list_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -35,7 +40,62 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
     final contact = d.fullDetails?.contactInfo;
     final facility = d.fullDetails?.facility;
     return Scaffold(
-      appBar: CommonBackAppBar(title: d.name,),
+      appBar: CommonBackAppBar(
+        title: d.name,
+      ),
+      bottomNavigationBar: d.fullDetails?.profile?.userId != userId
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 12.0, right: 12, bottom: 15, top: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PositiveCustomBtn(
+                          onTap: () async {
+                            final chatViewController =
+                                Get.find<ChatViewController>();
+                            Map<String, dynamic> detas = {
+                              ApiKeys.user_id:  d.fullDetails?.profile?.userId
+                            };
+                            Map<String, dynamic>? checkCompleted =
+                                await chatViewController
+                                    .checkChatConnection(detas);
+                            chatViewController.openAnyOneChatFunction(
+                              profileImage: profile?.logoUrl,
+                              otherUserId:
+                                  (checkCompleted?[ApiKeys.conversation_id] ==
+                                          '')
+                                      ? (checkCompleted?[ApiKeys.other_user_id])
+                                      : null,
+                              // businessId: widget.businessProfileDetails.id,
+                              type: "business",
+                              isInitialMessage: true,
+                              userId: d.fullDetails?.profile?.userId,
+                              conversationId:
+                                  checkCompleted?[ApiKeys.conversation_id] ??
+                                      '',
+                              contactName: profile?.name,
+                              contactNo: '',
+                            );
+                          },
+                          title: "Chat"),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: PositiveCustomBtn(
+                          onTap: () {
+                            commonSnackBar(message: 'Coming Soon....');
+                          },
+                          title: "Book Inquiry"),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
       body: LayoutBuilder(builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
         return SingleChildScrollView(
@@ -66,7 +126,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
   }
 
   Widget labViewHeader(LabProfileListItem data) {
-    Profile? profile=data.fullDetails?.profile;
+    Profile? profile = data.fullDetails?.profile;
 
     final size = MediaQuery.of(context).size;
 
@@ -98,7 +158,6 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                     ),
                   ),
 
-
                 // Logo Image
                 Positioned(
                   bottom: 0,
@@ -119,14 +178,15 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                     ),
                   ),
                 ),
-              
               ],
             ),
           ),
 
           // --- FORM SECTION ---
-          ServiceHomeHeaderTitleWidget(title: profile?.name??"", description: profile?.description ?? "",),
-
+          ServiceHomeHeaderTitleWidget(
+            title: profile?.name ?? "",
+            description: profile?.description ?? "",
+          ),
         ],
       ),
     );
@@ -146,7 +206,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title:"Test Report",
+            title: "Test Report",
           ),
           SizedBox(
             height: 150, // Adjusted height to accommodate the layout
@@ -220,7 +280,6 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                               isBold: true),
                         ],
                       ),
-
                     ],
                   ),
                 );
@@ -245,8 +304,8 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       ),
       child: CustomText(
         text,
-          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          fontSize: 12,
+        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
       ),
     );
   }
@@ -257,7 +316,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ServiceHomeTitleWidget(
-          title:"Our Popular Services",
+          title: "Our Popular Services",
         ),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
@@ -313,7 +372,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title:"Our All Services",
+            title: "Our All Services",
           ),
           SizedBox(height: SizeConfig.size8),
           Wrap(
@@ -329,14 +388,14 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
     );
   }
 
-  Widget _contact(ContactInfo? contact, bool isWide,   Profile? data) {
+  Widget _contact(ContactInfo? contact, bool isWide, Profile? data) {
     final loc = contact?.location;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 5. Contact Section
         SizedBox(height: SizeConfig.size16),
-        _buildContactCard(contact, data??Profile()),
+        _buildContactCard(contact, data ?? Profile()),
         SizedBox(height: SizeConfig.size16),
 
         CommonCardWidget(
@@ -376,9 +435,9 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 6),
+            padding: const EdgeInsets.only(top: 8.0, left: 6),
             child: ServiceHomeTitleWidget(
-              title:"Contact Us",
+              title: "Contact Us",
             ),
           ),
           // Padding(
@@ -453,8 +512,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
             width: 20,
           ),
           const SizedBox(width: 12),
-          Expanded(
-              child: CustomText(label, color:AppColors.mainTextColor)),
+          Expanded(child: CustomText(label, color: AppColors.mainTextColor)),
         ],
       ),
     );

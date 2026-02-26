@@ -39,9 +39,10 @@ class HospitalRepo extends BaseService {
   Future<ResponseModel> listHospitalProfiles({
     required int page,
     required int limit,
+    required String type,
   }) async {
     final response = await ApiBaseHelper().getHTTP(
-      "hospital-service/hospitals?page=$page&limit=$limit",
+      "hospital-service/hospitals?page=$page&limit=$limit&category=$type",
       onError: (error) {},
       onSuccess: (data) {},
     );

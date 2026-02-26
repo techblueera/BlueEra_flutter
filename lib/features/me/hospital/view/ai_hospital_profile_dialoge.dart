@@ -54,8 +54,6 @@ class _AIHospitalProfileDialogState extends State<AIHospitalProfileDialog> {
                         PlaceDetailsResponse.fromJson(detailsData);
                     // controller.lat.value=placeDetails.result?.geometry?.location?.lat??0.0;
                     // controller.lng.value=placeDetails.result?.geometry?.location?.lng??0.0;
-                    logs(
-                        "placeDetails.result?.website ${placeDetails.result?.website}");
                     controller.websiteController.text =
                         placeDetails.result?.website ?? "";
                   } catch (e) {

@@ -16,7 +16,8 @@ class SchoolController extends GetxController {
   ///GENERATE VIA AI SCHOOL DETAILS....
   final searchController = TextEditingController();
   final websiteController = TextEditingController();
-RxBool hasSchool = false.obs;
+  RxBool hasSchool = false.obs;
+
   // final fullSchoolAddressController = TextEditingController();
   RxDouble lat = 0.0.obs;
   RxDouble lng = 0.0.obs;
@@ -76,6 +77,7 @@ RxBool hasSchool = false.obs;
   Future<void> createSchoolController() async {
     // Logic for AI generation goes here
     try {
+      institutionFetchModel?.value.data?.category = businessCategoryGlobal;
       institutionFetchModel?.value.data?.locationReq = {
         "name": searchController.text,
         "type": "Point",
@@ -100,17 +102,14 @@ RxBool hasSchool = false.obs;
           await setSchoolID("");
         }
         await getSchoolID();
-        hasSchool.value=schoolIDGlobal.isNotEmpty;
+        hasSchool.value = schoolIDGlobal.isNotEmpty;
 
         await controller.updateAboutInfo();
 
         Get.until((route) =>
-        route.settings
-            .name ==
-            RouteHelper
-                .getBottomNavigationBarScreenRoute());
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
         // Get.offAll(BottomNavigationBarScreen());
-
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         createSchoolResponse.value =

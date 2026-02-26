@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_service_card_home_view.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -92,41 +93,47 @@ class EmergencyCriticalCareView extends StatelessWidget {
           "desc": ""
         },
     ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ServiceHomeTitleWidget(
-          title: "Our Facility",
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // If screen width is > 600 (Tablet/Landscape), use 2 columns
-            return GridView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: services.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // Number of columns
-                crossAxisSpacing: 10, // Horizontal space between cards
-                mainAxisSpacing: 10, // Vertical space between cards
-                childAspectRatio:
-                    1, // Ratio of width to height (1.0 = square)
-              ),
-              itemBuilder: (context, index) {
-                return VerticalEmergencyServiceCard(
-                  title: services[index]['title']!,
-                  description: services[index]['desc']!,
-                  icon: services[index]['icon']!,
-                );
-              },
-            );
+    return services.isNotEmpty
+        ? CommonCardWidget(
+            bgColor: Color(0xff0085FE).withOpacity(0.08),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ServiceHomeTitleWidget(
+                  title: "Our Facility",
+                ),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // If screen width is > 600 (Tablet/Landscape), use 2 columns
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: services.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // Number of columns
+                        crossAxisSpacing: 10, // Horizontal space between cards
+                        mainAxisSpacing: 10, // Vertical space between cards
+                        childAspectRatio:
+                            1, // Ratio of width to height (1.0 = square)
+                      ),
+                      itemBuilder: (context, index) {
+                        return VerticalEmergencyServiceCard(
+                          title: services[index]['title']!,
+                          description: services[index]['desc']!,
+                          icon: services[index]['icon']!,
+                        );
+                      },
+                    );
 
-            return SizedBox();
-          },
-        ),
-      ],
-    );
+                    return SizedBox();
+                  },
+                ),
+              ],
+            ),
+          )
+        : SizedBox.shrink();
   }
 }

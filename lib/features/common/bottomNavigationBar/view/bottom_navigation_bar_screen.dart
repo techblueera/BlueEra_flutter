@@ -398,10 +398,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const SchoolMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Healthcare.name.toUpperCase()) {
-      if (businessCategoryGlobal.toUpperCase() ==
-          AppConstants.HOSPITALS.toUpperCase()) {
+      if ((businessCategoryGlobal.toUpperCase() ==
+              AppConstants.HOSPITALS.toUpperCase()) ||
+          (businessCategoryGlobal.toUpperCase() ==
+              AppConstants.wellness.toUpperCase()) ||
+          (businessCategoryGlobal.toUpperCase() ==
+              AppConstants.clinic.toUpperCase())) {
         return const HospitalMain();
-      } else if (businessCategoryGlobal.toUpperCase( ) ==
+      } else if (businessCategoryGlobal.toUpperCase() ==
           AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
         return const LaboratoryMain();
       } else if (businessCategoryGlobal.toUpperCase() ==
@@ -424,11 +428,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // }
     else if (_isServiceOrSpecificAutomotive()) {
       return const OthersMain();
-    } else if (
-        checkInventoryEligibility(businessTypeGlobal, businessCategoryGlobal)
-    ) {
+    } else if (checkInventoryEligibility(
+        businessTypeGlobal, businessCategoryGlobal)) {
       return const InventoryScreen(fromBottomNavBar: true);
-    } else{
+    } else {
       /// right now showing inventory (will remove this)
       return const InventoryScreen(fromBottomNavBar: true);
     }
@@ -460,9 +463,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       BusinessType.Manufacturing.name
     ].any((t) => t.equalsIgnoreCase(type));
 
-    final isAutoEligible = type.equalsIgnoreCase(BusinessType.Automotive.name) &&
-        [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
-            .any((s) => s.equalsIgnoreCase(category));
+    final isAutoEligible =
+        type.equalsIgnoreCase(BusinessType.Automotive.name) &&
+            [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
+                .any((s) => s.equalsIgnoreCase(category));
 
     return isProductOrMfg || isAutoEligible;
   }

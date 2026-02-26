@@ -23,7 +23,6 @@ class HospitalServiceAiController extends GetxController {
   RxString labAddress = "".obs;
   RxBool hasHospitalCreated = false.obs;
 
-
   // Your existing Rx list of departments
   var departments = <dynamic>[].obs;
 
@@ -41,19 +40,19 @@ class HospitalServiceAiController extends GetxController {
   }
 
 // Filtered Departments based on Type (OPD/IPD)
-  List get filteredCategories => departments
-      .where((dept) => dept['type'] == selectedType.value)
-      .toList();
+  List get filteredCategories =>
+      departments.where((dept) => dept['type'] == selectedType.value).toList();
 
   // Get current list of items (Doctors or Beds)
   List get currentItems {
     final dept = departments.firstWhere(
-          (d) => d['_id'] == selectedCategoryId.value,
+      (d) => d['_id'] == selectedCategoryId.value,
       orElse: () => null,
     );
     if (dept == null) return [];
     return selectedType.value == 'OPD' ? dept['opd'] : dept['ipd'];
   }
+
   clearFiled() {
     searchController.clear();
     websiteController.clear();
@@ -91,6 +90,7 @@ class HospitalServiceAiController extends GetxController {
 
   Future<void> createHospitalServiceController() async {
     try {
+      aiHospitalResModel?.value.data?.category = businessCategoryGlobal;
       ResponseModel response = await hospitalServiceRepo.createHospitalRepo(
           reqBody: {"aiOutput": aiHospitalResModel?.value.data});
       if (response.isSuccess) {
@@ -122,7 +122,6 @@ class HospitalServiceAiController extends GetxController {
   Rx<HospitalFullDetailsResModel>? hospitalDataResModel =
       HospitalFullDetailsResModel().obs;
 
-
   RxString selectedTab = "OPD".obs; // Tracks 'OPD' or 'IPD'
   RxInt selectedDeptIndex = 0.obs; // Tracks selected category chip
   RxInt selectedIpdDeptIndex = 0.obs; // Tracks selected category chip
@@ -143,7 +142,7 @@ class HospitalServiceAiController extends GetxController {
     }
 
     var dept = filteredOpdDepartments[selectedDeptIndex.value];
-    return(dept.opd ?? []) ;
+    return (dept.opd ?? []);
   }
 
   // 1. Get departments filtered by the current Tab (OPD or IPD)
@@ -162,7 +161,7 @@ class HospitalServiceAiController extends GetxController {
     }
 
     var dept = filteredIpdDepartments[selectedIpdDeptIndex.value];
-    return  (dept.ipd ?? []);
+    return (dept.ipd ?? []);
   }
 
   // Call this when switching tabs to reset the category selection
@@ -174,7 +173,7 @@ class HospitalServiceAiController extends GetxController {
 
   getHospitalFullDetailsController() async {
     try {
-      hospitalIDGlobal="";
+      hospitalIDGlobal = "";
       if (hospitalIDGlobal.isEmpty) {
         ResponseModel response =
             await HospitalRepo().getHospitalFullDetailsRepo();
@@ -223,9 +222,6 @@ class HospitalServiceAiController extends GetxController {
     }
   }
 
-
-
-
   final profiles = <HospitalFullData>[].obs;
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
@@ -240,20 +236,20 @@ class HospitalServiceAiController extends GetxController {
   //   fetchInitial();
   // }
 
-  Future<void> fetchInitial() async {
+  Future<void> fetchInitial(String type) async {
     profiles.clear();
     page = 1;
     hasMore.value = true;
-    await _fetch(page, isLoadMore: false);
+    await _fetch(page, isLoadMore: false,type: type);
   }
 
-  Future<void> fetchMore() async {
+  Future<void> fetchMore(String type) async {
     if (!hasMore.value || isLoadingMore.value) return;
     page += 1;
-    await _fetch(page, isLoadMore: true);
+    await _fetch(page, isLoadMore: true,type:type );
   }
 
-  Future<void> _fetch(int p, {required bool isLoadMore}) async {
+  Future<void> _fetch(int p, {required bool isLoadMore,required String type}) async {
     try {
       if (isLoadMore) {
         isLoadingMore.value = true;
@@ -263,12 +259,11 @@ class HospitalServiceAiController extends GetxController {
       error.value = '';
 
       final ResponseModel res =
-      await HospitalRepo().listHospitalProfiles(page: p, limit: limit);
+          await HospitalRepo().listHospitalProfiles(page: p, limit: limit,type:type );
 
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
-        final items =
-        data.map((e) => HospitalFullData.fromJson(e)).toList();
+        final items = data.map((e) => HospitalFullData.fromJson(e)).toList();
         if (items.isEmpty) {
           hasMore.value = false;
         } else {

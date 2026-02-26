@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -110,7 +111,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
 
     // await _loadMarkerAsset();
-
 
     setState(() {
       _markers.add(Marker(
@@ -379,10 +379,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-
-
               _discoverWidget(),
-
               FindContactWithService(fromBottomNav: true),
               FavouriteCategoryListScreen(),
               SizedBox(),
@@ -405,12 +402,13 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
           // _buildGap(gap: SizeConfig.paddingM),
 
-          searchProductsViaAiWidget(),
+          // searchProductsViaAiWidget(),
 
           _buildGap(gap: SizeConfig.paddingM),
 
           /// Rider
-          CustomFormCard(
+          CustomFormCardBGImg(
+              bgImage: "discover_bg_card_green.png",
               padding: EdgeInsets.all(SizeConfig.size10),
               child: InkWell(
                 onTap: () =>
@@ -454,12 +452,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     SizedBox(height: SizeConfig.paddingXSL),
 
                     _buildMasonryGridWithIcons(
-                        items: [...grocerySuperCategories.take(5).toList(), ...foodCategories.take(3).toList()],
-                        crossAxisCount: 4,
+                        items: [
+                          ...grocerySuperCategories.take(3).toList(),
+                          ...foodCategories.take(3).toList()
+                        ],
+                        crossAxisCount: 3,
                         getName: (item) => item.name,
                         getIcon: (item) => item.icon,
-                        onTap: (item) =>Get.toNamed(RouteHelper.getRiderStoreScreenRoute())
-                    ),
+                        onTap: (item) => Get.toNamed(
+                            RouteHelper.getRiderStoreScreenRoute())),
 
                     // Stack(
                     //   children: [
@@ -484,9 +485,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _buildGap(),
 
           /// Product
-          CustomFormCard(
+          CustomFormCardBGImg(
               padding: EdgeInsets.all(SizeConfig.size10),
-              color: AppColors.primaryColor.withValues(alpha: 0.1),
+              bgImage: "discover_bg_card_cream.png",
               child: Column(
                 children: [
                   Row(
@@ -520,7 +521,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _title('Book Your Health care Service'),
+                _title('Book Your Health Care Service'),
                 SizedBox(height: SizeConfig.paddingXSL),
                 Stack(
                   children: [
@@ -552,11 +553,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       bottom: 10,
                       child: _buildHorizontalTabs([
                         'Hospitals',
-                        // 'Doctors',
                         'Pharmacy',
                         'Labs Test',
-
-                        // 'Surgical'
+                        'Doctors',
+                        'Wellness'
                       ]),
                     ),
                   ],
@@ -568,8 +568,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _buildGap(),
 
           /// Self work
-          CustomFormCard(
-            color: AppColors.yellowE7,
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_blue.png",
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               children: [
@@ -590,72 +590,33 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ],
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
-                _buildMasonryGrid(
-                    items: individualOnboardingSkillWorkList.take(6).toList(),
-                    icon: (item) => item.icon,
-                    name: (item) => item.name,
-                    onTap: (c) {
-                      Get.to(() => AllSelfProfessionScreen(
-                          selfEmployedCategories:
-                              individualOnboardingSkillWorkList
-                                  .take(12)
-                                  .toList(),
-                          selectedSelfProfessionData: c));
-                    })
+                _buildBookHomeServiceMasonryGrid(),
               ],
             ),
           ),
 
-          // SliverToBoxAdapter(
-          //   child: Row(
-          //     children: [
-          //       _buildVerticalLayout(
-          //           imageUrl: AppImageAssets.bookNowBanner,
-          //           items: rentalServiceCategories,
-          //           onTap: (c) {
-          //             final typeMap = {
-          //               Flat_ROOM: RentalServiceType.flatRoom,
-          //               HOME_STAY: RentalServiceType.homeStay,
-          //               VEHICLE:   RentalServiceType.vehicle,
-          //             };
-          //
-          //             final type = typeMap[c.slugId];
-          //
-          //             if (type != null) {
-          //               Get.to(() => AllRentalServiceScreen(type: type));
-          //             } else {
-          //               // Handle unknown slug (optional)
-          //             }
-          //           }
-          //       ),
-          //       SizedBox(width: SizeConfig.paddingXSL),
-          //       _buildVerticalLayout(
-          //           imageUrl: AppImageAssets.homeMadeBanner,
-          //           items: homeServiceCategories,
-          //         onTap:(c){
-          //           if(c.slugId == SERVICE) {
-          //             Get.to(()=> HomeServiceScreen());
-          //           }else if(c.slugId == FOOD){
-          //             Get.to(()=> HomeMadeFoodScreen());
-          //           }else if(c.slugId == PRODUCT){
-          //             Get.to(() => AllProductScreen(
-          //                 isShowInGrid: true,
-          //                 providerType: ProviderType.user,
-          //             ));
-          //           }else{
-          //             log('No category');
-          //           }
-          //         }
-          //       ),
-          //     ],
-          //   ),
-          // ),
+          _buildGap(),
+
+          /// Home made food, product, service
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_yellow.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _title('Home Made Product, Food & Services'),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildHomeMadeFoodServiceMasonryGrid(),
+              ],
+            ),
+          ),
 
           _buildGap(),
 
           /// Stay Service
-          CustomFormCard(
-            color: AppColors.blueF4,
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_green.png",
+            // color: AppColors.blueF4,
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -663,7 +624,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 Row(
                   children: [
                     Expanded(
-                      child: _title('Book Your Hotel &  Stay'),
+                      child: _title('Book Your Stay'),
                     ),
                     SizedBox(
                       width: SizeConfig.size8,
@@ -674,9 +635,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 SizedBox(height: SizeConfig.paddingXSL),
                 _buildMasonryGridWithIcons(
                     items: stayItemsCategories,
-                      /*  .where((item) =>
-                            discoverShownStayCategories.contains(item.slugId))*/
-                        // .toList(),
                     crossAxisCount: 2,
                     getName: (item) => item.name,
                     getIcon: (item) => item.icon,
@@ -684,82 +642,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       Get.to(() => AllStayServiceScreen(
                           stayCategories: stayItemsCategories,
                           selectedStayCategory: c));
-
-                      // final typeMap = {
-                      //   Flat_ROOM: RentalServiceType.flatRoom,
-                      //   HOME_STAY: RentalServiceType.homeStay,
-                      //   VEHICLE:   RentalServiceType.vehicle,
-                      // };
-                      //
-                      // final type = typeMap[c.slugId];
-                      //
-                      // if (type != null) {
-                      //   Get.to(() => AllRentalServiceScreen(type: type));
-                      // } else {
-                      //   // Handle unknown slug (optional)
-                      // }
                     }),
-              ],
-            ),
-          ),
-
-          _buildGap(),
-
-   /// Stay Service
-          CustomFormCard(
-            color: AppColors.yellowLight,
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _title('Education & Training Sectors'),
-                    ),
-
-                  ],
-                ),
-                SizedBox(height: SizeConfig.paddingXSL),
-                _buildMasonryGridWithIcons(
-                    items: businessOnboardingEducationTrainingCategories,
-                    crossAxisCount: 3,
-                    getName: (item) => item.name,
-                    getIcon: (item) => item.icon,
-                    onTap: (c) {
-                      Get.to(() => AllEducationServiceScreen(
-                          professionalConsultantCategories: businessOnboardingEducationTrainingCategories,
-                          selectedProfessionConsultantData: c));
-
-                    }),
-              ],
-            ),
-          ),
-
-          _buildGap(),
-
-          /// Home made food, product, service
-          CustomFormCard(
-            color: AppColors.pinkDE,
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _title('Home Made Product, Food & Services'),
-                SizedBox(height: SizeConfig.paddingXSL),
-                _buildMasonryGrid(
-                    items: homeMadeItemsCategories,
-                    icon: (item) => item.icon,
-                    name: (item) => item.name,
-                    onTap: (item) {
-                      if (item.slugId == SERVICE) {
-                        Get.to(() => HomeServiceScreen());
-                      } else if (item.slugId == FOOD) {
-                        Get.to(() => HomeMadeFoodScreen());
-                      } else if (item.slugId == PRODUCT) {
-                        Get.to(() => HomeMadeProductScreen());
-                      }
-                    })
               ],
             ),
           ),
@@ -767,8 +650,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _buildGap(),
 
           /// Consultation Service
-          CustomFormCard(
-            color: AppColors.greenDB,
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_cream.png",
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               children: [
@@ -789,17 +672,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ],
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
-                _buildMasonryGrid(
-                    items:
-                        individualOnboardingConsultationList.take(6).toList(),
-                    icon: (item) => item.icon,
-                    name: (item) => item.name,
-                    onTap: (c) {
-                      Get.to(() => AllProfessionConsultantScreen(
-                          professionalConsultantCategories:
-                              individualOnboardingConsultationList,
-                          selectedProfessionConsultantData: c));
-                    })
+                _buildProfConsultantServiceMasonryGrid(),
               ],
             ),
           ),
@@ -811,8 +684,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             onTap: () {
               Get.to(BookTransportMain());
             },
-            child: CustomFormCard(
-              color: AppColors.rating.withValues(alpha: 0.1),
+            child: CustomFormCardBGImg(
+              bgImage: "discover_bg_card_blue.png",
               padding: EdgeInsets.all(SizeConfig.size10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -931,12 +804,47 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               ),
             ),
           ),
+          _buildGap(),
+
+          /// Stay Service
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_yellow.png",
+            // color: AppColors.blueF4,
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title('Rental Service'),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    // _viewAll(),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildMasonryGridWithIcons(
+                    items: stayHomeItemsCategories,
+                    crossAxisCount: 2,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (c) {
+                      Get.to(() => AllStayServiceScreen(
+                          stayCategories: stayHomeItemsCategories,
+                          selectedStayCategory: c));
+                    }),
+              ],
+            ),
+          ),
 
           _buildGap(),
 
           /// Service
-          CustomFormCard(
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_green.png",
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               children: [
@@ -958,16 +866,17 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ],
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
-                _buildMasonryGrid(
-                    items: _businessServiceCategories.take(6).toList(),
-                    icon: (item) => item.icon,
-                    name: (item) => item.name,
-                    onTap: (_) {
-                      Get.to(() => ServicesNearMeScreen(
-                            businessServicesCategories:
-                                _businessServiceCategories,
-                          ));
-                    })
+                _buildFindServiceMasonryGrid(),
+                // _buildMasonryGrid(
+                //     items: _businessServiceCategories.take(6).toList(),
+                //     icon: (item) => item.icon,
+                //     name: (item) => item.name,
+                //     onTap: (_) {
+                //       Get.to(() => ServicesNearMeScreen(
+                //             businessServicesCategories:
+                //                 _businessServiceCategories,
+                //           ));
+                //     })
               ],
             ),
           ),
@@ -975,28 +884,31 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _buildGap(),
 
           /// Automotive Service
-          CustomFormCard(
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_cream.png",
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _title('Automotive Services'),
+                _title('Automotive Showroom & Services'),
                 SizedBox(height: SizeConfig.paddingXSL),
                 _buildMasonryGridWithIcons(
                     items: automotiveServiceItemsCategories,
                     crossAxisCount: 3,
                     getName: (item) => item.name,
                     getIcon: (item) => item.icon,
-                    onTap: (_) {}),
+                    onTap: (_) {
+                      commonSnackBar(message: "Coming Soon...");
+                    }),
               ],
             ),
           ),
 
           _buildGap(),
 
-          /// Food
-          CustomFormCard(
-            color: AppColors.yellowE7,
+          /// Restorent
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_blue.png",
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               children: [
@@ -1008,21 +920,43 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     SizedBox(
                       width: SizeConfig.size8,
                     ),
-                    InkWell(
-                      onTap: () {},
-                      // onTap: ()=> Get.to(()=> ServicesNearMeScreen(
-                      //   businessServicesCategories: businessServicesCategories,
-                      // )),
-                      child: _viewAll(),
+                    _viewAll(),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildRestaurantNearServiceMasonryGrid(),
+              ],
+            ),
+          ),
+
+          _buildGap(),
+
+          /// Education Service
+          CustomFormCardBGImg(
+            bgImage: "discover_bg_card_yellow.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title('Education & Training Sectors'),
                     ),
                   ],
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
-                _buildMasonryGrid(
-                    items: businessOnboardingFoodsCategories.take(6).toList(),
-                    icon: (item) => item.icon,
-                    name: (item) => item.name,
-                    onTap: (_) {})
+                _buildMasonryGridWithIcons(
+                    items: businessOnboardingEducationTrainingCategories,
+                    crossAxisCount: 3,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (c) {
+                      Get.to(() => AllEducationServiceScreen(
+                          professionalConsultantCategories:
+                              businessOnboardingEducationTrainingCategories,
+                          selectedProfessionConsultantData: c));
+                    }),
               ],
             ),
           ),
@@ -1053,7 +987,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           left: 0,
                           right: 0,
                           bottom: 10,
-                          child: _buildHorizontalTabs([
+                          child: _buildHorizontalJobTabs([
                             'Full-Time',
                             'Part-Time',
                             'Online',
@@ -1331,7 +1265,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             return Expanded(
               child: InkWell(
                 onTap: () {
-                  logs("logMsg = ${title}");
                   OnboardingCategoryModel? onboardingCategoryModel;
                   if (title == "Hospitals") {
                     onboardingCategoryModel = OnboardingCategoryModel(
@@ -1345,11 +1278,23 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                         icon: '',
                         slugId: PHARMACY,
                         accountType: '');
-                  } else if (title == "Labs") {
+                  } else if (title == "Labs Test") {
                     onboardingCategoryModel = OnboardingCategoryModel(
                         name: 'Labs',
                         icon: '',
                         slugId: LABTEST,
+                        accountType: '');
+                  } else if (title == "Doctors") {
+                    onboardingCategoryModel = OnboardingCategoryModel(
+                        name: 'Doctors',
+                        icon: '',
+                        slugId: CLINIC_DOCTORS,
+                        accountType: '');
+                  } else if (title == "Wellness") {
+                    onboardingCategoryModel = OnboardingCategoryModel(
+                        name: 'Wellness',
+                        icon: '',
+                        slugId: ALTERNATIVE_WELLNESS,
                         accountType: '');
                   }
                   Get.to(HealthCareListingScreen(
@@ -1399,6 +1344,61 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
+  Widget _buildHorizontalJobTabs(List<String> arrTabs) {
+    final displayTabs = arrTabs.length > 5 ? arrTabs.sublist(0, 5) : arrTabs;
+
+    return SizedBox(
+      height: SizeConfig.size30,
+      width: SizeConfig.screenWidth,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: displayTabs.asMap().entries.map((entry) {
+            int index = entry.key;
+            String title = entry.value;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index == displayTabs.length - 1 ? 0 : SizeConfig.size6,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6.0),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 2.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6.0),
+                        border: Border.all(
+                          color: AppColors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CustomText(
+                          title,
+                          fontSize: SizeConfig.extraSmall,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w400,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMasonryGrid<T>({
     required List<T> items,
     required String Function(T) icon,
@@ -1416,6 +1416,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       itemCount: items.length,
       itemBuilder: (context, index) {
         var item = items[index];
+
         return InkWell(
           onTap: () => onTap(item),
           child: _commonCard(icon: icon(item), text: name(item)),
@@ -1506,6 +1507,254 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       businessProductStoreCategories,
                 ));
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildBookHomeServiceMasonryGrid() {
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: individualOnboardingSkillWorkList.take(6).length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var categoryItem = individualOnboardingSkillWorkList[index];
+        return CommonServiceCard(
+          service: categoryItem,
+          getName: (item) => item.name,
+          getIcon: (item) => item.icon,
+          iconHeight: SizeConfig.size80,
+          onTap: (item) {
+            var categoryItem = individualOnboardingSkillWorkList[index];
+
+            Get.to(() => AllSelfProfessionScreen(
+                selfEmployedCategories:
+                    individualOnboardingSkillWorkList.take(12).toList(),
+                selectedSelfProfessionData: categoryItem));
+
+            // Get.to(() => ProductLocalMarketScreen(
+            //       businessProductsCategories: businessProductsCategories,
+            //       businessProductStoreCategories:
+            //           businessProductStoreCategories,
+            //     ));
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRestaurantNearServiceMasonryGrid() {
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: businessOnboardingFoodsCategories.take(6).length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var categoryItem = businessOnboardingFoodsCategories[index];
+        return CommonServiceCard(
+          service: categoryItem,
+          getName: (item) => item.name,
+          getIcon: (item) => item.icon,
+          iconHeight: SizeConfig.size80,
+          onTap: (item) {
+            commonSnackBar(message: "Coming soon...");
+          },
+        );
+        // var categoryItem = individualOnboardingConsultationList[index];
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LocalAssets(
+                imagePath: categoryItem.icon,
+                height: SizeConfig.size100,
+              ),
+            ),
+            SizedBox(height: SizeConfig.paddingXSL),
+            Container(
+              height: SizeConfig.size30,
+              alignment: Alignment.center,
+              child: CustomText(
+                categoryItem.name,
+                fontSize: SizeConfig.small11,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFindServiceMasonryGrid() {
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: _businessServiceCategories.take(6).length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var categoryItem = _businessServiceCategories[index];
+        return CommonServiceCard(
+          service: categoryItem,
+          getName: (item) => item.name,
+          getIcon: (item) => item.icon,
+          iconHeight: SizeConfig.size80,
+          onTap: (item) {
+            Get.to(() => ServicesNearMeScreen(
+                  businessServicesCategories: _businessServiceCategories,
+                ));
+          },
+        );
+        // var categoryItem = individualOnboardingConsultationList[index];
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LocalAssets(
+                imagePath: categoryItem.icon,
+                height: SizeConfig.size100,
+              ),
+            ),
+            SizedBox(height: SizeConfig.paddingXSL),
+            Container(
+              height: SizeConfig.size30,
+              alignment: Alignment.center,
+              child: CustomText(
+                categoryItem.name,
+                fontSize: SizeConfig.small11,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildProfConsultantServiceMasonryGrid() {
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: individualOnboardingConsultationList.take(6).length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var categoryItem = individualOnboardingConsultationList[index];
+        return CommonServiceCard(
+          service: categoryItem,
+          getName: (item) => item.name,
+          getIcon: (item) => item.icon,
+          iconHeight: SizeConfig.size80,
+          onTap: (item) {
+            var categoryItem = individualOnboardingConsultationList[index];
+
+            Get.to(() => AllProfessionConsultantScreen(
+                professionalConsultantCategories:
+                    individualOnboardingConsultationList,
+                selectedProfessionConsultantData: categoryItem));
+          },
+        );
+        // var categoryItem = individualOnboardingConsultationList[index];
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LocalAssets(
+                imagePath: categoryItem.icon,
+                height: SizeConfig.size100,
+              ),
+            ),
+            SizedBox(height: SizeConfig.paddingXSL),
+            Container(
+              height: SizeConfig.size30,
+              alignment: Alignment.center,
+              child: CustomText(
+                categoryItem.name,
+                fontSize: SizeConfig.small11,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildHomeMadeFoodServiceMasonryGrid() {
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 1,
+      mainAxisSpacing: 1,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: homeMadeItemsCategories.take(3).length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var categoryItem = homeMadeItemsCategories[index];
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LocalAssets(
+                imagePath: categoryItem.icon,
+                height: SizeConfig.size100,
+              ),
+            ),
+            SizedBox(height: SizeConfig.paddingXSL),
+            Container(
+              height: SizeConfig.size30,
+              alignment: Alignment.center,
+              child: CustomText(
+                categoryItem.name,
+                fontSize: SizeConfig.small11,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         );
       },
     );
@@ -1731,7 +1980,6 @@ class DottedLinePainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
-
 
 // class DiscoverScreen extends StatefulWidget {
 //   final bool isHeaderVisible;
@@ -3317,5 +3565,3 @@ class DottedLinePainter extends CustomPainter {
 //     );
 //   }
 // }
-
-

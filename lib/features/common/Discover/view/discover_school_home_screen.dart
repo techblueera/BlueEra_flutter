@@ -1,5 +1,9 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
@@ -14,6 +18,7 @@ import 'package:BlueEra/features/me/school/view/category/school_home/school_mana
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +34,63 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
      appBar: CommonBackAppBar(title: "School",),
+      bottomNavigationBar:schoolAboutUsController
+          .schoolDetailsData?.value.ownerId != userId
+          ? SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(
+              left: 12.0, right: 12, bottom: 15, top: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: PositiveCustomBtn(
+                    onTap: () async {
+                      final chatViewController =
+                      Get.find<ChatViewController>();
+                      Map<String, dynamic> detas = {
+                        ApiKeys.user_id:schoolAboutUsController
+                            .schoolDetailsData?.value.ownerId,
+                      };
+                      Map<String, dynamic>? checkCompleted =
+                      await chatViewController
+                          .checkChatConnection(detas);
+                      chatViewController.openAnyOneChatFunction(
+                        profileImage: schoolAboutUsController
+                            .schoolDetailsData?.value.logo,
+                        otherUserId:
+                        (checkCompleted?[ApiKeys.conversation_id] ==
+                            '')
+                            ? (checkCompleted?[ApiKeys.other_user_id])
+                            : null,
+                        type: "business",
+                        isInitialMessage: true,
+                        userId: schoolAboutUsController
+                            .schoolDetailsData?.value.ownerId,
+                        conversationId:
+                        checkCompleted?[ApiKeys.conversation_id] ??
+                            '',
+                        contactName: schoolAboutUsController
+                            .schoolDetailsData?.value.name,
+                        contactNo:"",
+                      );
+                    },
+                    title: "Chat"),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: PositiveCustomBtn(
+                    onTap: () {
+                      commonSnackBar(message: 'Coming Soon....');
+                    },
+                    title: "Book Inquiry"),
+              ),
+            ],
+          ),
+        ),
+      )
+          : null,
      body:  SingleChildScrollView(
          child: Column(
            children: [

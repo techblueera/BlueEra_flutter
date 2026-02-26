@@ -147,9 +147,11 @@ class AppImageAssets {
   static String sweets = "${imgPath}sweets.png";
 
   /// Rental Service
+  static String alternative_stays = "${imgPath}alternative_stays.png";
+  static String hotel_event = "${imgPath}hotel_event.png";
   static String hotelStay = "${imgPath}hotel_stay.png";
-  static String homeStay = "${imgPath}home_stay.png";
-  static String houseOnRent = "${imgPath}house_on_rent.png";
+  static String homeStay = "${imgPath}stay_rent.png";
+  static String houseOnRent = "${imgPath}stay_house_rent.png";
   static String otherRental = "${imgPath}other_rental.png";
   static String economyStay = "${imgPath}economy_stay.png";
   static String hostelsAndPG = "${imgPath}hostels_and_pg.png";
@@ -179,6 +181,8 @@ class AppImageAssets {
   static String consultingTalk = "${imgPath}consulting_talk.png";
 
   // Transport
+  static String VehicleSales = "${imgPath}VehicleSales.png";
+  static String Vehicleparts = "${imgPath}Vehicleparts.png";
   static String twoWheelerBike = "${imgPath}two_wheeler_bike.png";
   static String car = "${imgPath}car.png";
   static String passengerCar = "${imgPath}passenger_car.png";
@@ -188,6 +192,9 @@ class AppImageAssets {
   static String vehicleShowroom = "${imgPath}vehicle_showroom.png";
   static String preOwnedShowroom = "${imgPath}pre_owned_showroom.png";
   static String vehicleService = "${imgPath}vehicle_service.png";
+  static String TransportLogistic = "${imgPath}TransportLogistic.png";
+  static String VehicleRental = "${imgPath}VehicleRental.png";
+  static String VehicleSupport = "${imgPath}VehicleSupport.png";
   static String autoPartsShop = "${imgPath}auto_parts_shop.png";
   static String vehicleAccessories = "${imgPath}vehicle_accessories.png";
   static String find_heath_care = "${imgPath}find_heath_care.png";

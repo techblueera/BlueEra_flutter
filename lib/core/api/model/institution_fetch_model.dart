@@ -42,6 +42,7 @@ class InstitutionFetchData {
       this.logo, 
       this.newsAndEvents, 
       this.studentCorner, 
+      this.category,
       this.locationReq,
       this.website,});
 
@@ -71,6 +72,7 @@ class InstitutionFetchData {
     }
     studentCorner = json['studentCorner'] != null ? StudentCorner.fromJson(json['studentCorner']) : null;
     website = json['website'];
+    category = json['category'];
     locationReq = json['location'];
   }
   String? name;
@@ -87,11 +89,13 @@ class InstitutionFetchData {
   List<NewsAndEvents>? newsAndEvents;
   StudentCorner? studentCorner;
   String? website;
+  String? category;
 dynamic locationReq;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['location'] = locationReq;
+    map['category'] = category;
     map['name'] = name;
     map['type'] = type;
     if (contactUs != null) {

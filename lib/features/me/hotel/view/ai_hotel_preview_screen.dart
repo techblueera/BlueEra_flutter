@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
@@ -24,7 +26,7 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
   void initState() {
     final emergency =
         controller.aiHotelResModel?.value.data?.screens?.contactUs?.emergency;
-    controller.isFormValid.value=false;
+    controller.isFormValid.value = false;
     // TODO: implement initState
     controller.policeStationName.value = emergency?.policeStation ?? "";
     controller.hospitalName.value = emergency?.hospital ?? "";
@@ -51,8 +53,10 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
             // 1. Timing Section
             _buildSectionHeader("Check-in / Check-out"),
             _buildInfoCard([
-              _buildRowCheckIn("Check-in Time", policies?.checkInTime ?? "12:00 PM"),
-              _buildRowCheckIn("Check-out Time", policies?.checkOutTime ?? "11:00 AM"),
+              _buildRowCheckIn(
+                  "Check-in Time", policies?.checkInTime ?? "12:00 PM"),
+              _buildRowCheckIn(
+                  "Check-out Time", policies?.checkOutTime ?? "11:00 AM"),
             ]),
 
             // 2. Rules Section (The data usually hidden)
@@ -91,7 +95,6 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
   }
 
   Widget _buildEmergencySection() {
-
     return Column(
       children: [
         Row(
@@ -118,7 +121,6 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
           ]);
         }),
         const SizedBox(height: 20),
-
         PositiveCustomBtn(
           onTap: () async {
             if (controller.phoneNumber.value.isEmpty) {
@@ -139,7 +141,6 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
           title: "Create Hotel",
         ),
         const SizedBox(height: 50),
-
       ],
     );
   }
@@ -240,6 +241,34 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
                     fontSize: 18, fontWeight: FontWeight.bold),
                 SizedBox(height: 20),
 
+                // Search Field for Bus Station Location
+                CommonLocationSearchField(
+                  title: "Search Nearby Bus Station",
+                  hintText: "Search on via bus station name...",
+                  onSelected: (placeId, lat, lng, address) async {
+                    // Logic to decide if this is hospital or police
+                    controller.busStationController.text = address;
+                    controller.busStationName.value = address;
+                    // Fetch and auto-fill details
+                    try {
+                      final detailsResponse = await PlaceRepo()
+                          .getCompletePlaceDetails(placeId: placeId);
+                      final detailsData = detailsResponse.response?.data;
+                      final placeDetails =
+                          PlaceDetailsResponse.fromJson(detailsData);
+                      controller.busStationLat.value =
+                          placeDetails.result?.geometry?.location?.lat ?? 0.0;
+                      controller.busStationLng.value =
+                          placeDetails.result?.geometry?.location?.lng ?? 0.0;
+                    } catch (e) {
+                      print("Error fetching place details: $e");
+                    }
+                  },
+                  controller: controller.busStationController,
+                  isShowLeading: false,
+                ),
+
+                const SizedBox(height: 15),
                 // Search Field for Hospital/Police Location
                 CommonLocationSearchField(
                   title: "Search Nearby Hospital",

@@ -12,8 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HospitalListScreen extends StatefulWidget {
-  const HospitalListScreen({super.key});
-
+  const HospitalListScreen({super.key, required this.serviceType});
+final String serviceType;
   @override
   State<HospitalListScreen> createState() => _HospitalListScreenState();
 }
@@ -26,7 +26,7 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
   void initState() {
     super.initState();
     controller = getOrPut(() => HospitalServiceAiController());
-    controller.fetchInitial();
+    controller.fetchInitial(widget.serviceType);
 
     _scrollController.addListener(_onScroll);
   }
@@ -34,7 +34,7 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 100) {
-      controller.fetchMore();
+      controller.fetchMore(widget.serviceType);
     }
   }
 
@@ -74,7 +74,9 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
         }
         return RefreshIndicator(
           color: AppColors.primaryColor,
-          onRefresh: controller.fetchInitial,
+          onRefresh: ()async{
+         await   controller.fetchInitial(widget.serviceType);
+          },
           child: ListView.builder(
             controller: _scrollController,
             // padding: EdgeInsets.all(SizeConfig.paddingM),

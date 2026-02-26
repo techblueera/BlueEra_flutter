@@ -218,6 +218,7 @@ class PharmacyDetailsSheet extends StatelessWidget {
       appBar: CommonBackAppBar(
         title: item.name,
       ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

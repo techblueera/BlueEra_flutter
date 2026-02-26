@@ -16,9 +16,14 @@ class HotelServiceController extends GetxController {
   final websiteController = TextEditingController();
   RxDouble lat = 0.0.obs;
   RxDouble lng = 0.0.obs;
+
+  RxDouble busStationLat = 0.0.obs;
+  RxDouble busStationLng = 0.0.obs;
+
   // Text Editing Controllers for the Form
   final policeController = TextEditingController();
   final hospitalController = TextEditingController();
+  final busStationController = TextEditingController();
   final phoneController = TextEditingController();
   final cityController = TextEditingController();
   final stateController = TextEditingController();
@@ -28,6 +33,7 @@ class HotelServiceController extends GetxController {
   RxString stateName = "".obs;
   RxString policeStationName = "".obs;
   RxString hospitalName = "".obs;
+  RxString busStationName = "".obs;
   RxString phoneNumber = "".obs;
   RxString hotelAddress = "".obs;
 
@@ -51,8 +57,8 @@ class HotelServiceController extends GetxController {
     bool isValid = policeStationName.value.isNotEmpty &&
         hospitalName.value.isNotEmpty &&
         phoneNumber.value.length == 10 &&
-      cityName.value.isNotEmpty &&
-       stateName.value.isNotEmpty &&
+        cityName.value.isNotEmpty &&
+        stateName.value.isNotEmpty &&
         pinCodeName.value.length == 6;
 
     isFormValid.value = isValid;
@@ -134,11 +140,11 @@ class HotelServiceController extends GetxController {
     try {
       AiHotelData data = aiHotelResModel?.value.data ?? AiHotelData();
       final reqData = {
-        ApiKeys.businessId:businessId,
+        ApiKeys.businessId: businessId,
         "name": data.appMetadata?.appName,
         "description": data.screens?.aboutProperty?.description ?? "",
         "website": data.screens?.contactUs?.website ?? "",
-        "address":{
+        "address": {
           "city": cityName.value,
           "state": stateName.value,
           "pincode": pinCodeName.value
@@ -148,13 +154,18 @@ class HotelServiceController extends GetxController {
           "type": "Point",
           "coordinates": [lat.value, lng.value]
         },
+        "bus_station_location": {
+          "name": busStationName.value,
+          "type": "Point",
+          "coordinates": [busStationLat.value, busStationLng.value]
+        },
         "category": businessCategoryGlobal
       };
 
       ResponseModel response =
           await HotelServiceRepo().createHotelServiceRepo(reqBody: reqData);
       if (response.isSuccess) {
-        hotelAddress.value="";
+        hotelAddress.value = "";
         String? hotelID = response.response?.data['data']['_id'];
         if (hotelID != null && hotelID.isNotEmpty) {
           await setHotelID(hotelID);
@@ -165,10 +176,8 @@ class HotelServiceController extends GetxController {
         commonSnackBar(message: response.response?.data['message']);
 
         Get.until((route) =>
-        route.settings
-            .name ==
-            RouteHelper
-                .getBottomNavigationBarScreenRoute());
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -176,8 +185,4 @@ class HotelServiceController extends GetxController {
       commonSnackBar(message: e.toString());
     }
   }
-
-
-
-
 }

@@ -36,6 +36,7 @@ class HospitalAiData {
       this.medicalstore, 
       this.career, 
       this.contactus, 
+      this.category,
       this.otherfacilities,});
 
   HospitalAiData.fromJson(dynamic json) {
@@ -53,6 +54,7 @@ class HospitalAiData {
     }
     contactus = json['CONTACT_US'] != null ? ContactUs.fromJson(json['CONTACT_US']) : null;
     otherfacilities = json['OTHER_FACILITIES'] != null ? OtherFacilities.fromJson(json['OTHER_FACILITIES']) : null;
+    category = json['category'];
   }
   OptOutpatientDepartment? optoutpatientdepartment;
   HospitalAboutUs? aboutus;
@@ -63,6 +65,7 @@ class HospitalAiData {
   List<Career>? career;
   ContactUs? contactus;
   OtherFacilities? otherfacilities;
+  String? category;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -93,6 +96,8 @@ class HospitalAiData {
     if (otherfacilities != null) {
       map['OTHER_FACILITIES'] = otherfacilities?.toJson();
     }
+    map['category'] = category;
+
     return map;
   }
 

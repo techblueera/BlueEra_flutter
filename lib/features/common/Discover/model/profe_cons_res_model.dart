@@ -51,8 +51,8 @@ class Meta {
     limit = json['limit'];
   }
   int? total;
-  int? page;
-  int? limit;
+  dynamic page;
+  dynamic limit;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

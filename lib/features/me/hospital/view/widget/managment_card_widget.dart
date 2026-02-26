@@ -13,44 +13,44 @@ class ManagementCardListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCardWidget(
-      padding: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
-            child: ServiceHomeTitleWidget(
-              title: "Management",
-            ),
-          ),
-
-          // Horizontal List
-          Obx(() {
-            // Accessing management list from your response model
-            final managementList =
-                controller.hospitalDataResModel?.value.data?.management ?? [];
-
-            if (managementList.isEmpty) {
-              return const SizedBox.shrink();
-            }
-
-            return SizedBox(
-              height: 280, // Height to accommodate the card
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(left: 16, bottom: 10),
-                itemCount: managementList.length,
-                itemBuilder: (context, index) {
-                  return HospitalManagementCard(person: managementList[index]);
-                },
+    return Obx(() {
+      if (controller.hospitalDataResModel?.value.data?.management?.isNotEmpty ??
+          false) {
+        // Accessing management list from your response model
+        final managementList =
+            controller.hospitalDataResModel?.value.data?.management ?? [];
+        return CommonCardWidget(
+          padding: 0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section Header
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
+                child: ServiceHomeTitleWidget(
+                  title: "Management",
+                ),
               ),
-            );
-          }),
-        ],
-      ),
-    );
+
+              // Horizontal List
+              SizedBox(
+                height: 280, // Height to accommodate the card
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: 16, bottom: 10),
+                  itemCount: managementList.length,
+                  itemBuilder: (context, index) {
+                    return HospitalManagementCard(
+                        person: managementList[index]);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      return SizedBox.shrink();
+    });
   }
 }
 

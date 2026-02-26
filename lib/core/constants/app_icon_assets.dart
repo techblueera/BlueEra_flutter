@@ -676,5 +676,8 @@ class AppIconAssets {
   static const String emerg_call = "${iconPath}emerg_call.svg";
   static const String diag_dept_view = "${iconPath}diag_dept_view.svg";
   static const String medical_view = "${iconPath}medical_view.svg";
+  static const String ambulance_icon = "${iconPath}ambulance_icon.svg";
+  static const String blood_bank_icon = "${iconPath}blood_bank_icon.svg";
+  static const String pm_yojna_icon = "${iconPath}pm_yojna_icon.png";
 
 }

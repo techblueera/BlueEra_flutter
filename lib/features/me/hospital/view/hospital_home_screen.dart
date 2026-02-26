@@ -50,10 +50,9 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         EmergencyActionCard(),
 
         HospitalBookingScreen(),
-        CommonCardWidget(child: EmergencyCriticalCareView(),
+       EmergencyCriticalCareView(),
 
-          bgColor: Color(0xff0085FE).withOpacity(0.08),
-        ),
+
         ManagementCardListWidget(),
         if (controller.hospitalDataResModel?.value.data?.gallery?.isNotEmpty ??
             false) ...[

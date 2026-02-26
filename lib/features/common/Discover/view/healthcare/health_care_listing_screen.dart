@@ -134,7 +134,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
       getLabel: (item) => item.name,
-      getIcon: (item) => item.flagIcon ?? "",
+      getIcon: (item) => item.icon ?? "",
       isSelected: (item) {
         if (item.slugId == 'ALL_OPTION') {
           return controller.selectedProfessionalConsultantData.value == null;
@@ -170,7 +170,13 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
         return LabProfilesListScreen();
       } else if (controller.selectedProfessionalConsultantData.value?.slugId ==
           HOSPITAL) {
-        return HospitalListScreen();
+        return HospitalListScreen(serviceType: 'hospital',key: Key('hospital'),);
+      }else if (controller.selectedProfessionalConsultantData.value?.slugId ==
+          CLINIC_DOCTORS) {
+        return HospitalListScreen(serviceType: 'clinic',key: Key('clinic'),);
+      } else if (controller.selectedProfessionalConsultantData.value?.slugId ==
+          ALTERNATIVE_WELLNESS) {
+        return HospitalListScreen(serviceType: 'wellness',key: Key('wellness'),);
       } else {
         return ComingSoon();
       }

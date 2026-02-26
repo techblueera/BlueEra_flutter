@@ -1,6 +1,9 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
@@ -35,17 +38,65 @@ class _DiscoverHospitalHomeScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteE5,
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding:
-              const EdgeInsets.only(bottom: 20, right: 15, left: 15, top: 10),
-          child: PositiveCustomBtn(
-              onTap: () {
-                commonSnackBar(message: "Coming soon....");
-              },
-              title: "Inquirie Now"),
-        ),
-      ),
+      bottomNavigationBar: Obx(() {
+        return controller.hospitalDataResModel?.value.data?.userId != userId
+            ? SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 12.0, right: 12, bottom: 15, top: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: PositiveCustomBtn(
+                            onTap: () async {
+                              final chatViewController =
+                                  Get.find<ChatViewController>();
+                              Map<String, dynamic> detas = {
+                                ApiKeys.user_id: controller
+                                    .hospitalDataResModel?.value.data?.userId,
+                              };
+                              Map<String, dynamic>? checkCompleted =
+                                  await chatViewController
+                                      .checkChatConnection(detas);
+                              chatViewController.openAnyOneChatFunction(
+                                profileImage: controller
+                                    .hospitalDataResModel?.value.data?.logoUrl,
+                                otherUserId: (checkCompleted?[
+                                            ApiKeys.conversation_id] ==
+                                        '')
+                                    ? (checkCompleted?[ApiKeys.other_user_id])
+                                    : null,
+                                // businessId: widget.businessProfileDetails.id,
+                                type: "business",
+                                isInitialMessage: true,
+                                userId: controller
+                                    .hospitalDataResModel?.value.data?.userId,
+                                conversationId:
+                                    checkCompleted?[ApiKeys.conversation_id] ??
+                                        '',
+                                contactName: controller
+                                    .hospitalDataResModel?.value.data?.name,
+                                contactNo: "",
+                              );
+                            },
+                            title: "Chat"),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                        child: PositiveCustomBtn(
+                            onTap: () {
+                              commonSnackBar(message: 'Coming Soon....');
+                            },
+                            title: "Book Inquiry"),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : SizedBox.shrink();
+      }),
       appBar: CommonBackAppBar(
         title: "Hospital",
       ),
@@ -58,11 +109,8 @@ class _DiscoverHospitalHomeScreenState
             ),
             EmergencyActionCard(),
             HospitalBookingScreen(),
-            CommonCardWidget(
-              padding: 10,
-              child: EmergencyCriticalCareView(),
-              bgColor: Color(0xff0085FE).withOpacity(0.08),
-            ),
+            EmergencyCriticalCareView(),
+
             ManagementCardListWidget(),
             Padding(
               padding: const EdgeInsets.all(10),
@@ -147,6 +195,7 @@ class _DiscoverHospitalHomeScreenState
     );
   }
 }
+
 class EmergencyActionCard extends StatelessWidget {
   EmergencyActionCard({super.key});
 
@@ -155,15 +204,20 @@ class EmergencyActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Extracting numbers for cleaner code
-    final emergencyNo = controller.hospitalDataResModel?.value.data?.emergencyContactData?.emergencyNumber ?? "";
-    final appointmentNo = controller.hospitalDataResModel?.value.data?.emergencyContactData?.appointmentNumber ?? "";
+    final emergencyNo = controller.hospitalDataResModel?.value.data
+            ?.emergencyContactData?.emergencyNumber ??
+        "";
+    final appointmentNo = controller.hospitalDataResModel?.value.data
+            ?.emergencyContactData?.appointmentNumber ??
+        "";
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Column(
         children: [
           _buildActionCard(
-            icon: "assets/svg/call_24.svg", // Your 24/7 Phone Icon
+            icon: "assets/svg/call_24.svg",
+            // Your 24/7 Phone Icon
             title: "Emergency Number",
             subtitle: "24/7 Immediate Help",
             buttonText: "Call Now",
@@ -173,7 +227,8 @@ class EmergencyActionCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildActionCard(
-            icon: "assets/svg/helth_calender.svg", // Your Calendar Icon
+            icon: "assets/svg/helth_calender.svg",
+            // Your Calendar Icon
             title: "Book Appointment",
             subtitle: "Schedule Your Visit Easily",
             buttonText: "Call Now",
@@ -211,14 +266,14 @@ class EmergencyActionCard extends StatelessWidget {
               children: [
                 CustomText(
                   title,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
                 const SizedBox(height: 4),
                 CustomText(
                   phoneNo,
-                    color: Colors.grey.shade600,
+                  color: Colors.grey.shade600,
                 ),
               ],
             ),
@@ -263,8 +318,6 @@ class EmergencyActionCard extends StatelessWidget {
     );
   }
 
-
-
   void _launchCaller(String number) async {
     // Remove any spaces or special characters from the string
     final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');
@@ -278,8 +331,8 @@ class EmergencyActionCard extends StatelessWidget {
         await launchUrl(launchUri);
       } else {
         // Handle the error if the dialer cannot be opened (e.g., on a Tablet without a SIM)
-        commonSnackBar(message:
-          "Error Could not open the dialer",
+        commonSnackBar(
+          message: "Error Could not open the dialer",
         );
       }
     } catch (e) {
@@ -287,4 +340,3 @@ class EmergencyActionCard extends StatelessWidget {
     }
   }
 }
-

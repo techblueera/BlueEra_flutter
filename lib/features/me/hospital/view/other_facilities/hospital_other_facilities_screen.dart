@@ -56,7 +56,7 @@ class _HospitalOtherFacilitiesScreenState extends State<HospitalOtherFacilitiesS
                     ),
                     MeMenuCardDesign(
                       title: "Ambulance",
-                      icon: AppIconAssets.Ambulance,
+                      icon: AppIconAssets.ambulance_icon,
                       showToggleButton: true,
                       isToggleOn: controller.ambulance.value,
                       onToggleChanged: (v) {
@@ -66,7 +66,7 @@ class _HospitalOtherFacilitiesScreenState extends State<HospitalOtherFacilitiesS
                     ),
                     MeMenuCardDesign(
                       title: "PM-Swasthya Bima Yojana",
-                      icon: AppIconAssets.BloodBank,
+                      icon: AppIconAssets.pm_yojna_icon,
                       showToggleButton: true,
                       isToggleOn: controller.pmSwasthyaBimaYojana.value,
                       onToggleChanged: (v) {
@@ -76,7 +76,7 @@ class _HospitalOtherFacilitiesScreenState extends State<HospitalOtherFacilitiesS
                     ),
                     MeMenuCardDesign(
                       title: "Blood Bank",
-                      icon: AppIconAssets.BloodBank,
+                      icon: AppIconAssets.blood_bank_icon,
                       showToggleButton: true,
                       isToggleOn: controller.bloodBank.value,
                       onToggleChanged: (v) {
