@@ -22,48 +22,7 @@ class ReferralHistoryScreen extends StatefulWidget {
 class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
 
   final controller = Get.find<ReferralController>();
-
-
-
-  // 2. Dummy Data (Replace with your API model)
-  final List<Map<String, dynamic>> users = [
-    {
-      "name": "Ritesh Kumar",
-      "role": "Electrician",
-      "paid": "₹300",
-      "total": "₹999",
-      "image": "https://i.pravatar.cc/150?u=1",
-    },
-    {
-      "name": "Rajesh Karmakar",
-      "role": "Plumber",
-      "paid": "₹300",
-      "total": "₹999",
-      "image": "https://i.pravatar.cc/150?u=2",
-    },
-    {
-      "name": "Mahesh Dutta",
-      "role": "Farmer",
-      "paid": "₹300",
-      "total": "₹999",
-      "image": "https://i.pravatar.cc/150?u=3",
-    },
-    {
-      "name": "Ramesh Bhagat",
-      "role": "Rider",
-      "paid": "₹300",
-      "total": "₹999",
-      "image": "https://i.pravatar.cc/150?u=4",
-    },
-    {
-      "name": "Ritesh Kumar",
-      "role": "Mechanic",
-      "paid": "₹300",
-      "total": "₹999",
-      "image": "https://i.pravatar.cc/150?u=5",
-    },
-  ];
-
+  
   @override
   initState() {
     super.initState();
