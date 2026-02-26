@@ -84,7 +84,7 @@ class _PersonalInformationRidingScreenState
         appBar: widget.screeName != "from_tab_view"
             ? CommonBackAppBar(
                 title: AppStrings.personalInformation,
-                buildCustomWidget: () => Padding(
+                buildCustomActionWidget: () => Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: Center(
                     child: CustomText("${AppStrings.stepLabel.tr}1/3",

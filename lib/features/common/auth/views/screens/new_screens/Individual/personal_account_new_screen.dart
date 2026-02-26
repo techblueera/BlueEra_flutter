@@ -62,6 +62,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
 
   final _nameTextController = TextEditingController();
+  final _emailTextController = TextEditingController();
   int? _selectedDay, _selectedMonth, _selectedYear;
   GenderType? _selectedGender;
 
@@ -298,7 +299,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     ///ENTER NAME...
                     CommonTextField(
                       textEditController: _nameTextController,
-                      inputLength: 30,
+                      inputLength: AppConstants.inputCharterLimit30,
                       keyBoardType: TextInputType.text,
                       regularExpression:
                           RegularExpressionUtils.alphabetSpacePattern,
@@ -316,6 +317,21 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         }
                         return null;
                       },
+                    ),
+
+                    SizedBox(
+                      height: SizeConfig.size20,
+                    ),
+
+                    CommonTextField(
+                      textEditController: _emailTextController,
+                      inputLength: AppConstants.inputCharterLimit50,
+                      keyBoardType: TextInputType.emailAddress,
+                      regularExpression: RegularExpressionUtils.emailPattern,
+                      title: AppStrings.email,
+                      hintText: AppStrings.emailHint,
+                      isValidate: true,
+                      validationType: ValidationTypeEnum.email,
                     ),
 
                     SizedBox(
@@ -1243,6 +1259,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         Map<String, dynamic> requestData = {
           ApiKeys.profile_image: imageByPart,
           ApiKeys.name: _nameTextController.text.trim(),
+          ApiKeys.email: _emailTextController.text.trim(),
           ApiKeys.date_of_birth_Obj: jsonEncode({
             ApiKeys.date: _selectedDay,
             ApiKeys.month: _selectedMonth,

@@ -76,7 +76,7 @@ class _ActiveSubscriptionCardState extends State<ActiveSubscriptionCard> {
       borderRadius: BorderRadius.circular(10.0),
       child: LocalAssets(
         imagePath: widget.style.bg,
-        height: SizeConfig.screenHeight * 0.2,
+        height: SizeConfig.screenHeight * 0.21,
         width: double.infinity,
         boxFix: BoxFit.fill,
       ),

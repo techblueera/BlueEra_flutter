@@ -25,7 +25,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
       backgroundColor: AppColors.whiteFE,
       appBar: CommonBackAppBar(
           title: AppStrings.addProducts,
-          buildCustomWidget:()=>
+          buildCustomActionWidget:()=>
               PopupMenuButton<String>(
                 padding: EdgeInsets.zero,
                 offset: const Offset(-6, 36),

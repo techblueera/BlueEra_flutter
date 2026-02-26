@@ -62,7 +62,7 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
         /// Content
         Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             child: Row(
               children: [
                 _priceBlock(),
@@ -70,7 +70,6 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
                   width: SizeConfig.screenWidth * 0.07,
                 ),
                 Expanded(
-                    flex: 2,
                     child: _features()),
               ],
             ),
@@ -92,7 +91,7 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(10.0),
       child: LocalAssets(
         imagePath: style.bg,
-        height: SizeConfig.screenHeight * 0.2,
+        height: SizeConfig.screenHeight * 0.21,
         width: double.infinity,
         boxFix: BoxFit.fill,
       ),
@@ -103,8 +102,8 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
     return Container(
       width: SizeConfig.screenWidth * 0.25,
       child: Container(
-        height: SizeConfig.screenHeight * 0.2 - 20,
-        padding: EdgeInsets.all(SizeConfig.size10),
+        // height: SizeConfig.screenHeight * 0.2 - 20,
+        padding: EdgeInsets.all(SizeConfig.screenWidth * 0.02),
         decoration: BoxDecoration(
           color: AppColors.white.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(10.0),
@@ -113,58 +112,63 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
           )
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
 
-            Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size6,
-                  vertical: SizeConfig.size2
-              ),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: AppColors.white.withValues(alpha: 0.4),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Color(0xFFACC6FE),
-                        blurRadius: 3,
-                        offset: Offset(0, 1)
-                    )
-                  ]
-              ),
-              child: CustomText(
-                'Join Now',
-                fontSize: SizeConfig.extraSmall,
-                fontWeight: FontWeight.w600,
-                color: style.color,
-              ),
-            ),
+            Expanded(
+              flex: 2,
+                child: FittedBox(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size6,
+                            vertical: SizeConfig.size2
+                        ),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            color: AppColors.white.withValues(alpha: 0.4),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Color(0xFFACC6FE),
+                                  blurRadius: 3,
+                                  offset: Offset(0, 1)
+                              )
+                            ]
+                        ),
+                        child: CustomText(
+                          'Join Now',
+                          fontSize: SizeConfig.extraSmall,
+                          fontWeight: FontWeight.w600,
+                          color: style.color,
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: SizeConfig.screenHeight * 0.002,
+                      ),
+
+                      CustomText(
+                        '₹1',
+                        fontSize: 36,
+                        fontWeight: FontWeight.w600,
+                        color: style.color,
+                      ),
+
+                      CustomText(
+                        '7 Days',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                )),
+
 
             SizedBox(
-              height: SizeConfig.screenHeight * 0.004,
-            ),
-
-            CustomText(
-              '₹1',
-              fontSize: 36,
-              fontWeight: FontWeight.w600,
-              color: style.color,
-            ),
-
-            SizedBox(
-              height: SizeConfig.screenHeight * 0.002,
-            ),
-
-            CustomText(
-              '7 Days',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
-            ),
-
-            SizedBox(
-              height: SizeConfig.screenHeight * 0.007,
+              height: SizeConfig.screenHeight * 0.006
             ),
 
             CommonHorizontalDivider(
@@ -172,68 +176,81 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
             ),
 
             SizedBox(
-              height: SizeConfig.screenHeight * 0.007,
+              height: SizeConfig.screenHeight * 0.006,
             ),
 
             /// Amount & period
 
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: "₹${details?.amount != null ? (details!.amount! / 100).toStringAsFixed(0) : '0'}",
-                    style: TextStyle(
-                      fontSize: (details?.amount.toString().length ?? 0) > 3
-                          ? SizeConfig.large
-                          : SizeConfig.extraLarge22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ),
-                  TextSpan(
-                    text: " /${details?.period ?? ""}",
-                    style: TextStyle(
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            Expanded(
+                flex: 1,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "₹${details?.amount != null ? (details!.amount! / 100).toStringAsFixed(0) : '0'}",
+                              style: TextStyle(
+                                fontSize: (details?.amount.toString().length ?? 0) > 3
+                                    ? SizeConfig.large
+                                    : SizeConfig.extraLarge22,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                            TextSpan(
+                              text: " /${details?.period?.capitalizeFirst ?? ""}",
+                              style: TextStyle(
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-            SizedBox(
-              height: SizeConfig.screenHeight * 0.003,
-            ),
+                      SizedBox(
+                        height: SizeConfig.screenHeight * 0.003,
+                      ),
 
-            Text.rich(
-              TextSpan(
-                style: TextStyle(
-                  decoration: TextDecoration.lineThrough,
-                  color: AppColors.secondaryTextColor
-                ),
-                children: [
-                  TextSpan(
-                    text: "₹${details?.amountBeforeDiscount != null ? (details!.amountBeforeDiscount! / 100).toStringAsFixed(0) : '0'}",
-                    style: TextStyle(
-                      fontSize: (details?.amountBeforeDiscount.toString().length ?? 0) > 3
-                          ? SizeConfig.large
-                          : SizeConfig.extraLarge22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.secondaryTextColor,
-                    ),
+                      Text.rich(
+                        TextSpan(
+                          style: TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              color: Colors.red
+                          ),
+                          children: [
+                            TextSpan(
+                              text: "₹${details?.amountBeforeDiscount != null ? (details!.amountBeforeDiscount! / 100).toStringAsFixed(0) : '0'}",
+                              style: TextStyle(
+                                fontSize: (details?.amountBeforeDiscount.toString().length ?? 0) > 3
+                                    ? SizeConfig.large
+                                    : SizeConfig.extraLarge22,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                            TextSpan(
+                              text: " /${details?.period?.capitalizeFirst ?? ""}",
+                              style: TextStyle(
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    ],
                   ),
-                  TextSpan(
-                    text: " /${details?.period ?? ""}",
-                    style: TextStyle(
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                )
+            )
 
 
           ],
@@ -249,35 +266,34 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
           int perkCount = details?.perks?.length ?? 0;
           double _bottomPadding = perkCount < 5 ? 12.0 : (perkCount < 7 ? 8.0 : 4.0);
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // CustomText(
-              //   "Features",
-              //   fontSize: 16,
-              //   fontWeight: FontWeight.w600,
-              //   color: style.textColor,
-              // ),
-              // const SizedBox(height: 6),
+          return FittedBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
 
-              /// Description
-              _featureItem(
-                  details?.description == '' || details?.description == null
-                      ? "N/A"
-                      : details!.description??'',
-                  bottomPadding: _bottomPadding
-              ),
 
-              /// Perks
-              ...details?.perks?.map(
-                    (e) => _featureItem(
-                    e == '' ? "N/A" : e,
+                SizedBox(height: SizeConfig.size8),
+
+                /// Description
+                _featureItem(
+                    details?.description == '' || details?.description == null
+                        ? "N/A"
+                        : details!.description??'',
                     bottomPadding: _bottomPadding
                 ),
-              ) ??
-                  [],
-            ],
+
+                /// Perks
+                ...details?.perks?.map(
+                      (e) => _featureItem(
+                      e == '' ? "N/A" : e,
+                      bottomPadding: _bottomPadding
+                  ),
+                ) ??
+                    [],
+
+              ],
+            ),
           );
         }
     );
@@ -286,24 +302,28 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
   Widget _featureItem(String text, {required double bottomPadding}) {
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
-      child: Row(
-        children: [
-          Icon(
-            Icons.check_circle_outline,
-            size: 14,
-            color: style.color,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: CustomText(
-              text,
-              fontSize: 12,
-              maxLines: 1,
-              fontWeight: FontWeight.w400,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: 14,
               color: style.color,
             ),
-          ),
-        ],
+            const SizedBox(width: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: CustomText(
+                text,
+                fontSize: 12,
+                maxLines: 1,
+                fontWeight: FontWeight.w400,
+                color: style.color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

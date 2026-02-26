@@ -255,6 +255,7 @@ class SubscriptionController extends GetxController {
           await SubscriptionRepo().cancelSubscriptionRepo(params);
       if (responseModel.isSuccess) {
         cancelSubscriptionResponse.value = ApiResponse.complete(responseModel);
+        userCurrentPlanApi();
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);

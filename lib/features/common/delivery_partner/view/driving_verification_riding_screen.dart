@@ -29,7 +29,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
       appBar: CommonBackAppBar(
         title: AppStrings.drivingVerification,
         // onBackTap: onBackPressed,
-        buildCustomWidget: ()=> Padding(
+        buildCustomActionWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(

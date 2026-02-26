@@ -28,8 +28,8 @@ class _VisitingCardTenState extends State<VisitingCardTen> {
   String? _logo;
   String? _name;
   String? _profession;
-  int? _officeLandlineNumber;
-  int? _officeMobileNumber;
+  String? _officeLandlineNumber;
+  String? _officeMobileNumber;
   String? _description;
   String? _ownerName;
   String? _roleInOffice;
@@ -57,7 +57,7 @@ class _VisitingCardTenState extends State<VisitingCardTen> {
       _logo = _user?.profileImage;
       _name = _user?.name;
       _profession = _user?.profession;
-      _officeMobileNumber = int.parse(_user?.contactNo??'0');
+      _officeMobileNumber = _user?.contactNo??'0';
       _description = _user?.bio;
       _ownerName = _user?.username;
       _roleInOffice = _user?.designation;

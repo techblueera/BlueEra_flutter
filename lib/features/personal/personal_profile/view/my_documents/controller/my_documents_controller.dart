@@ -21,11 +21,13 @@ enum DocStatus {
   verified     // Key found, isVerified: true
 }
 class DocumentMeta {
+  final String id;
   final DocStatus status;
   final String? frontUrl;
   final String? backUrl;
 
   DocumentMeta({
+    required this.id,
     required this.status,
     this.frontUrl,
     this.backUrl,
@@ -125,6 +127,7 @@ class MyDocumentsController extends GetxController {
         case 'drivingLicense': localKey = DocumentKeys.drivingLicense; break;
         case 'addressProof': localKey = DocumentKeys.addressProof; break;
         case 'noc': localKey = DocumentKeys.noc; break;
+        case 'bankDetails': localKey = DocumentKeys.bankDetails; break;
         case 'bankersCancelledCheque': localKey = DocumentKeys.bankersCancelledCheque; break;
 
         case 'vehicleRC': localKey = DocumentKeys.vehicleRC; break;
@@ -153,12 +156,13 @@ class MyDocumentsController extends GetxController {
       }
 
       if (localKey != null && value is Map) {
+        String id = value['_id'] ?? '';
         bool isVerified = value['isVerified'] ?? false;
-
         String? frontUrl = value['files']?['front'];
         String? backUrl = value['files']?['back'];
 
         documentStatuses[localKey] = DocumentMeta(
+          id: id,
           status: isVerified ? DocStatus.verified : DocStatus.pending,
           frontUrl: frontUrl,
           backUrl: backUrl,
@@ -388,6 +392,8 @@ class MyDocumentsController extends GetxController {
         return "Address Proof";
       case DocumentKeys.noc:
         return "NOC";
+      case DocumentKeys.bankDetails:
+        return "Bank Details";
       case DocumentKeys.bankersCancelledCheque:
         return "Cancelled Cheque";
 

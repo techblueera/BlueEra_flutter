@@ -52,6 +52,7 @@ class ApiKeys {
   static const date_of_incorporation = 'date_of_incorporation';
   static const date = 'date';
   static const week = 'week';
+  static const day = 'day';
   static const month = 'month';
   static const year = 'year';
   static const lifetime = 'lifetime';
@@ -209,6 +210,7 @@ class ApiKeys {
   static const start_from = 'start_from';
   static const city = 'city';
   static const start_via = 'start_via';
+  static const addressString  = 'addressString';
   static const transport_info = 'transport_info';
   static const stoppages = 'stoppages';
   static const stay_info = 'stay_info';
@@ -686,8 +688,8 @@ class ApiKeys {
   static const adharCard = 'adharCard';
   static const addressProof = 'addressProof';
   static const drivingLicense = 'drivingLicense';
-  static const alternatePhoneNumber = 'alternatePhoneNumber';
-  static const highestEducationalQualification = 'highestEducationalQualification';
+  static const alternateMobileNo = 'alternateMobileNo';
+  static const education = 'education';
   static const workLocationPinCode = 'workLocationPinCode';
   static const preferredState = 'preferredState';
   static const preferredCity = 'preferredCity';
@@ -728,4 +730,5 @@ class ApiKeys {
   static const upiDetails = 'upiDetails';
   static const upiId = 'upiId';
   static const group_cover_image = 'group_cover_image';
+  static const fullName = 'fullName';
 }

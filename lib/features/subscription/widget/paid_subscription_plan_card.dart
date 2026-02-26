@@ -91,7 +91,7 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(10.0),
       child: LocalAssets(
         imagePath: style.bg,
-        height: SizeConfig.screenHeight * 0.2,
+        height: SizeConfig.screenHeight * 0.21,
         width: double.infinity,
         boxFix: BoxFit.fill,
       ),
@@ -114,7 +114,7 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
           CustomText(
             "₹${details.amount != null ? (details.amount! / 100) : '0'}",
             fontSize:
-            (details.amount.toString().length ?? 0) > 3
+            (details.amount.toString().length) > 3
                 ? 24
                 : 36,
             fontWeight: FontWeight.w700,
@@ -126,7 +126,7 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: CustomText(
-              details.period ?? "",
+              details.period?.capitalizeFirst ?? "",
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w700,
               textAlign: TextAlign.center,

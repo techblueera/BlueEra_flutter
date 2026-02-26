@@ -4,7 +4,6 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
-
 class ReferralPointsChart extends StatelessWidget {
   final int subscribe;
   final int unSubscribe;
@@ -23,17 +22,17 @@ class ReferralPointsChart extends StatelessWidget {
 
     final double subPercent = total == 0 ? 0 : subscribe / total;
     final double unSubPercent = total == 0 ? 0 : unSubscribe / total;
-    final double expPercent = total == 0 ? 0 : expired / total;
+
+    const double graphStartAngle = 180.0;
 
     return Container(
-      // margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -48,35 +47,53 @@ class ReferralPointsChart extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                /// Subscribe (Green)
-                CircularPercentIndicator(
-                  radius: 100,
-                  lineWidth: 14,
-                  percent: subPercent.clamp(0, 1),
-                  backgroundColor: Colors.transparent,
-                  progressColor: const Color(0xFF43A047),
-                  circularStrokeCap: CircularStrokeCap.round,
-                ),
 
-                /// Unsubscribe (Yellow)
-                CircularPercentIndicator(
-                  radius: 100,
-                  lineWidth: 14,
-                  percent: (subPercent + unSubPercent).clamp(0, 1),
-                  backgroundColor: Colors.transparent,
-                  progressColor: const Color(0xFFF4B400),
-                  circularStrokeCap: CircularStrokeCap.round,
-                ),
+                if (total == 0)
+                  CircularPercentIndicator(
+                    radius: 100,
+                    lineWidth: 14,
+                    percent: 0.0,
+                    backgroundColor: AppColors.whiteE5,
+                    circularStrokeCap: CircularStrokeCap.round,
+                  )
+                else...[
+                  /// 1. BOTTOM LAYER: Expired (Red)
+                  /// This draws a full circle (100%). The other colors will sit on top of it.
+                  /// If total is 0, we set percent to 0 so it doesn't show a full red circle.
+                  CircularPercentIndicator(
+                    radius: 100,
+                    lineWidth: 14,
+                    percent: total == 0 ? 0.0 : 1.0,
+                    backgroundColor: Colors.grey.withValues(alpha: 0.2), // Base empty color if total is 0
+                    progressColor: const Color(0xFFD64A3A), // Red color
+                    circularStrokeCap: CircularStrokeCap.round,
+                    startAngle: graphStartAngle,
+                  ),
 
-                /// Expired (Red)
-                CircularPercentIndicator(
-                  radius: 100,
-                  lineWidth: 14,
-                  percent: 1,
-                  backgroundColor: Colors.transparent,
-                  progressColor: Colors.green,
-                  circularStrokeCap: CircularStrokeCap.round,
-                ),
+                  /// 2. MIDDLE LAYER: Unsubscribe (Yellow)
+                  /// This takes up the Subscribed + Unsubscribed space
+                  CircularPercentIndicator(
+                    radius: 100,
+                    lineWidth: 14,
+                    percent: (subPercent + unSubPercent).clamp(0.0, 1.0),
+                    backgroundColor: Colors.transparent,
+                    progressColor: const Color(0xFFF4B400), // Yellow color
+                    circularStrokeCap: CircularStrokeCap.round,
+                    startAngle: graphStartAngle,
+                  ),
+
+                  /// 3. TOP LAYER: Subscribe (Green)
+                  /// This is the smallest layer and sits on the very top.
+                  CircularPercentIndicator(
+                    radius: 100,
+                    lineWidth: 14,
+                    percent: subPercent.clamp(0.0, 1.0),
+                    backgroundColor: Colors.transparent,
+                    progressColor: const Color(0xFF43A047), // Green color
+                    circularStrokeCap: CircularStrokeCap.round,
+                    startAngle: graphStartAngle,
+                  ),
+                ],
 
                 /// CENTER TEXT
                 Column(
@@ -102,7 +119,7 @@ class ReferralPointsChart extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
-          Divider(color: AppColors.coloGreyText.withOpacity(0.3)),
+          Divider(color: AppColors.coloGreyText.withValues(alpha: 0.3)),
           const SizedBox(height: 12),
 
           /// LEGEND

@@ -1,0 +1,300 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
+import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
+import 'package:BlueEra/features/common/referral/widgets/referral_points_chart.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/getx_utils.dart';
+import '../../../../core/constants/size_config.dart';
+import '../../../../widgets/custom_text_cm.dart';
+import '../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../personal/auth/controller/view_personal_details_controller.dart';
+import '../controller/referral_controller.dart';
+
+class BdmDocumentVerifiedPage extends StatefulWidget {
+  const BdmDocumentVerifiedPage({
+    super.key,
+
+  });
+
+  @override
+  State<BdmDocumentVerifiedPage> createState() => _BdmDocumentVerifiedPageState();
+}
+
+class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
+  final controller = getOrPut(()=> ReferralController());
+  final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+  final viewBusinessProfileController =  getOrPut(() =>ViewBusinessDetailsController());
+
+  @override
+  initState() {
+    super.initState();
+    controller.getWalletReferralStatsApi();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx((){
+      if(controller.walletReferralStatsResponse.value.status == Status.INITIAL){
+        return Center(
+            child: CircularProgressIndicator()
+        );
+      }
+
+      if(controller.walletReferralStatsResponse.value.status == Status.ERROR){
+        return Center(
+            child: CustomText(
+              'Oops Something went wrong',
+              fontSize: SizeConfig.extraLarge,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w400,
+            )
+        );
+      }
+
+      var _stats = controller.referralStatsData.value;
+
+      return Padding(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8,
+            vertical: SizeConfig.size15
+        ),
+        child: Column(
+          children: [
+            CustomFormCard(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  children: [
+                    // 1. Header
+                    Row(
+                      children: [
+                        LocalAssets(
+                          imagePath: AppIconAssets.multiPersonsIcon,
+                          imgColor: AppColors.secondaryTextColor,
+                        ),
+                        const SizedBox(width: 4),
+                        CustomText(
+                          "Generate Your Referral Code",
+                          fontSize: SizeConfig.large,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w400,
+                        )
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    InkWell(
+                      onTap: (){
+                        copyToClipboard(context, _stats.referralCode??'');
+                      },
+                      child: DashedBorderContainer(
+                        borderColor: AppColors.primaryColor,
+                        strokeWidth: 1,
+                        dashLength: 2,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            top: SizeConfig.size5,
+                            bottom: SizeConfig.size5,
+                            left: SizeConfig.size15,
+                            right: SizeConfig.size5,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CustomText(
+                                _stats.referralCode??'',
+                                color: AppColors.secondaryTextColor,
+                                fontSize: SizeConfig.extraLarge,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              SizedBox(width: SizeConfig.size8),
+                              Container(
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.primaryColor,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    // slightly smaller than outer
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        AppColors.primaryColor.withValues(alpha: 0.06),
+                                        AppColors.primaryColor.withValues(alpha: 0.02),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Center(
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.copy,
+                                            color: AppColors.primaryColor,
+                                            size: SizeConfig.size20,
+                                          ),
+                                          SizedBox(width: SizeConfig.size5),
+                                          CustomText("Copy",
+                                            color: AppColors.primaryColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,)
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+
+
+                  ],
+                )
+            ),
+
+            SizedBox(height: SizeConfig.paddingXSL),
+
+            CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 6,
+                  ),
+                  Row(mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        children: [
+                          CustomText("Balance",fontSize: 16,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          SizedBox(
+                            height: 16,
+                          ),
+                          CustomText("₹ ${_stats.balance}",fontSize: 20,
+                            color: AppColors.secondaryTextColor,
+
+                            fontWeight: FontWeight.w800,)
+                        ],
+                      ),
+                      SizedBox(
+                        width: 46,
+                      ),
+                      Container(
+                        height: 70,
+                        width: 1,
+                        color: AppColors.whiteE5,
+                      ),
+                      SizedBox(
+                        width: 46,
+                      ),
+                      Column(
+                        children: [
+                          CustomText("Total Earn",fontSize: 16,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          SizedBox(
+                            height: 16,
+                          ),
+                          CustomText("₹ ${_stats.totalIncome}",fontSize: 20,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w800,
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.greyPlaceHolder,
+                        boxShadow: [AppShadows.textFieldShadow]
+                    ),
+                    padding: EdgeInsets.all(10),
+                    child: Center(
+                      child: CustomText(
+                        "${_stats.breakdown?.subscribed??0} Subscription Out of ${_stats.totalReferralCount} Referral",
+                        fontSize: 14,fontWeight: FontWeight.w600,
+                        color: AppColors.grayText,),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomBtn(
+                          height: 34,
+                          radius: 10,
+                          borderColor: AppColors.primaryColor,
+                          bgColor: Colors.transparent,
+                          onTap: (){
+                            Get.to(()=> ReferralHistoryScreen());
+                          }, title: "History",
+                          textColor: AppColors.primaryColor,),
+                      ),
+                      SizedBox(width: 10,),
+                      Expanded(
+                        child: CustomBtn(
+                            radius: 10,
+                            height: 34,
+                            isValidate: true,
+                            onTap: (){}, title: "Withdraw"),
+                      ),
+                    ],
+                  )
+
+                ],
+              ),
+            ),
+
+            SizedBox(height: SizeConfig.paddingXSL),
+
+            CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: Column(
+                children: [
+                  ReferralPointsChart(
+                    subscribe: _stats.breakdown?.subscribed??0,
+                    unSubscribe: _stats.breakdown?.nonSubscribed??0,
+                    expired: _stats.breakdown?.expired??0
+                  )
+                ],
+              ),
+            )
+
+          ],
+        ),
+      );
+
+    });
+
+  }
+
+}

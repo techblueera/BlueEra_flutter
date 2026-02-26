@@ -55,7 +55,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
     return Scaffold(
       appBar: !(widget.isFromHomeScreen) ? CommonBackAppBar(
         title: 'More Cards',
-        buildCustomWidget: () => _cardCategory(),
+        buildCustomActionWidget: () => _cardCategory(),
       ) : null,
       body: Obx(() {
         if (moreCardsScreenController.isLoading.isTrue) {

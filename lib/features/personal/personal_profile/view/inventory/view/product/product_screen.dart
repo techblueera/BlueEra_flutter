@@ -24,9 +24,10 @@ class _ProductScreenState extends State<ProductScreen> {
 
   @override
   void initState() {
-    inventoryController.fetchProducts();
-    inventoryController.callApi(forceRefresh: true);
-    // inventoryController.fetchProducts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      inventoryController.fetchProducts();
+      inventoryController.callApi(forceRefresh: true);
+    });
     super.initState();
   }
 

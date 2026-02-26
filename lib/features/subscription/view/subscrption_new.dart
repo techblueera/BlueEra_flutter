@@ -8,7 +8,10 @@ import 'package:BlueEra/features/subscription/view/free_trial_plans_screen.dart'
 import 'package:BlueEra/features/subscription/widget/free_subscription_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/paid_subscription_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_banner_video.dart';
+import 'package:BlueEra/features/subscription/widget/subscription_payment_handler.dart';
+import 'package:BlueEra/features/subscription/widget/welcome_subscription_offer_text.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -78,9 +81,7 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
         }
 
 
-        // return PaidSubscriptionPlansScreen(
-        //     controller: controller
-        // );
+
         return _buildSubscriptionBody();
 
       }),
@@ -123,6 +124,15 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
   }
 
   Widget _buildFreeTrialPlanList() {
+    // Guard check to ensure the list isn't empty before accessing .first
+    if (controller.currentPlansList.isEmpty) {
+      return const Center(child: CustomText("No active trial plans found."));
+    }
+
+    // Directly access the single created plan
+    final currentPlan = controller.currentPlansList.first;
+    final details = currentPlan.subscriptionPlanData;
+
     return SingleChildScrollView(
       padding: EdgeInsets.only(
         left: SizeConfig.size8,
@@ -132,40 +142,80 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
       ),
       child: Column(
         children: [
+          // 1. Banner Video
           SubscriptionBannerVideo(
-              videoUrl: controller
-                  .subscriptionPlanDetailsNewModel.value.bannerVideoUrl??''
+              videoUrl: controller.subscriptionPlanDetailsNewModel.value.bannerVideoUrl ?? ''
           ),
+
           SizedBox(height: SizeConfig.paddingXSL),
+
+          // 2. Single Plan Card (Removed ListView)
           CustomFormCard(
-            padding: EdgeInsets.zero,
-            child: ListView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              primary: false,
-              shrinkWrap: true,
-              padding: EdgeInsets.all(SizeConfig.size10),
-              itemCount: controller.currentPlansList.length,
-              itemBuilder: (context, index) {
-                final details = controller.currentPlansList[index].subscriptionPlanData;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: FreeTrialSubscriptionCard(
-                    details: details,
-                    index: index,
-                    controller: controller,
-                    style: AppConstants.listOfSubsBg[index % AppConstants.listOfSubsBg.length],
-                    tagText: details.tier ?? "Basic",
-                  ),
-                );
-              },
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              children: [
+
+                WelcomeSubscriptionOfferText(),
+
+                SizedBox(height: SizeConfig.paddingXSL),
+
+                FreeTrialSubscriptionCard(
+                  details: details,
+                  index: 0, // Explicitly the first index
+                  controller: controller,
+                  style: AppConstants.listOfSubsBg[0],
+                  tagText: details.tier ?? "Basic",
+                ),
+              ],
             ),
           ),
+
+          SizedBox(height: SizeConfig.paddingL),
+
+          CustomBtn(
+            width: double.infinity,
+            textColor: AppColors.red,
+            bgColor: AppColors.white,
+            borderColor: AppColors.red,
+            title: "Cancel Subscription",
+            onTap: () {
+              controller.cancelSubscriptionController(params: {
+                'subscriptionId': currentPlan.subscriptionId,
+                'cancel_at_cycle_end': true,
+              });
+            },
+          ),
+
+          SizedBox(height: SizeConfig.paddingXSL),
+
+          CustomBtn(
+            width: double.infinity,
+            textColor: AppColors.white,
+            bgColor: AppColors.primaryColor,
+            title: "Pay",
+            onTap: () {
+              final handler = SubscriptionPaymentHandler(controller);
+              handler.processSubscription();
+            },
+          )
+
         ],
       ),
     );
   }
 
   Widget _buildPaidPlanList() {
+    // 1. Guard check to ensure a plan actually exists
+    if (controller.currentPlansList.isEmpty) {
+      return const Center(
+          child: CustomText("No active plan details found.")
+      );
+    }
+
+    // 2. Directly access the single current plan
+    final currentPlan = controller.currentPlansList.first;
+    final details = currentPlan.subscriptionPlanData;
+
     return SingleChildScrollView(
       padding: EdgeInsets.only(
         left: SizeConfig.size8,
@@ -175,34 +225,52 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
       ),
       child: Column(
         children: [
+          // Banner Video Header
           SubscriptionBannerVideo(
-              videoUrl: controller
-                  .subscriptionPlanDetailsNewModel.value.bannerVideoUrl??''
+              videoUrl: controller.subscriptionPlanDetailsNewModel.value.bannerVideoUrl ?? ''
           ),
+
           SizedBox(height: SizeConfig.paddingXSL),
+
+          // Single Paid Plan Display (Replaced ListView)
           CustomFormCard(
-            padding: EdgeInsets.zero,
-            child: ListView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              primary: false,
-              shrinkWrap: true,
-              padding: EdgeInsets.all(SizeConfig.size10),
-              itemCount: controller.currentPlansList.length,
-              itemBuilder: (context, index) {
-                final details = controller.currentPlansList[index].subscriptionPlanData;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: PaidSubscriptionPlanCard(
-                    details: details,
-                    index: index,
-                    controller: controller,
-                    style: AppConstants.listOfSubsBg[index % AppConstants.listOfSubsBg.length],
-                    tagText: details.tier ?? "Basic",
-                  ),
-                );
-              },
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: PaidSubscriptionPlanCard(
+              details: details,
+              index: 0, // Explicitly the first item
+              controller: controller,
+              style: AppConstants.listOfSubsBg[0],
+              tagText: details.tier ?? "Basic",
             ),
           ),
+
+          CustomBtn(
+            width: double.infinity,
+            textColor: AppColors.red,
+            bgColor: AppColors.white,
+            borderColor: AppColors.red,
+            title: "Cancel Subscription",
+            onTap: () {
+              controller.cancelSubscriptionController(params: {
+                'subscriptionId': currentPlan.subscriptionId,
+                'cancel_at_cycle_end': true,
+              });
+            },
+          ),
+
+          SizedBox(height: SizeConfig.paddingXSL),
+
+          CustomBtn(
+            width: double.infinity,
+            textColor: AppColors.white,
+            bgColor: AppColors.primaryColor,
+            title: "Pay",
+            onTap: () {
+              final handler = SubscriptionPaymentHandler(controller);
+              handler.processSubscription();
+            },
+          )
+
         ],
       ),
     );

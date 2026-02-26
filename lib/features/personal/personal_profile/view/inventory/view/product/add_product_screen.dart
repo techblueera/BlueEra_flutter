@@ -59,7 +59,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           backgroundColor: AppColors.appBackgroundColor,
           appBar: CommonBackAppBar(
               title: AppStrings.addProduct,
-              buildCustomWidget: ()=> (controller.searchProduct.isNotEmpty) ?
+              buildCustomActionWidget: ()=> (controller.searchProduct.isNotEmpty) ?
                controller.searchProductVariantsList.isEmpty
                   ? createOwnProductWidget() : Padding(
                 padding: EdgeInsets.only(right: SizeConfig.size20),

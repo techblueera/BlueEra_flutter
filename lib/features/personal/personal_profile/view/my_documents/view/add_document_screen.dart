@@ -14,24 +14,152 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/wid
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/hotel_all_documents.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/vehicle_document_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddDocumentScreen extends StatefulWidget {
-  const AddDocumentScreen({super.key, this.documentVia, required this.showViewDocProof});
+  const AddDocumentScreen({
+    super.key,
+    this.documentVia,
+    this.showViewDocProof = true});
 
   final String? documentVia;
   final bool showViewDocProof;
 
   @override
   State<AddDocumentScreen> createState() => _AddDocumentScreenState();
+
+  static void showDocumentProofDialog(BuildContext context, String docKey) {
+    final meta = Get.find<MyDocumentsController>().documentStatuses[docKey];
+
+    if (meta == null ||
+        (meta.frontUrl == null && meta.backUrl == null)) {
+      Get.snackbar("Info", "No document uploaded");
+      return;
+    }
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                  "Document Proof",
+                  fontSize: 18, fontWeight: FontWeight.bold
+              ),
+              const SizedBox(height: 16),
+
+              if (meta.frontUrl != null)
+                Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText("Front Side",fontSize: 14,fontWeight: FontWeight.w600,),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: (){
+                        Get.to(
+                              () => ImageViewScreen(
+                            appBarTitle: 'Front Side',
+                            imageUrls: [meta.frontUrl!],
+                            initialIndex: 0,
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.greyE5),
+                            boxShadow: [AppShadows.textFieldShadow],
+                          ),
+                          child: CachedNetworkImage(
+                            imageUrl: meta.frontUrl!,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __ )=> Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            errorWidget: (_, __, ___)=>  LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              height: 150,
+                              width: double.infinity,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              if (meta.backUrl != null) ...[
+                const SizedBox(height: 16),
+                CustomText("Back Side",fontSize: 14,fontWeight: FontWeight.w600,),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: (){
+                    Get.to(
+                          () => ImageViewScreen(
+                        appBarTitle: 'Back Side',
+                        imageUrls: [meta.backUrl!],
+                        initialIndex: 0,
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.greyE5),
+                        boxShadow: [AppShadows.textFieldShadow]
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: meta.backUrl!,
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __ )=> Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        errorWidget: (_, __, ___)=>  LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            height: 150,
+                            width: double.infinity,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 20),
+              CustomBtn(onTap: (){
+                Get.back();
+              }, title: "Close",isValidate: true,)
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
 }
 
-class _AddDocumentScreenState extends State<AddDocumentScreen> {
+class _AddDocumentScreenState extends State<AddDocumentScreen>  {
   final controller = getOrPut(() => MyDocumentsController());
 
   @override
@@ -112,6 +240,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.pan,
                                       uploadSectionLabel: AppStrings.uploadPan,
+                                      isCapitalize: true,
                                       backImage: false,
                                       textFieldLabel: AppStrings.panNumber,
                                       textFieldHint: 'E.g. ABCDE1234F',
@@ -196,6 +325,26 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                                         uploadSectionLabel:
                                             "Upload Police Verification / NOC",
                                         backImage: true),
+                                  ),
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                );
+                              },
+                            ),
+                            _buildAddButton(
+                              title: AppStrings.uploadBankDetails,
+                              document: DocumentKeys.bankDetails,
+                              status: controller.getStatus(DocumentKeys.bankDetails),
+                              onTap: () {
+
+                                Get.bottomSheet(
+                                  CommonDocumentBottomSheet(
+                                    title: AppStrings.uploadBankDetails,
+                                    child: GenericDocumentWidget(
+                                      documentType: DocumentKeys.bankDetails,
+                                      uploadSectionLabel: 'Passbook Front Page or Bank Statement',
+                                      backImage: false
+                                    ),
                                   ),
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,
@@ -488,9 +637,8 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                 if(!isUploadable)
                 InkWell(
                   onTap: () {
-                      showDocumentProofDialog(context, document);
+                      AddDocumentScreen.showDocumentProofDialog(context, document);
                   },
-
                   child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
                       decoration: BoxDecoration(
@@ -515,73 +663,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
       ],
     );
   }
-  void showDocumentProofDialog(BuildContext context, String docKey) {
-    final meta = controller.documentStatuses[docKey];
 
-    if (meta == null ||
-        (meta.frontUrl == null && meta.backUrl == null)) {
-      Get.snackbar("Info", "No document uploaded");
-      return;
-    }
-
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                "Document Proof",
-               fontSize: 18, fontWeight: FontWeight.bold
-              ),
-              const SizedBox(height: 16),
-
-              if (meta.frontUrl != null)
-                Column(crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                     CustomText("Front Side",fontSize: 14,fontWeight: FontWeight.w600,),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        meta.frontUrl!,
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
-                ),
-
-              if (meta.backUrl != null) ...[
-                const SizedBox(height: 16),
-                 CustomText("Back Side",fontSize: 14,fontWeight: FontWeight.w600,),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    meta.backUrl!,
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: 20),
-              CustomBtn(onTap: (){
-                Get.back();
-              }, title: "Close",isValidate: true,)
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   void _showPendingInstructionDialog(String document) {
     Get.dialog(

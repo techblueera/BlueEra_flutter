@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -296,11 +297,11 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     final List<MenuItemModel> menus = [
       MenuItemModel(
         title: "App Tutorial",
-        onTap: () => Get.to(AppTutorialScreen()),
+        onTap: () => Get.to(()=> AppTutorialScreen()),
       ),
       MenuItemModel(
         title: "Refer & Earn",
-        onTap: () => Get.to(ReferralPage()),
+        onTap: () => Get.to(()=> ReferralPage()),
       ),
       if (accountTypeGlobal != "BUSINESS")
         MenuItemModel(
@@ -367,7 +368,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         onTap: () => Get.toNamed(
           RouteHelper.getAddDocumentScreenRoute(),
           arguments: {
-            ApiKeys.showViewDocProof:true,
+            ApiKeys.showViewDocProof: true,
             ApiKeys.argDocumentVia: isIndividual()
                 ? AppConstants.personalDocumentScreen
                 : AppConstants.businessDocumentScreen

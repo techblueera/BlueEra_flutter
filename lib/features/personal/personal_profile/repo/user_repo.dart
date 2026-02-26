@@ -249,44 +249,39 @@ class UserRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getMyReferralCodeApi() async {
-    final response = await ApiBaseHelper().getHTTP(
-        getMyReferralCode,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+  // Future<ResponseModel> getMyReferralCodeApi() async {
+  //   final response = await ApiBaseHelper().getHTTP(
+  //       getMyReferralCode,
+  //       showProgress: false,
+  //       onError: (error) {}, onSuccess: (data) {});
+  //   return response;
+  // }
 
-  Future<ResponseModel> getMyReferralHistoryApi() async {
-    final response = await ApiBaseHelper().getHTTP(
-        getMyReferralHistory,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
-  Future<ResponseModel> joinAsBdmApi(Map<String,dynamic> params) async {
-    final response = await ApiBaseHelper().putHTTP(
-        joinAsBdm,
-        params: params,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
-  Future<ResponseModel> getBdmDetails() async {
-    final response = await ApiBaseHelper().getHTTP(
-        getBdm,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
-  Future<ResponseModel> saveNewReferralCodeApi(Map<String,dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-        saveNewReferralCode,
-        showProgress: false,
-        params: params,
-        onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
+  // Future<ResponseModel> joinAsBdmApi(Map<String,dynamic> params) async {
+  //   final response = await ApiBaseHelper().putHTTP(
+  //       joinAsBdm,
+  //       params: params,
+  //       showProgress: false,
+  //       onError: (error) {}, onSuccess: (data) {});
+  //   return response;
+  // }
+  // Future<ResponseModel> getBdmDetails() async {
+  //   final response = await ApiBaseHelper().getHTTP(
+  //       getBdm,
+  //       showProgress: false,
+  //       onError: (error) {}, onSuccess: (data) {});
+  //   return response;
+  // }
+  // Future<ResponseModel> saveNewReferralCodeApi(Map<String,dynamic> params) async {
+  //   final response = await ApiBaseHelper().postHTTP(
+  //       saveNewReferralCode,
+  //       showProgress: false,
+  //       params: params,
+  //       onError: (error) {}, onSuccess: (data) {});
+  //   return response;
+  // }
+
   Future<ResponseModel?> uploadVideoToS3({required Function(double progress) onProgress, required File file, required String fileType, required String preSignedUrl}) async {
     final response = await ApiBaseHelper().uploadVideoToS3(
       preSignedUrl,
@@ -297,5 +292,52 @@ class UserRepo extends BaseService {
     );
     return response;
   }
+
+  Future<ResponseModel> bdmRegisterStepOneRepo(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        bdmRegisterStepOne,
+        showProgress: false,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> bdmRegisterStepTwoRepo(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        bdmRegisterStepTwo,
+        showProgress: false,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> getBdmDetailsRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getBdmStatus,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> getWalletReferralStatsRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        walletReferralStats,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> getWalletReferralHistoryRepo({Map<String, dynamic>? queryParms}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        walletReferralHistory,
+        params: queryParms,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+
+
+
 
 }

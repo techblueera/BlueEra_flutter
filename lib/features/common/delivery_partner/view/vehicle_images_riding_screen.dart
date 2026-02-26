@@ -26,7 +26,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
       appBar: CommonBackAppBar(
         title: AppStrings.vehicleImages,
         // onBackTap: onBackPressed,
-        buildCustomWidget: ()=> Padding(
+        buildCustomActionWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(

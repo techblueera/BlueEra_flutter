@@ -38,7 +38,7 @@ class _AddressLocationRidingScreenState
           ? CommonBackAppBar(
         title: AppStrings.addressAndLocation,
         // onBackTap: onBackPressed,
-        buildCustomWidget: () => Padding(
+        buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: CustomText("${AppStrings.stepLabel.tr}2/3",

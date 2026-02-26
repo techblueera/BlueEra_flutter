@@ -68,7 +68,7 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
           appBar: CommonBackAppBar(
               title: controller.selectedMedicalData.value?.name,
               isShadowShow: false,
-              buildCustomWidget: () => Obx(
+              buildCustomActionWidget: () => Obx(
                     () => controller.selectedMedicalProducts.isEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 20.0),

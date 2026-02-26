@@ -50,64 +50,6 @@ class _ProfileFieldStatus {
 class ViewPersonalDetailsController extends GetxController {
   bool updateBtnLoading = false;
 
-//   RxBool isIndividualFieldLoading = false.obs;
-//   RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
-//   // RxList<SubCategories> arrIndividualSubCategoriesList = <SubCategories>[].obs;
-//   var arrIndividualSubCategoriesList = <SubCategories>[].obs;
-//
-//   // Method to update subcategories based on the parent selection
-//   void updateSubCategories(List<SubCategories>? subCategories) {
-//     // assignAll handles both clearing and adding in one go
-//     arrIndividualSubCategoriesList.assignAll(subCategories ?? []);
-//   }
-// // Observable for the selected onboarding category
-//   var selectedOnboardingCategory = Rxn<OnBoardingCategoryModel>();
-//
-//   // Your data list (usually kept in controller for clean architecture)
-//   final List<OnBoardingCategoryModel> individualCategories =
-//       individualOnboardingProfilesCategory;
-//
-//   void updateOnboardingCategory(OnBoardingCategoryModel? val) {
-//     selectedOnboardingCategory.value = val;
-//   }
-//
-//   // List of data
-//   final List<OnBoardingCategoryModel> socialProfileList =
-//       individualOnboardingSocialProfileList;
-//
-//   // Observable variable for selection
-//   var selectedSocialProfile = Rxn<OnBoardingCategoryModel>();
-//
-//   // Method to update selection
-//   void setSocialProfile(OnBoardingCategoryModel? value) {
-//     selectedSocialProfile.value = value;
-//   }
-//
-//
-//   // Observable for the Consultation selection
-//   var selectedConsultationProfile = Rxn<OnBoardingCategoryModel>();
-//
-// // The data list
-//   final List<OnBoardingCategoryModel> consultationList =
-//       individualOnboardingConsultationList;
-//
-// // Method to update selection
-//   void setConsultationProfile(OnBoardingCategoryModel? val) {
-//     selectedConsultationProfile.value = val;
-//   }
-//
-//   // Observable for the Skill Work selection
-//   var selectedSkillWorkProfile = Rxn<OnBoardingCategoryModel>();
-//
-// // The data list
-//   final List<OnBoardingCategoryModel> skillWorkList =
-//       individualOnboardingSelfWorkSkillWorkList;
-//
-// // Method to update selection
-//   void setSkillWorkProfile(OnBoardingCategoryModel? val) {
-//     selectedSkillWorkProfile.value = val;
-//   }
-
   @override
   void onInit() {
     // getAllPostApi();

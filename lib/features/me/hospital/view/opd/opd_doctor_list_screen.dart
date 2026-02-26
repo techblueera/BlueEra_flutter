@@ -44,7 +44,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
       appBar: CommonBackAppBar(
         title: "OPD Doctors",
         showRightTextButton: true,
-        buildCustomWidget: () => Padding(
+        buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 10.0),
           child: GestureDetector(
             onTap: () {
