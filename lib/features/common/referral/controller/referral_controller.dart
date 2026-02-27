@@ -293,47 +293,47 @@ submitLoading.value = false;
     }
   }
 
-  Future<void> getWalletReferralHistoryApi(String filter) async {
-    try {
-
-      Map<String, dynamic> _queryParms = {};
-      switch(filter){
-        case 'All':
-          break;
-        case 'Subscribe':
-          _queryParms['subscribed'] = true;
-          break;
-        case 'Un-Subscribe':
-          _queryParms['non-subscribed'] = true;
-          break;
-        case 'Expired':
-          _queryParms['expired'] = true;
-          break;
-      }
-
-      walletReferralHistoryResponse.value =
-          ApiResponse.initial('Initial');
-
-      final res = await UserRepo().getWalletReferralHistoryRepo(queryParms: _queryParms);
-
-      if (res.isSuccess) {
-        walletReferralHistoryResponse.value =
-            ApiResponse.complete(res.response?.data);
-        var walletReferralHistory = WalletReferralHistoryResponse.fromJson(res.response?.data);
-        referralHistoryData.value = walletReferralHistory.data ?? [];
-
-      } else {
-        commonSnackBar(
-          message: res.message ?? AppStrings.somethingWentWrong.tr,
-        );
-        walletReferralHistoryResponse.value =
-            ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
-      }
-    } catch (e) {
-      walletReferralHistoryResponse.value =
-          ApiResponse.error(e.toString());
-    }
-  }
+  // Future<void> getWalletReferralHistoryApi(String filter) async {
+  //   try {
+  //
+  //     Map<String, dynamic> _queryParms = {};
+  //     switch(filter){
+  //       case 'All':
+  //         break;
+  //       case 'Subscribe':
+  //         _queryParms['subscribed'] = true;
+  //         break;
+  //       case 'Un-Subscribe':
+  //         _queryParms['non-subscribed'] = true;
+  //         break;
+  //       case 'Expired':
+  //         _queryParms['expired'] = true;
+  //         break;
+  //     }
+  //
+  //     walletReferralHistoryResponse.value =
+  //         ApiResponse.initial('Initial');
+  //
+  //     final res = await UserRepo().getWalletReferralHistoryRepo(queryParms: _queryParms);
+  //
+  //     if (res.isSuccess) {
+  //       walletReferralHistoryResponse.value =
+  //           ApiResponse.complete(res.response?.data);
+  //       var walletReferralHistory = WalletReferralHistoryResponse.fromJson(res.response?.data);
+  //       referralHistoryData.value = walletReferralHistory.data ?? [];
+  //
+  //     } else {
+  //       commonSnackBar(
+  //         message: res.message ?? AppStrings.somethingWentWrong.tr,
+  //       );
+  //       walletReferralHistoryResponse.value =
+  //           ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+  //     }
+  //   } catch (e) {
+  //     walletReferralHistoryResponse.value =
+  //         ApiResponse.error(e.toString());
+  //   }
+  // }
 
 
 }
