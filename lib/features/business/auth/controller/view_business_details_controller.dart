@@ -105,6 +105,7 @@ class ViewBusinessDetailsController extends GetxController {
 
   RxBool isListingDescriptionEdit = true.obs;
   RxString businessDescription = "".obs;
+  RxBool isBusinessVerified = false.obs;
   RxString tempDescription = ''.obs;
   SortBy selectedFilter = SortBy.Latest;
 
@@ -238,6 +239,7 @@ class ViewBusinessDetailsController extends GetxController {
       tempDescription.value = businessDescription.value;
       controllerVisit.isFollow.value =
           businessProfileDetails?.data?.is_following ?? false;
+      isBusinessVerified.value=businessProfileDetails?.data?.businessIsVerified ?? false;
       // if (selectedBusinessType?.value.name.toLowerCase() == "both") {
       //   selectedCategoryOfBusiness.value = null;
       //   selectedSubCategoryOfBusinessNew.value = null;
