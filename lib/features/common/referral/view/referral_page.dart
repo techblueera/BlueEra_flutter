@@ -2,11 +2,12 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/model/referral_get_bdm_details_model.dart';
-import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
+import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/referral/widgets/generate_referral_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/cancel_cheque_document_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_divider.dart';
@@ -82,7 +83,6 @@ class _ReferralPageState extends State<ReferralPage> {
           );
         }
 
-
         ReferralGetBdmDetailsModel details = controller.referralBdmDetails.value;
         String status = details.status ?? 'NOT_STARTED';
         print('bdm status -- $status');
@@ -105,19 +105,26 @@ class _ReferralPageState extends State<ReferralPage> {
 
                     // Step one for adding personal details
                     (status == 'NOT_STARTED')
-                     ? InkWell(
-                        onTap: () {
-                          Get.to(()=> JoinAsBDMScreen());
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                  color: AppColors.primaryColor
-                              )
-                          ),
-                          padding: EdgeInsets.all(10),
-                          child: Center(
+                     ? Align(
+                      alignment: Alignment.centerRight,
+                       child: InkWell(
+                          onTap: () {
+                            Get.to(()=> JoinAsBDMScreen());
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: AppColors.primaryColor
+                                )
+                            ),
+                            padding: EdgeInsets.all(
+                              10,
+                            ),
+                            // padding: EdgeInsets.symmetric(
+                            //     horizontal: 15,
+                            //     vertical: 10,
+                            // ),
                             child: CustomText(
                               "Join As Business Development Manager (BDM)",
                               fontSize: 12,
@@ -125,7 +132,7 @@ class _ReferralPageState extends State<ReferralPage> {
                               color: AppColors.primaryColor,),
                           ),
                         ),
-                      )
+                     )
                      : SizedBox()
                   ],
                 ),
@@ -251,19 +258,17 @@ class _ReferralPageState extends State<ReferralPage> {
                               },
                             ),
                             _buildDocumentButton(
-                              title: AppStrings.uploadBankDetails,
-                              document: DocumentKeys.bankDetails,
-                              status: myDocumentsController.getStatus(DocumentKeys.bankDetails),
+                              title: AppStrings.uploadBankerCancelCheck,
+                              document: DocumentKeys.bankersCancelledCheque,
+                              status: myDocumentsController.getStatus(
+                                  DocumentKeys.bankersCancelledCheque),
                               onTap: () {
-
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: AppStrings.uploadBankDetails,
-                                    child: GenericDocumentWidget(
-                                        documentType: DocumentKeys.bankDetails,
-                                        uploadSectionLabel: AppStrings.uploadBankDetails,
-                                        backImage: false
-                                    ),
+                                    title: "Cancelled Cheque",
+                                    child: CancelChequeDocumentWidget(
+                                        documentType: DocumentKeys
+                                            .bankersCancelledCheque),
                                   ),
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,
@@ -432,9 +437,9 @@ class _ReferralPageState extends State<ReferralPage> {
                                 width: SizeConfig.size50,
                               ),
                               CommonVerticalDivider(
-                              height: SizeConfig.size60,
-                              width: 1,
-                              color: AppColors.whiteE5,
+                                  height: SizeConfig.size60,
+                                  width: 1,
+                                  color: AppColors.whiteE5,
                               ),
                               SizedBox(
                                 width: SizeConfig.size50,
@@ -565,8 +570,7 @@ class _ReferralPageState extends State<ReferralPage> {
     final requiredKeys = [
       DocumentKeys.aadhar,
       DocumentKeys.pan,
-      DocumentKeys.addressProof,
-      DocumentKeys.bankDetails
+      DocumentKeys.addressProof
     ];
 
     // If even one is 'notUploaded', it returns false.
@@ -575,147 +579,3 @@ class _ReferralPageState extends State<ReferralPage> {
 
 }
 
-// class GenerateReferralCodeCard extends StatelessWidget {
-//   const GenerateReferralCodeCard(
-//       {super.key, required this.referralCode, this.isEditable});
-//
-//   final String referralCode;
-//   final bool? isEditable;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final controller = getOrPut(() => ReferralController());
-//     final  referralFormKey = GlobalKey<FormState>();
-//
-//     return Container(
-//       decoration: BoxDecoration(
-//           borderRadius: BorderRadius.circular(10),
-//           color: AppColors.white
-//       ),
-//       padding: EdgeInsets.all(14),
-//       child: Form(
-//         key: referralFormKey,
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Row(
-//               children: [
-//                 LocalAssets(imagePath: AppIconAssets.multiPersonsIcon,
-//                   imgColor: AppColors.secondaryTextColor,),
-//                 SizedBox(width: 6,),
-//                 CustomText("Generate Your Referral Code", fontSize: 16,
-//                   color: AppColors.secondaryTextColor,
-//                 )
-//               ],
-//             ),
-//             SizedBox(
-//               height: 10,
-//             ),
-//             Obx(() {
-//               return CommonTextField(
-//                 fontSize: 14,
-//                 readOnly: !controller.makeReferralEditable.value,
-//                 textEditController: controller.mainReferralCode,
-//                 focusNode: controller.referralFocusNode,
-//                 isValidate: false,
-//                 hintText: "Enter Your Referral Code",
-//                 validator: (String? value) {
-//                   if (value == null || value.trim().isEmpty) {
-//                     return "Referral code cannot be empty";
-//                   }
-//                   if (value.length >= 4 && value.length<= 8){
-//                     return "Referral code must be between 4 to 8 characters";
-//                   }
-//                   return null;
-//                 },
-//                 sIcon: (isEditable == false) ?
-//                 IconButton(onPressed: () {
-//                   controller.makeReferralEditable.value = true;
-//                   Future.delayed(const Duration(milliseconds: 300), () {
-//                     if (controller.makeReferralEditable.value) {
-//                       controller.referralFocusNode.requestFocus();
-//                     }
-//                   });
-//                 }, icon:
-//                 Padding(
-//                   padding: const EdgeInsets.only(right: 12.0),
-//                   child: LocalAssets(imagePath: AppIconAssets.editIcon,
-//                     imgColor: AppColors.secondaryTextColor,),
-//                 )
-//                 ) :
-//                 IconButton(onPressed: () {
-//                   Clipboard.setData(ClipboardData(text:  controller.mainReferralCode.text));
-//                   commonSnackBar(message: "Referral copied to clipboard");
-//                 }, icon:
-//                 Container(
-//                   width: 100,
-//                   decoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(10),
-//                     border: Border.all(
-//                       color: AppColors.primaryColor,
-//                       width: 1.5,
-//                     ),
-//                   ),
-//                   child: Container(
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(8),
-//                       // slightly smaller than outer
-//                       gradient: LinearGradient(
-//                         begin: Alignment.topLeft,
-//                         end: Alignment.bottomRight,
-//                         colors: [
-//                           AppColors.primaryColor.withValues(alpha: 0.06),
-//                           AppColors.primaryColor.withValues(alpha: 0.02),
-//                         ],
-//                       ),
-//                     ),
-//                     child: Padding(
-//                       padding: const EdgeInsets.all(10.0),
-//                       child: Center(
-//                         child: Row(
-//                           children: [
-//                             Icon(Icons.copy, color: AppColors.primaryColor,),
-//                             SizedBox(width: 6,),
-//                             CustomText("Copy",
-//                               color: AppColors.primaryColor,
-//                               fontSize: 14,
-//                               fontWeight: FontWeight.w600,)
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 )
-//                 )
-//
-//                 ,
-//               );
-//             }),
-//
-//             SizedBox(height: 10,),
-//             if(isEditable == false)
-//               Row(mainAxisAlignment: MainAxisAlignment.end,
-//                 children: [
-//                   Obx(() {
-//                     return CustomBtn(
-//                         width: 100,
-//                         height: 40,
-//                         radius: 14,
-//                         isLoading: controller.updateNewCodeLoading.value,
-//                         isValidate: true,
-//                         onTap: () async {
-//                           if(referralFormKey.currentState!.validate()){
-//                             await controller.saveNewReferralCodeApi();
-//                           }
-//                         },
-//                         title: "Submit");
-//                   })
-//                 ],
-//               )
-//
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

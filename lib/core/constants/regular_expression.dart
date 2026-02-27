@@ -365,6 +365,11 @@ class ValidationMethod {
     if (value.trim().length < 2) {
       return 'Bank name must be at least 2 characters';
     }
+
+    if (!RegExp(r'^[a-zA-Z][a-zA-Z\s.&-]*$').hasMatch(value.trim())) {
+      return 'Only letters, spaces, &, -, and . are allowed';
+    }
+
     return null;
   }
 
@@ -491,8 +496,8 @@ class ValidationMethod {
 
     // 3. Check for valid format (Alphanumeric only)
     // This prevents users from entering spaces, symbols, or emojis
-    if (!RegExp(r'^[A-Za-z0-9]+$').hasMatch(trimmedValue)) {
-      return 'Only letters and numbers are allowed';
+    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$').hasMatch(trimmedValue)) {
+      return "Code must contain both letters and numbers";
     }
 
     return null; // Valid

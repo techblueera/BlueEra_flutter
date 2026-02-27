@@ -6,11 +6,15 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class PromoCodeDialog extends StatefulWidget {
+  final Function(String) onBtnPressed;
 
   const PromoCodeDialog({
     super.key,
+    required this.onBtnPressed,
   });
 
   @override
@@ -65,8 +69,13 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
               textEditController: promoCodeController,
               keyBoardType: TextInputType.text,
               title: 'Enter Promo Code',
-              hintText: 'E.g.456856',
+              hintText: 'E.g. SAVE20',
               isValidate: false,
+              isCapitalize: true,
+              inputLength: 10,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+              ],
               validator: (value){
                 final trimmedValue = value?.trim();
 
@@ -76,12 +85,12 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
                 }
 
                 // If they typed something, enforce the rules
-                if (trimmedValue.length != 6) {
-                  return 'Promo code must be exactly 6 characters';
+                if (trimmedValue.length < 4 || trimmedValue.length > 10) {
+                  return "Referral code must be between 4 to 10 characters";
                 }
 
-                if (!RegExp(r'^[A-Za-z0-9]+$').hasMatch(trimmedValue)) {
-                  return 'Only letters and numbers are allowed';
+                if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$').hasMatch(trimmedValue)) {
+                  return "Code must contain both letters and numbers";
                 }
 
                 return null;
@@ -104,13 +113,16 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
                   bgColor: hasText ? AppColors.greenShade : AppColors.primaryColor,
                   title: hasText ? "Submit" : "No, I Don’t have",
                   onTap: () {
-                    if (hasText) {
-                      // Logic for Submit
-                      print("Promo Code: ${promoCodeController.text}");
-                    } else {
-                      // Logic for closing
-                      Navigator.pop(context);
-                    }
+                    Get.back();
+                    widget.onBtnPressed(promoCodeController.text.trim());
+                    // if (hasText) {
+                    //   // Logic for Submit
+                    //   print("Promo Code: ${promoCodeController.text}");
+                    //   widget.onBtnPressed(promoCodeController.text);
+                    // } else {
+                    //   // Logic for closing
+                    //   Navigator.pop(context);
+                    // }
                   },
                 );
               },

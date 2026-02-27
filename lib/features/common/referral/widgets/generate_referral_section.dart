@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class GenerateReferralSection extends StatelessWidget {
@@ -59,22 +60,37 @@ class GenerateReferralSection extends StatelessWidget {
               readOnly: !isEligible,
               focusNode: controller.referralFocusNode,
               isValidate: true,
+              isCapitalize: true,
               hintText: "Enter Your Referral Code",
-              inputLength: 8,
+              inputLength: 10,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+              ],
               validator: (String? value) {
                 final trimmed = value?.trim();
                 if (trimmed == null || trimmed.isEmpty) {
                   return "Referral code cannot be empty";
                 }
-                if (trimmed.length < 4 || trimmed.length > 8) {
-                  return "Referral code must be between 4 to 8 characters";
+                if (trimmed.length < 4 || trimmed.length > 10) {
+                  return "Referral code must be between 4 to 10 characters";
                 }
                 // Optional: Prevent special characters
-                if (!RegExp(r'^[A-Za-z0-9]+$').hasMatch(trimmed)) {
-                  return "Only letters and numbers allowed";
+                if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$').hasMatch(trimmed)) {
+                  return "Code must contain both letters and numbers";
                 }
                 return null;
               },
+            ),
+
+            // 2. Add a tiny bit of spacing
+            const SizedBox(height: 6),
+
+            // 3. The Human-Readable Helper Text
+            CustomText(
+              "Tip: Use 4-10 characters, mixing letters and numbers (e.g., SAVE50).",
+              fontSize: SizeConfig.small,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w400,
             ),
         
             SizedBox(height: SizeConfig.paddingXSL),

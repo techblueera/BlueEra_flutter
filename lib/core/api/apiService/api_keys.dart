@@ -731,4 +731,5 @@ class ApiKeys {
   static const upiId = 'upiId';
   static const group_cover_image = 'group_cover_image';
   static const fullName = 'fullName';
+  static const referralCode = 'referralCode';
 }

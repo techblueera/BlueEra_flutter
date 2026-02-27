@@ -1,14 +1,14 @@
 class SubscriptionTrialInitiate {
   bool? success;
   String? message;
-  Data? data;
+  SubscriptionTrialInitiateData? data;
 
   SubscriptionTrialInitiate({this.success, this.message, this.data});
 
   SubscriptionTrialInitiate.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? new SubscriptionTrialInitiateData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -22,21 +22,21 @@ class SubscriptionTrialInitiate {
   }
 }
 
-class Data {
+class SubscriptionTrialInitiateData {
   String? subscriptionId;
   int? amount;
   String? currency;
   String? keyId;
   String? subscriptionPlanId;
 
-  Data(
+  SubscriptionTrialInitiateData(
       {this.subscriptionId,
         this.amount,
         this.currency,
         this.keyId,
         this.subscriptionPlanId});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  SubscriptionTrialInitiateData.fromJson(Map<String, dynamic> json) {
     subscriptionId = json['subscription_id'];
     amount = json['amount'];
     currency = json['currency'];

@@ -216,7 +216,8 @@ class PaidSubscriptionPlansScreen extends StatelessWidget {
 
   Future<void> _handlePaymentProcess() async {
     final handler = SubscriptionPaymentHandler(controller);
-    handler.processSubscription();
+    handler.showReferralCodeDialog();
+    // handler.processSubscription();
     }
 
   /// Custom Circular Indicator

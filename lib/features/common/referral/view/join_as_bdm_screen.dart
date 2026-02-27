@@ -4,10 +4,13 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/webview_common.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/personal_profile_details_model.dart';
@@ -248,7 +251,7 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                       ),
                       SizedBox(height: SizeConfig.paddingM),
                       _label(
-                          "In Which Location You Want to Start Your Franchise?"),
+                          "In Which Location You Want to Work?"),
                       Row(
                         children: [
                           Expanded(
@@ -338,10 +341,13 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                       SizedBox(height: SizeConfig.paddingM),
                 
                       CommonTextField(
-                        title: "Address",
+                        title: "Address (As per your Document)",
                         regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                         hintText: AppStrings.addressHint,
                         isValidate: false,
+                        maxLength: AppConstants.inputCharterLimit200,
+                        isCounterVisible: true,
+                        maxLine: 3,
                         textEditController: controller.addressController,
                         inputLength: AppConstants.inputCharterLimit50,
                 
@@ -379,17 +385,47 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                               }),
                             ),
                             const SizedBox(width: 8),
+                            // ... inside your Row ...
                             Expanded(
-                              child: CustomText(
-                                "I Accept All Terms & Condition And I hereby authorize you to send notifications via SMS/RCS Messages/ Promotional/informational Messages.",
-                                fontSize: 13,
-                                color: AppColors.secondaryTextColor,
+                              child: RichText(
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: "I Accept All "),
+
+                                    // 2. The clickable Terms & Conditions span
+                                    TextSpan(
+                                      text: "Terms & Condition",
+                                      style: const TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          Get.to(() => CommonWebView(
+                                            urlLink: bdoTncLink,
+                                            urlTitle:
+                                            AppStrings.termsConditions.tr,
+                                          ));
+                                        },
+                                    ),
+
+                                    const TextSpan(
+                                      text: " And I hereby authorize you to send notifications via SMS/RCS Messages/ Promotional/informational Messages.",
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: SizeConfig.paddingM),
+
+                      SizedBox(height: SizeConfig.paddingL),
                 
                       /// SUBMIT BUTTON
                       Obx(() {

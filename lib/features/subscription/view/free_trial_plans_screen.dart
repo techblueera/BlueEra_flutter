@@ -128,7 +128,8 @@ class FreeTrialPlanScreen extends StatelessWidget {
                       title: "Pay",
                       onTap: () {
                         final handler = SubscriptionPaymentHandler(controller);
-                        handler.processSubscription();
+                        handler.showReferralCodeDialog();
+                        // handler.processSubscription();
                       },
                     )
                   ],

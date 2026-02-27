@@ -5,6 +5,9 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
+import 'package:BlueEra/features/subscription/auth/model/subscription_list_details_model.dart';
+import 'package:BlueEra/features/subscription/auth/model/subscription_trial_initiate.dart';
+import 'package:BlueEra/features/subscription/widget/promo_code_dialog.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_success_dialog.dart';
 import 'package:get/get.dart';
 
@@ -13,7 +16,35 @@ class SubscriptionPaymentHandler {
 
   SubscriptionPaymentHandler(this.controller);
 
-  Future<void> processSubscription() async {
+  void showReferralCodeDialog() {
+    Get.dialog(
+      PromoCodeDialog(
+        onBtnPressed: (refCode) {
+          processSubscription(refCode);
+        },
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void showSuccess() {
+    Get.dialog(
+      SubscriptionSuccessDialog(
+        title: "Congratulations",
+        message: "Your subscription was successful. Enjoy your premium benefits!",
+        onBtnPressed: () {
+          // Closes the dialog
+          Get.back();
+
+          // Refresh the controller data
+          Get.find<SubscriptionController>().userCurrentPlanApi();
+        },
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  Future<void> processSubscription(String refCode) async {
     final subscriptionPlanData = controller
         .subscriptionPlanDetailsNewModel
         .value
@@ -23,6 +54,7 @@ class SubscriptionPaymentHandler {
     await controller.subscriptionTrialInitiate(
       params: {
         ApiKeys.subscriptionPlanId: subscriptionPlanData?.id,
+        if(refCode.isNotEmpty) ApiKeys.referralCode: refCode,
       },
     );
 
@@ -37,10 +69,13 @@ class SubscriptionPaymentHandler {
     }
   }
 
-  void _launchRazorpay(dynamic data, dynamic planData) {
+  void _launchRazorpay(
+      SubscriptionTrialInitiateData? data,
+      SubscriptionPlanData? planData) {
     final razorpayService = RazorpayService();
 
     razorpayService.openCheckout(
+      razorpayKeyId: data?.keyId,
       name: AppConstants.appName,
       subscriptionId: data?.subscriptionId ?? "",
       description: 'Subscription Payment',
@@ -66,21 +101,9 @@ class SubscriptionPaymentHandler {
     );
     showSuccess();
   }
+
+
 }
 
-void showSuccess() {
-  Get.dialog(
-    SubscriptionSuccessDialog(
-      title: "Congratulations",
-      message: "Your subscription was successful. Enjoy your premium benefits!",
-      onBtnPressed: () {
-        // Closes the dialog
-        Get.back();
 
-        // Refresh the controller data
-        Get.find<SubscriptionController>().userCurrentPlanApi();
-      },
-    ),
-    barrierDismissible: false,
-  );
-}
+

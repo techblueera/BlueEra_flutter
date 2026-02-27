@@ -125,7 +125,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
 
   // --- FILTER TABS ---
   Widget _buildFilterTabs() {
-    return SingleChildScrollView(
+    return Obx(()=> SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -162,7 +162,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
           );
         }).toList(),
       ),
-    );
+    ));
   }
 
   // --- MAIN CONTAINER HEADER ---

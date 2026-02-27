@@ -729,6 +729,9 @@ abstract class BaseService {
   final String  walletReferralStats = 'wallet-service/wallet/referral-stats';
   final String  walletReferralHistory = 'wallet-service//wallet/referral-history';
   final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
+  String checkReferral(String referralCode) => 'wallet-service/wallet/check-referral/$referralCode';
+  final String  referralSuggestions = 'wallet-service//wallet-service/bdm/referral-suggestions';
+
   ///HOSPITAL NEW...
   final String  aiCreateHospital= 'hospital-service/ai/create-hospital';
   final String  userSelfHospital= 'hospital-service/hospitals/user/hospitals';
