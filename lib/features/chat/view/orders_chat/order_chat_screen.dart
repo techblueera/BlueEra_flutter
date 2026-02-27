@@ -101,9 +101,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
               editingController: editingController,
               conversationId: widget.conversationId,
               userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              contactNo: widget.contactNo)
+             )
               : getChatTitleAppBar(socketType: "personal",
               context,
 

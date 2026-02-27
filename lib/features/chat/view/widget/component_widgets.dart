@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
@@ -30,6 +31,8 @@ import '../group_chat/view_group_members.dart';
 import '../group_chat/widgets/delete_chat_history_dialog.dart';
 import '../group_chat/widgets/pin_message_dialoge_widget.dart';
 import '../symbol_view/symbol_view_images.dart';
+import 'common_ai_chat_topics.dart';
+import 'common_delete_message.dart';
 
 Widget timeAndReadInfoWidget({required Messages message,
   required bool isMyMessage,
@@ -400,7 +403,7 @@ Widget ChatListTile({
                         width: SizeConfig.size44,
                         height: SizeConfig.size44,
                       )
-                          : Image.file(
+                          : (senderProfileImage.startsWith('assets'))?Image.asset(senderProfileImage): Image.file(
                         File(senderProfileImage),
                         width: SizeConfig.size44,
                         height: SizeConfig.size44,
@@ -909,21 +912,29 @@ void _navigateToProfile({required String authorId, required String type}) {
 }
 
 AppBar getChatTitleAppBar(BuildContext context, {
-  required String? userId,
-  required String? conversationId,
-  required String? type,
-  required String? socketType,
-  required String? name,
-  required String? contactNo,
+  String? userId,
+  String? conversationId,
+  String? type,
+  String? socketType,
+  String? name,
+  String? contactNo,
   VoidCallback? onBackCallback,
   String? profileImage,
   bool? isGroupAppBar,
   bool? isGroupPrivate,
+  bool? isFromAiChat,
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
-
+  void SendMessageToAI({required String message, String? tag}){
+    chatViewController
+        .sendMessageToAiSocket(
+        type: AppConstants.personal_Chat_Type,
+        tag:tag,
+        message: message
+    );
+  }
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,
@@ -994,7 +1005,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 profileImage.isNotEmpty)
                 ? ((profileImage.contains('http'))
                 ? NetworkImage(profileImage)
-                : FileImage(File(profileImage)) as ImageProvider)
+                :(profileImage.startsWith('assets'))?AssetImage(profileImage): FileImage(File(profileImage)) as ImageProvider)
                 : null,
 
             child: (profileImage == 'null')
@@ -1070,7 +1081,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ? null
         : [
       SizedBox(width: SizeConfig.size8),
-      if(isGroupAppBar == null)
+      if(isGroupAppBar == null&&isFromAiChat!=true)
         InkWell(
             onTap: () {
               // Map<String,dynamic> data={
@@ -1096,6 +1107,59 @@ AppBar getChatTitleAppBar(BuildContext context, {
               launchDialPad(contactNo ?? '');
             },
             child: SvgPicture.asset(AppIconAssets.chat_call)),
+      if(isFromAiChat==true)
+        PopupMenuButton<String>(
+          menuPadding: EdgeInsets.zero,
+          icon: SvgPicture.asset(AppIconAssets.editIcon,color: AppColors.black,),
+          padding: EdgeInsets.zero,
+          color: AppColors.white,
+          elevation: 8,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          onSelected: (value) {
+
+          },
+          itemBuilder: (context) => popPupMenuForAiChat(),
+        ),
+      InkWell(
+        onTap: (){
+          Get.dialog(
+            GestureDetector(
+              onTap: () {
+                Get.back(); // 👈 close when tapping empty space
+              },
+              behavior: HitTestBehavior.opaque, // IMPORTANT
+              child: Material(
+                color: Colors.black.withOpacity(0.2), // optional dim background
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12, bottom: 20,top: 110),
+                    child: GestureDetector(
+                      onTap: () {}, // 👈 prevent dialog tap from closing
+                      child: InitialMessageOptionDialog(
+                        userName: userNameGlobal,
+                        topics: AppConstants.aiChatTopics,
+                        onSend: (message, tag) {
+
+                          SendMessageToAI(message: message, tag: tag);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            barrierDismissible: false, // handled manually now (more reliable)
+          );
+        },
+        child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppColors.primaryColor)
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
+            child: CustomText("New",color: AppColors.primaryColor,)),
+      ),
       SizedBox(width: SizeConfig.size12),
       // SvgPicture.asset(AppIconAssets.chat_video_call),
       // const SizedBox(width: 12),
@@ -1141,7 +1205,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
             },
           itemBuilder: (context) => popPupMenuForGroupChat(),
         )
-      else
+      else if (isFromAiChat==false)
         SvgPicture.asset(AppIconAssets.chat_info_pop),
       SizedBox(width: SizeConfig.size8),
 
@@ -1161,13 +1225,11 @@ void showDeleteChatDialog(String conId) {
   );
 }
 PreferredSize getChatOptionsAppBar(BuildContext context, {
-  required String? userId,
-  required String? conversationId,
-  required String? type,
-  required String? name,
-  required String? contactNo,
-  required TextEditingController editingController,
+   String? userId,
+   String? conversationId,
+   TextEditingController? editingController,
   String? profileImage,
+  bool? isFromAiChat,
 }) {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
@@ -1202,86 +1264,46 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           onPressed: () {
             showDialog(
               context: context,
-              builder: (_) =>
-                  AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: CustomText("Are you sure you want to delete?",
-                        color: Colors.black),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: () async {
-                            FocusScope.of(context).unfocus();
-                            Map<String, dynamic> data = {
-                              ApiKeys.conversation_id: "${conversationId}",
-                              ApiKeys.delete_from_every_one: false,
-                              ApiKeys.message_id_list:
-                              chatThemeController.selectedId
-                            };
-                            await chatViewController.deleteChatMessage(
-                                data, userId ?? '');
-                            chatThemeController.resetSelection();
-                            chatThemeController.deActivateSelection();
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(SizeConfig.size12),
-                            margin: EdgeInsets.only(bottom: SizeConfig.size10),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(
-                                  SizeConfig.size10),
-                            ),
-                            child: Center(
-                              child: CustomText(
-                                "Delete for me",
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        (chatThemeController.isDeleteForEveryOneAvailable.value)
-                            ? GestureDetector(
-                          onTap: () async {
-                            FocusScope.of(context).unfocus();
-                            Map<String, dynamic> data = {
-                              ApiKeys.conversation_id: "${conversationId}",
-                              ApiKeys.delete_from_every_one: true,
-                              ApiKeys.message_id_list:
-                              chatThemeController.selectedId
-                            };
-                            await chatViewController.deleteChatMessage(
-                                data, userId ?? '');
-                            chatThemeController.resetSelection();
-                            chatThemeController.deActivateSelection();
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(SizeConfig.size12),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(
-                                  SizeConfig.size10),
-                            ),
-                            child: Center(
-                              child: CustomText(
-                                "Delete for everyone",
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        )
-                            : SizedBox(),
-                      ],
-                    ),
-                  ),
+              builder: (_) => CommonDeleteDialog(
+                showDeleteForEveryone:
+                chatThemeController.isDeleteForEveryOneAvailable.value,
+
+                onDeleteForMe: () async {
+                  FocusScope.of(context).unfocus();
+
+                  Map<String, dynamic> data = {
+                    ApiKeys.conversation_id: "$conversationId",
+                    ApiKeys.delete_from_every_one: false,
+                    ApiKeys.message_id_list: chatThemeController.selectedId
+                  };
+
+                  await chatViewController
+                      .deleteChatMessage(data, userId ?? '');
+
+                  chatThemeController.resetSelection();
+                  chatThemeController.deActivateSelection();
+
+                  Navigator.pop(context);
+                },
+
+                onDeleteForEveryone: () async {
+                  FocusScope.of(context).unfocus();
+
+                  Map<String, dynamic> data = {
+                    ApiKeys.conversation_id: "$conversationId",
+                    ApiKeys.delete_from_every_one: true,
+                    ApiKeys.message_id_list: chatThemeController.selectedId
+                  };
+
+                  await chatViewController
+                      .deleteChatMessage(data, userId ?? '');
+
+                  chatThemeController.resetSelection();
+                  chatThemeController.deActivateSelection();
+
+                  Navigator.pop(context);
+                },
+              ),
             );
           },
         ),
@@ -1295,7 +1317,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
             size: SizeConfig.size22,
           ),
           onPressed: () {
-            editingController.text = chatThemeController
+            editingController?.text = chatThemeController
                 .selectedFirstMessage?.value?.message ??
                 '';
             showMessageEditDialog(
@@ -1382,7 +1404,7 @@ void launchDialPad(String phoneNumber) async {
 
 void showMessageEditDialog(String userId,
     String conversationId,
-    TextEditingController editingController,
+    TextEditingController? editingController,
     ChatThemeController chatThemeController,
     ChatViewController chatViewController) {
   Get.dialog(
@@ -1466,7 +1488,7 @@ void showMessageEditDialog(String userId,
                       ApiKeys.id:
                       "${chatThemeController.selectedFirstMessage?.value?.id}",
                       ApiKeys.type: "message",
-                      ApiKeys.message: "${editingController.text}"
+                      ApiKeys.message: "${editingController?.text}"
                     };
                     bool value =
                     await chatViewController.updateMessageApi(data);

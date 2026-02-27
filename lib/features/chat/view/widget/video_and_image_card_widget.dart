@@ -8,7 +8,6 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
-import '../media_view_page/medias_slider_page.dart';
 import '../orders_chat/order_chat_screen.dart';
 import 'component_widgets.dart';
 import 'custom_video_player.dart';
@@ -192,131 +191,80 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
   {
     final isVideo = path.url?.toLowerCase().endsWith('.mp4');
     return (isVideo ?? false)
-        ? GestureDetector(
-      onLongPress: (){
-        chatThemeController.activateSelection(message);
-      },
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        if(chatThemeController.isMessageSelectionActive.value){
-          chatThemeController.selectMoreMessage(message);
-        }else{
-          Get.to(()=>MediaSliderPage(conversationId: widget.conversationId, conversationPersonName: widget.name??"", seletedUrl: path.url??'',));
-
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) =>
-          //         VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
-          //   ),
-          // );
-        }
-      },
-      child: ChatVideoMessage(message: message,
-        userId: widget.userId.toString(),
-        conversation: widget.conversationId.toString(),
-        videoUrl: path,
-        time: time,
-        views: 0,
-        likes: 0,
-        comments: 0,
-        isReceiveMsg: isReceiveMsg,
-      ),
-    )
-        : GestureDetector(
-      onLongPress: (){
-        chatThemeController.activateSelection(message);
-      },
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        if(chatThemeController.isMessageSelectionActive.value){
-          chatThemeController.selectMoreMessage(message);
-        }else{
-         Get.to(()=>MediaSliderPage(conversationId: widget.conversationId, conversationPersonName: widget.name??"",seletedUrl: path.url??'',));
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) =>
-          //         VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
-          //   ),
-          // );
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) =>
-          //         FullImagePreviewPage(
-          //           images: [path],
-          //           initialIndex: 0,
-          //         ),
-          //   ),
-          // );
-        }
-      },
-      child: Container(
-        child: Align(
-          alignment:
-          isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
+        ? ChatVideoMessage(message: message,
+          userId: widget.userId.toString(),
+          conversation: widget.conversationId.toString(),
+          videoUrl: path,
+          time: time,
+          views: 0,
+          likes: 0,
+          comments: 0,
+          isReceiveMsg: isReceiveMsg,
+        )
+        :  Container(
+      child: Align(
+        alignment:
+        isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: isReceiveMsg
+                          ? chatThemeController.receiveMessageBgColor.value
+                          : chatThemeController.myMessageBgColor.value,
+                      width: 2)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: (path.url!.contains('http'))?
+                Image.network(path.url ?? '',
+                    height: 250, width: 252, fit: BoxFit.cover):
+                Image.file(File(path.url ?? ''),
+                    height: 250, width: 252, fit: BoxFit.cover),
+              ),
+            ),
+            Positioned(
+              bottom: 2,
+              left: !isReceiveMsg ? 2 : null,
+              right: isReceiveMsg ? 2 : null,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  (message.message != null && message.message != '')
+                      ? Container(
+                    decoration: BoxDecoration(
                         color: isReceiveMsg
                             ? chatThemeController.receiveMessageBgColor.value
                             : chatThemeController.myMessageBgColor.value,
-                        width: 2)),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: (path.url!.contains('http'))?
-                  Image.network(path.url ?? '',
-                      height: 250, width: 252, fit: BoxFit.cover):
-                  Image.file(File(path.url ?? ''),
-                      height: 250, width: 252, fit: BoxFit.cover),
-                ),
-              ),
-              Positioned(
-                bottom: 2,
-                left: !isReceiveMsg ? 2 : null,
-                right: isReceiveMsg ? 2 : null,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    (message.message != null && message.message != '')
-                        ? Container(
-                      decoration: BoxDecoration(
-                          color: isReceiveMsg
-                              ? chatThemeController.receiveMessageBgColor.value
-                              : chatThemeController.myMessageBgColor.value,
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(10),
-                          )
-                      ),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      child: CustomText("${message.message}",
-                        fontWeight: FontWeight.w500,
-                        color: isReceiveMsg ? Colors.black87 : Colors.white,
-                        fontSize: 14,
-                      ),
-                    )
-                        : SizedBox(),
-                    ReactionInfoWidget(message: message,
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(10),
+                        )
+                    ),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    child: CustomText("${message.message}",
+                      fontWeight: FontWeight.w500,
+                      color: isReceiveMsg ? Colors.black87 : Colors.white,
+                      fontSize: 14,
+                    ),
+                  )
+                      : SizedBox(),
+                  ReactionInfoWidget(message: message,
 
-                      time: time,
-                      userId: widget.userId.toString(),
-                      conversation: widget.conversationId.toString(),),
-                  ],
-                ),
+                    time: time,
+                    userId: widget.userId.toString(),
+                    conversation: widget.conversationId.toString(),),
+                ],
               ),
-              Positioned(
-                bottom: 26,
-                right: !isReceiveMsg ? 12 : null,
-                left: isReceiveMsg ? 12 : null,
-                child: Text(time,
-                    style: TextStyle(color: Colors.white, fontSize: 10)),
-              )
-            ],
-          ),
+            ),
+            Positioned(
+              bottom: 26,
+              right: !isReceiveMsg ? 12 : null,
+              left: isReceiveMsg ? 12 : null,
+              child: Text(time,
+                  style: TextStyle(color: Colors.white, fontSize: 10)),
+            )
+          ],
         ),
       ),
     );
@@ -362,9 +310,6 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                         paths[index].url?.toLowerCase().endsWith('.mp4');
                         final showOverlay = paths.length > 4 && index == 3;
                         return GestureDetector(
-                          onLongPress: (){
-                            chatThemeController.activateSelection(message);
-                          },
                           onTap: () {
                             FocusScope.of(context).unfocus();
                             if(chatThemeController.isMessageSelectionActive.value){

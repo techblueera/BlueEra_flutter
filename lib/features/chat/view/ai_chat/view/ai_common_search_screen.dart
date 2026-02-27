@@ -607,9 +607,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
           editingController: editingController,
           conversationId: widget.conversationId,
           userId: widget.userId,
-          type: widget.type,
-          name: widget.name,
-          contactNo: widget.contactNo)
+          )
           : getChatTitleAppBar(
           socketType: "personal",
           context,

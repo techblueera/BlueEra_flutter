@@ -291,7 +291,6 @@ class ChatViewController extends GetxController {
     'Others'
   ];
 
-  // variable for ai search
   Rxn<CollapsibleGridModel> askAiFor = Rxn<CollapsibleGridModel>();
   final List<CollapsibleGridModel> arrAskForOptions = [
     CollapsibleGridModel(
@@ -1749,6 +1748,7 @@ class ChatViewController extends GetxController {
 
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
+
       NewConvoContactVisitDetails value =
           NewConvoContactVisitDetails.fromJson(data);
       return {

@@ -59,11 +59,9 @@ class _AskChatScreenState extends State<AskChatScreen> {
             editingController: editingController,
             conversationId: widget.conversationId,
             userId: widget.userId,
-            type: widget.type,
-            name: widget.name,
-            contactNo: widget.contactNo)
+           )
             : getChatTitleAppBar(
-            socketType: "personal",
+            socketType:AppConstants.personal,
             context,
             userId: widget.userId,
             type: widget.type,
@@ -282,12 +280,7 @@ class _AskChatScreenState extends State<AskChatScreen> {
                                     Get.to(()=> AiChatScreen(
                                         profileImage: chat?.sender?.profileImage,
                                         name: chat?.sender?.name,
-                                        contactNo: chat?.sender?.contactNo,
-                                        conversationId: '',
-                                        userId: '',
-                                        businessId: '',
                                         type: chat?.sender?.accountType,
-                                        isInitialMessage: false
                                     ));
                                     break;
                                   default:

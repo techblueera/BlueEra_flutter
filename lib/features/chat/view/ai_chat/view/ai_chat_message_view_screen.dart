@@ -1,29 +1,37 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../core/constants/app_strings.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
+import '../../widget/common_ai_chat_topics.dart';
 import '../../widget/message_card.dart';
-class AiChatMessageViewScreen extends StatelessWidget {
-  const AiChatMessageViewScreen({super.key, required this.messages, required this.type, this.conversationId, this.userId, this.profileImage, this.businessId, this.name, this.contactNo, required this.isInitialMessage,});
+class AiChatMessageViewScreen extends StatefulWidget {
+  const AiChatMessageViewScreen({super.key, required this.messages, required this.type});
   final  List<Messages> messages;
-  final String? conversationId;
-  final String? userId;
-  final String? profileImage;
-  final String? businessId;
-  final String? name;
-  final String? contactNo;
   final String? type;
-  final bool isInitialMessage;
+  @override
+  State<AiChatMessageViewScreen> createState() => _AiChatMessageViewScreenState();
+}
+
+class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
+  final chatViewController = Get.find<ChatViewController>();
+
   @override
   Widget build(BuildContext context) {
-    final chatViewController = Get.find<ChatViewController>();
 
-    return (messages.isEmpty)
-        ? SizedBox()
+    return (widget.messages.isEmpty)
+        ? InitialMessageOptionDialog(
+      userName: userNameGlobal,
+      topics: AppConstants.aiChatTopics,
+      onSend: (message, tag) {
+        SendMessageToAI(message: message, tag: tag);
+      },
+    )
         : LayoutBuilder(
       builder: (context, constraints) {
         return ConstrainedBox(
@@ -38,26 +46,34 @@ class AiChatMessageViewScreen extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 controller: chatViewController
                     .scrollController,
-                reverse: (type == AppStrings.Admin)
+                reverse: (widget.type == AppStrings.Admin)
                     ? false
                     : true,
-                child: Column(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment:
                   MainAxisAlignment.end,
-                  children: messages.map((message) {
+                  children: [
+                    ...widget.messages.map((message) {
                     return MessageCard(
                       message: message,
-                      isInitialMessage:
-                      isInitialMessage,
+                      isInitialMessage:false,
                       conversationId:
-                      conversationId,
-                      userId: userId,
-                      name: name,
-                      contactNo:contactNo,
+                      message.conversationId,
+                      userId: message.sender?.id,
+                      name: message.sender?.name,
+                      contactNo:message.sender?.contactNo,
                       profileImage:
-                      profileImage,
+                      message.sender?.profileImage,
                     );
                   }).toList(),
+                    InitialMessageOptionDialog(
+                      userName: userNameGlobal,
+                      topics: AppConstants.aiChatTopics,
+                      onSend: (message, tag) {
+                        SendMessageToAI(message: message, tag: tag);
+                      },
+                    )
+                  ],
                 ),
               ),
             ),
@@ -66,6 +82,17 @@ class AiChatMessageViewScreen extends StatelessWidget {
       },
     );
   }
+
+
+  void SendMessageToAI({required String message, String? tag}){
+    chatViewController
+        .sendMessageToAiSocket(
+        type: widget.type ?? '',
+        tag:tag,
+        message: message
+    );
+  }
+
 }
 
 class TopicButton extends StatelessWidget {
