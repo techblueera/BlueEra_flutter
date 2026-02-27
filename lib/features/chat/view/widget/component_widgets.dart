@@ -15,15 +15,18 @@ import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
+import '../call_screen/call_screen.dart';
 import '../chat_screen_new.dart';
 import '../contacts/contact_list_page.dart';
 import '../group_chat/view_group_members.dart';
@@ -923,6 +926,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
+  final callController = getOrPut(() => CallController());
 
   return AppBar(
     elevation: 0,
@@ -1073,27 +1077,28 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isGroupAppBar == null)
         InkWell(
             onTap: () {
-              // Map<String,dynamic> data={
-              //   if(conversationId!=null)
-              //     "conversation_id": "${conversationId}",
-              //   if(conversationId==null)
-              //     "other_user_id": "${userId}",
-              //   "call_type": "audio_call"
-              // };
-              // callController.callToUser(data);
-              // Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //         builder: (context) => AudioCallScreen(
-              //               isCaller: true,
-              //               conversationId: conversationId,
-              //               userId: userId,
-              //               callerName: name ?? '',
-              //           conversation_id: conversationId??'',
-              //           receiverImage: '',
-              //           receiverUserName: name ?? '',
-              //             )));
-              launchDialPad(contactNo ?? '');
+
+              Map<String,dynamic> data={
+                if(conversationId!=null)
+                  ApiKeys.conversation_id: "${conversationId}",
+                if(conversationId==null)
+                  ApiKeys.other_user_id: "${userId}",
+                ApiKeys.call_type: "audio_call"
+              };
+              callController.callToUser(data);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AudioCallScreen(
+                            isCaller: true,
+                            conversationId: conversationId,
+                            userId: userId,
+                            callerName: name ?? '',
+                        conversation_id: conversationId??'',
+                        receiverImage: '',
+                        receiverUserName: name ?? '',
+                          )));
+              // launchDialPad(contactNo ?? '');
             },
             child: SvgPicture.asset(AppIconAssets.chat_call)),
       SizedBox(width: SizeConfig.size12),
