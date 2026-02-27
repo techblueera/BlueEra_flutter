@@ -65,156 +65,146 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget build(BuildContext context) {
 
     chatThemeController.isMessageSelectionActive;
-
-    return GestureDetector(
-
-      onTap: (){
-        if(chatThemeController.isMessageSelectionActive.value){
-          chatThemeController.selectMoreMessage(widget.messages);
-        }
-      },
-
+    return Container(
+      width: double.infinity,
+      color: Colors.transparent,
       child: Container(
-        width: double.infinity,
-        color: Colors.transparent,
-        child: Container(
-          width: 254,
-          margin: EdgeInsets.only(left: (widget.isReceiveMsg)?0:50,right:  (widget.isReceiveMsg)?50:0),
-          child: Align(
-            alignment: (widget.isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
-            child: IntrinsicWidth(
-              // stepWidth: 200,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                decoration: BoxDecoration(
-                  color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular((widget.isReceiveMsg) ? 12 : 0),
-                    bottomLeft: Radius.circular((widget.isReceiveMsg) ? 0 : 12),
-                  ),
+        width: 254,
+        margin: EdgeInsets.only(left: (widget.isReceiveMsg)?0:50,right:  (widget.isReceiveMsg)?50:0),
+        child: Align(
+          alignment: (widget.isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
+          child: IntrinsicWidth(
+            // stepWidth: 200,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+              decoration: BoxDecoration(
+                color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular((widget.isReceiveMsg) ? 12 : 0),
+                  bottomLeft: Radius.circular((widget.isReceiveMsg) ? 0 : 12),
                 ),
-                child: Column(mainAxisSize: MainAxisSize.min,
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min,
 
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    (widget.messages.replyId!=null&&widget.messages.replyId!=''&&widget.messages.replyId!='null')?Container(
-                      height: 46,
-                      margin: EdgeInsets.only(bottom: 4),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  (widget.messages.replyId!=null&&widget.messages.replyId!=''&&widget.messages.replyId!='null')?Container(
+                    height: 46,
+                    margin: EdgeInsets.only(bottom: 4),
 
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(0),
-                          topRight: Radius.circular(8),
-                          bottomRight: Radius.circular(8),
-                        ),
-                        color: AppColors.greyA5..withValues(alpha: 0.4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(0),
+                        topRight: Radius.circular(8),
+                        bottomRight: Radius.circular(8),
                       ),
-                      padding: EdgeInsets.only(right: 8),
-                      child: Center(child: Row(
-                        children: [
-                          Container(
-                            height: 40,
-                            width: 3,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 8,),
-
-                          InkWell(
-                            onTap: (){
-                              chatViewController.scrollController.jumpTo(100);
-                            },
-                            child: SizedBox(
-                              width: 200,
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  CustomText("${(widget.messages.replyParentMessage?.myMessage??false)?"You":widget.messages.replyParentMessage?.sender?.name}",
-                                    fontWeight: FontWeight.w600,
-                                    color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
-                                    fontSize: 15,
-                                    maxLines: 2,
-                                  ),
-                                  replyMessageTypeIconWithLabel(widget.messages),
-
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )),
-                    ):SizedBox(),
-                    Column(crossAxisAlignment: CrossAxisAlignment.start,
+                      color: AppColors.greyA5..withValues(alpha: 0.4),
+                    ),
+                    padding: EdgeInsets.only(right: 8),
+                    child: Center(child: Row(
                       children: [
-                        if ((widget.message.contains("https://")))
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: SizedBox(
-                              height: 260,
-                              width:328,
-                              child:buildLinkPreview(widget.message),
+                        Container(
+                          height: 40,
+                          width: 3,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8,),
+
+                        InkWell(
+                          onTap: (){
+                            chatViewController.scrollController.jumpTo(100);
+                          },
+                          child: SizedBox(
+                            width: 200,
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CustomText("${(widget.messages.replyParentMessage?.myMessage??false)?"You":widget.messages.replyParentMessage?.sender?.name}",
+                                  fontWeight: FontWeight.w600,
+                                  color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
+                                  fontSize: 15,
+                                  maxLines: 2,
+                                ),
+                                replyMessageTypeIconWithLabel(widget.messages),
+
+                              ],
                             ),
                           ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Expanded(
-                              child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?buildAiWithCallButtons(widget.message): InkWell(
-                                onTap: (widget.message.contains("https://"))?(){
-                                  UrlLauncher.launchUrl(Uri.parse(widget.message));
-                                }:null,
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: (widget.message.length <= 100)
-                                            ? widget.message
-                                            : widget.message.substring(0, 100),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: (widget.message.contains("https://"))?AppColors.navy:widget.isReceiveMsg ? Colors.black :Colors.black,
-                                          fontSize: 15,
-                                        ),
+                        ),
+                      ],
+                    )),
+                  ):SizedBox(),
+                  Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if ((widget.message.contains("https://")))
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: SizedBox(
+                            height: 260,
+                            width:328,
+                            child:buildLinkPreview(widget.message),
+                          ),
+                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
+                            child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?buildAiWithCallButtons(widget.message): InkWell(
+                              onTap: (widget.message.contains("https://"))?(){
+                                UrlLauncher.launchUrl(Uri.parse(widget.message));
+                              }:null,
+                              child: RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: (widget.message.length <= 100)
+                                          ? widget.message
+                                          : widget.message.substring(0, 100),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: (widget.message.contains("https://"))?AppColors.navy:widget.isReceiveMsg ? Colors.black :Colors.black,
+                                        fontSize: 15,
                                       ),
-                                      if (widget.message.length > 100)
-                                        TextSpan(
-                                          text: '... Read more',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                            color: AppColors.grey9A,
-                                            fontSize: 16,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              FocusScope.of(context).unfocus();
-                                              _showFullMessageDialog(
-                                                context: context,
-                                                message: widget.message,
-                                                time: widget.time,
-                                                isReceiveMsg: widget.isReceiveMsg,
-                                              );
-                                            },
+                                    ),
+                                    if (widget.message.length > 100)
+                                      TextSpan(
+                                        text: '... Read more',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.grey9A,
+                                          fontSize: 16,
                                         ),
-                                    ],
-                                  ),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            FocusScope.of(context).unfocus();
+                                            _showFullMessageDialog(
+                                              context: context,
+                                              message: widget.message,
+                                              time: widget.time,
+                                              isReceiveMsg: widget.isReceiveMsg,
+                                            );
+                                          },
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8,),
-                            Align(
-                                alignment: Alignment.bottomRight,
-                                child: timeAndReadInfoWidget(indicateColor: Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.black : Colors.black54,)
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                          ),
+                          const SizedBox(width: 8,),
+                          Align(
+                              alignment: Alignment.bottomRight,
+                              child: timeAndReadInfoWidget(indicateColor: Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.black : Colors.black54,)
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

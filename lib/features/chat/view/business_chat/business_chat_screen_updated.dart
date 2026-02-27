@@ -131,9 +131,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                   editingController: editingController,
                   conversationId: widget.conversationId,
                   userId: widget.userId,
-                  type: widget.type,
-                  name: widget.name,
-                  contactNo: widget.contactNo,
+
                 )
               : getChatTitleAppBar(
                   socketType: "business",

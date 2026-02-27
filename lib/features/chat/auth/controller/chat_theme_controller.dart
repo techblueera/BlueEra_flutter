@@ -1,23 +1,33 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../model/GetListOfMessageData.dart';
+import '../model/reminder_chat_list_model.dart';
 import '../model/shared_person_live_location_model.dart';
 import '../socket/live_location_track_socket.dart';
+import 'dart:convert';
+import 'package:hive/hive.dart';
 
 class ChatThemeController extends GetxController {
   Rx<Color> myMessageBgColor = AppColors.chat_bubble_my_bg.obs;
   Rx<Color> receiveMessageBgColor = AppColors.chat_bubble_receive_bg.obs;
   Rx<Color> readMessageStickColor = AppColors.chat_bubble_receive_bg.obs;
   Rx<Color> unReadMessageStickColor = AppColors.chat_bubble_receive_bg.obs;
-
+  Rx<ApiResponse> getListOfReminderMsgResponse = ApiResponse.initial('Initial').obs;
+  RxList<ReminderMessage> reminderMessageModel = <ReminderMessage>[].obs;
+  RxList<ReminderChatListModel> reminderChatList = <ReminderChatListModel>[].obs;
   RxBool isMessageSelectionActive = false.obs;
   RxBool isDeleteForEveryOneAvailable = true.obs;
   RxString viewLiverLocationReceivedUserId = ''.obs;
   RxList<String> selectedId = <String>[].obs;
   Rx<Messages?>? selectedFirstMessage = Messages().obs;
+
   RxList<Messages> selectedMessages = <Messages>[].obs;
   Rx<SharedPersonsLiveLocationModel> senderLiveLocation=SharedPersonsLiveLocationModel().obs;
   final liveTrackSocket = LiveTrackingSocketService();
@@ -57,6 +67,9 @@ class ChatThemeController extends GetxController {
   void resetSelection() {
     isMessageSelectionActive.value = false;
     selectedMessages.clear();
+    selectedId.clear();
+    selectedFirstMessage=null;
+
   }
 
   void activateSelection(Messages? message) {
@@ -130,4 +143,147 @@ class ChatThemeController extends GetxController {
       });
 
     }
+
+
+
+
+  Future<void> saveReminderData({
+    required String conversationId,
+    required String name,
+    required String profileImagePath,
+    required String reminderTime, // 🔥 ADD THIS
+  }) async {
+
+
+    final modifiedMessages = <Map<String, dynamic>>[];
+
+    for (var message in selectedMessages) {
+      final messageMap = message.toJson();
+
+      /// 🔥 STORE WITH REMINDER TIME (MAIN CHANGE)
+      modifiedMessages.add({
+        "message": messageMap,
+        "reminderTime": reminderTime,
+      });
+    }
+
+    final reminderMessageBox =
+    await Hive.openBox<String>('reminder_messages_box');
+
+    final existingJson = reminderMessageBox.get(conversationId);
+
+    List<Map<String, dynamic>> finalMessages = [];
+
+    if (existingJson != null && existingJson.isNotEmpty) {
+      final List decoded = jsonDecode(existingJson);
+      finalMessages =
+          decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+    }
+
+    /// Append new reminders (GOOD – already correct)
+    finalMessages.addAll(modifiedMessages);
+
+    await reminderMessageBox.put(
+      conversationId,
+      jsonEncode(finalMessages),
+    );
+
+    /// ================= CHAT LIST PART (NO CHANGE NEEDED) =================
+    final reminderChatBox =
+    await Hive.openBox<String>('reminder_chat_list');
+
+    const listKey = 'reminder_conversations';
+
+    final existingChatListJson = reminderChatBox.get(listKey);
+
+    List<Map<String, dynamic>> chatList = [];
+
+    if (existingChatListJson != null && existingChatListJson.isNotEmpty) {
+      final List decoded = jsonDecode(existingChatListJson);
+      chatList =
+          decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+    }
+
+    final index = chatList.indexWhere(
+            (chat) => chat[ApiKeys.conversation_id] == conversationId);
+
+    final updatedMeta = {
+      ApiKeys.conversation_id: conversationId,
+      ApiKeys.name: name,
+      ApiKeys.profileImagePath: profileImagePath,
+      ApiKeys.messageCount: finalMessages.length,
+      ApiKeys.updatedAt: DateTime.now().toIso8601String(),
+    };
+
+    if (index != -1) {
+      chatList[index] = updatedMeta;
+    } else {
+      chatList.add(updatedMeta);
+    }
+
+    chatList.sort((a, b) =>
+        (b['updatedAt'] ?? '').compareTo(a['updatedAt'] ?? ''));
+
+    await reminderChatBox.put(listKey, jsonEncode(chatList));
+
+    commonSnackBar(message: "Reminder Message Added");
+    resetSelection();
+    Get.back();
+  }
+  Future<void> getReminderChatListData()async{
+    reminderChatList.value= await getReminderChatList();
+    getListOfReminderMsgResponse.value=ApiResponse.complete();
+  }
+  Future<List<ReminderChatListModel>> getReminderChatList() async {
+    final box = await Hive.openBox<String>('reminder_chat_list');
+
+    const key = 'reminder_conversations';
+    final jsonString = box.get(key);
+
+    if (jsonString == null || jsonString.isEmpty) {
+      return [];
+    }
+
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+
+    return jsonList
+        .map((item) =>
+        ReminderChatListModel.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+  Future<void> getMessageListByConId(String ConId)async{
+    reminderMessageModel.value=await getReminderMessagesByConversationId(ConId);
+  }
+  Future<List<ReminderMessage>> getReminderMessagesByConversationId(
+      String conversationId) async {
+    final box = await Hive.openBox<String>('reminder_messages_box');
+
+    final jsonString = box.get(conversationId);
+
+    if (jsonString == null || jsonString.isEmpty) {
+      return [];
+    }
+
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+    log("skdjcksldjcsdc ${jsonList}");
+    return jsonList.map((item) {
+      final map = Map<String, dynamic>.from(item);
+
+      return ReminderMessage(
+        message: Messages.fromJson(
+          Map<String, dynamic>.from(map["message"]),
+        ),
+        reminderTime: map["reminderTime"] ?? "",
+      );
+    }).toList();
+  }
+}
+class ReminderMessage {
+  final Messages message;
+  final String reminderTime;
+
+  ReminderMessage({
+    required this.message,
+    required this.reminderTime,
+  });
 }

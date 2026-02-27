@@ -33,9 +33,6 @@ class PdfPreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Theme.of(context);
     return GestureDetector(
-      onLongPress: (){
-        chatThemeController.activateSelection(message);
-      },
       onTap: () {
         if(!(message.sendStatus=="pending")){
           FocusScope.of(context).unfocus();

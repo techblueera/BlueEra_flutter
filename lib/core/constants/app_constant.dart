@@ -112,6 +112,16 @@ class AppConstants {
   static const String REGISTER = 'REGISTER';
   static const String SMS = 'SMS';
   static const String WhatsApp = 'WhatsApp';
+ static final List<Map<String, String>> aiChatTopics = [
+    {"title": "News", "tag": "news"},
+    {"title": "Jokes", "tag": "jokes"},
+    {"title": "Debate", "tag": "debate"},
+    {"title": "Personality", "tag": "personality"},
+    {"title": "Finance", "tag": "finance"},
+    {"title": "Politics", "tag": "politics"},
+    {"title": "Health", "tag": "health"},
+    {"title": "Event", "tag": "event"},
+  ];
 
   static const String active = 'active';
   static const String created = 'created';
@@ -250,6 +260,7 @@ class AppConstants {
   static const String postpaid = "postpaid";
   static const String manufacturingIndustry = "manufacturingIndustry";
   static const String personal = 'personal';
+  static const String aiChat = 'aiChat';
   /// Services Category
   static const consulting = "Consulting Services";
   static const automotive = "Automotive Services";
@@ -1216,12 +1227,51 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
 
   return entries;
 }
+List<PopupMenuEntry<String>> popPupMenuForAiChat() {
+  final items = <Map<String, dynamic>>[
+      {'title':"Change Profile", "slud_id": 'change_profile'},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['slud_id'],
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 List<PopupMenuEntry<String>> popPupMenuForGroupChat() {
   final items = <Map<String, dynamic>>[
       {'title':"Clear Chat", "slud_id": 'clear_chat'},
-    {'title': "Background Change", "slud_id": "background_change"},
-    {'title': "Exit Group", "slud_id": "exit_group"},
-    {'title': "Pin Group", "slud_id": "pin_group"},
+    {'title': "Change Name", "slud_id": "change_name"},
+    {'title': "Default Language", "slud_id": "default_language"},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];

@@ -22,8 +22,6 @@ class LiveLocationMessageCard extends StatefulWidget {
   final String time;
   final bool isReceiveMsg;
   final ChatThemeController chatThemeController;
-  final VoidCallback onTap;
-  final VoidCallback onLongPress;
 
   const LiveLocationMessageCard({
     super.key,
@@ -34,8 +32,8 @@ class LiveLocationMessageCard extends StatefulWidget {
     required this.time,
     required this.isReceiveMsg,
     required this.chatThemeController,
-    required this.onTap,
-    required this.onLongPress,
+
+
   });
 
   @override
@@ -58,89 +56,85 @@ class _LiveLocationMessageCardState extends State<LiveLocationMessageCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPress: widget.onLongPress,
-      onTap: widget.onTap,
-      child: Container(
-        height: 256,
-        width: 257,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: widget.isReceiveMsg
-              ? widget.chatThemeController.receiveMessageBgColor.value
-              : widget.chatThemeController.myMessageBgColor.value,
-        ),
-        padding: const EdgeInsets.all(2),
-        child: Align(
-          alignment: widget.isReceiveMsg
-              ? Alignment.centerLeft
-              : Alignment.centerRight,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              children: [
-                SizedBox(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildMapView(context),
-                      if (widget.message != null) const SizedBox(height: 10),
-                      if (widget.message != null) Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildMessageText(),
-                          timeAndReadInfoWidget(
-                            message: widget.messages!,
-                            isMyMessage: widget.messages?.myMessage ?? false,
-                            time: widget.time,
-                            timeColor: AppColors.black,
-                            indicateColor:
-                            widget.messages?.messageRead == 1
-                                ? Colors.blue
-                                : Colors.grey,
-                          )
-                        ],
-                      ),
-                      if (widget.message != null) const SizedBox(height: 10),
-                      // if (widget.messages?.myMessage == true)
-                      //   InkWell(
-                      //     onTap: (){
-                      //
-                      //     },
-                      //     child: Container(
-                      //       decoration: BoxDecoration(
-                      //           borderRadius: BorderRadius.circular(10),
-                      //           color: AppColors.red.shade50
-                      //       ),
-                      //       padding: EdgeInsets.symmetric(vertical: 12),
-                      //       margin: EdgeInsets.symmetric(horizontal: 6),
-                      //       child: Center(
-                      //         child: CustomText("Stop Live Sharing",fontWeight: FontWeight.w600,color: Colors.red,),
-                      //       ),
-                      //     ),
-                      //   )
-                      // else
-                      InkWell(
-                        onTap: (){
-                           Get.to(()=>TrackLiveLocationPage(messages: widget.messages,));
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
+    return  Container(
+      height: 256,
+      width: 257,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: widget.isReceiveMsg
+            ? widget.chatThemeController.receiveMessageBgColor.value
+            : widget.chatThemeController.myMessageBgColor.value,
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Align(
+        alignment: widget.isReceiveMsg
+            ? Alignment.centerLeft
+            : Alignment.centerRight,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            children: [
+              SizedBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildMapView(context),
+                    if (widget.message != null) const SizedBox(height: 10),
+                    if (widget.message != null) Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildMessageText(),
+                        timeAndReadInfoWidget(
+                          message: widget.messages!,
+                          isMyMessage: widget.messages?.myMessage ?? false,
+                          time: widget.time,
+                          timeColor: AppColors.black,
+                          indicateColor:
+                          widget.messages?.messageRead == 1
+                              ? Colors.blue
+                              : Colors.grey,
+                        )
+                      ],
+                    ),
+                    if (widget.message != null) const SizedBox(height: 10),
+                    // if (widget.messages?.myMessage == true)
+                    //   InkWell(
+                    //     onTap: (){
+                    //
+                    //     },
+                    //     child: Container(
+                    //       decoration: BoxDecoration(
+                    //           borderRadius: BorderRadius.circular(10),
+                    //           color: AppColors.red.shade50
+                    //       ),
+                    //       padding: EdgeInsets.symmetric(vertical: 12),
+                    //       margin: EdgeInsets.symmetric(horizontal: 6),
+                    //       child: Center(
+                    //         child: CustomText("Stop Live Sharing",fontWeight: FontWeight.w600,color: Colors.red,),
+                    //       ),
+                    //     ),
+                    //   )
+                    // else
+                    InkWell(
+                      onTap: (){
+                        Get.to(()=>TrackLiveLocationPage(messages: widget.messages,));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             color: AppColors.white
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          margin: EdgeInsets.symmetric(horizontal: 6),
-                          child: Center(
-                            child: CustomText("View Live Location",fontWeight: FontWeight.w600,),
-                          ),
                         ),
-                      )
-                    ],
-                  ),
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        margin: EdgeInsets.symmetric(horizontal: 6),
+                        child: Center(
+                          child: CustomText("View Live Location",fontWeight: FontWeight.w600,),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
+              ),
 
-              ],
-            ),
+            ],
           ),
         ),
       ),
