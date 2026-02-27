@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_other_facilities_controller.dart';
@@ -22,55 +23,57 @@ class HospitalUpdateScreen extends StatelessWidget {
 
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
-      title: "About Us",
+      title: AppStrings.aboutUs,
       icon: AppIconAssets.about_us,
       page: () => const HospitalAboutUsScreen(),
     ),
     ServiceMenuItem(
-      title: "OPD (Out-Patient Departments)",
+      title:AppStrings.opdTitle,
       icon: AppIconAssets.opd,
       page: () => const HospitalOpdScreen(),
     ),
     ServiceMenuItem(
-      title: "IPD (In-Patient Departments)",
+      title:AppStrings.ipdTitle,
       icon: AppIconAssets.ipd,
       page: () => const HospitalIpdScreen(),
     ),
     ServiceMenuItem(
-      title: "Emergency & Critical Care",
+      title:AppStrings.emergencyCare,
       icon: AppIconAssets.emergency_care,
       page: () => const HospitalEmergencyCareScreen(),
     ),
     ServiceMenuItem(
-      key: "diagnostic",
-      title: "Diagnostic Departments",
+      title:AppStrings.diagnosticDept,
       icon: AppIconAssets.diag_dept,
       page: () => const ComingSoon(),
       // page: () => SchoolNoticeAndNews(),
     ),
     ServiceMenuItem(
       key: "medical",
-      title: "Medical Store",
+      title:AppStrings.medicalStore,
       icon: AppIconAssets.medical_store,
       page: () => const ComingSoon(),
     ),
     ServiceMenuItem(
-      title: "Other Facilities ",
+      title:AppStrings.otherFacilities,
       icon: AppIconAssets.other_facilities,
       page: () => const HospitalOtherFacilitiesScreen(),
     ),
     ServiceMenuItem(
-      title: "Careers",
+      title:AppStrings.careers,
+
       icon: AppIconAssets.career_jobs,
       page: () => const HospitalJobListingScreen(isReadOnly: false,),
     ),
     ServiceMenuItem(
-      title: "Gallery",
+      title:AppStrings.gallery,
+
       icon: AppIconAssets.other_gallery,
       page: () =>  HospitalPhotosScreen(),
     ),
     ServiceMenuItem(
-      title: "Contact Us",
+      title:AppStrings.contactUs,
+
       icon: AppIconAssets.contact_us,
       page: () => const HospitalContactUs(),
     ),
@@ -89,7 +92,7 @@ class HospitalUpdateScreen extends StatelessWidget {
               return item.key == "diagnostic"
                   ? Obx(() {
                       return MeMenuCardDesign(
-                        title: "Diagnostic Departments",
+                        title:AppStrings.diagnosticDept,
                         icon: AppIconAssets.diag_dept,
                         showToggleButton: true,
                         // isToggleOn: false,
@@ -98,14 +101,13 @@ class HospitalUpdateScreen extends StatelessWidget {
                           controller.diagnosticStatus.value = v;
                           controller.updateStatus(
                               keyParm: "diagnosticDepartments");
-                          // controller.updateToggle();
                         },
                       );
                     })
                   : item.key == "medical"
                       ? Obx(() {
                           return MeMenuCardDesign(
-                            title: "Medical Store",
+                            title:AppStrings.medicalStore,
                             icon: AppIconAssets.medical_store,
                             showToggleButton: true,
                             isToggleOn: controller.medicalStoreStatus.value,

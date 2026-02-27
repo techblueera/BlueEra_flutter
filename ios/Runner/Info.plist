@@ -123,6 +123,11 @@
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>This example recognizes words as you speak them and displays them. </string>
     <key>GoogleMapsApiKey</key>
-    <string>AIzaSyDdU2Ji6dCQ4Hq0TbLHILxMsdR-M27Ie2g</string>
+    <string>AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
 </dict>
 </plist>

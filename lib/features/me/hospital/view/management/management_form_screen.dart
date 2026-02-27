@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
@@ -32,7 +33,7 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.editingMember == null ? "Add Member" : "Edit Member",
+        title: controller.editingMember == null ? AppStrings.addedMembers : AppStrings.editMembers,
         isLeading: true,
         isShadowShow: true,
       ),
@@ -49,27 +50,27 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                     _buildImageSection(),
                     SizedBox(height: SizeConfig.size15),
                     CommonTextField(
-                      title: "Name",
+                      title: AppStrings.fullName,
                       textEditController: controller.nameController,
                       validator: (v)=> ValidationMethod.validateName(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CommonTextField(
-                      title: "Position",
+                      title: AppStrings.position,
                       textEditController: controller.positionController,
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CommonTextField(
-                      title: "Education",
+                      title:AppStrings.education,
                       textEditController: controller.educationController,
                       // validator: (v)=> ValidationMethod.isEmptyValid(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CommonTextField(
-                      title: "Description",
+                      title: AppStrings.description,
                       maxLine: 5,
                       textEditController: controller.descriptionController,
                       // validator: (v)=> ValidationMethod.isEmptyValid(v),
@@ -77,7 +78,7 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                     ),
                     SizedBox(height: SizeConfig.size15),
                     PositiveCustomBtn(
-                      title: controller.isSaving.value ? null : (controller.editingMember == null ? "Save" : "Update"),
+                      title: controller.isSaving.value ? null : (controller.editingMember == null ? AppStrings.save : AppStrings.update),
                       width: double.infinity,
                       height: SizeConfig.size45,
                       // isLoading: controller.isSaving.value,
@@ -139,7 +140,7 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
       );
     }
     return CommonImageUploadTile(
-      title: "Upload Photo",
+      title:AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

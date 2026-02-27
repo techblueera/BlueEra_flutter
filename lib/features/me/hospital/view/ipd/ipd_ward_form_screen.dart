@@ -40,7 +40,7 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.editingWard == null ? "Add IPD" : "Edit IPD",
+        title: controller.editingWard == null ? AppStrings.addIpd:AppStrings.editIpd,
         isLeading: true,
         isShadowShow: true,
       ),
@@ -54,7 +54,7 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
                 SizedBox(height: SizeConfig.size20),
               ],
               CommonTextField(
-                title: "Bed Name",
+                title: AppStrings.bedName,
                 textEditController: controller.nameController,
                 hintText: AppStrings.fullName,
                 onChange: (_) {
@@ -64,7 +64,7 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
               ),
               SizedBox(height: SizeConfig.size10),
               CommonTextField(
-                title: "Bed Count",
+                title: AppStrings.bedCount,
                 textEditController: controller.bedCountController,
                 hintText: "4",
                 keyBoardType: TextInputType.number,
@@ -75,7 +75,7 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
               ),
               SizedBox(height: SizeConfig.size10),
               CommonTextField(
-                title: "Price",
+                title:AppStrings.price,
                 textEditController: controller.feesController,
                 hintText: "Rs 500/-",
                 keyBoardType: TextInputType.number,
@@ -86,8 +86,8 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
               ),
               SizedBox(height: SizeConfig.size10),
               AiDescriptionField(
-                label: "Describe your hospital history",
-                hintText: "Tell us more about the Hospital history...",
+                label: AppStrings.hospital_ipd_title,
+                hintText: AppStrings.hospital_ipd_subtitle,
                 controller: controller.historyController,
                 rxValue: RxString(controller.historyController.text),
                 aiType: "Hospital IPD (In-Patient Departments / Wards)",
@@ -158,7 +158,7 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
         );
       }
       return CommonImageUploadTile(
-        title: "Upload Photo",
+        title:AppStrings.uploadPhotos,
         context: context,
         onImageSelected: () async {
           final path = await CommonImageUploadTile.pickImage(context: context);

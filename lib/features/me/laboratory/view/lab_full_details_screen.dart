@@ -294,17 +294,13 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         _buildContactCard(contact),
         SizedBox(height: SizeConfig.size16),
 
-        CommonCardWidget(
-          padding: 0,
-          cardMargin: 0,
-          child: BusinessLocationWidget(
-              locationText: "",
-              latitude: double.parse(loc?.coordinates?[1].toString() ?? "0.0"),
-              longitude: double.parse(loc?.coordinates?[0].toString() ?? "0.0"),
-              businessName: loc?.name ?? "",
-              padding: 0,
-              isTitleShow: true),
-        ),
+        BusinessLocationWidget(
+            locationText: "",
+            latitude: double.parse(loc?.coordinates?[1].toString() ?? "0.0"),
+            longitude: double.parse(loc?.coordinates?[0].toString() ?? "0.0"),
+            businessName: loc?.name ?? "",
+            padding: 0,
+            isTitleShow: true),
 
         SizedBox(height: kBottomNavigationBarHeight + 30),
       ],

@@ -19,7 +19,6 @@ class HospitalIpdScreen extends StatefulWidget {
 }
 
 class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
-
   late final HospitalDepartmentsController controller;
 
   @override
@@ -33,7 +32,7 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "IPD (In-Patient Departments)",
+        title: AppStrings.ipdTitle,
         isLeading: true,
         isShadowShow: true,
       ),
@@ -46,21 +45,17 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
         final ipd = controller.departments
             .where((e) => e.type.toUpperCase() == "IPD")
             .toList();
-        if ( ipd.isEmpty) {
+        if (ipd.isEmpty) {
           return Center(child: CustomText(AppStrings.noDataFound));
         }
         return SingleChildScrollView(
-          padding: EdgeInsets.only(
-              bottom: 50,
-              top: SizeConfig.paddingM),
+          padding: EdgeInsets.only(bottom: 50, top: SizeConfig.paddingM),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               if (ipd.isNotEmpty) ...[
                 ...ipd.map((d) => _departmentCard(d)),
                 SizedBox(height: SizeConfig.size15),
-
               ],
             ],
           ),
@@ -73,15 +68,14 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
     return InkWell(
       onTap: () {
         Get.to(() => IpdWardListScreen(
-          departmentId: d.id,
-          hospitalId: d.hospitalId,
-        ));
+              departmentId: d.id,
+              hospitalId: d.hospitalId,
+            ));
       },
       child: MeMenuCardDesign(
-        title: d.name,
+        title: d.key,
         icon: "assets/svg/${d.key}.svg",
       ),
     );
   }
-
 }

@@ -5,6 +5,7 @@ class AppIconAssets {
   static String back_arrow = "${iconPath}back_arrow.svg";
   static String business_account = "${iconPath}business_account.svg";
   static String camera_sky = "${iconPath}camera_sky.svg";
+  static String camera_black = "${iconPath}camera_black.svg";
   static String close_white = "${iconPath}close_white.svg";
   static String gallery_sky = "${iconPath}gallery_sky.svg";
   static String india_flag = "${iconPath}india_flag.svg";

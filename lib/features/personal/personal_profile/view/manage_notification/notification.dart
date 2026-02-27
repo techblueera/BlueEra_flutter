@@ -1,4 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -12,7 +13,6 @@ class NotificationSettingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF2F2F2), // exact light grey bg
       appBar: const CommonBackAppBar(
         title: "Notification Setting",
       ),
@@ -26,13 +26,23 @@ class NotificationSettingScreen extends StatelessWidget {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              NotificationTile(title: "Chat Notification"),
-              NotificationTile(title: "Post Notification"),
-              NotificationTile(title: "Lorem ipsum Dolor"),
-              NotificationTile(title: "Lorem ipsum Dolor"),
-              NotificationTile(title: "Lorem ipsum Dolor"),
-              NotificationTile(title: "Lorem ipsum Dolor"),
+            children: [
+              NotificationTile(title: "Comment"),
+              NotificationTile(title: "Post"),
+              NotificationTile(title: "Like"),
+              NotificationTile(title: "Tag"),
+              NotificationTile(title: "Following"),
+              SizedBox(
+                height: 20,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child:
+                    PositiveCustomBtn(onTap: () {}, title: AppStrings.submit),
+              ),
+              SizedBox(
+                height: 10,
+              ),
             ],
           ),
         ),
@@ -40,6 +50,7 @@ class NotificationSettingScreen extends StatelessWidget {
     );
   }
 }
+
 class NotificationTile extends StatefulWidget {
   final String title;
 
@@ -57,8 +68,6 @@ class _NotificationTileState extends State<NotificationTile> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Container(
-
-
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -69,19 +78,15 @@ class _NotificationTileState extends State<NotificationTile> {
           ),
         ),
         child: Row(
-
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
           children: [
             CustomText(
               widget.title,
-              fontSize: SizeConfig.size14,
-              fontWeight: FontWeight.w400,
-              color: Colors.black87,
+              color: AppColors.mainTextColor,
             ),
             CustomSwitch(
               value: isEnabled,
-              onChanged: (value){
+              onChanged: (value) {
                 setState(() {
                   isEnabled = value;
                 });
@@ -90,8 +95,6 @@ class _NotificationTileState extends State<NotificationTile> {
               containerWidth: SizeConfig.size44,
               circleSize: SizeConfig.size16,
             ),
-
-
           ],
         ),
       ),

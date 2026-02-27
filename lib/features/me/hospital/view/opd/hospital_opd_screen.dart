@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/hospital/view/opd/opd_doctor_list_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -32,7 +33,7 @@ class _HospitalOpdScreenState extends State<HospitalOpdScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "OPD (Out-Patient Departments)",
+        title: AppStrings.opdTitle,
         isLeading: true,
         isShadowShow: true,
       ),
@@ -45,7 +46,7 @@ class _HospitalOpdScreenState extends State<HospitalOpdScreen> {
             .where((e) => e.type.toUpperCase() == "OPD")
             .toList();
 
-        if (opd.isEmpty ) {
+        if (opd.isEmpty) {
           return Center(child: CustomText(AppStrings.noDataFound));
         }
         return SingleChildScrollView(
@@ -61,7 +62,6 @@ class _HospitalOpdScreenState extends State<HospitalOpdScreen> {
                 ...opd.map((d) => _departmentCard(d)),
                 SizedBox(height: SizeConfig.size15),
               ],
-
             ],
           ),
         );
@@ -73,16 +73,35 @@ class _HospitalOpdScreenState extends State<HospitalOpdScreen> {
     return InkWell(
       onTap: () {
         Get.to(() => OpdDoctorListScreen(
-          departmentId: d.id,
-          hospitalId: d.hospitalId,
-        ));
+              departmentId: d.id,
+              hospitalId: d.hospitalId,
+            ));
       },
-      child: MeMenuCardDesign(
-        title: d.name,
-        icon: "assets/svg/${d.key}.svg",
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5),
+          color: AppColors.white,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+        child: Row(
+          children: [
+            LocalAssets(
+              imagePath: "assets/svg/${d.key}.svg",
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Flexible(
+              child: CustomText(
+                d.key,
+                fontSize: SizeConfig.size18,
+                color: AppColors.mainTextColor,
+              ),
+            ),
+          ],
+        ),
       ),
+
     );
   }
-
-
 }

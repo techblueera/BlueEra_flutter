@@ -255,24 +255,19 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                   _buildContactCard(profile),
                   SizedBox(height: 20),
 
-                  CommonCardWidget(
-                    padding: 5,
-                    cardMargin: 0,
-                    child: BusinessLocationWidget(
-                        locationText: widget.data.profile?.location?.name,
-                        latitude: double.parse(widget
-                                .data.profile?.location?.coordinates?[0]
-                                .toString() ??
-                            "0.0"),
-                        longitude: double.parse(widget
-                                .data.profile?.location?.coordinates?[1]
-                                .toString() ??
-                            "0.0"),
-                        businessName: profile?.name ?? "",
-                        padding: 0,
-                        isTitleShow: true),
-                  ),
-
+                  BusinessLocationWidget(
+                      locationText: widget.data.profile?.location?.name,
+                      latitude: double.parse(widget
+                          .data.profile?.location?.coordinates?[0]
+                          .toString() ??
+                          "0.0"),
+                      longitude: double.parse(widget
+                          .data.profile?.location?.coordinates?[1]
+                          .toString() ??
+                          "0.0"),
+                      businessName: profile?.name ?? "",
+                      padding: 0,
+                      isTitleShow: true),
                   SizedBox(height: 30),
                 ],
               ),

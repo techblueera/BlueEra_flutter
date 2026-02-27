@@ -47,27 +47,24 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
           // const SizedBox(height: 20),
           // Map Placeholder
           Obx(() {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: BusinessLocationWidget(
-                key:ValueKey(controller
-                    .contactUsData.value?.data?.location?.coordinates?[0]
-                    .toString() ??
-                    "0.0") ,
-                  locationText:
-                     "",
-                  latitude: double.parse(controller
-                          .contactUsData.value?.data?.location?.coordinates?[0]
-                          .toString() ??
-                      "0.0"),
-                  longitude: double.parse(controller
-                          .contactUsData.value?.data?.location?.coordinates?[1]
-                          .toString() ??
-                      "0.0"),
-                  businessName: "",
-                  padding: 10,
-                  isTitleShow: true),
-            );
+            return BusinessLocationWidget(
+              key:ValueKey(controller
+                  .contactUsData.value?.data?.location?.coordinates?[0]
+                  .toString() ??
+                  "0.0") ,
+                locationText:
+                   "",
+                latitude: double.parse(controller
+                        .contactUsData.value?.data?.location?.coordinates?[0]
+                        .toString() ??
+                    "0.0"),
+                longitude: double.parse(controller
+                        .contactUsData.value?.data?.location?.coordinates?[1]
+                        .toString() ??
+                    "0.0"),
+                businessName: "",
+                padding: 10,
+                isTitleShow: true);
           }),
         ],
       ),

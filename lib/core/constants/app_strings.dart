@@ -2087,6 +2087,7 @@ class AppStrings {
   static const inviteToBlueEra = "inviteToBlueEra";
   static const selectMembers = "selectMembers";
   static const addedMembers = "addedMembers";
+  static const editMembers = "editMembers";
   static const invite = "invite";
   static const noGroupsFound = "noGroupsFound";
   static const typeMessage = "typeMessage";
@@ -3183,6 +3184,48 @@ class AppStrings {
   static const labelGiftBoxes = "labelGiftBoxes";
   static const labelGiftHampers = "labelGiftHampers";
 
+  static const aboutUs = "about_us";
+  static const opdTitle = "opd_title";
+  static const ipdTitle = "ipd_title";
+  static const emergencyCare = "emergency_care";
+  static const diagnosticDept = "diagnostic_dept";
+  static const medicalStore = "medical_store";
+  static const otherFacilities = "other_facilities";
+  static const careers = "careers";
+  static const visionMission = "vision_mission";
+  static const history = "history";
+  static const managementTrust = "management_trust";
+  static const emergencyContact = "emergency_contact";
+  static const visionMissionTitle = "vision_mission_title";
+  static const visionMissionSubtitle = "vision_mission_subtitle";
+  static const visionMissionDescription = "vision_mission_description";
+
+  static const hospitalHistoryTitle = "hospAppStrings.hospitalHistoryTitleital_history_title";
+  static const hospitalHistorySubtitle = "hospital_history_subtitle";
+
+  static const deleteMemberConfirm = "delete_member_confirm";
+
+  static const appointmentNumber = "appointment_number";
+  static const emergencyNumber = "emergency_number";
+  static const position = "position";
+  static const aiSuggestions = "ai_suggestions";
+
+  static const opdDoctors = "opd_doctors";
+  static const addNew = "add_new";
+  static const areYouSureToDelete = "are_you_sure_to_delete";
+  static const fees = "fees";
+  static const addEditOpdDoctor = "add_edit_opd_doctor";
+
+  // IPD Management
+  static const ipdWardsRooms = "ipd_wards_rooms";
+  static const addIpd = "add_ipd";
+  static const editIpd = "edit_ipd";
+  static const bedName = "bed_name";
+  static const bedCount = "bed_count";
+
+  // Hospital History
+  static const hospital_ipd_title = "hospital_ipd_title";
+  static const hospital_ipd_subtitle = "hospital_ipd_subtitle";
    /// -----****(Grocery End)****------
 
 }

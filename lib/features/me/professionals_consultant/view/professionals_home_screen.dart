@@ -148,20 +148,17 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                 SizedBox(height: SizeConfig.size12),
                 // const SizedBox(height: 20),
                 // Map Placeholder
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: BusinessLocationWidget(
-                      locationText: data.basicDetails?.fullName,
-                      latitude: double.parse(
-                          data.contact?.location?.coordinates?[0].toString() ??
-                              "0.0"),
-                      longitude: double.parse(
-                          data.contact?.location?.coordinates?[1].toString() ??
-                              "0.0"),
-                      businessName: "",
-                      padding: 10,
-                      isTitleShow: true),
-                ),
+                BusinessLocationWidget(
+                    locationText: data.basicDetails?.fullName,
+                    latitude: double.parse(
+                        data.contact?.location?.coordinates?[0].toString() ??
+                            "0.0"),
+                    longitude: double.parse(
+                        data.contact?.location?.coordinates?[1].toString() ??
+                            "0.0"),
+                    businessName: "",
+                    padding: 10,
+                    isTitleShow: true),
                 SizedBox(height: SizeConfig.size12),
                 CommonCardWidget(
                   cardMargin: 0,
