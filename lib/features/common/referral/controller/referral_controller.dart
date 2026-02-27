@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -17,9 +16,11 @@ import '../../../../core/api/apiService/api_response.dart';
 class ReferralController extends GetxController {
   Rx<ApiResponse> referralBdmDetailsResponse =
       ApiResponse.initial('Initial').obs;
-  // Rx<ApiResponse> walletReferralStatsResponse =
-  //     ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> referralSuggestionsResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> walletReferralHistoryResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> checkReferralResponse =
       ApiResponse.initial('Initial').obs;
 
 
@@ -52,6 +53,8 @@ RxList<WalletReferralHistoryData> referralHistoryData = <WalletReferralHistoryDa
 
   RxString selectedFilter = 'All'.obs;
   final List<String> filters = ['All', 'Subscribe', 'Un-Subscribe', 'Expired'];
+  RxList<String> referralSuggestions = <String>[].obs;
+  RxString selectedSuggestion = ''.obs;
 
 /// Search States
 
@@ -293,47 +296,56 @@ submitLoading.value = false;
     }
   }
 
-  Future<void> getWalletReferralHistoryApi(String filter) async {
+  Future<void> referralSuggestionsApi() async {
     try {
 
-      Map<String, dynamic> _queryParms = {};
-      switch(filter){
-        case 'All':
-          break;
-        case 'Subscribe':
-          _queryParms['subscribed'] = true;
-          break;
-        case 'Un-Subscribe':
-          _queryParms['non-subscribed'] = true;
-          break;
-        case 'Expired':
-          _queryParms['expired'] = true;
-          break;
-      }
-
-      walletReferralHistoryResponse.value =
+      referralSuggestionsResponse.value =
           ApiResponse.initial('Initial');
 
-      final res = await UserRepo().getWalletReferralHistoryRepo(queryParms: _queryParms);
+      final res = await UserRepo().referralSuggestionsRepo();
 
       if (res.isSuccess) {
-        walletReferralHistoryResponse.value =
+        referralSuggestions.value = res.response?.data['data'];
+        referralSuggestionsResponse.value =
             ApiResponse.complete(res.response?.data);
-        var walletReferralHistory = WalletReferralHistoryResponse.fromJson(res.response?.data);
-        referralHistoryData.value = walletReferralHistory.data ?? [];
 
       } else {
         commonSnackBar(
           message: res.message ?? AppStrings.somethingWentWrong.tr,
         );
-        walletReferralHistoryResponse.value =
+        referralSuggestionsResponse.value =
             ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
       }
     } catch (e) {
-      walletReferralHistoryResponse.value =
+      referralSuggestionsResponse.value =
           ApiResponse.error(e.toString());
     }
   }
 
+  Future<void> checkReferralApi(String refCode) async {
+    try {
+
+      checkReferralResponse.value =
+          ApiResponse.initial('Initial');
+
+      final res = await UserRepo().checkReferralRepo(refCode);
+
+      if (res.isSuccess) {
+        // referralSuggestions.value = res.response?.data['data'];
+        // referralSuggestionsResponse.value =
+        //     ApiResponse.complete(res.response?.data);
+
+      } else {
+        commonSnackBar(
+          message: res.message ?? AppStrings.somethingWentWrong.tr,
+        );
+        checkReferralResponse.value =
+            ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+      }
+    } catch (e) {
+      checkReferralResponse.value =
+          ApiResponse.error(e.toString());
+    }
+  }
 
 }

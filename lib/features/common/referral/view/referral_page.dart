@@ -60,7 +60,7 @@ class _ReferralPageState extends State<ReferralPage> {
   @override
   void initState() {
     super.initState();
-    // myDocumentsController.fetchAllDocumentStatusApi();
+    controller.referralSuggestionsApi();
     loadDetails();
   }
 
@@ -392,6 +392,7 @@ class _ReferralPageState extends State<ReferralPage> {
 
                     GenerateReferralSection(
                       controller: controller,
+                      // isEligible: areRequiredDocumentsProvided,
                       isEligible: (status == 'PENDING') && areRequiredDocumentsProvided,
                       initialText: ((status == 'PENDING') && areRequiredDocumentsProvided) ? '' : '* * * * * *',
                     ),
