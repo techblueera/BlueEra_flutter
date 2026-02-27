@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
@@ -10,6 +11,7 @@ import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../controller/add_bank_account_controller.dart';
@@ -84,10 +86,14 @@ class AddBankAccountScreen extends StatelessWidget {
                           hintText: 'E.g. State Bank Of India',
                           keyBoardType: TextInputType.text,
                           validator: ValidationMethod.validateBankName,
+                          maxLength: AppConstants.inputCharterLimit20,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: SizeConfig.size16,
                             vertical: SizeConfig.size12,
                           ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s.&-]')),
+                          ],
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         if(controller.selectedBankAccountType.value == "Bank Account")
@@ -104,6 +110,7 @@ class AddBankAccountScreen extends StatelessWidget {
                                 textEditController:
                                 controller.bankHolderNameController,
                                 hintText: 'E.g.Bank Holder Name',
+                                maxLength: AppConstants.inputCharterLimit20,
                                 keyBoardType: TextInputType.text,
                                 validator: ValidationMethod
                                     .validateBankHolderName,

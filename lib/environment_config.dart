@@ -39,12 +39,14 @@ String privacyLink =
     "https://www.freeprivacypolicy.com/live/f1d1be8d-4563-43e0-9275-c439f46390ad";
 String tncLink =
     "https://www.freeprivacypolicy.com/live/2c1f2002-02e5-4acc-8142-e371734c9d9c";
+String bdoTncLink =
+    "https://bluecs.in/bdotc";
 
 Future<void> projectKeys({required String environmentType}) async {
   if (environmentType == AppConstants.prod) {
     isProdEnvironment = true;
     baseUrl = Env.prodBaseUrl;
-    if(kDebugMode){
+    if(kDebugMode) {
       razorpayKey = Env.devRazorPayKey;
     }else{
       razorpayKey = Env.prodRazorPayKey;

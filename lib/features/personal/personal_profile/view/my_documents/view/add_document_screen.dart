@@ -148,7 +148,8 @@ class AddDocumentScreen extends StatefulWidget {
               const SizedBox(height: 20),
               CustomBtn(onTap: (){
                 Get.back();
-              }, title: "Close",isValidate: true,)
+              }, title: "Close",
+                isValidate: true)
             ],
           ),
         ),

@@ -299,6 +299,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         title: "App Tutorial",
         onTap: () => Get.to(()=> AppTutorialScreen()),
       ),
+      if(accountTypeGlobal == AppConstants.individual)
       MenuItemModel(
         title: "Refer & Earn",
         onTap: () => Get.to(()=> ReferralPage()),

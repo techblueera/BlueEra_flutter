@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -10,6 +11,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class CancelChequeDocumentWidget extends StatelessWidget {
@@ -30,6 +32,25 @@ class CancelChequeDocumentWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+
+                /// Bank Name Field
+                CommonTextField(
+                  textEditController: controller.bankNameController,
+                  hintText: 'E.g. State Bank Of India',
+                  title: 'Bank Name',
+                  keyBoardType: TextInputType.text,
+                  validator: ValidationMethod.validateBankName,
+                  maxLength: AppConstants.inputCharterLimit20,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16,
+                    vertical: SizeConfig.size12,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s.&-]')),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingM),
+
                 /// Bank Account Number
                 CommonTextField(
                   textEditController: controller.bankAccountNumberController,
@@ -51,7 +72,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Upload Cancelled Cheque Photo',
+                  'Upload Cancelled Cheque / Bank Passbook Photo',
                   fontSize: SizeConfig.medium,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,

@@ -98,23 +98,32 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
 
     // 3. Use a Switch for different subscription states
     switch (status) {
-      case 'created':
-        if(isTrial)
-        return _buildFreeTrialPlanList();
-        else
-        return _buildPaidPlanList();
+      // case 'created':
+      //   if(isTrial)
+      //   return _buildFreeTrialPlanList();
+      //   else
+      //   return _buildPaidPlanList();
+
 
       case 'authenticated':
       // Free trial period widget
       return _buildFreeTrialActivateWidget();
 
       case 'active':
-      case 'cancelled':
       case 'paused':
       case 'halted':
       return PaidSubscriptionPlansScreen(
-        controller: controller
+          controller: controller
       );
+
+      case 'cancelled':
+      if(isTrial){
+        return FreeTrialPlanScreen(controller: controller);
+      }else{
+        return PaidSubscriptionPlansScreen(
+            controller: controller
+        );
+      }
 
       default:
         return FreeTrialPlanScreen(controller: controller);
@@ -193,7 +202,8 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
             title: "Pay",
             onTap: () {
               final handler = SubscriptionPaymentHandler(controller);
-              handler.processSubscription();
+              handler.showReferralCodeDialog();
+              // handler.processSubscription();
             },
           )
 
@@ -265,7 +275,8 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
             title: "Pay",
             onTap: () {
               final handler = SubscriptionPaymentHandler(controller);
-              handler.processSubscription();
+              handler.showReferralCodeDialog();
+              // handler.processSubscription();
             },
           )
 
@@ -290,7 +301,7 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           CustomFormCard(
-            padding: EdgeInsets.zero,
+            padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,

@@ -36,29 +36,29 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
   @override
   initState() {
     super.initState();
-    controller.getWalletReferralStatsApi();
+    // controller.getWalletReferralStatsApi();
   }
 
 
   @override
   Widget build(BuildContext context) {
     return Obx((){
-      if(controller.walletReferralStatsResponse.value.status == Status.INITIAL){
-        return Center(
-            child: CircularProgressIndicator()
-        );
-      }
+      // if(controller.walletReferralStatsResponse.value.status == Status.INITIAL){
+      //   return Center(
+      //       child: CircularProgressIndicator()
+      //   );
+      // }
 
-      if(controller.walletReferralStatsResponse.value.status == Status.ERROR){
-        return Center(
-            child: CustomText(
-              'Oops Something went wrong',
-              fontSize: SizeConfig.extraLarge,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w400,
-            )
-        );
-      }
+      // if(controller.referralBdmDetailsResponse.value.status == Status.ERROR){
+      //   return Center(
+      //       child: CustomText(
+      //         'Oops Something went wrong.. Unable to fetch referral stats',
+      //         fontSize: SizeConfig.extraLarge,
+      //         color: AppColors.secondaryTextColor,
+      //         fontWeight: FontWeight.w400,
+      //       )
+      //   );
+      // }
 
       var _stats = controller.referralStatsData.value;
 
@@ -82,7 +82,7 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                         ),
                         const SizedBox(width: 4),
                         CustomText(
-                          "Generate Your Referral Code",
+                          "Share Your Referral Code",
                           fontSize: SizeConfig.large,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400,

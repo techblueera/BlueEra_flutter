@@ -166,7 +166,6 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
                   ),
                 )),
 
-
             SizedBox(
               height: SizeConfig.screenHeight * 0.006
             ),
@@ -180,7 +179,6 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
             ),
 
             /// Amount & period
-
             Expanded(
                 flex: 1,
                 child: FittedBox(
@@ -251,7 +249,6 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
                   ),
                 )
             )
-
 
           ],
         ),

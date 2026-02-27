@@ -17,8 +17,8 @@ import '../../../../core/api/apiService/api_response.dart';
 class ReferralController extends GetxController {
   Rx<ApiResponse> referralBdmDetailsResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> walletReferralStatsResponse =
-      ApiResponse.initial('Initial').obs;
+  // Rx<ApiResponse> walletReferralStatsResponse =
+  //     ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> walletReferralHistoryResponse =
       ApiResponse.initial('Initial').obs;
 
@@ -96,34 +96,7 @@ void selectCity(String city) {
 submitLoading.value = false;
 }
 
-  Future<void> getWalletReferralStatsApi() async {
-  try {
 
-    walletReferralStatsResponse.value =
-        ApiResponse.initial('Initial');
-
-    final res = await UserRepo().getWalletReferralStatsRepo();
-
-    if (res.isSuccess) {
-      var walletReferralStats = WalletReferralStatsResponse.fromJson(res.response?.data);
-      if(walletReferralStats.data!=null){
-        referralStatsData.value = walletReferralStats.data!;
-        walletReferralStatsResponse.value =
-            ApiResponse.complete(referralStatsData.value);
-      }
-
-    } else {
-      commonSnackBar(
-        message: res.message ?? AppStrings.somethingWentWrong.tr,
-      );
-      walletReferralStatsResponse.value =
-          ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
-    }
-  } catch (e) {
-    walletReferralStatsResponse.value =
-        ApiResponse.error(e.toString());
-  }
-}
 
   Future<void> getWalletReferralHistoryApi(String filter) async {
     try {
@@ -174,13 +147,17 @@ submitLoading.value = false;
       final res = await UserRepo().getBdmDetailsRepo();
 
       if (res.isSuccess) {
-        referralBdmDetails.value = ReferralGetBdmDetailsModel.fromJson(res.data);
-        referralBdmDetailsResponse.value =
-            ApiResponse.complete(referralBdmDetails.value);
+        referralBdmDetails.value = ReferralGetBdmDetailsModel.fromJson(res.response?.data);
 
         if(referralBdmDetails.value.status == 'PENDING'){
           myDocumentController.fetchAllDocumentStatusApi();
+        } else if (referralBdmDetails.value.status == 'COMPLETED') {
+          await getWalletReferralStatsApi();
         }
+
+        referralBdmDetailsResponse.value =
+            ApiResponse.complete(res.response?.data);
+
       } else {
         commonSnackBar(
           message: res.message ?? AppStrings.somethingWentWrong.tr,
@@ -193,6 +170,36 @@ submitLoading.value = false;
       referralBdmDetailsResponse.value =
           ApiResponse.error(e.toString());
      }
+  }
+
+  Future<void> getWalletReferralStatsApi() async {
+    try {
+
+      // walletReferralStatsResponse.value =
+      //     ApiResponse.initial('Initial');
+
+      final res = await UserRepo().getWalletReferralStatsRepo();
+
+      if (res.isSuccess) {
+        var walletReferralStats = WalletReferralStatsResponse.fromJson(res.response?.data);
+        if(walletReferralStats.data!=null){
+          referralStatsData.value = walletReferralStats.data!;
+          // walletReferralStatsResponse.value =
+          //     ApiResponse.complete(referralStatsData.value);
+        }
+
+      } else {
+        commonSnackBar(
+          message: res.message ?? AppStrings.somethingWentWrong.tr,
+        );
+        // walletReferralStatsResponse.value =
+        //     ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+      }
+    } catch (e) {
+      debugPrint("Failed to fetch wallet stats: $e");
+        // walletReferralStatsResponse.value =
+        //     ApiResponse.error(e.toString());
+    }
   }
 
   Future<void> bdmRegisterStepOneApi() async {
@@ -251,14 +258,20 @@ submitLoading.value = false;
 
     try {
       bdmRegisterLoading.value = true;
+
+      final aadharId = myDocumentController.documentStatuses[DocumentKeys.aadhar]?.id;
+      final panId = myDocumentController.documentStatuses[DocumentKeys.pan]?.id;
+      final addressId = myDocumentController.documentStatuses[DocumentKeys.addressProof]?.id;
+      final bankId = myDocumentController.documentStatuses[DocumentKeys.bankDetails]?.id;
+
       var params={
         'documents': {
-          "aadharCard": myDocumentController.documentStatuses[DocumentKeys.aadhar]?.id ?? "",
-          "panCard": myDocumentController.documentStatuses[DocumentKeys.pan]?.id ?? "",
-          "addressProof": myDocumentController.documentStatuses[DocumentKeys.addressProof]?.id ?? "",
-          "bankDetails": myDocumentController.documentStatuses[DocumentKeys.bankDetails]?.id ?? "",
+          if (aadharId != null && aadharId.isNotEmpty) "aadharCard": aadharId,
+          if (panId != null && panId.isNotEmpty) "panCard": panId,
+          if (addressId != null && addressId.isNotEmpty) "addressProof": addressId,
+          if (bankId != null && bankId.isNotEmpty) "bankDetails": bankId,
         },
-        'referralCode': mainReferralCode.text
+        ApiKeys.referralCode: mainReferralCode.text
       };
       final res = await UserRepo().bdmRegisterStepTwoRepo(params);
 
@@ -277,6 +290,48 @@ submitLoading.value = false;
     }
     finally{
       bdmRegisterLoading.value = false;
+    }
+  }
+
+  Future<void> getWalletReferralHistoryApi(String filter) async {
+    try {
+
+      Map<String, dynamic> _queryParms = {};
+      switch(filter){
+        case 'All':
+          break;
+        case 'Subscribe':
+          _queryParms['subscribed'] = true;
+          break;
+        case 'Un-Subscribe':
+          _queryParms['non-subscribed'] = true;
+          break;
+        case 'Expired':
+          _queryParms['expired'] = true;
+          break;
+      }
+
+      walletReferralHistoryResponse.value =
+          ApiResponse.initial('Initial');
+
+      final res = await UserRepo().getWalletReferralHistoryRepo(queryParms: _queryParms);
+
+      if (res.isSuccess) {
+        walletReferralHistoryResponse.value =
+            ApiResponse.complete(res.response?.data);
+        var walletReferralHistory = WalletReferralHistoryResponse.fromJson(res.response?.data);
+        referralHistoryData.value = walletReferralHistory.data ?? [];
+
+      } else {
+        commonSnackBar(
+          message: res.message ?? AppStrings.somethingWentWrong.tr,
+        );
+        walletReferralHistoryResponse.value =
+            ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+      }
+    } catch (e) {
+      walletReferralHistoryResponse.value =
+          ApiResponse.error(e.toString());
     }
   }
 

@@ -47,6 +47,7 @@ class MyDocumentsController extends GetxController {
   RxBool isLoading = false.obs;
 
   final genericDocumentController = TextEditingController();
+  final bankNameController = TextEditingController();
   final bankAccountNumberController = TextEditingController();
   final IFSCCodeController = TextEditingController();
 

@@ -337,7 +337,22 @@ class UserRepo extends BaseService {
   }
 
 
+  Future<ResponseModel> referralSuggestionsRepo(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().getHTTP(
+        referralSuggestions,
+        showProgress: false,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
+  Future<ResponseModel> checkReferralRepo(String refCode) async {
+    final response = await ApiBaseHelper().getHTTP(
+        checkReferral(refCode),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 
 }

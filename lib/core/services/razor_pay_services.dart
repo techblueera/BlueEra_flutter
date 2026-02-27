@@ -22,6 +22,7 @@ class RazorpayService {
   }
 
   void openCheckout({
+    String? razorpayKeyId,
     required String name,
     required String description,
     required double amount,
@@ -40,7 +41,8 @@ class RazorpayService {
 
     this.onExternalWallet = onExternalWallet;
     var options = {
-      'key': razorpayKey,
+      'key': razorpayKeyId ?? razorpayKey,
+      // 'key': razorpayKey,
       'name': name,
       if (subscriptionId.isNotEmpty) ...{
         'subscription_id': subscriptionId,
