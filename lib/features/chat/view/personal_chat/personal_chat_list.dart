@@ -66,12 +66,8 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                      Get.to(()=> AiChatScreen(
                        profileImage: chat?.sender?.profileImage,
                        name: chat?.sender?.name,
-                       contactNo: chat?.sender?.contactNo,
-                       conversationId: '',
-                       userId: '',
-                         businessId: '',
                        type: chat?.sender?.accountType,
-                       isInitialMessage: false,));
+                     ));
                     }:null,
                       isFromGroupSelect: widget.isNewGroupUI,
                       onSelect: () {

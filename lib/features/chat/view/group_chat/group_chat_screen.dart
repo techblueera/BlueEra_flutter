@@ -120,10 +120,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   profileImage: widget.profileImage,
                   editingController: editingController,
                   conversationId: widget.conversationId,
-                  userId: '',
-                  type: widget.type,
-                  name: widget.name,
-                  contactNo: '')
+
+                 )
               : getChatTitleAppBar(
             isGroupPrivate: widget.isGroupPrivate,
                   socketType: "group",

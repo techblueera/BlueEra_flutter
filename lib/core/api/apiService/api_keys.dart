@@ -730,6 +730,10 @@ class ApiKeys {
   static const upiDetails = 'upiDetails';
   static const upiId = 'upiId';
   static const group_cover_image = 'group_cover_image';
+  static const reminderTime = 'reminderTime';
+  static const profileImagePath = 'profileImagePath';
+  static const messageCount = 'messageCount';
+  static const updatedAt = 'updatedAt';
   static const fullName = 'fullName';
   static const referralCode = 'referralCode';
 }

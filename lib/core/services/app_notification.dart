@@ -433,12 +433,8 @@ class AppNotificationHandler {
       Get.to(()=> AiChatScreen(
         profileImage: chat?.sender?.profileImage,
         name: chat?.sender?.name,
-        contactNo: chat?.sender?.contactNo,
-        conversationId: '',
-        userId: '',
-        businessId: '',
         type: chat?.sender?.accountType,
-        isInitialMessage: false,));
+     ));
     }else
     if (data.operation == "sent_message") {
       OpenedMessageDataModel resModel=OpenedMessageDataModel.fromJson(dataNotificationResponse);

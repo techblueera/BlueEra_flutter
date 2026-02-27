@@ -5,18 +5,19 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
-import '../../../../widgets/custom_text_cm.dart';
-import '../../../../widgets/local_assets.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
+import '../chat_screen_new.dart';
 import '../widget/chat_input_box.dart';
+import '../widget/common_delete_message.dart';
+import '../widget/common_reminder_option.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
+import '../widget/reminder_sheet.dart';
 
 class PersonalChatScreen extends StatefulWidget {
   PersonalChatScreen(
@@ -95,10 +96,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                   editingController: editingController,
                   conversationId: widget.conversationId,
                   userId: widget.userId,
-                  type: widget.type,
-                  name: widget.name,
-                  contactNo: widget.contactNo)
-              : getChatTitleAppBar(socketType: "personal",
+                  )
+              : getChatTitleAppBar(socketType: AppConstants.personal,
               context,
                   userId: widget.userId,
                   type: widget.type,
@@ -203,15 +202,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                               children: messages.map((message) {
                                                 return MessageCard(
                                                   message: message,
-                                                  isInitialMessage:
-                                                      widget.isInitialMessage,
-                                                  conversationId:
-                                                      widget.conversationId,
-                                                  userId: widget.userId,
-                                                  name: widget.name,
-                                                  contactNo: widget.contactNo,
-                                                  profileImage:
-                                                      widget.profileImage,
+                                                  isInitialMessage:false,
+                                                  conversationId: message.conversationId,
+                                                  userId: message.sender?.id,
+                                                  name: message.sender?.name,
+                                                  contactNo: message.sender?.contactNo,
+                                                  profileImage:message.sender?.profileImage,
                                                 );
                                               }).toList(),
                                             ),
@@ -223,76 +219,85 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                 ),
                         ),
                         if(chatThemeController.isMessageSelectionActive.value)
-                        Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: AppColors.lightBlueShade.withOpacity(0.2)
-                            ),
+                          ChatActionBar(
+                            onReminderTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) =>
+                                    ReminderBottomSheet(
+                                      name: widget.name,
+                                      conversationId: widget.conversationId,
+                                      profileImagePath: widget.profileImage,
+                                    ),
+                              );
+                            },
 
-                            margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                            padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  margin: EdgeInsets.only(right: 8),
-                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                                  child: Row(
-                                    children: [
-                                      LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
-                                      SizedBox(width: 6,),
-                                      CustomText("Reminder",fontWeight: FontWeight.w500,fontSize: 12,),
-                                    ],
+                            onCopyTap: () {
+                              // Copy logic here
+                            },
+
+                            onDeleteTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => CommonDeleteDialog(
+                                  showDeleteForEveryone:
+                                  chatThemeController.isDeleteForEveryOneAvailable.value,
+
+                                  onDeleteForMe: () async {
+                                    FocusScope.of(context).unfocus();
+
+                                    Map<String, dynamic> data = {
+                                      ApiKeys.conversation_id: "${widget.conversationId}",
+                                      ApiKeys.delete_from_every_one: false,
+                                      ApiKeys.message_id_list:
+                                      chatThemeController.selectedId
+                                    };
+
+                                    await chatViewController
+                                        .deleteChatMessage(data, widget.userId ?? '');
+
+                                    chatThemeController.resetSelection();
+                                    chatThemeController.deActivateSelection();
+                                    Navigator.pop(context);
+                                  },
+
+                                  onDeleteForEveryone: () async {
+                                    FocusScope.of(context).unfocus();
+
+                                    Map<String, dynamic> data = {
+                                      ApiKeys.conversation_id: "${widget.conversationId}",
+                                      ApiKeys.delete_from_every_one: true,
+                                      ApiKeys.message_id_list:
+                                      chatThemeController.selectedId
+                                    };
+
+                                    await chatViewController
+                                        .deleteChatMessage(data, widget.userId ?? '');
+
+                                    chatThemeController.resetSelection();
+                                    chatThemeController.deActivateSelection();
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              );
+                            },
+
+                            onForwardTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => NewChatMainScreen(
+                                    isForwardUI: true,
+                                    message: chatThemeController.selectedFirstMessage?.value,
+                                    forwardId:
+                                    chatThemeController.selectedFirstMessage?.value?.id ?? '',
                                   ),
                                 ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  margin: EdgeInsets.only(right: 8),
-                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                                  child: Row(
-                                    children: [
-                                      LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
-                                      SizedBox(width: 6,),
-                                      CustomText("Copy",fontWeight: FontWeight.w500,fontSize: 12,),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  margin: EdgeInsets.only(right: 8),
-                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                                  child: Row(
-                                    children: [
-                                      LocalAssets(imagePath: AppIconAssets.deleteIcon,height: 14,width: 14,),
-                                      SizedBox(width: 6,),
-                                      CustomText("Delete",fontWeight: FontWeight.w500,fontSize: 12,),
-                                    ],
-                                  ),
-                                ), Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                                  child: Row(
-                                    children: [
-                                      LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
-                                      SizedBox(width: 6,),
-                                      CustomText("Forward",fontWeight: FontWeight.w500,fontSize: 12,),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ) ),
+                              );
+                            },
+                          ),
                         const SizedBox(
                           height: 6,
                         ),
@@ -306,82 +311,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                         const SizedBox(height: 14),
                       ],
                     ),
-                    // if(chatThemeController.isMessageSelectionActive.value)
-                    // Positioned(
-                    //   left: 10,
-                    //   right: 10,
-                    //   bottom: 200,
-                    //   child: Container(
-                    //       decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(10),
-                    //           color: AppColors.lightBlueShade.withOpacity(0.2)
-                    //       ),
-                    //
-                    //       margin: EdgeInsets.symmetric(horizontal: 10),
-                    //       padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                    //       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //         children: [
-                    //           Container(
-                    //             decoration: BoxDecoration(
-                    //               color: AppColors.white,
-                    //               borderRadius: BorderRadius.circular(10),
-                    //             ),
-                    //             margin: EdgeInsets.only(right: 8),
-                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                    //             child: Row(
-                    //               children: [
-                    //                 LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
-                    //                 SizedBox(width: 6,),
-                    //                 CustomText("Reminder",fontWeight: FontWeight.w500,fontSize: 12,),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //           Container(
-                    //             decoration: BoxDecoration(
-                    //               color: AppColors.white,
-                    //               borderRadius: BorderRadius.circular(10),
-                    //             ),
-                    //             margin: EdgeInsets.only(right: 8),
-                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                    //             child: Row(
-                    //               children: [
-                    //                 LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
-                    //                 SizedBox(width: 6,),
-                    //                 CustomText("Copy",fontWeight: FontWeight.w500,fontSize: 12,),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //           Container(
-                    //             decoration: BoxDecoration(
-                    //               color: AppColors.white,
-                    //               borderRadius: BorderRadius.circular(10),
-                    //             ),
-                    //             margin: EdgeInsets.only(right: 8),
-                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                    //             child: Row(
-                    //               children: [
-                    //                 LocalAssets(imagePath: AppIconAssets.deleteIcon,height: 14,width: 14,),
-                    //                 SizedBox(width: 6,),
-                    //                 CustomText("Delete",fontWeight: FontWeight.w500,fontSize: 12,),
-                    //               ],
-                    //             ),
-                    //           ), Container(
-                    //             decoration: BoxDecoration(
-                    //               color: AppColors.white,
-                    //               borderRadius: BorderRadius.circular(10),
-                    //             ),
-                    //             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                    //             child: Row(
-                    //               children: [
-                    //                 LocalAssets(imagePath: AppIconAssets.clock_new,height: 14,width: 14,),
-                    //                 SizedBox(width: 6,),
-                    //                 CustomText("Forward",fontWeight: FontWeight.w500,fontSize: 12,),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ],
-                    //       ) ),
-                    // )
+
                   ],
                 ),
               );

@@ -36,11 +36,13 @@ import '../../auth/controller/order_controllar.dart';
 import '../business_chat/widgets/rider_details_msg_card.dart';
 import '../business_chat/widgets/rider_live_location_msg_card.dart';
 import '../business_chat/widgets/rider_request_msg_card.dart';
+import '../media_view_page/medias_slider_page.dart';
 import '../orders_chat/widget/order_common_widgets.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
 import 'live_location_message_card.dart';
+import 'media_message_full_view.dart';
 import 'message_bubble.dart';
 
 class MessageCard extends StatefulWidget {
@@ -53,7 +55,7 @@ class MessageCard extends StatefulWidget {
       this.profileImage,
       this.name,
       required this.isInitialMessage,
-      this.contactNo});
+      this.contactNo, this.isFromAiMessage});
 
   final Messages message;
   final String? conversationId;
@@ -62,6 +64,7 @@ class MessageCard extends StatefulWidget {
   final String? name;
   final bool isInitialMessage;
   final bool? isFromOrderTab;
+  final bool? isFromAiMessage;
   final String? contactNo;
 
   @override
@@ -140,15 +143,6 @@ class _MessageCardState extends State<MessageCard>
               time: time,
               isReceiveMsg: isReceive,
               chatThemeController: chatThemeController,
-              onLongPress: () {
-                chatThemeController.activateSelection(widget.message);
-              },
-              onTap: () {
-                FocusScope.of(context).unfocus();
-                if (chatThemeController.isMessageSelectionActive.value) {
-                  chatThemeController.selectMoreMessage(widget.message);
-                }
-              },
             );
         break;
       case "contact":
@@ -254,7 +248,6 @@ class _MessageCardState extends State<MessageCard>
                 title: widget.message.metadata?.title,
                 priceType: "single",
                 photos:url,
-
             ),
             isGridView: false,
             isShowChat: false,
@@ -317,7 +310,27 @@ class _MessageCardState extends State<MessageCard>
             child: GestureDetector(
               onLongPress: (){
                 chatThemeController.activateSelection(widget.message);
+              },
+              onTap: (){
+                FocusScope.of(context).unfocus();
+                if (chatThemeController.isMessageSelectionActive.value) {
+                  chatThemeController.selectMoreMessage(widget.message);
+                }else{
+                  if(widget.message.messageType=="video"||widget.message.messageType=="video"){
+                    if(widget.message.url?.length == 1){
+                      Get.to(()=>MediaSliderPage(conversationId: widget.conversationId??'', conversationPersonName: widget.name??"", seletedUrl: widget.message.url?.first.url??'',));
+                      //Dont Delete This Cmd
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (_) =>
+                      //         VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
+                      //   ),
+                      // );
+                    }
 
+                  }
+                }
               },
               onHorizontalDragUpdate: (details) {
                 setState(() {
@@ -1060,169 +1073,158 @@ class _MessageCardState extends State<MessageCard>
       double long, String time, bool isReceiveMsg) {
     _currentPosition = LatLng(lat, long);
     Theme.of(context);
-    return GestureDetector(
-      onLongPress: () {
-        chatThemeController.activateSelection(messages);
-      },
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        if (chatThemeController.isMessageSelectionActive.value) {
-          chatThemeController.selectMoreMessage(messages);
-        }
-      },
-      child: Container(
-        height: 260,
-        width: 257,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: isReceiveMsg
-                ? chatThemeController.receiveMessageBgColor.value
-                : chatThemeController.myMessageBgColor.value),
-        padding: EdgeInsets.all(2),
-        child: Align(
-          alignment:
-              isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-          child: ClipRRect(
-            // Optional: Rounded corners
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: isReceiveMsg
-                      ? chatThemeController.receiveMessageBgColor.value
-                      : chatThemeController.myMessageBgColor.value),
-              child: Stack(
-                // mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    height: 240,
-                    width: 252,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: (message != null) ? 160 : 238,
-                          width: 254,
-                          child: Stack(
-                            children: [
-                              GoogleMap(
-                                onMapCreated: _onMapCreated,
-                                initialCameraPosition: CameraPosition(
-                                  target: _currentPosition ?? LatLng(lat, long),
-                                  zoom: 15.0,
-                                ),
-                                myLocationEnabled: false,
-                                compassEnabled: false,
-                                rotateGesturesEnabled: true,
-                                tiltGesturesEnabled: true,
-                                zoomGesturesEnabled: true,
-                                scrollGesturesEnabled: true,
+    return Container(
+      height: 260,
+      width: 257,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: isReceiveMsg
+              ? chatThemeController.receiveMessageBgColor.value
+              : chatThemeController.myMessageBgColor.value),
+      padding: EdgeInsets.all(2),
+      child: Align(
+        alignment:
+            isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+        child: ClipRRect(
+          // Optional: Rounded corners
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: isReceiveMsg
+                    ? chatThemeController.receiveMessageBgColor.value
+                    : chatThemeController.myMessageBgColor.value),
+            child: Stack(
+              // mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 240,
+                  width: 252,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: (message != null) ? 160 : 238,
+                        width: 254,
+                        child: Stack(
+                          children: [
+                            GoogleMap(
+                              onMapCreated: _onMapCreated,
+                              initialCameraPosition: CameraPosition(
+                                target: _currentPosition ?? LatLng(lat, long),
+                                zoom: 15.0,
                               ),
-                              Positioned(
-                                right: SizeConfig.size10,
-                                bottom: SizeConfig.size10,
-                                child: InkWell(
-                                  onTap: () async {
-                                    final Uri googleMapUrl = Uri.parse(
-                                        "https://www.google.com/maps/search/?api=1&query=${_currentPosition?.latitude},${_currentPosition?.longitude}");
+                              myLocationEnabled: false,
+                              compassEnabled: false,
+                              rotateGesturesEnabled: true,
+                              tiltGesturesEnabled: true,
+                              zoomGesturesEnabled: true,
+                              scrollGesturesEnabled: true,
+                            ),
+                            Positioned(
+                              right: SizeConfig.size10,
+                              bottom: SizeConfig.size10,
+                              child: InkWell(
+                                onTap: () async {
+                                  final Uri googleMapUrl = Uri.parse(
+                                      "https://www.google.com/maps/search/?api=1&query=${_currentPosition?.latitude},${_currentPosition?.longitude}");
 
-                                    if (await canLaunchUrl(googleMapUrl)) {
-                                      await launchUrl(googleMapUrl,
-                                          mode: LaunchMode.externalApplication);
-                                    } else {
-                                      throw "Could not open Google Maps";
-                                    }
-                                  },
-                                  child: Container(
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius:
-                                              BorderRadius.circular(5)),
-                                      height: SizeConfig.size40,
-                                      width: SizeConfig.size40,
-                                      child: Icon(
-                                        Icons.directions,
-                                        color: AppColors.white,
-                                      )),
-                                ),
-                              )
-                            ],
-                          ),
-
-                          // GoogleMap(
-                          //   initialCameraPosition: CameraPosition(
-                          //     target: _currentPosition,
-                          //     zoom: 15,
-                          //   ),
-                          //   markers: {_currentMarker},
-                          //   // myLocationEnabled: true,
-                          //   zoomControlsEnabled: false,
-                          //   myLocationButtonEnabled: false,
-                          //   mapType: MapType.terrain,
-                          //   onMapCreated: (controller) {
-                          //     controller.setMapStyle(
-                          //         mapLightCode); // If you're using a style
-                          //   },
-                          // ),
+                                  if (await canLaunchUrl(googleMapUrl)) {
+                                    await launchUrl(googleMapUrl,
+                                        mode: LaunchMode.externalApplication);
+                                  } else {
+                                    throw "Could not open Google Maps";
+                                  }
+                                },
+                                child: Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius:
+                                            BorderRadius.circular(5)),
+                                    height: SizeConfig.size40,
+                                    width: SizeConfig.size40,
+                                    child: Icon(
+                                      Icons.directions,
+                                      color: AppColors.white,
+                                    )),
+                              ),
+                            )
+                          ],
                         ),
-                        if (message != null)
-                          const SizedBox(
-                            height: 10,
+
+                        // GoogleMap(
+                        //   initialCameraPosition: CameraPosition(
+                        //     target: _currentPosition,
+                        //     zoom: 15,
+                        //   ),
+                        //   markers: {_currentMarker},
+                        //   // myLocationEnabled: true,
+                        //   zoomControlsEnabled: false,
+                        //   myLocationButtonEnabled: false,
+                        //   mapType: MapType.terrain,
+                        //   onMapCreated: (controller) {
+                        //     controller.setMapStyle(
+                        //         mapLightCode); // If you're using a style
+                        //   },
+                        // ),
+                      ),
+                      if (message != null)
+                        const SizedBox(
+                          height: 10,
+                        ),
+                      if (message != null)
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: CustomText(
+                            maxLines: 1,
+                            "${message.split('\n')[0]}",
+                            fontWeight: FontWeight.w600,
+                            color: (isReceiveMsg)
+                                ? Colors.black87
+                                : Colors.white,
+                            fontSize: 16,
                           ),
-                        if (message != null)
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: CustomText(
-                              maxLines: 1,
-                              "${message.split('\n')[0]}",
-                              fontWeight: FontWeight.w600,
-                              color: (isReceiveMsg)
-                                  ? Colors.black87
-                                  : Colors.white,
-                              fontSize: 16,
-                            ),
+                        ),
+                      if (message != null)
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: CustomText(
+                            maxLines: 1,
+                            "${message.split('\n').isEmpty?"":message.split('\n').length<2?"":message.split('\n')[1]}",
+                            fontWeight: FontWeight.w400,
+                            color: (isReceiveMsg)
+                                ? Colors.black87
+                                : Colors.white,
+                            fontSize: 14,
                           ),
-                        if (message != null)
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: CustomText(
-                              maxLines: 1,
-                              "${message.split('\n').isEmpty?"":message.split('\n').length<2?"":message.split('\n')[1]}",
-                              fontWeight: FontWeight.w400,
-                              color: (isReceiveMsg)
-                                  ? Colors.black87
-                                  : Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        if (message != null)
-                          const SizedBox(
-                            height: 10,
-                          ),
-                      ],
-                    ),
+                        ),
+                      if (message != null)
+                        const SizedBox(
+                          height: 10,
+                        ),
+                    ],
                   ),
-                  Positioned(
-                      child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: timeAndReadInfoWidget(
-                          message: messages!,
-                          isMyMessage: messages.myMessage ?? false,
-                          time: time,
-                          timeColor:
-                              (!isReceiveMsg) ? Colors.white : Colors.black54,
-                          indicateColor: messages.messageRead == 1
-                              ? Colors.blue
-                              : Colors.grey),
-                    ),
-                  )),
-                ],
-              ),
+                ),
+                Positioned(
+                    child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: timeAndReadInfoWidget(
+                        message: messages!,
+                        isMyMessage: messages.myMessage ?? false,
+                        time: time,
+                        timeColor:
+                            (!isReceiveMsg) ? Colors.white : Colors.black54,
+                        indicateColor: messages.messageRead == 1
+                            ? Colors.blue
+                            : Colors.grey),
+                  ),
+                )),
+              ],
             ),
           ),
         ),
@@ -1233,137 +1235,126 @@ class _MessageCardState extends State<MessageCard>
   Widget _buildContactMessage(Messages? message, String name, String number,
       String time, bool isReceiveMsg) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onLongPress: () {
-        chatThemeController.activateSelection(message);
-      },
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        if (chatThemeController.isMessageSelectionActive.value) {
-          chatThemeController.selectMoreMessage(message);
-        } else {}
-      },
-      child: Align(
-        alignment:
-            (isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
-        child: IntrinsicWidth(
-          child: Container(
-            width: 256,
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: isReceiveMsg
-                  ? Colors.white
-                  : chatThemeController.myMessageBgColor.value,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
-                bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
-              ),
+    return Align(
+      alignment:
+          (isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
+      child: IntrinsicWidth(
+        child: Container(
+          width: 256,
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isReceiveMsg
+                ? Colors.white
+                : chatThemeController.myMessageBgColor.value,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+              bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
+              bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      backgroundColor:
-                          theme.colorScheme.surface.withOpacity(0.8),
-                      radius: 18,
-                      child: Center(
-                        child: Icon(
-                          Icons.person,
-                          color: theme.colorScheme.inverseSurface,
-                        ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    backgroundColor:
+                        theme.colorScheme.surface.withOpacity(0.8),
+                    radius: 18,
+                    child: Center(
+                      child: Icon(
+                        Icons.person,
+                        color: theme.colorScheme.inverseSurface,
                       ),
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 180,
-                          child: CustomText(
-                            name,
-                            fontWeight: FontWeight.w500,
-                            color:
-                                (isReceiveMsg) ? Colors.black87 : Colors.white,
-                            fontSize: 16,
-                          ),
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 180,
+                        child: CustomText(
+                          name,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              (isReceiveMsg) ? Colors.black87 : Colors.white,
+                          fontSize: 16,
                         ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: CustomText(
-                            number,
-                            color:
-                                (!isReceiveMsg) ? Colors.white : Colors.black54,
-                            fontSize: 12,
-                          ),
-                        )
-                      ],
-                    )
-                  ],
-                ),
-                (isReceiveMsg)
-                    ? const SizedBox(
-                        height: 10,
-                      )
-                    : SizedBox(),
-                (isReceiveMsg)
-                    ? InkWell(
-                        onTap: () async {
-                          saveContactWithEditor(name, number);
-                        },
-                        child: Container(
-                          height: 32,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: (isReceiveMsg)
-                                  ? theme.colorScheme.secondary
-                                  : theme.colorScheme.secondary
-                                      .withValues(alpha: 0.6)),
-                          child: Center(
-                            child: CustomText(
-                              "Save",
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      )
-                    : SizedBox(),
-                const SizedBox(
-                  height: 8,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: timeAndReadInfoWidget(
-                          message: message!,
-                          isMyMessage: message.myMessage ?? false,
-                          time: time,
-                          timeColor:
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: CustomText(
+                          number,
+                          color:
                               (!isReceiveMsg) ? Colors.white : Colors.black54,
-                          indicateColor: message.messageRead == 1
-                              ? Colors.blue
-                              : Colors.grey),
+                          fontSize: 12,
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+              (isReceiveMsg)
+                  ? const SizedBox(
+                      height: 10,
                     )
-                  ],
-                ),
-              ],
-            ),
+                  : SizedBox(),
+              (isReceiveMsg)
+                  ? InkWell(
+                      onTap: () async {
+                        saveContactWithEditor(name, number);
+                      },
+                      child: Container(
+                        height: 32,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: (isReceiveMsg)
+                                ? theme.colorScheme.secondary
+                                : theme.colorScheme.secondary
+                                    .withValues(alpha: 0.6)),
+                        child: Center(
+                          child: CustomText(
+                            "Save",
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                  : SizedBox(),
+              const SizedBox(
+                height: 8,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: timeAndReadInfoWidget(
+                        message: message!,
+                        isMyMessage: message.myMessage ?? false,
+                        time: time,
+                        timeColor:
+                            (!isReceiveMsg) ? Colors.white : Colors.black54,
+                        indicateColor: message.messageRead == 1
+                            ? Colors.blue
+                            : Colors.grey),
+                  )
+                ],
+              ),
+            ],
           ),
         ),
       ),
