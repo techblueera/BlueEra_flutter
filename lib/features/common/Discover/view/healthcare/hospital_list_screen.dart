@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
@@ -172,10 +173,15 @@ class _HospitalCard extends StatelessWidget {
       padding: const EdgeInsets.only(right: 10.0, bottom: 15, left: 8),
       child: InkWell(
         onTap: () {
-          final controller = Get.find<HospitalServiceAiController>();
-          controller.hospitalDataResModel?.value =
-              HospitalFullDetailsResModel(success: true, data: item);
-          Get.to(DiscoverHospitalHomeScreen());
+          try {
+            final controller = Get.find<HospitalServiceAiController>();
+            controller.hospitalDataResModel?.value =
+                HospitalFullDetailsResModel(success: true, data: item);
+            Get.to(DiscoverHospitalHomeScreen());
+          } on Exception catch (e) {
+            logs("ERROR $e");
+            // TODO
+          }
         },
         child: CommonCardWidget(
           cardMargin: 0,

@@ -56,7 +56,7 @@ class MeMenuCardDesign extends StatelessWidget {
                   CustomText(
                     title,
                     fontSize: SizeConfig.size18,
-                    color: AppColors.black,
+                    color:AppColors.mainTextColor,
                   ),
                 ],
               ),

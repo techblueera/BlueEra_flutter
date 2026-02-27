@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_emergency_contact_controller.dart';
@@ -29,7 +30,7 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Emergency Contact Details",
+        title:AppStrings.emergencyContact,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -43,7 +44,7 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
               CommonTextField(
                 textEditController: controller.emergencyController,
                 hintText: "9888767657",
-                title: "Emergency Number",
+                title:AppStrings.emergencyNumber,
                 maxLength: 11,
                 keyBoardType: TextInputType.phone,
                 onChange: (_) {},
@@ -52,7 +53,7 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
               CommonTextField(
                 textEditController: controller.appointmentController,
                 hintText: "9343767657",
-                title: "Appointment Number",
+                title: AppStrings.appointmentNumber,
                 maxLength: 11,
                 keyBoardType: TextInputType.phone,
                 onChange: (_) {},
@@ -63,7 +64,7 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
                 onTap: controller.isFormValid && !controller.isSaving.value
                     ? controller.submit
                     : null,
-                title: "Submit",
+                title: AppStrings.submit,
               ),
               SizedBox(height: SizeConfig.size14),
             ],

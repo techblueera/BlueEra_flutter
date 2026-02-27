@@ -75,6 +75,7 @@ getDeviceInfo() async {
 }
 
 Future<void> main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
 
   ///SET YOUR API CALLING ENV.

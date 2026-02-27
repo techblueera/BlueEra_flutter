@@ -46,44 +46,7 @@ class _DiscoverHospitalHomeScreenState
                       left: 12.0, right: 12, bottom: 15, top: 10),
                   child: Row(
                     children: [
-                      Expanded(
-                        child: PositiveCustomBtn(
-                            onTap: () async {
-                              final chatViewController =
-                                  Get.find<ChatViewController>();
-                              Map<String, dynamic> detas = {
-                                ApiKeys.user_id: controller
-                                    .hospitalDataResModel?.value.data?.userId,
-                              };
-                              Map<String, dynamic>? checkCompleted =
-                                  await chatViewController
-                                      .checkChatConnection(detas);
-                              chatViewController.openAnyOneChatFunction(
-                                profileImage: controller
-                                    .hospitalDataResModel?.value.data?.logoUrl,
-                                otherUserId: (checkCompleted?[
-                                            ApiKeys.conversation_id] ==
-                                        '')
-                                    ? (checkCompleted?[ApiKeys.other_user_id])
-                                    : null,
-                                // businessId: widget.businessProfileDetails.id,
-                                type: "business",
-                                isInitialMessage: true,
-                                userId: controller
-                                    .hospitalDataResModel?.value.data?.userId,
-                                conversationId:
-                                    checkCompleted?[ApiKeys.conversation_id] ??
-                                        '',
-                                contactName: controller
-                                    .hospitalDataResModel?.value.data?.name,
-                                contactNo: "",
-                              );
-                            },
-                            title: "Chat"),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
+
                       Expanded(
                         child: PositiveCustomBtn(
                             onTap: () {
@@ -139,17 +102,7 @@ class _DiscoverHospitalHomeScreenState
               height: 10,
             ),
 
-            if ((controller
-                        .hospitalDataResModel
-                        ?.value
-                        .data
-                        ?.contacts
-                        ?.firstOrNull
-                        ?.branch
-                        ?.location
-                        ?.coordinates
-                        ?.isNotEmpty ??
-                    false) &&
+            if ((controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?.isNotEmpty ?? false) &&
                 controller.hospitalDataResModel?.value.data?.contacts
                         ?.firstOrNull?.branch?.location?.coordinates?[0] !=
                     null &&
@@ -162,29 +115,13 @@ class _DiscoverHospitalHomeScreenState
                 controller.hospitalDataResModel?.value.data?.contacts
                         ?.firstOrNull?.branch?.location?.coordinates?[1] !=
                     0.0)
-              CommonCardWidget(
-                padding: 5,
-                child: BusinessLocationWidget(
-                    locationText: controller.hospitalDataResModel?.value.data
-                        ?.contacts?.firstOrNull?.branch?.location?.name,
-                    latitude: double.parse(controller
-                            .hospitalDataResModel
-                            ?.value
-                            .data
-                            ?.contacts
-                            ?.firstOrNull
-                            ?.branch
-                            ?.location
-                            ?.coordinates?[1]
-                            .toString() ??
-                        "0.0"),
-                    longitude: double.parse(
-                        controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?[0].toString() ??
-                            "0.0"),
-                    businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
-                    padding: 0,
-                    isTitleShow: true),
-              ),
+              BusinessLocationWidget(
+                  locationText: controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.name,
+                  latitude: double.parse(controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?[1].toString() ?? "0.0"),
+                  longitude: double.parse(controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?[0].toString() ?? "0.0"),
+                  businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
+                  padding: 0,
+                  isTitleShow: true),
 
             SizedBox(
               height: kBottomNavigationBarHeight + 10,
@@ -213,29 +150,57 @@ class EmergencyActionCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Column(
+      child: Row(
         children: [
-          _buildActionCard(
-            icon: "assets/svg/call_24.svg",
-            // Your 24/7 Phone Icon
-            title: "Emergency Number",
-            subtitle: "24/7 Immediate Help",
-            buttonText: "Call Now",
-            isEmergency: true,
-            phoneNo: emergencyNo,
-            onTap: () => _launchCaller(emergencyNo),
+          Expanded(
+            child: _buildActionCard(
+              icon: "assets/svg/call_24.svg",
+              // Your 24/7 Phone Icon
+              title: "Emergency Number",
+              subtitle: "24/7 Immediate Help",
+              buttonText: "Call Now",
+              isEmergency: true,
+              phoneNo: emergencyNo,
+              onTap: () => _launchCaller(emergencyNo),
+            ),
           ),
-          const SizedBox(height: 12),
-          _buildActionCard(
-            icon: "assets/svg/helth_calender.svg",
-            // Your Calendar Icon
-            title: "Book Appointment",
-            subtitle: "Schedule Your Visit Easily",
-            buttonText: "Call Now",
-            isEmergency: false,
-            phoneNo: appointmentNo,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildActionCard(
+              icon: "assets/svg/support_helth.svg",
+              // Your Calendar Icon
+              title: "Appointment",
+              subtitle: "Schedule Your Visit Easily",
+              buttonText: "Book Now",
+              isEmergency: false,
+              phoneNo: appointmentNo,
 
-            onTap: () => _launchCaller(appointmentNo),
+              onTap: () async {
+                final chatViewController = Get.find<ChatViewController>();
+                Map<String, dynamic> detas = {
+                  ApiKeys.user_id:
+                      controller.hospitalDataResModel?.value.data?.userId,
+                };
+                Map<String, dynamic>? checkCompleted =
+                    await chatViewController.checkChatConnection(detas);
+                chatViewController.openAnyOneChatFunction(
+                  profileImage:
+                      controller.hospitalDataResModel?.value.data?.logoUrl,
+                  otherUserId: (checkCompleted?[ApiKeys.conversation_id] == '')
+                      ? (checkCompleted?[ApiKeys.other_user_id])
+                      : null,
+                  // businessId: widget.businessProfileDetails.id,
+                  type: "business",
+                  isInitialMessage: true,
+                  userId: controller.hospitalDataResModel?.value.data?.userId,
+                  conversationId:
+                      checkCompleted?[ApiKeys.conversation_id] ?? '',
+                  contactName:
+                      controller.hospitalDataResModel?.value.data?.name,
+                  contactNo: "",
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -253,31 +218,27 @@ class EmergencyActionCard extends StatelessWidget {
   }) {
     return CommonCardWidget(
       cardMargin: 0,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           // 1. Icon Section
           LocalAssets(imagePath: icon, height: 50, width: 50),
-          const SizedBox(width: 16),
+          const SizedBox(height: 16),
 
           // 2. Text Section
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  title,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                const SizedBox(height: 4),
-                CustomText(
-                  phoneNo,
-                  color: Colors.grey.shade600,
-                ),
-              ],
-            ),
+          CustomText(
+            title,
+            // fontSize: 16,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 10),
+          // CustomText(
+          //   phoneNo,
+          //   color: Colors.grey.shade600,
+          // ),
+          // const SizedBox(height: 4),
 
           // 3. Action Button
           _buildCallButton(buttonText, isEmergency, onTap),
@@ -293,24 +254,25 @@ class EmergencyActionCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isEmergency ? const Color(0xFFC8554D) : Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          border: isEmergency ? null : Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(10),
+          border:
+              isEmergency ? null : Border.all(color: AppColors.primaryColor),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.phone,
-              size: 18,
-              color: isEmergency ? Colors.white : Colors.black54,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: TextStyle(
-                color: isEmergency ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
+            if (isEmergency)
+              Icon(
+                Icons.phone,
+                size: 18,
+                color: isEmergency ? Colors.white : Colors.black54,
               ),
+            const SizedBox(width: 8),
+            CustomText(
+              text,
+              color: isEmergency ? Colors.white : AppColors.primaryColor,
+              textAlign: TextAlign.center,
             ),
           ],
         ),

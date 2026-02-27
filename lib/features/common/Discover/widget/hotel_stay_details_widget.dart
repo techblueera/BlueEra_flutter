@@ -337,20 +337,17 @@ final discoverController = Get.find<DiscoverController>();
               _buildContactCard(profile),
               SizedBox(height: 24),
 
-              CustomFormCard(
-                padding: EdgeInsets.all(10),
-                child: BusinessLocationWidget(
-                    locationText: profile?.location?.name,
-                    latitude: double.parse(
-                        profile?.location?.coordinates?[1].toString() ??
-                            "0.0"),
-                    longitude: double.parse(
-                        profile?.location?.coordinates?[0].toString() ??
-                            "0.0"),
-                    businessName: profile?.name ?? "",
-                    padding: 0,
-                    isTitleShow: true),
-              ),
+              BusinessLocationWidget(
+                  locationText: profile?.location?.name,
+                  latitude: double.parse(
+                      profile?.location?.coordinates?[1].toString() ??
+                          "0.0"),
+                  longitude: double.parse(
+                      profile?.location?.coordinates?[0].toString() ??
+                          "0.0"),
+                  businessName: profile?.name ?? "",
+                  padding: 0,
+                  isTitleShow: true),
 
               SizedBox(height: kBottomNavigationBarHeight + 30),
 

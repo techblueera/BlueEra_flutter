@@ -42,10 +42,10 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "OPD Doctors",
+        title: AppStrings.opdDoctors,
         showRightTextButton: true,
         buildCustomActionWidget: () => Padding(
-          padding: const EdgeInsets.only(right: 10.0),
+          padding: const EdgeInsets.only(right: 0.0),
           child: GestureDetector(
             onTap: () {
               controller.startCreate();
@@ -63,7 +63,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: CustomText(
-                "Add New",
+                AppStrings.addNew,
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
@@ -147,7 +147,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                                         hospitalId: widget.hospitalId));
                                   });
                                 },
-                                child: CustomText("Edit"),
+                                child: CustomText(AppStrings.edit),
                               ),
                               const PopupMenuItem(
                                 enabled: false,
@@ -163,7 +163,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                                       const Duration(milliseconds: 100), () {
                                     commonConformationDialog(
                                       context: context,
-                                      text: "Are you sure to delete?",
+                                      text:AppStrings.areYouSureDelete.tr,
                                       confirmCallback: () async {
                                         Navigator.of(context).pop();
                                         await controller.deleteOpd(d);
@@ -173,7 +173,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                                     );
                                   });
                                 },
-                                child: CustomText("Delete"),
+                                child: CustomText(AppStrings.delete),
                               ),
                             ],
                           ),
@@ -181,10 +181,10 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                       ),
                       SizedBox(height: 6),
                       if (d.fees != null)
-                        CustomText("Fees: ₹${d.fees}",
+                        CustomText("${AppStrings.fees.tr}: ₹${d.fees}",
                             color: AppColors.secondaryTextColor),
                       if (d.timing.isNotEmpty)
-                        CustomText("Timing: ${d.timing}",
+                        CustomText("${AppStrings.timing.tr}: ${d.timing}",
                             color: AppColors.secondaryTextColor),
                       if (d.description.isNotEmpty)
                         ExpandableText(

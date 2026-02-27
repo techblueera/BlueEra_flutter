@@ -9,7 +9,7 @@ import GoogleMaps
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        GMSServices.provideAPIKey("AIzaSyDdU2Ji6dCQ4Hq0TbLHILxMsdR-M27Ie2g")
+        GMSServices.provideAPIKey("AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU")
         FirebaseApp.configure()
         GeneratedPluginRegistrant.register(with: self)
         // Register NativeAdFactory

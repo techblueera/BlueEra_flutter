@@ -20,15 +20,13 @@ class HospitalHistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HospitalHistoryScreen> {
-   final HospitalHistoryController
-  controller = Get.put(HospitalHistoryController());
-
-
+  final HospitalHistoryController controller =
+      Get.put(HospitalHistoryController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "History"),
+      appBar: CommonBackAppBar(title: AppStrings.history),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12),
         child: Obx(() {
@@ -48,10 +46,11 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
                       cardMargin: 0,
                       padding: 0,
                       child: Padding(
-                        padding:  EdgeInsets.symmetric(horizontal: 12.0,vertical: 5),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
                         child: AiDescriptionField(
-                          label: "Describe your hospital history",
-                          hintText: "Tell us more about the Hospital history...",
+                          label: AppStrings.hospitalHistoryTitle,
+                          hintText: AppStrings.hospitalHistorySubtitle,
                           controller: controller.historyController,
                           rxValue: RxString(controller.historyController.text),
                           aiType: "Hospital history",
@@ -60,7 +59,7 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
                       ),
                     ),
                     SizedBox(height: SizeConfig.size20),
-                    CustomText("Upload Photo"),
+                    CustomText(AppStrings.uploadPhotos),
                     SizedBox(height: SizeConfig.size10),
 
                     // Image Section: Handles Network vs Local
@@ -70,7 +69,9 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
 
                     // Submit Button
                     CustomBtn(
-                      onTap: controller.isFormValid.value ? () => _handleSubmit() : null,
+                      onTap: controller.isFormValid.value
+                          ? () => _handleSubmit()
+                          : null,
                       title: AppStrings.submit,
                       isValidate: controller.isFormValid.value,
                     ),
@@ -95,8 +96,7 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
         title: '',
         context: context,
       );
-    }
-    else if (controller.initialImageUrl.isNotEmpty) {
+    } else if (controller.initialImageUrl.isNotEmpty) {
       return Stack(
         children: [
           ClipRRect(
@@ -127,7 +127,7 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
       );
     }
     return CommonImageUploadTile(
-      title: "Upload Photo",
+      title: AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

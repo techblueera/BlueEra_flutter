@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_vision_mission_controller.dart';
@@ -34,7 +35,7 @@ class _HospitalVisionMissionScreenState
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Vision & Mission",
+        title: AppStrings.visionMission,
         isLeading: true,
       ),
       body: Obx(() {
@@ -52,8 +53,8 @@ class _HospitalVisionMissionScreenState
                 child: Padding(
                   padding:  EdgeInsets.symmetric(horizontal: 12.0,vertical: 5),
                   child: AiDescriptionField(
-                    label: "Describe your hospital's vision and mission",
-                    hintText: "Tell us more about the Hospital vision and mission...",
+                    label: AppStrings.visionMissionTitle,
+                    hintText:AppStrings.visionMissionDescription,
                     controller: controller.visionController,
                     rxValue: controller.descriptionTest,
                     // Your RX variable from the controller
@@ -66,7 +67,7 @@ class _HospitalVisionMissionScreenState
               PositiveCustomBtn(
                 onTap:
                     controller.isSaving.value ? null : controller.saveOrUpdate,
-                title: controller.data.value == null ? "Save" : "Update",
+                title: controller.data.value == null ? AppStrings.save : AppStrings.update,
                 width: double.infinity,
                 height: SizeConfig.size45,
                 bgColor: AppColors.primaryColor,

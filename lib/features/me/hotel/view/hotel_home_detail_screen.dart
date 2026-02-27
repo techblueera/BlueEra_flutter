@@ -191,21 +191,17 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                     _buildContactCard(profile),
                     SizedBox(height: 20),
 
-                    CommonCardWidget(
-                      padding: 5,
-                      cardMargin: 0,
-                      child: BusinessLocationWidget(
-                          locationText: profile?.locationHotel?.name,
-                          latitude: double.parse(
-                              profile?.locationHotel?.latitude?.toString() ??
-                                  "0.0"),
-                          longitude: double.parse(
-                              profile?.locationHotel?.longitude?.toString() ??
-                                  "0.0"),
-                          businessName: profile?.name ?? "",
-                          padding: 0,
-                          isTitleShow: true),
-                    ),
+                    BusinessLocationWidget(
+                        locationText: profile?.locationHotel?.name,
+                        latitude: double.parse(
+                            profile?.locationHotel?.latitude?.toString() ??
+                                "0.0"),
+                        longitude: double.parse(
+                            profile?.locationHotel?.longitude?.toString() ??
+                                "0.0"),
+                        businessName: profile?.name ?? "",
+                        padding: 0,
+                        isTitleShow: true),
 
                     SizedBox(height: kBottomNavigationBarHeight + 30),
                   ],

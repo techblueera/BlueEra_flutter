@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_ipd_controller.dart';
@@ -37,7 +38,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "IPD Wards/Rooms",
+        title: AppStrings.ipdWardsRooms,
         buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 10.0),
           child: GestureDetector(
@@ -55,7 +56,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: CustomText(
-                "Add New",
+              AppStrings.addNew,
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
@@ -69,7 +70,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
           return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
         }
         if (controller.wards.isEmpty) {
-          return Center(child: CustomText("No data found"));
+          return Center(child: CustomText(AppStrings.noDataFound));
         }
         return ListView.separated(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -101,10 +102,10 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                           children: [
                             CustomText(w.name, fontSize: 16, fontWeight: FontWeight.w700,maxLines: 2,overflow: TextOverflow.ellipsis,),
                             SizedBox(height: 6),
-                            CustomText("Beds: ${w.bedCount}", color: AppColors.secondaryTextColor),
+                            CustomText("${AppStrings.beds.tr}: ${w.bedCount}", color: AppColors.secondaryTextColor),
                             SizedBox(height: 6),
 
-                            CustomText("Fees: ₹${w.fees}", color: AppColors.secondaryTextColor),
+                            CustomText("${AppStrings.fees.tr}: ₹${w.fees}", color: AppColors.secondaryTextColor),
                             SizedBox(height: 6),
 
 
@@ -128,7 +129,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                                 Get.to(() => IpdWardFormScreen(departmentId: widget.departmentId, hospitalId: widget.hospitalId));
                               });
                             },
-                            child: CustomText("Edit"),
+                            child: CustomText(AppStrings.edit),
                           ),
                           const PopupMenuItem(
                             enabled: false,
@@ -143,7 +144,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                               Future.delayed(const Duration(milliseconds: 100), () {
                                 commonConformationDialog(
                                   context: context,
-                                  text: "Are you sure to delete?",
+                                  text:AppStrings.areYouSureDelete,
                                   confirmCallback: () async {
                                     Navigator.of(context).pop();
                                     await controller.deleteWard(w);
@@ -152,7 +153,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                                 );
                               });
                             },
-                            child: CustomText("Delete"),
+                            child: CustomText(AppStrings.delete),
                           ),
                         ],
                       ),

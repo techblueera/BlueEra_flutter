@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_opd_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -33,7 +34,7 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Add/Edit OPD Doctor"),
+      appBar: CommonBackAppBar(title:  AppStrings.addEditOpdDoctor,),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: Column(
@@ -45,37 +46,43 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
                   _buildImageSection(),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
+                    title: AppStrings.fullName,
                     textEditController: controller.nameController,
-                    hintText: "Name",
+                    hintText: AppStrings.egRahulSharma,
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
+                    title:  AppStrings.education,
                     textEditController: controller.educationController,
                     hintText: "Education (optional)",
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
+                    title:  AppStrings.position,
                     textEditController: controller.positionController,
                     hintText: "Position (e.g., Dr. PhD)",
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
+                    title: AppStrings.fees,
                     textEditController: controller.feesController,
-                    hintText: "Fees",
+                    hintText:  AppStrings.fees,
                     keyBoardType: TextInputType.number,
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
+                    title:  AppStrings.timing,
                     textEditController: controller.timingController,
                     hintText: "Timing (e.g., 10:00 am - 05:00pm Mon-Fri)",
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
+                    title:  AppStrings.description,
                     textEditController: controller.descriptionController,
                     hintText: "Description",
                     maxLine: 4,
@@ -86,7 +93,7 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
                         width: double.infinity,
                         child: CustomBtn(
                           isValidate:controller.isFormValid.value  ,
-                          title: controller.editing == null ? "Save" : "Update",
+                          title: controller.editing == null ?  AppStrings.save :  AppStrings.update,
                           onTap: controller.isFormValid.value ? controller.save : null,
                         ),
                       )),
@@ -141,7 +148,7 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
       );
     }
     return CommonImageUploadTile(
-      title: "Upload Photo",
+      title:  AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

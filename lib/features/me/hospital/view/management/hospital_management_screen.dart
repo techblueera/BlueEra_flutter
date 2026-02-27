@@ -31,7 +31,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Management",
+        title: AppStrings.managementTrust,
         isLeading: true,
         isShadowShow: true,
         buildCustomActionWidget: () => Padding(
@@ -50,7 +50,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: CustomText(
-                "Add Member",
+                AppStrings.addedMembers,
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
@@ -132,7 +132,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                           Get.to(const ManagementFormScreen());
                         });
                       },
-                      child: CustomText("Edit"),
+                      child: CustomText(AppStrings.edit),
                     ),
                     const PopupMenuItem(
                       enabled: false,
@@ -147,7 +147,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                         Future.delayed(const Duration(milliseconds: 100), () {
                           commonConformationDialog(
                             context: context,
-                            text: "Are you sure to delete this member?",
+                            text: AppStrings.deleteMemberConfirm,
                             confirmCallback: () async {
                               Navigator.of(context).pop();
                               await controller.deleteMember(member);
@@ -158,7 +158,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                           );
                         });
                       },
-                      child: CustomText("Delete"),
+                      child: CustomText(AppStrings.delete),
                     ),
                   ],
                 ),

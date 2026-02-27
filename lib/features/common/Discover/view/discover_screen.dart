@@ -42,7 +42,149 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'book_your_transport/book_transport_main.dart';
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
+
+class ResponsiveSearchBar extends StatelessWidget {
+  const ResponsiveSearchBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double width = constraints.maxWidth;
+
+        return Container(
+          width: Get.width,
+          padding: EdgeInsets.only(bottom: 10, top: 10, right: 10, left: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                Color(0xff0085FE).withValues(alpha: 0.20), // Bottom color
+                Color(0xff0085FE).withValues(alpha: 0), // Bottom color
+              ],
+            ),
+          ),
+          child: Center(
+            child: Container(
+              width: width > 600 ? 600 : width * 0.9,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primaryColor,width: 0.5),
+              ),
+              child: Row(
+                children: [
+                  LocalAssets(imagePath: AppIconAssets.search),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: CustomText(
+                      "Search Anything....",
+                      fontSize: 16,
+                    ),
+                  ),
+                  LocalAssets(
+                    imagePath: AppIconAssets.mic,
+                    width: 20,
+                    height: 20,
+                    imgColor: AppColors.secondaryTextColor,
+                  ),
+                  const SizedBox(width: 10),
+                  LocalAssets(
+                    imagePath: AppIconAssets.camera_black,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class FashionSlider extends StatefulWidget {
+  const FashionSlider({super.key});
+
+  @override
+  State<FashionSlider> createState() => _FashionSliderState();
+}
+
+class _FashionSliderState extends State<FashionSlider> {
+  final PageController _controller = PageController();
+  int currentPage = 0;
+
+  final List<Map<String, String>> sliderData = [
+    {
+      "title": "New Collection",
+      "bigText": "FASHION SALE",
+      "image": "assets/images/dummy_banner.png",
+    },
+    {
+      "title": "Limited Offer",
+      "bigText": "MEGA SALE",
+      "image": "assets/images/dummy_banner.png",
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: 10,),
+        /// SLIDER
+        SizedBox(
+          height: 170,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: sliderData.length,
+            onPageChanged: (index) {
+              setState(() => currentPage = index);
+            },
+            itemBuilder: (context, index) {
+              return _buildSlide(sliderData[index]);
+            },
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        /// DOT INDICATOR
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            sliderData.length,
+                (index) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              height: 8,
+              width: currentPage == index ? 24 : 8,
+              decoration: BoxDecoration(
+                color: currentPage == index
+                    ? Colors.blue
+                    : Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+
+      ],
+    );
+  }
+
+  Widget _buildSlide(Map<String, String> data) {
+    return Image.asset(
+      data["image"]!,
+      fit: BoxFit.contain,
+    );
+  }
+}
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible)? onHeaderVisibilityChanged;
@@ -86,206 +228,164 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     super.initState();
   }
 
-  Future<void> _loadMarkerAsset() async {
-    try {
-      _customIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(devicePixelRatio: 2.5),
-        'assets/images/location_marker_icon.png', // Hardcode here once to test
-      );
-      debugPrint("✅ PNG Marker loaded successfully");
-    } catch (e) {
-      debugPrint("❌ Failed to load PNG marker: $e");
-      // Fallback to default so the app doesn't crash
-      _customIcon = BitmapDescriptor.defaultMarker;
-    }
-  }
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    if (!mounted) return;
-
-    _customIcon = await BitmapDescriptor.asset(
-      const ImageConfiguration(size: Size(30, 40)),
-      AppImageAssets.locationMarkerIcon, // Your PNG path
-    );
-
-    // await _loadMarkerAsset();
-
-    setState(() {
-      _markers.add(Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(userLat, userLng),
-        icon: _customIcon ?? BitmapDescriptor.defaultMarker,
-        onTap: () => Get.to(() => FranchiseHome()),
-      ));
-      isMapLoading = false;
-    });
-  }
-
-  Future<void> _loadCustomMarker() async {
-    try {
-      final markerBytes = await getBytesFromSvgAsset(
-        AppImageAssets.locationMarkerIcon,
-        35,
-      );
-
-      if (markerBytes.isEmpty) {
-        throw Exception("Marker bytes are empty");
-      }
-
-      final markerIcon = BitmapDescriptor.bytes(markerBytes);
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(userLat, userLng),
-        icon: markerIcon,
-        onTap: () {
-          debugPrint("📍 Marker tapped");
-          Get.to(() => FranchiseHome());
-        },
-      );
-
-      setState(() {
-        _markers.add(customMarker);
-        isMapLoading = false;
-      });
-
-      debugPrint("🎉 Marker added successfully");
-    } catch (e, stackTrace) {
-      debugPrint("Error: $e");
-      debugPrint("StackTrace: $stackTrace");
-    }
-  }
-
-  // Future<void> _onStyleLoadedCallback() async {
-  //   try {
-  //     // 1. Create the combined image
-  //     final Uint8List markerBytes = await TooltipGenerator.createTooltipWithSvg(
-  //       title: "BlueEra Partner\nNear you",
-  //       svgAssetPath: AppIconAssets.locationMarkerIcon,
-  //     );
-  //
-  //     // 2. Add to Map
-  //     await mapController.addImage("svg-composite-icon", markerBytes);
-  //
-  //     // 3. Display Symbol
-  //     await mapController.addSymbol(
-  //       SymbolOptions(
-  //         geometry: LatLng(userLat, userLng),
-  //         iconImage: "svg-composite-icon",
-  //         iconSize: 1.0,
-  //
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     print('Error adding marker: $e');
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     final bool isSmallScreen = View.of(context).physicalSize.width < 400;
     return SafeArea(
       child: Scaffold(
-          body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen))
-
-              // child: Obx(() => setupScrollVisibilityNotification(
-              //     controller: controller.scrollController,
-              //     onVisibilityChanged: (visible, offset) {
-              //       // final currentOffset = controller.headerOffset.value;
-              //       // const step = 0.25;
-              //       //
-              //       // double newOffset = currentOffset;
-              //       // if (visible) {
-              //       //   // show header
-              //       //   newOffset = (currentOffset - step).clamp(0.0, 1.0);
-              //       // } else {
-              //       //   // hide header
-              //       //   newOffset = (currentOffset + step).clamp(0.0, 1.0);
-              //       // }
-              //       //
-              //       // controller.headerOffset.value = newOffset;
-              //       controller.isHeaderVisible.value = visible;
-              //       widget.onHeaderVisibilityChanged?.call(visible);
-              //     },
-              //     child:
-              //     Stack(
-              //       children: [
-              //         /// Discover Main Body
-              //         _buildMainBody(isSmallScreen),
-              //
-              //         /// Header stays same
-              //         _buildFloatingHeader(),
-              //       ],
-              //     )
-              //   )
-              // ),
-
-              )),
+          body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen)))),
     );
   }
 
-  Widget _buildMapWidget() {
-    return CustomFormCard(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      child: Column(
-        children: [
-          Row(
+  Widget buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: const TextField(
+        decoration: InputDecoration(
+          hintText: "Search Anything....",
+          hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+          border: InputBorder.none,
+          icon: Icon(Icons.search, color: Colors.black54, size: 28),
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(child: _title('BlueEra Partner Near you')),
-              SizedBox(width: SizeConfig.size8),
-              Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6.0),
-                      border: Border.all(color: AppColors.primaryColor)),
-                  child: CustomText(
-                      LocationService.userCurrentAddress.value.postalCode,
-                      color: AppColors.primaryColor,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600))
+              Icon(Icons.mic_none, color: Colors.black54),
+              SizedBox(width: 10),
+              Icon(Icons.camera_alt_outlined, color: Colors.black54),
             ],
           ),
-          SizedBox(height: SizeConfig.paddingXSL),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              width: double.infinity,
-              height: SizeConfig.size160,
-              child: Stack(
+        ),
+      ),
+    );
+  }
+
+  Widget buildFashionSaleCard() {
+    return Container(
+      margin: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        // Blue gradient background
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF003399), Color(0xFF001144)],
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            // Background Rays Effect (Optional)
+
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
                 children: [
-                  GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(userLat, userLng),
-                      zoom: 12.0,
-                    ),
-                    markers: _markers,
-                    onTap: (LatLng latLng) {
-                      logs("logMsg");
-                      Get.to(() => FranchiseHome());
-                    },
-                    zoomGesturesEnabled: false,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                  ),
-                  if (isMapLoading)
-                    Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryColor),
+                  // 1. Text Content
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          "New Collection",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic),
                         ),
-                      ),
+                        const Text(
+                          "FASHION\nSALE",
+                          style: TextStyle(
+                            color: Color(0xFFFFD700), // Yellow gold
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Lorem Ipsum is simply dummy text of the printing.",
+                          style: TextStyle(color: Colors.white70, fontSize: 10),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD700),
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 4),
+                          ),
+                          child: const Text("ORDER NOW",
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
                     ),
+                  ),
+
+                  // 2. Shoe Image & Discount Tag
+                  Expanded(
+                    flex: 2,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Shoe Image
+                        Image.asset(
+                          'assets/shoe_image.png', // Replace with your asset
+                          fit: BoxFit.contain,
+                        ),
+                        // 50% Discount Tag
+                        Positioned(
+                          top: -10,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFFD700),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Column(
+                              children: [
+                                Text("Hurry Up!",
+                                    style: TextStyle(
+                                        fontSize: 6,
+                                        fontWeight: FontWeight.bold)),
+                                Text("50%",
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold)),
+                                Text("OFF", style: TextStyle(fontSize: 8)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -346,8 +446,18 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                         // ... your existing tap logic ...
                       },
                       child: LocalAssets(
-                        imagePath: AppIconAssets.cartIcon,
+                        imagePath: AppIconAssets.location_new,
                       ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size16),
+                    child: InkWell(
+                      onTap: () {
+                        commonSnackBar(message: "Coming soon....");
+                        // ... your existing tap logic ...
+                      },
+                      child: LocalAssets(imagePath: AppIconAssets.cartIcon),
                     ),
                   ),
                 ],
@@ -368,7 +478,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     tabs: const [
                       Tab(text: 'Overview'),
                       Tab(text: 'In Contact'),
-                      Tab(text: 'Favourite'),
+                      // Tab(text: 'Favourite'),
                       Tab(text: 'Best Deal'),
                     ],
                   ),
@@ -394,6 +504,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     return SingleChildScrollView(
       child: Column(
         children: [
+          ResponsiveSearchBar(),
+          FashionSlider(),
           ///COMMENT BY BM-Dev REASON CRASHING IN IOS DEVICE SO
           // Padding(
           //   padding: EdgeInsets.only(top: SizeConfig.paddingM),

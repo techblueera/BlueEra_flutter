@@ -1,17 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_contact_us_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_department_widget.dart';
-import 'package:BlueEra/features/me/hospital/view/widget/hospital_faq_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -47,7 +44,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         HospitalHeaderView(
           isReadOnly: false,
         ),
-        EmergencyActionCard(),
+        // EmergencyActionCard(),
 
         HospitalBookingScreen(),
        EmergencyCriticalCareView(),
@@ -101,37 +98,34 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
             controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
                     ?.branch?.location?.coordinates?[1] !=
                 0.0)
-          CommonCardWidget(
-            padding: 5,
-            child: BusinessLocationWidget(
-                locationText: controller.hospitalDataResModel?.value.data
-                    ?.contacts?.firstOrNull?.branch?.location?.name,
-                latitude: double.parse(controller
-                        .hospitalDataResModel
-                        ?.value
-                        .data
-                        ?.contacts
-                        ?.firstOrNull
-                        ?.branch
-                        ?.location
-                        ?.coordinates?[1]
-                        .toString() ??
-                    "0.0"),
-                longitude: double.parse(controller
-                        .hospitalDataResModel
-                        ?.value
-                        .data
-                        ?.contacts
-                        ?.firstOrNull
-                        ?.branch
-                        ?.location
-                        ?.coordinates?[0]
-                        .toString() ??
-                    "0.0"),
-                businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
-                padding: 0,
-                isTitleShow: true),
-          ),
+          BusinessLocationWidget(
+              locationText: controller.hospitalDataResModel?.value.data
+                  ?.contacts?.firstOrNull?.branch?.location?.name,
+              latitude: double.parse(controller
+                      .hospitalDataResModel
+                      ?.value
+                      .data
+                      ?.contacts
+                      ?.firstOrNull
+                      ?.branch
+                      ?.location
+                      ?.coordinates?[1]
+                      .toString() ??
+                  "0.0"),
+              longitude: double.parse(controller
+                      .hospitalDataResModel
+                      ?.value
+                      .data
+                      ?.contacts
+                      ?.firstOrNull
+                      ?.branch
+                      ?.location
+                      ?.coordinates?[0]
+                      .toString() ??
+                  "0.0"),
+              businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
+              padding: 0,
+              isTitleShow: true),
 
         SizedBox(
           height: kBottomNavigationBarHeight + 10,

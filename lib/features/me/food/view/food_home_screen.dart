@@ -155,25 +155,19 @@ class RestaurantHomeScreen extends StatelessWidget {
                     : _buildContactCard(data.contact),
                 // Map Placeholder
                 if (data.contact != null)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BusinessLocationWidget(
-                          locationText: data.contact?.location?.name ?? "",
-                          latitude: double.parse(data
-                                  .contact?.location?.coordinates?[0]
-                                  .toString() ??
-                              "0.0"),
-                          longitude: double.parse(data
-                                  .contact?.location?.coordinates?[1]
-                                  .toString() ??
-                              "0.0"),
-                          businessName: data.contact?.name ?? "",
-                          padding: 10,
-                          isTitleShow: true),
-                    ),
-                  ),
+                  BusinessLocationWidget(
+                      locationText: data.contact?.location?.name ?? "",
+                      latitude: double.parse(data
+                              .contact?.location?.coordinates?[0]
+                              .toString() ??
+                          "0.0"),
+                      longitude: double.parse(data
+                              .contact?.location?.coordinates?[1]
+                              .toString() ??
+                          "0.0"),
+                      businessName: data.contact?.name ?? "",
+                      padding: 10,
+                      isTitleShow: true),
                 SizedBox(
                   height: 100,
                 ),
