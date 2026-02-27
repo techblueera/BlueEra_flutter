@@ -271,8 +271,13 @@ class MyDocumentsController extends GetxController {
         String? cancelChequeBackImageUrl;
 
         // ---------- 3️⃣ UPLOAD RC IMAGES ----------
-        cancelChequeFrontImageUrl = await _uploadToS3(cancelChequeFrontImage.value!);
-        cancelChequeBackImageUrl = await _uploadToS3(cancelChequeBackImage.value!);
+        final results = await Future.wait([
+          _uploadToS3(cancelChequeFrontImage.value!),
+          _uploadToS3(cancelChequeBackImage.value!),
+        ]);
+
+        cancelChequeFrontImageUrl = results[0];
+        cancelChequeBackImageUrl = results[1];
 
         // ---------- 5️⃣ PREPARE PAYLOAD ----------
         final params = {
@@ -344,9 +349,26 @@ class MyDocumentsController extends GetxController {
       isGenericDocumentLoading.value = true;
 
       // ---------- 3️⃣ UPLOAD IMAGES ----------
-      String? frontImageUrl = await _uploadToS3(genericDocumentsFrontImage.value!);
+
+      String? frontImageUrl;
       String? backImageUrl;
-      if(backImage) backImageUrl = await _uploadToS3(genericDocumentsBackImage.value!);
+
+      try {
+
+        List<String?> imageUrls = await Future.wait([
+          _uploadToS3(genericDocumentsFrontImage.value!),
+          if (backImage) _uploadToS3(genericDocumentsBackImage.value!)
+        ]);
+
+        frontImageUrl = imageUrls[0];
+        backImageUrl = backImage ? imageUrls[1] : null;
+      } catch (e) {
+        commonSnackBar(message: "Image upload failed. Please check your connection.");
+        isGenericDocumentLoading.value = false;
+        return;
+      }
+
+
 
       // ---------- 4️⃣ PREPARE PAYLOAD ----------
       final params = {
@@ -363,18 +385,21 @@ class MyDocumentsController extends GetxController {
 
       if (response.isSuccess) {
         genericDocumentUploadResponse.value = ApiResponse.complete(response);
+        isGenericDocumentLoading.value = false;
         Get.back();
         fetchAllDocumentStatusApi();
       } else {
+        isGenericDocumentLoading.value = false;
         genericDocumentUploadResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
       debugPrint('❌ documentIdentificationRepo error: $e\n$s');
+      isGenericDocumentLoading.value = false;
       genericDocumentUploadResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      isGenericDocumentLoading.value = false;
+
     }
   }
 
@@ -463,8 +488,6 @@ class MyDocumentsController extends GetxController {
       return "Please upload $docName image";
     }
   }
-
-
 
 
 } 

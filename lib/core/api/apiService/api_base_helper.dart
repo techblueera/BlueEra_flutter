@@ -568,7 +568,14 @@ class ApiBaseHelper {
 
       final fileLength = await file.length();
 
-      final dio = Dio();
+      final dio = Dio(
+        BaseOptions(
+          // Give generous timeouts for large file uploads on slow networks
+          connectTimeout: const Duration(seconds: 60),
+          receiveTimeout: const Duration(seconds: 120),
+          sendTimeout: const Duration(seconds: 120), // Crucial for uploads
+        ),
+      );
 
       dio.interceptors.add(
         LogInterceptor(

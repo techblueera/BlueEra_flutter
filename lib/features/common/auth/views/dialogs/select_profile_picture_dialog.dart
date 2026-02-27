@@ -19,6 +19,12 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 
+// Documents / ID Cards: 1024 x 1024 (Text remains readable, ultra-fast upload)
+//
+// Normal Photos / Products: 1920 x 1080 (Looks HD on phones, fast upload)
+//
+// Profile Picture Thumbnails: 512 x 512 (Only ever seen in small circles, instant upload)
+
 class SelectProfilePictureDialog {
   static final Map<int, CroppableImageData?> _data = {};
 
@@ -26,7 +32,9 @@ class SelectProfilePictureDialog {
       BuildContext context, {
       required ImageSource source,
       CropAspectRatio? cropAspectRatio,
-        // CropAspectRatio? cropAspectRatio,
+      int? quality,
+      int? minWidth,
+      int? minHeight,
       }) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source,);
@@ -36,7 +44,12 @@ class SelectProfilePictureDialog {
     final originalFile = File(pickedFile.path);
     final originalSize = await originalFile.length();
 
-    final compressedFile = await compressImage(originalFile);
+    final compressedFile = await compressImage(
+        originalFile,
+        quality: quality,
+        minWidth: minWidth,
+        minHeight: minHeight
+    );
     final finalImage = compressedFile ?? originalFile;
 
     final newSize = await finalImage.length();
@@ -52,16 +65,38 @@ class SelectProfilePictureDialog {
 
   /// Camera picker
   static Future<String?> pickFromCamera(BuildContext context,
-      {CropAspectRatio? cropAspectRatio}) {
-    return _handlePick(context,
-        source: ImageSource.camera, cropAspectRatio: cropAspectRatio);
+      {
+        CropAspectRatio? cropAspectRatio,
+        int? quality,
+        int? minWidth,
+        int? minHeight,
+      }) {
+    return _handlePick(
+        context,
+        source: ImageSource.camera,
+        cropAspectRatio: cropAspectRatio,
+        quality: quality,
+        minWidth: minWidth,
+        minHeight: minHeight
+    );
   }
 
   /// Gallery picker
   static Future<String?> pickFromGallery(BuildContext context,
-      {CropAspectRatio? cropAspectRatio}) {
-    return _handlePick(context,
-        source: ImageSource.gallery, cropAspectRatio: cropAspectRatio);
+      {
+        CropAspectRatio? cropAspectRatio,
+        int? quality,
+        int? minWidth,
+        int? minHeight,
+      }) {
+    return _handlePick(
+        context,
+        source: ImageSource.gallery,
+        cropAspectRatio: cropAspectRatio,
+        quality: quality,
+        minWidth: minWidth,
+        minHeight: minHeight
+    );
   }
 
 
@@ -72,6 +107,9 @@ class SelectProfilePictureDialog {
         bool? isOnlyCamera = true,
         bool? isGallery = true,
         CropAspectRatio? cropAspectRatio,
+        int? quality,
+        int? minWidth,
+        int? minHeight,
       }) async {
    Get.find<LanguageListController>();
 
@@ -101,8 +139,13 @@ class SelectProfilePictureDialog {
                               iconPath: AppIconAssets.camera_sky,
                               label: AppStrings.takeFromCamera,
                               onTap: () async {
-                                final path = await pickFromCamera(context,
-                                    cropAspectRatio: cropAspectRatio);
+                                final path = await pickFromCamera(
+                                    context,
+                                    cropAspectRatio: cropAspectRatio,
+                                    quality: quality,
+                                    minWidth: minWidth,
+                                    minHeight: minHeight
+                                );
                                 Navigator.pop(context, path);
                               },
                             ),
@@ -114,8 +157,13 @@ class SelectProfilePictureDialog {
                               label:
                               AppStrings.selectFromGallery,
                               onTap: () async {
-                                final path = await pickFromGallery(context,
-                                    cropAspectRatio: cropAspectRatio);
+                                final path = await pickFromGallery(
+                                    context,
+                                    cropAspectRatio: cropAspectRatio,
+                                    quality: quality,
+                                    minWidth: minWidth,
+                                    minHeight: minHeight
+                                );
                                 Navigator.pop(context, path);
                               },
                             ),
@@ -261,7 +309,7 @@ class SelectProfilePictureDialog {
   }
 
   /// Compression
-  static Future<File?> compressImage(File rawFile, {int quality = 70}) async {
+  static Future<File?> compressImage(File rawFile, {int? quality, int? minWidth, int? minHeight}) async {
     final dir = await getTemporaryDirectory();
     final targetPath =
         '${dir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -269,9 +317,9 @@ class SelectProfilePictureDialog {
     final result = await FlutterImageCompress.compressAndGetFile(
       rawFile.absolute.path,
       targetPath,
-      quality: quality,
-      minWidth: 1920,
-      minHeight: 1080,
+      quality: quality ?? 70,
+      minWidth: minWidth ?? 1920,
+      minHeight: minHeight ?? 1080,
     );
 
     return result != null ? File(result.path) : null;

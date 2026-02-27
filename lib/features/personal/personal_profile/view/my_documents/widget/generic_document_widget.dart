@@ -87,7 +87,8 @@ class GenericDocumentWidget extends StatelessWidget {
                         onImageSelected: () async {
                           final selectedPath =
                           await CommonImageUploadTile.pickImage(
-                              context: context);
+                              context: context
+                          );
                           if (selectedPath != null) {
                             controller.genericDocumentsFrontImage.value = File(selectedPath);
                           }

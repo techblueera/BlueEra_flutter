@@ -22,7 +22,7 @@ class ReferralHistoryScreen extends StatefulWidget {
 class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
 
   final controller = Get.find<ReferralController>();
-  
+
   @override
   initState() {
     super.initState();

@@ -120,6 +120,9 @@ class CommonImageUploadTile extends StatelessWidget {
       final String? selected = await SelectProfilePictureDialog.showLogoDialog(
         context,
         title,
+        quality: 60,
+        minWidth: 1024,
+        minHeight: 1024,   // Documents / ID Cards: 1024 x 1024 (Text remains readable, ultra-fast upload)
       );
 
       if (selected != null && selected.isNotEmpty) {

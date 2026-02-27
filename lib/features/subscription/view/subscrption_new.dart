@@ -80,8 +80,6 @@ class _SubscriptionScreenNewState extends State<SubscriptionScreenNew> with Sing
           );
         }
 
-
-
         return _buildSubscriptionBody();
 
       }),

@@ -331,6 +331,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
          ;
         },
       ),
+      if(userProfileTypeGlobal != SOCIAL_PROFILE)
       MenuItemModel(
         title: "Contribution",
         // title: "Subscription",
