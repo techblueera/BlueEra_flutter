@@ -68,6 +68,7 @@ class ChatViewController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> groupDetailsResponse =
       ApiResponse.initial('Initial').obs;
+  RxInt personalTabSelectedIndex=0.obs;
   Rx<ApiResponse> viewContactsListResponse = ApiResponse.initial('Initial').obs;
   final chatSocket = ChatSocketService();
   final aiSocket = AiSocketService();
@@ -708,6 +709,7 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+        log("jasdcnksjdcsdc ${data}");
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;

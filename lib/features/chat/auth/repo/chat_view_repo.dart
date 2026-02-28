@@ -273,6 +273,16 @@ class ChatViewRepo extends BaseService {
         onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> setReminderApi(
+      Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper()
+        .postHTTP(setReminder,
+        params: params,
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> checkTrackOrderStatusApi(
      String orderId) async {
     final response = await ApiBaseHelper()

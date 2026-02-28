@@ -4,6 +4,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 
@@ -30,7 +31,49 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
     "1 Week",
     "6 Hours Later",
   ];
+  void applyQuickOption(String option) {
+    final now = DateTime.now();
+    DateTime updatedDateTime = now;
 
+    switch (option) {
+      case "1 Day":
+        updatedDateTime = now.add(const Duration(days: 1));
+        break;
+
+      case "2 Days":
+        updatedDateTime = now.add(const Duration(days: 2));
+        break;
+
+      case "1 Week":
+        updatedDateTime = now.add(const Duration(days: 7));
+        break;
+
+      case "2 Hours Later":
+        updatedDateTime = now.add(const Duration(hours: 2));
+        break;
+
+      case "4 Hours Later":
+        updatedDateTime = now.add(const Duration(hours: 4));
+        break;
+
+      case "6 Hours Later":
+        updatedDateTime = now.add(const Duration(hours: 6));
+        break;
+    }
+
+    setState(() {
+      selectedDate = DateTime(
+        updatedDateTime.year,
+        updatedDateTime.month,
+        updatedDateTime.day,
+      );
+
+      selectedTime = TimeOfDay(
+        hour: updatedDateTime.hour,
+        minute: updatedDateTime.minute,
+      );
+    });
+  }
   String formatReminderDateTime(
       ) {
     // Combine Date + Time into one DateTime
@@ -87,6 +130,7 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
                   groupValue: selectedOption,
                   onChanged: (val) {
                     setState(() => selectedOption = val);
+                    applyQuickOption(val!);
                   },
                   title: CustomText(option,
                       fontSize: 14,
@@ -170,25 +214,45 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
             /// Notify Button
           CustomBtn(
               isValidate: true,
-              onTap: (){
-                chatThemeController.saveReminderData(
+              onTap: ()async{
+                bool? value= await chatThemeController.setReminderApiCall({
+                  if(selectedOption==null)
+                  ApiKeys.reminder_time: getIsoReminderDateTime(),
+                  if(selectedOption!=null)
+                  ApiKeys.quick_option: selectedOption??""
+                });
+                if(value!=null&&value){
+                  chatThemeController.saveReminderData(
                     conversationId: widget.conversationId,
                     name: widget.name,
                     profileImagePath:  widget.profileImagePath,
-                  reminderTime: selectedOption==null?formatReminderDateTime():selectedOption!,
-                );
+                    reminderTime: selectedOption==null?formatReminderDateTime():selectedOption!,
+                  );
+                }
+
                }, title: "Notify Me"),
           ],
         ),
       ),
     );
   }
+  String getIsoReminderDateTime() {
+    final combined = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+      0,
+    );
 
+    // Convert to UTC and return ISO format like: 2026-02-28T07:21:31.432Z
+    return combined.toUtc().toIso8601String();
+  }
   String formatRailwayTime(TimeOfDay time) {
     final hour = time.hour.toString().padLeft(2, '0'); // 00–23
-    final minute = time.minute.toString().padLeft(2, '0');
 
-    return "$hour:$minute"; // e.g., 18:05
+    return "$hour Hr"; // e.g., 18:05
   }
   Widget _buildPickerBox({
     required String text,
@@ -226,8 +290,6 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
   Future<void> _pickTime() async {
     TimeOfDay? picked =
     await showTimePicker(context: context, initialTime: selectedTime,
-      initialEntryMode: TimePickerEntryMode.input,
-
     );
     if (picked != null) {
       setState(() => selectedTime = picked);

@@ -89,7 +89,7 @@ Widget timeAndReadInfoWidget({required Messages message,
   );
 }
 
-Widget noChatsFound() {
+Widget noChatsFound([bool? reminderMsg]) {
   return Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -104,17 +104,20 @@ Widget noChatsFound() {
           height: 14,
         ),
         CustomText(
-          "No Chats Found",
+          reminderMsg==null?"No Chats Found":"No Reminder Messages Found",
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(
           height: 6,
         ),
+        if(reminderMsg==null)
         CustomText("Go to contacts and start new conversation"),
         const SizedBox(
           height: 6,
         ),
+        if(reminderMsg==null)
+
         InkWell(
             onTap: () {
               Get.toNamed(RouteHelper.getChatContactsRoute());
@@ -1120,6 +1123,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           },
           itemBuilder: (context) => popPupMenuForAiChat(),
         ),
+      if(isFromAiChat==true)
       InkWell(
         onTap: (){
           Get.dialog(
@@ -1140,8 +1144,8 @@ AppBar getChatTitleAppBar(BuildContext context, {
                         userName: userNameGlobal,
                         topics: AppConstants.aiChatTopics,
                         onSend: (message, tag) {
-
                           SendMessageToAI(message: message, tag: tag);
+                          Get.back();
                         },
                       ),
                     ),

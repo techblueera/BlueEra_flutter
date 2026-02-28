@@ -11,6 +11,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../ai_chat/view/ai_chat_screen.dart';
+import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
 
 class PersonalChatsList extends StatefulWidget {
@@ -47,12 +48,13 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
               HorizontalTabSelector(horizontalMargin: 14,
                 horizontalPadding: 10,
                   tabs: ['All',"Unread","Reminder"],
-                  selectedIndex: 0,
+                  selectedIndex: chatViewController.personalTabSelectedIndex.value,
                   onTabSelected: (index,val){
-
+                chatViewController.personalTabSelectedIndex.value=index;
                   },
                   labelBuilder: (value)=>value),
               SizedBox(height: 12,),
+              if(chatViewController.personalTabSelectedIndex.value==0)
               Container(
                 margin: EdgeInsets.only(bottom: SizeConfig.size70),
                 child: (data?.chatList?.isEmpty ?? true)
@@ -83,7 +85,9 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                     );
                   },
                 ),
-              ),
+              )
+              else if(chatViewController.personalTabSelectedIndex.value==2)
+              ReminderChatList(),
             ],
           ),
         );

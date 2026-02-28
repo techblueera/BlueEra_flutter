@@ -3,16 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/message_card.dart';
-import '../widget/reminder_sheet.dart';
-import 'common_reminder_option.dart';
 
 class ReminderViewPage extends StatefulWidget {
   const ReminderViewPage({super.key,required this.conversationId,required this.name,required this.profileImagePath});
@@ -152,47 +148,47 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
                                         );
                                       }).toList(),
                                     ),
-                                    if(chatThemeController.isMessageSelectionActive.value)
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10),
-                                          color: AppColors.lightBlueShade.withOpacity(0.2),
-                                        ),
-                                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          children: [
-
-                                            /// Reminder
-                                            ChatActionButton(
-                                              title: "Change Reminder",
-                                              iconPath: AppIconAssets.clock_new,
-                                              onTap: () {
-                                                showModalBottomSheet(
-                                                  context: context,
-                                                  isScrollControlled: true,
-                                                  backgroundColor: Colors.transparent,
-                                                  builder: (context) =>  ReminderBottomSheet(
-                                                    profileImagePath: widget.profileImagePath,
-                                                    conversationId: widget.conversationId,
-                                                    name: widget.name,
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                            ChatActionButton(
-                                              title: "Remove From Reminder",
-                                              iconPath: AppIconAssets.clock_new,
-                                              onTap: () {
-                                                // chatThemeController.removeSelectedReminderMessages();
-                                              },
-                                            ),
-
-
-                                          ],
-                                        ),
-                                      ),
+                                    // if(chatThemeController.isMessageSelectionActive.value)
+                                    //   Container(
+                                    //     decoration: BoxDecoration(
+                                    //       borderRadius: BorderRadius.circular(10),
+                                    //       color: AppColors.lightBlueShade.withOpacity(0.2),
+                                    //     ),
+                                    //     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                    //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                    //     child: Row(
+                                    //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    //       children: [
+                                    //
+                                    //         /// Reminder
+                                    //         ChatActionButton(
+                                    //           title: "Change Reminder",
+                                    //           iconPath: AppIconAssets.clock_new,
+                                    //           onTap: () {
+                                    //             showModalBottomSheet(
+                                    //               context: context,
+                                    //               isScrollControlled: true,
+                                    //               backgroundColor: Colors.transparent,
+                                    //               builder: (context) =>  ReminderBottomSheet(
+                                    //                 profileImagePath: widget.profileImagePath,
+                                    //                 conversationId: widget.conversationId,
+                                    //                 name: widget.name,
+                                    //               ),
+                                    //             );
+                                    //           },
+                                    //         ),
+                                    //         ChatActionButton(
+                                    //           title: "Remove From Reminder",
+                                    //           iconPath: AppIconAssets.clock_new,
+                                    //           onTap: () {
+                                    //             // chatThemeController.removeSelectedReminderMessages();
+                                    //           },
+                                    //         ),
+                                    //
+                                    //
+                                    //       ],
+                                    //     ),
+                                    //   ),
                                     SizedBox(height: 8,)
                                   ],
                                 ),
@@ -205,7 +201,7 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
                   ),
                   ChatInputBar(
                     isInitialMessage: false,
-                    userId: "",
+                    hideMedia: true,
                     conversationId: widget.conversationId ?? '',
                   ),
                   SizedBox(height: 30,),
