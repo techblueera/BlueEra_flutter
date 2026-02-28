@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
+import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -302,6 +303,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       if(accountTypeGlobal == AppConstants.individual)
       MenuItemModel(
         title: "Refer & Earn",
+        // onTap: () => Get.to(()=> JoinAsBDMScreen()),
         onTap: () => Get.to(()=> ReferralPage()),
       ),
       if (accountTypeGlobal != "BUSINESS")

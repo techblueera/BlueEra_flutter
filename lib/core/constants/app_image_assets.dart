@@ -213,6 +213,7 @@ class AppImageAssets {
   static String find_quality_img = "${imgPath}find_quality_img.png";
   static String find_consulting_img = "${imgPath}find_consulting_img.png";
   static String locationMarkerIcon = "${imgPath}location_marker_icon.png";
+  static String welcomeSubscriptionOffer = "${imgPath}welcome_subscription_offer.png";
 
   /// colorful icons(grocery)
   static const groceryIconPath = AppConstants.baseGroceryAssetsPath;

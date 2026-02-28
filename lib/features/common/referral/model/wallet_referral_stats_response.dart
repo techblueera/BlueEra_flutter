@@ -21,8 +21,9 @@ class WalletReferralStatsResponse {
 
 class WalletRefferalStatsData {
   String? referralCode;
-  int? balance;
-  int? totalIncome;
+  num? balance;
+  num? totalIncome;
+  num? estimatedEarning;
   int? totalReferralCount;
   Breakdown? breakdown;
 
@@ -30,6 +31,7 @@ class WalletRefferalStatsData {
       {this.referralCode,
         this.balance,
         this.totalIncome,
+        this.estimatedEarning,
         this.totalReferralCount,
         this.breakdown});
 
@@ -37,6 +39,7 @@ class WalletRefferalStatsData {
     referralCode = json['referralCode'];
     balance = json['balance'];
     totalIncome = json['totalIncome'];
+    estimatedEarning = json['estimatedEarning'];
     totalReferralCount = json['totalReferralCount'];
     breakdown = json['breakdown'] != null
         ? new Breakdown.fromJson(json['breakdown'])
@@ -48,6 +51,7 @@ class WalletRefferalStatsData {
     data['referralCode'] = this.referralCode;
     data['balance'] = this.balance;
     data['totalIncome'] = this.totalIncome;
+    data['estimatedEarning'] = this.estimatedEarning;
     data['totalReferralCount'] = this.totalReferralCount;
     if (this.breakdown != null) {
       data['breakdown'] = this.breakdown!.toJson();

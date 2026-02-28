@@ -1,14 +1,13 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/subscription_create_model.dart';
 import 'package:BlueEra/core/api/model/subscription_offer_model.dart';
-import 'package:BlueEra/core/api/model/subscription_plan_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_trial_initiate.dart';
 import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
 import 'package:get/get.dart';
@@ -25,6 +24,8 @@ class SubscriptionController extends GetxController {
   Rx<ApiResponse> getSubscriptionPlanResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> userSubscriptionResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> checkReferralResponse =
       ApiResponse.initial('Initial').obs;
   // Rx<ApiResponse> getSubscriptionOfferResponse =
   //     ApiResponse.initial('Initial').obs;
@@ -247,6 +248,32 @@ class SubscriptionController extends GetxController {
       }
     } catch (e) {
       verificationSubscriptionResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  Future<void> checkReferralApi(String refCode) async {
+    try {
+
+      checkReferralResponse.value =
+          ApiResponse.initial('Initial');
+
+      final res = await UserRepo().checkReferralRepo(refCode);
+
+      if (res.isSuccess) {
+        // referralSuggestions.value = res.response?.data['data'];
+        checkReferralResponse.value =
+            ApiResponse.complete(res.response?.data);
+
+      } else {
+        commonSnackBar(
+          message: res.message ?? AppStrings.somethingWentWrong.tr,
+        );
+        checkReferralResponse.value =
+            ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+      }
+    } catch (e) {
+      checkReferralResponse.value =
+          ApiResponse.error(e.toString());
     }
   }
 

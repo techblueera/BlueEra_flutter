@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/fetch_location_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -77,13 +78,17 @@ class _CreateBusinessAccountNewStepTwoState
   Future<void> updateAddressFromLocation() async {
     locationData = await locationController.checkPermissionAndSetData();
     if (locationData != null) {
-      fullBusinessAddressTextController.text = locationData!.fullAddress;
-      cityController.text = locationData!.city;
-      picCodeController.text = locationData!.pinCode;
-      viewBusinessDetailsController.addressLat?.value = double.parse(locationData!.lat);
-      viewBusinessDetailsController.addressLong?.value = double.parse(locationData!.long);
-      _updateMarkerOnMap();
+      _updateLocationData(locationData);
     }
+  }
+  
+  void _updateLocationData(var locationData){
+    fullBusinessAddressTextController.text = locationData!.fullAddress;
+    cityController.text = locationData!.city;
+    picCodeController.text = locationData!.pinCode;
+    viewBusinessDetailsController.addressLat?.value = double.parse(locationData!.lat);
+    viewBusinessDetailsController.addressLong?.value = double.parse(locationData!.long);
+    _updateMarkerOnMap();
   }
 
   void _validateForm() {
@@ -218,18 +223,36 @@ class _CreateBusinessAccountNewStepTwoState
                               color: AppColors.secondaryTextColor,
                             ),
                             SizedBox(width: SizeConfig.size8),
-                            _buildFetchAddressWidgets(
-                                child: PositiveCustomBtn(
+                            CommonLocationFetcher(
+                              locationController: locationController,
+                              onLocationFetched: (locationData) {
+                                _updateLocationData(locationData);
+                              },
+                              childBuilder: (fetchAction) {
+                                return PositiveCustomBtn(
                                   width: SizeConfig.size80,
                                   height: SizeConfig.size30,
-                                  onTap: ()=> updateAddressFromLocation(),
+                                  onTap: fetchAction,
                                   isLeadingShow: true,
                                   leadingIconPath: AppIconAssets.refreshIcon,
                                   title: AppStrings.refresh,
                                   radius: 8.0,
                                   bgColor: AppColors.primaryColor,
-                                )
+                                );
+                              },
                             )
+                            // _buildFetchAddressWidgets(
+                            //     child: PositiveCustomBtn(
+                            //       width: SizeConfig.size80,
+                            //       height: SizeConfig.size30,
+                            //       onTap: ()=> updateAddressFromLocation(),
+                            //       isLeadingShow: true,
+                            //       leadingIconPath: AppIconAssets.refreshIcon,
+                            //       title: AppStrings.refresh,
+                            //       radius: 8.0,
+                            //       bgColor: AppColors.primaryColor,
+                            //     )
+                            // )
                           ]
                         ),
                         SizedBox(height: SizeConfig.size10),
@@ -309,9 +332,18 @@ class _CreateBusinessAccountNewStepTwoState
                               hintText: AppStrings.addressHint,
                               isValidate: false,
                             ),
-                            _buildFetchAddressWidgets(
-                                child: SizedBox()
+                            CommonLocationFetcher(
+                              locationController: locationController,
+                              onLocationFetched: (locationData) {
+                                _updateLocationData(locationData);
+                              },
+                              childBuilder: (fetchAction) {
+                                return SizedBox();
+                              },
                             )
+                            // _buildFetchAddressWidgets(
+                            //     child: SizedBox()
+                            // )
                           ],
                         ),
                         SizedBox(
@@ -516,37 +548,37 @@ class _CreateBusinessAccountNewStepTwoState
     );
   }
 
-  Widget _buildFetchAddressWidgets({required Widget child}) {
-    return Obx(() {
-      if (locationController.isFetchingAddress.value) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        );
-      }
-
-      if (!locationController.fetchAddressFromGeo.value) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: GestureDetector(
-            onTap: () => updateAddressFromLocation(),
-            child: CustomText(
-              AppStrings.gpsLocationNotFound,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.red,
-              decoration: TextDecoration.underline,
-              decorationColor: AppColors.red,
-            ),
-          ),
-        );
-      }
-
-      return child;
-    });
-  }
+  // Widget _buildFetchAddressWidgets({required Widget child}) {
+  //   return Obx(() {
+  //     if (locationController.isFetchingAddress.value) {
+  //       return Padding(
+  //         padding: const EdgeInsets.only(top: 8.0),
+  //         child: const SizedBox(
+  //           width: 16,
+  //           height: 16,
+  //           child: CircularProgressIndicator(strokeWidth: 2),
+  //         ),
+  //       );
+  //     }
+  //
+  //     if (!locationController.fetchAddressFromGeo.value) {
+  //       return Padding(
+  //         padding: const EdgeInsets.only(top: 8.0),
+  //         child: GestureDetector(
+  //           onTap: () => updateAddressFromLocation(),
+  //           child: CustomText(
+  //             AppStrings.gpsLocationNotFound,
+  //             fontSize: SizeConfig.small,
+  //             fontWeight: FontWeight.w600,
+  //             color: AppColors.red,
+  //             decoration: TextDecoration.underline,
+  //             decorationColor: AppColors.red,
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //
+  //     return child;
+  //   });
+  // }
 }

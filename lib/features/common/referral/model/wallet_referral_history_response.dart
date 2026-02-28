@@ -31,8 +31,8 @@ class WalletReferralHistoryData {
   String? profession;
   String? subscriptionStatus;
   String? rawStatus;
-  int? planCost;
-  int? referralIncome;
+  num? planCost;
+  num? referralIncome;
 
   WalletReferralHistoryData(
       {this.userId,

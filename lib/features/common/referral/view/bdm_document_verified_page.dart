@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -62,7 +61,8 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
 
       var _stats = controller.referralStatsData.value;
 
-      return Padding(
+      return SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
         padding: EdgeInsets.symmetric(
             horizontal: SizeConfig.size8,
             vertical: SizeConfig.size15
@@ -92,78 +92,82 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
 
                     SizedBox(height: SizeConfig.paddingXSL),
 
-                    InkWell(
-                      onTap: (){
-                        copyToClipboard(context, _stats.referralCode??'');
-                      },
-                      child: DashedBorderContainer(
-                        borderColor: AppColors.primaryColor,
-                        strokeWidth: 1,
-                        dashLength: 2,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: SizeConfig.size5,
-                            bottom: SizeConfig.size5,
-                            left: SizeConfig.size15,
-                            right: SizeConfig.size5,
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CustomText(
+                    DashedBorderContainer(
+                      borderColor: AppColors.primaryColor,
+                      strokeWidth: 1,
+                      dashLength: 2,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: SizeConfig.size5,
+                          bottom: SizeConfig.size5,
+                          left: SizeConfig.size15,
+                          right: SizeConfig.size5,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: CustomText(
                                 _stats.referralCode??'',
                                 color: AppColors.secondaryTextColor,
                                 fontSize: SizeConfig.extraLarge,
                                 fontWeight: FontWeight.w600,
                               ),
-                              SizedBox(width: SizeConfig.size8),
-                              Container(
-                                width: 100,
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            InkWell(
+                              onTap: (){
+                                copyToClipboard(context, _stats.referralCode??'');
+                              },
+                              child: Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: AppColors.primaryColor,
-                                    width: 1.5,
+                                    width: 0.5,
+                                  ),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.primaryColor.withValues(alpha: 0.06),
+                                      AppColors.primaryColor.withValues(alpha: 0.02),
+                                    ],
                                   ),
                                 ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    // slightly smaller than outer
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        AppColors.primaryColor.withValues(alpha: 0.06),
-                                        AppColors.primaryColor.withValues(alpha: 0.02),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Center(
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.copy,
-                                            color: AppColors.primaryColor,
-                                            size: SizeConfig.size20,
-                                          ),
-                                          SizedBox(width: SizeConfig.size5),
-                                          CustomText("Copy",
-                                            color: AppColors.primaryColor,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,)
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                padding: const EdgeInsets.all(10.0),
+                                child: Icon(
+                                  // imagePath: AppIconAssets.copyIcon,
+                                  // imgColor: AppColors.primaryColor,
+                                  // height: SizeConfig.size20,
+                                  // width: SizeConfig.size20,
+                                  Icons.copy,
+                                  color: AppColors.primaryColor,
+                                  size: SizeConfig.size20,
                                 ),
-                              )
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.paddingXSL),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: AppColors.whiteE5,
+                                  width: 1.0,
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(10.0),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.reelShare,
+                                imgColor: AppColors.secondaryTextColor,
+                                height: SizeConfig.size20,
+                                width: SizeConfig.size20,
+                              ),
+                            )
 
-                            ],
-                          ),
+                          ],
                         ),
                       ),
                     )
@@ -183,51 +187,93 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                   SizedBox(
                     height: 6,
                   ),
-                  Row(mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Column(
+                  FittedBox(
+                    child: SizedBox(
+                     width: SizeConfig.screenWidth,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          CustomText("Balance",fontSize: 16,
-                            color: AppColors.secondaryTextColor,
-                          ),
                           SizedBox(
-                            height: 16,
+                            width: SizeConfig.size20,
                           ),
-                          CustomText("₹ ${_stats.balance}",fontSize: 20,
-                            color: AppColors.secondaryTextColor,
+                          Column(
+                            children: [
+                              CustomText(
+                                "Balance",
+                                fontSize: SizeConfig.large,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              SizedBox(
+                                height: SizeConfig.paddingM,
+                              ),
+                              CustomText("₹ ${_stats.balance??00}",fontSize: SizeConfig.extraLarge,
+                                color: AppColors.secondaryTextColor,
 
-                            fontWeight: FontWeight.w800,)
-                        ],
-                      ),
-                      SizedBox(
-                        width: 46,
-                      ),
-                      Container(
-                        height: 70,
-                        width: 1,
-                        color: AppColors.whiteE5,
-                      ),
-                      SizedBox(
-                        width: 46,
-                      ),
-                      Column(
-                        children: [
-                          CustomText("Total Earn",fontSize: 16,
-                            color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w800,)
+                            ],
                           ),
                           SizedBox(
-                            height: 16,
+                            width: SizeConfig.size20,
                           ),
-                          CustomText("₹ ${_stats.totalIncome}",fontSize: 20,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w800,
-                          )
+                          Container(
+                            height: 70,
+                            width: 1,
+                            color: AppColors.whiteE5,
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size20,
+                          ),
+                          Column(
+                            children: [
+                              CustomText("Total Earn", fontSize: SizeConfig.large,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              SizedBox(
+                                height: SizeConfig.paddingM,
+                              ),
+                              CustomText("₹ ${_stats.totalIncome??00}", fontSize: SizeConfig.extraLarge,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w800,
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size20,
+                          ),
+                          Container(
+                            height: 70,
+                            width: 1,
+                            color: AppColors.whiteE5,
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size20,
+                          ),
+                          Column(
+                            children: [
+                              CustomText("Estd. Earning", fontSize: SizeConfig.large,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              SizedBox(
+                                height: SizeConfig.paddingM,
+                              ),
+                              CustomText("₹ ${_stats.estimatedEarning??00}",  fontSize: SizeConfig.extraLarge,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w800,
+                              )
+                            ],
+                          ),
+
+                          SizedBox(
+                            width: SizeConfig.size20,
+                          ),
+
+
                         ],
                       ),
-                    ],
+                    ),
                   ),
                   SizedBox(
-                    height: 16,
+                    height: SizeConfig.paddingM,
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -238,8 +284,8 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                     padding: EdgeInsets.all(10),
                     child: Center(
                       child: CustomText(
-                        "${_stats.breakdown?.subscribed??0} Subscription Out of ${_stats.totalReferralCount} Referral",
-                        fontSize: 14,fontWeight: FontWeight.w600,
+                        "${_stats.breakdown?.subscribed??00} Subscription Out of ${_stats.totalReferralCount??00} Referral",
+                        fontSize: SizeConfig.medium,fontWeight: FontWeight.w600,
                         color: AppColors.grayText,),
                     ),
                   ),
@@ -259,7 +305,7 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                           }, title: "History",
                           textColor: AppColors.primaryColor,),
                       ),
-                      SizedBox(width: 10,),
+                      SizedBox(width: SizeConfig.paddingXSL),
                       Expanded(
                         child: CustomBtn(
                             radius: 10,
@@ -281,9 +327,9 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
               child: Column(
                 children: [
                   ReferralPointsChart(
-                    subscribe: _stats.breakdown?.subscribed??0,
-                    unSubscribe: _stats.breakdown?.nonSubscribed??0,
-                    expired: _stats.breakdown?.expired??0
+                    subscribe: _stats.breakdown?.subscribed??00,
+                    unSubscribe: _stats.breakdown?.nonSubscribed??00,
+                    expired: _stats.breakdown?.expired??00
                   )
                 ],
               ),

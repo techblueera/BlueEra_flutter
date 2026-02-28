@@ -332,7 +332,7 @@ class AppIconAssets {
   static String reel_save= "${iconPath}reel_save.svg";
   static String reel_save_fill= "${iconPath}reel_save_fill.svg";
   static String reel_comment= "${iconPath}reel_comment.svg";
-  static String reel_share= "${iconPath}reel_share.svg";
+  static String reelShare= "${iconPath}reel_share.svg";
   static String playStore= "${iconPath}play_store.svg";
   static String appStore= "${iconPath}app_store.svg";
   static String logout_new= "${AppConstants.baseIconAssetsPath}logout_new.png";

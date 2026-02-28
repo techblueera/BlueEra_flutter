@@ -33,6 +33,7 @@ String googlePlaceId =
 String googleGeoCode =
     "https://maps.googleapis.com/maps/api/geocode/json";
 String googleCountryCode = "&language=en&components=country:IN";
+String pinCodeUrl(String pinCode) => "https://api.postalpincode.in/pincode/$pinCode";
 
 String takeFranchise ="https://bluecs.in/partner";
 String privacyLink =

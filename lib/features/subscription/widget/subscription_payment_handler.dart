@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
@@ -16,11 +17,17 @@ class SubscriptionPaymentHandler {
 
   SubscriptionPaymentHandler(this.controller);
 
+  final subscriptionController = getOrPut(()=> SubscriptionController());
+
   void showReferralCodeDialog() {
     Get.dialog(
       PromoCodeDialog(
-        onBtnPressed: (refCode) {
-          processSubscription(refCode);
+        onBtnPressed: (refCode) async {
+          await subscriptionController.checkReferralApi(refCode);
+          if(subscriptionController.checkReferralResponse.value.status == Status.COMPLETE){
+            Get.back();
+            processSubscription(refCode);
+          }
         },
       ),
       barrierDismissible: false,

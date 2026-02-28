@@ -543,7 +543,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
           InkWell(
             onTap: () => _shareVideoSimple(),
             child: LocalAssets(
-                imagePath: AppIconAssets.reel_share, imgColor: AppColors.white),
+                imagePath: AppIconAssets.reelShare, imgColor: AppColors.white),
           ),
           SizedBox(height: SizeConfig.size3),
           InkWell(

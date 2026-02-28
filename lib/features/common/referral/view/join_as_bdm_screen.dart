@@ -1,14 +1,19 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/fetch_location_button.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -32,39 +37,8 @@ class JoinAsBDMScreen extends StatefulWidget {
 
 class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
   final controller = Get.find<ReferralController>();
+  final locationController = getOrPut(() => LocationController());
   final _formKey = GlobalKey<FormState>();
-
-  Widget _sectionCard({required String title, required Widget child}) {
-    return CustomFormCard(
-      margin: EdgeInsets.symmetric(horizontal: 8),
-      padding: EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            title,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
-          ),
-          SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _label(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: CustomText(
-        text,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: AppColors.black,
-      ),
-    );
-  }
 
   @override
   initState(){
@@ -78,24 +52,43 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
       controller.selectedYear?.value = user?.dateOfBirth?.year?? 0;
       controller.alternatePhoneNumberController.text = user?.contactNo??'';
       controller.workLocationPinCodeController.text = user?.pincode.toString()??'';
-      controller.addressController.text = user?.location.toString()??'';
+      // controller.addressController.text = user?.location.toString()??'';
       // controller.cityController.text = user?.city??'';
+      if(controller.workLocationPinCodeController.text.isNotEmpty &&
+          controller.workLocationPinCodeController.text.length == 6
+      ){
+        controller.fetchLocationFromPinCode(controller.workLocationPinCodeController.text);
+      }
+      _fetchLocationOnStart();
 
-    }else{
-       var businessProfileDetails = Get.find<ViewBusinessDetailsController>().businessProfileDetails?.data;
-       controller.fullNameController.text = businessProfileDetails?.ownerDetails?[0].name??'';
-       controller.emailController.text = businessProfileDetails?.ownerDetails?[0].email??'';
-       controller.selectedDay?.value = businessProfileDetails?.dateOfIncorporation?.date?? 0;
-       controller.selectedMonth?.value = businessProfileDetails?.dateOfIncorporation?.month?? 0;
-       controller.selectedYear?.value = businessProfileDetails?.dateOfIncorporation?.year?? 0;
-       controller.alternatePhoneNumberController.text = businessProfileDetails?.userContactNo??'';
-       controller.workLocationPinCodeController.text = businessProfileDetails?.pincode.toString()??'';
-       controller.addressController.text = businessProfileDetails?.address??'';
-       // controller.cityController.text = businessProfileDetails?.cityStatePincode??'';
-
-       print("📝 Alternate Phone Number: ${businessProfileDetails?.userContactNo??''}");
     }
+    // else{
+    //    var businessProfileDetails = Get.find<ViewBusinessDetailsController>().businessProfileDetails?.data;
+    //    controller.fullNameController.text = businessProfileDetails?.ownerDetails?[0].name??'';
+    //    controller.emailController.text = businessProfileDetails?.ownerDetails?[0].email??'';
+    //    controller.selectedDay?.value = businessProfileDetails?.dateOfIncorporation?.date?? 0;
+    //    controller.selectedMonth?.value = businessProfileDetails?.dateOfIncorporation?.month?? 0;
+    //    controller.selectedYear?.value = businessProfileDetails?.dateOfIncorporation?.year?? 0;
+    //    controller.alternatePhoneNumberController.text = businessProfileDetails?.userContactNo??'';
+    //    controller.workLocationPinCodeController.text = businessProfileDetails?.pincode.toString()??'';
+    //    controller.addressController.text = businessProfileDetails?.address??'';
+    //    // controller.cityController.text = businessProfileDetails?.cityStatePincode??'';
+    //
+    //    print("📝 Alternate Phone Number: ${businessProfileDetails?.userContactNo??''}");
+    // }
 
+  }
+
+  Future<void> _fetchLocationOnStart() async {
+    final locationData = await locationController.checkPermissionAndSetData();
+
+    if (locationData != null) {
+      _updateCurrentAddress(locationData);
+    }
+  }
+
+  _updateCurrentAddress(var locationData){
+    controller.addressController.text = locationData.fullAddress;
   }
 
   @override
@@ -238,6 +231,7 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                         regularExpression: RegularExpressionUtils.digitsPattern,
                         hintText: AppStrings.pincodeHint,
                         isValidate: true,
+                        maxLength: 6,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return AppStrings.pleaseEnterPinCode.tr;
@@ -247,110 +241,112 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
                           }
                           return null;
                         },
+                        onChange: (value) {
+                          if (value.length == 6) {
+                            controller.fetchLocationFromPinCode(value);
+                          }
+                        },
                 
                       ),
                       SizedBox(height: SizeConfig.paddingM),
-                      _label(
-                          "In Which Location You Want to Work?"),
-                      Row(
+
+                      Obx(() {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Obx(() {
-                              return CommonDropdown(items:
-                              controller.stateList,
-                                  selectedValue: controller.selectedState.value,
-                                  hintText: "Select State",
-                                  onChanged: (val) {
-                                    controller.selectState(val ?? '');
-                                  },
-                                  displayValue: (value) => value
-                              );
-                            }),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: CommonTextField(
-                              hintText: "E.g.Salem",
-                              textEditController: controller
-                                  .cityController,
-                              isValidate: true,
+
+                          if (controller.locationFromPinCodeResponse.value.status == Status.INITIAL)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 12.0),
+                              child: SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3.0,
+                                  )),
                             ),
+
+                          _label("In Which Location You Want to Work?"),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CommonTextField(
+                                  hintText: "E.g. Rajasthan",
+                                  textEditController: controller.stateController,
+                                  readOnly: controller.stateController.text.isNotEmpty,
+                                  isValidate: true,
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size8),
+                              Expanded(
+                                child: CommonTextField(
+                                  hintText: "E.g. Jodhpur",
+                                  textEditController: controller.cityController,
+                                  readOnly: controller.cityController.text.isNotEmpty,
+                                  isValidate: true,
+                                ),
+                              ),
+                            ],
                           ),
-                
-                          // Expanded(
-                          //   child: Obx(() {
-                          //     // Disable city search if no state is selected yet
-                          //     bool isStateSelected = controller.selectedState.value.isNotEmpty;
-                          //
-                          //     return Autocomplete<Map<String, dynamic>>(
-                          //       // 1. Fetch suggestions as the user types
-                          //       optionsBuilder: (TextEditingValue textEditingValue) async {
-                          //         if (textEditingValue.text.length < 2 || !isStateSelected) {
-                          //           return const Iterable<Map<String, dynamic>>.empty();
-                          //         }
-                          //
-                          //         // MAGIC TRICK: Append the selected state to the query so Google
-                          //         // only searches for cities inside that specific state.
-                          //         String smartQuery = "${textEditingValue.text}, ${controller.selectedState.value}";
-                          //
-                          //         ResponseModel response = await PlaceRepo().getCitiesByState(smartQuery);
-                          //
-                          //         // ADD THIS TO DEBUG:
-                          //         print("Data Type: ${response.response?.data.runtimeType}");
-                          //
-                          //         // Return the list of predictions
-                          //         if (response.response?.data != null && response.response?.data['predictions'] != null) {
-                          //           List<dynamic> rawPredictions = response.response?.data['predictions'];
-                          //           return rawPredictions.map((e) => e as Map<String, dynamic>).toList();
-                          //         }
-                          //         return const Iterable<Map<String, dynamic>>.empty();
-                          //       },
-                          //
-                          //       // 2. Format how the option looks in the dropdown list
-                          //       displayStringForOption: (Map<String, dynamic> option) {
-                          //         // Google gives "Salem, Tamil Nadu, India". We just want "Salem".
-                          //         String description = option['description'] ?? '';
-                          //         return description.split(',').first.trim();
-                          //       },
-                          //
-                          //       // 3. What happens when they tap a city from the list
-                          //       onSelected: (Map<String, dynamic> selection) {
-                          //         String fullDescription = selection['description'] ?? '';
-                          //         String cityName = fullDescription.split(',').first.trim();
-                          //
-                          //         // Save the selected city to your controller
-                          //         controller.cityController.text = cityName;
-                          //         // Optionally: controller.selectedCity.value = cityName;
-                          //       },
-                          //
-                          //       // 4. Wrap your exact UI component here
-                          //       fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
-                          //         return CommonTextField(
-                          //           hintText: isStateSelected ? "Search City" : "Select State First",
-                          //           textEditController: textController,
-                          //           focusNode: focusNode,
-                          //           readOnly: !isStateSelected, // Prevent typing if state is empty
-                          //         );
-                          //       },
-                          //     );
-                          //   }),
-                          // ),
-                
+
+
                         ],
-                      ),
+                      );
+                    }),
+
                       SizedBox(height: SizeConfig.paddingM),
-                
+
+                      Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText(
+                              'Address (As per your Document)',
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            CommonLocationFetcher(
+                              locationController: locationController, // Pass your controller instance
+                              onLocationFetched: (locationData) {
+                                _updateCurrentAddress(locationData);
+
+                                // cityController.text = locationData.city;
+                                // picCodeController.text = locationData.pinCode;
+                                //
+                                // viewBusinessDetailsController.addressLat?.value = double.parse(locationData.lat);
+                                // viewBusinessDetailsController.addressLong?.value = double.parse(locationData.long);
+
+                              },
+                              childBuilder: (fetchAction) {
+                                return PositiveCustomBtn(
+                                  width: SizeConfig.size80,
+                                  height: SizeConfig.size30,
+                                  onTap: fetchAction,
+                                  isLeadingShow: true,
+                                  leadingIconPath: AppIconAssets.refreshIcon,
+                                  title: AppStrings.refresh,
+                                  radius: 8.0,
+                                  bgColor: AppColors.primaryColor,
+                                );
+                              },
+                            )
+                          ]
+                      ),
+
+                      SizedBox(height: SizeConfig.size10),
+
                       CommonTextField(
-                        title: "Address (As per your Document)",
                         regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                         hintText: AppStrings.addressHint,
-                        isValidate: false,
+                        isValidate: true,
                         maxLength: AppConstants.inputCharterLimit200,
                         isCounterVisible: true,
                         maxLine: 3,
                         textEditController: controller.addressController,
                         inputLength: AppConstants.inputCharterLimit50,
-                
                       ),
                       SizedBox(height: SizeConfig.paddingM),
                 
@@ -459,4 +455,37 @@ class _JoinAsBDMScreenState extends State<JoinAsBDMScreen> {
       ),
     );
   }
+
+  Widget _sectionCard({required String title, required Widget child}) {
+    return CustomFormCard(
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      padding: EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            title,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black,
+          ),
+          SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _label(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: CustomText(
+        text,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.black,
+      ),
+    );
+  }
+
 }

@@ -104,15 +104,17 @@ class _ActiveSubscriptionCardState extends State<ActiveSubscriptionCard> {
             _planTag(),
 
             /// Amount
-            CustomText(
-              "₹${_details?.amount != null ? (_details!.amount! / 100) : '0'}",
-              fontSize:
-              (_details?.amount.toString().length ?? 0) > 3
-                  ? 24
-                  : 36,
-              fontWeight: FontWeight.w700,
-              color: widget.style.color,
-              textAlign: TextAlign.center,
+            FittedBox(
+              child: CustomText(
+                "₹${_details?.amount != null ? (_details!.amount! / 100) : '0'}",
+                fontSize:
+                (_details?.amount.toString().length ?? 0) > 3
+                    ? 24
+                    : 36,
+                fontWeight: FontWeight.w700,
+                color: widget.style.color,
+                textAlign: TextAlign.center,
+              ),
             ),
 
            Container(

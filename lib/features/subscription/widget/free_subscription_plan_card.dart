@@ -182,7 +182,6 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
             Expanded(
                 flex: 1,
                 child: FittedBox(
-                  fit: BoxFit.contain,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -299,28 +298,22 @@ class FreeTrialSubscriptionCard extends StatelessWidget {
   Widget _featureItem(String text, {required double bottomPadding}) {
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 14,
-              color: style.color,
-            ),
-            const SizedBox(width: 6),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: CustomText(
-                text,
-                fontSize: 12,
-                maxLines: 1,
-                fontWeight: FontWeight.w400,
-                color: style.color,
-              ),
-            ),
-          ],
-        ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: 14,
+            color: style.color,
+          ),
+          const SizedBox(width: 6),
+          CustomText(
+            text,
+            fontSize: 12,
+            maxLines: 1,
+            fontWeight: FontWeight.w400,
+            color: style.color,
+          ),
+        ],
       ),
     );
   }

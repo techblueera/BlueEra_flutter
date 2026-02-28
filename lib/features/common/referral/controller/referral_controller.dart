@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -20,15 +21,15 @@ class ReferralController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> walletReferralHistoryResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> checkReferralResponse =
+  Rx<ApiResponse> locationFromPinCodeResponse =
       ApiResponse.initial('Initial').obs;
 
-
-  final fullNameController=TextEditingController();
+final fullNameController=TextEditingController();
 final emailController=TextEditingController();
 final alternatePhoneNumberController=TextEditingController();
 final highestEducationalQualificationController=TextEditingController();
 final workLocationPinCodeController=TextEditingController();
+final stateController=TextEditingController();
 final cityController=TextEditingController();
 final addressController=TextEditingController();
 final mainReferralCode=TextEditingController();
@@ -322,30 +323,54 @@ submitLoading.value = false;
     }
   }
 
-  Future<void> checkReferralApi(String refCode) async {
+
+  Future<void> fetchLocationFromPinCode(String pinCode) async {
+    if (pinCode.length != 6) return;
+
     try {
 
-      checkReferralResponse.value =
+      locationFromPinCodeResponse.value =
           ApiResponse.initial('Initial');
 
-      final res = await UserRepo().checkReferralRepo(refCode);
+      final res = await PlaceRepo().fetchLocationFromPinCodeRepo(pinCode: pinCode);
+
 
       if (res.isSuccess) {
-        // referralSuggestions.value = res.response?.data['data'];
-        // referralSuggestionsResponse.value =
-        //     ApiResponse.complete(res.response?.data);
 
-      } else {
-        commonSnackBar(
-          message: res.message ?? AppStrings.somethingWentWrong.tr,
-        );
-        checkReferralResponse.value =
-            ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+        locationFromPinCodeResponse.value =
+            ApiResponse.complete(res.response?.data);
+
+        final data = res.response?.data as List<dynamic>?;
+
+        // Check if the API successfully found the PIN code
+        if (data != null && data.isNotEmpty && data[0]['Status'] == 'Success') {
+
+          // Extract the first Post Office from the list
+          final postOffice = data[0]['PostOffice'][0];
+
+          final String state = postOffice['State'] ?? '';
+          final String city = postOffice['District'] ?? ''; // 'District' is usually the City name
+
+          // Auto-fill your text fields!
+          stateController.text = state;
+          cityController.text = city;
+
+          // If you are using Rx variables for your dropdowns instead of controllers:
+          // selectedState.value = state;
+
+          print("✅ Found: $city, $state");
+        } else {
+          print("❌ Invalid PIN Code");
+          locationFromPinCodeResponse.value =
+              ApiResponse.error("${res.message ?? AppStrings.somethingWentWrong.tr}");
+        }
       }
     } catch (e) {
-      checkReferralResponse.value =
+      print("❌ API Error: $e");
+      locationFromPinCodeResponse.value =
           ApiResponse.error(e.toString());
     }
   }
+
 
 }

@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -23,6 +25,7 @@ class PromoCodeDialog extends StatefulWidget {
 
 class _PromoCodeDialogState extends State<PromoCodeDialog> {
   final TextEditingController promoCodeController = TextEditingController();
+
 
   @override
   void dispose() {
@@ -113,7 +116,7 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
                   bgColor: hasText ? AppColors.greenShade : AppColors.primaryColor,
                   title: hasText ? "Submit" : "No, I Don’t have",
                   onTap: () {
-                    Get.back();
+
                     widget.onBtnPressed(promoCodeController.text.trim());
                     // if (hasText) {
                     //   // Logic for Submit

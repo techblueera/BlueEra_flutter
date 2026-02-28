@@ -85,5 +85,20 @@ class PlaceRepo{
     return response;
   }
 
+  Future<ResponseModel> fetchLocationFromPinCodeRepo({
+    required String pinCode,
+  }) async {
+    ResponseModel response = await ApiBaseHelper().getHTTP(
+      pinCodeUrl(pinCode),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
+
+
 
 }

@@ -7,6 +7,7 @@ import 'package:BlueEra/features/subscription/auth/controller/subscription_contr
 import 'package:BlueEra/features/subscription/auth/model/subscription_list_details_model.dart';
 import 'package:BlueEra/features/subscription/widget/active_subscription_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/paid_subscription_plan_card.dart';
+import 'package:BlueEra/features/subscription/widget/subscription_pay_button.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_payment_handler.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -21,34 +22,40 @@ class PaidSubscriptionPlansScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // We use Obx here to make the whole screen reactive to controller changes
-    return Obx(() {
-      return SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: SizeConfig.size8,
-            right: SizeConfig.size8,
-            top: SizeConfig.size15,
-            bottom: SizeConfig.size40,
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      bottomNavigationBar: SubscriptionPayButton(
+          controller: controller
+      ),
+      body: Obx(() {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: SizeConfig.size8,
+              right: SizeConfig.size8,
+              top: SizeConfig.size15,
+              bottom: SizeConfig.size40,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+      
+                // 1. Current Active Plans Section
+                _buildCurrentPlansSection(),
+      
+                SizedBox(height: SizeConfig.paddingS),
+      
+                // 2. Available Plans List
+                _buildAvailablePlansList(),
+      
+                // 3. Bottom Action Button
+                // _buildPayButton(),
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              // 1. Current Active Plans Section
-              _buildCurrentPlansSection(),
-
-              SizedBox(height: SizeConfig.paddingS),
-
-              // 2. Available Plans List
-              _buildAvailablePlansList(),
-
-              // 3. Bottom Action Button
-              _buildPayButton(),
-            ],
-          ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   Widget _buildCurrentPlansSection() {
@@ -198,27 +205,27 @@ class PaidSubscriptionPlansScreen extends StatelessWidget {
     );
   }
 
-  /// Pay Button logic moved into a separate widget
-  Widget _buildPayButton() {
-    if (controller.selectedSubscriptionIndex.isEmpty) return const SizedBox();
+  // /// Pay Button logic moved into a separate widget
+  // Widget _buildPayButton() {
+  //   if (controller.selectedSubscriptionIndex.isEmpty) return const SizedBox();
+  //
+  //   return Padding(
+  //     padding: const EdgeInsets.only(top: 24, bottom: 30),
+  //     child: CustomBtn(
+  //       width: double.infinity,
+  //       textColor: AppColors.white,
+  //       bgColor: AppColors.primaryColor,
+  //       title: "Proceed to Pay",
+  //       onTap: () => _handlePaymentProcess(),
+  //     ),
+  //   );
+  // }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 30),
-      child: CustomBtn(
-        width: double.infinity,
-        textColor: AppColors.white,
-        bgColor: AppColors.primaryColor,
-        title: "Proceed to Pay",
-        onTap: () => _handlePaymentProcess(),
-      ),
-    );
-  }
-
-  Future<void> _handlePaymentProcess() async {
-    final handler = SubscriptionPaymentHandler(controller);
-    handler.showReferralCodeDialog();
-    // handler.processSubscription();
-    }
+  // Future<void> _handlePaymentProcess() async {
+  //   final handler = SubscriptionPaymentHandler(controller);
+  //   handler.showReferralCodeDialog();
+  //   // handler.processSubscription();
+  //   }
 
   /// Custom Circular Indicator
   Widget _loadingIndicator() {

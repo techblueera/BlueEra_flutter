@@ -61,7 +61,7 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
         /// Content
         Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(8),
             child: Row(
               children: [
                 _priceBlock(),
@@ -69,7 +69,6 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
                   width: SizeConfig.screenWidth * 0.07,
                 ),
                 Expanded(
-                    flex: 2,
                     child: _features()),
               ],
             ),
@@ -111,26 +110,30 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
           // const SizedBox(height: 16),
 
           /// Amount
-          CustomText(
-            "₹${details.amount != null ? (details.amount! / 100) : '0'}",
-            fontSize:
-            (details.amount.toString().length) > 3
-                ? 24
-                : 36,
-            fontWeight: FontWeight.w700,
-            color: style.color,
-            textAlign: TextAlign.center,
+          FittedBox(
+            child: CustomText(
+              "₹${details.amount != null ? (details.amount! / 100) : '0'}",
+              fontSize:
+              (details.amount.toString().length) > 3
+                  ? 24
+                  : 36,
+              fontWeight: FontWeight.w700,
+              color: style.color,
+              textAlign: TextAlign.center,
+            ),
           ),
 
           /// period
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: CustomText(
-              details.period?.capitalizeFirst ?? "",
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w700,
-              textAlign: TextAlign.center,
-              color: AppColors.secondaryTextColor,
+          FittedBox(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: CustomText(
+                details.period?.capitalizeFirst ?? "",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w700,
+                textAlign: TextAlign.center,
+                color: AppColors.secondaryTextColor,
+              ),
             ),
           ),
         ],
@@ -142,44 +145,34 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
     return Builder(
         builder: (context) {
 
-          double _bottomPadding = 4.0;
-          if((details.perks?.length??0) < 5){
-            _bottomPadding = 12.0;
-          }else if((details.perks?.length??0) < 7){
-            _bottomPadding = 8.0;
-          }else {
-            _bottomPadding = 4.0;
-          }
+          int perkCount = details.perks?.length ?? 0;
+          double _bottomPadding = perkCount < 5 ? 12.0 : (perkCount < 7 ? 8.0 : 4.0);
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // CustomText(
-              //   "Features",
-              //   fontSize: 16,
-              //   fontWeight: FontWeight.w600,
-              //   color: style.textColor,
-              // ),
-              // const SizedBox(height: 6),
+          return FittedBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
 
-              /// Description
-              _featureItem(
-                  details.description == '' || details.description == null
-                      ? "N/A"
-                      : details.description??'',
-                  bottomPadding: _bottomPadding
-              ),
-
-              /// Perks
-              ...details.perks?.map(
-                    (e) => _featureItem(
-                    e == '' ? "N/A" : e,
+                /// Description
+                _featureItem(
+                    details.description == '' || details.description == null
+                        ? "N/A"
+                        : details.description??'',
                     bottomPadding: _bottomPadding
                 ),
-              ) ??
-                  [],
-            ],
+
+                /// Perks
+                ...details.perks?.map(
+                      (e) => _featureItem(
+                      e == '' ? "N/A" : e,
+                      bottomPadding: _bottomPadding
+                  ),
+                ) ??
+                    [],
+                
+              ],
+            ),
           );
         }
     );
@@ -196,14 +189,12 @@ class PaidSubscriptionPlanCard extends StatelessWidget {
             color: style.color,
           ),
           const SizedBox(width: 6),
-          Expanded(
-            child: CustomText(
-              text,
-              fontSize: 12,
-              maxLines: 1,
-              fontWeight: FontWeight.w400,
-              color: style.color,
-            ),
+          CustomText(
+            text,
+            fontSize: 12,
+            maxLines: 1,
+            fontWeight: FontWeight.w400,
+            color: style.color,
           ),
         ],
       ),
