@@ -737,4 +737,7 @@ class ApiKeys {
   static const updatedAt = 'updatedAt';
   static const fullName = 'fullName';
   static const referralCode = 'referralCode';
+  static const reminder_time = 'reminder_time';
+  static const quick_option = 'quick_option';
+  static const message_ids = 'message_ids';
 }

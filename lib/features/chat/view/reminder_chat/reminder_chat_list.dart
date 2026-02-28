@@ -1,6 +1,5 @@
 
 import 'dart:io';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -40,162 +39,145 @@ class _ReminderChatListState extends State<ReminderChatList> {
           Status.COMPLETE) {
         List<ReminderChatListModel>? members = chatThemeController.reminderChatList;
 
-        return RefreshIndicator(
-          onRefresh: () async {
+        return Expanded(
+          child: Container(
 
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16,),
-              HorizontalTabSelector(horizontalMargin: 14,
-                  horizontalPadding: 10,
-                  tabs: ['All',"Up Coming","Expired"],
-                  selectedIndex: 0,
-                  onTabSelected: (index,val){
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(20),
+                  topRight:  Radius.circular(20)),
 
-                  },
-                  labelBuilder: (value)=>value),
-              SizedBox(height: 12,),
-              Expanded(
-                child: Container(
+            ),
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                (members.isEmpty )
+                    ? Padding(
+                  padding: const EdgeInsets.only(top: 30.0),
+                  child: noChatsFound(true),
+                )
+                    : ListView.builder(
+                  itemCount: members.length, // ADD 1 EXTRA ITEM
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    final chat =members[index];
+                    String senderProfileImage=chat.profileImagePath;
+                    String senderName=chat.name;
+                    return  InkWell(
+                      onTap: (){
+                        Get.to(()=>ReminderViewPage(
+                          name: senderName,
+                          profileImagePath: senderProfileImage,
+                          conversationId: chat.conversationId,
+                        ));
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: SizeConfig.size16,
+                          left: SizeConfig.size16,
+                          top: SizeConfig.size12,
+                          bottom: SizeConfig.size12,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
 
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20),
-                        topRight:  Radius.circular(20)),
-                    color: AppColors.white,
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                    children: [
-                      (members.isEmpty )
-                          ? noChatsFound()
-                          : ListView.builder(
-                        itemCount: members.length, // ADD 1 EXTRA ITEM
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          final chat =members[index];
-                          String senderProfileImage=chat.profileImagePath;
-                          String senderName=chat.name;
-                          return  InkWell(
-                            onTap: (){
-                              Get.to(ReminderViewPage(
-                                name: senderName,
-                                profileImagePath: senderProfileImage,
-                                conversationId: chat.conversationId,
-                              ));
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                right: SizeConfig.size16,
-                                left: SizeConfig.size16,
-                                top: SizeConfig.size12,
-                                bottom: SizeConfig.size12,
+                              child: Container(
+
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: AppColors.white,
+                                ),
+                                child: Padding(
+                                  padding:  EdgeInsets.all(0),
+                                  child: CircleAvatar(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    radius: SizeConfig.size20,
+                                    child:  (senderProfileImage.isNotEmpty)
+                                        ? ClipOval(
+                                      child: (senderProfileImage.startsWith('http'))
+                                          ? CachedNetworkImage(
+                                        imageUrl: senderProfileImage,
+                                        fit: BoxFit.cover,
+                                        width: SizeConfig.size44,
+                                        height: SizeConfig.size44,
+                                      )
+                                          : (senderProfileImage.startsWith('assets'))?Image.asset(senderProfileImage): Image.file(
+                                        File(senderProfileImage),
+                                        width: SizeConfig.size44,
+                                        height: SizeConfig.size44,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                        : Center(
+                                      child: CustomText(
+                                        senderName,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: SizeConfig.size18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              child: Row(
+                            ),
+                            SizedBox(width: SizeConfig.size12),
+                            Expanded(
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                   Container(
-
-                                      child: Container(
-
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(30),
-                                          color: AppColors.white,
-                                        ),
-                                        child: Padding(
-                                          padding:  EdgeInsets.all(0),
-                                          child: CircleAvatar(
-                                            backgroundColor: theme.colorScheme.primary,
-                                            radius: SizeConfig.size20,
-                                            child:  (senderProfileImage.isNotEmpty)
-                                                ? ClipOval(
-                                              child: (senderProfileImage.startsWith('http'))
-                                                  ? CachedNetworkImage(
-                                                imageUrl: senderProfileImage,
-                                                fit: BoxFit.cover,
-                                                width: SizeConfig.size44,
-                                                height: SizeConfig.size44,
-                                              )
-                                                  : (senderProfileImage.startsWith('assets'))?Image.asset(senderProfileImage): Image.file(
-                                                File(senderProfileImage),
-                                                width: SizeConfig.size44,
-                                                height: SizeConfig.size44,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            )
-                                                : Center(
-                                              child: CustomText(
-                                                senderName,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: SizeConfig.size18,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  SizedBox(width: SizeConfig.size12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        CustomText(
-                                          "${(senderName == "null")
-                                              ? ""
-                                              : senderName}",
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          fontSize: SizeConfig.size16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        SizedBox(height: SizeConfig.size2),
-                            CustomText(
-                            maxLines: 1,
-                            "Reminder Message",
-                            fontSize: SizeConfig.size14,
-                            color: AppColors.grey9A,
-                            overflow: TextOverflow.ellipsis,
-                            )
-                                      ],
-                                    ),
+                                  CustomText(
+                                    "${(senderName == "null")
+                                        ? ""
+                                        : senderName}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    fontSize: SizeConfig.size16,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  SizedBox(width: SizeConfig.size10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      CustomText(
-                                        "${formatTimeFromUtc(chat.updatedAt??"")}",
-                                        fontSize: SizeConfig.size11,
-                                        color: AppColors.grey9A,
-                                      ),
-                                      SizedBox(height: SizeConfig.size6),
-                                      CircleAvatar(
-                                        radius: SizeConfig.size12,
-                                        backgroundColor: Colors.lightBlue,
-                                        child: CustomText(
-                                          "${chat.messageCount}",
-                                          color: AppColors.white,
-                                          fontSize: SizeConfig.size12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
+                                  SizedBox(height: SizeConfig.size2),
+                                  CustomText(
+                                    maxLines: 1,
+                                    "Reminder Message",
+                                    fontSize: SizeConfig.size14,
+                                    color: AppColors.grey9A,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
                                 ],
                               ),
                             ),
-                          );
-                        },
+                            SizedBox(width: SizeConfig.size10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                CustomText(
+                                  "${formatTimeFromUtc(chat.updatedAt??"")}",
+                                  fontSize: SizeConfig.size11,
+                                  color: AppColors.grey9A,
+                                ),
+                                SizedBox(height: SizeConfig.size6),
+                                CircleAvatar(
+                                  radius: SizeConfig.size12,
+                                  backgroundColor: Colors.lightBlue,
+                                  child: CustomText(
+                                    "${chat.messageCount}",
+                                    color: AppColors.white,
+                                    fontSize: SizeConfig.size12,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       } else {

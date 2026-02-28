@@ -31,11 +31,12 @@ import 'component_widgets.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar(
-      {super.key, required this.conversationId, required this.userId, required this.isInitialMessage});
+      {super.key, required this.conversationId,  this.userId, required this.isInitialMessage, this.hideMedia});
 
   final String conversationId;
-  final String userId;
+   final String? userId;
   final bool isInitialMessage;
+  final bool? hideMedia;
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -403,7 +404,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                 },
                               ),
                             ),
-
+                            if(widget.hideMedia!=true)
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -438,10 +439,11 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                       ),
                     ),
                   ),
+                            if(widget.hideMedia!=true)
                             ( chatViewController.isTextFieldEmpty.value)?SizedBox():SizedBox(width: 8),
+                            if(widget.hideMedia!=true)
                             ( chatViewController.isTextFieldEmpty.value)?SizedBox():Material(
                               color: Colors.transparent,
-
                               child: InkWell(
                                 onTap: () {
                                   _pickFromCamera();
@@ -759,7 +761,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   onTap: () async {
                     FocusScope.of(context).unfocus();
                     Navigator.pop(context);
-                      showHiveBottomSheet(context,widget.userId,widget.conversationId,isInitialFlow);
+                      showHiveBottomSheet(context,widget.userId??"",widget.conversationId,isInitialFlow);
 
                   },
                 ),
@@ -967,7 +969,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                     params: uploadParams,
                     listFile: selectedFiles,
                     isInitialMessage: isInitialFlow,
-                    userId: widget.userId,
+                    userId: widget.userId??'',
                     conversationId: widget.conversationId,
                     commands: commands,
                     messageType: messageType,

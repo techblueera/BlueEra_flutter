@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/reminder_chat_list_model.dart';
 import '../model/shared_person_live_location_model.dart';
+import '../repo/chat_view_repo.dart';
 import '../socket/live_location_track_socket.dart';
 import 'dart:convert';
 import 'package:hive/hive.dart';
@@ -26,6 +29,7 @@ class ChatThemeController extends GetxController {
   RxBool isDeleteForEveryOneAvailable = true.obs;
   RxString viewLiverLocationReceivedUserId = ''.obs;
   RxList<String> selectedId = <String>[].obs;
+  RxInt reminderSubTabSelectedIndex=0.obs;
   Rx<Messages?>? selectedFirstMessage = Messages().obs;
 
   RxList<Messages> selectedMessages = <Messages>[].obs;
@@ -152,7 +156,8 @@ class ChatThemeController extends GetxController {
     required String name,
     required String profileImagePath,
     required String reminderTime, // 🔥 ADD THIS
-  }) async {
+  }) async
+  {
 
 
     final modifiedMessages = <Map<String, dynamic>>[];
@@ -234,7 +239,8 @@ class ChatThemeController extends GetxController {
     reminderChatList.value= await getReminderChatList();
     getListOfReminderMsgResponse.value=ApiResponse.complete();
   }
-  Future<List<ReminderChatListModel>> getReminderChatList() async {
+  Future<List<ReminderChatListModel>> getReminderChatList() async
+  {
     final box = await Hive.openBox<String>('reminder_chat_list');
 
     const key = 'reminder_conversations';
@@ -251,11 +257,13 @@ class ChatThemeController extends GetxController {
         ReminderChatListModel.fromJson(Map<String, dynamic>.from(item)))
         .toList();
   }
-  Future<void> getMessageListByConId(String ConId)async{
+  Future<void> getMessageListByConId(String ConId)async
+  {
     reminderMessageModel.value=await getReminderMessagesByConversationId(ConId);
   }
   Future<List<ReminderMessage>> getReminderMessagesByConversationId(
-      String conversationId) async {
+      String conversationId) async
+  {
     final box = await Hive.openBox<String>('reminder_messages_box');
 
     final jsonString = box.get(conversationId);
@@ -265,7 +273,7 @@ class ChatThemeController extends GetxController {
     }
 
     final List<dynamic> jsonList = jsonDecode(jsonString);
-    log("skdjcksldjcsdc ${jsonList}");
+
     return jsonList.map((item) {
       final map = Map<String, dynamic>.from(item);
 
@@ -276,6 +284,79 @@ class ChatThemeController extends GetxController {
         reminderTime: map["reminderTime"] ?? "",
       );
     }).toList();
+  }
+  Future<void> updateReminderTime({
+    required String conversationId,
+    required String messageId, // 👈 unique id of message
+    required String newReminderTime,
+  }) async {
+    final box = await Hive.openBox<String>('reminder_messages_box');
+
+    final jsonString = box.get(conversationId);
+
+    if (jsonString == null || jsonString.isEmpty) return;
+
+    List<dynamic> jsonList = jsonDecode(jsonString);
+
+    List<Map<String, dynamic>> updatedList =
+    jsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    for (var item in updatedList) {
+      final messageMap = Map<String, dynamic>.from(item["message"]);
+
+      if (messageMap["messageId"] == messageId) {
+        item["reminderTime"] = newReminderTime;
+        break;
+      }
+    }
+
+    await box.put(conversationId, jsonEncode(updatedList));
+  }
+  Future<void> deleteReminderMessage({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    final box = await Hive.openBox<String>('reminder_messages_box');
+
+    final jsonString = box.get(conversationId);
+
+    if (jsonString == null || jsonString.isEmpty) return;
+
+    List<dynamic> jsonList = jsonDecode(jsonString);
+
+    List<Map<String, dynamic>> updatedList =
+    jsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    updatedList.removeWhere((item) {
+      final messageMap = Map<String, dynamic>.from(item["message"]);
+      return messageMap["messageId"] == messageId;
+    });
+
+    if (updatedList.isEmpty) {
+      await box.delete(conversationId); // 🔥 optional: delete entire conversation
+    } else {
+      await box.put(conversationId, jsonEncode(updatedList));
+    }
+  }
+  Future<bool?> setReminderApiCall(Map<String, dynamic> params) async {
+    try {
+      List<String> value=selectedId;
+      params[ApiKeys.message_ids]=value;
+      log("kjsdcnksdjcnksjdcn ${params}");
+      ResponseModel responseModel =
+      await ChatViewRepo().setReminderApi(params);
+
+      if (responseModel.isSuccess) {
+
+        return true;
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+    }
+    return null;
   }
 }
 class ReminderMessage {

@@ -208,14 +208,19 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                           widget.isNewGroupUI == true) {
                         if (chatViewController.selectedChatList.isNotEmpty) {
                           commonSnackBar(
-                              message:
-                                  "You can't select personal & business both");
+                              message: "You can't select personal & business both");
                           chatViewController.selectedUserIds.clear();
                         }
                       }
                     },
                     controller: chatViewController.chatMainTabController,
                     labelColor: Colors.black,
+                    // isScrollable: true,
+
+                    // REMOVE LEFT SPACE
+                    padding: EdgeInsets.zero,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 12), // adjust if needed
+
                     unselectedLabelColor: Colors.black54,
                     indicatorColor: Colors.lightBlue,
                     tabs: const [
@@ -238,6 +243,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                     PersonalChatsList(),
                     BusinessChatsList(),
                     GroupChatListTabPage(),
+
                     OrdersTabView()
                   ],
                 ),

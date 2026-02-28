@@ -312,11 +312,12 @@ class _MessageCardState extends State<MessageCard>
                 chatThemeController.activateSelection(widget.message);
               },
               onTap: (){
+
                 FocusScope.of(context).unfocus();
                 if (chatThemeController.isMessageSelectionActive.value) {
                   chatThemeController.selectMoreMessage(widget.message);
                 }else{
-                  if(widget.message.messageType=="video"||widget.message.messageType=="video"){
+                  if(widget.message.messageType=="video"||widget.message.messageType=="image"){
                     if(widget.message.url?.length == 1){
                       Get.to(()=>MediaSliderPage(conversationId: widget.conversationId??'', conversationPersonName: widget.name??"", seletedUrl: widget.message.url?.first.url??'',));
                       //Dont Delete This Cmd
