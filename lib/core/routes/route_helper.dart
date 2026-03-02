@@ -128,7 +128,7 @@ import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import '../../features/chat/view/contacts/contact_list_page.dart';
+import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/me/grocery/model/my_grocery_products_reponse.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';

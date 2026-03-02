@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -26,7 +27,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../chat_screen_new.dart';
-import '../contacts/contact_list_page.dart';
+import '../contacts/view/contact_list_page.dart';
 import '../group_chat/view_group_members.dart';
 import '../group_chat/widgets/delete_chat_history_dialog.dart';
 import '../group_chat/widgets/pin_message_dialoge_widget.dart';
@@ -207,13 +208,20 @@ Widget ChatListTile({
   }
   void selectChatListCard() {
     if (isSelected) {
+      // Always allow unselect
       chatViewController.selectedUserIds.remove(senderId);
       chatViewController.selectedChatList.remove(chat);
+      onSelect();
     } else {
-      chatViewController.selectedUserIds.add(senderId);
-      chatViewController.selectedChatList.add(chat);
+      // Allow selection only if less than 5 selected
+      if (chatViewController.selectedUserIds.length < 5) {
+        chatViewController.selectedUserIds.add(senderId);
+        chatViewController.selectedChatList.add(chat);
+        onSelect();
+      } else {
+      commonSnackBar(message: "Only Five Members Can Choose");
+      }
     }
-    onSelect();
   }
 
   return ((senderName == null || senderName == "null") & (senderContactNo ==
@@ -414,13 +422,11 @@ Widget ChatListTile({
                       ),
                     )
                         : Center(
-                      child: Text(
+                      child: CustomText(
                         senderName?.substring(0, 1) ?? '',
-                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: SizeConfig.size18,
-                        ),
                       ),
                     ),
                   ),
@@ -541,19 +547,21 @@ Widget ChatListTile({
               data: theme.copyWith(
                 checkboxTheme: CheckboxThemeData(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    side: const BorderSide(color: Colors.black),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   side: const BorderSide(color: Colors.black),
                 ),
               ),
-              child: Checkbox(
-                activeColor: Colors.blue,
-                checkColor: Colors.white,
-                value: isSelected,
-                onChanged: (_) => selectChatListCard(),
+              child: Transform.scale(
+                scale: 1.3, // 👈 increase this (1.2 – 1.8 recommended)
+                child: Checkbox(
+                  activeColor: Colors.blue,
+                  checkColor: Colors.white,
+                  value: isSelected,
+                  onChanged: (_) => selectChatListCard(),
+                ),
               ),
-            ),
+            )
         ],
       ),
     ),
@@ -1351,11 +1359,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                       builder: (context) =>
                           NewChatMainScreen(
                             isForwardUI: true,
-                            message:
-                            chatThemeController.selectedFirstMessage?.value,
-                            forwardId: chatThemeController
-                                .selectedFirstMessage?.value?.id ??
-                                '',
+
                           )));
             },
             child: SvgPicture.asset(

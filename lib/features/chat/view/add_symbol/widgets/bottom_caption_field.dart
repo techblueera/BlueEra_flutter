@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 
 import '../../../../../widgets/common_box_shadow.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
-import '../../contacts/be_available_contacts_list.dart';
+import '../../contacts/view/be_available_contacts_list.dart';
 
 class BottomCaptionField extends StatelessWidget {
   const BottomCaptionField({super.key});

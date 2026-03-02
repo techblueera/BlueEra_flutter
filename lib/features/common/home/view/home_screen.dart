@@ -20,7 +20,7 @@ import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
-import '../../../chat/view/contacts/be_available_contacts_list.dart';
+import '../../../chat/view/contacts/view/be_available_contacts_list.dart';
 
 enum SavedFeedTab {
   posts;
@@ -127,8 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_sharedText != null && _sharedText.isNotEmpty) {
          Get.to(BeAvailableContactsList(sharedText: _sharedText));
         } else if ((attachments.isNotEmpty)) {
-          Get.to( BeAvailableContactsList(sharedFiles: attachments),
-          );
+          Get.to( BeAvailableContactsList(sharedFiles: attachments),);
         }
       }
     });

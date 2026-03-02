@@ -14,14 +14,14 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart'; // for compute
 
-import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../core/constants/snackbar_helper.dart';
-import '../../../../widgets/custom_btn.dart';
-import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/contactListModel.dart';
+import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
+import '../../../../../widgets/custom_btn.dart';
+import '../../../auth/controller/chat_view_controller.dart';
+import '../../../auth/model/contactListModel.dart';
 
 class ContactsPage extends StatefulWidget {
   final String? from;

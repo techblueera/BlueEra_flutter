@@ -127,7 +127,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isCreateEventBtn,
       this.showElevation,
       this.categoryId,
-      this.isCustomTitleWidget});
+      this.isCustomTitleWidget,
+        this.isForwardUi});
 
   // final AppBar? appBar;
   final String? title;
@@ -222,6 +223,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? showTransactionFilter;
   final String? transactionFilterSelectedValue;
   final Function(String? value)? transactionFilterOnTap;
+  final bool? isForwardUi;
 
   @override
   Widget build(BuildContext context) {
@@ -1103,6 +1105,17 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+        if(isForwardUi??false)
+          Row(
+            children: [
+              Icon(Icons.person_add_alt, color: Colors.black),
+              SizedBox(width: 16),
+              Icon(Icons.search, color: Colors.black),
+              SizedBox(width: 12),
+            ],
+          ),
+
+
       ],
       bottom: bottomWidget,
     );
