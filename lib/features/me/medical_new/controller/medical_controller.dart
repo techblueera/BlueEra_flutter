@@ -242,7 +242,8 @@ class MedicalController extends GetxController {
       // log('current tab key-- $currentTabKey');
       Map<String, dynamic> queryParams = {
         ApiKeys.page: medicalCategoryProductsPage,
-        ApiKeys.limit: pageLimit
+        ApiKeys.limit: pageLimit,
+        ApiKeys.key: selectedMedicalData.value?.key,
       };
 
       final response = await MedicalRepo()
