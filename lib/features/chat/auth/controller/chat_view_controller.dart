@@ -28,6 +28,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/notification_utils.dart';
+import '../../../personal/personal_profile/model/check_chat_connection_model.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
@@ -709,7 +710,6 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-        log("jasdcnksjdcsdc ${data}");
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -1189,25 +1189,20 @@ class ChatViewController extends GetxController {
     // }
     // else {
     // if(chatList.isEmpty){
+
+    Map<String,dynamic> params={
+      if(otherUserId != null && otherUserId.isNotEmpty)
+        ApiKeys.other_user_id: otherUserId
+      else
+        ApiKeys.conversation_id: conversationId,
+      ApiKeys.page: 1,
+      ApiKeys.is_online_user: userId,
+      ApiKeys.per_page_message: 30,
+      if (name != null && name == "BlueEra Orders")
+        ApiKeys.orders_conversation: true
+    };
     emitEvent(
-        ChatEmitEvents.messageReceived,
-        (otherUserId != null)
-            ? {
-                ApiKeys.other_user_id: otherUserId,
-                ApiKeys.page: 1,
-                ApiKeys.is_online_user: userId,
-                ApiKeys.per_page_message: 30,
-                if (name != null && name == "BlueEra Orders")
-                  ApiKeys.orders_conversation: true
-              }
-            : {
-                ApiKeys.conversation_id: conversationId,
-                ApiKeys.page: 1,
-                ApiKeys.is_online_user: userId,
-                ApiKeys.per_page_message: 30,
-                if (name != null && name == "BlueEra Orders")
-                  ApiKeys.orders_conversation: true
-              });
+        ChatEmitEvents.messageReceived,params);
     // }
 
     // }
@@ -1295,7 +1290,7 @@ class ChatViewController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        log("skjdcnskdjcnsdc ${data}");
+
 
         await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.saved_contacts,
@@ -1743,7 +1738,92 @@ class ChatViewController extends GetxController {
           message: responseModel.message ?? AppStrings.somethingWentWrong);
     }
   }
+  Future<void> checkChatConnectionAndOpenChat(
+      {required Map<String, dynamic> params,bool? isFromContactList,
+        bool? isWithProductSend,
+        Map<String, dynamic>? shareProductParams,
+      }) async {
+    ResponseModel responseModel =
+    await ChatViewRepo().checkChatConnectionApi(params);
 
+    if (responseModel.isSuccess) {
+      final data = responseModel.response?.data;
+      CheckChatConversationModel details =
+      CheckChatConversationModel.fromJson(data);
+      String conversationId=details.data?.conversationId??'';
+      String otherUserId=details.data?.otherUserId??'';
+      String chatPersonUserId=details.data?.sender?.id??'';
+      String contactNo=details.data?.sender?.contact??'';
+      String contactName=details.data?.sender?.name??'';
+      String profileImage=details.data?.sender?.profileImage??'';
+      String type=details.data?.sender?.accountType==AppConstants.individual?AppConstants.personal_Chat_Type:AppConstants.business_Chat_Type;
+      businessTabIndexSelected.value = 0;
+      await getLocalConversation(
+          conversationId, chatPersonUserId, otherUserId, contactName);
+
+      if (isWithProductSend == true) {
+        await sendProductMessages(shareProductParams ?? {});
+      }
+
+      if (type == AppConstants.business_Chat_Type) {
+        if (isFromContactList != null && isFromContactList) {
+          Get.off(
+                () => BusinessChatScreenUpdated(
+              type: type,
+              isInitialMessage: conversationId=='',
+              userId: userId,
+              conversationId: conversationId,
+              profileImage: profileImage,
+              name: contactName,
+              contactNo: contactNo,
+            ),
+          );
+        } else {
+          Get.to(
+                () => BusinessChatScreenUpdated(
+              type: type,
+              isInitialMessage: conversationId=='',
+              userId: userId,
+              conversationId: conversationId,
+              profileImage: profileImage,
+              name: contactName,
+              contactNo: contactNo,
+            ),
+          );
+        }
+      } else {
+        if (isFromContactList != null && isFromContactList) {
+          Get.off(
+                () => PersonalChatScreen(
+              type: type,
+              isInitialMessage: conversationId=='',
+              userId: userId,
+              conversationId: conversationId,
+              profileImage: profileImage,
+              name: contactName,
+              contactNo: contactNo,
+            ),
+          );
+        } else {
+          Get.to(
+                () => PersonalChatScreen(
+              type: type,
+              isInitialMessage: conversationId=='',
+              userId: userId,
+              conversationId: conversationId,
+              profileImage: profileImage,
+              name: contactName,
+              contactNo: contactNo,
+            ),
+          );
+        }
+      }
+
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+    }
+  }
   Future<Map<String,dynamic>?> checkChatConnection(Map<String, dynamic> params) async {
     ResponseModel responseModel =
         await ChatViewRepo().checkChatConnectionApi(params);

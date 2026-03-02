@@ -164,21 +164,11 @@ class AppNotificationHandler {
 
   ///show notification msg
   Future<void> showMsg(RemoteMessage message)async {
-    print("SHOW MSG 1");
-    // callUnreadCount();
-      try {
         if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
           NotificationData rideNotification=NotificationData.fromJson(message.data);
           showFullCallScreen(rideNotification);
           // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
         }
-      } on Exception catch (e) {
-        print("SHOW MSG 2");
-
-        logs("NOTI $e");
-        // TODO
-      }
-    ///FOR GROUND....
     showNotification(message);
   }
   Future<void> showFullCallScreen(NotificationData rideNotification )async{

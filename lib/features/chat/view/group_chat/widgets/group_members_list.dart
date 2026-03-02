@@ -9,7 +9,7 @@ import '../../../../../core/constants/shared_preference_utils.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/group_details_model.dart';
-import '../../contacts/be_available_contacts_list.dart';
+import '../../contacts/view/be_available_contacts_list.dart';
 
 class GroupMembersList extends StatefulWidget {
   GroupMembersList({super.key, required this.members, required this.conversationId});

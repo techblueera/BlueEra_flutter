@@ -16,6 +16,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../chat_screen_new.dart';
 import 'component_widgets.dart';
 class MessageBubble extends StatefulWidget {
   final String message;
@@ -217,8 +218,8 @@ class _MessageBubbleState extends State<MessageBubble> {
         Positioned(
           top: 0,
           bottom: 0,
-          right: 0,
-          child: Column(
+          right: 8,
+          child: Row(
 mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
@@ -248,7 +249,16 @@ mainAxisAlignment: MainAxisAlignment.center,
 
               InkWell(
                 onTap: () {
+                  chatThemeController.selectedId.add(widget.messages.id??"");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NewChatMainScreen(
+                        isForwardUI: true,
 
+                      ),
+                    ),
+                  );
                 },
                 child: Container(
                   padding: const EdgeInsets.all(6),

@@ -12,13 +12,13 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
-import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/snackbar_helper.dart';
-import '../../../../widgets/custom_btn.dart';
-import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/contactListModel.dart';
-import '../../auth/model/group_details_model.dart';
+import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/common_methods.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
+import '../../../../../widgets/custom_btn.dart';
+import '../../../auth/controller/chat_view_controller.dart';
+import '../../../auth/model/contactListModel.dart';
+import '../../../auth/model/group_details_model.dart';
 
 class BeAvailableContactsList extends StatefulWidget {
   final String? sharedText;
@@ -206,6 +206,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final bool isGroupMode = true;
     return WillPopScope(
       onWillPop: () async {

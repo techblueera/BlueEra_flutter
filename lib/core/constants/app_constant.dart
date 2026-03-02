@@ -36,7 +36,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/chat_theme/chat_theme.dart';
-import '../../features/chat/view/contacts/contact_list_page.dart';
+import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
 import '../../features/subscription/view/subscrption_new.dart';
 

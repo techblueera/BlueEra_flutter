@@ -44,7 +44,9 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if(widget.isForwardUI==false)
               SizedBox(height: 16,),
+              if(widget.isForwardUI==false)
               HorizontalTabSelector(horizontalMargin: 14,
                 horizontalPadding: 10,
                   tabs: ['All',"Unread","Reminder"],
@@ -53,6 +55,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                 chatViewController.personalTabSelectedIndex.value=index;
                   },
                   labelBuilder: (value)=>value),
+              if(widget.isForwardUI==false)
               SizedBox(height: 12,),
               if(chatViewController.personalTabSelectedIndex.value==0)
               Container(
@@ -64,7 +67,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
-                    return ChatListTile(onTab: (index == 0)?(){
+                    return ChatListTile(onTab: (index == 0&&widget.isForwardUI==false)?(){
                      Get.to(()=> AiChatScreen(
                        profileImage: chat?.sender?.profileImage,
                        name: chat?.sender?.name,

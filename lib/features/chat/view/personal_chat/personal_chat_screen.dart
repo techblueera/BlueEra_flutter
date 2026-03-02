@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,7 +12,6 @@ import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
-import '../chat_screen_new.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/common_delete_message.dart';
 import '../widget/common_reminder_option.dart';
@@ -288,11 +288,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => NewChatMainScreen(
-                                    isForwardUI: true,
-                                    message: chatThemeController.selectedFirstMessage?.value,
-                                    forwardId:
-                                    chatThemeController.selectedFirstMessage?.value?.id ?? '',
+                                  builder: (context) => ChatForwardScreen(
                                   ),
                                 ),
                               );
