@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -21,7 +22,7 @@ class HospitalBookingScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ServiceHomeTitleWidget(
-                title: "Doctors",
+                title: AppStrings.opdDoctors,
               ),
               SizedBox(height: 10),
 
@@ -80,7 +81,7 @@ class HospitalBookingScreen extends StatelessWidget {
               Obx(() {
                 final items = controller.currentCategoryItems;
                 if (items.isEmpty)
-                  return Center(child: CustomText("No data available"));
+                  return Center(child: CustomText(AppStrings.noDataFound));
 
                 return Container(
                   height: 280,
@@ -113,7 +114,7 @@ class HospitalBookingScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ServiceHomeTitleWidget(
-                title: "IPD",
+                title: AppStrings.ipdTitle,
               ),
 
               SizedBox(height: 10),
@@ -172,7 +173,7 @@ class HospitalBookingScreen extends StatelessWidget {
               Obx(() {
                 final items = controller.currentCategoryItemsIpd;
                 if (items.isEmpty)
-                  return Center(child: CustomText("No data available"));
+                  return Center(child: CustomText(AppStrings.noDataFound));
 
                 return Container(
                   height: 280,
@@ -186,7 +187,7 @@ class HospitalBookingScreen extends StatelessWidget {
                         subtitle: "",
                         imageUrl: item.imageUrl,
                         description: item.description ?? "",
-                        tag: "${item.bedCount ?? 0} Beds",
+                        tag: "${item.bedCount ?? 0} ${AppStrings.beds.tr}",
                       );
                     },
                   ),

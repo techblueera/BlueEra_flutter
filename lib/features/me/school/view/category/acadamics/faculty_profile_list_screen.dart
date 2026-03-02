@@ -20,7 +20,7 @@ class FacultyProfileListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Faculty",
+        title:  AppStrings.faculty,
       ),
       bottomNavigationBar:isEdit? SafeArea(
         child: Padding(
@@ -33,13 +33,13 @@ class FacultyProfileListScreen extends StatelessWidget {
               onTap: () {
                 Get.to(FacultyFormScreen());
               },
-              title: "Add Faculty"),
+              title:  AppStrings.addFacility,),
         ),
       ):null,
       body: Obx(() {
         if (controller.getAllFacultyResponse.value.status == Status.COMPLETE) {
           if (controller.profiles.isEmpty) {
-            return CustomText("No faculty found.");
+            return CustomText(AppStrings.noFacultyFound);
           }
           if (controller.profiles.isNotEmpty) {
             return ListView.builder(
@@ -73,7 +73,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                            "${user.position} • ${user.experience?.years} Years Exp"),
+                            "${user.position} • ${user.experience?.years}${AppStrings.yearsExp.tr}"),
                         CustomText(user.email ?? ""),
                       ],
                     ),
@@ -86,7 +86,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                           await showCommonDialog(
                               context: context,
                               text:
-                                  'Are you sure you want to delete this faculty details?',
+                              AppStrings.deleteFacultyConfirm,
                               confirmCallback: () async {
                                 await controller.deleteFacultyProfileController(
                                     facultyID: user.id!);
@@ -105,7 +105,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                               children: [
                                 Icon(Icons.edit, size: 20),
                                 SizedBox(width: 8),
-                                CustomText("Edit")
+                                CustomText(AppStrings.edit)
                               ],
                             )),
                         PopupMenuItem(
@@ -114,7 +114,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                               children: [
                                 Icon(Icons.delete, color: Colors.red, size: 20),
                                 SizedBox(width: 8),
-                                CustomText("Delete", color: Colors.red)
+                                CustomText(AppStrings.delete, color: Colors.red)
                               ],
                             )),
                       ],

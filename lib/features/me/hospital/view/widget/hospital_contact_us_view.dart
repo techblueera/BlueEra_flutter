@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_contact_us.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -34,7 +35,7 @@ class HospitalContactUsView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 10.0),
                   child: ServiceHomeTitleWidget(
-                    title: "Contact Us",
+                    title: AppStrings.contactUs,
                   ),
                 ),
                 if (!isReadOnly)

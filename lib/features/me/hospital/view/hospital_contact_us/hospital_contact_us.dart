@@ -40,7 +40,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Contact Us",
+        title: AppStrings.contactUs,
       ),
       body: SafeArea(
         child: Column(
@@ -50,7 +50,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.COMPLETE) {
                   if (controller.schoolContactUsData?.isEmpty ?? false) {
-                    return Center(child: CustomText("No Contact Us Found "));
+                    return Center(child: CustomText(AppStrings.noContactsFound));
                   }
                   return ListView.builder(
                     shrinkWrap: true,
@@ -98,12 +98,13 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
                                         1) {
                                       commonSnackBar(
                                           message:
-                                              "At least one hospital branch contact info is required");
+                                          AppStrings.errBranchRequired);
+                                              // "At least one hospital branch contact info is required");
                                     } else {
                                       await showCommonDialog(
                                           context: context,
                                           text:
-                                              'Are you sure you want to delete this hospital branch contact info?',
+                                              AppStrings.deleteBranchConfirm,
                                           confirmCallback: () async {
                                             await controller
                                                 .deleteSchoolBranchController(
@@ -182,12 +183,13 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
                                                   1) {
                                                 commonSnackBar(
                                                     message:
-                                                        "At least one department is required");
+                                                    AppStrings.errDeptRequired);
                                               } else {
                                                 await showCommonDialog(
                                                     context: context,
                                                     text:
-                                                        'Are you sure you want to delete this department?',
+                                                    AppStrings.deleteDeptConfirm,
+                                                        // 'Are you sure you want to delete this department?',
                                                     confirmCallback: () async {
                                                       await controller
                                                           .deleteSchoolBranchDepartmentController(
@@ -258,7 +260,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 label: CustomText(
-                                  "Add More Department",
+                                  AppStrings.addMoreDepartment,
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
@@ -291,7 +293,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
               onTapEvent: () {
                 Get.to(HospitalBranchDetailsFormScreen());
               },
-              buttonName: "Add Another Branch",
+              buttonName: AppStrings.addAnotherBranch,
             ),
             SizedBox(
               height: SizeConfig.size25,

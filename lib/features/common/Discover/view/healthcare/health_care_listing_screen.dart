@@ -157,7 +157,6 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
   }
 
   Widget rightContent() {
-    logs("controller.selectedProfessionalConsultantData.value?.slugId= ${controller.selectedProfessionalConsultantData.value?.slugId}");
     return Obx(() {
       if (controller.selectedProfessionalConsultantData.value?.slugId ==
           PHARMACY) {

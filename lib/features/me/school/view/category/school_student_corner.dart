@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/student_corder/common_student_corner_screen.dart';
@@ -26,51 +27,51 @@ class _SchoolStudentCornerState extends State<SchoolStudentCorner> {
     // TODO: implement initState
   studentExamMenus = [
     ServiceMenuItem(
-      title: "Time Table",
+      title: AppStrings.timeTable,
       icon: AppIconAssets.time_table,
       page: () => CommonStudentCornerScreen(
-        title: "Time Table",
+        title: AppStrings.timeTable,
         screenName: timeTable,
         isEdit: widget.isEdit,
       ),
     ),
     ServiceMenuItem(
-      title: "Syllabus",
+      title: AppStrings.syllabus,
       icon: AppIconAssets.syllabus,
       page: () => CommonStudentCornerScreen(
         isEdit: widget.isEdit,
 
-        title: 'Syllabus',
+        title:  AppStrings.syllabus,
         screenName: syllabus,
       ),
     ),
     ServiceMenuItem(
-      title: "Exam Schedule",
+      title:AppStrings.examSchedule,
       icon: AppIconAssets.exam_schedule,
       page: () => CommonStudentCornerScreen(
         isEdit: widget.isEdit,
 
-        title: 'Exam Schedule',
+        title:AppStrings.examSchedule,
         screenName: examSchedule,
       ),
     ),
     ServiceMenuItem(
-      title: "Results",
+      title: AppStrings.results,
       icon: AppIconAssets.result,
       page: () => CommonStudentCornerScreen(
         isEdit: widget.isEdit,
 
-        title: 'Results',
+        title: AppStrings.results,
         screenName: results,
       ),
     ),
     ServiceMenuItem(
-      title: "Downloads",
+      title: AppStrings.downloads,
       icon: AppIconAssets.downloads_new,
       page: () => CommonStudentCornerScreen(
         isEdit: widget.isEdit,
 
-        title: 'Downloads',
+        title: AppStrings.downloads,
         screenName: downloads,
       ),
     ),
@@ -83,7 +84,7 @@ class _SchoolStudentCornerState extends State<SchoolStudentCorner> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Student Corner",
+        title:AppStrings.studentCorner,
         isShadowShow: false,
       ),
       body: Column(

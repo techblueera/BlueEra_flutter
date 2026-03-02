@@ -43,6 +43,7 @@ class HospitalUpdateScreen extends StatelessWidget {
       page: () => const HospitalEmergencyCareScreen(),
     ),
     ServiceMenuItem(
+      key: 'diagnostic',
       title:AppStrings.diagnosticDept,
       icon: AppIconAssets.diag_dept,
       page: () => const ComingSoon(),

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/academic_calender_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/department_screen.dart';
@@ -25,23 +26,23 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
     // TODO: implement initState
   academicMenus = [
     ServiceMenuItem(
-      title: "Departments",
+      title: AppStrings.department,
       icon: AppIconAssets.departments,
       page: () => DepartmentScreen(isEdit: widget.isEdit,),
     ),
     ServiceMenuItem(
-      title: "Courses / Programs",
+      title: AppStrings.coursesPrograms,
       icon: AppIconAssets.courses_programs,
       page: () => CourseListScreen(isEdit: widget.isEdit,),
       // page: () => AcadamicCoursAndPrograms(),
     ),
     ServiceMenuItem(
-      title: "Faculty Details",
+      title: AppStrings.facultyDetails,
       icon: AppIconAssets.faculty_details,
       page: () => FacultyProfileListScreen(isEdit: widget.isEdit,),
     ),
     ServiceMenuItem(
-      title: "Academic Calendar",
+      title:AppStrings.academicCalendar,
       icon: AppIconAssets.academic_calendar,
       page: () => AcademicCalenderScreen(isEdit: widget.isEdit,),
     ),
@@ -54,7 +55,7 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Academics",
+        title: AppStrings.academics,
         isShadowShow: false,
       ),
       body: Column(

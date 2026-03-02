@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_service_card_home_view.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -100,7 +101,7 @@ class EmergencyCriticalCareView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ServiceHomeTitleWidget(
-                  title: "Our Facility",
+                  title: AppStrings.otherFacilities,
                 ),
                 const SizedBox(height: 16),
                 LayoutBuilder(

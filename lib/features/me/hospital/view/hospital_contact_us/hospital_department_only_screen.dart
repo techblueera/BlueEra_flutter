@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -52,7 +53,7 @@ class _HospitalDepartmentOnlyScreenState extends State<HospitalDepartmentOnlyScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Department",
+        title: AppStrings.department,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -63,21 +64,21 @@ class _HospitalDepartmentOnlyScreenState extends State<HospitalDepartmentOnlyScr
               CommonTextField(
                 textEditController: titleController,
                 hintText: "E.g.Admission Cell",
-                title: "Department/Role",
+                title:  AppStrings.department,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
-                title: "Email Address",
+                title:  AppStrings.enterEmailAddress,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
-                title: "Phone Number",
+                title:  AppStrings.phoneNumber,
                 maxLength: 10,
                 onChange: (_) => _runValidation(),
               ),
@@ -110,7 +111,7 @@ class _HospitalDepartmentOnlyScreenState extends State<HospitalDepartmentOnlyScr
                         // addBranchDepartmentController
                       }
                     },
-                    title: "Submit");
+                    title:  AppStrings.submit,);
               }),
             ],
           ),
