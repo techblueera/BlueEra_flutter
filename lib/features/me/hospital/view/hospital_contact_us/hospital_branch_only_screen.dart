@@ -55,7 +55,7 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Branch",
+        title: AppStrings.branch,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -67,7 +67,7 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
               CommonTextField(
                 textEditController: branchNameController,
                 hintText: "E.g. DPS Dehradun",
-                title: "Branch Name",
+                title: AppStrings.branchName,
                 maxLength: 50,
                 onChange: (_) => _runValidation(),
               ),
@@ -75,7 +75,7 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
               HttpsTextField(
                 controller: websiteController,
                 hintText: "https://dpsdehradun.com",
-                title: "Website URL",
+                title: AppStrings.website,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
@@ -86,7 +86,6 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
                 isShowLeading: false,
                 hintText: AppStrings.egLucknowGomtiNagar,
                 onSelected: (placeId, lat, lng, address) async {
-                  print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                   addressController.text = address;
                   schoolAboutUsController.selectedLat = lat;
                   schoolAboutUsController.selectedLng = lng;
@@ -119,7 +118,7 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
                           }, branchId: widget.schoolContactUsData.id ?? "");
                         }
                       : null,
-                  title: "Submit",
+                  title: AppStrings.submit,
                   isValidate: schoolAboutUsController.isFormValid.value,
                 );
               }),

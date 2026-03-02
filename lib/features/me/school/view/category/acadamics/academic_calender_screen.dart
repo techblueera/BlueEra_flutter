@@ -18,7 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AcademicCalenderScreen extends StatefulWidget {
-   AcademicCalenderScreen({super.key, required this.isEdit});
+  AcademicCalenderScreen({super.key, required this.isEdit});
+
   final bool isEdit;
 
   @override
@@ -38,24 +39,23 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: "Academic Calender",
-      ),
-      bottomNavigationBar: widget.isEdit?
-      SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-              right: 10.0, left: 10.0, bottom: 40, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              onTap: () {
-                Get.to(AcademicCalenderFormScreen());
-              },
-              title: "Add Academic Calender"),
-        ),
-      ):null,
+      appBar: CommonBackAppBar(title: AppStrings.academicCalendar),
+      bottomNavigationBar: widget.isEdit
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    right: 10.0, left: 10.0, bottom: 40, top: 10),
+                child: PositiveCustomBtn(
+                    bgColor: AppColors.white,
+                    textColor: AppColors.primaryColor,
+                    borderColor: AppColors.primaryColor,
+                    onTap: () {
+                      Get.to(AcademicCalenderFormScreen());
+                    },
+                    title: AppStrings.addAcademicCalendar),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: Obx(() {
           if (academicCalenderController
@@ -77,7 +77,7 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         rowWidget(
-                            title: "Title",
+                            title: AppStrings.title,
                             value: "${data.title}",
                             noticeIndex: index,
                             isEditOption: widget.isEdit,
@@ -87,9 +87,8 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                         ),
                         rowWidget(
                             noticeIndex: index,
-                            title: "Description",
+                            title: AppStrings.description,
                             isEditOption: widget.isEdit,
-
                             value: "${data.description}",
                             noticeID: data.id ?? ""),
                         SizedBox(
@@ -120,12 +119,11 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                             //
                           },
                           child: rowWidget(
-                              title: "Document",
+                              title: AppStrings.document,
                               value: (data.uploadPhoto?.isNotEmpty ?? false)
-                                  ? "View"
+                                  ? AppStrings.view
                                   : "N/A",
                               isEditOption: widget.isEdit,
-
                               noticeID: data.id ?? "",
                               isDecoration:
                                   (data.uploadPhoto?.isNotEmpty ?? false)
@@ -140,7 +138,8 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                 itemCount: academicCalenderController.noticeNewsDataList.length,
               );
             }
-            return Center(child: CustomText("Academic Calender Not Found"));
+            return Center(
+                child: CustomText(AppStrings.academicCalendarNotFound));
           }
           return SizedBox();
         }),
@@ -181,8 +180,7 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
             ? _buildNoticeNewsPopUpMenu(onNoticeNewsDelete: () async {
                 await showCommonDialog(
                     context: context,
-                    text:
-                        'Are you sure you want to delete this academic calender?',
+                    text: AppStrings.deleteCalendarConfirm,
                     confirmCallback: () async {
                       await academicCalenderController
                           .deleteSchoolNoticeNewsController(noticeId: noticeID);

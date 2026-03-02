@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -79,7 +80,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                               contactNo: '',
                             );
                           },
-                          title: "Chat"),
+                          title: AppStrings.chat),
                     ),
                     SizedBox(
                       width: 10,
@@ -89,7 +90,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                           onTap: () {
                             commonSnackBar(message: 'Coming Soon....');
                           },
-                          title: "Book Inquiry"),
+                          title: AppStrings.bookInquiry),
                     ),
                   ],
                 ),
@@ -206,7 +207,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title: "Test Report",
+            title: AppStrings.testReport,
           ),
           SizedBox(
             height: 150, // Adjusted height to accommodate the layout
@@ -245,7 +246,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                         children: [
                           Expanded(
                             child: CustomText(
-                              t.testName ?? "Test Name",
+                              t.testName ?? "",
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
                               maxLines: 1,
@@ -274,7 +275,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _pill(
-                              "Reports within ${t.estimatedReportHours ?? 24} hours",
+                              "${AppStrings.reportsWithin.tr} ${t.estimatedReportHours ?? 24} ${AppStrings.hours.tr}",
                               Colors.white),
                           _pill("INR-${t.customerPrice ?? 0}", Colors.white,
                               isBold: true),
@@ -316,7 +317,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ServiceHomeTitleWidget(
-          title: "Our Popular Services",
+          title: AppStrings.ourPopularServices,
         ),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
@@ -372,7 +373,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title: "Our All Services",
+            title: AppStrings.ourAllServices,
           ),
           SizedBox(height: SizeConfig.size8),
           Wrap(
@@ -431,13 +432,9 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 6),
             child: ServiceHomeTitleWidget(
-              title: "Contact Us",
+              title: AppStrings.contactUs,
             ),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.only(top: 8.0, left: 6),
-          //   child: const CustomText("Contact Us", fontWeight: FontWeight.bold),
-          // ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
@@ -479,7 +476,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                 _contactItem(AppIconAssets.website_click,
                     profile?.websiteUrl ?? "", AppColors.primaryColor),
                 _contactItem(
-                    AppIconAssets.principal, "Reception", Colors.grey[700]!),
+                    AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
                 _contactItem(AppIconAssets.email, profile?.email ?? "",
                     AppColors.secondaryTextColor),
                 _contactItem(AppIconAssets.phone_outline,

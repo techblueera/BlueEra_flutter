@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_photo_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_category_details_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/upload_hospital_photos_screen.dart';
@@ -15,7 +16,7 @@ class HospitalPhotosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Hospital Photos",
+        title: AppStrings.hospitalPhotos,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -24,7 +25,7 @@ class HospitalPhotosScreen extends StatelessWidget {
               onTap: () {
                 Get.to(UploadHospitalPhotosScreen());
               },
-              title: "Upload Hospital Photo"),
+              title:AppStrings.uploadHospitalPhoto),
         ),
       ),
       body: Obx(() {
@@ -82,7 +83,7 @@ class HospitalPhotosScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} Images",
+                                "+${images.length} ${AppStrings.images.tr}",
                                 textAlign: TextAlign.center,
                                     color: Colors.white, fontSize: 10),
                             ),
@@ -104,7 +105,7 @@ class HospitalPhotosScreen extends StatelessWidget {
                               ],
                             ),
                             SizedBox(height: 4),
-                            CustomText("Last Update: ${formatIsoDate(item.updatedAt??"")}",
+                            CustomText("${AppStrings.latestUpdate.tr}: ${formatIsoDate(item.updatedAt??"")}",
 
                                     color: Colors.grey, fontSize: 12),
 

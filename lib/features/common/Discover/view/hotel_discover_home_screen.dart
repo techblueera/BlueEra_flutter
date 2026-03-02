@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -18,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HotelDiscoverHomeScreen extends StatefulWidget {
-  // final controller = Get.put(HotelDetailController());
   final HotelServiceData data;
 
   HotelDiscoverHomeScreen({super.key, required this.data});
@@ -112,7 +112,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                                   .toString(),
                             );
                           },
-                          title: "Chat"),
+                          title: AppStrings.chat),
                     ),
                     SizedBox(
                       width: 10,
@@ -122,7 +122,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                           onTap: () {
                             commonSnackBar(message: 'Coming Soon....');
                           },
-                          title: "Book Inquiry"),
+                          title: AppStrings.bookInquiry),
                     ),
                   ],
                 ),
@@ -159,7 +159,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ServiceHomeTitleWidget(
-                          title: "Choose Room",
+                          title: AppStrings.chooseRoom,
                         ),
                         const SizedBox(height: 12),
 
@@ -210,7 +210,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                           height: 310,
                           child: filteredRooms.isEmpty
                               ? const Center(
-                                  child: CustomText("No rooms available"))
+                                  child: CustomText(AppStrings.noRoomsAvailable))
                               : ListView.builder(
                                   scrollDirection: Axis.horizontal,
                                   itemCount: filteredRooms.length,
@@ -241,7 +241,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CustomText("Hotel Amenities",
+                          CustomText(AppStrings.hotelAmenities,
                               fontSize: 18, fontWeight: FontWeight.bold),
                           SizedBox(height: 15),
                           _buildAmenities(profile?.amenities),
@@ -286,7 +286,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title: "Contact Us",
+            title:AppStrings.contactUs
           ),
           const SizedBox(height: 20),
           Container(
@@ -334,7 +334,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                 _contactItem(AppIconAssets.website_click,
                     profile?.website ?? "", AppColors.primaryColor),
                 _contactItem(
-                    AppIconAssets.principal, "Reception", Colors.grey[700]!),
+                    AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
                 _contactItem(
                     AppIconAssets.email,
                     profile?.contacts?.firstOrNull?.email ?? "N/A",
@@ -425,19 +425,14 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                         children: [
                           Expanded(
                             child: CustomText(
-                              room.name ?? "Room Name",
+                              room.name ?? "N/A",
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
                               maxLines: 1,
                             ),
                           ),
-                          // Row(
-                          //   children: List.generate(
-                          //     5,
-                          //         (index) => const Icon(Icons.star, color: Colors.amber, size: 14),
-                          //   ),
-                          // ),
+
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -493,93 +488,6 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
               ),
             ),
           ),
-
-          // 3. Favorite Icon
-          // Positioned(
-          //   top: 12,
-          //   right: 12,
-          //   child: CircleAvatar(
-          //     backgroundColor: Colors.white,
-          //     radius: 18,
-          //     child: Icon(Icons.favorite, color: Colors.red[400], size: 20),
-          //   ),
-          // ),
-
-          // 4. Content Overlay
-          // Positioned(
-          //   bottom: 15,
-          //   left: 15,
-          //   right: 15,
-          //   child: Column(
-          //     crossAxisAlignment: CrossAxisAlignment.start,
-          //     mainAxisSize: MainAxisSize.min,
-          //     children: [
-          //       // Title and Stars
-          //       Row(
-          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //         children: [
-          //           Expanded(
-          //             child: CustomText(
-          //               room.name ?? "Room Name",
-          //               color: Colors.white,
-          //               fontSize: 20,
-          //               fontWeight: FontWeight.bold,
-          //               maxLines: 1,
-          //             ),
-          //           ),
-          //           // Row(
-          //           //   children: List.generate(
-          //           //     5,
-          //           //         (index) => const Icon(Icons.star, color: Colors.amber, size: 14),
-          //           //   ),
-          //           // ),
-          //         ],
-          //       ),
-          //       const SizedBox(height: 4),
-          //
-          //       // Price
-          //       CustomText(
-          //         "₹${room.pricePerDay}/day",
-          //         color: Colors.white,
-          //         fontSize: 18,
-          //         fontWeight: FontWeight.w600,
-          //       ),
-          //       const SizedBox(height: 12),
-          //
-          //       // Bed Type Info
-          //       Row(
-          //         children: [
-          //           LocalAssets(
-          //             imagePath: AppIconAssets.bad,
-          //             imgColor: Colors.white,
-          //           ),
-          //           const SizedBox(width: 8),
-          //           CustomText(
-          //             room.bedType ?? "",
-          //             color: Colors.white,
-          //           ),
-          //         ],
-          //       ),
-          //       const SizedBox(height: 4),
-          //
-          //       // Occupancy Info
-          //       Row(
-          //         children: [
-          //           LocalAssets(
-          //             imagePath: AppIconAssets.occupancy,
-          //             imgColor: Colors.white,
-          //           ),
-          //           const SizedBox(width: 8),
-          //           CustomText(
-          //             room.maxOccupancy ?? "",
-          //             color: Colors.white,
-          //             fontSize: 14,
-          //           ),
-          //         ],
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );
@@ -590,7 +498,6 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     return Wrap(
       spacing: 20,
       children: [
-        // if (amen.swimmingPool ?? false) _amenityIcon(Icons.pool, "Pool"),
         if (amen.freeWifi ?? true) _amenityIcon(Icons.wifi, "Wifi"),
         if (amen.airConditioning ?? true) _amenityIcon(Icons.ac_unit, "AC"),
         if (amen.television ?? true) _amenityIcon(Icons.tv, "TV"),

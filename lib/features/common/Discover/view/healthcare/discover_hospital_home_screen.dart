@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -52,7 +53,7 @@ class _DiscoverHospitalHomeScreenState
                             onTap: () {
                               commonSnackBar(message: 'Coming Soon....');
                             },
-                            title: "Book Inquiry"),
+                            title: AppStrings.bookInquiry),
                       ),
                     ],
                   ),
@@ -61,7 +62,7 @@ class _DiscoverHospitalHomeScreenState
             : SizedBox.shrink();
       }),
       appBar: CommonBackAppBar(
-        title: "Hospital",
+        title: AppStrings.hospital,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -88,7 +89,7 @@ class _DiscoverHospitalHomeScreenState
                   isReadOnly: true,
                 ));
               },
-              child: cardViewWidget(title: "Job Vacancy"),
+              child: cardViewWidget(title: AppStrings.jobVacancy.tr),
             ),
             SizedBox(
               height: 10,
@@ -156,9 +157,9 @@ class EmergencyActionCard extends StatelessWidget {
             child: _buildActionCard(
               icon: "assets/svg/call_24.svg",
               // Your 24/7 Phone Icon
-              title: "Emergency Number",
+              title: AppStrings.emergencyContact,
               subtitle: "24/7 Immediate Help",
-              buttonText: "Call Now",
+              buttonText: AppStrings.callNow,
               isEmergency: true,
               phoneNo: emergencyNo,
               onTap: () => _launchCaller(emergencyNo),
@@ -169,12 +170,11 @@ class EmergencyActionCard extends StatelessWidget {
             child: _buildActionCard(
               icon: "assets/svg/support_helth.svg",
               // Your Calendar Icon
-              title: "Appointment",
+              title: AppStrings.appointmentNumber,
               subtitle: "Schedule Your Visit Easily",
               buttonText: "Book Now",
               isEmergency: false,
               phoneNo: appointmentNo,
-
               onTap: () async {
                 final chatViewController = Get.find<ChatViewController>();
                 Map<String, dynamic> detas = {

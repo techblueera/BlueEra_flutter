@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -28,7 +29,7 @@ class ManagementCardListWidget extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
                 child: ServiceHomeTitleWidget(
-                  title: "Management",
+                  title: AppStrings.managementTrust,
                 ),
               ),
 

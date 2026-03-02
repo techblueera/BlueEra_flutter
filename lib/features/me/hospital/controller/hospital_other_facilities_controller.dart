@@ -127,7 +127,6 @@ class HospitalOtherFacilitiesController extends GetxController {
       res = await repo.create(body: body);
       if (res.isSuccess) {
         await load();
-        commonSnackBar(message: "Saved");
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

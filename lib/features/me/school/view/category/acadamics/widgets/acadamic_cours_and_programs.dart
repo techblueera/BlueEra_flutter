@@ -40,7 +40,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Courses"),
+      appBar: CommonBackAppBar(title: AppStrings.courses),
       bottomNavigationBar: widget.isEdit
           ? Padding(
               padding:
@@ -49,7 +49,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                 onTapEvent: () {
                   Get.to(AddMoreCourseScreen());
                 },
-                buttonName: "Add More Course",
+                buttonName: AppStrings.addMoreCourse,
               ),
             )
           : null,
@@ -58,7 +58,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
           if (controller.isLoading.value)
             return Center(child: CircularProgressIndicator());
           if (controller.coursesList.isEmpty)
-            return Center(child: CustomText("No Course Found Yet.."));
+            return Center(child: CustomText(AppStrings.noCourseFound));
           return RefreshIndicator(
             onRefresh: () => controller.fetchCourses(isRefresh: true),
             child: ListView.builder(
@@ -98,24 +98,24 @@ class CourseCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: CustomText("Course: ${data.name}",
+                child: CustomText("${AppStrings.courses.tr}: ${data.name}",
                     fontWeight: FontWeight.bold, fontSize: 16),
               ),
               if (isEdit) _buildPopupMenu(context),
             ],
           ),
           SizedBox(height: 8),
-          _infoRow("Admission: ", data.admissionProcess ?? "N/A"),
-          _infoRow("Eligibility: ", data.eligibility ?? "N/A"),
+          _infoRow("${AppStrings.admission.tr}: ", data.admissionProcess ?? "N/A"),
+          _infoRow("${AppStrings.eligibility.tr}: ", data.eligibility ?? "N/A"),
           if ((data.courseFees?.yearly ?? 0) > 0)
-            _infoRow("Course Fee: ",
-                "₹${formatNumber(data.courseFees?.yearly ?? 0)}/Year"),
+            _infoRow("${AppStrings.courseFee.tr}: ",
+                "₹${formatNumber(data.courseFees?.yearly ?? 0)}/${AppStrings.years.tr}"),
           if ((data.courseFees?.monthly ?? 0) > 0)
-            _infoRow("Course Fee: ",
-                "₹${formatNumber(data.courseFees?.monthly ?? 0)}/Monthly"),
-          _infoRow("Course Duration: ", data.duration ?? "N/A"),
+            _infoRow("${AppStrings.courseFee.tr}: ",
+                "₹${formatNumber(data.courseFees?.monthly ?? 0)}/${AppStrings.monthly.tr}"),
+          _infoRow("${AppStrings.courseDuration.tr}: ", data.duration ?? "N/A"),
           SizedBox(height: 4),
-          CustomText("Description: ${data.description}",
+          CustomText("${AppStrings.description.tr}: ${data.description}",
               color: Colors.grey, fontSize: 13, maxLines: 2),
         ],
       ),
@@ -133,7 +133,7 @@ class CourseCard extends StatelessWidget {
         } else {
           await showCommonDialog(
               context: context,
-              text: 'Are you sure you want to delete this notice?',
+              text: AppStrings.deleteCourseConfirm,
               confirmCallback: () async {
                 final controller = Get.find<CourseController>();
 
@@ -148,10 +148,10 @@ class CourseCard extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(value: 'edit', child: Text("Edit")),
+        PopupMenuItem(value: 'edit', child: CustomText(AppStrings.edit)),
         PopupMenuItem(
             value: 'delete',
-            child: Text("Delete", style: TextStyle(color: Colors.red))),
+            child: CustomText(AppStrings.delete,color: Colors.red)),
       ],
     );
   }

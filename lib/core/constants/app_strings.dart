@@ -3227,5 +3227,111 @@ class AppStrings {
   static const hospital_ipd_title = "hospital_ipd_title";
   static const hospital_ipd_subtitle = "hospital_ipd_subtitle";
    /// -----****(Grocery End)****------
+  // General Labels
+  static const String hospitalPhotos = "hospital_photos";
+  static const String uploadHospitalPhoto = "upload_hospital_photo";
+  static const String lastUpdate = "last_update";
+  static const String uploadLimitInfo = "upload_limit_info";
 
+  // Branch & Department
+  static const String branch = "branch";
+  static const String branchName = "branch_name";
+  static const String addAnotherBranch = "add_another_branch";
+  static const String addMoreDepartment = "add_more_department";
+
+  // Error Messages
+  static const String errSelectCategory = "err_select_category";
+  static const String errMinImage = "err_min_image";
+  static const String errBranchRequired = "err_branch_required";
+  static const String errDeptRequired = "err_dept_required";
+
+  // Confirmation Dialogs
+  static const String deleteBranchConfirm = "delete_branch_confirm";
+  static const String deleteDeptConfirm = "delete_dept_confirm";
+
+  // New Additions
+  static const String jobVacancy = "job_vacancy";
+  static const String bookInquiry = "book_inquiry";
+  static const String hospital = "hospital";
+  static const String noLaboratoriesFound = "no_laboratories_found";
+  static const String createJob = "create_job";
+
+
+  static const String bestDeal = "best_deal";
+  static const String shopping = "shopping";
+  static const String bookHealthService = "book_health_service";
+  static const String bookHomeServices = "book_home_services";
+  static const String homemadeProducts = "homemade_products";
+  static const String bookYourStay = "book_your_stay";
+  static const String professionalsConsultant = "professionals_consultant";
+  static const String bookYourTransport = "book_your_transport";
+  static const String rentalService = "rental_service";
+  static const String findServices = "find_services";
+  static const String automotiveShowroom = "automotive_showroom";
+  static const String restaurantNearby = "restaurant_nearby";
+  static const String findDreamJob = "find_dream_job";
+
+  // Greeting & Search Section
+  static const String hi = "hi";
+  static const String mayI = "may_i";
+  static const String helpYou = "help_you";
+  static const String toFindOut = "to_find_out";
+  static const String yourProductFrom = "your_product_from";
+  static const String localMarket = "local_market";
+  static const String searchProductPlaceholder = "search_product_placeholder";
+
+  static const String testReport = "test_report";
+  static const String reportsWithin = "reports_within";
+  static const String hours = "hours";
+  static const String ourPopularServices = "our_popular_services";
+  static const String ourAllServices = "our_all_services";
+  static const String reception = "reception";
+
+  static const String chooseRoom = "choose_room";
+  static const String noRoomsAvailable = "no_rooms_available";
+  static const String hotelAmenities = "hotel_amenities";
+
+  static const String securityDeposit = "security_deposit";
+  static const String academics = "academics";
+  static const String studentCorner = "student_corner";
+  static const String noticesNews = "notices_news";
+  static const String school = "school";
+
+  static const String coursesPrograms = "courses_programs";
+  static const String facultyDetails = "faculty_details";
+  static const String academicCalendar = "academic_calendar";
+  static const String timeTable = "time_table";
+  static const String syllabus = "syllabus";
+  static const String examSchedule = "exam_schedule";
+  static const String results = "results";
+  static const String downloads = "downloads";
+
+  static const String noDepartmentFound = "no_department_found";
+  static const String hod = "hod";
+  static const String staff = "staff";
+
+  static const String courses = "courses";
+  static const String addMoreCourse = "add_more_course";
+  static const String noCourseFound = "no_course_found";
+  static const String admission = "admission";
+  static const String eligibility = "eligibility";
+  static const String courseFee = "course_fee";
+  static const String courseDuration = "course_duration";
+  static const String deleteCourseConfirm = "delete_course_confirm";
+
+  static const String faculty = "faculty";
+  static const String noFacultyFound = "no_faculty_found";
+  static const String yearsExp = "years_exp";
+  static const String deleteFacultyConfirm = "delete_faculty_confirm";
+  static const String addFaculty = "add_faculty";
+
+  static const String addAcademicCalendar = "add_academic_calendar";
+  static const String academicCalendarNotFound = "academic_calendar_not_found";
+  static const String deleteCalendarConfirm = "delete_calendar_confirm";
+
+  static const String editDepartment = "edit_department";
+  static const String addDepartment = "add_department";
+  static const String hodName = "hod_name";
+  static const String staffNamesHint = "staff_names_hint";
+  static const String updateDepartment = "update_department";
 }

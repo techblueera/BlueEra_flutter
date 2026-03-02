@@ -181,25 +181,25 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HorizontalTabSelector<CategoryFilter>(
-                tabs: controller.filters,
-                selectedIndex:
-                    controller.filters.indexOf(controller.selectedFilter.value),
-                horizontalMargin: 0.0,
-                onTabSelected: (index, _) {
-                  final selectedEnum = controller.filters[index];
-
-                  if (controller.filters == selectedEnum) return;
-
-                  controller.selectedFilter.value = selectedEnum;
-                  // controller.callApi();
-                },
-                labelBuilder: (r) => r.label,
-                unSelectedBackgroundColor: AppColors.white,
-              ),
-              SizedBox(
-                height: SizeConfig.size5,
-              ),
+              // HorizontalTabSelector<CategoryFilter>(
+              //   tabs: controller.filters,
+              //   selectedIndex:
+              //       controller.filters.indexOf(controller.selectedFilter.value),
+              //   horizontalMargin: 0.0,
+              //   onTabSelected: (index, _) {
+              //     final selectedEnum = controller.filters[index];
+              //
+              //     if (controller.filters == selectedEnum) return;
+              //
+              //     controller.selectedFilter.value = selectedEnum;
+              //     // controller.callApi();
+              //   },
+              //   labelBuilder: (r) => r.label,
+              //   unSelectedBackgroundColor: AppColors.white,
+              // ),
+              // SizedBox(
+              //   height: SizeConfig.size5,
+              // ),
               Expanded(
                 child: (controller.selectedStayCategory.value?.accountType ==
                         AppConstants.individual)

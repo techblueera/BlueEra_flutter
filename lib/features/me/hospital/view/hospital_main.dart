@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
@@ -63,9 +64,9 @@ class _HospitalMainState extends State<HospitalMain>
                         labelStyle:
                             const TextStyle(fontWeight: FontWeight.w600),
                         tabs: [
-                          Tab(text: "Home"),
-                          Tab(text: "Update"),
-                          Tab(text: "Statics"),
+                          Tab(text: AppStrings.home.tr),
+                          Tab(text: AppStrings.update.tr),
+                          Tab(text: AppStrings.statistics.tr),
                         ],
                       ),
                       Expanded(

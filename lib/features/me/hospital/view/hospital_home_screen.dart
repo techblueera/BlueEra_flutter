@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
@@ -70,7 +71,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
               isReadOnly: false,
             ));
           },
-          child: cardViewWidget(title: "Job Vacancy"),
+          child: cardViewWidget(title: AppStrings.jobVacancy.tr),
         ),
         SizedBox(
           height: 10,

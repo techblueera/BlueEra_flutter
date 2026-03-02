@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_branch_contact_controller.dart';
@@ -42,31 +43,31 @@ class _HospitalBranchDetailsFormScreenState extends State<HospitalBranchDetailsF
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Contact Us"),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildHeader("Branch"),
+              _buildHeader(AppStrings.branch),
               CommonTextField(
                 textEditController: branchNameController,
                 hintText: "E.g. DPS Dehradun",
-                title: "Branch Name",
+                title: AppStrings.branchName,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               HttpsTextField(
                 controller: websiteController,
                 hintText: "https://dpsdehradun.com",
-                title: "Website URL",
+                title:AppStrings.website,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
-                title: "Location",
+                title: AppStrings.location,
                 onSelected: (placeId, lat, lng, address) {
                   addressController.text = address;
                   controller.selectedLat = lat;
@@ -76,26 +77,26 @@ class _HospitalBranchDetailsFormScreenState extends State<HospitalBranchDetailsF
               ),
 
               SizedBox(height: 24),
-              _buildHeader("Department"),
+              _buildHeader(AppStrings.department),
 
               CommonTextField(
                 textEditController: titleController,
                 hintText: "E.g. Admission Cell",
-                title: "Department/Role",
+                title: AppStrings.department,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
-                title: "Email Address",
+                title: AppStrings.enterEmailAddress,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
-                title: "Phone Number",
+                title:  AppStrings.phoneNumber,
                 maxLength: 10,
                 onChange: (_) => _triggerValidation(),
               ),
@@ -115,7 +116,7 @@ class _HospitalBranchDetailsFormScreenState extends State<HospitalBranchDetailsF
                               phone: phoneController.text,
                             )
                         : null, // Button disabled if form invalid
-                    title: "Submit",
+                    title: AppStrings.submit,
                     isValidate: controller.isFormValid.value,
                   )),
             ],

@@ -53,7 +53,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.isEdit ? "Edit Department" : "Add Department"),
+          title: widget.isEdit ?AppStrings.editDepartment.tr: AppStrings.addDepartment.tr),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
@@ -63,7 +63,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               SizedBox(height: 20),
               CommonTextField(
                 textEditController: nameCtrl,
-                title: "Department Name",
+                title: AppStrings.departmentName,
                 onChange: (v) {
                   controller.deptName.value = v;
                   controller.validateForm(isEdit: widget.isEdit);
@@ -72,7 +72,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: hodCtrl,
-                title: "HOD Name",
+                title: AppStrings.hodName,
                 onChange: (v) {
                   controller.hodName.value = v;
                   controller.validateForm(isEdit: widget.isEdit);
@@ -81,7 +81,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: staffCtrl,
-                title: "Staff Names (Comma separated)",
+                title:AppStrings.staffNamesHint,
                 onChange: (v) {
                   controller.staffNames.value = v;
                   controller.validateForm(isEdit: widget.isEdit);
@@ -142,7 +142,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               Obx(() =>
                   CustomBtn(
                     title:
-                    widget.isEdit ? "Update Department" : "Add Department",
+                    widget.isEdit ?AppStrings.updateDepartment.tr :AppStrings.addDepartment.tr,
                     isValidate: controller.isFormValid.value &&
                         !controller.isUploading.value,
                     onTap: controller.isFormValid.value
@@ -168,7 +168,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
             Align(
                 alignment: Alignment.centerLeft,
                 child: CustomText(
-                  "Upload Images",
+                  AppStrings.uploadImages,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,

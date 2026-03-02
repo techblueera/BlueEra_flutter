@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -33,7 +34,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
-     appBar: CommonBackAppBar(title: "School",),
+     appBar: CommonBackAppBar(title: AppStrings.school,),
       bottomNavigationBar:schoolAboutUsController
           .schoolDetailsData?.value.ownerId != userId
           ? SafeArea(
@@ -74,7 +75,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
                         contactNo:"",
                       );
                     },
-                    title: "Chat"),
+                    title: AppStrings.chat),
               ),
               SizedBox(
                 width: 10,
@@ -84,7 +85,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
                     onTap: () {
                       commonSnackBar(message: 'Coming Soon....');
                     },
-                    title: "Book Inquiry"),
+                    title: AppStrings.bookInquiry),
               ),
             ],
           ),
@@ -116,19 +117,19 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
                onTap: () {
                  Get.to(SchoolJobListingScreen(isEdit: false,));
                },
-               child: cardViewWidget(title: "Job Vacancy"),
+               child: cardViewWidget(title:AppStrings.jobVacancy),
              ),
              InkWell(
                onTap: () {
                  Get.to(SchoolAcademicsPage(isEdit: false,));
                },
-               child: cardViewWidget(title: "Academics"),
+               child: cardViewWidget(title: AppStrings.academics),
              ),
              InkWell(
                onTap: () {
                  Get.to(SchoolStudentCorner(isEdit: false,));
                },
-               child: cardViewWidget(title: "Student Corner"),
+               child: cardViewWidget(title:AppStrings.studentCorner),
              ),
              // InkWell(
              //   onTap: () {
@@ -140,7 +141,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
                onTap: () {
                  Get.to(NoticeNewsScreen(isEdit: false,));
                },
-               child: cardViewWidget(title: "Notices & News"),
+               child: cardViewWidget(title: AppStrings.noticesNews),
              ),
              SizedBox(
                height: 10,
@@ -206,7 +207,7 @@ Widget cardViewWidget({required String title}) {
               title: title,
             ),
             CustomText(
-              "View ",
+              AppStrings.view,
               fontWeight: FontWeight.bold,
               color: AppColors.primaryColor,
             ),

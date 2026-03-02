@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
@@ -149,7 +150,7 @@ Widget cardViewWidget({required String title}) {
               title: title,
             ),
             CustomText(
-              "View ",
+               AppStrings.view,
               fontWeight: FontWeight.bold,
               color: AppColors.primaryColor,
             ),

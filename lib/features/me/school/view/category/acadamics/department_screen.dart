@@ -38,7 +38,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Departments"),
+      appBar: CommonBackAppBar(title: AppStrings.department),
       bottomNavigationBar: widget.isEdit
           ? SafeArea(
               child: Padding(
@@ -51,7 +51,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     onTap: () {
                       Get.to(() => AddMoreDepartmentScreen());
                     },
-                    title: "Add Department"),
+                    title: AppStrings.addMoreDepartment),
               ),
             )
           : null,
@@ -60,7 +60,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.departmentList.isEmpty) {
-          return Center(child: CustomText("No Department found."));
+          return Center(child: CustomText(AppStrings.noDepartmentFound));
         }
         return RefreshIndicator(
           onRefresh: () => controller.fetchDepartments(isRefresh: true),
@@ -83,7 +83,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                   onDelete: () async {
                     await showCommonDialog(
                         context: context,
-                        text: 'Are you sure you want to delete this notice?',
+                        text: AppStrings.deleteDeptConfirm,
                         confirmCallback: () async {
                           controller.deleteSchoolDepartmentController(
                               departmentId:
@@ -143,19 +143,19 @@ class DepartmentCard extends StatelessWidget {
                     onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
                     itemBuilder: (context) => [
                       const PopupMenuItem(
-                          value: 'edit', child: CustomText("Edit")),
+                          value: 'edit', child: CustomText(AppStrings.edit)),
                       const PopupMenuItem(
                           value: 'delete',
-                          child: CustomText("Delete", color: AppColors.red00)),
+                          child: CustomText(AppStrings.delete, color: AppColors.red00)),
                     ],
                   )
               ],
             ),
             const SizedBox(height: 10),
-            _infoRow("HOD: ", data.hodName ?? ""),
-            _infoRow("Staff: ", (data.staffNames as List).join(", ")),
+            _infoRow("${AppStrings.hod.tr}: ", data.hodName ?? ""),
+            _infoRow("${AppStrings.staff.tr}: ", (data.staffNames as List).join(", ")),
             const SizedBox(height: 5),
-            CustomText("Description: ${data.description}",
+            CustomText("${AppStrings.description.tr}: ${data.description}",
                 color: Colors.grey[700], maxLines: 2),
             const SizedBox(height: 10),
 
@@ -203,46 +203,3 @@ class DepartmentCard extends StatelessWidget {
     );
   }
 }
-
-/*class DepartmentScreen extends StatelessWidget {
-   DepartmentScreen({super.key});
-  final controller = Get.put(DepartmentController());
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title: "Departments",
-        isShadowShow: false,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                  itemCount: 1,
-                  itemBuilder: (context, index) {
-                    return DepartmentCard();
-                  }),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size5, vertical: SizeConfig.size10),
-              child: AddMoreIconButton(
-                onTapEvent: () {
-                  Get.to(AddMoreDepartmentScreen());
-                },
-                buttonName: "Add More Department",
-              ),
-            ),
-            SizedBox(
-              height: SizeConfig.size16,
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}*/
