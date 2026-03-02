@@ -148,7 +148,7 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
           controller.selectedMedicalData.value?.sId == item.sId,
       onTap: (item, index) {
         final selected = widget.arrLevel3Category[index];
-        log('new selection ${controller.selectedMedicalData.value}');
+        log('new selection ${controller.selectedMedicalData.value?.sId}');
 
         if (controller.selectedMedicalData.value?.sId == selected.sId) {
           return;
