@@ -1,14 +1,11 @@
-
-import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/wallet_transaction_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/wallet_response_modal.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/wallet_withdrawal_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../core/api/apiService/api_response.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/constants/app_strings.dart';
@@ -21,14 +18,20 @@ import '../model/bank_details_model.dart';
 import '../repo/wallet_repo.dart';
 
 class WalletController extends GetxController {
-  Rx<WalletResponseModalClass> walletResponseModalClass=WalletResponseModalClass().obs;
   Rx<WalletTransactionResponseModalClass> walletTransactionResponseModalClass=WalletTransactionResponseModalClass().obs;
-  Rx<BankListModel> bankListModel=BankListModel().obs;
-  Rx<UpiListModel> upiListModel=UpiListModel().obs;
-  Rx<UpiData> selectedUpiDetails=UpiData().obs;
-  Rx<BankData> selectedBankDetails=BankData().obs;
-  Rx<ApiResponse> viewWalletBalanceResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> viewTransactionHistoryResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> viewWalletBalanceResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> viewTransactionHistoryResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> walletWithdrawalMethodResponse =
+      ApiResponse.initial('Initial').obs;
+
+  Rx<WalletResponseModalClass> walletResponseModalClass=WalletResponseModalClass().obs;
+  Rx<BankListModel> bankListModel = BankListModel().obs;
+  Rx<UpiListModel> upiListModel = UpiListModel().obs;
+  // Rx<UpiData> selectedUpiDetails=UpiData().obs;
+  // Rx<BankData> selectedBankDetails=BankData().obs;
+
   String? selectedStatus;
   String? selectedType;
   String? selectedSource;
@@ -46,16 +49,27 @@ class WalletController extends GetxController {
   int page = 1;
   bool isMoreDataInList = true;
   bool isLoadingMore = false;
+
+  WalletRepo _walletRepo = WalletRepo();
+
+  var withdrawalMethodDataList = <WithdrawalMethodData>[].obs;
+  var bankList = <WithdrawalMethodData>[].obs;
+  var upiList = <WithdrawalMethodData>[].obs;
+  Rx<WithdrawalMethodData> selectedBankDetails = WithdrawalMethodData().obs;
+  Rx<WithdrawalMethodData> selectedUpiDetails = WithdrawalMethodData().obs;
+
   @override
   void onInit() {
     super.onInit();
     listScrollController.addListener(_scrollListener);
   }
+
   @override
   void onClose() {
     listScrollController.dispose();
     super.onClose();
   }
+
   void _scrollListener() {
     if (listScrollController.position.pixels >=
         listScrollController.position.maxScrollExtent - 200 &&
@@ -65,9 +79,10 @@ class WalletController extends GetxController {
       getWalletTransactionApi(isFromFilter: false);
     }
   }
-  Future<void> getwalletApi() async {
+
+  Future<void> getWalletApi() async {
     try {
-      ResponseModel response = await WalletRepo().getWalletApi();
+      ResponseModel response = await _walletRepo.getWalletApi();
       if (response.isSuccess) {
         walletResponseModalClass.value =
             WalletResponseModalClass.fromJson(response.response!.data);
@@ -77,25 +92,6 @@ class WalletController extends GetxController {
       }
     }catch(e){
       viewWalletBalanceResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
-  Future<void> getWalletWithdrawalMethod(Map<String,dynamic> params) async {
-    try {
-      ResponseModel response = await WalletRepo().getWalletWithdrawalMethod(params);
-      if (response.isSuccess) {
-        if(params[ApiKeys.methodType]=="UPI"){
-          upiListModel.value=UpiListModel.fromJson(response.response?.data);
-        }else{
-          bankListModel.value=BankListModel.fromJson(response.response?.data);
-
-        }
-      }else{
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    }catch(e){
-      commonSnackBar(
-          message:  AppStrings.somethingWentWrong);
     }
   }
 
@@ -110,7 +106,7 @@ class WalletController extends GetxController {
 
     isLoadingMore = true;
 
-    ResponseModel response = await WalletRepo().walletTransactionApi(
+    ResponseModel response = await _walletRepo.walletTransactionApi(
       source: selectedSource,
       status: selectedStatus,
       type: selectedType,
@@ -151,6 +147,74 @@ class WalletController extends GetxController {
     isLoadingMore = false;
   }
 
+  Future<void> getWalletWithdrawalMethodApi() async {
+    try {
+      walletWithdrawalMethodResponse.value = ApiResponse.initial('Initial');
+
+      ResponseModel response = await _walletRepo.getWalletWithdrawalMethod();
+
+      if (response.isSuccess) {
+        var walletWithdrawalMethod = WalletWithdrawalMethod.fromJson(response.response?.data);
+
+        // Update the main list
+        withdrawalMethodDataList.value = walletWithdrawalMethod.data ?? [];
+
+        // CLEAR and UPDATE sub-lists based on methodType
+        bankList.value = withdrawalMethodDataList.where((element) => element.methodType == "BANK").toList();
+        upiList.value = withdrawalMethodDataList.where((element) => element.methodType == "UPI").toList();
+
+        // 3. AUTO-SELECTION LOGIC (New)
+        if (bankList.isNotEmpty && upiList.isEmpty) {
+          selectedBank.value = "Bank";
+        } else if (upiList.isNotEmpty && bankList.isEmpty) {
+          selectedBank.value = "UPI";
+        } else if (bankList.isNotEmpty && upiList.isNotEmpty) {
+          // Optional: Default to Bank if both are available
+          selectedBank.value = "Bank";
+        }
+
+        walletWithdrawalMethodResponse.value = ApiResponse.complete(walletWithdrawalMethod);
+      } else {
+        walletWithdrawalMethodResponse.value = ApiResponse.error(response.message);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      walletWithdrawalMethodResponse.value = ApiResponse.error(e.toString());
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  Future<void> getWalletWithdrawalMethod({required Map<String, dynamic> params}) async {
+    try {
+
+      walletWithdrawalMethodResponse.value =
+          ApiResponse.initial('Initial');
+
+      ResponseModel response = await _walletRepo.getWalletWithdrawalMethod(params: params);
+      walletWithdrawalMethodResponse.value =
+          ApiResponse.complete(response.response?.data);
+      if (response.isSuccess) {
+          if(params[ApiKeys.methodType] == "UPI"){
+            upiListModel.value = UpiListModel.fromJson(response.response?.data);
+          }else{
+            bankListModel.value = BankListModel.fromJson(response.response?.data);
+
+          }
+        }
+       else{
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        walletWithdrawalMethodResponse.value = ApiResponse.error(response.message?? AppStrings.somethingWentWrong);
+
+      }
+    }catch(e){
+      commonSnackBar(
+          message:  AppStrings.somethingWentWrong);
+      walletWithdrawalMethodResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
+
+    }
+  }
+
   String? amountValidate(String? value) {
     if (value == null || value.trim().isEmpty) {
       isAmount = false;
@@ -173,9 +237,9 @@ class WalletController extends GetxController {
     }
     isLoading.value = false;
     try {
-      ResponseModel response = await WalletRepo().addWithdrawApi(params: {
+      ResponseModel response = await _walletRepo.addWithdrawApi(params: {
         ApiKeys.amount: amountController.text,
-        ApiKeys.withdrawalMethodId: selectedBank.value == "UPI"?selectedUpiDetails.value.id:selectedBankDetails.value.id
+        ApiKeys.withdrawalMethodId: selectedBank.value == "UPI"? selectedUpiDetails.value.id : selectedBankDetails.value.id
       });
 
       if (response.isSuccess) {
@@ -195,6 +259,9 @@ class WalletController extends GetxController {
   }
 
   void showSuccessPopup() {
+
+    bool isWalletInStack = Get.routing.previous == RouteHelper.getWalletScreenRoute();
+
     Get.dialog(
         UnconstrainedBox(
           child: SizedBox(
@@ -240,10 +307,7 @@ class WalletController extends GetxController {
                       children: [
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              Get.back();
-                              Get.back();
-                            },
+                            onTap: () => _navigateToWallet(isWalletInStack),
                             child: Container(
                               height: SizeConfig.size45,
                               decoration: BoxDecoration(
@@ -266,10 +330,7 @@ class WalletController extends GetxController {
                         ),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              Get.back();
-                              Get.back();
-                            },
+                            onTap: () => _navigateToWallet(isWalletInStack),
                             child: Container(
                               height: SizeConfig.size45,
                               decoration: BoxDecoration(
@@ -297,5 +358,16 @@ class WalletController extends GetxController {
           ),
         ),
         barrierDismissible: false);
+  }
+
+  void _navigateToWallet(bool isWalletInStack) {
+    Get.back(); // Closes the Dialog first
+    if (isWalletInStack) {
+      // FLOW 1: Pop back to existing Wallet screen and trigger refresh
+      Get.back(result: true);
+    } else {
+      // FLOW 2: Wallet not in stack, push a fresh one and remove the form
+      Get.offNamed(RouteHelper.getWalletScreenRoute());
+    }
   }
 }

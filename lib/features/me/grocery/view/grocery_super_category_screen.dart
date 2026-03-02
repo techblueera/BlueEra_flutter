@@ -22,7 +22,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<CollapsibleGridModel> superCategories = GroceryData.grocerySuperCategories;
     return Scaffold(
-      backgroundColor: AppColors.whiteFE,
+      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
           title: AppStrings.addProducts,
           buildCustomActionWidget:()=>
@@ -50,7 +50,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           var groceryData = superCategories[index];
 
           return GroceryCategoryItem(
-            url: groceryData.icon,
+            url: groceryData.icon??'',
             label: groceryData.name,
             onTap: () {
               // getCategoriesByTag(groceryData.slugId);

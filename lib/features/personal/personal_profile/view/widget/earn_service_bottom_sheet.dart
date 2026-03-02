@@ -65,7 +65,7 @@ class EarnServiceBottomSheet extends StatelessWidget {
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: earnWithBlueEraAddOptionsList[i],
                   getName: (item) => item.name,
-                  getIcon: (item) => item.icon,
+                  getIcon: (item) => item.icon??'',
                   spacing: 8.0,
                   onTap: (item) => controller.handleServiceTap(context, item),
                 ),

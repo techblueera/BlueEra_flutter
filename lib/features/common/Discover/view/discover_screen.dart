@@ -41,6 +41,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../me/grocery/widget/grocery_data.dart';
 import 'book_your_transport/book_transport_main.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -565,12 +566,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
                     _buildMasonryGridWithIcons(
                         items: [
-                          ...grocerySuperCategories.take(3).toList(),
+                          ...GroceryData.grocerySuperCategories.take(3).toList(),
                           ...foodCategories.take(3).toList()
                         ],
                         crossAxisCount: 3,
                         getName: (item) => item.name,
-                        getIcon: (item) => item.icon,
+                        getIcon: (item) => item.image,
                         onTap: (item) => Get.toNamed(
                             RouteHelper.getRiderStoreScreenRoute())),
 
@@ -1848,7 +1849,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LocalAssets(
-                imagePath: categoryItem.icon,
+                imagePath: categoryItem.image??'',
                 height: SizeConfig.size100,
               ),
             ),

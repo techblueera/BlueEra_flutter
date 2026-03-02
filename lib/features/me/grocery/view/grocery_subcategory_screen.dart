@@ -230,7 +230,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
               // 2. Use the new Generic Widget
               child: AutoScrollMarquee<dynamic>(
                 items: marqueeData,
-                speed: 1.0,
+                speed: 0.5,
                 gap: 200.0,
                 itemBuilder: (context, item, i) {
                   // 🟢 'item' is passed directly. No need to look it up!
@@ -276,6 +276,62 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
               ),
             );
           }),
+
+          // Obx(() {
+          //
+          //   final List<dynamic> data = ["All", ...controller.arrChildrenOfGroceryCategory];
+          //
+          //   return SizedBox(
+          //     height: 28.0,
+          //     width: double.infinity,
+          //     // 2. Use the new Generic Widget
+          //     child: ListView.builder(
+          //       itemCount: data.length,
+          //       scrollDirection: Axis.horizontal,
+          //       itemBuilder: (context, i) {
+          //         // 🟢 'item' is passed directly. No need to look it up!
+          //         var item = data[i];
+          //         // 3. Logic for display name
+          //         String displayName;
+          //         if (item is String) {
+          //           displayName = item; // "All"
+          //         } else {
+          //           displayName = item.name ?? ""; // Your Category Model
+          //         }
+          //
+          //         // 4. Selection Logic
+          //         // We use 'i' (the actualIndex from the widget) to check selection
+          //         bool selected = controller.selectedHorizontalTabIndex.value == i;
+          //
+          //         return InkWell(
+          //           onTap: () {
+          //             controller.selectedHorizontalTabIndex.value = i;
+          //             controller.fetchGroceryCategoryProducts();
+          //           },
+          //           child: Container(
+          //             margin: const EdgeInsets.symmetric(horizontal: 6),
+          //             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          //             decoration: BoxDecoration(
+          //               color: selected ? AppColors.primaryColor : AppColors.white,
+          //               borderRadius: BorderRadius.circular(6),
+          //               border: selected
+          //                   ? null
+          //                   : Border.all(color: AppColors.greyLite, width: 0.5),
+          //             ),
+          //             child: Center(
+          //               child: CustomText(
+          //                 displayName,
+          //                 color: selected ? AppColors.white : AppColors.secondaryTextColor,
+          //                 fontWeight: FontWeight.w400,
+          //                 fontSize: 12,
+          //               ),
+          //             ),
+          //           ),
+          //         );
+          //       },
+          //     ),
+          //   );
+          // }),
 
           SizedBox(height: 8),
 

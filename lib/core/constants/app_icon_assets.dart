@@ -517,16 +517,19 @@ class AppIconAssets {
   /// Grocery Super Category svg
   static const groceryIconPath = AppConstants.baseGroceryAssetsPath;
 
-  static const String groceryItemsGrey = "${groceryIconPath}grocery_items_grey.svg";
-  static const String vegetablesGrey = "${groceryIconPath}vegetables_grey.svg";
-  static const String fruitsGrey = "${groceryIconPath}fruits_grey.svg";
-  static const String bakeryNamkeenItemsGrey = "${groceryIconPath}bakery_grey.svg";
-  static const String dairyFrozenItemsGrey = "${groceryIconPath}dairy_products_grey.svg";
-  static const String crockeryGrey = "${groceryIconPath}crockery_grey.svg";
-  static const String homeEssentialsGrey = "${groceryIconPath}home_essentials_grey.svg";
+  static const String groceryCookingGrey = "${groceryIconPath}grocery_cooking_grey.svg";
+  static const String dairyBeveragesGrey = "${groceryIconPath}dairy_beverages_grey.svg";
+  static const String vegetablesFruitGrey = "${groceryIconPath}vegetables_fruit_grey.svg";
+  static const String personalBabyCareGrey = "${groceryIconPath}personal_baby_care_grey.svg";
+  static const String kitchenDiningGrey = "${groceryIconPath}kitchen_dining_grey.svg";
   static const String cleaningMaintenanceGrey = "${groceryIconPath}cleaning_maintenance_grey.svg";
-  static const String beautyHealthCareGrey = "${groceryIconPath}beauty_body_care_grey.svg";
-  static const String stationaryGrey = "${groceryIconPath}stationary_grey.svg";
+  static const String electronicsAppliancesGrey = "${groceryIconPath}electronics_appliances_grey.svg";
+  static const String utilityOrganisersGrey = "${groceryIconPath}utility_organisers_grey.svg";
+  static const String homeFurnishingDecorGrey = "${groceryIconPath}home_furnishing_decor_grey.svg";
+  static const String packagedFoodGrey = "${groceryIconPath}packaged_food_grey.svg";
+  static const String stationarySportsGrey = "${groceryIconPath}stationary_sports_grey.svg";
+  static const String giftingSeasonalGrey = "${groceryIconPath}gifting_seasonal_grey.svg";
+
 
   // static const String groceryItemsColorful = "${iconPath}grocery_items_colorful.svg";
   // static const String vegetablesColorful = "${iconPath}vegetables_colorful.svg";

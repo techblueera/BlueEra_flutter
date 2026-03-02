@@ -101,7 +101,7 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: gigWorkServiceList[i],
                   getName: (item) => item.name,
-                  getIcon: (item) => item.icon,
+                  getIcon: (item) => item.icon??'',
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {

@@ -222,7 +222,7 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                 physics: NeverScrollableScrollPhysics(),
                                 itemBuilder: (context, index) {
                                   var item = bookingList[index];
-                                  return _commonCard(icon: item.icon, text: item.name);
+                                  return _commonCard(icon: item.icon??'', text: item.name);
                                 },
                                 padding: EdgeInsets.zero,
                                 shrinkWrap: true,

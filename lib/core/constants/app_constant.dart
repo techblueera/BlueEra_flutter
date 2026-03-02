@@ -4224,76 +4224,38 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   ),*/
 ];
 
-/// Super Grocery Categories (Discover)
-const List<CollapsibleGridModel> grocerySuperCategories = [
-  CollapsibleGridModel(
-      icon: AppImageAssets.groceryItemsColorful,
-      name: AppStrings.labelGroceryItems,
-      slugId: GroceryConstant.GROCERY_ITEMS),
-  CollapsibleGridModel(
-      icon: AppImageAssets.vegetablesColorful,
-      name: AppStrings.labelVegetable,
-      slugId: GroceryConstant.VEGETABLES),
-  CollapsibleGridModel(
-      icon: AppImageAssets.stationaryColorful,
-      name: AppStrings.labelStationary,
-      slugId: GroceryConstant.STATIONARY),
-  CollapsibleGridModel(
-      icon: AppImageAssets.fruitsColorful,
-      name: AppStrings.labelFruit,
-      slugId: GroceryConstant.FRUITS),
-  CollapsibleGridModel(
-      icon: AppImageAssets.bakeryNamkeenItemsColorful,
-      name: AppStrings.labelBakeryBreadItems,
-      slugId: GroceryConstant.BAKERY_NAMKEEN_ITEMS),
-  CollapsibleGridModel(
-      icon: AppImageAssets.dairyFrozenItemsColorful,
-      name: AppStrings.labelDairyProducts,
-      slugId: GroceryConstant.DAIRY_FROZEN_ITEMS),
-  CollapsibleGridModel(
-      icon: AppImageAssets.crockeryColorful,
-      name: AppStrings.labelCrockery,
-      slugId: GroceryConstant.CROCKERY),
-  CollapsibleGridModel(
-      icon: AppImageAssets.homeEssentialsColorful,
-      name: AppStrings.labelHomeEssentials,
-      slugId: GroceryConstant.HOME_ESSENTIALS),
-  CollapsibleGridModel(
-      icon: AppImageAssets.cleaningMaintenanceColorful,
-      name: AppStrings.labelCleaningMaintenance,
-      slugId: GroceryConstant.CLEANING_MAINTENANCE),
-  CollapsibleGridModel(
-      icon: AppImageAssets.beautyHealthCareColorful,
-      name: AppStrings.labelBeautyHealthCare,
-      slugId: GroceryConstant.BEAUTY_HEALTH_CARE),
-
-];
-
 /// food Categories (Discover)
 const List<CollapsibleGridModel> foodCategories = [
   CollapsibleGridModel(
-      icon: AppImageAssets.breakfastColorful,
-      name: 'Breakfast',
-      slugId: 'BREAKFAST'),
+     name: 'Breakfast',
+     slugId: 'BREAKFAST',
+     image: AppImageAssets.breakfastColorful,
+  ),
   CollapsibleGridModel(
-      icon: AppImageAssets.fastFoodColorful,
-      name: 'Fast-Food',
-      slugId: 'FAST_FOOD'),
-
+     name: 'Fast-Food',
+     slugId: 'FAST_FOOD',
+     image: AppImageAssets.fastFoodColorful,
+  ),
   CollapsibleGridModel(
-      icon: AppImageAssets.lunchDinnerColorful,
-      name: 'Lunch, Dinner',
-      slugId: 'LUNCH_DINNER'),
+     name: 'Lunch, Dinner',
+     slugId: 'LUNCH_DINNER',
+     image: AppImageAssets.lunchDinnerColorful,
+  ),
   CollapsibleGridModel(
-      icon: AppImageAssets.tiffinColorful, name: 'Tiffin', slugId: 'TIFFIN'),
-
-
+     name: 'Tiffin',
+     slugId: 'TIFFIN',
+     image: AppImageAssets.tiffinColorful,
+  ),
   CollapsibleGridModel(
-      icon: AppImageAssets.sweetsColorful, name: 'Sweets', slugId: 'SWEETS'),
+     name: 'Sweets',
+     slugId: 'SWEETS',
+     image: AppImageAssets.sweetsColorful,
+  ),
   CollapsibleGridModel(
-      icon: AppImageAssets.restaurantColorful,
-      name: 'Restaurant',
-      slugId: 'RESTAURANT'),
+    name: 'Restaurant',
+    slugId: 'RESTAURANT',
+    image: AppImageAssets.restaurantColorful,
+  ),
 ];
 
 final List<CollapsibleGridModel> transportItemsCategories = [

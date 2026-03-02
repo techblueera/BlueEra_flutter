@@ -2322,16 +2322,18 @@ class AppStrings {
   static const headerPrintingGifts = "headerPrintingGifts";
 
   // Grocery Super Categories
-  static const labelGroceryItems = "labelGroceryItems";
-  static const labelVegetable = "labelVegetable";
-  static const labelFruit = "labelFruit";
-  static const labelBakeryBreadItems = "labelBakeryBreadItems";
-  static const labelDairyProducts = "labelDairyProducts";
-  static const labelCrockery = "labelCrockery";
-  static const labelHomeEssentials = "labelHomeEssentials";
-  static const labelCleaningMaintenance = "labelCleaningMaintenance";
-  static const labelBeautyHealthCare = "labelBeautyHealthCare";
-  static const labelStationary = "labelStationary";
+  static const labelGroceryCooking = "Grocery / Cooking";
+  static const labelDairyBeverages = "Dairy & Beverages";
+  static const labelVegetablesFruit = "Vegetables & Fruit";
+  static const labelPersonalBabyCare = "Personal & Baby Care";
+  static const labelKitchenDining = "Kitchen & Dining";
+  static const labelCleaningMaintenance = "Cleaning & Maintenance";
+  static const labelElectronicsAppliances = "Electronics & Appliances";
+  static const labelUtilityOrganisers = "Utility & Organisers";
+  static const labelHomeFurnishingDecor = "Home Furnishing & Decor";
+  static const labelPackagedFood = "Packaged Food";
+  static const labelStationerySports = "Stationery & Sports";
+  static const labelGiftingSeasonal = "Gifting & Seasonal";
 
   // Rice Products
   static const labelBasmatiRice = "labelBasmatiRice";

@@ -29,8 +29,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    controller.getwalletApi();
+    controller.getWalletApi();
     controller.getWalletTransactionApi();
     super.initState();
   }
@@ -40,8 +39,17 @@ class _WalletScreenState extends State<WalletScreen> {
     return Scaffold(
       body: SafeArea(
         child: Obx(() {
-          if(controller.viewWalletBalanceResponse.value.status==Status.COMPLETE){
-            return Column(
+          bool isInitialLoading =
+              controller.viewWalletBalanceResponse.value.status == Status.LOADING ||
+                  controller.viewTransactionHistoryResponse.value.status == Status.LOADING;
+
+          if (isInitialLoading) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          return Column(
               children: [
                 Container(
                   height: SizeConfig.size240,
@@ -236,7 +244,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                     Get.to(() => AmountWithdrawScreen())?.then(
                                           (value) {
                                         controller.getWalletTransactionApi();
-                                        controller.getwalletApi();
+                                        controller.getWalletApi();
                                       },
                                     );
                                   },
@@ -278,7 +286,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         (controller
                             .walletTransactionResponseModalClass.value.data?.isEmpty??true)?Center(
                           child: CustomText("No Transaction Found"),
-                        ):Expanded(
+                        ) : Expanded(
                           child: ListView.separated(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
@@ -319,11 +327,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 )
               ],
             );
-          }else{
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+
 
         }),
       ),

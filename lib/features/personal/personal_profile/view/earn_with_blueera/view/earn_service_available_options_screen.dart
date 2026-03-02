@@ -197,7 +197,7 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
       itemBuilder: (_, i) => CommonServiceCard(
         service: earnWithBlueEraServiceList[i],
         getName: (item) => item.name,
-        getIcon: (item) => item.icon,
+        getIcon: (item) => item.icon??'',
         spacing: 8.0,
         onTap: (item) => controller.handleServiceTap(
           context,

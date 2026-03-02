@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
+import '../../../../me/grocery/widget/grocery_data.dart';
+
 class RiderStoreScreen extends StatefulWidget {
   const RiderStoreScreen({super.key});
 
@@ -128,14 +130,14 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                       SizedBox(height: SizeConfig.paddingXSL),
 
                       _buildCategoryGrid(
-                        items: grocerySuperCategories,
+                        items: GroceryData.grocerySuperCategories,
                         onTap: (item) {
                           // getCategoriesByTag(item.slugId);
                           Get.toNamed(
                             RouteHelper.getGroceryCategoryScreenRoute(),
                             arguments: {
                               ApiKeys.argMyGrocery: false,
-                              ApiKeys.argArrGrocerySuperCategory: grocerySuperCategories,
+                              ApiKeys.argArrGrocerySuperCategory: GroceryData.grocerySuperCategories,
                               ApiKeys.argArrGroceryCatKey: item.slugId,
                               ApiKeys.argArrGroceryCatName: item.name,
                             },
@@ -248,7 +250,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
         return CommonServiceCard<CollapsibleGridModel>(
             service: item,
             getName: (item) => item.name,
-            getIcon: (item) => item.icon,
+            getIcon: (item) => item.image??'',
             iconHeight: SizeConfig.size60,
             boxShadow: [],
             onTap: (item) => onTap(item),

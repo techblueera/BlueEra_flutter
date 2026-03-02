@@ -23,9 +23,9 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    controller.getWalletWithdrawalMethod({
-      ApiKeys.methodType: "BANK"
+    controller.getWalletWithdrawalMethod(
+        params: {
+       ApiKeys.methodType: "BANK"
     });
     super.initState();
   }
@@ -63,7 +63,8 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                     Get.toNamed(
                       RouteHelper.getAddBankAccountScreenRoute(),
                     )?.then((val){
-                      controller.getWalletWithdrawalMethod({
+                      controller.getWalletWithdrawalMethod(
+                          params: {
                         ApiKeys.methodType: "BANK"
                       });
                     });

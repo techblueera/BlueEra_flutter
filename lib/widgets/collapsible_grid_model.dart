@@ -1,11 +1,14 @@
 class CollapsibleGridModel {
   final String name;
-  final String icon;
   final String slugId;
+  final String? icon;
+  final String? image;
+
 
   const CollapsibleGridModel({
      required this.name,
-     required this.icon,
-     required this.slugId
+     required this.slugId,
+     this.icon,
+     this.image,
   });
 }

@@ -158,7 +158,7 @@ class _AskChatScreenState extends State<AskChatScreen> {
                               service: items,
                               iconHeight: SizeConfig.size55,
                               getName: (item) => item.name,
-                              getIcon: (item) => item.icon,
+                              getIcon: (item) => item.icon??'',
                               onTap: (_) {
                                 chatViewController.askAiFor.value = items;
                                 switch(chatViewController.askAiFor.value?.slugId){

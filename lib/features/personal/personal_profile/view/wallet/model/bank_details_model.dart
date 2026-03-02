@@ -83,34 +83,34 @@ class BankData {
   }
 }
 
-class BankDetails {
-  final String? bankName;
-  final String? accountNo;
-  final String? ifscCode;
-  final String? holderName;
+  class BankDetails {
+    final String? bankName;
+    final String? accountNo;
+    final String? ifscCode;
+    final String? holderName;
 
-  BankDetails({
-    this.bankName,
-    this.accountNo,
-    this.ifscCode,
-    this.holderName,
-  });
+    BankDetails({
+      this.bankName,
+      this.accountNo,
+      this.ifscCode,
+      this.holderName,
+    });
 
-  factory BankDetails.fromJson(Map<String, dynamic> json) {
-    return BankDetails(
-      bankName: json['bankName'],
-      accountNo: json['accountNo'],
-      ifscCode: json['ifscCode'],
-      holderName: json['holderName'],
-    );
+    factory BankDetails.fromJson(Map<String, dynamic> json) {
+      return BankDetails(
+        bankName: json['bankName'],
+        accountNo: json['accountNo'],
+        ifscCode: json['ifscCode'],
+        holderName: json['holderName'],
+      );
+    }
+
+    Map<String, dynamic> toJson() {
+      return {
+        "bankName": bankName,
+        "accountNo": accountNo,
+        "ifscCode": ifscCode,
+        "holderName": holderName,
+      };
+    }
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      "bankName": bankName,
-      "accountNo": accountNo,
-      "ifscCode": ifscCode,
-      "holderName": holderName,
-    };
-  }
-}

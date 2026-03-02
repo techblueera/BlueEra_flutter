@@ -1,16 +1,22 @@
 class GroceryConstant{
 
   // GROCERY
-  static const String GROCERY_ITEMS       = 'GROCERY_ITEMS';
+  static const String GROCERY_COOKING       = 'GROCERY_COOKING';
+  static const String DAIRY_BEVERAGES       = 'DAIRY_BEVERAGES';
+  static const String DAIRY       = 'DAIRY';
+  static const String BEVERAGES       = 'BEVERAGES';
+  static const String VEGETABLES_FRUIT       = 'VEGETABLES_FRUIT';
   static const String VEGETABLES       = 'VEGETABLES';
   static const String FRUITS       = 'FRUITS';
-  static const String BAKERY_NAMKEEN_ITEMS       = 'BAKERY_AND_NAMKEEN_ITEMS';
-  static const String DAIRY_FROZEN_ITEMS       = 'DAIRY_AND_FROZEN_ITEMS';
-  static const String CROCKERY       = 'CROCKERY';
-  static const String HOME_ESSENTIALS       = 'HOME_ESSENTIALS';
-  static const String CLEANING_MAINTENANCE       = 'CLEANING_AND_MAINTENANCE';
-  static const String BEAUTY_HEALTH_CARE       = 'BEAUTY_AND_HEALTH_CARE';
-  static const String STATIONARY       = 'STATIONERY';
+  static const String PERSONAL_BABY_CARE       = 'PERSONAL_BABY_CARE';
+  static const String KITCHEN_DINING       = 'KITCHEN_DINING';
+  static const String CLEANING_MAINTENANCE       = 'CLEANING_MAINTENANCE';
+  static const String ELECTRONICS_APPLIANCES       = 'ELECTRONICS_APPLIANCES';
+  static const String UTILITY_ORGANISERS       = 'UTILITY_ORGANISERS';
+  static const String HOME_FURNISHING_DECOR       = 'HOME_FURNISHING_DECOR';
+  static const String PACKAGED_FOOD       = 'PACKAGED_FOOD';
+  static const String STATIONERY_SPORTS       = 'STATIONERY_SPORTS';
+  static const String GIFTING_SEASONAL       = 'GIFTING_SEASONAL';
 
 //   /// GROCERY_ITEMS
 //

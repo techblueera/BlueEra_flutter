@@ -4,6 +4,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
 import 'package:BlueEra/features/common/referral/widgets/referral_points_chart.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/amount_withdraw_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -311,7 +312,11 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                             radius: 10,
                             height: 34,
                             isValidate: true,
-                            onTap: (){}, title: "Withdraw"),
+                            onTap: (){
+                              Get.to(() => AmountWithdrawScreen());
+                            },
+                            title: "Withdraw"
+                        ),
                       ),
                     ],
                   )

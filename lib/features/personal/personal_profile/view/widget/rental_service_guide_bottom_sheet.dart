@@ -91,7 +91,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: rentalServiceCategories[i],
                   getName: (item) => item.name,
-                  getIcon: (item) => item.icon,
+                  getIcon: (item) => item.icon??'',
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {

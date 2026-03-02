@@ -68,6 +68,7 @@ class AddBankAccountController extends GetxController {
     isUpiValidate.value = true;
     return null;
   }
+
   Future<void> addAccount() async {
     if (!formKey.currentState!.validate()) {
       return;
@@ -93,6 +94,7 @@ class AddBankAccountController extends GetxController {
         commonSnackBar(message: response.message??"Bank Added Successfully");
         isLoading.value = false;
         clearForm();
+        Get.back();
       }else{
         commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
         isLoading.value = false;
@@ -134,6 +136,7 @@ class AddBankAccountController extends GetxController {
         commonSnackBar(message: response.message??"Bank Added Successfully");
         isLoading.value = false;
         clearForm();
+        Get.back();
       }else{
         commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
         isLoading.value = false;
