@@ -111,7 +111,7 @@ class _CommonStudentCornerFormScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Upload Doc ",
+                    AppStrings.uploadDocument,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -176,7 +176,7 @@ class _CommonStudentCornerFormScreenState
                                                   icon: const Icon(Icons.delete,
                                                       color: Colors.red),
                                                   label: const CustomText(
-                                                      "Remove",
+                                                      AppStrings.remove,
                                                       color: Colors.red),
                                                 ),
                                               ),
@@ -190,7 +190,7 @@ class _CommonStudentCornerFormScreenState
                   CommonTextField(
                     textEditController: titleEditController,
                     hintText: "E.g. How do you commute to work?",
-                    title: "Title (Optional)",
+                    title: AppStrings.title,
                     isValidate: false,
                     onChange: (value) {
                       studentController.notice_news_titleText.value = value;
@@ -354,7 +354,7 @@ class _CommonStudentCornerFormScreenState
     }
     // Default: Show Upload Placeholder
     return CommonImageUploadTile(
-      title: "Upload Image",
+      title:AppStrings.uploadImages,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

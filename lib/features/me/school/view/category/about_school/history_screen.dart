@@ -48,7 +48,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "History"),
+      appBar: CommonBackAppBar(title: AppStrings.history),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12),
         child: Obx(() {
@@ -73,7 +73,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText("Our History",
+                        CustomText(AppStrings.ourHistory,
                             fontWeight: FontWeight.bold),
                         // The Reusable AI Widget
                         AIGeneratorButton(
@@ -109,7 +109,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
 
                     SizedBox(height: SizeConfig.size20),
-                    CustomText("Upload Photo"),
+                    CustomText(AppStrings.uploadImages),
                     SizedBox(height: SizeConfig.size10),
 
                     // Image Section: Handles Network vs Local
@@ -183,7 +183,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
     // Default: Show Upload Placeholder
     return CommonImageUploadTile(
-      title: "Upload Photo",
+      title: AppStrings.uploadImages,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

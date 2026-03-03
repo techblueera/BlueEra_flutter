@@ -40,7 +40,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Contact Us",
+        title: AppStrings.contactUs,
       ),
       body: SafeArea(
         child: Column(
@@ -50,7 +50,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.COMPLETE) {
                   if (controller.schoolContactUsData?.isEmpty ?? false) {
-                    return Center(child: CustomText("No Contact Us Found "));
+                    return Center(child: CustomText(AppStrings.noContactsFound));
                   }
                   return ListView.builder(
                     shrinkWrap: true,
@@ -66,7 +66,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                             Row(
                               children: [
                                 CustomText(
-                                  "Branch: ",
+                                  "${AppStrings.branchName.tr}: ",
                                   color: AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.large,
                                 ),
@@ -98,12 +98,12 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                         1) {
                                       commonSnackBar(
                                           message:
-                                              "At least one school branch contact info is required");
+                                          AppStrings.minOneBranchRequired);
                                     } else {
                                       await showCommonDialog(
                                           context: context,
                                           text:
-                                              'Are you sure you want to delete this school branch contact info?',
+                                          AppStrings.deleteBranchConfirm,
                                           confirmCallback: () async {
                                             await controller
                                                 .deleteSchoolBranchController(
@@ -182,12 +182,12 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                                   1) {
                                                 commonSnackBar(
                                                     message:
-                                                        "At least one department is required");
+                                                    AppStrings.minOneDeptRequired);
                                               } else {
                                                 await showCommonDialog(
                                                     context: context,
                                                     text:
-                                                        'Are you sure you want to delete this department?',
+                                                    AppStrings. deleteDeptConfirm,
                                                     confirmCallback: () async {
                                                       await controller
                                                           .deleteSchoolBranchDepartmentController(
@@ -258,7 +258,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 label: CustomText(
-                                  "Add More Department",
+                                  AppStrings.addMoreDepartment,
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
@@ -291,7 +291,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
               onTapEvent: () {
                 Get.to(BranchDetailsFormScreen());
               },
-              buttonName: "Add Another Branch",
+              buttonName: AppStrings.addAnotherBranch
             ),
             SizedBox(
               height: SizeConfig.size25,

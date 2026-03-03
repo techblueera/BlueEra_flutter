@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -24,38 +25,38 @@ class SchoolUpdateScreen extends StatelessWidget {
   final aboutUsController = Get.put(SchoolController());
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
-      title: "About Us",
+      title: AppStrings.aboutUs,
       icon: AppIconAssets.about_us,
       page: () => SchoolAboutUs(),
     ),
     ServiceMenuItem(
-      title: "Academics",
+      title: AppStrings.academics,
       icon: AppIconAssets.academics,
       page: () => SchoolAcademicsPage(isEdit: true,),
     ),
     ServiceMenuItem(
-      title: "Student Corner",
+      title:AppStrings.studentCorner,
       icon: AppIconAssets.student_corner,
       page: () => SchoolStudentCorner(isEdit: true,),
     ),
     ServiceMenuItem(
-      title: "Campus Life",
+      title:AppStrings.campusLife,
       icon: AppIconAssets.campus_life,
       page: () => CampusLifeListingScreen(),
     ),
     ServiceMenuItem(
-      title: "Notices & News",
+      title:AppStrings.noticesNews,
       icon: AppIconAssets.notices_news,
       page: () => NoticeNewsScreen(isEdit: true,),
       // page: () => SchoolNoticeAndNews(),
     ),
     ServiceMenuItem(
-      title: "Career / Jobs",
+      title:AppStrings.careers,
       icon: AppIconAssets.career_jobs,
       page: () => SchoolJobListingScreen(isEdit: true,),
     ),
     ServiceMenuItem(
-      title: "Contact Us",
+      title: AppStrings.contactUs,
       icon: AppIconAssets.contact_us,
       page: () => SchoolContactUs(),
     ),

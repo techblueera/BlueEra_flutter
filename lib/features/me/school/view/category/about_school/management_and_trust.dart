@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/managment_trust_form_screen.dart';
@@ -32,7 +33,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Management / Trust",
+        title: AppStrings.managementTrust,
       ),
       body: SafeArea(
         child: Column(
@@ -140,7 +141,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                                             children: [
                                               Expanded(
                                                 child: CustomText(
-                                                  "Message: ${data?.bio}",
+                                                  "${AppStrings.message.tr}: ${data?.bio}",
                                                   fontSize: 10,
                                                   maxLines: 3,
                                                   overflow:
@@ -163,7 +164,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                   ),
                 );
               }
-              return CustomText("No Management found yet! ");
+              return CustomText(AppStrings.noManagementFound);
             }),
             Padding(
               padding: EdgeInsets.symmetric(

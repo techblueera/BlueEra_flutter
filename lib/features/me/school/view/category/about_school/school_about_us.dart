@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/history_screen.dart';
@@ -23,22 +24,22 @@ class _SchoolAboutUsState extends State<SchoolAboutUs> {
   final schoolAboutUsController = Get.put(SchoolAboutUsController());
   final List<ServiceMenuItem> visionAboutMenus = [
     ServiceMenuItem(
-      title: "Vision & Mission",
+      title: AppStrings.visionMission,
       icon: AppIconAssets.vision_mission,
       page: () => VisionAndMission(),
     ),
     ServiceMenuItem(
-      title: "History",
+      title: AppStrings.history,
       icon: AppIconAssets.history,
       page: () => HistoryScreen(),
     ),
     ServiceMenuItem(
-      title: "Principal / Director Message",
+      title:AppStrings.principalMessage,
       icon: AppIconAssets.principal_director_message,
       page: () => PrincipalMessageScreen(),
     ),
     ServiceMenuItem(
-      title: "Management / Trust",
+      title: AppStrings.managementTrust,
       icon: AppIconAssets.management_trust,
       page: () => ManagementAndTrust(),
     ),
@@ -50,7 +51,7 @@ class _SchoolAboutUsState extends State<SchoolAboutUs> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "About Us",
+        title: AppStrings.aboutUs,
         isShadowShow: false,
       ),
       body: Column(

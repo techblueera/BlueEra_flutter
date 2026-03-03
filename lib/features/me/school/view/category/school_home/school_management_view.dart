@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/management_and_trust.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -30,7 +31,7 @@ class SchoolManagementSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ServiceHomeTitleWidget(
-                  title: "Management",
+                  title: AppStrings.managementTrust,
                 ),
                 if ((managementData?.length ?? 0) > 5)
                   InkWell(
@@ -38,7 +39,7 @@ class SchoolManagementSection extends StatelessWidget {
                       Get.to(ManagementAndTrust());
                     },
                     child: const CustomText(
-                      "View All",
+                      AppStrings.viewAll,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                     ),

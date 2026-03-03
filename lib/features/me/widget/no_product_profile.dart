@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_image_assets.dart';
 import '../../../widgets/local_assets.dart';
+
 class NoProfileDetailsFound extends StatelessWidget {
   const NoProfileDetailsFound({super.key, required this.content});
+
   final String content;
 
   @override
@@ -21,9 +23,11 @@ class NoProfileDetailsFound extends StatelessWidget {
           SizedBox(
             height: SizeConfig.size10,
           ),
-          CustomText(content,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,)
+          CustomText(
+            content,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          )
         ],
       ),
     );

@@ -1,5 +1,6 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/social_vision_mission_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
@@ -19,7 +20,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: "Mission & Vision",
+        title: AppStrings.visionMission,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -31,7 +32,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AiDescriptionField(
-                label: "Our Vision & Mission",
+                label: AppStrings.visionMission,
                 hintText: "Tell us more about the Our Vision & Mission...",
                 controller: controller.descriptionController,
                 rxValue: controller.description,
@@ -44,7 +45,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
               SizedBox(height: SizeConfig.paddingL),
 
               CustomText(
-                "Upload Image",
+                AppStrings.uploadImages,
                 fontSize: SizeConfig.medium,
               ),
               SizedBox(height: SizeConfig.paddingXS),
@@ -75,7 +76,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: InkWell(
                       onTap: controller.removeImage,
-                      child: CustomText("Remove Image",
+                      child: CustomText(AppStrings.remove,
                           color: AppColors.red, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -104,7 +105,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
                               color: Colors.white, strokeWidth: 2),
                         )
                       : CustomText(
-                          "Save Changes",
+                    AppStrings.save,
                           color: Colors.white,
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.bold,
@@ -143,7 +144,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
           Icon(Icons.add_photo_alternate_outlined,
               size: 48, color: Colors.grey),
           SizedBox(height: 8),
-          CustomText("Tap to upload image",
+          CustomText(AppStrings.uploadImages,
               color: AppColors.secondaryTextColor),
         ],
       );

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/job_seekar/job_seeker_resume_overview_screen.dart';
 import 'package:BlueEra/features/me/social/view/event_schedule_screen.dart';
@@ -28,45 +29,45 @@ class _SocialUpdateScreenState
 
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
-      title: "Profile Identity",
+      title: AppStrings.profileIdentity,
       icon: AppIconAssets.basicProfile, // Replace with your actual icon asset
       page: () => SocialProfileIdentityScreen(),
     ),
     ServiceMenuItem(
-      title: "Activity Feed ",
+      title:AppStrings.activityFeed,
       icon: AppIconAssets.social_activity_status,
       page: () => SocialFeedScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
-      title: "Events / Schedule",
+      title:AppStrings.eventsSchedule,
       icon: AppIconAssets.availability,
       page: () => EventScheduleScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
-      title: "Achievements",
+      title: AppStrings.achievements,
       icon: AppIconAssets.galleryCertifications,
       page: () => SocialCertificatesScreen(), // Update to your actual page
     ),
 
     ServiceMenuItem(
-      title: "Vision & Mission",
+      title:AppStrings.visionMission,
       icon: AppIconAssets.vision_mission,
       page: () => SocialVisionMissionScreen(),
     ),
     ServiceMenuItem(
-      title: "Social Activity",
+      title:AppStrings.socialActivity,
       icon: AppIconAssets.social_activity,
       page: () => SocialActivityListScreen(),
     ),
 
     ServiceMenuItem(
-      title: "Job Portfolio/ Resume",
+      title: AppStrings.jobs,
       icon: AppIconAssets.job_post_black,
       page: () => JobSeekerResumeOverviewScreen(),
       // page: () => UpdateJobSeekerScreen(),
     ),
     ServiceMenuItem(
-      title: "Contact",
+      title: AppStrings.contact,
       icon: AppIconAssets.contact_us,
       page: () => SocialContactUsViewScreen(),
     ),

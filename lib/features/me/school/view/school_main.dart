@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -89,9 +90,9 @@ class _SchoolMainState extends State<SchoolMain>
                       fontWeight: FontWeight.w500,
                       fontFamily: AppConstants.OpenSans),
                   tabs: [
-                    Tab(text: "Home"),
-                    Tab(text: "Update"),
-                    Tab(text: "Statics"),
+                    Tab(text: AppStrings.home.tr),
+                    Tab(text: AppStrings.update.tr),
+                    Tab(text: AppStrings.statistics.tr),
                   ],
                 ),
                 Expanded(

@@ -1241,7 +1241,8 @@ class AppStrings {
   static const String pleaseSelectVehicleRegType = 'pleaseSelectVehicleRegType';
   static const String pleaseSelectVehicleType = 'pleaseSelectVehicleType';
   static const String pleaseSelectFuelType = 'pleaseSelectFuelType';
-  static const String pleaseSelectVehicleUseType = 'Please select vehicle use type';
+  static const String pleaseSelectVehicleUseType =
+      'Please select vehicle use type';
   static const String pleaseSelectRcFrontImage = 'pleaseSelectRcFrontImage';
   static const String pleaseSelectRcBackImage = 'pleaseSelectRcBackImage';
   static const String pleaseSelectInsuranceImage = 'pleaseSelectInsuranceImage';
@@ -1546,7 +1547,6 @@ class AppStrings {
   static const String noServicesFound = 'noServicesFound';
   static const String noFoodItemsFound = 'noFoodItemsFound';
 
-
   static const String pricingAndWarranty = 'pricingAndWarranty';
   static const String listedVariants = 'listedVariants';
   static const String createVariantStartSelling = 'createVariantStartSelling';
@@ -1620,103 +1620,108 @@ class AppStrings {
   static const String businessCards = 'businessCards';
   static const String noProductFound = 'noProductFound';
 
-  static const String professionChangeMsg   = 'professionChangeMsg';
-  static const String allStepsSubmitted     = 'allStepsSubmitted';
+  static const String professionChangeMsg = 'professionChangeMsg';
+  static const String allStepsSubmitted = 'allStepsSubmitted';
   static const searchAnything = "searchAnything";
 
   static const String grocery = 'grocery';
-  static const String parcel  = 'parcel';
-  static const String income  = 'income';
-  static const String newOrder   = 'newOrder';
-  static const String onGoing    = 'onGoing';
+  static const String parcel = 'parcel';
+  static const String income = 'income';
+  static const String newOrder = 'newOrder';
+  static const String onGoing = 'onGoing';
 
-  static const String notFoundAnyProduct    = 'notFoundAnyProduct';
-  static const String notFoundAnyService    = 'notFoundAnyService';
-  static const String found    = 'found';
-  static const String product    = 'Product';
-  static const String PersonalChatAi    = 'PersonalAi';
-  static const String BusinessChatAi    = 'BusinessAi';
-  static const String SearchChatAi    = 'SearchChatAi';
-  static const String InventoryChatAi    = 'InventoryChatAi';
-  static const String FoodChatAi    = 'FoodChatAi';
-  static const String ServiceChatAi    = 'ServiceChatAi';
-  static const String HealthCareChatAi    = 'HealthCareChatAi';
-  static const String EducationChatAi    = 'EducationChatAi';
-  static const String HomeServiceChatAi    = 'HomeServiceChatAi';
-  static const String TravelAndStayChatAi    = 'TravelAndStayChatAi';
-  static const String ConsultingTalkChatAi    = 'ConsultingTalkChatAi';
-  static const String Admin    = 'Admin';
-  static const String notFoundAnyFoodItem    = 'notFoundAnyFoodItem';
-  static const String typeAtLeastThreeCharForSearchProducts    = 'typeAtLeastThreeCharForSearchProducts';
-  static const String suggestedProducts    = 'suggestedProducts';
-  static const String cannotSelectMoreThanTenVariants    = 'cannotSelectMoreThanTenVariants';
+  static const String notFoundAnyProduct = 'notFoundAnyProduct';
+  static const String notFoundAnyService = 'notFoundAnyService';
+  static const String found = 'found';
+  static const String product = 'Product';
+  static const String PersonalChatAi = 'PersonalAi';
+  static const String BusinessChatAi = 'BusinessAi';
+  static const String SearchChatAi = 'SearchChatAi';
+  static const String InventoryChatAi = 'InventoryChatAi';
+  static const String FoodChatAi = 'FoodChatAi';
+  static const String ServiceChatAi = 'ServiceChatAi';
+  static const String HealthCareChatAi = 'HealthCareChatAi';
+  static const String EducationChatAi = 'EducationChatAi';
+  static const String HomeServiceChatAi = 'HomeServiceChatAi';
+  static const String TravelAndStayChatAi = 'TravelAndStayChatAi';
+  static const String ConsultingTalkChatAi = 'ConsultingTalkChatAi';
+  static const String Admin = 'Admin';
+  static const String notFoundAnyFoodItem = 'notFoundAnyFoodItem';
+  static const String typeAtLeastThreeCharForSearchProducts =
+      'typeAtLeastThreeCharForSearchProducts';
+  static const String suggestedProducts = 'suggestedProducts';
+  static const String cannotSelectMoreThanTenVariants =
+      'cannotSelectMoreThanTenVariants';
 
   /// Individual Profile
-  static const String politician      = 'politician';
-  static const String socialist      = 'socialist';
-  static const String journalist      = 'journalist';
-  static const String artist      = 'artist';
-  static const String industrialist      = 'industrialist';
-  static const String seniorCitizen      = 'seniorCitizen';
-  static const String homeMaker      = 'homeMaker';
-  static const String govtEmployee      = 'govtEmployee';
-  static const String pvtEmployee      = 'pvtEmployee';
-  static const String ngoSociety        = 'ngoSociety';
-  static const String ngo        = 'ngo';
-  static const String societyOrUnion     = 'societyOrUnion';
-  static const String govtDepartment      = 'govtDepartment';
-  static const String contentCreator      = 'contentCreator';
-  static const String director      = 'director';
-  static const String student      = 'student';
-  static const String skilledWorker      = 'skilledWorker';
-  static const String farmer      = 'farmer';
+  static const String politician = 'politician';
+  static const String socialist = 'socialist';
+  static const String journalist = 'journalist';
+  static const String artist = 'artist';
+  static const String industrialist = 'industrialist';
+  static const String seniorCitizen = 'seniorCitizen';
+  static const String homeMaker = 'homeMaker';
+  static const String govtEmployee = 'govtEmployee';
+  static const String pvtEmployee = 'pvtEmployee';
+  static const String ngoSociety = 'ngoSociety';
+  static const String ngo = 'ngo';
+  static const String societyOrUnion = 'societyOrUnion';
+  static const String govtDepartment = 'govtDepartment';
+  static const String contentCreator = 'contentCreator';
+  static const String director = 'director';
+  static const String student = 'student';
+  static const String skilledWorker = 'skilledWorker';
+  static const String farmer = 'farmer';
 
-  static const String socialProfile      = 'socialProfile';
-  static const String joinAsEarnWithBlueEra      = 'joinAsEarnWithBlueEra';
-  static const String listYourBusiness      = 'listYourBusiness';
-  static const String groceryFoodRestaurant      = 'groceryFoodRestaurant';
-  static const String shopStoreShowroom      = 'shopStoreShowroom';
-  static const String chooseYourAccountType      = 'chooseYourAccountType';
+  static const String socialProfile = 'socialProfile';
+  static const String joinAsEarnWithBlueEra = 'joinAsEarnWithBlueEra';
+  static const String listYourBusiness = 'listYourBusiness';
+  static const String groceryFoodRestaurant = 'groceryFoodRestaurant';
+  static const String shopStoreShowroom = 'shopStoreShowroom';
+  static const String chooseYourAccountType = 'chooseYourAccountType';
 
-  static const String consulting      = 'consulting';
-  static const String automotive      = 'automotive';
-  static const String itCommunication      = 'itCommunication';
-  static const String homeUtility      = 'homeUtility';
-  static const String mediaCreative      = 'mediaCreative';
-  static const String educationTraining      = 'educationTraining';
-  static const String tourTravel      = 'tourTravel';
-  static const String beautyCare      = 'beautyCare';
-  static const String serviceCenter      = 'serviceCenter';
-  static const String logistics      = 'logistics';
-  static const String celebrationEvent      = 'celebrationEvent';
-  static const String financial      = 'financial';
+  static const String consulting = 'consulting';
+  static const String automotive = 'automotive';
+  static const String itCommunication = 'itCommunication';
+  static const String homeUtility = 'homeUtility';
+  static const String mediaCreative = 'mediaCreative';
+  static const String educationTraining = 'educationTraining';
+  static const String tourTravel = 'tourTravel';
+  static const String beautyCare = 'beautyCare';
+  static const String serviceCenter = 'serviceCenter';
+  static const String logistics = 'logistics';
+  static const String celebrationEvent = 'celebrationEvent';
+  static const String financial = 'financial';
 
-  static const String furnitureHomeDecor      = 'furnitureHomeDecor';
-  static const String sportsFitness      = 'sportsFitness';
-  static const String jewelleryLuxury      = 'jewelleryLuxury';
-  static const String automotiveStore      = 'automotiveStore';
-  static const String booksStationaryGifts      = 'booksStationaryGifts';
-  static const String pharmacyMedical      = 'pharmacyMedical';
-  static const String petSupplies      = 'petSupplies';
-  static const String toysBabyProducts      = 'toysBabyProducts';
-  static const String electronicsAppliances      = 'electronicsAppliances';
-  static const String constructionHomeEssentials      = 'constructionHomeEssentials';
-  static const String fashionLifestyle      = 'fashionLifestyle';
-  static const String healthcareMedicalServices      = 'healthcareMedicalServices';
-  static const String hostelsStayService      = 'hostelsStayService';
+  static const String furnitureHomeDecor = 'furnitureHomeDecor';
+  static const String sportsFitness = 'sportsFitness';
+  static const String jewelleryLuxury = 'jewelleryLuxury';
+  static const String automotiveStore = 'automotiveStore';
+  static const String booksStationaryGifts = 'booksStationaryGifts';
+  static const String pharmacyMedical = 'pharmacyMedical';
+  static const String petSupplies = 'petSupplies';
+  static const String toysBabyProducts = 'toysBabyProducts';
+  static const String electronicsAppliances = 'electronicsAppliances';
+  static const String constructionHomeEssentials = 'constructionHomeEssentials';
+  static const String fashionLifestyle = 'fashionLifestyle';
+  static const String healthcareMedicalServices = 'healthcareMedicalServices';
+  static const String hostelsStayService = 'hostelsStayService';
 
-  static const String fastFoodQuickService      = 'fastFoodQuickService';
-  static const String multiCuisineRestaurants      = 'multiCuisineRestaurants';
-  static const String groceryVegetablesDairy      = 'groceryVegetablesDairy';
-  static const String nonVegRestaurants      = 'nonVegRestaurants';
-  static const String vegRestaurants      = 'vegRestaurants';
-  static const String otherRestaurantsDhaba      = 'otherRestaurantsDhaba';
-  static const String sweetsBakeryDrinks      = 'sweetsBakeryDrinks';
-  static const String otherFoodServices      = 'otherFoodServices';
+  static const String fastFoodQuickService = 'fastFoodQuickService';
+  static const String multiCuisineRestaurants = 'multiCuisineRestaurants';
+  static const String groceryVegetablesDairy = 'groceryVegetablesDairy';
+  static const String nonVegRestaurants = 'nonVegRestaurants';
+  static const String vegRestaurants = 'vegRestaurants';
+  static const String otherRestaurantsDhaba = 'otherRestaurantsDhaba';
+  static const String sweetsBakeryDrinks = 'sweetsBakeryDrinks';
+  static const String otherFoodServices = 'otherFoodServices';
 
-  static const String areYouSureYouWantToExitTheApp = 'areYouSureYouWantToExitTheApp';
-  static const String othersManufacturingUnitIndustryFactory = 'othersManufacturingUnitIndustryFactory';
-  static const String manufacturingRelatedBusinessInfo = 'manufacturingRelatedBusinessInfo';
+  static const String areYouSureYouWantToExitTheApp =
+      'areYouSureYouWantToExitTheApp';
+  static const String othersManufacturingUnitIndustryFactory =
+      'othersManufacturingUnitIndustryFactory';
+  static const String manufacturingRelatedBusinessInfo =
+      'manufacturingRelatedBusinessInfo';
   static const String needHelp = 'needHelp';
   static const String unknown = 'Unknown';
 
@@ -1732,8 +1737,10 @@ class AppStrings {
   static const String pleaseEnterReferralCode = 'pleaseEnterReferralCode';
   static const String doYouHaveReferralCode = 'doYouHaveReferralCode';
   static const String enableLocationPermission = 'enableLocationPermission';
-  static const String specialCharactersNotAllowed = 'specialCharactersNotAllowed';
-  static const String pleaseEnterBusinessSpecialization = 'pleaseEnterBusinessSpecialization';
+  static const String specialCharactersNotAllowed =
+      'specialCharactersNotAllowed';
+  static const String pleaseEnterBusinessSpecialization =
+      'pleaseEnterBusinessSpecialization';
   static const String min8CharactersRequired = 'min8CharactersRequired';
   static const String max24CharactersAllowed = 'max24CharactersAllowed';
 
@@ -1794,7 +1801,7 @@ class AppStrings {
   static const statistics = "statistics";
 
   static const linkedShops = "linkedShops";
-  static const pickUpOTP  = "pickUpOTP";
+  static const pickUpOTP = "pickUpOTP";
   static const aadharCard = "aadharCard";
   static const panCard = "panCard";
   static const rc = "rc";
@@ -1830,7 +1837,8 @@ class AppStrings {
   static const uploadGSTCertificate = "uploadGSTCertificate";
   static const uploadMedicalLicense = "uploadMedicalLicense";
   static const uploadFireSafetyCertificate = "uploadFireSafetyCertificate";
-  static const uploadMunicipalCorpCertificate = "uploadMunicipalCorpCertificate";
+  static const uploadMunicipalCorpCertificate =
+      "uploadMunicipalCorpCertificate";
   static const uploadMSMECertificate = "uploadMSMECertificate";
   static const uploadShopActCertificate = "uploadShopActCertificate";
   static const hotelTradeLicense = "hotelTradeLicense";
@@ -1840,17 +1848,22 @@ class AppStrings {
   static const policeVerificationOrNOC = "policeVerificationOrNOC";
   static const fireSafetyCertificate = "fireSafetyCertificate";
   static const fssaiLicense = "fssaiLicense";
-  static const ownerOrAuthorizedSignatoryIDProof = "ownerOrAuthorizedSignatoryIDProof";
-  static const hotelOnboardingAgreementSigned = "hotelOnboardingAgreementSigned";
-  static const propertyOwnershipOrLeaseAgreement = "propertyOwnershipOrLeaseAgreement";
+  static const ownerOrAuthorizedSignatoryIDProof =
+      "ownerOrAuthorizedSignatoryIDProof";
+  static const hotelOnboardingAgreementSigned =
+      "hotelOnboardingAgreementSigned";
+  static const propertyOwnershipOrLeaseAgreement =
+      "propertyOwnershipOrLeaseAgreement";
   static const upload = "upload";
   static const bookViaBlueEraPartner = "bookViaBlueEraPartner";
   static const numberOfEmployees = "Number of Employees";
   static const numberOfBranchOrUnit = "Number of Branch / Units";
   static const numberOfEmployeesHintText = "Eg. 1-100";
   static const numberOfBranchOrUnitHintText = "Eg. Single";
-  static const pleaseEnterNumberOfEmployees = "Please Enter Number Of Employees";
-  static const pleaseEnterNumberOfBranchOrUnit = "Please Enter Number Of Branch/Unit";
+  static const pleaseEnterNumberOfEmployees =
+      "Please Enter Number Of Employees";
+  static const pleaseEnterNumberOfBranchOrUnit =
+      "Please Enter Number Of Branch/Unit";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
@@ -2055,14 +2068,14 @@ class AppStrings {
   static const generateComment = "generate_comment";
 
   static const validationCommentRequired = "validation_comment_required";
-  static const validationCommentTypeRequired = "validation_comment_type_required";
+  static const validationCommentTypeRequired =
+      "validation_comment_type_required";
   static const pleaseEnterDescription = "please_enter_description";
   static const uploadOneDocument = "upload_one_document";
   static const nameShouldMatchPan = "name_should_match_pan";
   static const nameOfDocument = "name_of_document";
   static const pleaseSpecifyIfOther = "please_specify_if_other";
   static const done = "done";
-
 
   /// Strings Keys
   static const microphonePermissionRequired = "microphonePermissionRequired";
@@ -2071,7 +2084,8 @@ class AppStrings {
   static const tab_ott = "tab_ott";
 
   ///CHAT & ORDER...
-  static const pickupOrderVerifiedSuccessfully = "pickupOrderVerifiedSuccessfully";
+  static const pickupOrderVerifiedSuccessfully =
+      "pickupOrderVerifiedSuccessfully";
   static const riderWillAcceptSoon = "riderWillAcceptSoon";
   static const orderDeletedSuccessfully = "orderDeletedSuccessfully";
 
@@ -2229,14 +2243,14 @@ class AppStrings {
   static const selectRentalTypeMessage = "selectRentalTypeMessage";
   static const applyForFranchise = "applyForFranchise";
 
-
   /// Grocery Strings (Himanshu Dev)
 
 // Category Headers
   static const headerRiceRiceProducts = "headerRiceRiceProducts";
   static const headerWheatAttaFlours = "headerWheatAttaFlours";
   static const headerDalsPulsesBeans = "headerDalsPulsesBeans";
-  static const headerMilletsTraditionalGrains = "headerMilletsTraditionalGrains";
+  static const headerMilletsTraditionalGrains =
+      "headerMilletsTraditionalGrains";
   static const headerBreakfastLightStaples = "headerBreakfastLightStaples";
   static const headerSpicesMasala = "headerSpicesMasala";
   static const headerSaltSugarSweeteners = "headerSaltSugarSweeteners";
@@ -2455,7 +2469,6 @@ class AppStrings {
   static const labelLemonPickle = "labelLemonPickle";
   static const labelMixedVegetablePickle = "labelMixedVegetablePickle";
 
-
   /// VEGETABLES
 
   // Leafy Vegetables
@@ -2601,6 +2614,7 @@ class AppStrings {
   static const labelLitchi = "labelLitchi";
   static const labelLoquat = "labelLoquat";
   static const labelStarFruitCarambola = "labelStarFruitCarambola";
+
   // static const labelCapsicumBellPepper = "labelCapsicumBellPepper";
 
 // Forest & Coastal Fruits
@@ -2627,7 +2641,6 @@ class AppStrings {
   static const labelLongan = "labelLongan";
   static const labelRambutan = "labelRambutan";
   static const labelDurian = "labelDurian";
-
 
   // Namkeen & Mixture
   static const labelAlooBhujia = "labelAlooBhujia";
@@ -2695,7 +2708,6 @@ class AppStrings {
   static const labelMurukku = "labelMurukku";
   static const labelPopcorn = "labelPopcorn";
 
-
 // Dairy & Milk
   static const labelFullCreamMilk = "labelFullCreamMilk";
   static const labelTonedMilk = "labelTonedMilk";
@@ -2735,6 +2747,7 @@ class AppStrings {
   static const labelBuffaloGhee = "labelBuffaloGhee";
   static const labelA2Ghee = "labelA2Ghee";
   static const labelOrganicGhee = "labelOrganicGhee";
+
   // static const labelDesiGhee = "labelDesiGhee";
   static const labelVanaspati = "labelVanaspati";
 
@@ -2956,6 +2969,7 @@ class AppStrings {
   static const labelDishwashLiquid = "labelDishwashLiquid";
   static const labelDishwashBar = "labelDishwashBar";
   static const labelDishwashPowder = "labelDishwashPowder";
+
   // static const labelDishScrubber = "labelDishScrubber";
   static const labelDishwashingBrush = "labelDishwashingBrush";
   static const labelSinkCleaner = "labelSinkCleaner";
@@ -3202,7 +3216,8 @@ class AppStrings {
   static const visionMissionSubtitle = "vision_mission_subtitle";
   static const visionMissionDescription = "vision_mission_description";
 
-  static const hospitalHistoryTitle = "hospAppStrings.hospitalHistoryTitleital_history_title";
+  static const hospitalHistoryTitle =
+      "hospAppStrings.hospitalHistoryTitleital_history_title";
   static const hospitalHistorySubtitle = "hospital_history_subtitle";
 
   static const deleteMemberConfirm = "delete_member_confirm";
@@ -3228,7 +3243,8 @@ class AppStrings {
   // Hospital History
   static const hospital_ipd_title = "hospital_ipd_title";
   static const hospital_ipd_subtitle = "hospital_ipd_subtitle";
-   /// -----****(Grocery End)****------
+
+  /// -----****(Grocery End)****------
   // General Labels
   static const String hospitalPhotos = "hospital_photos";
   static const String uploadHospitalPhoto = "upload_hospital_photo";
@@ -3257,7 +3273,6 @@ class AppStrings {
   static const String hospital = "hospital";
   static const String noLaboratoriesFound = "no_laboratories_found";
   static const String createJob = "create_job";
-
 
   static const String bestDeal = "best_deal";
   static const String shopping = "shopping";
@@ -3337,4 +3352,114 @@ class AppStrings {
   static const String hodName = "hod_name";
   static const String staffNamesHint = "staff_names_hint";
   static const String updateDepartment = "update_department";
+
+  // AI Profile Keys
+  static const String principalDirectorMessage = "principal_director_message";
+  static const String ourHistory = "our_history";
+  static const String noManagementFound = "no_management_found";
+
+  // Principal / Director Section
+  static const String uploadPrincipalPhoto = "upload_principal_photo";
+  static const String principalMessage = "principal_message";
+
+  // Faculty Profile Section
+  static const String basicInfo = "basic_info";
+  static const String experienceDetails = "experience_details";
+  static const String shortBio = "short_bio";
+  static const String submitFacultyProfile = "submit_faculty_profile";
+
+  static const String deletePhotoConfirm = "delete_photo_confirm";
+
+  // Campus Life Section
+  static const String campusLife = "campus_life";
+  static const String addCampusLife = "add_campus_life";
+  static const String noCampusPhotos = "no_campus_photos";
+
+  // Image Selection & Campus Life
+  static const String selectImagesLimit = "select_images_limit";
+  static const String captionForImage = "caption_for_image";
+  static const String saveCampusLife = "save_campus_life";
+
+  static const String noticeNewsNotFound = "notice_news_not_found";
+  static const String deleteNoticeConfirm = "delete_notice_confirm";
+  static const String addNoticeNews = "add_notice_news";
+
+  // Branch & Contact Section
+  static const String minOneBranchRequired = "min_one_branch_required";
+
+  // Department Section
+  static const String minOneDeptRequired = "min_one_dept_required";
+  static const String addMoreDept = "add_more_dept";
+  static const String selectPdf = "select_pdf";
+
+  // Institution Profile
+  static const String institutionDetails = "institution_details";
+  static const String aboutUniversity = "about_university";
+  static const String coursesOffered = "courses_offered";
+  static const String createSchool = "create_school";
+
+  // Infrastructure & Facilities
+  static const String campusInfrastructure = "campus_infrastructure";
+  static const String hostel = "hostel";
+  static const String labs = "labs";
+  static const String classrooms = "classrooms";
+
+  static const String createProfileViaAi = "create_profile_via_ai";
+  static const String searchProfileGoogle = "search_profile_google";
+  static const String orgWebsiteSocialLink = "org_website_social_link";
+
+  // Empty State Section
+  static const String noActiveProfile = "no_active_profile";
+  static const String kindlyCreate = "kindly_create";
+
+  // Validation & AI Error Section
+  static const String pleaseFillDataFirst = "please_fill_data_first";
+  static const String errorFailedSuggestions = "error_failed_suggestions";
+
+  // Activity Feed Section
+  static const String editActivityFeed = "edit_activity_feed";
+  static const String addActivityFeed = "add_activity_feed";
+
+  // Activity Feed Section
+  static const String activityFeed = "activity_feed";
+  static const String noActivityFeedFound = "no_activity_feed_found";
+  // Events & Schedule Section
+  static const String eventsSchedule = "events_schedule";
+  static const String events = "events";
+  static const String noEventsFound = "no_events_found";
+  static const String ticket = "ticket";
+  static const String deleteEventConfirm = "delete_event_confirm";
+
+  // Social & Activity Details Section
+  static const String socialDetails = "social_details";
+  static const String activityTitle = "activity_title";
+  static const String descriptionMessage = "description_message";
+  static const String activityType = "activity_type";
+  static const String organizerName = "organizer_name";
+  static const String beneficiariesImpact = "beneficiaries_impact";
+
+  // Social Activity Section
+  static const String socialActivity = "social_activity";
+  static const String createNew = "create_new";
+  static const String noActivitiesFound = "no_activities_found";
+  static const String deleteActivityConfirm = "delete_activity_confirm";
+
+
+  // Event Form & Actions
+  static const String createEvent = "create_event";
+  static const String updateEvent = "update_event";
+  static const String eventTitle = "event_title";
+  static const String startingDate = "starting_date";
+  static const String time = "time";
+  static const String from = "from";
+  static const String venue = "venue";
+  static const String eventType = "event_type";
+  static const String registrationLink = "registration_link";
+
+  // Biography & Background Section
+  static const String journey = "journey";
+  static const String familyBackground = "family_background";
+  static const String activities = "activities";
+
+  static const String profileIdentity = "profile_identity";
 }

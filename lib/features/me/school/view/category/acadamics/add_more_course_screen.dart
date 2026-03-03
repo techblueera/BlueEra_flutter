@@ -94,7 +94,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isShowMoreInfoIcon: true,
-        title: "Add More Course",
+        title:AppStrings.addMoreCourse,
         isShadowShow: false,
       ),
       body: SafeArea(
@@ -105,7 +105,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 CommonTextField(
                   textEditController: courseNameEditController,
                   hintText: "E.g. B.Sc. Geography Honours....",
-                  title: "Course Name",
+                  title:AppStrings.courseName,
                   maxLength: 100,
                   onChange: (_) => _runValidation(),
                 ),
@@ -113,7 +113,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 CommonTextField(
                   textEditController: admissionProcessEditController,
                   hintText: "E.g. Direct Admission ",
-                  title: "Admission Process",
+                  title:AppStrings.admission,
                   maxLength: 50,
                   onChange: (_) => _runValidation(),
                 ),
@@ -121,7 +121,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 CommonTextField(
                   textEditController: eligibilityEditController,
                   hintText: "E.g. 10th Pass",
-                  title: "Eligibility",
+                  title: AppStrings.eligibility,
                   maxLength: 30,
                   // onChange is another way to trigger validation
                   onChange: (_) => _runValidation(),
@@ -131,7 +131,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 Obx(() => Row(
                       children: [
                         CustomText(
-                          'Course Fee',
+                          AppStrings.courseFee,
                         ),
                         Radio<String>(
                           value: 'Monthly',
@@ -141,7 +141,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                             _runValidation();
                           },
                         ),
-                        const CustomText("Monthly"),
+                        const CustomText(AppStrings.monthly),
                         Radio<String>(
                           value: 'Yearly',
                           groupValue: courseController.feeType.value,
@@ -150,7 +150,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                             _runValidation();
                           },
                         ),
-                        const CustomText("Yearly"),
+                         CustomText(AppStrings.years),
                       ],
                     )),
 
@@ -170,7 +170,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 CommonTextField(
                   textEditController: courseDurationEditController,
                   hintText: "E.g. 4 Years",
-                  title: "Course Duration",
+                  title:AppStrings.courseDuration,
                   maxLength: 15,
 
                   onChange: (_) => _runValidation(),

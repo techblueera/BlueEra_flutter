@@ -56,31 +56,25 @@ class SchoolHomeScreen extends StatelessWidget {
               onTap: () {
                 Get.to(SchoolJobListingScreen(isEdit: true,));
               },
-              child: cardViewWidget(title: "Job Vacancy"),
+              child: cardViewWidget(title: AppStrings.jobVacancy),
             ),
             InkWell(
               onTap: () {
                 Get.to(SchoolAcademicsPage(isEdit: true,));
               },
-              child: cardViewWidget(title: "Academics"),
+              child: cardViewWidget(title: AppStrings.academics),
             ),
             InkWell(
               onTap: () {
                 Get.to(SchoolStudentCorner(isEdit: true,));
               },
-              child: cardViewWidget(title: "Student Corner"),
+              child: cardViewWidget(title:AppStrings.studentCorner),
             ),
-            // InkWell(
-            //   onTap: () {
-            //     Get.to(CampusLifeListingScreen());
-            //   },
-            //   child: cardViewWidget(title: "Campus Life"),
-            // ),
             InkWell(
               onTap: () {
                 Get.to(NoticeNewsScreen(isEdit: true,));
               },
-              child: cardViewWidget(title: "Notices & News"),
+              child: cardViewWidget(title: AppStrings.noticesNews),
             ),
             SizedBox(
               height: 10,

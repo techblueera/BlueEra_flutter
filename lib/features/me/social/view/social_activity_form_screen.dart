@@ -23,7 +23,7 @@ class SocialActivityFormScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Social Details"),
+      appBar: CommonBackAppBar(title:AppStrings.socialDetails),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 40),
         child: CommonCardWidget(
@@ -35,7 +35,7 @@ class SocialActivityFormScreen extends StatelessWidget {
 
               CommonTextField(
                 textEditController: controller.titleController,
-                title: "Activity Title",
+                title: AppStrings.activityTitle,
                 hintText: "E.g. Free Health Check-up Camp...",
                 onChange: (val) {
                   controller.activityTitle.value = val;
@@ -45,7 +45,7 @@ class SocialActivityFormScreen extends StatelessWidget {
 
               Obx(() {
                 return AiDescriptionField(
-                  label: "Description of Message",
+                  label: AppStrings.descriptionMessage,
                   hintText: "Free medicines & doctor consultation",
                   controller: controller.descriptionController,
                   rxValue: "".obs,
@@ -56,14 +56,14 @@ class SocialActivityFormScreen extends StatelessWidget {
               const SizedBox(height: 16),
               CommonTextField(
                 textEditController: controller.typeController,
-                title: "Activity type",
+                title: AppStrings.activityType,
                 hintText: "E.g. Free Health Check-up Camp...",
                 onChange: (val) {
                   controller.activityType.value = val;
                 },
               ),
               const SizedBox(height: 16),
-              _buildDateRow("Date"),
+              _buildDateRow(AppStrings.date),
               const SizedBox(height: 16),
 
               CommonLocationSearchField(
@@ -95,7 +95,7 @@ class SocialActivityFormScreen extends StatelessWidget {
 
               CommonTextField(
                 textEditController: controller.roleController,
-                title: "Your Role",
+                title: AppStrings.yourRole,
                 hintText: "E.g. Organizer, Chief Guest...",
                 onChange: (val) {
                   controller.activityRole.value = val;
@@ -104,7 +104,7 @@ class SocialActivityFormScreen extends StatelessWidget {
               const SizedBox(height: 30),
               CommonTextField(
                 textEditController: controller.organizerController,
-                title: "Organizer Name",
+                title:AppStrings.organizerName,
                 hintText: "E.g. Organizer, Chief Guest...",
                 onChange: (val) {
                   controller.activityOrganizer.value = val;
@@ -114,7 +114,7 @@ class SocialActivityFormScreen extends StatelessWidget {
 
               Obx(() {
                 return AiDescriptionField(
-                  label: "Beneficiaries/Impact (Forecast)",
+                  label: AppStrings.beneficiariesImpact,
                   hintText:
                       "E.g. 80 villagers / 1.2K Peoples / 99 KM Are Beneficiaries ....",
                   controller: controller.impactController,
@@ -131,32 +131,6 @@ class SocialActivityFormScreen extends StatelessWidget {
                 );
               }),
               const SizedBox(height: 30),
-
-              // DYNAMIC BUTTON
-              // Obx(() =>
-              //     SizedBox(
-              //       width: double.infinity,
-              //       height: 50,
-              //       child: ElevatedButton(
-              //         onPressed: controller.isFormValid.value
-              //             ? (controller.isSaving.value ? null : controller.save)
-              //             : null,
-              //         style: ElevatedButton.styleFrom(
-              //           backgroundColor: const Color(0xFF1E88E5),
-              //           disabledBackgroundColor: Colors.grey.shade300,
-              //           shape: RoundedRectangleBorder(
-              //               borderRadius: BorderRadius.circular(8)),
-              //         ),
-              //         child: controller.isSaving.value
-              //             ? const SizedBox(
-              //             height: 24,
-              //             width: 24,
-              //             child: CircularProgressIndicator(
-              //                 color: Colors.white, strokeWidth: 2))
-              //             : const Text("Continue",
-              //             style: TextStyle(color: Colors.white)),
-              //       ),
-              //     )),
               Obx(() {
                 return CustomBtn(
                     isValidate: controller.isFormValid.value,
@@ -216,7 +190,7 @@ class SocialActivityFormScreen extends StatelessWidget {
       );
     }
     return CommonImageUploadTile(
-      title: "Upload Photo",
+      title:AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

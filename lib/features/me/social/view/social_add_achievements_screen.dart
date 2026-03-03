@@ -110,7 +110,7 @@ class _JobSeekerAddNgoFormScreenState
                               onChange: (value) => validateForm(),
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText("Issue Date",
+                            CustomText(AppStrings.date,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -156,20 +156,7 @@ class _JobSeekerAddNgoFormScreenState
                               },
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            // CommonTextField(
-                            //   textEditController: descCtrl,
-                            //   keyBoardType: TextInputType.text,
-                            //   regularExpression:
-                            //       RegularExpressionUtils.alphabetSpacePattern,
-                            //   title: AppStrings.description,
-                            //   titleColor: AppColors.black1A,
-                            //   fontSize: SizeConfig.small,
-                            //   fontWeight: FontWeight.w400,
-                            //   hintText: AppStrings.ngoDescriptionHint,
-                            //   isValidate: true,
-                            //   maxLine: 4,
-                            //   onChange: (value) => validateForm(),
-                            // ),
+
                             // Your Journey Field
                             AiDescriptionField(
                               label: AppStrings.description,

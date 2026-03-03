@@ -9,6 +9,7 @@ class SchoolRepo extends BaseService {
   Future<ResponseModel> aiInstitutionFetchDetailsRepo(
       {required Map<String, dynamic> reqBody}) async {
     final response = await ApiBaseHelper().postHTTP(aiInstitutionFetchDetails,
+        showProgress: true,
         params: reqBody, onError: (error) {}, onSuccess: (data) {});
     return response;
   }

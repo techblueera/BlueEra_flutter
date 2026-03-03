@@ -19,7 +19,11 @@ import 'package:get/get.dart';
 
 class CommonStudentCornerScreen extends StatefulWidget {
   const CommonStudentCornerScreen(
-      {super.key, required this.title, required this.screenName, required this.isEdit});
+      {super.key,
+      required this.title,
+      required this.screenName,
+      required this.isEdit});
+
   final bool isEdit;
 
   final String title;
@@ -40,24 +44,25 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
       appBar: CommonBackAppBar(
         title: widget.title,
       ),
-      bottomNavigationBar:widget.isEdit?
-      SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-              right: 10.0, left: 10.0, bottom: 40, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              onTap: () {
-                Get.to(CommonStudentCornerFormScreen(
-                  title: widget.title,
-                  screenName: widget.screenName,
-                ));
-              },
-              title: "Add ${widget.title}"),
-        ),
-      ):null,
+      bottomNavigationBar: widget.isEdit
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    right: 10.0, left: 10.0, bottom: 40, top: 10),
+                child: PositiveCustomBtn(
+                    bgColor: AppColors.white,
+                    textColor: AppColors.primaryColor,
+                    borderColor: AppColors.primaryColor,
+                    onTap: () {
+                      Get.to(CommonStudentCornerFormScreen(
+                        title: widget.title,
+                        screenName: widget.screenName,
+                      ));
+                    },
+                    title: "${AppStrings.add.tr} ${widget.title}"),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: Obx(() {
           if (studentCornerController.getStudentCornerResponse.value.status ==
@@ -89,7 +94,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         rowWidget(
-                            title: "Title",
+                            title: AppStrings.title,
                             value: "${data.title}",
                             noticeIndex: index,
                             isEditOption: widget.isEdit,
@@ -99,9 +104,8 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                         ),
                         rowWidget(
                             noticeIndex: index,
-                            title: "Description",
+                            title: AppStrings.description,
                             isEditOption: widget.isEdit,
-
                             value: "${data.description}",
                             noticeID: data.id ?? ""),
                         SizedBox(
@@ -132,7 +136,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                             //
                           },
                           child: rowWidget(
-                              title: "Document",
+                              title: AppStrings.uploadDocument,
                               value: (data.uploadPhoto?.isNotEmpty ?? false)
                                   ? "View"
                                   : "N/A",
@@ -150,7 +154,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                 itemCount: dataList.length,
               );
             }
-            return Center(child: CustomText("${widget.title} Not Found"));
+            return Center(child: CustomText("${widget.title} ${AppStrings.noDataFound.tr}"));
           }
           return SizedBox();
         }),
@@ -191,7 +195,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
             ? _buildNoticeNewsPopUpMenu(onNoticeNewsDelete: () async {
                 await showCommonDialog(
                     context: context,
-                    text: 'Are you sure you want to delete this data?',
+                    text: AppStrings.areYouSureDelete,
                     confirmCallback: () async {
                       await studentCornerController
                           .deleteSchoolCornerItemController(
@@ -210,7 +214,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                   studentItem: data,
                   title: widget.title,
                   screenName: widget.screenName,
-                  itemIndex:noticeIndex,
+                  itemIndex: noticeIndex,
                 ));
               })
             : SizedBox(

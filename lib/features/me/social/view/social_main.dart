@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_update_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class SocialMainScreen extends StatefulWidget {
   const SocialMainScreen({
@@ -51,9 +53,9 @@ class _SocialMainScreenState extends State<SocialMainScreen>
           indicatorSize: TabBarIndicatorSize.tab,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
-            Tab(text: "Home"),
-            Tab(text: "Update"),
-            Tab(text: "Statics"),
+            Tab(text: AppStrings.home.tr),
+            Tab(text: AppStrings.update.tr),
+            Tab(text: AppStrings.statistics.tr),
           ],
         ),
         Expanded(

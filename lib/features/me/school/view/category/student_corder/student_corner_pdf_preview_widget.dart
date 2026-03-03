@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/student_pdf_picker_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -34,7 +35,7 @@ class StudentCornerPdfPreviewWidget extends StatelessWidget {
                   LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
                   SizedBox(width: SizeConfig.size8),
                   CustomText(
-                    "Select PDF",
+                    AppStrings.selectPdf,
                     fontSize: SizeConfig.medium,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w400,
@@ -76,7 +77,7 @@ class StudentCornerPdfPreviewWidget extends StatelessWidget {
               TextButton.icon(
                 onPressed: controller.removeFile,
                 icon: const Icon(Icons.delete, color: Colors.red),
-                label: const CustomText("Remove", color: Colors.red),
+                label:  CustomText(AppStrings.remove, color: Colors.red),
               )
             ],
           ),

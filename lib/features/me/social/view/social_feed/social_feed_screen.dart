@@ -36,7 +36,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Activity Feed"),
+      appBar: CommonBackAppBar(title: AppStrings.activityFeed),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding:
@@ -48,7 +48,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               onTap: () {
                 Get.to(() => AddSocialFeedScreen());
               },
-              title: "Add Activity Feed"),
+              title:AppStrings.addActivityFeed),
         ),
       ),
       body: Obx(() {
@@ -56,7 +56,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.departmentList.isEmpty) {
-          return Center(child: CustomText("No Activity Feed found."));
+          return Center(child: CustomText(AppStrings.noDataFound));
         }
         return RefreshIndicator(
           onRefresh: () => controller.fetchDepartments(isRefresh: true),
@@ -77,7 +77,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   onDelete: () async {
                     await showCommonDialog(
                         context: context,
-                        text: 'Are you sure you want to delete this Activity Feed?',
+                        text: AppStrings.deleteConfirm,
                         confirmCallback: () async {
                           controller.deleteSchoolDepartmentController(
                               departmentId:
@@ -129,16 +129,16 @@ class DepartmentCard extends StatelessWidget {
                   onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
                   itemBuilder: (context) => [
                     const PopupMenuItem(
-                        value: 'edit', child: CustomText("Edit")),
+                        value: 'edit', child: CustomText(AppStrings.edit)),
                     const PopupMenuItem(
                         value: 'delete',
-                        child: CustomText("Delete", color: AppColors.red00)),
+                        child: CustomText(AppStrings.delete, color: AppColors.red00)),
                   ],
                 )
               ],
             ),
             const SizedBox(height: 5),
-            CustomText("Description: ${data.description}",
+            CustomText("${AppStrings.description.tr}: ${data.description}",
                 color: Colors.grey[700], maxLines: 2),
             const SizedBox(height: 10),
 

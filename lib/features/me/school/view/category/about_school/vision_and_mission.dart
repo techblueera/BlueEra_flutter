@@ -50,7 +50,7 @@ class _VisionAndMissionState extends State<VisionAndMission> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Vision & Mission",
+        title: AppStrings.visionMission,
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
         isShadowShow: false,
@@ -78,19 +78,16 @@ class _VisionAndMissionState extends State<VisionAndMission> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText("Our Vision & Mission",
+                          CustomText(AppStrings.visionMission,
                               fontWeight: FontWeight.bold),
                           // The Reusable AI Widget
                           AIGeneratorButton(
                             type: "Our Vision & Mission",
-                            data: {
-                              "for":"education"
-                            },
+                            data: {"for": "education"},
                             onSelected: (generatedText) {
-                              schoolAboutUsController
-                                  .visionMissionText.value = generatedText;
+                              schoolAboutUsController.visionMissionText.value =
+                                  generatedText;
                               visionMissionEditController.text = generatedText;
-
                             },
                           ),
                         ],
@@ -147,7 +144,8 @@ class _VisionAndMissionState extends State<VisionAndMission> {
                                   // 2. IMPORTANT: After the controller refreshes the data,
                                   // sync your local initialText so the button disables again.
                                   setState(() {
-                                    visionMissionEditController.text = currentText;
+                                    visionMissionEditController.text =
+                                        currentText;
                                   });
                                 }
                               : null,
@@ -164,7 +162,7 @@ class _VisionAndMissionState extends State<VisionAndMission> {
           );
         }
         if (status == Status.ERROR) {
-          return Center(child: CustomText("Error loading data"));
+          return Center(child: CustomText(AppStrings.noDataFound));
         }
         return Center(child: CustomText(AppStrings.somethingWentWrong));
       }),

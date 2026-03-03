@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/social/controller/profile_identity_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -17,7 +19,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Profile Identity",
+        title:AppStrings.profileIdentity
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -33,7 +35,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                   children: [
                     // Short Bio Field
                     AiDescriptionField(
-                      label: "Short Bio",
+                      label: AppStrings.shortBio,
                       hintText: "Tell us more about info...",
                       controller: controller.bioController,
                       rxValue: controller.bioRx,
@@ -46,7 +48,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
 
                     // Your Journey Field
                     AiDescriptionField(
-                      label: "Your Journey",
+                      label:AppStrings.journey,
                       hintText: "Share your experience...",
                       controller: controller.journeyController,
                       rxValue: controller.journeyRx,
@@ -56,8 +58,8 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Location Search Field
-                    const Text("Location",
-                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const CustomText(AppStrings.location,
+                     fontWeight: FontWeight.w600),
                     const SizedBox(height: 8),
                     CommonLocationSearchField(
                       controller: controller.locationController,
@@ -99,11 +101,9 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                "Family Background",
-                                style: TextStyle(
+                              const CustomText(
+                                AppStrings.familyBackground,
                                     fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
                               if (!controller.isAddingBackground.value)
                                 TextButton.icon(
                                   onPressed: () {
@@ -111,7 +111,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                                   },
                                   icon: const Icon(
                                       Icons.add_circle_outline, size: 18),
-                                  label: const Text("Add"),
+                                  label: const CustomText(AppStrings.add),
                                 )
                               else
                                 IconButton(
@@ -169,7 +169,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                             : null,
                         isValidate: controller.isFormValid.value,
                         isLoading: controller.isLoading.value,
-                        title: controller.isEditMode.value ? "Update" : "Save",
+                        title: controller.isEditMode.value ? AppStrings.update.tr : AppStrings.save.tr,
                       );
                     }),
                   ],

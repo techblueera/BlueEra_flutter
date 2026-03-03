@@ -28,10 +28,9 @@ class AIGeneratorButton extends StatelessWidget {
   }
 
   void _showAiSuggestions(BuildContext context) async {
-    logs("data.values=== ${data.values}");
     // 1. Basic Validation
     if (data.values.any((element) => element.toString().isEmpty)) {
-      commonSnackBar(message: "Please fill data first");
+      commonSnackBar(message:AppStrings.pleaseFillDataFirst.tr);
       // Get.snackbar(
       //     "Error", "Please fill in the names first to generate description");
       return;
@@ -46,7 +45,7 @@ class AIGeneratorButton extends StatelessWidget {
     // Get.back(); // Close loading
 
     if (suggestions == null || suggestions.isEmpty) {
-      commonSnackBar(message: "Error Failed to generate suggestions");
+      commonSnackBar(message:AppStrings.errorFailedSuggestions.tr);
       return;
     }
 

@@ -27,7 +27,7 @@ class SocialCertificatesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Certifications"),
+      appBar: CommonBackAppBar(title: AppStrings.certifications),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size8),
         child: Column(
@@ -39,15 +39,15 @@ class SocialCertificatesScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CustomText("Certificate",
+                      CustomText(AppStrings.certifications,
                           fontWeight: FontWeight.w600),
                       InkWell(
                         onTap: () {
                           certController.openForCreate();
                           _openAddEditSheet(context, false);
                         },
-                        child: const CustomText(
-                          "+ Add More",
+                        child:  CustomText(
+                          "+ ${AppStrings.addMore.tr}",
                           color: AppColors.primaryColor,
                         ),
                       ),
@@ -191,7 +191,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText("Add More Certificate",
+                          CustomText(AppStrings.addMore,
                               fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -203,7 +203,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                       // _documentTypeDropdown(),
                       // SizedBox(height: SizeConfig.size12),
                       CommonTextField(
-                        title: "Title",
+                        title: AppStrings.title,
                         textEditController: certController.titleController,
                         hintText: "E.g. Certificate Name",
                         onChange: (val) {
@@ -211,19 +211,10 @@ class SocialCertificatesScreen extends StatelessWidget {
                         },
                       ),
                       SizedBox(height: SizeConfig.size12),
-                      // CommonTextField(
-                      //   title: "Issued By",
-                      //   textEditController: certController.issuedByController,
-                      //   hintText: "E.g. Authority / Organization",
-                      //   onChange: (val) {
-                      //     setState(() {});
-                      //   },
-                      // ),
-                      // SizedBox(height: SizeConfig.size12),
-                      // _issueDatePicker(context),
+
                       ///DOB selection
                       CustomText(
-                        'Issued Date',
+                        AppStrings.certificateIssuedBy,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -278,7 +269,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                       ),
                       SizedBox(height: SizeConfig.size20),
                       Obx(() => CustomBtn(
-                            title: isEdit ? "Update" : "Save",
+                            title: isEdit ? AppStrings.update.tr : AppStrings.save.tr,
                             isValidate: !(certController.isSaving.value),
                             onTap: certController.isSaving.value
                                 ? null
@@ -288,7 +279,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                                             null) {
                                       commonSnackBar(
                                           message:
-                                              "Upload image file is required");
+                                          AppStrings.uploadImages);
                                       return;
                                     }
                                     await certController.save();
@@ -298,12 +289,12 @@ class SocialCertificatesScreen extends StatelessWidget {
                       if(isEdit)...[
                         SizedBox(height: SizeConfig.size20),
                         CustomBtn(
-                          title: "Delete",
+                          title: AppStrings.delete,
                           onTap: () async {
                             await showCommonDialog(
                                 context: context,
                                 text:
-                                'Are you sure you want to delete this certificate ?',
+                                AppStrings.deleteConfirm,
                                 confirmCallback: () async {
                                   Get.back();
                                   await certController
@@ -342,7 +333,7 @@ class SocialCertificatesScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Upload File"),
+           CustomText(AppStrings.uploadDocument),
           SizedBox(height: SizeConfig.size8),
           Row(
             children: [
@@ -357,7 +348,6 @@ class SocialCertificatesScreen extends StatelessWidget {
                 },
                 icon: const Icon(Icons.attach_file),
                 label: const CustomText("JPG / PNG"),
-                // label: const Text("PDF / JPG / PNG"),
               ),
               SizedBox(width: SizeConfig.size12),
               if (file != null)
@@ -373,77 +363,5 @@ class SocialCertificatesScreen extends StatelessWidget {
         ],
       );
     });
-
-    /*  return Column(
-      children: [
-        CustomText(
-          "Upload Doc ",
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w400,
-          color: AppColors.mainTextColor,
-        ),
-        SizedBox(height: SizeConfig.size10),
-        Obx(() {
-          return (certController.docUploadName.value == "")
-              ? Row(
-            children: [
-              Expanded(child: _buildImageSection()),
-              SizedBox(width: SizeConfig.size10),
-              Expanded(child: ProfessionalPdfPreviewWidget()),
-            ],
-          )
-              : Row(
-            children: [
-              if (certController.docUploadName.value == "photo")
-                Expanded(child: _buildImageSection()),
-              SizedBox(width: SizeConfig.size10),
-              if (certController.docUploadName.value == "pdf")
-                Expanded(
-                    child: (widget.isEdit)
-                        ? Column(
-                      children: [
-                        IgnorePointer(
-                          ignoring: true,
-                          child: Container(
-                            height: 150, // Preview Height
-                            decoration: BoxDecoration(
-                              border:
-                              Border.all(color: Colors.black12),
-                              borderRadius:
-                              BorderRadius.circular(8),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: SfPdfViewer.network(
-                              widget.studentItem?.uploadPhoto ?? "",
-                              canShowPaginationDialog:
-                              false, // Clean preview look
-                            ),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: () {
-                              certController
-                                  .noticeImageFile.value = null;
-                              certController
-                                  .initialNoticeImageUrl = "";
-                              certController
-                                  .docUploadName.value = "";
-                            },
-                            icon: const Icon(Icons.delete,
-                                color: Colors.red),
-                            label: const CustomText("Remove",
-                                color: Colors.red),
-                          ),
-                        ),
-                      ],
-                    )
-                        : ProfessionalPdfPreviewWidget()),
-            ],
-          );
-        }),
-      ],
-    );*/
   }
 }

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/acadamic_cours_and_programs.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -33,7 +34,7 @@ class SchoolCourseSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ServiceHomeTitleWidget(
-                  title: "Our Courses",
+                  title: AppStrings.coursesPrograms,
                 ),
                 if (courses.length > 5)
                   InkWell(
@@ -41,7 +42,7 @@ class SchoolCourseSection extends StatelessWidget {
                       Get.to(CourseListScreen(isEdit: isEdit,));
                     },
                     child: const CustomText(
-                      "View All",
+                      AppStrings.viewAll,
                       color: AppColors.primaryColor,
                     ),
                   ),
@@ -121,7 +122,7 @@ class SchoolCourseSection extends StatelessWidget {
                       const SizedBox(width: 8),
                       Flexible(
                           child: _buildBadge(
-                              "Duration: ${course.duration} Years",
+                              "${AppStrings.courseDuration.tr}: ${course.duration} ${AppStrings.years.tr}",
                               Colors.green.shade50,
                               Colors.green.shade800)),
                     ],
@@ -130,7 +131,7 @@ class SchoolCourseSection extends StatelessWidget {
 
                   // 5. Pricing
                   CustomText(
-                      "₹${formatNumber(course.courseFees?.yearly ?? 0)}/Year",
+                      "₹${formatNumber(course.courseFees?.yearly ?? 0)}/${AppStrings.years.tr}",
                       fontWeight: FontWeight.bold,
                      ),
                 ],

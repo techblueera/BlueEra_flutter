@@ -23,7 +23,7 @@ class EventScheduleScreen extends StatelessWidget {
     return Scaffold(
       // backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: "Events / Schedule",
+        title: AppStrings.eventsSchedule,
       ),
       body: Padding(
         padding: const EdgeInsets.only(bottom: 30.0),
@@ -38,8 +38,7 @@ class EventScheduleScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      "Events",
-                        fontSize: SizeConfig.large18,
+                      AppStrings.events,                        fontSize: SizeConfig.large18,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                     ),
@@ -63,7 +62,7 @@ class EventScheduleScreen extends StatelessWidget {
                                 size: SizeConfig.large),
                             SizedBox(width: 4),
                             CustomText(
-                              "Add More",
+                              AppStrings.addMore,
                               color: AppColors.primaryColor,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.small,
@@ -90,7 +89,7 @@ class EventScheduleScreen extends StatelessWidget {
                               size: 64, color: Colors.grey.shade300),
                           SizedBox(height: 16),
                           CustomText(
-                            "No events found",
+                            AppStrings.noEventsFound,
                               color:AppColors.secondaryTextColor,
                               fontSize: SizeConfig.medium,
                           ),
@@ -180,7 +179,7 @@ class EventScheduleScreen extends StatelessWidget {
                             Icon(Icons.edit_outlined,
                                 color: Colors.blue, size: 20),
                             SizedBox(width: 10),
-                            CustomText("Edit Event"),
+                            CustomText(AppStrings.edit),
                           ],
                         ),
                       ),
@@ -191,7 +190,7 @@ class EventScheduleScreen extends StatelessWidget {
                             Icon(Icons.delete_outline,
                                 color: Colors.red, size: 20),
                             SizedBox(width: 10),
-                            CustomText("Delete", color: Colors.red),
+                            CustomText(AppStrings.delete, color: Colors.red),
                           ],
                         ),
                       ),
@@ -206,20 +205,20 @@ class EventScheduleScreen extends StatelessWidget {
                 thickness: 1,
                 color: Colors.grey.shade100),
             // Details
-            _buildDetailRow("Title", event.title ?? "No Title"),
+            _buildDetailRow(AppStrings.title, event.title ?? "No Title"),
             SizedBox(height: SizeConfig.paddingXS),
             _buildDetailRow(
-                "Date",
+                AppStrings.date,
                 event.startDate != null
                     ? _formatDate(event.startDate!)
                     : "N/A"),
             SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow("Time",
+            _buildDetailRow(AppStrings.timing,
                 "${event.timing?.from ?? ''} to ${event.timing?.to ?? ''}"),
             SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow("Ticket", "Free"),
+            _buildDetailRow("${AppStrings.ticket.tr}", "Free"),
             SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow("Location", event.venue?.name ?? "N/A"),
+            _buildDetailRow(AppStrings.location, event.venue?.name ?? "N/A"),
           ],
         ),
       ),
@@ -258,7 +257,7 @@ class EventScheduleScreen extends StatelessWidget {
     await showCommonDialog(
         context: context,
         text:
-            "Are you sure you want to delete this event?\nThis action cannot be undone.",
+        AppStrings.deleteEventConfirm,
         confirmCallback: () async {
           Get.back();
           controller.eventId = event.sId;
