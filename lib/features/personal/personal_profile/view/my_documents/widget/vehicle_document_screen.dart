@@ -14,8 +14,8 @@ import 'package:get/get.dart';
 
 class VehicleDocumentsScreen extends StatelessWidget {
   final MyDocumentsController controller;
-
-  const VehicleDocumentsScreen({super.key, required this.controller});
+  final bool? showViewDocProof;
+  const VehicleDocumentsScreen({super.key, required this.controller,this.showViewDocProof});
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +38,8 @@ class VehicleDocumentsScreen extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size8),
             BuildAddDocumentButton(
+              showViewDocProof:showViewDocProof ,
+              document: DocumentKeys.vehicleRC ,
               title: AppStrings.uploadVehicleRC,
               documentKey: DocumentKeys.vehicleRC,
               status:
@@ -66,6 +68,8 @@ class VehicleDocumentsScreen extends StatelessWidget {
               },
             ),
             BuildAddDocumentButton(
+              showViewDocProof:showViewDocProof ,
+              document: DocumentKeys.insuranceDocument ,
               title: AppStrings.insuranceDocumentUpload,
               documentKey: DocumentKeys.insuranceDocument,
               status: controller.getStatus(
@@ -86,6 +90,8 @@ class VehicleDocumentsScreen extends StatelessWidget {
               },
             ),
             BuildAddDocumentButton(
+              showViewDocProof: showViewDocProof ,
+              document: DocumentKeys.puc ,
               title:  AppStrings.pollutionCertificateUpload,
               documentKey: DocumentKeys.puc,
               status: controller.getStatus(
@@ -111,6 +117,8 @@ class VehicleDocumentsScreen extends StatelessWidget {
               },
             ),
             BuildAddDocumentButton(
+              showViewDocProof:showViewDocProof ,
+              document: DocumentKeys.vehicleFitnessCertificate ,
               title: AppStrings.fitnessCertificateCommercial,
               documentKey: DocumentKeys.vehicleFitnessCertificate,
               status: controller.getStatus(

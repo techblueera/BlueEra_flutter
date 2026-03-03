@@ -561,6 +561,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                       SizedBox(height: SizeConfig.paddingXSL),
                       VehicleDocumentsScreen(
                         controller: controller,
+                        showViewDocProof: true,
                       ),
                     ],
 

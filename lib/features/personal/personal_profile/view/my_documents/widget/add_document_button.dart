@@ -9,10 +9,14 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:get/get.dart';
 
+import '../view/add_document_screen.dart';
+
 class BuildAddDocumentButton extends StatelessWidget {
   final String title;
   final String documentKey;
+  final String? document;
   final dynamic status;
+  final bool? showViewDocProof;
   final VoidCallback onTap;
 
   const BuildAddDocumentButton({
@@ -21,6 +25,8 @@ class BuildAddDocumentButton extends StatelessWidget {
     required this.documentKey,
     required this.status,
     required this.onTap,
+    this.showViewDocProof,
+    this.document
   });
 
   @override
@@ -76,10 +82,35 @@ class BuildAddDocumentButton extends StatelessWidget {
                     fontSize: SizeConfig.large,
                   ),
                 ),
+
               ],
             ),
           ),
         ),
+        if(showViewDocProof??false)
+          if(!isUploadable)
+            InkWell(
+              onTap: () {
+                AddDocumentScreen.showDocumentProofDialog(context, document??'');
+              },
+              child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: AppColors.primaryColor
+                      )
+
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.remove_red_eye,color: AppColors.primaryColor,size: 16,),
+                      SizedBox(width: 6,),
+                      CustomText("View", color: AppColors.primaryColor)
+                    ],
+                  )),
+            ),
       ],
     );
   }
