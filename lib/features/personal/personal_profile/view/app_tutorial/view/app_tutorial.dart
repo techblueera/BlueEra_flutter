@@ -97,7 +97,7 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
       ..initialize().then((_) {
         if (!mounted) return;
         setState(() => _initialized = true);
-      });
+      })..setLooping(true);
   }
 
   @override
@@ -308,11 +308,20 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
     _controller!.seekTo(
       _controller!.value.position + const Duration(seconds: 10),
     );
+
+    Future.delayed(Duration(seconds: 1),(){setState(() {
+      setState(() {
+      });
+    });});
   }
 
   void _seekBack() {
     final pos =
         _controller!.value.position - const Duration(seconds: 10);
     _controller!.seekTo(pos > Duration.zero ? pos : Duration.zero);
+    Future.delayed(Duration(seconds: 1),(){setState(() {
+      setState(() {
+      });
+    });});
   }
 }

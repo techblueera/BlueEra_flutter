@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
@@ -139,10 +140,6 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                                 ),
                                 padding: const EdgeInsets.all(10.0),
                                 child: Icon(
-                                  // imagePath: AppIconAssets.copyIcon,
-                                  // imgColor: AppColors.primaryColor,
-                                  // height: SizeConfig.size20,
-                                  // width: SizeConfig.size20,
                                   Icons.copy,
                                   color: AppColors.primaryColor,
                                   size: SizeConfig.size20,
@@ -150,21 +147,29 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                               ),
                             ),
                             SizedBox(width: SizeConfig.paddingXSL),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: AppColors.whiteE5,
-                                  width: 1.0,
+                            GestureDetector(
+                              onTap: () async {
+                                await Share.share(
+                                  _stats.referralCode??'',
+                                  subject: "Amazing App",
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.whiteE5,
+                                    width: 1.0,
+                                  ),
                                 ),
-                              ),
-                              padding: const EdgeInsets.all(10.0),
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.reelShare,
-                                imgColor: AppColors.secondaryTextColor,
-                                height: SizeConfig.size20,
-                                width: SizeConfig.size20,
+                                padding: const EdgeInsets.all(10.0),
+                                child: LocalAssets(
+                                  imagePath: AppIconAssets.reelShare,
+                                  imgColor: AppColors.secondaryTextColor,
+                                  height: SizeConfig.size20,
+                                  width: SizeConfig.size20,
+                                ),
                               ),
                             )
 
