@@ -58,39 +58,12 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
               if(widget.isForwardUI==false)
               SizedBox(height: 12,),
               if(chatViewController.personalTabSelectedIndex.value==0)
-              Container(
-                margin: EdgeInsets.only(bottom: SizeConfig.size70),
-                child: (data?.chatList?.isEmpty ?? true)
-                    ? noChatsFound()
-                    : ListView.builder(
-                  itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
-                    return ChatListTile(onTab: (index == 0&&widget.isForwardUI==false)?(){
-                     Get.to(()=> AiChatScreen(
-                       profileImage: chat?.sender?.profileImage,
-                       name: chat?.sender?.name,
-                       type: chat?.sender?.accountType,
-                     ));
-                    }:null,
-                      isFromGroupSelect: widget.isNewGroupUI,
-                      onSelect: () {
-                        setState(() {});
-                      },
-                      type: chat?.sender?.accountType ?? AppConstants.individual,
-                      index: index - 1, // correct index for chat list
-                      chatViewController: chatViewController,
-                      chat: chat,
-                      theme: theme,
-                      isForwardUI: widget.isForwardUI,
-                      context: context,
-                    );
-                  },
-                ),
-              )
+                (widget.isForwardUI==false)?
+                    Expanded(child: personalChatListWidget(data,theme)):personalChatListWidget(data,theme)
               else if(chatViewController.personalTabSelectedIndex.value==2)
               ReminderChatList(),
+
+
             ],
           ),
         );
@@ -99,7 +72,42 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
       }
     });
   }
-
+Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size70),
+      child: (data?.chatList?.isEmpty ?? true)
+          ? noChatsFound()
+          : ListView.builder(
+        itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
+        shrinkWrap: true,
+        physics: widget.isForwardUI == true
+            ? NeverScrollableScrollPhysics()
+            : null,
+        itemBuilder: (context, index) {
+          final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
+          return ChatListTile(onTab: (index == 0&&widget.isForwardUI==false)?(){
+            Get.to(()=> AiChatScreen(
+              profileImage: chat?.sender?.profileImage,
+              name: chat?.sender?.name,
+              type: chat?.sender?.accountType,
+            ));
+          }:null,
+            isFromGroupSelect: widget.isNewGroupUI,
+            onSelect: () {
+              setState(() {});
+            },
+            type: chat?.sender?.accountType ?? AppConstants.individual,
+            index: index - 1, // correct index for chat list
+            chatViewController: chatViewController,
+            chat: chat,
+            theme: theme,
+            isForwardUI: widget.isForwardUI,
+            context: context,
+          );
+        },
+      ),
+    );
+}
   String formatTimeFromUtc(String utcString) {
     DateTime utcDate = DateTime.parse(utcString);
     DateTime localDate = utcDate.toLocal();

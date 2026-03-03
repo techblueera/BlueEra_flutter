@@ -41,13 +41,12 @@ class _ReminderChatListState extends State<ReminderChatList> {
 
         return Expanded(
           child: Container(
-
             decoration: BoxDecoration(
               borderRadius: BorderRadius.only(topLeft: Radius.circular(20),
                   topRight:  Radius.circular(20)),
-
             ),
             padding: EdgeInsets.symmetric(vertical: 8),
+            margin: EdgeInsets.only(bottom: SizeConfig.size70),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [

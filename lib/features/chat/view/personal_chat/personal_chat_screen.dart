@@ -252,7 +252,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                       ApiKeys.conversation_id: "${widget.conversationId}",
                                       ApiKeys.delete_from_every_one: false,
                                       ApiKeys.message_id_list:
-                                      chatThemeController.selectedId
+                                      chatThemeController.selectedMessageIds
                                     };
 
                                     await chatViewController
@@ -270,7 +270,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                       ApiKeys.conversation_id: "${widget.conversationId}",
                                       ApiKeys.delete_from_every_one: true,
                                       ApiKeys.message_id_list:
-                                      chatThemeController.selectedId
+                                      chatThemeController.selectedMessageIds
                                     };
 
                                     await chatViewController

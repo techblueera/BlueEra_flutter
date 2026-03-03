@@ -150,7 +150,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
               AppIconAssets.chat_media_forward, height: 24, width: 24,),
             text: "${widget.message.forwards_count=='null'?'0':widget.message.forwards_count??'0'}",
             onTap: () {
-              chatThemeController.selectedId.add(widget.message.id??'');
+              chatThemeController.selectedMessageIds.add(widget.message.id??'');
               Navigator.push(context, MaterialPageRoute(builder: (context)=>NewChatMainScreen(isForwardUI:true)));
             },
           ),

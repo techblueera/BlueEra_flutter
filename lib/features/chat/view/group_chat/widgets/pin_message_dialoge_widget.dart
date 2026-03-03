@@ -109,7 +109,7 @@ class PinMessageDurationDialog extends StatelessWidget {
                       }
 
                       Map<String,dynamic> params={
-                        ApiKeys.message_id: chatThemeController.selectedId,
+                        ApiKeys.message_id: chatThemeController.selectedMessageIds,
                         ApiKeys.conversation_id: conversationId,
                         ApiKeys.duration:duration,
                         ApiKeys.remove_from_pin: false

@@ -56,7 +56,7 @@ class _GroupReactionInfoWidgetState extends State<GroupReactionInfoWidget> {
               _verticalDivider(),
               InkWell(
                   onTap: (){
-                    chatThemeController.selectedId.add(widget.message.id??'');
+                    chatThemeController.selectedMessageIds.add(widget.message.id??'');
                     Navigator.push(context, MaterialPageRoute(builder: (context)=>NewChatMainScreen(isForwardUI: true,)));
                   },
                   child: _iconText(widget.userId,widget.conversation,AppIconAssets.chat_share_icon, "${(widget.message.forwards_count=="null")?"0":widget.message.forwards_count??0}",context,chatThemeController)),

@@ -13,7 +13,8 @@ import '../../auth/controller/add_chat_symbol_controller.dart';
 
 
 class AddChatSymbolScreen extends StatefulWidget {
-  AddChatSymbolScreen({super.key});
+  AddChatSymbolScreen({super.key, this.message});
+  final  message;
 
   @override
   State<AddChatSymbolScreen> createState() => _AddChatSymbolScreenState();
@@ -35,10 +36,6 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen> {
       appBar: CommonBackAppBar(
         title: "Add Symbol",
         isLeading: true,
-        onBackTap: () {
-          // controller.clearData();
-          Get.back();
-        },
       ),
       bottomNavigationBar: Obx(() {
         return SafeArea(

@@ -328,7 +328,7 @@ class AddChatSymbolController extends GetxController {
       ApiKeys.content: itTextOrLinkPost()
           ? linkTextSymbolController.text
           : MediaUploadRes?.files?.first.publicUrl,
-      if(selectedPostType.value == PostType.text)
+      if(selectedPostType.value == PostType.text||selectedPostType.value == PostType.link)
         ApiKeys.backgroundColor : "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
       if(selectedPostType.value == PostType.text)
         ApiKeys.fontFamily: selectedFontFamily.value,

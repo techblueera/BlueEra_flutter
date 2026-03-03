@@ -29,6 +29,7 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
+import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
 import '../features/common/home/widgets/drawer.dart';
 import '../features/me/medical/view/widget/add_product_common_dialog.dart';
 import '../features/me/politician/widget/add_politician_activity_event.dart';
@@ -1110,7 +1111,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Icon(Icons.person_add_alt, color: Colors.black),
               SizedBox(width: 16),
-              Icon(Icons.search, color: Colors.black),
+              InkWell(
+                  onTap: (){
+                    Get.to(()=>BeAvailableContactsList(isFromForwardMessage: true,));
+                  },
+                  child: Icon(Icons.search, color: Colors.black)),
               SizedBox(width: 12),
             ],
           ),

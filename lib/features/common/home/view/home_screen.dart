@@ -21,6 +21,7 @@ import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
 import '../../../chat/view/contacts/view/be_available_contacts_list.dart';
+import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 
 enum SavedFeedTab {
   posts;
@@ -125,9 +126,9 @@ class _HomeScreenState extends State<HomeScreen> {
         List<SharedAttachment?>? attachments = media.attachments ?? [];
 
         if (_sharedText != null && _sharedText.isNotEmpty) {
-         Get.to(BeAvailableContactsList(sharedText: _sharedText));
+         Get.to(ChatForwardScreen(sharedText: _sharedText));
         } else if ((attachments.isNotEmpty)) {
-          Get.to( BeAvailableContactsList(sharedFiles: attachments),);
+          Get.to(ChatForwardScreen(sharedFiles: attachments),);
         }
       }
     });

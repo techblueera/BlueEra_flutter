@@ -31,11 +31,11 @@ import 'component_widgets.dart';
 
 class GroupChatInputBar extends StatefulWidget {
   const GroupChatInputBar(
-      {super.key, required this.conversationId, required this.userId, required this.isInitialMessage});
+      {super.key, required this.conversationId,  this.userId,  this.isInitialMessage=false});
 
   final String conversationId;
-  final String userId;
-  final bool isInitialMessage;
+  final String? userId;
+   final bool isInitialMessage;
 
   @override
   State<GroupChatInputBar> createState() => _GroupChatInputBarState();
@@ -726,6 +726,9 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       );
     }
 
+    if (members.id != null && members.id!.isNotEmpty) {
+      chatViewController.taggedUserIds.add(members.id!);
+    }
     chatViewController.showMentionList.value = false;
   }
 

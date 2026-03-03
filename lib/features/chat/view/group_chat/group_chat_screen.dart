@@ -277,8 +277,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           height: 6,
                         ),
                         GroupChatInputBar(
-                          isInitialMessage: false,
-                          userId: '',
                           conversationId: widget.conversationId ?? '',
                         ),
                         const SizedBox(height: 14),

@@ -42,24 +42,111 @@ class _MessageBubbleState extends State<MessageBubble> {
   final chatThemeController = Get.find<ChatThemeController>();
   Widget buildLinkPreview(String message) {
     final hasLink = message.contains("http");
+    if (!hasLink) return const SizedBox.shrink();
 
-    if (!hasLink) return const SizedBox();
+    String link = message;
+    final regExp = RegExp(r'(https?:\/\/[^\s]+)');
+    final match = regExp.firstMatch(message);
+    if (match != null) link = match.group(0)!;
 
-    return AnyLinkPreview(
-      link: message,
-      // ❌ remove UIDirection (causing your crash)
-      displayDirection: UIDirection.uiDirectionVertical, // REMOVE if error persists
-      showMultimedia: true,
-      bodyMaxLines: 1,
-      titleStyle: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
+    String domain = link;
+    try {
+      domain = Uri.parse(link).host;
+      if (domain.startsWith('www.')) domain = domain.substring(4);
+    } catch (_) {}
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: AnyLinkPreview.builder(
+          link: link,
+          cache: const Duration(days: 7),
+          placeholderWidget: Container(
+            height: 200,
+            color: Colors.grey.shade100,
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+            ),
+          ),
+          errorWidget: const SizedBox.shrink(),
+          itemBuilder: (context, metadata, imageProvider, svgImage) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (imageProvider != null)
+                  SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: Image(image: imageProvider, fit: BoxFit.cover),
+                  )
+                else if (svgImage != null)
+                  SizedBox(height: 140, width: double.infinity, child: svgImage),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (metadata.title != null && metadata.title!.isNotEmpty)
+                        Text(
+                          metadata.title!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                            height: 1.3,
+                          ),
+                        ),
+                      if (metadata.desc != null && metadata.desc!.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          metadata.desc!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.black54,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Image.network(
+                            'https://www.google.com/s2/favicons?domain=$domain&sz=32',
+                            width: 13,
+                            height: 13,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.language, size: 13, color: Colors.grey),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            domain,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
-      bodyStyle: const TextStyle(fontSize: 14),
-
-      // 🔥 IMPORTANT: Error Handler (prevents crash)
-      errorWidget: const SizedBox.shrink(),
-      errorImage: "https://via.placeholder.com/150",
     );
   }
   @override
@@ -146,57 +233,52 @@ class _MessageBubbleState extends State<MessageBubble> {
                           if ((widget.message.contains("https://")))
                             Padding(
                               padding: const EdgeInsets.only(bottom: 6),
-                              child: SizedBox(
-                                height: 260,
-                                width:328,
-                                child:buildLinkPreview(widget.message),
-                              ),
+                              child: buildLinkPreview(widget.message),
                             ),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisSize: MainAxisSize.max,
                             children: [
                               Expanded(
-                                child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?buildAiWithCallButtons(widget.message): InkWell(
-                                  onTap: (widget.message.contains("https://"))?(){
-                                    UrlLauncher.launchUrl(Uri.parse(widget.message));
-                                  }:null,
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: (widget.message.length <= 100)
-                                              ? widget.message
-                                              : widget.message.substring(0, 100),
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: (widget.message.contains("https://"))?AppColors.navy:widget.isReceiveMsg ? Colors.black :Colors.black,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                        if (widget.message.length > 100)
-                                          TextSpan(
-                                            text: '... Read more',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w900,
-                                              color: AppColors.grey9A,
-                                              fontSize: 16,
+                                child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)
+                                    ? buildAiWithCallButtons(widget.message)
+                                    : widget.message.contains("https://")
+                                        ? const SizedBox.shrink()
+                                        : RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: (widget.message.length <= 100)
+                                                      ? widget.message
+                                                      : widget.message.substring(0, 100),
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: widget.isReceiveMsg ? Colors.black : Colors.black,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                if (widget.message.length > 100)
+                                                  TextSpan(
+                                                    text: '... Read more',
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.w900,
+                                                      color: AppColors.grey9A,
+                                                      fontSize: 16,
+                                                    ),
+                                                    recognizer: TapGestureRecognizer()
+                                                      ..onTap = () {
+                                                        FocusScope.of(context).unfocus();
+                                                        _showFullMessageDialog(
+                                                          context: context,
+                                                          message: widget.message,
+                                                          time: widget.time,
+                                                          isReceiveMsg: widget.isReceiveMsg,
+                                                        );
+                                                      },
+                                                  ),
+                                              ],
                                             ),
-                                            recognizer: TapGestureRecognizer()
-                                              ..onTap = () {
-                                                FocusScope.of(context).unfocus();
-                                                _showFullMessageDialog(
-                                                  context: context,
-                                                  message: widget.message,
-                                                  time: widget.time,
-                                                  isReceiveMsg: widget.isReceiveMsg,
-                                                );
-                                              },
                                           ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
                               ),
                               const SizedBox(width: 8,),
                               Align(
@@ -249,7 +331,7 @@ mainAxisAlignment: MainAxisAlignment.center,
 
               InkWell(
                 onTap: () {
-                  chatThemeController.selectedId.add(widget.messages.id??"");
+                  chatThemeController.selectedMessageIds.add(widget.messages.id??"");
                   Navigator.push(
                     context,
                     MaterialPageRoute(

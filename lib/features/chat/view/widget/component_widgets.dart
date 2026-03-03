@@ -171,7 +171,7 @@ Widget noGroupChatsFound() {
   );
 }
 
-Widget ChatListTile({
+Widget  ChatListTile({
   required Function onSelect,
   required String type,
   required BuildContext context,
@@ -208,12 +208,10 @@ Widget ChatListTile({
   }
   void selectChatListCard() {
     if (isSelected) {
-      // Always allow unselect
       chatViewController.selectedUserIds.remove(senderId);
       chatViewController.selectedChatList.remove(chat);
       onSelect();
     } else {
-      // Allow selection only if less than 5 selected
       if (chatViewController.selectedUserIds.length < 5) {
         chatViewController.selectedUserIds.add(senderId);
         chatViewController.selectedChatList.add(chat);
@@ -1263,7 +1261,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
       ),
       titleSpacing: 8,
       title: CustomText(
-        "${chatThemeController.selectedId.length}",
+        "${chatThemeController.selectedMessageIds.length}",
         // or make dynamic
         color: Colors.black,
         fontWeight: FontWeight.bold,
@@ -1286,7 +1284,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                   Map<String, dynamic> data = {
                     ApiKeys.conversation_id: "$conversationId",
                     ApiKeys.delete_from_every_one: false,
-                    ApiKeys.message_id_list: chatThemeController.selectedId
+                    ApiKeys.message_id_list: chatThemeController.selectedMessageIds
                   };
 
                   await chatViewController
@@ -1304,7 +1302,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                   Map<String, dynamic> data = {
                     ApiKeys.conversation_id: "$conversationId",
                     ApiKeys.delete_from_every_one: true,
-                    ApiKeys.message_id_list: chatThemeController.selectedId
+                    ApiKeys.message_id_list: chatThemeController.selectedMessageIds
                   };
 
                   await chatViewController
@@ -1319,7 +1317,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
             );
           },
         ),
-        (chatThemeController.selectedId.length == 1 &&
+        (chatThemeController.selectedMessageIds.length == 1 &&
             chatThemeController.selectedFirstMessage?.value?.messageType ==
                 "text")
             ? IconButton(

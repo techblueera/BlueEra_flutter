@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -7,13 +8,16 @@ import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/common_methods.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../auth/controller/chat_view_controller.dart';
@@ -21,13 +25,14 @@ import '../../../auth/model/contactListModel.dart';
 import '../../../auth/model/group_details_model.dart';
 
 class BeAvailableContactsList extends StatefulWidget {
-  final String? sharedText;
   final String? conversationId;
+  final String? sharedText;
   final List<SharedAttachment?>? sharedFiles;
-  final bool? isFromAddMember;
   final int? maxSelectionCount;
+  final bool? isFromAddMember;
   final Function(List<ExistingNotConnected>)? onSelectedPersons;
   final bool? tagPersonsSelection;
+  final bool? isFromForwardMessage;
   final List<GroupMembersListModel>? members;
   final List<ExistingNotConnected>? preSelectedUsers;
 
@@ -40,7 +45,7 @@ class BeAvailableContactsList extends StatefulWidget {
       this.members,
       this.conversationId, this.onSelectedPersons,
         this.tagPersonsSelection, this.maxSelectionCount,
-        this.preSelectedUsers});
+        this.preSelectedUsers, this.isFromForwardMessage});
 
   @override
   State<BeAvailableContactsList> createState() =>
@@ -113,15 +118,15 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   }
 
   Future<void> _loadContactsFromStorage() async {
-    // String? storedData = await SharedPreferenceUtils.getSecureValue(
-    //     SharedPreferenceUtils.saved_contacts);
-    // if (storedData != null) {
-    //   Map<String, dynamic> decoded =
-    //       await compute(jsonDecode, storedData) as Map<String, dynamic>;
-    //   chatViewController.loadContactsFromLocalStorage(decoded);
-    // } else {
+    String? storedData = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.saved_contacts);
+    if (storedData != null) {
+      Map<String, dynamic> decoded =
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      chatViewController.loadContactsFromLocalStorage(decoded);
+    } else {
       await _refreshContacts();
-    // }
+    }
   }
 
 // This is the isolate function → runs in background
@@ -359,7 +364,25 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                         };
                         chatViewController.addGroupMember(params: data);
                         return ;
-                } else {
+                } else if(widget.isFromForwardMessage==true){
+                  List<String?> userIds=_selectedUsers.map((e) => e.id).toList();
+                  Map<String, dynamic> data = {
+                    ApiKeys.forward_id:
+                    chatThemeController.selectedMessageIds,
+                    ApiKeys.forward_to_conversations: userIds,
+                  };
+
+                  bool value = await chatViewController
+                      .forwardMessageApi(data);
+
+                  if (value) {
+                    chatViewController.emitEvent(
+                        ChatEmitEvents.ChatList,
+                        {ApiKeys.type: AppConstants.personal_Chat_Type});
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }
+                }else{
                         if (widget.sharedFiles != null) {
                           List<File> selectedFiles = [];
                           List<SharedAttachment?>? sharedList =
@@ -407,7 +430,8 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                                 _selectedUsers.first.conversationId ?? '',
                             messageType: messageType,
                           );
-                        } else if (widget.sharedText != null) {
+                        }
+                        else if (widget.sharedText != null) {
                           Map<String, dynamic> data = {
                             if (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='')
                               ApiKeys.other_user_id: _selectedUsers.first.id
@@ -437,7 +461,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                         return ;
                       }
                     },
-              title: _selectedUsers.isEmpty
+              title: (widget.isFromForwardMessage==true)?"${_selectedUsers.length} Forward":_selectedUsers.isEmpty
                   ? AppStrings.selectContact.tr
                   : (widget.isFromAddMember == true)
                       ? AppStrings.add.tr
