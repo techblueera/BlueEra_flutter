@@ -362,7 +362,7 @@ class _MessageCardState extends State<MessageCard>
           ),
         ),
         (chatThemeController.isMessageSelectionActive.value &&
-                chatThemeController.selectedId
+                chatThemeController.selectedMessageIds
                     .contains(widget.message.id ?? ""))
             ? Positioned.fill(
                 child: InkWell(

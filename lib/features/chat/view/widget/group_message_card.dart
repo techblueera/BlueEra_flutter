@@ -208,7 +208,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
             .isMessageSelectionActive
             .value &&
             chatThemeController
-                .selectedId
+                .selectedMessageIds
                 .contains(
                 widget.message.id ?? ""))
             ? Positioned.fill(

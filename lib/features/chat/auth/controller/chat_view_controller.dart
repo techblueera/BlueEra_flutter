@@ -80,6 +80,7 @@ class ChatViewController extends GetxController {
   RxBool showMentionList = false.obs;
   RxString mentionQuery = "".obs;
   RxList<GroupMembersListModel> filteredMembers = <GroupMembersListModel>[].obs;
+  RxList<String> taggedUserIds = <String>[].obs;
   Rx<GroupDetailsModel> groupDetailsModel=GroupDetailsModel().obs;
 
   static final Map<String, dynamic> aiChatListModel = {
@@ -710,6 +711,7 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -1500,10 +1502,37 @@ class ChatViewController extends GetxController {
         return Duration.zero;
     }
   }
+  List<String> getMentionedUserIds({
+    required String message,
+    required List<GroupMembersListModel> members,
+  }) {
+    final RegExp mentionRegExp = RegExp(r'@(\w+)');
 
+    final matches = mentionRegExp.allMatches(message);
+
+    List<String> mentionedIds = [];
+
+    for (final match in matches) {
+      final mentionedName = match.group(1)?.toLowerCase().trim();
+
+      if (mentionedName == null) continue;
+
+      final user = members.firstWhereOrNull(
+            (member) => member.name?.toLowerCase().trim() == mentionedName,
+      );
+
+      if (user?.id != null) {
+        mentionedIds.add(user!.id!);
+      }
+    }
+
+    return mentionedIds;
+  }
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
     try {
+      params[ApiKeys.tagged_users] = taggedUserIds.join(',');
+      taggedUserIds.clear();
       if(params[ApiKeys.message_type]=="live_location"){
        await startLiveLocationTracking(labelToDuration(params[ApiKeys.live_location_validity]));
       }
@@ -1522,27 +1551,6 @@ class ChatViewController extends GetxController {
         getListOfMessageData?.add(sendLoadingFile.value);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
-      }
-      String? message=params[ApiKeys.message];
-      if(message!=null&&message.contains("@")){
-        final RegExp mentionRegex = RegExp(r'@(\w+)');
-
-        // Get all matches
-        final matches = mentionRegex.allMatches(message);
-
-        // Convert to list of names (without @)
-        List<String> mentionedNames =
-        matches.map((match) => match.group(1)!.toString().toLowerCase()).toList();
-
-        List<String?> mentionedUserIds = filteredMembers
-            .where((member) {
-          final name = member.name?.toLowerCase() ?? "";
-          return mentionedNames.any((mention) => name.contains(mention));
-        })
-            .map((member) => member.id)
-            .toList();
-
-        params[ApiKeys.tagged_users] = mentionedUserIds;
       }
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
@@ -2121,8 +2129,8 @@ class ChatViewController extends GetxController {
     required Map<String, dynamic> params,
     required List<File> listFile,
     required bool isInitialMessage,
-    required String userId,
-    required String conversationId,
+     String? userId,
+     String? conversationId,
     String? commands,
     required String messageType,
     bool? isPendingMessage,
@@ -2225,7 +2233,7 @@ class ChatViewController extends GetxController {
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
 
-        saveSingleMessageToLocal(conversationId, message, params);
+        saveSingleMessageToLocal(conversationId??'', message, params);
       }
     }
   }

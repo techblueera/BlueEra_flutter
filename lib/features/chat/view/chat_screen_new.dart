@@ -272,7 +272,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       } else {
                         Map<String, dynamic> data = {
                           ApiKeys.forward_id:
-                          chatThemeController.selectedId,
+                          chatThemeController.selectedMessageIds,
                           ApiKeys.forward_to_conversations:
                           chatViewController.selectedUserIds,
                           // ApiKeys.additional_message: "${widget.message?.messageType}"
@@ -398,7 +398,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                   right: 0,
                   child: InkWell(
                     onTap: () {
-                      Get.to(AddChatSymbolScreen());
+                      Get.to(()=>AddChatSymbolScreen());
                     },
                     child: Container(
                       decoration: BoxDecoration(

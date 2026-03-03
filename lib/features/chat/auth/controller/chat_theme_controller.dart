@@ -28,7 +28,7 @@ class ChatThemeController extends GetxController {
   RxBool isMessageSelectionActive = false.obs;
   RxBool isDeleteForEveryOneAvailable = true.obs;
   RxString viewLiverLocationReceivedUserId = ''.obs;
-  RxList<String> selectedId = <String>[].obs;
+  RxList<String> selectedMessageIds = <String>[].obs;
   RxInt reminderSubTabSelectedIndex=0.obs;
   Rx<Messages?>? selectedFirstMessage = Messages().obs;
 
@@ -71,7 +71,7 @@ class ChatThemeController extends GetxController {
   void resetSelection() {
     isMessageSelectionActive.value = false;
     selectedMessages.clear();
-    selectedId.clear();
+    selectedMessageIds.clear();
     selectedFirstMessage=null;
 
   }
@@ -89,7 +89,7 @@ class ChatThemeController extends GetxController {
 
     // Add id
     String id = message.forwardId ?? message.id;
-    selectedId.add(id);
+    selectedMessageIds.add(id);
 
     // Initial delete-for-everyone state
     isDeleteForEveryOneAvailable.value = message.myMessage == true;
@@ -105,11 +105,11 @@ class ChatThemeController extends GetxController {
     if (selectedMessages.any((e) => (e.forwardId ?? e.id) == id)) {
       // REMOVE
       selectedMessages.removeWhere((e) => (e.forwardId ?? e.id) == id);
-      selectedId.remove(id);
+      selectedMessageIds.remove(id);
     } else {
       // ADD
       selectedMessages.add(message);
-      selectedId.add(id);
+      selectedMessageIds.add(id);
     }
 
     // No selection
@@ -129,7 +129,7 @@ class ChatThemeController extends GetxController {
   void deActivateSelection() {
     isDeleteForEveryOneAvailable.value=true;
     selectedFirstMessage=null;
-    selectedId.clear();
+    selectedMessageIds.clear();
     selectedMessages.clear();
   }
 
@@ -340,7 +340,7 @@ class ChatThemeController extends GetxController {
   }
   Future<bool?> setReminderApiCall(Map<String, dynamic> params) async {
     try {
-      List<String> value=selectedId;
+      List<String> value=selectedMessageIds;
       params[ApiKeys.message_ids]=value;
       log("kjsdcnksdjcnksjdcn ${params}");
       ResponseModel responseModel =

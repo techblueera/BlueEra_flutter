@@ -57,6 +57,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       padding: EdgeInsets.all(SizeConfig.paddingM),
       decoration: BoxDecoration(
@@ -194,161 +195,166 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
             ))
                 .toList(),
           ),
-
-          SizedBox(height: SizeConfig.size10),
-          Row(
+          if(controller.selectedPostType.value!=PostType.link)
+          Column(
             children: [
-              CustomText(
-                "Font Style",
-                fontSize: SizeConfig.small,
+              SizedBox(height: SizeConfig.size10),
+              Row(
+                children: [
+                  CustomText(
+                    "Font Style",
+                    fontSize: SizeConfig.small,
+                  ),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size12),
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: controller.fontStyles.length,
+                  separatorBuilder: (context, index) =>
+                  const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final style = controller.fontStyles[index];
+
+                    return Obx(() => GestureDetector(
+                      onTap: () => controller
+                          .changeFontFamily(style['family']!),
+                      child: Container(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color:
+                          controller.selectedFontFamily.value ==
+                              style['family']
+                              ? Colors.blue[100]
+                              : Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: controller
+                                .selectedFontFamily.value ==
+                                style['family']
+                                ? Colors.blue
+                                : Colors.transparent,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: CustomText(
+                          style['name']!,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: style['family'],
+                        ),
+                      ),
+                    ));
+                  },
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              Row(
+                children: [
+                  CustomText(
+                    "Font Size",
+                    fontSize: SizeConfig.small,
+                  ),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size12),
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: controller.fontSizeList.length,
+                  separatorBuilder: (context, index) =>
+                  const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final num = controller.fontSizeList[index];
+
+                    return Obx(() => GestureDetector(
+                      onTap: () => controller
+                          .changeFontSize(num),
+                      child: Container(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color:
+                          controller.selectedFontSize.value ==
+                              num
+                              ? Colors.blue[100]
+                              : Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: controller
+                                .selectedFontSize.value ==
+                                num
+                                ? Colors.blue
+                                : Colors.transparent,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: CustomText(
+                          "${num.toInt()}",
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ));
+                  },
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              Row(
+                children: [
+                  CustomText(
+                    "Font Weight",
+                    fontSize: SizeConfig.small,
+                  ),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size12),
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: controller.fontWeightList.length,
+                  separatorBuilder: (context, index) =>
+                  const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final num = controller.fontWeightList[index];
+
+                    return Obx(() => GestureDetector(
+                      onTap: () => controller
+                          .changeFontWeight(num),
+                      child: Container(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color:
+                          controller.selectedFontWeight.value ==
+                              num
+                              ? Colors.blue[100]
+                              : Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: controller
+                                .selectedFontWeight.value ==
+                                num
+                                ? Colors.blue
+                                : Colors.transparent,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: CustomText(
+                          "${num}",
+                          fontWeight: controller.getFontWeight(num),
+                        ),
+                      ),
+                    ));
+                  },
+                ),
               ),
             ],
           ),
-          SizedBox(height: SizeConfig.size12),
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: controller.fontStyles.length,
-              separatorBuilder: (context, index) =>
-              const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final style = controller.fontStyles[index];
 
-                return Obx(() => GestureDetector(
-                  onTap: () => controller
-                      .changeFontFamily(style['family']!),
-                  child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color:
-                      controller.selectedFontFamily.value ==
-                          style['family']
-                          ? Colors.blue[100]
-                          : Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: controller
-                            .selectedFontFamily.value ==
-                            style['family']
-                            ? Colors.blue
-                            : Colors.transparent,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      style['name']!,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: style['family'],
-                    ),
-                  ),
-                ));
-              },
-            ),
-          ),
-          SizedBox(height: SizeConfig.size12),
-          Row(
-            children: [
-              CustomText(
-                "Font Size",
-                fontSize: SizeConfig.small,
-              ),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size12),
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: controller.fontSizeList.length,
-              separatorBuilder: (context, index) =>
-              const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final num = controller.fontSizeList[index];
-
-                return Obx(() => GestureDetector(
-                  onTap: () => controller
-                      .changeFontSize(num),
-                  child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color:
-                      controller.selectedFontSize.value ==
-                          num
-                          ? Colors.blue[100]
-                          : Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: controller
-                            .selectedFontSize.value ==
-                            num
-                            ? Colors.blue
-                            : Colors.transparent,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      "${num.toInt()}",
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ));
-              },
-            ),
-          ),
-          SizedBox(height: SizeConfig.size12),
-          Row(
-            children: [
-              CustomText(
-                "Font Weight",
-                fontSize: SizeConfig.small,
-              ),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size12),
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: controller.fontWeightList.length,
-              separatorBuilder: (context, index) =>
-              const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final num = controller.fontWeightList[index];
-
-                return Obx(() => GestureDetector(
-                  onTap: () => controller
-                      .changeFontWeight(num),
-                  child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color:
-                      controller.selectedFontWeight.value ==
-                          num
-                          ? Colors.blue[100]
-                          : Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: controller
-                            .selectedFontWeight.value ==
-                            num
-                            ? Colors.blue
-                            : Colors.transparent,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      "${num}",
-                      fontWeight: controller.getFontWeight(num),
-                    ),
-                  ),
-                ));
-              },
-            ),
-          ),
 
         ],
       ),

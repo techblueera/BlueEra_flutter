@@ -1,9 +1,11 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
-
+import 'package:any_link_preview/any_link_preview.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/symbol_details_model.dart';
@@ -14,52 +16,40 @@ class SymbolViewImages extends StatefulWidget {
   final String? userId;
   final List<SymbolDetailsModel>? mySymbols;
 
-  const SymbolViewImages({super.key, this.data,  this.mySymbols,this.userId});
+  const SymbolViewImages({super.key, this.data, this.mySymbols, this.userId});
 
   @override
   State<SymbolViewImages> createState() => _SymbolViewImagesState();
 }
 
-class _SymbolViewImagesState extends State<SymbolViewImages>
-    with SingleTickerProviderStateMixin {
+class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerProviderStateMixin {
   late PageController _pageController;
   int currentIndex = 0;
-  List<SymbolDetailsModel>? allImages=[];
-  final addSymbolController = Get.isRegistered<AddChatSymbolController>()
-      ? Get.find<AddChatSymbolController>()
-      : Get.put(AddChatSymbolController());
+  List<SymbolDetailsModel>? allImages = [];
+  final addSymbolController = Get.isRegistered<AddChatSymbolController>() ? Get.find<AddChatSymbolController>() : Get.put(AddChatSymbolController());
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   VideoPlayerController? _videoController;
   bool isPlaying = true;
-  void getSymbols()async{
-    allImages  = await addSymbolController.getSymbolsForOtherUser(widget.userId??'');
- setState(() {
 
- });
+  void getSymbols() async {
+    allImages = await addSymbolController.getSymbolsForOtherUser(widget.userId ?? '');
+    setState(() {});
   }
+
   @override
   void initState() {
     super.initState();
 
     _pageController = PageController();
-    if(widget.mySymbols==null){
-      if(widget.userId!=null){
+    if (widget.mySymbols == null) {
+      if (widget.userId != null) {
         getSymbols();
       }
-      //  allImages= widget.data;
-    }else{
-      allImages= widget.mySymbols;
+    } else {
+      allImages = widget.mySymbols;
     }
-    /// Collect all images
-    // for (var post in (widget.data??[])) {
-    //   if (post.media != null) {
-    //     allImages.addAll(post.media!);
-    //   }
-    //
-
-    // }
 
     /// Smooth fade animation
     _fadeController = AnimationController(
@@ -71,10 +61,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _fadeController.forward();
-    Future.delayed(Duration(milliseconds: 200),(){
-      setState(() {
-
-      });
+    Future.delayed(const Duration(milliseconds: 200), () {
+      setState(() {});
     });
   }
 
@@ -87,7 +75,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
   }
 
   void goNext() {
-    if (currentIndex < (allImages?.length??0) - 1) {
+    if (currentIndex < (allImages?.length ?? 0) - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
@@ -104,16 +92,30 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
     }
   }
 
+  Color hexToColor(String? hex) {
+    if (hex == null || hex.isEmpty) return Colors.black;
+    hex = hex.trim();
+    if (hex.startsWith('#')) {
+      hex = hex.substring(1);
+    }
+    if (hex.length == 3) {
+      hex = hex.split('').map((c) => '$c$c').join();
+    }
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    if (hex.length != 8) return Colors.black;
+    return Color(int.parse(hex, radix: 16));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
       body: SafeArea(
         child: Stack(
           children: [
-            /// Image viewer with fade animation
+            /// Content Viewer
             FadeTransition(
               opacity: _fadeAnimation,
               child: PageView.builder(
@@ -123,178 +125,110 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                 itemBuilder: (_, index) {
                   final url = allImages?[index];
 
-                    if(url?.type=='photo'||url?.type=="video"){
-                      final isVideo = url?.content?.toLowerCase().contains('.mp4');
-                      // if (isVideo??false) {
-                      //   // _videoController?.dispose();
-                      //   _videoController =
-                      //   VideoPlayerController.network(url?.content??'')
-                      //     ..initialize().then((_) {
-                      //       setState(() {
-                      //         _videoController?.play();
-                      //       });
-                      //     });
-                      // }
-
-
-                      /// IMAGE (unchanged)
-                      return Stack(
-                        children: [
-                          if(isVideo??false)
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: ChatCustomVideoPlayer(videoUrl: url?.content??"",),
+                  if (url?.type == 'photo' || url?.type == "video") {
+                    final isVideo = url?.content?.toLowerCase().contains('.mp4');
+                    return Stack(
+                      children: [
+                        if (isVideo ?? false)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: ChatCustomVideoPlayer(
+                                videoUrl: url?.content ?? "",
                               ),
-                            )
-                          else
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              left: 0,
-                              bottom: 20,
-                              child: InteractiveViewer(
-                                child: Center(
-                                  child: Image.network(
-                                    url?.content??"",
-                                    fit: BoxFit.contain,
-                                  ),
+                            ),
+                          )
+                        else
+                          Positioned.fill(
+                            child: InteractiveViewer(
+                              child: Center(
+                                child: Image.network(
+                                  url?.content ?? "",
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                             ),
-                          // if(isVideo??false)
-                          //   Container(
-                          //     child: Center(
-                          //       child: GestureDetector(
-                          //         onTap: () {
-                          //           setState(() {
-                          //             if (_videoController!.value.isPlaying) {
-                          //               _videoController!.pause();
-                          //               isPlaying = false;
-                          //             } else {
-                          //               _videoController!.play();
-                          //               isPlaying = true;
-                          //             }
-                          //           });
-                          //         },
-                          //         child: AnimatedOpacity(
-                          //           opacity: isPlaying ? 0.0 : 1.0,
-                          //           duration: const Duration(milliseconds: 300),
-                          //           child: Container(
-                          //             padding: const EdgeInsets.all(14),
-                          //             decoration: BoxDecoration(
-                          //               color: Colors.black54,
-                          //               shape: BoxShape.circle,
-                          //             ),
-                          //             child: Icon(
-                          //               isPlaying ? Icons.pause : Icons.play_arrow,
-                          //               size: 48,
-                          //               color: Colors.white,
-                          //             ),
-                          //           ),
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ),
-
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: (url?.caption?.isNotEmpty??false)?Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(26, 20, 26, 44),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black87,
-                                  ],
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  // IconButton(
-                                  //   icon: const Icon(Icons.favorite_border,
-                                  //       color: Colors.white,size: 22,),
-                                  //   onPressed: () {},
-                                  // ),
-                                  Expanded(
-                                    child: CustomText(
-                                      "${url?.caption}",
-
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                          ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: (url?.caption?.isNotEmpty ?? false)
+                              ? Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.fromLTRB(26, 60, 26, 60),
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black87,
+                                      ],
                                     ),
                                   ),
-                                ],
+                                  child: CustomText(
+                                    "${url?.caption}",
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    maxLines: 4,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                )
+                              : const SizedBox(),
+                        ),
+                      ],
+                    );
+                  } else if (url?.type == "text" || url?.type == "embeddedUrl") {
+                    return Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: hexToColor(url?.backgroundColor),
+                      child: Center(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: buildLinkPreview(url?.content ?? ''),
                               ),
-                            ):SizedBox(),
-                          ),
-
-                        ],
-                      );
-                    }
-                    else
-                      if(url?.type=="text"||url?.type=="embeddedUrl"){
-                      Color hexToColor(String? hex) {
-                        if (hex == null) return Colors.transparent;
-
-                        hex = hex.trim();
-
-                        if (hex.startsWith('#')) {
-                          hex = hex.substring(1);
-                        }
-
-                        // Support shorthand hex like #FFF
-                        if (hex.length == 3) {
-                          hex = hex.split('').map((c) => '$c$c').join();
-                        }
-
-                        // Add alpha if missing
-                        if (hex.length == 6) {
-                          hex = 'FF$hex';
-                        }
-
-                        // Final safety check
-                        if (hex.length != 8) return Colors.transparent;
-
-                        return Color(int.parse(hex, radix: 16));
-                      }
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 50,
-
-                        ),
-                        color:hexToColor(url?.backgroundColor),
-                        child: Center(
-                          child: CustomText(
-                            textAlign: TextAlign.center,
-                            "${url?.content}",
-                            fontWeight: addSymbolController.getFontWeight(url?.fontWeight??''),
-                            fontSize: url?.fontSize,
-                            fontFamily: url?.fontFamily,
+                              if (url?.content != null && url!.content!.isNotEmpty) ...[
+                                const SizedBox(height: 32),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                  child: url.content!.contains('http')
+                                      ? _buildUrlChip(url.content!)
+                                      : CustomText(
+                                          textAlign: TextAlign.center,
+                                          "${url.content}",
+                                          fontWeight: addSymbolController.getFontWeight(url.fontWeight ?? 'normal'),
+                                          fontSize: (url.fontSize ?? 18) * 1.1,
+                                          fontFamily: url.fontFamily,
+                                          color: Colors.white,
+                                          height: 1.4,
+                                        ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      );
-                    }else{
-                        return SizedBox();
-                      }
-
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
                 },
               ),
             ),
 
-            /// LEFT TAP REGION → go previous
+            /// LEFT/RIGHT TAP REGIONS
             Positioned.fill(
               child: Row(
                 children: [
-                  /// LEFT EDGE (20% width)
                   Expanded(
                     flex: 2,
                     child: GestureDetector(
@@ -302,8 +236,6 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                       onTap: goPrev,
                     ),
                   ),
-
-                  /// CENTER (60%) → let video receive taps
                   Expanded(
                     flex: 6,
                     child: IgnorePointer(
@@ -311,8 +243,6 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                       child: Container(),
                     ),
                   ),
-
-                  /// RIGHT EDGE (20% width)
                   Expanded(
                     flex: 2,
                     child: GestureDetector(
@@ -324,8 +254,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
               ),
             ),
 
-
-            // /// Back button - modern glass effect
+            /// Controls
             Positioned(
               top: 14,
               left: 14,
@@ -334,16 +263,15 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                 child: Container(
                   color: Colors.black38,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
               ),
             ),
-            if(widget.mySymbols?.isNotEmpty??false)
-              deleteWidget(allImages![currentIndex]),
+            if (widget.mySymbols?.isNotEmpty ?? false) deleteWidget(allImages![currentIndex]),
 
-            /// Modern page indicator (dots)
+            /// Page indicator
             Positioned(
               bottom: 25,
               left: 0,
@@ -351,16 +279,14 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  allImages?.length??0,
-                      (i) => AnimatedContainer(
+                  allImages?.length ?? 0,
+                  (i) => AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     height: 8,
                     width: currentIndex == i ? 22 : 8,
                     decoration: BoxDecoration(
-                      color: currentIndex == i
-                          ? Colors.white
-                          : Colors.white54,
+                      color: currentIndex == i ? Colors.white : Colors.white54,
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -372,43 +298,205 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
       ),
     );
   }
-  Widget deleteWidget(SymbolDetailsModel symbol){
-    return  Positioned(
-      top: 58,
-      right: 24,
+
+  Widget _buildUrlChip(String url) {
+    String domain = url;
+    try {
+      domain = Uri.parse(url).host;
+      if (domain.startsWith('www.')) domain = domain.substring(4);
+    } catch (_) {}
+
+    final faviconUrl = 'https://www.google.com/s2/favicons?domain=$domain&sz=64';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black38,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.network(
+            faviconUrl,
+            width: 20,
+            height: 20,
+            errorBuilder: (_, __, ___) => const Icon(Icons.language, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            domain,
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLinkPreview(String message) {
+    final hasLink = message.contains("http");
+    if (!hasLink) return const SizedBox.shrink();
+
+    String link = message;
+    final regExp = RegExp(r'(https?:\/\/[^\s]+)');
+    final match = regExp.firstMatch(message);
+    if (match != null) {
+      link = match.group(0)!;
+    }
+
+    final double squareSize = MediaQuery.of(context).size.width - 40;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 30,
+            spreadRadius: -10,
+            offset: const Offset(0, 15),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: AnyLinkPreview.builder(
+          link: link,
+          cache: const Duration(days: 7),
+          placeholderWidget: Container(
+            height: squareSize,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.grey.shade100, Colors.grey.shade50],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor)),
+          ),
+          errorWidget: Container(
+            padding: const EdgeInsets.all(20),
+            color: Colors.white,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.link_rounded, color: AppColors.primaryColor, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    link,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.blueAccent,
+                      decoration: TextDecoration.underline,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          itemBuilder: (context, metadata, imageProvider, svgImage) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (imageProvider != null)
+                  SizedBox(
+                    height: squareSize,
+                    width: double.infinity,
+                    child: Image(image: imageProvider, fit: BoxFit.cover),
+                  )
+                else if (svgImage != null)
+                  SizedBox(height: squareSize, width: double.infinity, child: svgImage),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (metadata.title != null && metadata.title!.isNotEmpty)
+                        Text(
+                          metadata.title!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            height: 1.2,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      if (metadata.desc != null && metadata.desc!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          metadata.desc!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black87,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget deleteWidget(SymbolDetailsModel symbol) {
+    return Positioned(
+      top: 14,
+      right: 14,
       child: InkWell(
-        onTap: ()async{
-            final deletedIndex = currentIndex;
+        onTap: () async {
+          final deletedIndex = currentIndex;
+          allImages = await addSymbolController.deleteSymbol(symbolData: symbol);
 
-            allImages =
-            await addSymbolController.deleteSymbol(symbolData: symbol);
+          if (allImages == null || allImages!.isEmpty) {
+            Get.back();
+            return;
+          }
 
-            if (allImages == null || allImages!.isEmpty) {
-              Get.back();
-              return;
-            }
+          if (deletedIndex >= allImages!.length) {
+            currentIndex = allImages!.length - 1;
+          } else {
+            currentIndex = deletedIndex;
+          }
 
-            // Decide new index
-            if (deletedIndex >= allImages!.length) {
-              // Deleted last item → go to previous
-              currentIndex = allImages!.length - 1;
-            } else {
-              // Deleted middle or first → stay at same index
-              currentIndex = deletedIndex;
-            }
-
-            setState(() {});
-
-            _pageController.jumpToPage(currentIndex);
-
+          setState(() {});
+          _pageController.jumpToPage(currentIndex);
         },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(50),
           child: Container(
-            color:Colors.black87,
-            child: Padding(
-              padding: const EdgeInsets.all(11.0),
-              child: Icon(Icons.delete,color: AppColors.white,size: 22,),
+            color: Colors.black26,
+            child: const Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Icon(
+                Icons.delete_outline,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
           ),
         ),
