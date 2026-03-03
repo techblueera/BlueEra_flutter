@@ -94,7 +94,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: homeMadeFoodCategories[i],
                   getName: (item) => item.name,
-                  getIcon: (item) => item.icon,
+                  getIcon: (item) => item.icon ?? '',
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {

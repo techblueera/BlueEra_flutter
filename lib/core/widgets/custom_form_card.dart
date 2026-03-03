@@ -85,27 +85,12 @@ class CustomFormCardBGImg extends StatelessWidget {
       margin: margin,
       padding: padding ?? EdgeInsets.all(SizeConfig.size15),
       decoration: BoxDecoration(
-        // color: color ?? AppColors.white,
         borderRadius: BorderRadius.circular(10.0),
         // --- Added Background Image ---
         image: DecorationImage(
           image: AssetImage('assets/images/$bgImage'), // Or NetworkImage('url')
           fit: BoxFit.cover, // This ensures the image fills the container
         ),
-   /*     boxShadow: (isBorderAvailable??false)?[
-          BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 5,
-          spreadRadius: 0.5,
-          offset: Offset(-5, 0), // 👈 Left side shadow
-        ),
-          BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 5,
-          spreadRadius: 0.5,
-          offset: Offset(5, 0), // 👈 Left side shadow
-        ),
-        ]:null,*/
       ),
       child: child,
     );

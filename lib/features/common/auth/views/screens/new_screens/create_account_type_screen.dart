@@ -215,7 +215,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                       itemBuilder: (context, index) {
                         var category = individualOnboardingProfilesCategory[index];
                         return Obx(()=> _categoryItem(
-                          category.icon,
+                          category.icon ?? '',
                           category.name,
                           selected: authController.selectedIndividualOnboardingProfile.value!=null
                               ? authController.selectedIndividualOnboardingProfile.value?.slugId == category.slugId
@@ -256,7 +256,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                       itemBuilder: (context, index) {
                         var category = businessOnboardingProfilesCategory[index];
                         return Obx(()=> _categoryItem(
-                          category.icon,
+                          category.icon ?? '',
                           category.name,
                           selected: authController.selectedBusinessOnboardingProfile.value!=null
                               ? authController.selectedBusinessOnboardingProfile.value?.slugId == category.slugId

@@ -2,20 +2,20 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 
 class OnboardingCategoryModel {
   final String name;
-  final String icon;
-  final String? flagIcon;
+  // final String? flagIcon;
   final String slugId;
   final String accountType;
+  final String? icon;
   final BusinessType? businessType;
   final IndividualProfileType? individualType;
 
 
   const OnboardingCategoryModel({
     required this.name,
-    required this.icon,
-    this.flagIcon,
+    // this.flagIcon,
     required this.slugId,
     required this.accountType,
+    this.icon,
     this.businessType,
     this.individualType,
   });

@@ -97,11 +97,11 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                 padding: EdgeInsets.zero,
                 primary: false,
                 shrinkWrap: true,
-                itemCount: individualOnboardingSkillWorkList.take(12).length,
+                itemCount: individualSkillWorkList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: individualOnboardingSkillWorkList[i],
+                  service: individualSkillWorkList[i],
                   getName: (item) => item.name,
-                  getIcon: (item) => item.flagIcon ?? '',
+                  getIcon: (item) => item.icon??'',
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {

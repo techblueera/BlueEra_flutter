@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -134,7 +133,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
       getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? "",
+      getIcon: (item) => item.icon ?? '',
       isSelected: (item) {
         if (item.slugId == 'ALL_OPTION') {
           return controller.selectedProfessionalConsultantData.value == null;

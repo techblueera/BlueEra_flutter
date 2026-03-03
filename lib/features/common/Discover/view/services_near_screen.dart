@@ -485,7 +485,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             LocalAssets(
-              imagePath: serviceCategory.flagIcon??'',
+              imagePath: serviceCategory.icon??'',
               height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXSL),

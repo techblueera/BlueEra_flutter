@@ -567,7 +567,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             LocalAssets(
-              imagePath: productData.icon,
+              imagePath: productData.icon ?? '',
               height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXS),

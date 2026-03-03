@@ -19,6 +19,7 @@ class CommonServiceCard<T> extends StatelessWidget {
   final double? borderWidth;
   final int? textMaxLine;
   final List<BoxShadow>? boxShadow;
+  final EdgeInsetsGeometry? margin;
 
   const CommonServiceCard({
     Key? key,
@@ -32,6 +33,7 @@ class CommonServiceCard<T> extends StatelessWidget {
     this.borderWidth,
     this.textMaxLine,
     this.boxShadow,
+    this.margin,
   }) : super(key: key);
 
   @override
@@ -44,6 +46,7 @@ class CommonServiceCard<T> extends StatelessWidget {
       onTap: () => onTap(service),
       child: Container(
         padding: EdgeInsets.all(SizeConfig.size10),
+        margin: margin,
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),

@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -357,16 +358,19 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                       double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
                       double desiredItemHeight = 370.0;
 
-                      return GridView.builder(
+                      return MasonryGridView.count(
                         controller: scrollController,
                         itemCount: controller.arrGroceryCategoryProducts.length +
                             (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: gridItemWidth / desiredItemHeight,
-                        ),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        //   crossAxisCount: 2,
+                        //   crossAxisSpacing: 10,
+                        //   mainAxisSpacing: 10,
+                        //   childAspectRatio: gridItemWidth / desiredItemHeight,
+                        // ),
                         padding: EdgeInsets.only(bottom: SizeConfig.size30),
                         itemBuilder: (_, i) {
                           if (i == controller.arrGroceryCategoryProducts.length) {
@@ -443,13 +447,16 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  "${groceryProductData.name}",
-                  fontSize: SizeConfig.small,
-                  maxLines: 2,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
+                SizedBox(
+                  height: SizeConfig.size30,
+                  child: CustomText(
+                    "${groceryProductData.name}",
+                    fontSize: SizeConfig.small,
+                    maxLines: 2,
+                    color: AppColors.mainTextColor,
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 SizedBox(height: SizeConfig.size6),
                 Row(
@@ -563,7 +570,8 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                       borderColor: AppColors.primaryColor,
                     )
                   ],
-                )
+                ),
+                SizedBox(height: SizeConfig.size4),
               ],
             ),
           ),

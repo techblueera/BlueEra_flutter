@@ -3269,6 +3269,7 @@ class AppStrings {
   static const String bookYourTransport = "book_your_transport";
   static const String rentalService = "rental_service";
   static const String findServices = "find_services";
+  static const String financialSectors  = "Financial Sectors";
   static const String automotiveShowroom = "automotive_showroom";
   static const String restaurantNearby = "restaurant_nearby";
   static const String findDreamJob = "find_dream_job";

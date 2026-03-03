@@ -151,7 +151,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   Widget leftCategoryList() {
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: _stayCategories,
-      getIcon: (item) => item.icon,
+      getIcon: (item) => item.icon ?? '',
       getLabel: (item) => item.name,
       isSelected: (item) =>
           controller.selectedStayCategory.value?.slugId == item.slugId,

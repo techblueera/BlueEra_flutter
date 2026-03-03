@@ -152,7 +152,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
       getLabel: (item) => item.name,
-      getIcon: (item) => item.icon,
+      getIcon: (item) => item.icon ?? '',
       isSelected: (item) {
         if (item.slugId == 'ALL_OPTION') {
           return controller.selectedEarnServiceData.value == null;

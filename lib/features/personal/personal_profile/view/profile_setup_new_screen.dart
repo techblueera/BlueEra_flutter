@@ -634,7 +634,8 @@ class _PersonalProfileSetupNewScreenState
     IndividualProfileTypeModel _selectedProfileType =
         IndividualProfileTypeModel.fromString(user?.profileType ?? SOCIAL_PROFILE);
     OnboardingCategoryModel? _selectedProfession;
-    List<OnboardingCategoryModel> professionCategoryList = <OnboardingCategoryModel>[];
+    List<OnboardingCategoryModel> professionCategoryList =
+              <OnboardingCategoryModel>[];
 
     String designation = user?.designation ?? '';
     IndividualFields? _selectedContentCreatorSpecialization;
@@ -665,7 +666,7 @@ class _PersonalProfileSetupNewScreenState
           professionCategoryList = individualOnboardingGigWorkList;
           break;
         case SELF_EMPLOYED:
-          professionCategoryList = individualOnboardingSkillWorkList;
+          professionCategoryList = individualSkillWorkList;
           break;
         case PROFESSIONAL:
           professionCategoryList = individualOnboardingConsultationList;

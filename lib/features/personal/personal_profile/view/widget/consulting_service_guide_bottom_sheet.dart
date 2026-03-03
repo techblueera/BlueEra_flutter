@@ -100,7 +100,7 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: individualOnboardingConsultationList[i],
                   getName: (item) => item.name,
-                  getIcon: (item) => item.icon,
+                  getIcon: (item) => item.icon ?? '',
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {

@@ -127,7 +127,6 @@ class _AllProfessionConsultantScreenState
       name: 'All',
       slugId: 'ALL_OPTION',
       icon: AppImageAssets.all,
-      flagIcon: AppImageAssets.all,
       individualType: IndividualProfileType.PROFESSIONAL,
       accountType: AppConstants.individual,
     );
@@ -137,7 +136,7 @@ class _AllProfessionConsultantScreenState
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
       getLabel: (item) => item.name,
-      getIcon: (item) => item.flagIcon ?? "",
+      getIcon: (item) => item.icon ?? '',
       isSelected: (item) {
         if (item.slugId == 'ALL_OPTION') {
           return controller.selectedProfessionalConsultantData.value == null;

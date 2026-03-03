@@ -187,14 +187,14 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                 crossAxisCount: 3,
                                 crossAxisSpacing: 6,
                                 mainAxisSpacing: 6,
-                                itemCount: individualOnboardingSkillWorkList
+                                itemCount: individualSkillWorkList
                                     .take(6)
                                     .length,
                                 physics: NeverScrollableScrollPhysics(),
                                 itemBuilder: (context, index) {
                                   var item =
-                                  individualOnboardingSkillWorkList[index];
-                                  return _commonCard(icon: item.icon, text: item.name);
+                                  individualSkillWorkList[index];
+                                  return _commonCard(icon: item.icon ?? '', text: item.name);
                                 },
                                 padding: EdgeInsets.zero,
                                 shrinkWrap: true,

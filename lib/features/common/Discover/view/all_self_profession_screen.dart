@@ -142,7 +142,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
       name: 'All',
       slugId: 'ALL_OPTION',
       icon: AppImageAssets.all,
-      flagIcon: AppImageAssets.all,
       individualType: IndividualProfileType.SELF_EMPLOYED,
       accountType: AppConstants.individual,
     );
@@ -152,7 +151,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
       getLabel: (item) => item.name,
-      getIcon: (item) => item.flagIcon ?? "",
+      getIcon: (item) => item.icon ?? '',
 
       // --- SELECTION LOGIC ---
       isSelected: (item) {

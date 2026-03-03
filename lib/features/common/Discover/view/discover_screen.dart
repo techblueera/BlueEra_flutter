@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -19,7 +18,7 @@ import 'package:BlueEra/features/common/Discover/view/all_education_service_scre
 import 'package:BlueEra/features/common/Discover/view/all_professional_consultant_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/favourite_category_list_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/health_care_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_made_product_screen.dart';
@@ -28,7 +27,6 @@ import 'package:BlueEra/features/common/Discover/view/product_local_market_scree
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
-import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -43,10 +41,8 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../me/grocery/widget/grocery_data.dart';
 import 'book_your_transport/book_transport_main.dart';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
 
 class ResponsiveSearchBar extends StatelessWidget {
   const ResponsiveSearchBar({super.key});
@@ -109,85 +105,6 @@ class ResponsiveSearchBar extends StatelessWidget {
   }
 }
 
-class FashionSlider extends StatefulWidget {
-  const FashionSlider({super.key});
-
-  @override
-  State<FashionSlider> createState() => _FashionSliderState();
-}
-
-class _FashionSliderState extends State<FashionSlider> {
-  final PageController _controller = PageController();
-  int currentPage = 0;
-
-  final List<Map<String, String>> sliderData = [
-    {
-      "title": "New Collection",
-      "bigText": "FASHION SALE",
-      "image": "assets/images/dummy_banner.png",
-    },
-    {
-      "title": "Limited Offer",
-      "bigText": "MEGA SALE",
-      "image": "assets/images/dummy_banner.png",
-    },
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 10,
-        ),
-
-        /// SLIDER
-        SizedBox(
-          height: 170,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: sliderData.length,
-            onPageChanged: (index) {
-              setState(() => currentPage = index);
-            },
-            itemBuilder: (context, index) {
-              return _buildSlide(sliderData[index]);
-            },
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        /// DOT INDICATOR
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            sliderData.length,
-            (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: 8,
-              width: currentPage == index ? 24 : 8,
-              decoration: BoxDecoration(
-                color:
-                    currentPage == index ? Colors.blue : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSlide(Map<String, String> data) {
-    return Image.asset(
-      data["image"]!,
-      fit: BoxFit.contain,
-    );
-  }
-}
-
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible)? onHeaderVisibilityChanged;
@@ -212,13 +129,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   late final double userLng;
   bool isMapLoading = true;
   TabController? _tabController;
-  List<OnboardingCategoryModel> _businessServiceCategories =
-      businessOnboardingServicesCategories
-          .where((s) =>
-              s.slugId != HEALTHCARE_MEDICAL_SERVICES &&
-              s.slugId != HOTELS_STAY_SERVICE &&
-              s.slugId != AUTOMOTIVE_SERVICES)
-          .toList();
 
   BitmapDescriptor? _customIcon;
 
@@ -226,7 +136,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   void initState() {
     userLat = LocationService.lat;
     userLng = LocationService.lng;
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     // _loadMarkerAsset();
     super.initState();
   }
@@ -236,6 +146,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     final bool isSmallScreen = View.of(context).physicalSize.width < 400;
     return SafeArea(
       child: Scaffold(
+          backgroundColor: AppColors.whiteF3,
           body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen)))),
     );
   }
@@ -340,7 +251,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             children: [
               _discoverWidget(),
               FindContactWithService(fromBottomNav: true),
-              FavouriteCategoryListScreen(),
+              // FavouriteCategoryListScreen(),
               SizedBox(),
             ],
           ),
@@ -354,7 +265,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       child: Column(
         children: [
           ResponsiveSearchBar(),
-          FashionSlider(),
+          _buildGap(),
+
+          DiscoverBannerSlider(),
           _buildGap(gap: SizeConfig.paddingM),
 
           /// Rider
@@ -491,9 +404,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     ),
                     _viewAll(() => Get.to(() => AllSelfProfessionScreen(
                           selfEmployedCategories:
-                              individualOnboardingSkillWorkList
-                                  .take(12)
-                                  .toList(),
+                              individualSkillWorkList.toList(),
                         ))),
                   ],
                 ),
@@ -754,8 +665,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     ),
                     InkWell(
                       onTap: () => Get.to(() => ServicesNearMeScreen(
-                            businessServicesCategories:
-                                _businessServiceCategories,
+                            businessServicesCategories: businessOnboardingServicesCategories,
                           )),
                       child: _viewAll(),
                     ),
@@ -763,6 +673,27 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
                 _buildFindServiceMasonryGrid(),
+              ],
+            ),
+          ),
+
+          _buildGap(),
+
+          /// Financial Sectors
+          CustomFormCard(
+            border: Border.all(
+              color: AppColors.greyA5
+            ),
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  child: _title(AppStrings.financialSectors),
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildFinancialSectorUi()
               ],
             ),
           ),
@@ -1191,7 +1122,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         return CommonServiceCard(
           service: categoryItem,
           getName: (item) => item.name,
-          getIcon: (item) => item.icon,
+          getIcon: (item) => item.icon ?? '',
           iconHeight: SizeConfig.size80,
           onTap: (item) {
             Get.to(() => ProductLocalMarketScreen(
@@ -1213,21 +1144,20 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       padding: EdgeInsets.zero,
       primary: false,
       shrinkWrap: true,
-      itemCount: individualOnboardingSkillWorkList.take(6).length,
+      itemCount: individualSkillWorkList.take(6).length,
       physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
-        var categoryItem = individualOnboardingSkillWorkList[index];
+        var categoryItem = individualSkillWorkList[index];
         return CommonServiceCard(
           service: categoryItem,
           getName: (item) => item.name,
-          getIcon: (item) => item.icon,
+          getIcon: (item) => item.icon ?? '',
           iconHeight: SizeConfig.size80,
           onTap: (item) {
-            var categoryItem = individualOnboardingSkillWorkList[index];
+            var categoryItem = individualSkillWorkList[index];
 
             Get.to(() => AllSelfProfessionScreen(
-                selfEmployedCategories:
-                    individualOnboardingSkillWorkList.take(12).toList(),
+                selfEmployedCategories: individualSkillWorkList,
                 selectedSelfProfessionData: categoryItem));
           },
         );
@@ -1250,7 +1180,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         return CommonServiceCard(
           service: categoryItem,
           getName: (item) => item.name,
-          getIcon: (item) => item.icon,
+          getIcon: (item) => item.icon ?? '',
           iconHeight: SizeConfig.size80,
           onTap: (item) {
             commonSnackBar(message: "Coming soon...");
@@ -1268,18 +1198,18 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       padding: EdgeInsets.zero,
       primary: false,
       shrinkWrap: true,
-      itemCount: _businessServiceCategories.take(6).length,
+      itemCount: businessOnboardingServicesCategories.take(6).length,
       physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
-        var categoryItem = _businessServiceCategories[index];
+        var categoryItem = businessOnboardingServicesCategories[index];
         return CommonServiceCard(
           service: categoryItem,
           getName: (item) => item.name,
-          getIcon: (item) => item.icon,
+          getIcon: (item) => item.icon ?? '',
           iconHeight: SizeConfig.size80,
           onTap: (item) {
             Get.to(() => ServicesNearMeScreen(
-                  businessServicesCategories: _businessServiceCategories,
+                  businessServicesCategories: businessOnboardingServicesCategories,
                 ));
           },
         );
@@ -1302,7 +1232,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         return CommonServiceCard(
           service: categoryItem,
           getName: (item) => item.name,
-          getIcon: (item) => item.icon,
+          getIcon: (item) => item.icon ?? '',
           iconHeight: SizeConfig.size80,
           onTap: (item) {
             var categoryItem = individualOnboardingConsultationList[index];
@@ -1320,8 +1250,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   Widget _buildHomeMadeFoodServiceMasonryGrid() {
     return MasonryGridView.count(
       crossAxisCount: 3,
-      crossAxisSpacing: 1,
-      mainAxisSpacing: 1,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
       padding: EdgeInsets.zero,
       primary: false,
       shrinkWrap: true,
@@ -1329,34 +1259,118 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         var categoryItem = homeMadeItemsCategories[index];
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LocalAssets(
-                imagePath: categoryItem.image??'',
-                height: SizeConfig.size100,
+        return InkWell(
+          onTap: () {
+            if (categoryItem.slugId == SERVICE) {
+              Get.to(() => HomeServiceScreen());
+            } else if (categoryItem.slugId == FOOD) {
+              Get.to(() => HomeMadeFoodScreen());
+            } else if (categoryItem.slugId == PRODUCT) {
+              Get.to(() => HomeMadeProductScreen());
+            }
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LocalAssets(
+                  imagePath: categoryItem.icon ?? '',
+                  height: SizeConfig.size140,
+                  width: double.maxFinite,
+                  boxFix: BoxFit.cover,
+                ),
               ),
-            ),
-            SizedBox(height: SizeConfig.paddingXSL),
-            Container(
-              height: SizeConfig.size30,
-              alignment: Alignment.center,
-              child: CustomText(
-                categoryItem.name,
-                fontSize: SizeConfig.small11,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w600,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              SizedBox(height: SizeConfig.paddingXSL),
+              Container(
+                height: SizeConfig.size30,
+                alignment: Alignment.center,
+                child: CustomText(
+                  categoryItem.name,
+                  fontSize: SizeConfig.small11,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildFinancialSectorUi() {
+    return SizedBox(
+      height: SizeConfig.size124,
+      child: ListView.builder(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+        shrinkWrap: true,
+        primary: false,
+        itemCount: financeCategories.length,
+        scrollDirection: Axis.horizontal,
+        physics: AlwaysScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          var categoryItem = financeCategories[index];
+          return InkWell(
+            onTap: (){
+              commonSnackBar(message: "Coming Soon...");
+            },
+            child: Container(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              margin: EdgeInsets.only(right: 6),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [AppShadows.textFieldShadow],
+                border: Border.all(
+                    color: AppColors.greyE5,
+                    width:  1.0
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  LocalAssets(
+                    imagePath: categoryItem.icon??'',
+                    height: SizeConfig.size60,
+                    width: SizeConfig.size80,
+                  ),
+                  SizedBox(height: SizeConfig.paddingXSL),
+                  Container(
+                    height: SizeConfig.size30,
+                    alignment: Alignment.center,
+                    child: CustomText(
+                      categoryItem.name,
+                      fontSize: SizeConfig.small11,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w600,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+          // return CommonServiceCard(
+          //   service: categoryItem,
+          //   getName: (item) => item.name,
+          //   getIcon: (item) => item.icon ?? '',
+          //   iconHeight: SizeConfig.size60,
+          //   margin: EdgeInsets.only(right: 6),
+          //   onTap: (item) {
+          //     commonSnackBar(message: "Coming Soon...");
+          //   },
+          // );
+        },
+      ),
     );
   }
 

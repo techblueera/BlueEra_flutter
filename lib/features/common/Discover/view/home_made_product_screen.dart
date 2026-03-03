@@ -134,7 +134,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: _homeMadeProductCategories,
       getLabel: (item) => item.name,
-      getIcon: (item) => item.icon,
+      getIcon: (item) => item.icon ?? '',
       isSelected: (item)=> controller.selectedEarnServiceData.value?.slugId == item.slugId,
       onTap: (item, index) {
         controller.selectedTabIndex.value = index;
