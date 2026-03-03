@@ -51,14 +51,14 @@ class CampusPhotoGallery extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ServiceHomeTitleWidget(
-                  title: "Photos",
+                  title: AppStrings.photo,
                 ),
                 if (displayImages.length > 6)
                   InkWell(
                     onTap: () {
                       Get.to(CampusLifeListingScreen());
                     },
-                    child:  CustomText("View All",
+                    child:  CustomText(AppStrings.viewAll,
                         color: AppColors.primaryColor,),
                   ),
               ],

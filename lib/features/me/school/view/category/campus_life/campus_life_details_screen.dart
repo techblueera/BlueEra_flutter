@@ -112,7 +112,7 @@ class _CampusLifeDetailsScreenState extends State<CampusLifeDetailsScreen> {
                             await showCommonDialog(
                             context: context,
                             text:
-                            'Are you sure you want to delete this photo?',
+                            AppStrings.deletePhotoConfirm,
                             confirmCallback: () async {
                               Get.back();
                               await controller.deleteCampusLifeController(

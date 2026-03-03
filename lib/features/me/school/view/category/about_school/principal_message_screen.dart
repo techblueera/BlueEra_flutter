@@ -59,7 +59,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Principal / Director Message",
+        title: AppStrings.principalDirectorMessage,
         isShadowShow: false,
       ),
       body: SingleChildScrollView(
@@ -86,7 +86,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      "Upload Principal / Director Photo",
+                      AppStrings.uploadPrincipalPhoto,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -101,7 +101,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CustomText("Principal / Director Message",
+                            CustomText(AppStrings.principalMessage,
                                 fontWeight: FontWeight.bold),
                             // The Reusable AI Widget
                             AIGeneratorButton(
@@ -138,24 +138,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                     ),
 
                     /// Apply Button
-                    /*     CommonTextField(
-                      textEditController: descriptionEditController,
-                      title: "Principal / Director Message",
-                      hintText:
-                          "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
-                      maxLine: 5,
-                      maxLength: 1500,
-                      isValidate: false,
-                      keyBoardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      onChange: (value) {
-                        String newVal =
-                            value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                        schoolAboutUsController.directorMessageText.value =
-                            newVal;
-                        _runValidation();
-                      },
-                    ),*/
+
                     Align(
                       alignment: Alignment.centerRight,
                       child: Obx(() => CustomText(
@@ -210,7 +193,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     // If no local file but we have a NETWORK image from API
     // Default: Show Upload Placeholder
     return CommonProfileImageUpload(
-      title: "Upload Photo",
+      title: AppStrings.uploadPhotos,
       context: context,
       imgUrl:
           schoolAboutUsController.aboutUsData?.value.principalMessage?.photo ??
@@ -227,76 +210,6 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
       imageFile: schoolAboutUsController.directorMessageImageFile,
     );
   }
-
-/*  Widget _buildImageSection__() {
-    // If user picked a NEW local file
-    if (schoolAboutUsController.directorMessageImageFile.value != null) {
-      return CommonImageUploadTile(
-        imageFile: schoolAboutUsController.directorMessageImageFile,
-        onImageRemove: () {
-          schoolAboutUsController.isDirectorImageUpdate.value = false;
-
-          schoolAboutUsController.directorMessageImageFile.value = null;
-          schoolAboutUsController.directorProfile.value = "";
-          schoolAboutUsController.validateDirectMessageForm();
-        },
-        title: '',
-        context: context,
-      );
-    }
-    // If no local file but we have a NETWORK image from API
-    else if (schoolAboutUsController.initialDirectImageUrl.isNotEmpty) {
-      return Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              schoolAboutUsController.initialDirectImageUrl,
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned(
-            right: 5,
-            top: 5,
-            child: CircleAvatar(
-              backgroundColor: Colors.red,
-              child: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.white),
-                onPressed: () {
-                  // Clear initial URL to show "Change" happened
-                  schoolAboutUsController.isDirectorImageUpdate.value = false;
-
-                  schoolAboutUsController.initialDirectImageUrl = "";
-                  schoolAboutUsController.directorProfile.value="";
-                  schoolAboutUsController.validateDirectMessageForm();
-                  setState(
-                      () {}); // Refresh local UI to show upload placeholder
-                },
-              ),
-            ),
-          )
-        ],
-      );
-    }
-    // Default: Show Upload Placeholder
-    return CommonImageUploadTile(
-      title: "Upload Photo",
-      context: context,
-      onImageSelected: () async {
-        final path = await CommonImageUploadTile.pickImage(context: context);
-        if (path != null) {
-          schoolAboutUsController.directorProfile.value = path;
-          schoolAboutUsController.isDirectorImageUpdate.value = true;
-
-          schoolAboutUsController.directorMessageImageFile.value = File(path);
-          schoolAboutUsController.validateDirectMessageForm();
-        }
-      },
-      imageFile: schoolAboutUsController.directorMessageImageFile,
-    );
-  }*/
 
   void _runValidation() {
     schoolAboutUsController.noticesNewsValidateForm(

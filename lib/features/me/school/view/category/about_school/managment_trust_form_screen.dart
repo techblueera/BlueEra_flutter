@@ -72,7 +72,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Add Management / Trust",
+        title: AppStrings.managementTrust,
         isShadowShow: false,
       ),
       body: SafeArea(
@@ -87,13 +87,13 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                 CommonTextField(
                   textEditController: nameEditController,
                   hintText: "E.g. Ramesh Gupta",
-                  title: "Name",
+                  title: AppStrings.fullName,
                   maxLength: 50,
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Qualification',
+                  AppStrings.qualifications,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -146,7 +146,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                               ),
                               icon: Icon(Icons.add),
                               label: CustomText(
-                                "Add More",
+                                AppStrings.addMore,
                                 color: AppColors.primaryColor,
                               ),
                               onPressed:
@@ -159,7 +159,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                 CommonTextField(
                   textEditController: professionEditController,
                   hintText: "E.g. Managing Director",
-                  title: "Profession",
+                  title: AppStrings.profession,
                   maxLength: 50,
                   onChange: (_) => _runValidation(),
                 ),
@@ -167,7 +167,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText("Our Vision & Mission",
+                    CustomText(AppStrings.visionMission,
                         fontWeight: FontWeight.bold),
                     // The Reusable AI Widget
                     AIGeneratorButton(
@@ -286,7 +286,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
     // If no local file but we have a NETWORK image from API
     // Default: Show Upload Placeholder
     return CommonProfileImageUpload(
-      title: "Upload Photo",
+      title:AppStrings.uploadImages,
       context: context,
       imgUrl: widget.management?.photo ?? "",
       onImageSelected: () async {

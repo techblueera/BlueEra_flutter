@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/campus_life_categories_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/campus_life_controller.dart';
@@ -35,7 +36,7 @@ class _CreateCampusLifeScreenState extends State<CreateCampusLifeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Add Campus Life"),
+      appBar: CommonBackAppBar(title: AppStrings.addCampusLife),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -43,12 +44,12 @@ class _CreateCampusLifeScreenState extends State<CreateCampusLifeScreen> {
           children: [
             // 1. Category Dropdown
             CustomText(
-              "Select category",
+              AppStrings.selectCategory,
               color: AppColors.mainTextColor,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             Obx(() => CommonDropdownDialog<CampusLifeCategoriesData>(
-                  title: "Select Category",
+                  title:    AppStrings.selectCategory.tr,
                   hintText: "E.g. Transportation",
                   items: controller.categoryList,
                   selectedValue: controller.selectedCategory.value,
@@ -58,14 +59,14 @@ class _CreateCampusLifeScreenState extends State<CreateCampusLifeScreen> {
 
             SizedBox(height: 16),
             CustomText(
-              "Select Subcategory",
+              AppStrings.selectSubCategory,
               color: AppColors.mainTextColor,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             // 2. Subcategory Dropdown (Reactive)
             Obx(() => CommonDropdownDialog<SubCategories>(
-                  title: "Select Sub-Category",
-                  hintText: controller.selectedCategory.value == null
+                  title:               AppStrings.selectSubCategory.tr,
+              hintText: controller.selectedCategory.value == null
                       ? "Please select a category first"
                       : "E.g. Bus Service",
                   items: controller.availableSubCategories,
@@ -76,7 +77,7 @@ class _CreateCampusLifeScreenState extends State<CreateCampusLifeScreen> {
             SizedBox(height: 20),
 
             CustomText(
-              "Select Images (Min 1, Max 6)",
+              AppStrings.selectImagesLimit,
               color: AppColors.mainTextColor,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
@@ -109,7 +110,7 @@ class _CreateCampusLifeScreenState extends State<CreateCampusLifeScreen> {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: CommonTextField(
                         textEditController: controller.imageCaptions[index],
-                        title: "Caption for Image ${index + 1}",
+                        title: "${AppStrings.captionForImage.tr} ${index + 1}",
                         hintText: "Enter caption...",
                         onChange: (val){
                           controller.textFiledChanged();
@@ -125,7 +126,7 @@ class _CreateCampusLifeScreenState extends State<CreateCampusLifeScreen> {
                   onTap: controller.isFormValid.value
                       ? controller.submitCampusData
                       : null,
-                  title: "Save Campus Life",
+                  title: AppStrings.saveCampusLife,
                   isValidate: controller.isFormValid.value,
                 )),
           ],

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/features/me/social/controller/social__event_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -20,7 +21,7 @@ class SocialCreateEventScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: controller.eventId == null ? "Create Event" : "Update Event",
+        title: controller.eventId == null ?AppStrings.createEvent.tr :AppStrings.updateEvent.tr,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -29,26 +30,26 @@ class SocialCreateEventScreen extends StatelessWidget {
           children: [
             CommonTextField(
               textEditController: controller.titleController,
-              title: "Event Title",
+              title: AppStrings.eventTitle,
               hintText: "E.g. Virendra Kishor",
             ),
             const SizedBox(height: 16),
 
-            _buildSectionTitle("Starting Date"),
+            _buildSectionTitle(AppStrings.startingDate),
             _buildDatePicker(isStart: true),
             const SizedBox(height: 16),
 
-            _buildSectionTitle("End Date"),
+            _buildSectionTitle(AppStrings.endDate),
             _buildDatePicker(isStart: false),
             const SizedBox(height: 16),
 
-            const CustomText("Time", fontWeight: FontWeight.bold),
+            const CustomText(AppStrings.time, fontWeight: FontWeight.bold),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
                   child: _buildSingleTimeDropdown(
-                      "From", controller.selectedFromTime),
+                      AppStrings.from, controller.selectedFromTime),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -63,7 +64,7 @@ class SocialCreateEventScreen extends StatelessWidget {
               controller: controller.venueController,
               hintText: "E.g. Lucknow, Uttar Pradesh...",
               isShowLeading: false,
-              title: "Venue",
+              title: AppStrings.venue,
               onSelected: (placeId, lat, lng, address) async {
                 controller.venueController.text = address;
                 try {
@@ -85,13 +86,13 @@ class SocialCreateEventScreen extends StatelessWidget {
 
             CommonTextField(
               textEditController: controller.eventTypeController,
-              title: "Event Type",
+              title: AppStrings.eventType,
               hintText: "E.g. Meeting / Show / Live..",
             ),
             const SizedBox(height: 16),
 
             HttpsTextField(
-              title: "Registration Link",
+              title: AppStrings.registrationLink,
               controller: controller.linkController,
               hintText: "E.g. https://registrationlink..",
             ),
@@ -122,7 +123,7 @@ class SocialCreateEventScreen extends StatelessWidget {
                                 child: CircularProgressIndicator(
                                     color: Colors.white, strokeWidth: 2))
                             : CustomText(
-                                controller.eventId == null ? "Save" : "Update",
+                                controller.eventId == null ? AppStrings.save.tr : AppStrings.update.tr,
 
                                     color: Colors.white, fontSize: 16),
                       ),

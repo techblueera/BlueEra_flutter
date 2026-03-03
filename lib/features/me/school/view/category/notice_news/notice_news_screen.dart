@@ -17,7 +17,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class NoticeNewsScreen extends StatefulWidget {
-   NoticeNewsScreen({super.key, required this.isEdit});
+  NoticeNewsScreen({super.key, required this.isEdit});
+
   final bool isEdit;
 
   @override
@@ -38,23 +39,24 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Notice & News",
+        title: AppStrings.noticesNews,
       ),
-      bottomNavigationBar:widget.isEdit?
-      SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-              right: 10.0, left: 10.0, bottom: 40, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              onTap: () {
-                Get.to(SchoolNoticeAndNews());
-              },
-              title: "Add Notice & News"),
-        ),
-      ):null,
+      bottomNavigationBar: widget.isEdit
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    right: 10.0, left: 10.0, bottom: 40, top: 10),
+                child: PositiveCustomBtn(
+                    bgColor: AppColors.white,
+                    textColor: AppColors.primaryColor,
+                    borderColor: AppColors.primaryColor,
+                    onTap: () {
+                      Get.to(SchoolNoticeAndNews());
+                    },
+                    title: AppStrings.addNoticeNews),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: Obx(() {
           if (noticeController.getNoticeNewsResponse.value.status ==
@@ -74,7 +76,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         rowWidget(
-                            title: "Title",
+                            title: AppStrings.title,
                             value: "${data.title}",
                             noticeIndex: index,
                             isEditOption: widget.isEdit,
@@ -84,9 +86,8 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                         ),
                         rowWidget(
                             noticeIndex: index,
-                            title: "Description",
+                            title: AppStrings.description,
                             value: "${data.description}",
-
                             noticeID: data.id ?? ""),
                         SizedBox(
                           height: SizeConfig.size5,
@@ -105,7 +106,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                             //
                           },
                           child: rowWidget(
-                              title: "Photo",
+                              title: AppStrings.photo,
                               value: (data.uploadPhoto?.isNotEmpty ?? false)
                                   ? "View Photo"
                                   : "N/A",
@@ -123,7 +124,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                 itemCount: noticeController.noticeNewsDataList.length,
               );
             }
-            return Center(child: CustomText("Notice & News Not Found"));
+            return Center(child: CustomText(AppStrings.noticeNewsNotFound));
           }
           return SizedBox();
         }),
@@ -164,7 +165,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
             ? _buildNoticeNewsPopUpMenu(onNoticeNewsDelete: () async {
                 await showCommonDialog(
                     context: context,
-                    text: 'Are you sure you want to delete this notice?',
+                    text: AppStrings.deleteNoticeConfirm,
                     confirmCallback: () async {
                       await noticeController.deleteSchoolNoticeNewsController(
                           noticeId: noticeID);

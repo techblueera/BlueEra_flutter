@@ -67,7 +67,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Notices & News",
+        title:AppStrings.noticesNews,
         isShadowShow: false,
       ),
       body: SingleChildScrollView(
@@ -86,7 +86,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Upload Photo",
+                    AppStrings.uploadPhotos,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -97,7 +97,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                   CommonTextField(
                     textEditController: titleEditController,
                     hintText: "E.g. How do you commute to work?",
-                    title: "Title (Optional)",
+                    title: AppStrings.title,
                     isValidate: false,
                     onChange: (value) {
                       noticeController.notice_news_titleText.value = value;
@@ -249,7 +249,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
     }
     // Default: Show Upload Placeholder
     return CommonImageUploadTile(
-      title: "Upload Photo",
+      title:AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

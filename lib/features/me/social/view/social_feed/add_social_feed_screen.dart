@@ -47,7 +47,7 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.isEdit ? "Edit Activity Feed" : "Add Activity Feed"),
+          title: widget.isEdit ? AppStrings.editActivityFeed.tr :AppStrings.addActivityFeed.tr),
       body: CommonCardWidget(
         child: SafeArea(
           child: SingleChildScrollView(
@@ -85,7 +85,7 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
                 Obx(() =>
                     CustomBtn(
                       title:
-                      widget.isEdit ? "Update" : "Add",
+                      widget.isEdit ? AppStrings.update.tr : AppStrings.add.tr,
                       isValidate: controller.isFormValid.value &&
                           !controller.isUploading.value,
                       onTap: controller.isFormValid.value
@@ -112,7 +112,7 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
             Align(
                 alignment: Alignment.centerLeft,
                 child: CustomText(
-                  "Upload Images",
+                  AppStrings.uploadImages,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -62,6 +63,58 @@ class HospitalServiceAiController extends GetxController {
   Rx<HospitalAiDetailsResModel>? aiHospitalResModel =
       HospitalAiDetailsResModel().obs;
 
+
+/*// Inside your HospitalServiceAiController
+  RxBool isaiResponseLoading = false.obs;
+
+  Future<void> aiHospitalFetchDetailsController() async {
+    String hospitalName = searchController.text;
+    labAddress.value = hospitalName;
+    String website = websiteController.text;
+
+    isaiResponseLoading.value = true;
+
+    // Create a timer that will trigger after 60 seconds
+    Timer timeoutTimer = Timer(const Duration(minutes: 1), () {
+      if (isaiResponseLoading.value) {
+        isaiResponseLoading.value = false;
+        Get.back(); // Close the dialog
+        commonSnackBar(message: "Request timed out. Please try again after some time.");
+      }
+    });
+
+    try {
+      ResponseModel response = await hospitalServiceRepo.aiHospitalFetchDetailsRepo(
+        reqBody: {
+          ApiKeys.name: hospitalName,
+          ApiKeys.url: website,
+          ApiKeys.address: hospitalName,
+        },
+      );
+
+      // If response comes back before 1 minute, cancel the timer
+      timeoutTimer.cancel();
+
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        aiHospitalResModel?.value = HospitalAiDetailsResModel.fromJson(data);
+
+        isaiResponseLoading.value = false;
+        Get.back(); // Close the dialog
+        Get.to(HospitalServicePreview());
+      } else {
+        isaiResponseLoading.value = false;
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      timeoutTimer.cancel();
+      isaiResponseLoading.value = false;
+      commonSnackBar(message: e.toString());
+    }
+  }*/
+
+
+    RxBool isaiResponseLoading=false.obs;
   Future<void> aiHospitalFetchDetailsController() async {
     String hospitalName = searchController.text;
     labAddress.value = hospitalName;
@@ -75,6 +128,7 @@ class HospitalServiceAiController extends GetxController {
         ApiKeys.url: website,
         ApiKeys.address: hospitalName,
       });
+
       if (response.isSuccess) {
         final data = response.response?.data;
         aiHospitalResModel?.value = HospitalAiDetailsResModel.fromJson(data);

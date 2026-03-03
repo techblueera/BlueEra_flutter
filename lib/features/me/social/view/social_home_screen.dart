@@ -98,11 +98,10 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 6),
-            child:  ServiceHomeTitleWidget(
-              title: "Contact Us",
+            child: ServiceHomeTitleWidget(
+              title: AppStrings.contactUs,
             ),
           ),
-
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
@@ -125,8 +124,8 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
                 // Contact List
                 _contactItem(AppIconAssets.website_click,
                     profile?.contact?.websiteUrl ?? "", AppColors.primaryColor),
-                _contactItem(
-                    AppIconAssets.principal, "Reception", Colors.grey[700]!),
+                _contactItem(AppIconAssets.principal, AppStrings.reception,
+                    Colors.grey[700]!),
                 _contactItem(AppIconAssets.email, profile?.contact?.email ?? "",
                     AppColors.secondaryTextColor),
                 _contactItem(
@@ -156,7 +155,8 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-              child: CustomText(label, fontSize: 15, color: AppColors.mainTextColor)),
+              child: CustomText(label,
+                  fontSize: 15, color: AppColors.mainTextColor)),
         ],
       ),
     );
@@ -286,17 +286,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
 
             // === Name + Role ===
             ServiceHomeHeaderTitleWidget(
-              title:
-              _capitalizeFirstLetter(
-                viewProfileController
-                    .personalProfileDetails.value.user?.name ??
+              title: _capitalizeFirstLetter(
+                viewProfileController.personalProfileDetails.value.user?.name ??
                     '',
               ),
-              description:  viewProfileController
-                  .personalProfileDetails.value.user?.bio ??
+              description: viewProfileController
+                      .personalProfileDetails.value.user?.bio ??
                   "",
             ),
-
           ],
         ),
       ),
@@ -311,27 +308,41 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ServiceHomeTitleWidget(
-              title: "Short Bio",
+              title: AppStrings.shortBio,
             ),
             SizedBox(height: SizeConfig.size5),
-            CustomText(identity?.bio ?? "-", color: AppColors.black28,),
-            SizedBox(height: SizeConfig.size5),
-            Divider(color: AppColors.whiteE5,thickness: 0.5,),
-            SizedBox(height: SizeConfig.size5),            ServiceHomeTitleWidget(
-              title: "Journey",
+            CustomText(
+              identity?.bio ?? "-",
+              color: AppColors.black28,
             ),
             SizedBox(height: SizeConfig.size5),
-            CustomText(identity?.journey ?? "-",
-                color: AppColors.black28, ),
-            SizedBox(height: SizeConfig.size5),
-            Divider(color: AppColors.whiteE5,thickness: 0.5,),
+            Divider(
+              color: AppColors.whiteE5,
+              thickness: 0.5,
+            ),
             SizedBox(height: SizeConfig.size5),
             ServiceHomeTitleWidget(
-              title: "Family Background",
+              title: AppStrings.journey,
+            ),
+            SizedBox(height: SizeConfig.size5),
+            CustomText(
+              identity?.journey ?? "-",
+              color: AppColors.black28,
+            ),
+            SizedBox(height: SizeConfig.size5),
+            Divider(
+              color: AppColors.whiteE5,
+              thickness: 0.5,
+            ),
+            SizedBox(height: SizeConfig.size5),
+            ServiceHomeTitleWidget(
+              title: AppStrings.familyBackground,
             ),
             SizedBox(height: SizeConfig.size8),
-            CustomText(identity?.familyBackground ?? "-",
-                color: AppColors.black28, ),
+            CustomText(
+              identity?.familyBackground ?? "-",
+              color: AppColors.black28,
+            ),
           ],
         ),
       ),
@@ -343,9 +354,8 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           ServiceHomeTitleWidget(
-            title: "Mission & Vision",
+            title:AppStrings.visionMission,
           ),
           SizedBox(height: SizeConfig.size10),
           if (mv?.mediaUrl != null && (mv?.mediaUrl as String).isNotEmpty)
@@ -359,7 +369,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
               ),
             ),
           SizedBox(height: SizeConfig.size10),
-          CustomText(mv?.description ?? "-",),
+          CustomText(
+            mv?.description ?? "-",
+          ),
         ],
       ),
     );
@@ -370,9 +382,8 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           ServiceHomeTitleWidget(
-            title: "Activities",
+            title: AppStrings.activities,
           ),
           SizedBox(height: SizeConfig.size10),
           _responsiveGrid(
@@ -398,7 +409,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title: "Events",
+            title: AppStrings.events,
           ),
           ListView.separated(
             shrinkWrap: true,
@@ -427,7 +438,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title: "Achievements",
+            title: AppStrings.achievements,
           ),
           SizedBox(height: SizeConfig.size10),
           _responsiveGrid(
@@ -449,7 +460,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title: "Social Activities",
+            title:AppStrings.socialActivity,
           ),
           ListView.separated(
             shrinkWrap: true,

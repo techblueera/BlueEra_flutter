@@ -76,7 +76,7 @@ class _AcademicCalenderFormScreenState
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Academic Calender",
+        title: AppStrings.academicCalendar,
         isShadowShow: false,
       ),
       body: SingleChildScrollView(
@@ -95,7 +95,7 @@ class _AcademicCalenderFormScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Upload Doc",
+                    AppStrings.uploadDocument,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -129,7 +129,7 @@ class _AcademicCalenderFormScreenState
                   CommonTextField(
                     textEditController: titleEditController,
                     hintText: "E.g. How do you commute to work?",
-                    title: "Title (Optional)",
+                    title: AppStrings.title,
                     isValidate: false,
                     onChange: (value) {
                       academicCalenderController.notice_news_titleText.value =
@@ -291,7 +291,7 @@ class _AcademicCalenderFormScreenState
     }
     // Default: Show Upload Placeholder
     return CommonImageUploadTile(
-      title: "Upload Image",
+      title:AppStrings.uploadImages,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

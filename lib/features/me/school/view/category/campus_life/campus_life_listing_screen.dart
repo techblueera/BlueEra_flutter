@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/campus_life_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_details_screen.dart';
@@ -25,7 +26,7 @@ class _CampusLifeListingScreenState extends State<CampusLifeListingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Campus Life",
+        title:AppStrings.campusLife,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -38,13 +39,13 @@ class _CampusLifeListingScreenState extends State<CampusLifeListingScreen> {
               onTap: () {
                 Get.to(CreateCampusLifeScreen());
               },
-              title: "Add Campus Life"),
+              title: AppStrings.addCampusLife),
         ),
       ),
       body: Obx((){
         if(controller.getAllCampusLifeDataList.isEmpty)
         {
-          return Center(child: CustomText("No Campus Photos found"));
+          return Center(child: CustomText(AppStrings.noCampusPhotos));
         }
 
        return ListView.builder(

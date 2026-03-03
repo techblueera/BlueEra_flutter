@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/model/get_faculty_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
@@ -87,41 +88,41 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Add Faculty"),
+      appBar: CommonBackAppBar(title: AppStrings.addFaculty),
       body: SafeArea(
         child: CommonCardWidget(
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle("Basic Information"),
+                _buildSectionTitle(AppStrings.basicInfo),
                 Center(child: _buildImageSection()),
                 SizedBox(height: 12),
 
                 CommonTextField(
                   textEditController: nameController,
-                  title: "Full Name",
+                  title: AppStrings.fullName,
                   hintText: "Dr. John Smith",
                   onChange: (_) => _triggerValidation(),
                 ),
                 SizedBox(height: 12),
                 CommonTextField(
                   textEditController: posController,
-                  title: "Position",
+                  title: AppStrings.position,
                   hintText: "Manager",
                   onChange: (_) => _triggerValidation(),
                 ),
                 SizedBox(height: 12),
                 CommonTextField(
                   textEditController: emailController,
-                  title: "Email Address",
+                  title:AppStrings.email,
                   hintText: "john.smith@university.edu",
                   onChange: (_) => _triggerValidation(),
                 ),
                 SizedBox(height: 12),
                 CommonTextField(
                   textEditController: phoneController,
-                  title: "Phone Number",
+                  title: AppStrings.phoneNumber,
                   hintText: "+9834567890",
                   onChange: (_) => _triggerValidation(),
                   keyBoardType: TextInputType.number,
@@ -132,7 +133,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                 ),
                 SizedBox(height: 12),
 
-                _buildSectionTitle("Qualifications"),
+                _buildSectionTitle(AppStrings.qualifications),
                 _buildListInput(
                   hint: "Add Qualification (e.g. PhD)",
                   onAdd: (val) => controller.addQualification(val),
@@ -140,14 +141,14 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                 ),
                 SizedBox(height: 12),
 
-                _buildSectionTitle("Experience"),
+                _buildSectionTitle(AppStrings.experience),
                 Row(
                   children: [
                     Expanded(
                       flex: 1,
                       child: CommonTextField(
                         textEditController: expYearsController,
-                        title: "Years",
+                        title: AppStrings.years,
                         hintText: "10",
                         keyBoardType: TextInputType.number,
                         onChange: (_) => _triggerValidation(),
@@ -162,7 +163,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                       flex: 3,
                       child: CommonTextField(
                         textEditController: expDetailsController,
-                        title: "Experience Details",
+                        title: AppStrings.experienceDetails,
                         hintText: "Details about research...",
                         onChange: (_) => _triggerValidation(),
                       ),
@@ -171,14 +172,14 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                 ),
                 SizedBox(height: 12),
 
-                _buildSectionTitle("Bio"),
+                _buildSectionTitle(AppStrings.bio),
 
                 Row(
 
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      "Short Bio",
+                        AppStrings.shortBio,
                     ),
                     // The Reusable AI Widget
                     Obx(() {
@@ -235,7 +236,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                 Obx(() => CustomBtn(
                       isLoading: controller.isLoading.value,
                       onTap: controller.isFormValid.value ? _submit : null,
-                      title: "Submit Faculty Profile",
+                      title: AppStrings.submitFacultyProfile,
                       isValidate: controller.isFormValid.value,
                     )),
                 SizedBox(height: 50),
@@ -248,7 +249,6 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
   }
 
   Widget _buildImageSection() {
-    logs("widget.facultyData?.photo === ${widget.facultyData?.photo}");
     // If user picked a NEW local file
     if (controller.facultyProfileImageFile.value != null) {
       return CommonProfileImageUpload(
@@ -268,7 +268,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
     // If no local file but we have a NETWORK image from API
     // Default: Show Upload Placeholder
     return CommonProfileImageUpload(
-      title: "Upload Photo",
+      title:AppStrings.uploadPhotos,
       context: context,
       imgUrl: widget.facultyData?.photo ?? "",
       onImageSelected: () async {
@@ -345,7 +345,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                 }
               },
               child: CustomText(
-                "Add More",
+                AppStrings.addMore,
                 color: AppColors.primaryColor,
                 decorationColor: AppColors.primaryColor,
                 decoration: TextDecoration.underline,

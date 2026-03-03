@@ -16,7 +16,8 @@ class AIHospitalProfileDialog extends StatefulWidget {
   AIHospitalProfileDialog({super.key});
 
   @override
-  State<AIHospitalProfileDialog> createState() => _AIHospitalProfileDialogState();
+  State<AIHospitalProfileDialog> createState() =>
+      _AIHospitalProfileDialogState();
 }
 
 class _AIHospitalProfileDialogState extends State<AIHospitalProfileDialog> {
@@ -69,12 +70,29 @@ class _AIHospitalProfileDialogState extends State<AIHospitalProfileDialog> {
               HttpsTextField(
                 title: "Hospital Website",
                 controller: controller.websiteController,
-                hintText: "E.g. https://veeraboratory.com",
+                hintText: "E.g. https://missionhospital.com",
               ),
 
               SizedBox(height: SizeConfig.size30),
               // Buttons Row
-              Row(
+              // Inside _AIHospitalProfileDialogState build method
+
+
+// ... existing fields (SearchField, HttpsTextField)
+
+              SizedBox(height: SizeConfig.size30),
+
+              Obx(() => controller.isaiResponseLoading.value
+                  ? Center(
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(color: AppColors.primaryColor),
+                    SizedBox(height: 10),
+                    CustomText("AI is fetching details...", fontSize: 14),
+                  ],
+                ),
+              )
+                  : Row(
                 children: [
                   Expanded(
                     flex: 3,
@@ -82,7 +100,10 @@ class _AIHospitalProfileDialogState extends State<AIHospitalProfileDialog> {
                       title: AppStrings.generate,
                       isValidate: isFormValid,
                       onTap: isFormValid
-                          ? controller.aiHospitalFetchDetailsController
+                          ? () {
+                        // Trigger the controller logic
+                        controller.aiHospitalFetchDetailsController();
+                      }
                           : null,
                     ),
                   ),
@@ -99,7 +120,7 @@ class _AIHospitalProfileDialogState extends State<AIHospitalProfileDialog> {
                     ),
                   ),
                 ],
-              ),
+              )),
             ],
           ),
         ),

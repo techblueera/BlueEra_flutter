@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/features/me/social/controller/social_contact_us_controller.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
@@ -73,7 +74,7 @@ class _SocialContactUsScreenState
     final bool isEdit = widget.profile != null;
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: isEdit ? "Update Contact" : "Contact Us"),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs),
       body: Obx(() {
         if (controller.contactUsData.value != null) {
           branchNameController = TextEditingController(
@@ -104,20 +105,20 @@ class _SocialContactUsScreenState
                 CommonTextField(
                   textEditController: branchNameController,
                   hintText: "E.g. DSP Dehradun",
-                  title: "Contact Person Name",
+                  title: AppStrings.fullName,
                   onChange: (_) => _triggerValidation(),
                 ),
                 const SizedBox(height: 12),
                 HttpsTextField(
                   controller: websiteController,
                   hintText: "https://dpsdehradun.com",
-                  title: "Website URL",
+                  title: AppStrings.website,
                   onChange: (_) => _triggerValidation(),
                 ),
                 const SizedBox(height: 12),
                 CommonLocationSearchField(
                   controller: addressController,
-                  title: "Location",
+                  title: AppStrings.location,
                   isShowLeading: false,
                   onSelected: (placeId, lat, lng, address) async {
                     addressController.text = address;
@@ -143,14 +144,14 @@ class _SocialContactUsScreenState
                 CommonTextField(
                   textEditController: emailController,
                   hintText: "dpsdehradun@gmail.com",
-                  title: "Email Address",
+                  title: AppStrings.email,
                   onChange: (_) => _triggerValidation(),
                 ),
                 const SizedBox(height: 12),
                 CommonTextField(
                   textEditController: phoneController,
                   hintText: "+91 1234567890",
-                  title: "Phone Number",
+                  title:AppStrings.phoneNumber,
                   maxLength: 10,
                   keyBoardType: TextInputType.phone,
                   onChange: (_) => _triggerValidation(),
@@ -168,7 +169,7 @@ class _SocialContactUsScreenState
                                 phone: phoneController.text,
                               )
                           : null,
-                      title: isEdit ? "Update" : "Submit",
+                      title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
                       isValidate: controller.isFormValid.value,
                     )),
               ],

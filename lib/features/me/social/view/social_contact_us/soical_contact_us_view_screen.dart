@@ -23,13 +23,15 @@ class SocialContactUsViewScreen extends StatefulWidget {
 
 class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
   final controller = Get.put(SocialContactUsController());
-@override
+
+  @override
   void initState() {
     // TODO: implement initState
-  controller.fetchHomeData();
+    controller.fetchHomeData();
 
-  super.initState();
+    super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,12 +50,11 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
           // Map Placeholder
           Obx(() {
             return BusinessLocationWidget(
-              key:ValueKey(controller
-                  .contactUsData.value?.data?.location?.coordinates?[0]
-                  .toString() ??
-                  "0.0") ,
-                locationText:
-                   "",
+                key: ValueKey(controller
+                        .contactUsData.value?.data?.location?.coordinates?[0]
+                        .toString() ??
+                    "0.0"),
+                locationText: "",
                 latitude: double.parse(controller
                         .contactUsData.value?.data?.location?.coordinates?[0]
                         .toString() ??
@@ -87,7 +88,7 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomText("Contact Us"),
+                CustomText(AppStrings.contactUs),
                 InkWell(
                     onTap: () {
                       Get.to(SocialContactUsScreen(

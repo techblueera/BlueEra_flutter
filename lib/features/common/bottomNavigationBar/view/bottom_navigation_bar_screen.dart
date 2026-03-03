@@ -33,6 +33,7 @@ import 'package:BlueEra/features/me/professionals_consultant/view/professionals_
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/social/view/social_main.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/emergency/view/emergency_basic_info_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
@@ -272,13 +273,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      // floatingActionButton: kDebugMode
-      //     ? FloatingActionButton(onPressed: () async {
-      // // var data= await AppNotificationHandler.getServerToken();
-      // // logs("RES TOKEN $data");
-      //         // Get.to(HomeScreenNewBottom());
-      //       })
-      //     : null,
+  /*    floatingActionButton: kDebugMode
+          ? FloatingActionButton(onPressed: () async {
+              Get.to(EmergencyBasicInfoScreen());
+            })
+          : null,*/
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {

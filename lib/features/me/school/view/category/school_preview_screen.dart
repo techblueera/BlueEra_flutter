@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/institution_fetch_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -14,14 +15,14 @@ class SchoolPreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Institution Details"),
+      appBar: CommonBackAppBar(title:AppStrings.institutionDetails),
       body: SafeArea(
         child: Obx(() {
           InstitutionFetchData data =
               controller.institutionFetchModel?.value.data ??
                   InstitutionFetchData();
           if (data.name == null)
-            return Center(child: CustomText("No Data Found"));
+            return Center(child: CustomText(AppStrings.noDataFound));
 
           return SingleChildScrollView(
             padding: EdgeInsets.all(16),
@@ -29,31 +30,31 @@ class SchoolPreviewScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // About Us Section
-                _buildSectionTitle("About University"),
+                _buildSectionTitle(AppStrings.aboutUniversity),
                 CustomText(data.aboutUs?.history ?? ""),
                 SizedBox(height: 10),
-                CustomText("Vision & Mission", fontWeight: FontWeight.bold),
+                CustomText(AppStrings.visionMission, fontWeight: FontWeight.bold),
                 CustomText(data.aboutUs?.visionAndMission ?? ""),
 
                 // Management Horizontal List
                 _buildManagementList(data.aboutUs?.management ?? []),
 
                 // Academics Section
-                _buildSectionTitle("Courses Offered"),
+                _buildSectionTitle(AppStrings.coursesOffered),
                 _buildCourseList(data.academics?.courses ?? []),
 
                 // Campus Life
-                _buildSectionTitle("Campus Infrastructure"),
+                _buildSectionTitle(AppStrings.campusInfrastructure),
                 _buildInfrastructure(data.campusLife?.infrastructure),
 
                 // Contact Section
-                _buildSectionTitle("Contact Us"),
+                _buildSectionTitle(AppStrings.contactUs),
                 Card(
                   child: ListTile(
                     leading: LocalAssets(imagePath: AppIconAssets.location_new),
                     title: CustomText(data.contactUs?.address ?? ""),
                     subtitle: CustomText(
-                        "Email: ${data.contactUs?.email}\nPhone: ${data.contactUs?.phone}"),
+                        "${AppStrings.email.tr}: ${data.contactUs?.email}\n ${AppStrings.phoneNumber.tr}: ${data.contactUs?.phone}"),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -61,7 +62,7 @@ class SchoolPreviewScreen extends StatelessWidget {
                     onTap: () async {
                       await controller.createSchoolController();
                     },
-                    title: "Create School"),
+                    title: AppStrings.createSchool),
                 SizedBox(height: 50),
               ],
             ),
@@ -102,7 +103,7 @@ class SchoolPreviewScreen extends StatelessWidget {
                     // 1. Wrap the large text in Expanded
                     Expanded(
                       child: CustomText(
-                        course.name ?? "Course Name",
+                        course.name ?? "N/A",
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         // Optional: overflow: TextOverflow.ellipsis, // Adds "..." if too long
@@ -121,7 +122,7 @@ class SchoolPreviewScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 CustomText(
-                  "Eligibility: ${course.eligibility}",
+                  "${AppStrings.eligibility.tr}: ${course.eligibility}",
                   color: Colors.grey[700],
                 ),
               ],
@@ -192,13 +193,13 @@ class SchoolPreviewScreen extends StatelessWidget {
       children: [
         Chip(
             avatar: Icon(Icons.hotel),
-            label: CustomText("Hostel: ${infra.hostel?.capacity} beds")),
+            label: CustomText("${AppStrings.hostel.tr}: ${infra.hostel?.capacity} ${AppStrings.beds.tr}")),
         Chip(
             avatar: Icon(Icons.computer),
-            label: CustomText("Labs: ${infra.labs}")),
+            label: CustomText("${AppStrings.labs.tr}: ${infra.labs}")),
         Chip(
             avatar: Icon(Icons.meeting_room),
-            label: CustomText("Classrooms: ${infra.classrooms}")),
+            label: CustomText("${AppStrings.classrooms.tr}: ${infra.classrooms}")),
       ],
     );
   }

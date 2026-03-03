@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/social_activity_controller.dart';
@@ -23,7 +24,7 @@ class SocialActivityListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: "Social Activity",
+          title: AppStrings.socialActivity,
           isCreateSocialWidget: () {
             return Padding(
               padding: const EdgeInsets.only(right: 16.0),
@@ -42,7 +43,7 @@ class SocialActivityListScreen extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    child: const CustomText("Create New",
+                    child:  CustomText(AppStrings.createNew,
                         color: AppColors.primaryColor, fontSize: 12),
                   ),
                 ),
@@ -55,7 +56,7 @@ class SocialActivityListScreen extends StatelessWidget {
         }
 
         if (controller.activityList.isEmpty) {
-          return const Center(child: CustomText("No activities found"));
+          return const Center(child: CustomText(AppStrings.noActivitiesFound));
         }
 
         return ListView.builder(
@@ -140,9 +141,9 @@ class SocialActivityListScreen extends StatelessWidget {
                                   Navigator.pop(context);
                                   controller.deleteActivity(item.sId ?? "");
                                 },
-                                title: "Delete Activity",
+                                title: AppStrings.delete,
                                 content:
-                                    "Are you sure you want to delete this activity?",
+                                AppStrings.deleteActivityConfirm,
                               );
                             }
                           },child: Padding(
@@ -150,7 +151,7 @@ class SocialActivityListScreen extends StatelessWidget {
                             child: LocalAssets(imagePath: AppIconAssets.more_vertical),
                           ),
                           itemBuilder: (BuildContext context) {
-                            return {'Edit', 'Delete'}.map((String choice) {
+                            return { AppStrings.edit.tr,  AppStrings.delete.tr,}.map((String choice) {
                               return PopupMenuItem<String>(
                                 value: choice.toLowerCase(),
                                 child: CustomText(choice),
