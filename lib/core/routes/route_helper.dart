@@ -75,6 +75,7 @@ import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_cart_sc
 import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_confirm_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_listing_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_stores_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_subcategory_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_screen.dart';
@@ -130,6 +131,7 @@ import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
+import '../../features/common/auth/model/onboarding_category_model.dart';
 import '../../features/me/grocery/model/my_grocery_products_reponse.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
@@ -515,8 +517,12 @@ class RouteHelper {
 
   static String getMedicalConfirmScreenRoute() =>
       RouteConstant.medicalConfirmScreen;
+
   static String getHospitalDepartmentsScreenRoute() =>
       RouteConstant.hospitalDepartmentsScreen;
+
+  static String getGroceryStoresScreenRoute() =>
+      RouteConstant.groceryStoresScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1601,6 +1607,16 @@ class RouteHelper {
             builder: (_) => MedicalConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getMedicalConfirmScreenRoute())
         );
+
+       case RouteConstant.groceryStoresScreen:
+              final args = settings.arguments as Map<String, dynamic>;
+              final OnboardingCategoryModel selectedGroceryCategoryData = args[ApiKeys.argCategoryData] as OnboardingCategoryModel;
+              return MaterialPageRoute(
+                  builder: (_) => GroceryStoresScreen(
+                      selectedGroceryCategory: selectedGroceryCategoryData
+                  ),
+                  settings: RouteSettings(name: getGroceryStoresScreenRoute())
+              );
 
 
 

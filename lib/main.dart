@@ -15,7 +15,6 @@ import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
-import 'package:BlueEra/env.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
@@ -191,6 +190,7 @@ Future<void> main() async {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         return true;
       };
+
       runApp(MyApp(
         initialLocale: locale,
       ));
@@ -250,14 +250,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     SizeConfig.init(context);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.white,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: AppStrings.appName,

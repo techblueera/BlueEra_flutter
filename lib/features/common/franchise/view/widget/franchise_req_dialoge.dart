@@ -13,7 +13,8 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
 class PartnerUnavailableDialog extends StatelessWidget {
-  const PartnerUnavailableDialog({super.key});
+  final VoidCallback backPressed;
+  const PartnerUnavailableDialog({super.key, required this.backPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class PartnerUnavailableDialog extends StatelessWidget {
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
         Navigator.pop(context);
-        Navigator.pop(context);
+        backPressed();
       },
       child: Dialog(
         backgroundColor: Colors.transparent,
@@ -131,7 +132,7 @@ class PartnerUnavailableDialog extends StatelessWidget {
                       textColor: AppColors.black,
                       onTap: (){
                         Navigator.pop(context);
-                        Navigator.pop(context);
+                        backPressed();
                       },
                       bgColor: AppColors.greyLite,
                       fontSize: SizeConfig.large,

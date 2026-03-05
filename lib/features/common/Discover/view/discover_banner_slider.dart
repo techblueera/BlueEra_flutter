@@ -17,13 +17,14 @@ class DiscoverBannerSlider extends StatefulWidget {
 }
 
 class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
-  final PageController _controller = PageController(viewportFraction: 1.0);
+  // 1. Changed viewportFraction to 0.9 to make padding/peek effect visible
+  final PageController _controller = PageController(viewportFraction: 0.9);
   int currentPage = 0;
   Timer? _timer;
 
   final List<Map<String, String>> sliderData = [
     {"slugId": "FRANCHISE", "image": AppImageAssets.franchiseBanner},
-    {"slugId": "BDM", "image": AppImageAssets.franchiseBanner},
+    {"slugId": "BDM", "image": AppImageAssets.bdmBanner},
     {"slugId": "QR", "image": AppImageAssets.qrBanner},
   ];
 
@@ -34,10 +35,13 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   }
 
   void _startAutoScroll() {
-    _timer?.cancel(); // Clear existing timer
-    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 6), (Timer timer) {
       if (_controller.hasClients) {
-        int nextPage = (currentPage + 1) % sliderData.length;
+        // Use +1 and check bounds to avoid jumping back from index 2 to 0 instantly
+        int nextPage = currentPage + 1;
+        if (nextPage >= sliderData.length) nextPage = 0;
+
         _controller.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 800),
@@ -63,23 +67,21 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
           /// SLIDER
           SizedBox(
             height: 180,
-            child: GestureDetector(
-              // 2. Pause timer on touch down, restart on touch up
-              onPanDown: (_) => _timer?.cancel(),
-              onPanEnd: (_) => _startAutoScroll(),
-              onPanCancel: () => _startAutoScroll(),
+            child: Listener(
+              // 2. Use PointerDownEvent to kill the timer immediately
+              onPointerDown: (_) => _timer?.cancel(),
+              // 3. Restart timer only when user stops touching
+              onPointerUp: (_) => _startAutoScroll(),
               child: PageView.builder(
                 controller: _controller,
                 itemCount: sliderData.length,
+                // Allow the user to swipe naturally
+                physics: const BouncingScrollPhysics(),
                 onPageChanged: (index) {
                   setState(() => currentPage = index);
                 },
                 itemBuilder: (context, index) {
-                  // 3. Horizontal padding creates space between slides
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: _buildSlide(sliderData[index]),
-                  );
+                  return _buildSlide(sliderData[index]);
                 },
               ),
             ),
@@ -130,6 +132,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
         borderRadius: BorderRadius.circular(12.0),
         child: LocalAssets(
           imagePath: data["image"]!,
+          width: double.maxFinite,
           boxFix: BoxFit.cover,
         ),
       ),

@@ -27,204 +27,135 @@ class RiderStoreScreen extends StatefulWidget {
 
 class _RiderStoreScreenState extends State<RiderStoreScreen> {
 
-
-  // static const List<CollapsibleGridModel> restaurantNearMe = [
-  //   CollapsibleGridModel(
-  //       icon: AppIconAssets.groceryItemsGrey,
-  //       name: 'Restaurant',
-  //       slugId: 'NEAR_RESTAURANT'),
-  //   CollapsibleGridModel(
-  //       icon: AppIconAssets.groceryItemsGrey,
-  //       name: 'Breakfast',
-  //       slugId: 'NEAR_BREAKFAST'),
-  //   CollapsibleGridModel(
-  //       icon: AppIconAssets.groceryItemsGrey,
-  //       name: 'Lunch, Dinner',
-  //       slugId: 'NEAR_LUNCH_DINNER'),
-  //   CollapsibleGridModel(
-  //       icon: AppIconAssets.groceryItemsGrey,
-  //       name: 'Fast-Food',
-  //       slugId: 'NEAR_FAST_FOOD'),
-  //   CollapsibleGridModel(
-  //       icon: AppIconAssets.groceryItemsGrey,
-  //       name: 'Sweets',
-  //       slugId: 'NEAR_SWEETS'),
-  //   CollapsibleGridModel(
-  //       icon: AppIconAssets.groceryItemsGrey, // Use a variation if available
-  //       name: 'Restaurant',
-  //       slugId: 'NEAR_RESTAURANT_ALT'),
-  // ];
-
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8,
-          ),
-          child: CustomScrollView(
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size8,
+      ),
+      child: CustomScrollView(
 
-            slivers: [
+        slivers: [
 
-              _buildGap(gap: SizeConfig.paddingM),
+          SliverToBoxAdapter(
+            child: CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.paddingXSL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-              SliverToBoxAdapter(
-                child: InkWell(
-                  onTap: () {
-                    // Handle search tap
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL), // Add spacing below search
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 1.2),
-                      boxShadow: [AppShadows.textFieldShadow],
-                    ),
-                    child: Row(
-                      children: [
-                        LocalAssets(
-                          imagePath: AppIconAssets.riderIconColorful,
-                          height: SizeConfig.size30,
-                          width: SizeConfig.size30,
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        CustomText(
-                          AppStrings.yourPreviousRider,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomText(
+                          AppStrings.groceryNdStationary,
                           fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w400),
 
-              SliverToBoxAdapter(
-                child: CustomFormCard(
-                  padding: EdgeInsets.all(SizeConfig.paddingXSL),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                      SizedBox(width: SizeConfig.paddingXSL),
 
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CustomText(
-                              AppStrings.groceryNdStationary,
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w400),
-
-                          SizedBox(width: SizeConfig.paddingXSL),
-
-                          _buildPaymentMode(AppStrings.cashOnDelivery)
-                        ],
-                      ),
-
-                      SizedBox(height: SizeConfig.paddingXSL),
-
-                      _buildCategoryGrid(
-                        items: GroceryData.grocerySuperCategories,
-                        onTap: (item) {
-                          // getCategoriesByTag(item.slugId);
-                          Get.toNamed(
-                            RouteHelper.getGroceryCategoryScreenRoute(),
-                            arguments: {
-                              ApiKeys.argMyGrocery: false,
-                              ApiKeys.argArrGrocerySuperCategory: GroceryData.grocerySuperCategories,
-                              ApiKeys.argArrGroceryCatKey: item.slugId,
-                              ApiKeys.argArrGroceryCatName: item.name,
-                            },
-                          );
-                        },
-                      ),
-
+                      _buildPaymentMode(AppStrings.cashOnDelivery)
                     ],
                   ),
-                ),
-              ),
 
-              _buildGap(),
+                  SizedBox(height: SizeConfig.paddingXSL),
 
-              SliverToBoxAdapter(
-                child: CustomFormCard(
-                  padding: EdgeInsets.all(SizeConfig.paddingXSL),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-
-                    children: [
-
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CustomText(
-                              AppStrings.foodNearMe,
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w400),
-
-                          SizedBox(width: SizeConfig.paddingXSL),
-
-                          _buildPaymentMode(AppStrings.prePaid)
-                        ],
-                      ),
-
-                      SizedBox(height: SizeConfig.paddingXSL),
-
-                      _buildCategoryGrid(
-                        items: foodCategories,
-                        onTap: (item) {
-
+                  _buildCategoryGrid(
+                    items: GroceryData.grocerySuperCategories,
+                    onTap: (item) {
+                      // getCategoriesByTag(item.slugId);
+                      Get.toNamed(
+                        RouteHelper.getGroceryCategoryScreenRoute(),
+                        arguments: {
+                          ApiKeys.argMyGrocery: false,
+                          ApiKeys.argArrGrocerySuperCategory: GroceryData.grocerySuperCategories,
+                          ApiKeys.argArrGroceryCatKey: item.slugId,
+                          ApiKeys.argArrGroceryCatName: item.name,
                         },
-                      ),
-
-                    ],
+                      );
+                    },
                   ),
-                ),
+
+                ],
               ),
-
-              // _buildGap(),
-              //
-              // SliverToBoxAdapter(
-              //   child: CustomFormCard(
-              //     padding: EdgeInsets.all(SizeConfig.paddingXSL),
-              //     child: Column(
-              //       crossAxisAlignment: CrossAxisAlignment.start,
-              //       children: [
-              //
-              //         CustomText(
-              //             AppStrings.restaurantNearMe,
-              //             fontSize: SizeConfig.medium,
-              //             color: AppColors.mainTextColor,
-              //             fontWeight: FontWeight.w400),
-              //
-              //         SizedBox(height: SizeConfig.paddingXSL),
-              //
-              //         _buildCategoryGrid(
-              //           items: restaurantNearMe,
-              //           onTap: (item) {
-              //
-              //           },
-              //         ),
-              //
-              //       ],
-              //     ),
-              //   ),
-              // ),
-
-              _buildGap(gap: SizeConfig.paddingM)
-            ],
+            ),
           ),
-        ),
+
+          _buildGap(),
+
+          SliverToBoxAdapter(
+            child: CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.paddingXSL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomText(
+                          AppStrings.foodNearMe,
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w400),
+
+                      SizedBox(width: SizeConfig.paddingXSL),
+
+                      _buildPaymentMode(AppStrings.prePaid)
+                    ],
+                  ),
+
+                  SizedBox(height: SizeConfig.paddingXSL),
+
+                  _buildCategoryGrid(
+                    items: foodCategories,
+                    onTap: (item) {
+
+                    },
+                  ),
+
+                ],
+              ),
+            ),
+          ),
+
+          // _buildGap(),
+          //
+          // SliverToBoxAdapter(
+          //   child: CustomFormCard(
+          //     padding: EdgeInsets.all(SizeConfig.paddingXSL),
+          //     child: Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //
+          //         CustomText(
+          //             AppStrings.restaurantNearMe,
+          //             fontSize: SizeConfig.medium,
+          //             color: AppColors.mainTextColor,
+          //             fontWeight: FontWeight.w400),
+          //
+          //         SizedBox(height: SizeConfig.paddingXSL),
+          //
+          //         _buildCategoryGrid(
+          //           items: restaurantNearMe,
+          //           onTap: (item) {
+          //
+          //           },
+          //         ),
+          //
+          //       ],
+          //     ),
+          //   ),
+          // ),
+
+          _buildGap(gap: SizeConfig.paddingM)
+        ],
       ),
     );
   }
+
 
   Widget _buildGap({double? gap}){
     return  SliverToBoxAdapter(

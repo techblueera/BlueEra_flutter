@@ -10,6 +10,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
@@ -62,6 +63,8 @@ class GroceryController extends GetxController {
   bool get isMaxLimitHit => selectedGroceries.length == maxLimit;
 
   Map<String, List<VariantsData>> selectedProductVariants = {};
+
+  Rx<OnboardingCategoryModel?> selectedGroceryCategoryData = Rx<OnboardingCategoryModel?>(null);
 
   void toggleSelection(GroceryProductData p) {
     if (selectedGroceries.contains(p)) {

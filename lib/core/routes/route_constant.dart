@@ -143,6 +143,7 @@ class RouteConstant {
   static const String addSelfServiceScreen = "/AddSelfServiceScreen";
   static const String createAccountTypeScreen = "/CreateAccountTypeScreen";
   static const String earnServiceAvailableOptionsScreen = "/EarnServiceAvailableOptionsScreen";
+  static const String groceryStoresScreen = "/GroceryStoresScreen";
 
   /// Medical
   static const String medicalScreen = "/MedicalScreen";

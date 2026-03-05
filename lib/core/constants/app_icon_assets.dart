@@ -670,8 +670,8 @@ class AppIconAssets {
   static const String TraumaCare = "${iconPath}TraumaCare.svg";
   static const String IntensiveCareUnit = "${iconPath}IntensiveCareUnit.svg";
   static const String CardiacCareUnit = "${iconPath}CardiacCareUnit.svg";
-  static const String  Neonatal= "${iconPath}Neonatal.svg";
-  static const String  PICU= "${iconPath}PICU.svg";
+  static const String Neonatal= "${iconPath}Neonatal.svg";
+  static const String PICU = "${iconPath}PICU.svg";
   static const String CashLessInsurance = "${iconPath}CashLessInsurance.svg";
   static const String  PMYojana= "${iconPath}PMYojana.png";
   static const String BloodBank = "${iconPath}BloodBank.svg";
@@ -684,5 +684,7 @@ class AppIconAssets {
   static const String blood_bank_icon = "${iconPath}blood_bank_icon.svg";
   static const String pm_yojna_icon = "${iconPath}pm_yojna_icon.png";
   static const String questionMarkIcon = "${iconPath}question_mark_icon.svg";
+  // static const String transporterIcon = "${iconPath}transporter_icon.svg";
+  // static const String selfPickupIcon = "${iconPath}self_pickup_icon.svg";
 
 }
