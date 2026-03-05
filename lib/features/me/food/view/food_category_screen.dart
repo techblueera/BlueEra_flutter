@@ -89,7 +89,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                 ),
               );
             } else {
-              return Center(child: CustomText("No Data Found"));
+              return Center(child: CustomText(AppStrings.noDataFound));
             }
           } else if (foodServiceController.getFoodCategoryResponse.value ==
               Status.ERROR) {

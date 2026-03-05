@@ -18,14 +18,16 @@ class SchoolNotCreateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() {
-        return controller.isAiLoading.value
+        return !controller.isAiLoading.value
             ? Center(
               child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const CircularProgressIndicator(),
                     const SizedBox(height: 15),
-                    CustomText("Data fetching from AI"),
+                    CustomText("AI searching your details please wait"),
+                    // const CustomText("Ai fetched your details see your details",
+                    //    fontSize: 12),
                     const CustomText("Please wait for 10-15 sec",
                        fontSize: 12),
                   ],

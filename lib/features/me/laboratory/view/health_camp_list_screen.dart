@@ -35,7 +35,7 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Health Camps",
+        title: AppStrings.healthCamps.tr,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -52,7 +52,7 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CustomText("No health camps found", color: AppColors.grey99),
+                CustomText(AppStrings.noHealthCampsFound.tr, color: AppColors.grey99),
                 SizedBox(height: SizeConfig.size10),
                 // ElevatedButton(
                 //   onPressed: () => Get.to(() => const HealthCampFormScreen()),
@@ -91,9 +91,9 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
                           spacing: 8,
                           runSpacing: 6,
                           children: [
-                            _pill("Price: ${c.price ?? 0}"),
-                            _pill("Discount: ${c.discountPrice ?? 0}"),
-                            if (c.startTime != null) _pill("Start: ${c.startTime}"),
+                            _pill("${AppStrings.price.tr}: ${c.price ?? 0}"),
+                            _pill("${AppStrings.discount.tr}: ${c.discountPrice ?? 0}"),
+                            if (c.startTime != null) _pill("${AppStrings.start.tr}: ${c.startTime}"),
                           ],
                         ),
                       ],
@@ -112,7 +112,7 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
                         onPressed: () {
                           showCommonDialog(
                             context: context,
-                            text: "Delete this health camp?",
+                            text: AppStrings.deleteThisHealthCamp.tr,
                             confirmCallback: () => controller.deleteCamp(c.id!),
                             cancelCallback: () => Get.back(),
                             confirmText: AppStrings.delete,

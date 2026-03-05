@@ -3462,4 +3462,87 @@ class AppStrings {
   static const String activities = "activities";
 
   static const String profileIdentity = "profile_identity";
+
+  /// FOOD HOME SCREEN
+  static const String foodSelection = "food_selection";
+  static const String ourMenu = "our_menu";
+  static const String addGalleryPhoto = "add_gallery_photo";
+  static const String addContactUs = "add_contact_us";
+
+  /// LAB SERVICE PHOTOS SCREEN
+  static const String labServicePhotos = "lab_service_photos";
+  static const String uploadLabServicePhoto = "upload_lab_service_photo";
+  static const String imagesCount = "images_count";
+
+  /// LAB UPDATE SCREEN
+  static const String basicBloodTest = "basic_blood_test";
+  static const String pathology = "pathology";
+  static const String radiology = "radiology";
+  static const String pulmonologyDiagnostics = "pulmonology_diagnostics";
+  static const String ophthalmologyEnt = "ophthalmology_ent";
+  static const String othersAddManually = "others_add_manually";
+  static const String createHealthCamp = "create_health_camp";
+
+  /// LAB TEST LIST SCREEN
+  static const String noTestsFound = "no_tests_found";
+  static const String deleteThisTest = "delete_this_test";
+
+  /// ADD LAB TEST SCREEN
+  static const String addTest = "add_test";
+  static const String editTest = "edit_test";
+  static const String testName = "test_name";
+  static const String egText = "eg_text";
+  static const String testCategory = "test_category";
+  static const String tellUsMoreAboutTest = "tell_us_more_about_test";
+  static const String specimen = "specimen";
+  static const String selectSpecimen = "select_specimen";
+  static const String specimenCollectionMethod = "specimen_collection_method";
+  static const String selectMethod = "select_method";
+  static const String estimatedReportHours = "estimated_report_hours";
+  static const String beforeTestGuidance = "before_test_guidance";
+  static const String enterGuidance = "enter_guidance";
+  static const String testMethodOptional = "test_method_optional";
+  static const String applicableForChild = "applicable_for_child";
+  static const String prescriptionRequired = "prescription_required";
+  static const String testFeesMrp = "test_fees_mrp";
+  static const String customerPrice = "customer_price";
+  static const String testParameters = "test_parameters";
+  static const String selectParameter = "select_parameter";
+  static const String egParameters = "eg_parameters";
+
+  /// FACILITY SCREEN
+  static const String wheelchairAssistance = "wheelchair_assistance";
+  static const String doctorConsultationTieUp = "doctor_consultation_tie_up";
+  static const String insuranceCashlessSupport = "insurance_cashless_support";
+  static const String homeSampleCollection = "home_sample_collection";
+  static const String digitalReport = "digital_report";
+  static const String enable = "enable";
+  static const String turnOnCustomFacilities = "turn_on_custom_facilities";
+  static const String active = "active";
+  static const String label = "label";
+  static const String egPickupDrop = "eg_pickup_drop";
+  static const String describeTheFacility = "describe_the_facility";
+
+  /// HEALTH CAMP SCREENS
+  static const String healthCamps = "health_camps";
+  static const String noHealthCampsFound = "no_health_camps_found";
+  static const String start = "start";
+  static const String deleteThisHealthCamp = "delete_this_health_camp";
+  static const String editHealthCamp = "edit_health_camp";
+  static const String egFreeHealthCheckup = "eg_free_health_checkup";
+  static const String describeTheCamp = "describe_the_camp";
+  static const String sqFoot = "sq_foot";
+  static const String discountPrice = "discount_price";
+  static const String selectStartTime = "select_start_time";
+
+  /// LAB PREVIEW & PROFILES SCREENS
+  static const String diagnosticLabPreview = "diagnostic_lab_preview";
+  static const String labName = "lab_name";
+  static const String verified = "verified";
+  static const String popularServices = "popular_services";
+  static const String featuredTests = "featured_tests";
+  static const String healthPackages = "health_packages";
+  static const String createLaboratory = "create_laboratory";
+  static const String failedToLoadData = "failed_to_load_data";
+  static const String openTime = "open_time";
 }

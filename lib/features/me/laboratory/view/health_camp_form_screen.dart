@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
@@ -40,8 +41,8 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
           title: widget.existing == null
-              ? "Create Health Camp"
-              : "Edit Health Camp"),
+              ? AppStrings.createHealthCamp.tr
+              : AppStrings.editHealthCamp.tr),
       body: CommonCardWidget(
         child: SingleChildScrollView(
           // padding: EdgeInsets.all(SizeConfig.size16),
@@ -50,8 +51,8 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
             children: [
               CommonTextField(
                 textEditController: controller.typeController,
-                title: "Activity type",
-                hintText: "E.g. Free Health Check-up Camp...",
+                title: AppStrings.activityType.tr,
+                hintText: AppStrings.egFreeHealthCheckup.tr,
                 onChange: (val) {
                   controller.activityType.value = val;
                   controller.validateForm();
@@ -60,15 +61,15 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
               SizedBox(height: SizeConfig.size16),
               CommonTextField(
                 textEditController: controller.descController,
-                title: "Description",
-                hintText: "Describe the camp",
+                title: AppStrings.description.tr,
+                hintText: AppStrings.describeTheCamp.tr,
                 maxLine: 4,
                 onChange: (val) => controller.validateForm(),
               ),
               SizedBox(height: SizeConfig.size16),
               CommonTextField(
                 textEditController: controller.sqFootController,
-                title: "Sq. Foot",
+                title: AppStrings.sqFoot.tr,
                 hintText: "E.g. 200",
                 keyBoardType: TextInputType.number,
                 onChange: (val) => controller.validateForm(),
@@ -80,7 +81,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                   Expanded(
                     child: CommonTextField(
                       textEditController: controller.priceController,
-                      title: "Price",
+                      title: AppStrings.price.tr,
                       hintText: "E.g. 499",
                       keyBoardType: TextInputType.number,
                       onChange: (val) => controller.validateForm(),
@@ -90,7 +91,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                   Expanded(
                     child: CommonTextField(
                       textEditController: controller.discountPriceController,
-                      title: "Discount Price",
+                      title: AppStrings.discountPrice.tr,
                       hintText: "E.g. 399",
                       keyBoardType: TextInputType.number,
                       onChange: (val) => controller.validateForm(),
@@ -99,7 +100,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                 ],
               ),
               SizedBox(height: SizeConfig.size16),
-              CustomText("Start Date",
+              CustomText(AppStrings.startDate.tr,
                   fontSize: 12, fontWeight: FontWeight.w400),
               SizedBox(height: SizeConfig.size8),
               Obx(() => NewDatePicker(
@@ -121,7 +122,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     },
                   )),
               SizedBox(height: SizeConfig.size16),
-              CustomText("End Date", fontSize: 12, fontWeight: FontWeight.w400),
+              CustomText(AppStrings.endDate.tr, fontSize: 12, fontWeight: FontWeight.w400),
               SizedBox(height: SizeConfig.size8),
               Obx(() => NewDatePicker(
                     selectedDay: controller.endDay.value,
@@ -142,7 +143,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     },
                   )),
               SizedBox(height: SizeConfig.size16),
-              _buildSingleTimeDropdown("Start Time", controller.selectedTime),
+              _buildSingleTimeDropdown(AppStrings.startTime.tr, controller.selectedTime),
               // SizedBox(height: SizeConfig.size16),
               // CommonTextField(
               //   textEditController:
@@ -156,7 +157,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
               // ),
               SizedBox(height: SizeConfig.size20),
               Obx(() => CustomBtn(
-                    title: widget.existing == null ? "Create" : "Update",
+                    title: widget.existing == null ? AppStrings.create.tr : AppStrings.update.tr,
                     isValidate: controller.isValid.value,
                     isLoading: controller.isLoading.value,
                     onTap: controller.isValid.value
@@ -208,7 +209,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: items.contains(currentValue) ? currentValue : null,
-          hint: CustomText("Select Start Time"),
+          hint: CustomText(AppStrings.selectStartTime.tr),
           icon: const Icon(
             Icons.keyboard_arrow_down,
             size: 16,

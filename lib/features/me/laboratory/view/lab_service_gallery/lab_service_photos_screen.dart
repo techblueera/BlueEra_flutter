@@ -1,6 +1,7 @@
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_photo_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/upload_lab_service_photos_screen.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -15,16 +16,17 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Lab Service Photos",
+        title: AppStrings.labServicePhotos.tr,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
           child: PositiveCustomBtn(
               onTap: () {
                 Get.to(UploadLabServicePhotosScreen());
               },
-              title: "Upload Lab Service Photo"),
+              title: AppStrings.uploadLabServicePhoto.tr),
         ),
       ),
       body: Obx(() {
@@ -81,12 +83,10 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
                                 color: Colors.black.withOpacity(0.6),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: CustomText(
-                                "+${images.length} Images",
-                                textAlign: TextAlign.center,
-
-                                    color: Colors.white, fontSize: 10),
-
+                              child: CustomText("+${images.length} ${AppStrings.imagesCount.tr}",
+                                  textAlign: TextAlign.center,
+                                  color: Colors.white,
+                                  fontSize: 10),
                             ),
                           )
                         ],
@@ -100,16 +100,15 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(item.title??"",
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                CustomText(item.title ?? "",
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ],
                             ),
                             SizedBox(height: 4),
-                            CustomText("Last Update: ${formatIsoDate(item.updatedAt??"")}",
-
-                                    color: Colors.grey, fontSize: 12),
-
+                            CustomText(
+                                "${AppStrings.lastUpdate.tr}: ${formatIsoDate(item.updatedAt ?? "")}",
+                                color: Colors.grey,
+                                fontSize: 12),
                           ],
                         ),
                       ),
@@ -123,6 +122,7 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
       }),
     );
   }
+
   static String formatIsoDate(String isoString) {
     if (isoString.isEmpty) return "";
     DateTime dateTime = DateTime.parse(isoString);

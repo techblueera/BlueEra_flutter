@@ -775,6 +775,7 @@ abstract class BaseService {
   final String emergencyBasicInfo = 'emergency-service/basic-info';
   final String emergencyContacts = 'emergency-service/emergency-contacts';
   final String emergencyPrivacyAlerts = 'emergency-service/privacy-alerts';
+  String get emergencyProfile => 'emergency-service/emergency-profile/$userId';
 
   /// Other Facilities
   final String otherFacilitiesBase = 'hospital-service/other-facilities';

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profile_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -29,7 +30,9 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Description"),
+      appBar: CommonBackAppBar(
+        title: AppStrings.description.tr,
+      ),
       body: Obx(() {
         return SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.size16),
@@ -37,7 +40,7 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CommonTextField(
-                title: "Laboratory Description",
+                title: AppStrings.description,
                 hintText: "Enter description (max 500 characters)",
                 textEditController: controller.descController,
                 maxLine: 6,
@@ -47,7 +50,7 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
               ),
               SizedBox(height: SizeConfig.size20),
               CustomBtn(
-                title: "Save",
+                title: AppStrings.save,
                 isValidate: controller.isValid.value,
                 isLoading: controller.isLoading.value,
                 onTap: controller.isValid.value

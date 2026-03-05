@@ -28,7 +28,6 @@ class AppColors {
   static const red00 = Color(0xFFD70000);
   static const transparent = Color(0x00000000);
   static const colorTextDarkGrey = Color(0xFF8C8C8C);
-  static const colorBorder = Color(0xFFE5EAFF);
   static const coloGreyText = Color(0xFF8F989F);
   static const green39 = Color(0xFF04D839);
   static const greenShade = Color(0xFF40A246);
@@ -42,9 +41,7 @@ class AppColors {
   static const borderGray = Color(0xFFB8BBC2);
   static const fillColor = Color(0xFFF5F5F5);
   static const black33 = Color(0xff191A33);
-  static const black80 = Color(0x801D2935);
   static const grey66 = Color(0x661D2935);
-  static const whiteCC = Color(0xCCFFFFFF);
   static const grey72 = Color(0xFF526372);
   static const skyBlueDF = Color(0xFF0877DF);
   static const black1A = Color(0xFF08111A);
@@ -69,7 +66,6 @@ class AppColors {
   static const greyFill = Color(0xFFD3D3D3);
   static const buttonLiteBlue = Color(0xFFD9EBFF);
   static const optionShowGray = Color(0xFF6E6D6D);
-  static const subHeadGray = Color(0xFF4E506A);
   static const greyE5 = Color(0xFFE5E5E5);
   static const greyE4 = Color(0xFFEFEFEF);
   static const yellow00 = Color(0xFFFFC300);
@@ -79,8 +75,6 @@ class AppColors {
   static const greenLightOut = Color.fromRGBO(197, 255, 201, 1);
   static const greenDarkOut = Color.fromRGBO(69, 90, 100, 1);
   static const greyBf = Color(0xffB0B4BF);
-
-  /// New Colors
   static const primaryColor = Color(0xFF0086FF);
   static const appBackgroundColor = Color(0xFFF1F1F3);
   static const mainTextColor = Color(0xFF090707);
@@ -99,17 +93,10 @@ class AppColors {
   static const orange = Color(0xFFFA6000);
   static const orangelite = Color(0xFFFAA700);
   static const grey5B = Color(0xFF5B5B5B);
-  static const grey60 = Color(0xFF606060);
   static const whiteE5 = Color(0xFFE5E5E5);
   static const green7F = Color(0xFF2BB67F);
   static const orange27 = Color(0xFFAD4627);
-  static const whiteFade = Color(0xffFEFEFE);
-  static const darkBrown = Color(0xff5A1900);
-  static const orangeOut = Color(0xffFE7B2E);
-  static const purpleOut = Color(0xffC7017C);
-  static const backgroundBlur = Color(0xff0000004D);
   static const blueLight = Color(0xFF56CCF2);
-  static const blueDark = Color(0xFF2F80ED);
   static const blackLite = Color(0xFF505050);
   static const redLite = Color(0xFFD94A42);
   static const blueLightShade = Color(0xFFF2FEFE);
@@ -125,7 +112,6 @@ class AppColors {
   static const redB4 = Color(0xFFB40000);
   static const green00 = Color(0xFF008000);
   static const borderBox = Color(0xFF999999BF);
-  static const liteBlue = Color(0xFFE9F3FF);
   static const blackMite = Color(0x991C1C1C);
   static const redBE = Color(0xFFF9BEBE);
   static const symbolBorderBlue = Color(0xFF0183FC);
@@ -136,18 +122,10 @@ class AppColors {
   static const blue52 = Color(0x52007BE8);
   static const redLight = Color(0xFFD94A42);
   static const yellowBC = Color(0xFFBC8D00);
-
-  // static const  yellowBC = Color(0xFFBC8D00);
   static const whiteE91 = Color(0xffE9E9E9);
   static const greyDF = Color(0xFFDFDFDF);
   static const red33 = Color(0xFFFF2D33);
   static const lightGreenShade = Color(0xFF78EDA7);
-  static const yellowE7 = Color(0xFFFAF0E7);
-  static const pinkDE = Color(0xFFF8DCDE);
-  static const blueF4 = Color(0xFFDBE8F4);
-  static const greenDB = Color(0xFFD8F8DB);
-  static const darkBlue = Color(0xFF00347F);
-  static const blueGrayShade = Color(0xFFD6EAFF);
   static const redE4 = Color(0xFFFFE6E4);
   static const boxBg = Color(0xFFF2F2F2);
   static const circleBg = Color(0xFFF0F0F0);
@@ -159,5 +137,4 @@ class AppColors {
   static const darkPurpleShade = Color(0xFF2F0044);
   static const darkPinkShade = Color(0xFF600020);
   static const lightBlueShade = Color(0xFF0085FE);
-  static const yellowLight = Color(0xFFFFE79E);
 }

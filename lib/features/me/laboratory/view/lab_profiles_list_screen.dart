@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_lab_view_screen.dart';
@@ -54,7 +55,7 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
         if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
           return Center(
             child: CustomText(
-              "Failed to load data",
+              AppStrings.failedToLoadData.tr,
               fontSize: SizeConfig.medium,
               color: AppColors.red,
             ),
@@ -63,7 +64,7 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
         if (controller.profiles.isEmpty) {
           return Center(
             child: CustomText(
-              "No laboratories found",
+              AppStrings.noLaboratoriesFound.tr,
               fontSize: SizeConfig.medium,
               color: AppColors.grey9B,
             ),
@@ -144,7 +145,7 @@ class _LabCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            item.name.isNotEmpty ? item.name : "Unknown",
+                            item.name.isNotEmpty ? item.name : AppStrings.unknown.tr,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w700,
                             color: AppColors.mainTextColor,
@@ -171,7 +172,7 @@ class _LabCard extends StatelessWidget {
                       ),
                     SizedBox(height: SizeConfig.size6),
                     CustomText(
-                      "Open: ${item.fullDetails?.healthCamps?.firstOrNull?.startTime}",
+                      "${AppStrings.openTime.tr}: ${item.fullDetails?.healthCamps?.firstOrNull?.startTime}",
                       fontSize: SizeConfig.small,
                       color: AppColors.green00,
                       fontWeight: FontWeight.w600,

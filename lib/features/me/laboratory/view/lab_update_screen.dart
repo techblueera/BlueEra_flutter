@@ -16,60 +16,78 @@ import 'facility_screen.dart';
 
 class LabUpdateScreen extends StatelessWidget {
   LabUpdateScreen({super.key});
-  final List<ServiceMenuItem> serviceMenus = [
+
+  List<ServiceMenuItem> get serviceMenus => [
     ServiceMenuItem(
-      title: AppStrings.description,
+      title: AppStrings.description.tr,
       icon: AppIconAssets.other_privacy,
       page: () => const LabDescriptionScreen(),
     ),
     ServiceMenuItem(
-      title: "Basic Blood Test",
+      title: AppStrings.basicBloodTest.tr,
       icon: AppIconAssets.BasicBloodTest,
-      page: () => LabTestListScreen(collection: 'Blood test',title: "Basic Blood Test",),
+      page: () => LabTestListScreen(
+        collection: 'Blood test',
+        title: AppStrings.basicBloodTest.tr,
+      ),
     ),
     ServiceMenuItem(
-      title: "Pathology",
+      title: AppStrings.pathology.tr,
       icon: AppIconAssets.Pathology,
-      page: () => LabTestListScreen(collection: 'Pathology',title: "Pathology",),
+      page: () => LabTestListScreen(
+        collection: 'Pathology',
+        title: AppStrings.pathology.tr,
+      ),
     ),
     ServiceMenuItem(
-      title: "Radiology",
+      title: AppStrings.radiology.tr,
       icon: AppIconAssets.Radiology,
-      page: () => LabTestListScreen(collection: 'Radiology',title: "Radiology",),
+      page: () => LabTestListScreen(
+        collection: 'Radiology',
+        title: AppStrings.radiology.tr,
+      ),
     ),
     ServiceMenuItem(
-      title: "Pulmonology Diagnostics",
+      title: AppStrings.pulmonologyDiagnostics.tr,
       icon: AppIconAssets.PulmonologyDiagnostics,
-      page: () => LabTestListScreen(collection: 'Pulmonology Diagnostics',title: "Pulmonology Diagnostics",),
-      // page: () => SchoolNoticeAndNews(),
+      page: () => LabTestListScreen(
+        collection: 'Pulmonology Diagnostics',
+        title: AppStrings.pulmonologyDiagnostics.tr,
+      ),
     ),
     ServiceMenuItem(
-      title: "Ophthalmology & ENT",
+      title: AppStrings.ophthalmologyEnt.tr,
       icon: AppIconAssets.OphthalmologyENT,
-      page: () => LabTestListScreen(collection: 'Ophthalmology & ENT',title: "Ophthalmology & ENT",),
+      page: () => LabTestListScreen(
+        collection: 'Ophthalmology & ENT',
+        title: AppStrings.ophthalmologyEnt.tr,
+      ),
     ),
     ServiceMenuItem(
-      title: "Others (Add Manually)",
+      title: AppStrings.othersAddManually.tr,
       icon: AppIconAssets.OthersLab,
-      page: () => LabTestListScreen(collection: 'Others',title: "Others",),
+      page: () => LabTestListScreen(
+        collection: 'Others',
+        title: AppStrings.others.tr,
+      ),
     ),
     ServiceMenuItem(
-      title: "Facility ",
+      title: AppStrings.facility.tr,
       icon: AppIconAssets.other_office_facility,
       page: () => FacilityScreen(),
     ),
     ServiceMenuItem(
-      title: "Gallery",
+      title: AppStrings.gallery.tr,
       icon: AppIconAssets.other_gallery,
       page: () => LabServicePhotosPhotoScreen(),
     ),
     ServiceMenuItem(
-      title: "Create Health Camp",
+      title: AppStrings.createHealthCamp.tr,
       icon: AppIconAssets.OthersLab,
       page: () => const HealthCampListScreen(),
     ),
     ServiceMenuItem(
-      title: "Contact Us",
+      title: AppStrings.contactUs.tr,
       icon: AppIconAssets.contact_us,
       page: () => LabContactUsScreen(),
     ),

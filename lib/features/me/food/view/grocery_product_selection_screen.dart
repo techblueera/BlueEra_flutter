@@ -15,7 +15,6 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
-
 class ProductSelectionScreen extends StatefulWidget {
   final FoodCategoryData foodCategoryData;
 
@@ -83,14 +82,12 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       ),
       body: Row(
         children: [
-
           // 1. Left Side: Category List
           CommonGenericLeftSideCategoryList<Children>(
-          items: widget.foodCategoryData.children ?? [],
+            items: widget.foodCategoryData.children ?? [],
             getIcon: (cat) => cat.image ?? '',
             getLabel: (cat) => cat.name ?? '',
-            isSelected: (cat) =>
-            controller.selectedCategoryId.value == cat.id,
+            isSelected: (cat) => controller.selectedCategoryId.value == cat.id,
             onTap: (cat, index) {
               controller.changeCategory(cat.id ?? "");
               controller.getFoodByCategoryIDController(
@@ -98,7 +95,6 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               setState(() {});
             },
           ),
-
 
           // 1. Left Side: Category List
           // Container(
@@ -465,7 +461,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                   onTap: () async {
                     // lat--> 26.8466933, lng--> 80.946165
                     final vc = Get.find<FoodServiceController>();
-                  await  vc.addKitchenInventoryController(data: product);
+                    await vc.addKitchenInventoryController(data: product);
                   },
                   title: "Post Product"),
               const SizedBox(height: 40),

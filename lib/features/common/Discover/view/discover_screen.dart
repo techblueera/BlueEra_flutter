@@ -28,9 +28,12 @@ import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart'
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
+import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
@@ -42,7 +45,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../me/grocery/widget/grocery_data.dart';
 import 'book_your_transport/book_transport_main.dart';
 import 'package:flutter/material.dart';
-
 
 class ResponsiveSearchBar extends StatelessWidget {
   const ResponsiveSearchBar({super.key});
@@ -265,6 +267,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       child: Column(
         children: [
           ResponsiveSearchBar(),
+
           _buildGap(),
 
           DiscoverBannerSlider(),
@@ -291,7 +294,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     SizedBox(height: SizeConfig.paddingXSL),
                     _buildMasonryGridWithIcons(
                         items: [
-                          ...GroceryData.grocerySuperCategories.take(3).toList(),
+                          ...GroceryData.grocerySuperCategories
+                              .take(3)
+                              .toList(),
                           ...foodCategories.take(3).toList()
                         ],
                         crossAxisCount: 3,
@@ -665,7 +670,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     ),
                     InkWell(
                       onTap: () => Get.to(() => ServicesNearMeScreen(
-                            businessServicesCategories: businessOnboardingServicesCategories,
+                            businessServicesCategories:
+                                businessOnboardingServicesCategories,
                           )),
                       child: _viewAll(),
                     ),
@@ -681,9 +687,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
           /// Financial Sectors
           CustomFormCard(
-            border: Border.all(
-              color: AppColors.greyA5
-            ),
+            border: Border.all(color: AppColors.greyA5),
             padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -821,7 +825,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _buildGap(),
 
           searchProductsViaAiWidget(),
-
+          _buildGap(),
+          Builder(builder: (_) {
+            getOrPut(() => EmergencyProfileController());
+            return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+          }),
           SizedBox(height: kBottomNavigationBarHeight + SizeConfig.paddingXXXL),
         ],
       ),
@@ -1106,7 +1114,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
-
   Widget _buildProductMasonryGrid() {
     return MasonryGridView.count(
       crossAxisCount: 3,
@@ -1209,7 +1216,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           iconHeight: SizeConfig.size80,
           onTap: (item) {
             Get.to(() => ServicesNearMeScreen(
-                  businessServicesCategories: businessOnboardingServicesCategories,
+                  businessServicesCategories:
+                      businessOnboardingServicesCategories,
                 ));
           },
         );
@@ -1316,7 +1324,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         itemBuilder: (context, index) {
           var categoryItem = financeCategories[index];
           return InkWell(
-            onTap: (){
+            onTap: () {
               commonSnackBar(message: "Coming Soon...");
             },
             child: Container(
@@ -1326,10 +1334,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [AppShadows.textFieldShadow],
-                border: Border.all(
-                    color: AppColors.greyE5,
-                    width:  1.0
-                ),
+                border: Border.all(color: AppColors.greyE5, width: 1.0),
               ),
               alignment: Alignment.center,
               child: Column(
@@ -1337,7 +1342,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   LocalAssets(
-                    imagePath: categoryItem.icon??'',
+                    imagePath: categoryItem.icon ?? '',
                     height: SizeConfig.size60,
                     width: SizeConfig.size80,
                   ),

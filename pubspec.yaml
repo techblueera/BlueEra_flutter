@@ -121,15 +121,14 @@ flutter:
     - assets/video/
     - assets/store/
     - assets/sound/
-
     - assets/category/grocery/menu/
     - assets/category/medical/
-
     - assets/category/hotel_service/
     - assets/onboarding/individual/
     - assets/onboarding/business/
     - assets/category/foods/
     - assets/category/foods/menu/
+    - assets/category/food_home/
 
 
   fonts:

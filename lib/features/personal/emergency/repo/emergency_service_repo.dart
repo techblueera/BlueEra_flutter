@@ -3,6 +3,10 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class EmergencyServiceRepo extends BaseService {
+  Future<ResponseModel> getEmergencyProfile() async {
+    return await ApiBaseHelper().getHTTP(emergencyProfile);
+  }
+
   Future<ResponseModel> submitBasicInfo({required Map<String, dynamic> body}) async {
     final res = await ApiBaseHelper().postHTTP(
       emergencyBasicInfo,

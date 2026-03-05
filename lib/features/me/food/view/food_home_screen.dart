@@ -36,7 +36,7 @@ class RestaurantHomeScreen extends StatelessWidget {
 
         final data = controller.restaurantData.value;
         if (data == null)
-          return const Center(child: CustomText("No Data Found"));
+          return Center(child: CustomText(AppStrings.noDataFound.tr));
         return RefreshIndicator(
           onRefresh: () async {
             controller.fetchHomeData();
@@ -69,7 +69,7 @@ class RestaurantHomeScreen extends StatelessWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 15.0),
-                          child: CustomText("Food Selection",
+                          child: CustomText(AppStrings.foodSelection.tr,
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(
@@ -93,7 +93,7 @@ class RestaurantHomeScreen extends StatelessWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 15.0),
-                          child: CustomText("Our Menu",
+                          child: CustomText(AppStrings.ourMenu.tr,
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         _buildMenuCategories(data.foodMenu ?? []),
@@ -116,7 +116,7 @@ class RestaurantHomeScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const CustomText("Gallery",
+                                CustomText(AppStrings.gallery.tr,
                                     fontSize: 20, fontWeight: FontWeight.bold),
                                 InkWell(
                                     onTap: () {
@@ -140,7 +140,7 @@ class RestaurantHomeScreen extends StatelessWidget {
                             onTap: () {
                               Get.to(FoodServicePhotosPhotoScreen());
                             },
-                            title: "Add Gallery Photo"),
+                            title: AppStrings.addGalleryPhoto.tr),
                       ),
                 (data.contact == null)
                     ? Padding(
@@ -150,21 +150,19 @@ class RestaurantHomeScreen extends StatelessWidget {
                             onTap: () {
                               Get.to(FoodContactUsScreen());
                             },
-                            title: "Add Contact US"),
+                            title: AppStrings.addContactUs.tr),
                       )
                     : _buildContactCard(data.contact),
                 // Map Placeholder
                 if (data.contact != null)
                   BusinessLocationWidget(
                       locationText: data.contact?.location?.name ?? "",
-                      latitude: double.parse(data
-                              .contact?.location?.coordinates?[0]
-                              .toString() ??
-                          "0.0"),
-                      longitude: double.parse(data
-                              .contact?.location?.coordinates?[1]
-                              .toString() ??
-                          "0.0"),
+                      latitude: double.parse(
+                          data.contact?.location?.coordinates?[0].toString() ??
+                              "0.0"),
+                      longitude: double.parse(
+                          data.contact?.location?.coordinates?[1].toString() ??
+                              "0.0"),
                       businessName: data.contact?.name ?? "",
                       padding: 10,
                       isTitleShow: true),
@@ -260,7 +258,7 @@ class RestaurantHomeScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText("Contact Us",
+              CustomText(AppStrings.contactUs.tr,
                   fontSize: 20, fontWeight: FontWeight.bold),
               InkWell(
                   onTap: () {
@@ -411,6 +409,55 @@ class RestaurantHomeScreen extends StatelessWidget {
   }
 
   Widget _buildMenuCategories(List<FoodMenu> menus) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: menus.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // number of columns
+        crossAxisSpacing: 7,
+        mainAxisSpacing: 7,
+        childAspectRatio: 1, // adjust for height/width
+      ),
+      itemBuilder: (context, index) {
+        final category = menus[index];
+
+        return InkWell(
+          onTap: () {
+            // Get.to(ProductSelectionScreen(
+            //   foodCategoryData: FoodCategoryData(...),
+            // ));
+          },
+          child: Container(
+            height: 200,
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.whiteE5,
+                ),
+                borderRadius: BorderRadius.circular(10)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: LocalAssets(
+                  imagePath: 'assets/category/food_home/${category.key}.png',
+                )),
+                CustomText(
+                  category.name,
+                  maxLines: 2,
+                  fontSize: 12,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -440,7 +487,8 @@ class RestaurantHomeScreen extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               image: DecorationImage(
-                image: AssetImage('assets/category/foods/${category.key}.png'),
+                image:
+                    AssetImage('assets/category/food_home/${category.key}.png'),
                 fit: BoxFit.cover,
               ),
             ),

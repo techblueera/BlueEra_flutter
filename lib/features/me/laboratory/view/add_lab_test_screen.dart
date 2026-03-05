@@ -102,7 +102,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.testToEdit == null ? "Add Test" : "Edit Test"),
+          title: widget.testToEdit == null ? AppStrings.addTest.tr : AppStrings.editTest.tr),
       body: CommonCardWidget(
         child: SingleChildScrollView(
           // padding: EdgeInsets.all(SizeConfig.size16),
@@ -113,8 +113,8 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
               children: [
                 CommonTextField(
                   textEditController: nameController,
-                  title: "Test Name",
-                  hintText: "E.g. Text",
+                  title: AppStrings.testName.tr,
+                  hintText: AppStrings.egText.tr,
                   isValidate: true,
                   onChange: (val){
                     setState(() {
@@ -126,8 +126,8 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 CommonDropdownDialog<TestCategory>(
                   items: controller.categories,
                   selectedValue: selectedCategory,
-                  title: 'Test Category',
-                  hintText: 'Select Category',
+                  title: AppStrings.testCategory.tr,
+                  hintText: AppStrings.selectCategory.tr,
                   displayValue: (value) => value.name ?? '',
                   onChanged: (value) {
                     setState(() {
@@ -138,7 +138,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 SizedBox(height: SizeConfig.size16),
                 AiDescriptionField(
                   label: AppStrings.description,
-                  hintText: "Tell us more about the Test...",
+                  hintText: AppStrings.tellUsMoreAboutTest.tr,
                   controller: descriptionController,
                   rxValue: controller.descriptionTest,
                   // Your RX variable from the controller
@@ -156,8 +156,8 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   CommonDropdownDialog<String>(
                     items: controller.specimenList,
                     selectedValue: selectedSpecimen,
-                    title: 'Specimen',
-                    hintText: 'Select Specimen',
+                    title: AppStrings.specimen.tr,
+                    hintText: AppStrings.selectSpecimen.tr,
                     displayValue: (value) => value,
                     onChanged: (value) {
                       setState(() {
@@ -169,8 +169,8 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   CommonDropdownDialog<String>(
                     items: controller.collectionMethods,
                     selectedValue: selectedCollectionMethod,
-                    title: 'Specimen Collection Method',
-                    hintText: 'Select Method',
+                    title: AppStrings.specimenCollectionMethod.tr,
+                    hintText: AppStrings.selectMethod.tr,
                     displayValue: (value) => value,
                     onChanged: (value) {
                       setState(() {
@@ -182,7 +182,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: reportHoursController,
-                  title: "Estimated Report Hours",
+                  title: AppStrings.estimatedReportHours.tr,
                   hintText: "E.g. 24",
                   keyBoardType: TextInputType.number,
                 ),
@@ -190,8 +190,8 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 CommonDropdownDialog<String>(
                   items: controller.genderList,
                   selectedValue: selectedGender,
-                  title: 'Gender',
-                  hintText: 'Select Gender',
+                  title: AppStrings.gender.tr,
+                  hintText: AppStrings.selectGender.tr,
                   displayValue: (value) => value,
                   onChanged: (value) {
                     setState(() {
@@ -202,25 +202,25 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: guidanceController,
-                  title: "Before Test Guidance",
-                  hintText: "Enter guidance",
+                  title: AppStrings.beforeTestGuidance.tr,
+                  hintText: AppStrings.enterGuidance.tr,
                   maxLine: 3,
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: methodController,
-                  title: "Test Method (Optional)",
-                  hintText: "E.g. Text",
+                  title: AppStrings.testMethodOptional.tr,
+                  hintText: AppStrings.egText.tr,
                 ),
                 SizedBox(height: SizeConfig.size16),
-                _buildSwitchRow("Applicable For Child?", applicableForChild,
+                _buildSwitchRow(AppStrings.applicableForChild.tr, applicableForChild,
                     (val) {
                   setState(() {
                     applicableForChild = val;
                   });
                 }),
                 SizedBox(height: SizeConfig.size8),
-                _buildSwitchRow("Prescription Required?", prescriptionRequired,
+                _buildSwitchRow(AppStrings.prescriptionRequired.tr, prescriptionRequired,
                     (val) {
                   setState(() {
                     prescriptionRequired = val;
@@ -229,7 +229,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: feesController,
-                  title: "Test Fees (MRP)",
+                  title: AppStrings.testFeesMrp.tr,
                   hintText: "E.g. 1000",
                   keyBoardType: TextInputType.number,
                   isValidate: true,
@@ -237,7 +237,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: priceController,
-                  title: "Customer Price",
+                  title: AppStrings.customerPrice.tr,
                   hintText: "E.g. 800",
                   keyBoardType: TextInputType.number,
                   isValidate: true,
@@ -246,7 +246,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 Obx(() => CustomBtn(
                       onTap: _submitForm,
                       isValidate: true,
-                      title: widget.testToEdit == null ? "Post" : "Update",
+                      title: widget.testToEdit == null ? AppStrings.post.tr : AppStrings.update.tr,
                       isLoading: controller.isLoading.value,
                     )),
                 SizedBox(height: SizeConfig.size60),
@@ -262,14 +262,14 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText("Test Parameters",
+        CustomText(AppStrings.testParameters.tr,
             fontWeight: FontWeight.w600, fontSize: SizeConfig.size14),
         SizedBox(height: SizeConfig.size8),
         CommonDropdownDialog<TestParameter>(
           items: controller.parameters,
           selectedValue: null,
-          title: 'Select Parameter',
-          hintText: 'E.g. Hb, RBC, WBC...',
+          title: AppStrings.selectParameter.tr,
+          hintText: AppStrings.egParameters.tr,
           displayValue: (value) => value.name ?? '',
           onChanged: (value) {
             if (value != null &&
@@ -320,7 +320,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (selectedCategory == null) {
-        commonSnackBar(message: "Please select a category");
+        commonSnackBar(message: AppStrings.pleaseSelectCategory.tr);
         return;
       }
 

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -32,7 +33,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Facilities"),
+      appBar:  CommonBackAppBar(title: AppStrings.facilities,),
       body: CommonCardWidget(
         child: SafeArea(
           child: Obx(() {
@@ -42,20 +43,20 @@ class _FacilityScreenState extends State<FacilityScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSwitch(
-                      "Wheelchair Assistance", controller.wheelchairAssistance),
-                  _buildSwitch("Doctor Consultation Tie-up",
+                      AppStrings.wheelchairAssistance.tr, controller.wheelchairAssistance),
+                  _buildSwitch(AppStrings.doctorConsultationTieUp.tr,
                       controller.doctorConsultationTieUp),
-                  _buildSwitch("Insurance / Cashless Support",
+                  _buildSwitch(AppStrings.insuranceCashlessSupport.tr,
                       controller.insuranceCashlessSupport),
-                  _buildSwitch("Home Sample Collection",
+                  _buildSwitch(AppStrings.homeSampleCollection.tr,
                       controller.homeSampleCollection),
-                  _buildSwitch("Digital Report (Online / PDF)",
+                  _buildSwitch(AppStrings.digitalReport.tr,
                       controller.digitalReport),
                   // SizedBox(height: SizeConfig.size16),
                   _buildOtherSection(),
                   SizedBox(height: SizeConfig.size20),
                   CustomBtn(
-                    title: "Save",
+                    title: AppStrings.save,
                     isValidate: controller.isValid.value,
                     isLoading: controller.isLoading.value,
                     onTap: controller.isValid.value
@@ -114,11 +115,11 @@ class _FacilityScreenState extends State<FacilityScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CustomText("Other Facilities",
+            CustomText(AppStrings.otherFacilities.tr,
                 fontSize: SizeConfig.size14, fontWeight: FontWeight.w600),
             Row(
               children: [
-                CustomText("Enable",
+                CustomText(AppStrings.enable.tr,
                     fontSize: SizeConfig.small, color: AppColors.black28),
                 SizedBox(width: SizeConfig.size8),
                 Obx(() => Transform.scale(
@@ -144,7 +145,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
         SizedBox(height: SizeConfig.size10),
         Obx(() {
           if (!controller.otherEnabled.value) {
-            return CustomText("Turn on to add up to 5 custom facilities",
+            return CustomText(AppStrings.turnOnCustomFacilities.tr,
                 color: AppColors.black28);
           }
           return Column(
@@ -165,11 +166,11 @@ class _FacilityScreenState extends State<FacilityScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CustomText("Facility ${index + 1}",
+                            CustomText("${AppStrings.facility.tr} ${index + 1}",
                                 fontWeight: FontWeight.w600),
                             Row(
                               children: [
-                                CustomText("Active",
+                                CustomText(AppStrings.active.tr,
                                     fontSize: SizeConfig.small,
                                     color: AppColors.black28),
                                 SizedBox(width: SizeConfig.size6),
@@ -194,15 +195,15 @@ class _FacilityScreenState extends State<FacilityScreen> {
                         ),
                         SizedBox(height: SizeConfig.size10),
                         CommonTextField(
-                          title: "Label",
-                          hintText: "E.g. Pickup & Drop",
+                          title: AppStrings.label.tr,
+                          hintText: AppStrings.egPickupDrop.tr,
                           textEditController: controller.otherLabelCtrls[index],
                           onChange: (_) => controller.updateOtherText(index),
                         ),
                         SizedBox(height: SizeConfig.size10),
                         CommonTextField(
-                          title: "Details",
-                          hintText: "Describe the facility",
+                          title: AppStrings.details.tr,
+                          hintText: AppStrings.describeTheFacility.tr,
                           textEditController:
                               controller.otherDetailsCtrls[index],
                           maxLine: 3,
@@ -213,7 +214,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
                   );
                 }),
               ),
-              PositiveCustomBtn(onTap: controller.addOther, title: "Add More")
+              PositiveCustomBtn(onTap: controller.addOther, title: AppStrings.addMore)
             ],
           );
         }),

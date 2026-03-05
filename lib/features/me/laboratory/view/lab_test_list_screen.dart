@@ -40,10 +40,6 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
       appBar: CommonBackAppBar(
         title: widget.title ?? widget.collection,
         showRightTextButton: true,
-        // rightTextButtonTitle: "Add",
-        // rightTextButtonOnTap: () {
-        //   Get.to(() => AddLabTestScreen(collection: widget.collection));
-        // },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -63,7 +59,7 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CustomText("No tests found", color: AppColors.grey99),
+                CustomText(AppStrings.noTestsFound.tr, color: AppColors.grey99),
                 SizedBox(height: SizeConfig.size10),
                 // ElevatedButton(
                 //   onPressed: () => Get.to(() => AddLabTestScreen(collection: widget.collection)),
@@ -107,11 +103,11 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
                           spacing: 8,
                           runSpacing: 6,
                           children: [
-                            _pill("Fees: ${t.testFees ?? 0}"),
-                            _pill("Price: ${t.customerPrice ?? 0}"),
-                            if (t.gender != null) _pill("Gender: ${t.gender}"),
+                            _pill("${AppStrings.fees.tr}: ${t.testFees ?? 0}"),
+                            _pill("${AppStrings.price.tr}: ${t.customerPrice ?? 0}"),
+                            if (t.gender != null) _pill("${AppStrings.gender.tr}: ${t.gender}"),
                             if (t.estimatedReportHours != null)
-                              _pill("Report: ${t.estimatedReportHours}h"),
+                              _pill("${AppStrings.report.tr}: ${t.estimatedReportHours}h"),
                           ],
                         ),
                       ],
@@ -132,7 +128,7 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
                         onPressed: () {
                           showCommonDialog(
                             context: context,
-                            text: "Delete this test?",
+                            text: AppStrings.deleteThisTest.tr,
                             confirmCallback: () =>
                                 controller.deleteTest(t.id!, widget.collection),
                             cancelCallback: () => Get.back(),

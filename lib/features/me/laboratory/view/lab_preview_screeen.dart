@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/ai_lab_service_model_res.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -16,7 +17,7 @@ class LabPreviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Diagnostic Laboratory Preview ",
+        title: AppStrings.diagnosticLabPreview.tr,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -25,7 +26,7 @@ class LabPreviewScreen extends StatelessWidget {
               onTap: () async {
                 await controller.createLabServiceController();
               },
-              title: "Create Laboratory"),
+              title: AppStrings.createLaboratory.tr),
         ),
       ),
       body: Obx(() {
@@ -43,13 +44,13 @@ class LabPreviewScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // About Section
-                CustomText(na.aboutUs?.name ?? "Lab Name",
+                CustomText(na.aboutUs?.name ?? AppStrings.labName.tr,
                     fontSize: 22, fontWeight: FontWeight.bold),
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(Icons.star, color: Colors.amber, size: 18),
-                    CustomText(" ${na.aboutUs?.rating} (Verified)",
+                    CustomText(" ${na.aboutUs?.rating} (${AppStrings.verified.tr})",
                         color: Colors.grey[700]),
                   ],
                 ),
@@ -60,7 +61,7 @@ class LabPreviewScreen extends StatelessWidget {
                 const Divider(height: 40),
 
                 // 2. Popular Services Horizontal List
-                _buildHeading("Popular Services"),
+                _buildHeading(AppStrings.popularServices.tr),
                 SizedBox(
                   height: 130,
                   child: ListView.builder(
@@ -74,7 +75,7 @@ class LabPreviewScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // 3. Featured Tests (The "FeaturedTest" List)
-                _buildHeading("Featured Tests"),
+                _buildHeading(AppStrings.featuredTests.tr),
                 ...na.featuredTest!
                     .map((test) => _featuredTestTile(test))
                     .toList(),
@@ -82,7 +83,7 @@ class LabPreviewScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // 4. Health Packages Grid
-                _buildHeading("Health Packages"),
+                _buildHeading(AppStrings.healthPackages.tr),
                 _buildPackageGrid(na.packages ?? []),
 
                 const SizedBox(height: 100), // Bottom padding for FAB

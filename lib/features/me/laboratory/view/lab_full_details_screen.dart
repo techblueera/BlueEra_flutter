@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
@@ -328,7 +329,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 6),
-            child: const CustomText("Contact Us", fontWeight: FontWeight.bold),
+            child:  CustomText(AppStrings.contactUs, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           Container(

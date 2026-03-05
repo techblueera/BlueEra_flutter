@@ -65,7 +65,7 @@ class SchoolController extends GetxController {
     _forceTimer = Timer(const Duration(seconds: 45), () {
       if (isAiLoading.value) {
         isAiLoading.value = false;
-        commonSnackBar(message: "Process finished or timed out.");
+        commonSnackBar(message: "Ai fetched your details see your details");
         // Optional: Get.back(); // Only uncomment if you want the dialog to disappear after 1 min
       }
     });

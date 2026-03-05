@@ -99,39 +99,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> initPlatformState() async {
     final handler = ShareHandlerPlatform.instance;
 
-    // App opened from share intent
-    handler.getInitialSharedMedia().then((SharedMedia? media) {
-      setState(() => sharedMedia = media);
-      if (media?.content?.isNotEmpty ?? false) {
-        _openChatScreen(media!);
-      }
-      if (media?.attachments?.isNotEmpty ?? false) {
-        _openChatScreen(media!);
-      }
-    });
-
-    // App running, receiving new share
+    // Initial share is already handled in SplashScreen for instant navigation.
+    // Only listen for new shares while app is running.
     handler.sharedMediaStream.listen((SharedMedia media) {
-      setState(() => sharedMedia = media);
+      sharedMedia = media;
       _openChatScreen(media);
     });
   }
 
   void _openChatScreen(SharedMedia media) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isGuestUser()) {
-        createProfileScreen();
-      } else {
-        final _sharedText = media.content;
-        List<SharedAttachment?>? attachments = media.attachments ?? [];
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final sharedText = media.content;
+    final attachments = media.attachments ?? [];
 
-        if (_sharedText != null && _sharedText.isNotEmpty) {
-         Get.to(ChatForwardScreen(sharedText: _sharedText));
-        } else if ((attachments.isNotEmpty)) {
-          Get.to(ChatForwardScreen(sharedFiles: attachments),);
-        }
-      }
-    });
+    if (sharedText != null && sharedText.isNotEmpty) {
+      Get.to(ChatForwardScreen(sharedText: sharedText));
+    } else if (attachments.isNotEmpty) {
+      Get.to(ChatForwardScreen(sharedFiles: attachments));
+    }
   }
 
   Future<void> getPackageData() async {

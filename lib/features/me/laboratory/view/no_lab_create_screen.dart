@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/ai_lab_profile_dialoge.dart';
@@ -17,7 +18,7 @@ class NoLabCreateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Create Laboratory", isLeading: false),
+      appBar: CommonBackAppBar(title: AppStrings.createLaboratory.tr, isLeading: false),
       body: SafeArea(
         child: SizedBox(
           width: Get.width,
@@ -30,7 +31,7 @@ class NoLabCreateScreen extends StatelessWidget {
               SizedBox(
                 height: SizeConfig.size10,
               ),
-              CustomText("You Have Not Any Active Profile"),
+              CustomText(AppStrings.noActiveProfile.tr),
               InkWell(
                 onTap: () {
                   controller.clearFiled();
@@ -41,7 +42,7 @@ class NoLabCreateScreen extends StatelessWidget {
                   );
                 },
                 child: CustomText(
-                  "Kindly Create!",
+                  AppStrings.kindlyCreate.tr,
                   color: AppColors.primaryColor,
                 ),
               )

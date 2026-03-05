@@ -34,11 +34,15 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_handler/share_handler.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
+
+/// Shared media received when app was launched via share intent
+SharedMedia? pendingSharedMedia;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -77,6 +81,11 @@ getDeviceInfo() async {
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  /// Check for shared media early (before heavy init) for instant share screen
+  try {
+    pendingSharedMedia = await ShareHandlerPlatform.instance.getInitialSharedMedia();
+  } catch (_) {}
 
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);

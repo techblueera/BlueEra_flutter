@@ -11,6 +11,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/share_product_screen.dart';
+import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
+import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:app_links/app_links.dart';
@@ -58,16 +60,28 @@ class _SplashScreenState extends State<SplashScreen> {
     // final logoutRequired = await _shouldLogoutAfterUpdate();
     // log('logout required--> $logoutRequired');
 
-    Timer(const Duration(seconds: 2), () async {
-      // if (logoutRequired) {
-      //   // 🔴 Force user to login again after update
-      //   Navigator.of(context).pushNamedAndRemoveUntil(
-      //     RouteHelper.getOnboardingSliderScreenRoute(),
-      //         (Route<dynamic> route) => false,
-      //   );
-      //   return;
-      // }
+    // If shared media is pending and user is logged in, skip splash delay
+    if (isLoginStatus == "true" && pendingSharedMedia != null && !isGuestUser()) {
+      final media = pendingSharedMedia!;
+      pendingSharedMedia = null; // consume it
+      final sharedText = media.content;
+      final attachments = media.attachments ?? [];
+      if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          RouteHelper.getBottomNavigationBarScreenRoute(),
+          arguments: {ApiKeys.initialIndex: 0},
+          (Route<dynamic> route) => false,
+        );
+        if (sharedText != null && sharedText.isNotEmpty) {
+          Get.to(ChatForwardScreen(sharedText: sharedText));
+        } else {
+          Get.to(ChatForwardScreen(sharedFiles: attachments));
+        }
+        return;
+      }
+    }
 
+    Timer(const Duration(seconds: 2), () async {
       if (isLoginStatus == "true") {
         if (await _initDeepLinks()) {
           // handled deep link
