@@ -59,9 +59,13 @@ class AppThemes {
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.white,
       systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),),
+        statusBarColor: Colors.transparent, // Keeps the status bar clear
+        statusBarIconBrightness: Brightness.dark, // Black icons for Android
+        statusBarBrightness: Brightness.light,    // Black icons for iOS
+        systemNavigationBarColor: Colors.white,   // Bottom nav bar color
+        systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
+     ),
+    ),
     scaffoldBackgroundColor: AppColors.appBackgroundColor,
     colorScheme: ColorScheme.dark(
       primary: AppColors.primaryColor,

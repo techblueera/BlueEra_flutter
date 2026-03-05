@@ -64,6 +64,8 @@ class AppImageAssets {
 
   static String noMeContent = "${imgPath}no_me_content.png";
   static String sampleGirlImage = "${imgPath}sample_girl_image.png";
+  static const String transporterIcon = "${imgPath}transporter_icon.png";
+  static const String selfPickupIcon = "${imgPath}self_pickup_icon.png";
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";
@@ -240,14 +242,19 @@ class AppImageAssets {
   static const String beautyHealthCareColorful = "${groceryIconPath}beauty_body_care_colorful.png";
   static const String stationaryColorful = "${groceryIconPath}stationary_colorful.png";
 
-  /// colorful icons(foods)
-  static const foodIconPath = AppConstants.baseFoodAssetsPath;
-  static const String tiffinColorful = "${foodIconPath}tiffin_colorful.png";
-  static const String breakfastColorful = "${foodIconPath}breakfast_colorful.png";
-  static const String lunchDinnerColorful = "${foodIconPath}lunch_dinner_colorful.png";
-  static const String fastFoodColorful = "${foodIconPath}fast_food_colorful.png";
-  static const String sweetsColorful = "${foodIconPath}sweets_colorful.png";
-  static const String restaurantColorful = "${foodIconPath}restaurant_colorful.png";
+  /// Food
+  static const String breakfast = "${imgPath}breakfast.png";
+  static const String lunchDinner = "${imgPath}lunch_dinner.png";
+  static const String fastFood = "${imgPath}fast_food.png";
+  static const String restaurant = "${imgPath}restaurant.png";
+
+  /// Grocery
+  static String kiranaStore = "${imgPath}kirana_store.png";
+  static String generalStore = "${imgPath}general_store.png";
+  static String vegFruitStore = "${imgPath}veg_fruit_store.png";
+  static String dairyBakeryStore = "${imgPath}dairy_bakery_store.png";
+  static String homeEssentialsStore = "${imgPath}home_essentials_store.png";
+  static String stationaryStore = "${imgPath}stationary_store.png";
 
 }
 

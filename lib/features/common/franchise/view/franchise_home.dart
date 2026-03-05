@@ -20,7 +20,8 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/expandable_text.dart';
 
 class FranchiseHome extends StatefulWidget {
-  const FranchiseHome({super.key});
+  final Function? onBackPressed;
+  const FranchiseHome({super.key, this.onBackPressed});
 
   @override
   State<FranchiseHome> createState() => _FranchiseHomeState();
@@ -71,14 +72,22 @@ class _FranchiseHomeState extends State<FranchiseHome> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const PartnerUnavailableDialog(),
+      builder: (_) => PartnerUnavailableDialog(
+        backPressed: (){
+          if(widget.onBackPressed==null){
+            Navigator.pop(context);
+          } else{
+            widget.onBackPressed!();
+          }
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: (widget.onBackPressed==null) ? CommonBackAppBar() : null,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(

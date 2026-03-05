@@ -15,13 +15,11 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
@@ -38,7 +36,6 @@ import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/chat_theme/chat_theme.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
-import '../../features/subscription/view/subscrption_new.dart';
 
 class AppConstants {
   static const String appName = 'BlueEra';
@@ -1624,6 +1621,7 @@ const String SWEET_NAMKEEN_SHOP = "SWEET_NAMKEEN_SHOP";
 const String ICE_CREAM_CORNER = "ICE_CREAM_CORNER";
 const String COFFEE_BEVERAGES_SHOP = "COFFEE_BEVERAGES_SHOP";
 
+
 // Product
 const String FURNITURE_HOME_DECOR = "FURNITURE_HOME_DECOR";
 const String FASHION_LIFESTYLE = "FASHION_LIFESTYLE";
@@ -2394,7 +2392,6 @@ final List<OnboardingCategoryModel> businessOnboardingFoodsCategories = [
       icon: OnboardingBusinessAssets.coffeeBeveragesShop,
       accountType: AppConstants.business,
       businessType: BusinessType.Food),
-
   OnboardingCategoryModel(
       name: 'Economy\nDhaba',
       slugId: ECONOMY_DHABA,
@@ -2425,8 +2422,6 @@ final List<OnboardingCategoryModel> businessOnboardingFoodsCategories = [
       icon: OnboardingBusinessAssets.cloudKitchenMess,
       accountType: AppConstants.business,
       businessType: BusinessType.Food),
-
-
   OnboardingCategoryModel(
       name: 'Non-Veg\nRestaurant',
       slugId: NON_VEG_RESTAURANT,
@@ -2439,7 +2434,6 @@ final List<OnboardingCategoryModel> businessOnboardingFoodsCategories = [
       icon: OnboardingBusinessAssets.iceCreamCorner,
       accountType: AppConstants.business,
       businessType: BusinessType.Food),
-
 ];
 
 final List<OnboardingCategoryModel>
@@ -3350,55 +3344,6 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       businessType: BusinessType.Product),
 ];
 
-final List<BusinessProfileCategory> businessFoodsCategories = [
-  BusinessProfileCategory(
-      name: AppStrings.fastFoodQuickService,
-      slugId: AppConstants.fastFoodQuickService,
-      icon: AppIconAssets.fastFoodQuickServiceIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.multiCuisineRestaurants,
-      slugId: AppConstants.multiCuisineRestaurants,
-      icon: AppIconAssets.multiCuisineRestroIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.groceryVegetablesDairy,
-      slugId: AppConstants.groceryVegetablesDairy,
-      // categoryId: '68ce9917eac48e6b0d4973bf',
-      icon: AppIconAssets.groceryVegetableDairyIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.nonVegRestaurants,
-      slugId: AppConstants.nonVegRestaurants,
-      // categoryId: '68ce9919eac48e6b0d4973e8',
-      icon: AppIconAssets.nonVegRestaurantIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.vegRestaurants,
-      slugId: AppConstants.vegRestaurants,
-      // categoryId: '68ce9918eac48e6b0d4973d9',
-      icon: AppIconAssets.vegRestaurantIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.otherRestaurantsDhaba,
-      slugId: AppConstants.otherRestaurantsDhaba,
-      // categoryId: '68ce991aeac48e6b0d497417',
-      icon: AppIconAssets.restaurantIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.sweetsBakeryDrinks,
-      slugId: AppConstants.sweetsBakeryDrinks,
-      // categoryId: '68ce9918eac48e6b0d4973d9',
-      icon: AppIconAssets.sweetBakeryDrinkIcon,
-      type: AppConstants.food),
-  BusinessProfileCategory(
-      name: AppStrings.otherFoodServices,
-      slugId: AppConstants.otherFoodServices,
-      // categoryId: '68ce991aeac48e6b0d497428',
-      icon: AppIconAssets.staggeredIcon,
-      type: AppConstants.food),
-];
-
 /// Individual Categories
 
 // --- OnBoarding Category ---
@@ -4087,36 +4032,36 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
 ];
 
 /// food Categories (Discover)
-const List<CollapsibleGridModel> foodCategories = [
+ List<CollapsibleGridModel> foodCategories = [
   CollapsibleGridModel(
      name: 'Breakfast',
      slugId: 'BREAKFAST',
-     image: AppImageAssets.breakfastColorful,
+     image: AppImageAssets.breakfast,
   ),
   CollapsibleGridModel(
      name: 'Fast-Food',
      slugId: 'FAST_FOOD',
-     image: AppImageAssets.fastFoodColorful,
+     image: AppImageAssets.fastFood,
   ),
   CollapsibleGridModel(
      name: 'Lunch, Dinner',
      slugId: 'LUNCH_DINNER',
-     image: AppImageAssets.lunchDinnerColorful,
+     image: AppImageAssets.lunchDinner,
   ),
   CollapsibleGridModel(
      name: 'Tiffin',
      slugId: 'TIFFIN',
-     image: AppImageAssets.tiffinColorful,
+     image: AppImageAssets.tiffin,
   ),
   CollapsibleGridModel(
      name: 'Sweets',
      slugId: 'SWEETS',
-     image: AppImageAssets.sweetsColorful,
+     image: AppImageAssets.sweets,
   ),
   CollapsibleGridModel(
     name: 'Restaurant',
     slugId: 'RESTAURANT',
-    image: AppImageAssets.restaurantColorful,
+    image: AppImageAssets.restaurant,
   ),
 ];
 
@@ -4244,6 +4189,65 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
       slugId: RENTAL_SERVICES,
       icon: AppImageAssets.rentalService),
 ];
+
+final List<OnboardingCategoryModel> groceriesCategories = [
+  OnboardingCategoryModel(
+      name: 'Kirana Store',
+      slugId: KIRANA_STORE,
+      icon: AppImageAssets.kiranaStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnboardingCategoryModel(
+      name: 'General Store',
+      slugId: GENERAL_STORE,
+      icon: AppImageAssets.generalStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnboardingCategoryModel(
+      name: 'Vegetable & Fruit',
+      slugId: VEGETABLE_FRUIT,
+      icon: AppImageAssets.vegFruitStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnboardingCategoryModel(
+      name: 'Dairy & Bakery',
+      slugId: DAIRY_BAKERY,
+      icon: AppImageAssets.dairyBakeryStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnboardingCategoryModel(
+      name: 'Home Essentials',
+      slugId: HOME_ESSENTIALS,
+      icon: AppImageAssets.homeEssentialsStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnboardingCategoryModel(
+      name: 'Stationary Shop',
+      slugId: STATIONARY_SHOP,
+      icon: AppImageAssets.stationaryStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+];
+
+final List<CollapsibleGridModel> cloudKitchenHomeMadeFood = [
+  CollapsibleGridModel(
+      name: 'Cloud Kitchen,\nMess',
+      slugId: 'CLOUD_KITCHEN_MESS',
+      icon: AppImageAssets.lunchDinner,
+     ),
+  CollapsibleGridModel(
+      name: 'Tiffin,\nLunch & Dinner',
+      slugId: 'TIFFIN_LUNCH_DINNER',
+      icon: AppImageAssets.tiffin,
+      ),
+  CollapsibleGridModel(
+      name: 'Home Made\nFood',
+      slugId: 'HOME_MADE_FOOD',
+      icon: AppImageAssets.homeMadeFood,
+    ),
+];
+
+
 
 // final List<CollapsibleGridModel> individualSocialProfileList = [
 //   IndividualProfileCategory(
@@ -4408,6 +4412,27 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
 //     icon: AppIconAssets.securityPersonIcon,
 //   )
 // ];
+
+final List<Map<String, String>> chooseDeliveryOptions = [
+  {
+    "id": "SELF",
+    "icon": AppImageAssets.selfPickupIcon,
+    "title": "Self Pick-Up",
+    "subtitle": "Save Your Money & Time"
+  },
+  {
+    "id": "RIDER",
+    "icon": AppIconAssets.riderIconColorful,
+    "title": "Book Rider",
+    "subtitle": "Quick, Personalize, ₹8/Km"
+  },
+  {
+    "id": "PARTNER",
+    "icon": AppImageAssets.transporterIcon,
+    "title": "Order Via Partner",
+    "subtitle": "Safe, Low Chargeable, Deliver in 1-3 Hours"
+  },
+];
 
 List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
   final List<Map<String, String>> items = [

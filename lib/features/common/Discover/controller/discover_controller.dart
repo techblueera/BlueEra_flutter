@@ -130,6 +130,8 @@ class DiscoverController extends GetxController {
   final parcelDescriptionController = TextEditingController();
   final parcelWeightController = TextEditingController();
   RxList<ParcelCategoryModel> parcelDetailsList=<ParcelCategoryModel>[].obs;
+
+
   void addParcelDetails(){
     parcelDetailsList.add(ParcelCategoryModel(
       category: selectedParcelCategory.value,
