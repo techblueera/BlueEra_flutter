@@ -28,6 +28,8 @@ import 'package:BlueEra/features/common/Discover/view/widget/choose_deliivery_op
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
+import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -873,6 +875,19 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             padding: EdgeInsets.only(bottom: 100),
             sliver: SliverToBoxAdapter(child: searchProductsViaAiWidget()),
           ),
+
+          _buildGap(),
+
+          SliverPadding(
+            padding: EdgeInsets.only(bottom: 100),
+            sliver: SliverToBoxAdapter(
+              child: Builder(builder: (_) {
+                getOrPut(() => EmergencyProfileController());
+                return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+              }),
+            ),
+          ),
+          
         ]
 
 
