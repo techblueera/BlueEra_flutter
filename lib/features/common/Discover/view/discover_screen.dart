@@ -248,9 +248,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   tabAlignment:
                   isSmallScreen ? TabAlignment.start : TabAlignment.fill,
                   labelColor: AppColors.primaryColor,
-                  unselectedLabelColor: Colors.grey[600],
+                  unselectedLabelColor: AppColors.secondaryTextColor,
                   indicatorColor: AppColors.primaryColor,
-                  indicatorWeight: 2,
+                  indicatorWeight: 3.0,
+                  indicatorSize: TabBarIndicatorSize.tab,
                   labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                   tabs: [
                     Tab(text: AppStrings.overview.tr),
@@ -871,10 +872,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
           _buildGap(),
 
-          SliverPadding(
-            padding: EdgeInsets.only(bottom: 100),
-            sliver: SliverToBoxAdapter(child: searchProductsViaAiWidget()),
-          ),
+          SliverToBoxAdapter(child: searchProductsViaAiWidget()),
 
           _buildGap(),
 
