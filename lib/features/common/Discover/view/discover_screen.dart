@@ -871,10 +871,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
           _buildGap(),
 
-          SliverPadding(
-            padding: EdgeInsets.only(bottom: 100),
-            sliver: SliverToBoxAdapter(child: searchProductsViaAiWidget()),
-          ),
+          SliverToBoxAdapter(child: searchProductsViaAiWidget()),
 
           _buildGap(),
 
