@@ -44,8 +44,11 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
   @override
   initState() {
     super.initState();
+
     groceryController.selectedGroceryCategoryData.value =
         widget.selectedGroceryCategory;
+    controller.typeOfBusiness = BusinessType.Grocery.name;
+    controller.businessCategoryId = groceryController.selectedGroceryCategoryData.value?.slugId;
     controller.getAllStoreNearBy();
 
     // Listener for Pagination
@@ -274,11 +277,13 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
                        imgColor: AppColors.secondaryTextColor,
                    ),
                    SizedBox(width: SizeConfig.size5),
-                   CustomText(
-                       store.address ?? AppStrings.na,
-                       fontSize: SizeConfig.small,
-                       color: AppColors.secondaryTextColor,
-                       fontWeight: FontWeight.w400),
+                   Expanded(
+                     child: CustomText(
+                         store.address ?? AppStrings.na,
+                         fontSize: SizeConfig.small,
+                         color: AppColors.secondaryTextColor,
+                         fontWeight: FontWeight.w400),
+                   ),
                  ],
               ),
 
@@ -307,7 +312,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
                           fontWeight: FontWeight.w600),
                     ),
                     SizedBox(
-                        height: SizeConfig.paddingXSL
+                        width: SizeConfig.paddingXS
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
