@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -12,18 +13,21 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 
+import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/custom_text_cm.dart';
+import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../add_symbol/add_symbol_screen.dart';
 import '../personal_chat/personal_chat_list.dart';
 
 class ChatForwardScreen extends StatefulWidget {
-  const ChatForwardScreen({super.key, this.sharedText, this.sharedFiles, this.maxSelectionCount});
+  const ChatForwardScreen({super.key, this.sharedText, this.sharedFiles, this.maxSelectionCount, this.stopChatNav});
   final String? sharedText;
   final List<SharedAttachment?>? sharedFiles;
   final int? maxSelectionCount;
+  final bool? stopChatNav;
 
   @override
   State<ChatForwardScreen> createState() => _ChatForwardScreenState();
@@ -33,6 +37,8 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
   final chatViewController = getOrPut(() => ChatViewController());
   final chatThemeController = getOrPut(() => ChatThemeController());
  bool symbolSelected=false;
+  final bottomBarController = getOrPut(() => BottomBarController());
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +77,7 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
                 children: [
                   _topOptions(),
                   _sectionTitle("Recent chats"),
-                  PersonalChatsList(isForwardUI: true),
+                  PersonalChatsList(isForwardUI: true,hideAiChats: true,),
                 ],
               ),
             ),
@@ -193,111 +199,80 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
           InkWell(
             onTap: ()async{
               if(symbolSelected==true){
-                Get.to(()=>AddChatSymbolScreen());
+                Get.off(()=>AddChatSymbolScreen(
+                  sharedText: widget.sharedText,
+                  sharedFiles: widget.sharedFiles,
+                ));
               }else{
+                List<String?> userIds= chatViewController.selectedChatList.map((e)=>e?.sender?.id).toList();
                 if(widget.sharedFiles!=null||widget.sharedText!=null){
                   if (widget.sharedText != null) {
                     Map<String, dynamic> data = {
-                      if ( chatViewController.selectedChatList.first?.conversationId == null|| chatViewController.selectedChatList.first?.conversationId =='')
-                        ApiKeys.other_user_id:  chatViewController.selectedChatList.first?.sender?.id
-                      else
-                        ApiKeys.conversation_id:
-                        chatViewController.selectedChatList.first?.conversationId,
+                      ApiKeys.other_user_id: jsonEncode(userIds),
                       ApiKeys.message: "${widget.sharedText}",
                       ApiKeys.message_type: "text",
                     };
-                    if (chatViewController.selectedChatList.first?.conversationId == null|| chatViewController.selectedChatList.first?.conversationId =='') {
-                      chatViewController.sendInitialMessage(data);
-                    } else {
-                      chatViewController.sendMessage(data);
+                      await chatViewController.sendMessage(data);
+                    if(widget.stopChatNav!=true){
+                      bottomBarController.onChangeIndex(3);
                     }
+                    chatViewController.emitEvent(
+                        ChatEmitEvents.ChatList,
+                        {ApiKeys.type: AppConstants.personal_Chat_Type});
+                    Get.back();
+
                   }
-                  chatViewController.openAnyOneChatFunction(
-                    type: chatViewController.selectedChatList.first?.sender?.accountType,
-                    isInitialMessage: false,
-                    userId: chatViewController.selectedChatList.first?.sender?.id,
-                    conversationId:
-                    chatViewController.selectedChatList.first?.conversationId ?? '',
-                    profileImage: chatViewController.selectedChatList.first?.sender?.profileImage,
-                    contactName: chatViewController.selectedChatList.first?.sender?.name,
-                    contactNo: chatViewController.selectedChatList.first?.sender?.contactNo,
-                    isFromContactList: false,
+
+                }else if (widget.sharedFiles != null) {
+                  List<File> selectedFiles = [];
+                  List<SharedAttachment?>? sharedList =
+                      widget.sharedFiles;
+
+                  if (sharedList != null && sharedList.isNotEmpty) {
+                    selectedFiles = sharedList
+                        .where((e) =>
+                    e?.path != null && e!.path.isNotEmpty)
+                        .map((e) => File(e!.path))
+                        .toList();
+                  }
+
+                  List<String?> fileNames = [];
+                  List<String?> fileTypes = [];
+                  for (var file in selectedFiles) {
+                    Map<String, String?> fileInfo = getFileInfo(file);
+                    fileNames.add(fileInfo['fileName']);
+                    fileTypes.add(fileInfo['mimeType']);
+                  }
+
+                  String firstFileExtension = selectedFiles.first.path
+                      .split('.')
+                      .last
+                      .toLowerCase();
+                  String messageType = ['mp4', 'mov', 'avi', 'mkv']
+                      .contains(firstFileExtension)
+                      ? 'video'
+                      : 'image';
+
+                  final uploadParams = {
+                    ApiKeys.fileName: fileNames,
+                    ApiKeys.fileType: fileTypes,
+                  };
+
+                  await chatViewController.generateUploadUrlsApi(
+                    params: uploadParams,
+                    listFile: selectedFiles,
+                    userId: userIds,
+                    messageType: messageType,
                   );
-                  // if (widget.sharedFiles != null) {
-                  //   List<File> selectedFiles = [];
-                  //   List<SharedAttachment?>? sharedList =
-                  //       widget.sharedFiles;
-                  //
-                  //   if (sharedList != null && sharedList.isNotEmpty) {
-                  //     selectedFiles = sharedList
-                  //         .where((e) =>
-                  //     e?.path != null && e!.path.isNotEmpty)
-                  //         .map((e) => File(e!.path))
-                  //         .toList();
-                  //   }
-                  //
-                  //   List<String?> fileNames = [];
-                  //   List<String?> fileTypes = [];
-                  //   for (var file in selectedFiles) {
-                  //     Map<String, String?> fileInfo = getFileInfo(file);
-                  //     fileNames.add(fileInfo['fileName']);
-                  //     fileTypes.add(fileInfo['mimeType']);
-                  //   }
-                  //
-                  //   String firstFileExtension = selectedFiles.first.path
-                  //       .split('.')
-                  //       .last
-                  //       .toLowerCase();
-                  //   String messageType = ['mp4', 'mov', 'avi', 'mkv']
-                  //       .contains(firstFileExtension)
-                  //       ? 'video'
-                  //       : 'image';
-                  //
-                  //   final uploadParams = {
-                  //     ApiKeys.fileName: fileNames,
-                  //     ApiKeys.fileType: fileTypes,
-                  //   };
-                  //
-                  //   chatViewController.generateUploadUrlsApi(
-                  //     params: uploadParams,
-                  //     listFile: selectedFiles,
-                  //     isInitialMessage:
-                  //     (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='')
-                  //         ? true
-                  //         : false,
-                  //     userId: _selectedUsers.first.id ?? '',
-                  //     conversationId:
-                  //     _selectedUsers.first.conversationId ?? '',
-                  //     messageType: messageType,
-                  //   );
-                  // }
-                  // else if (widget.sharedText != null) {
-                  //   Map<String, dynamic> data = {
-                  //     if (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='')
-                  //       ApiKeys.other_user_id: _selectedUsers.first.id
-                  //     else
-                  //       ApiKeys.conversation_id:
-                  //       _selectedUsers.first.conversationId,
-                  //     ApiKeys.message: "${widget.sharedText}",
-                  //     ApiKeys.message_type: "text",
-                  //   };
-                  //   if (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='') {
-                  //     chatViewController.sendInitialMessage(data);
-                  //   } else {
-                  //     chatViewController.sendMessage(data);
-                  //   }
-                  // }
-                  // chatViewController.openAnyOneChatFunction(
-                  //   type: _selectedUsers.first.accountType,
-                  //   isInitialMessage: true,
-                  //   userId: _selectedUsers.first.id,
-                  //   conversationId:
-                  //   _selectedUsers.first.conversationId ?? '',
-                  //   profileImage: _selectedUsers.first.profileImage,
-                  //   contactName: _selectedUsers.first.name,
-                  //   contactNo: _selectedUsers.first.contactNo,
-                  //   isFromContactList: true,
-                  // );
+                  chatViewController.emitEvent(
+                      ChatEmitEvents.ChatList,
+                      {ApiKeys.type: AppConstants.personal_Chat_Type});
+                  if(widget.stopChatNav!=true){
+                    bottomBarController.onChangeIndex(3);
+                  }
+
+
+                  Get.back();
                 }else{
                   if(chatViewController.selectedUserIds.isNotEmpty){
                     Map<String, dynamic> data = {
@@ -314,8 +289,10 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
                       chatViewController.emitEvent(
                           ChatEmitEvents.ChatList,
                           {ApiKeys.type: AppConstants.personal_Chat_Type});
-                      Navigator.pop(context);
-                      Navigator.pop(context);
+                      chatThemeController.selectedMessageIds.clear();
+                      chatThemeController.isMessageSelectionActive.value=false;
+                      Get.back();
+                      Get.back();
                     }
                   }
                 }
@@ -328,7 +305,7 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
               padding: EdgeInsets.all(14),
               margin: EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                  color: chatViewController.selectedUserIds.isNotEmpty
+                  color: (chatViewController.selectedUserIds.isNotEmpty||symbolSelected)
                       ? AppColors.primaryColor
                       : chatThemeController.myMessageBgColor.value,
                   borderRadius: BorderRadius.circular(10)),

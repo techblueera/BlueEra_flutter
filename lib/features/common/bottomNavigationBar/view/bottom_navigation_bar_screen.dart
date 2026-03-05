@@ -52,13 +52,16 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
+import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
+import 'package:share_handler/share_handler.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   final int? initialIndex;
+  final SharedMedia? sharedMedia;
 
-  const BottomNavigationBarScreen({super.key, this.initialIndex = 0});
+  const BottomNavigationBarScreen({super.key, this.initialIndex = 0, this.sharedMedia});
 
   @override
   State<BottomNavigationBarScreen> createState() =>
@@ -212,8 +215,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   void _initializeSocketConnections() {
-    chatViewController.connectSocket();
+    chatViewController.connectSocket().then((_) {
+      _handleSharedMedia();
+    });
     // groupChatViewController.connectSocket();
+  }
+
+  void _handleSharedMedia() {
+    final media = widget.sharedMedia;
+    if (media == null || !mounted) return;
+
+    final sharedText = media.content;
+    final attachments = media.attachments ?? [];
+
+    if (sharedText != null && sharedText.isNotEmpty) {
+      Get.to(() => ChatForwardScreen(sharedText: sharedText));
+    } else if (attachments.isNotEmpty) {
+      Get.to(() => ChatForwardScreen(sharedFiles: attachments));
+    }
   }
 
   // void _initializeOneSignal() {

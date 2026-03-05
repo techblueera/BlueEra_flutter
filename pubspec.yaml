@@ -86,7 +86,7 @@ dependencies:
   http: any
   translator: ^1.0.4+1
 #  pip_view: ^0.9.7
-  # speech_to_text: ^7.3.0
+  speech_to_text: ^7.3.0
   google_maps_flutter: ^2.14.2
   percent_indicator: ^4.2.5
   flutter_polyline_points: ^3.1.0

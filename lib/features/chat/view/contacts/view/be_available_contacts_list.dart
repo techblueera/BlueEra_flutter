@@ -421,13 +421,8 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                           chatViewController.generateUploadUrlsApi(
                             params: uploadParams,
                             listFile: selectedFiles,
-                            isInitialMessage:
-                                (_selectedUsers.first.conversationId == null||_selectedUsers.first.conversationId =='')
-                                    ? true
-                                    : false,
-                            userId: _selectedUsers.first.id ?? '',
-                            conversationId:
-                                _selectedUsers.first.conversationId ?? '',
+                            userId: [_selectedUsers.first.id ?? ''],
+
                             messageType: messageType,
                           );
                         }

@@ -15,10 +15,11 @@ import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
 
 class PersonalChatsList extends StatefulWidget {
-  const PersonalChatsList({super.key, this.isForwardUI, this.isNewGroupUI});
+  const PersonalChatsList({super.key, this.isForwardUI, this.isNewGroupUI,this.hideAiChats});
 
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+  final bool? hideAiChats;
 
   @override
   State<PersonalChatsList> createState() => _PersonalChatsListState();
@@ -78,14 +79,21 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
       child: (data?.chatList?.isEmpty ?? true)
           ? noChatsFound()
           : ListView.builder(
-        itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
+        itemCount: (data?.chatList?.length ?? 0) + (widget.hideAiChats==true?0:1), // ADD 1 EXTRA ITEM
         shrinkWrap: true,
         physics: widget.isForwardUI == true
             ? NeverScrollableScrollPhysics()
             : null,
         itemBuilder: (context, index) {
-          final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
-          return ChatListTile(onTab: (index == 0&&widget.isForwardUI==false)?(){
+          ChatList? chat;
+          if(widget.hideAiChats==true){
+            chat = data?.chatList?[index];
+          }else{
+            chat =(index == 0)? ChatViewController.personalAiChatModule:
+            data?.chatList?[index - 1];
+          }
+
+          return ChatListTile(onTab: (index == 0&&widget.hideAiChats!=true&&widget.isForwardUI==false)?(){
             Get.to(()=> AiChatScreen(
               profileImage: chat?.sender?.profileImage,
               name: chat?.sender?.name,
@@ -97,7 +105,7 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
               setState(() {});
             },
             type: chat?.sender?.accountType ?? AppConstants.individual,
-            index: index - 1, // correct index for chat list
+            index: widget.hideAiChats==true ? index : index - 1, // correct index for chat list
             chatViewController: chatViewController,
             chat: chat,
             theme: theme,

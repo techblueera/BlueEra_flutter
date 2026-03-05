@@ -20,6 +20,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/common_methods.dart';
@@ -59,6 +60,17 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   String? recordedFilePath;
   final FocusNode _focusNode = FocusNode();
   bool _isEmojiVisible = false;
+  Duration _recordingDuration = Duration.zero;
+  Timer? _recordingTimer;
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
+  String _transcribedText = '';
+  bool _isSpeechAvailable = false;
+
+  String _formatRecordDuration(Duration d) {
+    String minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    String seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
   void _toggleEmojiKeyboard() {
     if (_isEmojiVisible) {
       _focusNode.requestFocus();
@@ -83,6 +95,8 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
+    _speechToText.stop();
     _audioRecorder.closeRecorder();
     _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -135,8 +149,18 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         startPosition = position;
         currentPosition = position;
         recordedFilePath = path;
+        _recordingDuration = Duration.zero;
+        _transcribedText = '';
       });
 
+      _recordingTimer?.cancel();
+      _recordingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        setState(() {
+          _recordingDuration += Duration(seconds: 1);
+        });
+      });
+
+      _startSpeechRecognition();
       print("Recording started: $path");
     } catch (e) {
       print("Failed to start recorder: $e");
@@ -162,10 +186,14 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
   Future<void> stopRecording() async {
     try {
+      _recordingTimer?.cancel();
+      _recordingTimer = null;
+      _speechToText.stop();
       final path = await _audioRecorder.stopRecorder();
       setState(() {
         isRecording = false;
         isPaused = false;
+        _recordingDuration = Duration.zero;
       });
       print("Recording stopped. File saved at: $path");
     } catch (e) {
@@ -175,7 +203,10 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
   Future<void> pauseRecording() async {
     try {
+      _recordingTimer?.cancel();
+      _recordingTimer = null;
       await _audioRecorder.pauseRecorder();
+      _speechToText.stop();
       setState(() {
         isPaused = true;
       });
@@ -191,6 +222,13 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       setState(() {
         isPaused = false;
       });
+      _recordingTimer?.cancel();
+      _recordingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        setState(() {
+          _recordingDuration += Duration(seconds: 1);
+        });
+      });
+      _startSpeechRecognition();
       print("Recording resumed");
     } catch (e) {
       print("Error resuming recorder: $e");
@@ -198,6 +236,9 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   }
 
   Future<void> cancelRecording() async {
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+    _speechToText.stop();
     try {
       await _audioRecorder.stopRecorder();
       if (recordedFilePath != null) {
@@ -215,8 +256,400 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       isReadyToSend = false;
       isPaused = false;
       recordedFilePath = null;
+      _recordingDuration = Duration.zero;
+      _transcribedText = '';
     });
     print("Recording canceled");
+  }
+
+  Future<void> _startSpeechRecognition() async {
+    if (!_isSpeechAvailable) {
+      _isSpeechAvailable = await _speechToText.initialize(
+        onError: (error) => print("Speech error: ${error.errorMsg}"),
+      );
+    }
+    if (_isSpeechAvailable) {
+      _speechToText.listen(
+        onResult: (result) {
+          setState(() {
+            _transcribedText = result.recognizedWords;
+          });
+        },
+        listenFor: Duration(minutes: 5),
+        pauseFor: Duration(seconds: 10),
+        partialResults: true,
+        listenMode: stt.ListenMode.dictation,
+      );
+    }
+  }
+
+  Future<void> _showAudioSendDialog() async {
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+    _speechToText.stop();
+    await _audioRecorder.stopRecorder();
+
+    if (!mounted) return;
+
+    final duration = _formatRecordDuration(_recordingDuration);
+    final hasTranscription = _transcribedText.trim().isNotEmpty;
+
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(24, 12, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Animated audio waveform icon
+                Container(
+                  width: 64, height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.15),
+                        Color(0xFF7C4DFF).withValues(alpha: 0.10),
+                      ],
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.graphic_eq_rounded,
+                    size: 32,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                SizedBox(height: 14),
+                CustomText(
+                  'Recording Ready',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+                SizedBox(height: 4),
+                CustomText(
+                  'Duration: $duration',
+                  fontSize: 13,
+                  color: AppColors.grayText,
+                ),
+                SizedBox(height: 6),
+                CustomText(
+                  'How would you like to send this?',
+                  fontSize: 13,
+                  color: AppColors.grayText,
+                ),
+                SizedBox(height: 22),
+                // Option cards row
+                Row(
+                  children: [
+                    // Send as Audio
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _sendAsAudioFile();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.primaryColor,
+                                Color(0xFF0066CC),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryColor.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 44, height: 44,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.mic_rounded, color: Colors.white, size: 24),
+                              ),
+                              SizedBox(height: 10),
+                              CustomText(
+                                'Send Audio',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                              SizedBox(height: 2),
+                              CustomText(
+                                'Voice message',
+                                fontSize: 11,
+                                color: Colors.white.withValues(alpha: 0.7),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 14),
+                    // Send as Text
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: hasTranscription
+                            ? () {
+                                Navigator.pop(ctx);
+                                _sendAsText();
+                              }
+                            : null,
+                        child: Opacity(
+                          opacity: hasTranscription ? 1.0 : 0.45,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 18),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF7C4DFF),
+                                  Color(0xFF5B2FE6),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 44, height: 44,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.text_fields_rounded, color: Colors.white, size: 24),
+                                ),
+                                SizedBox(height: 10),
+                                CustomText(
+                                  'Send as Text',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(height: 2),
+                                CustomText(
+                                  hasTranscription ? 'Speech to text' : 'No speech found',
+                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Transcription preview
+                if (hasTranscription) ...[
+                  SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFF5F3FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Color(0xFF7C4DFF).withValues(alpha: 0.15)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.format_quote_rounded, size: 18, color: Color(0xFF7C4DFF)),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: CustomText(
+                            _transcribedText.trim(),
+                            fontSize: 13,
+                            color: Color(0xFF3D3366),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                SizedBox(height: 16),
+                // Cancel button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _resetRecordingState();
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: CustomText(
+                        'Discard Recording',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.red.shade400,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendAsAudioFile() async {
+    final filePath = recordedFilePath ?? '';
+    setState(() {
+      isRecording = false;
+      isReadyToSend = false;
+      isPaused = false;
+      _recordingDuration = Duration.zero;
+      _transcribedText = '';
+    });
+    if (filePath.isNotEmpty) {
+      await submitRecordedAudio(filePath);
+    }
+    recordedFilePath = null;
+  }
+
+  Future<void> _sendAsText() async {
+    final text = _transcribedText.trim();
+    _resetRecordingState();
+
+    if (text.isEmpty) {
+      commonSnackBar(message: "Could not recognize any speech. Please try again.");
+      return;
+    }
+
+    Messages? reply = chatViewController.replyMessage?.value;
+    Map<String, dynamic> data;
+
+    if (isInitialFlow) {
+      data = {
+        ApiKeys.other_user_id: widget.userId,
+        ApiKeys.message: text,
+        ApiKeys.message_type: "text",
+      };
+    } else if (reply?.id != null) {
+      data = {
+        if (isInitialFlow)
+          ApiKeys.other_user_id: widget.userId
+        else
+          ApiKeys.conversation_id: widget.conversationId,
+        ApiKeys.message: text,
+        ApiKeys.reply_id: "${reply?.id}",
+        ApiKeys.message_type: "text",
+      };
+    } else {
+      data = {
+        if (isInitialFlow)
+          ApiKeys.other_user_id: widget.userId
+        else
+          ApiKeys.conversation_id: widget.conversationId,
+        ApiKeys.message: text,
+        ApiKeys.message_type: "text",
+      };
+    }
+
+    print('SEND PAYLOAD (audio-to-text): ' + data.toString());
+    sendMessageToUser(data: data, isInitial: isInitialFlow);
+  }
+
+  void _resetRecordingState() {
+    setState(() {
+      isRecording = false;
+      isReadyToSend = false;
+      isPaused = false;
+      _recordingDuration = Duration.zero;
+      _transcribedText = '';
+      recordedFilePath = null;
+    });
+  }
+
+  bool _hasReplyMedia(Messages? reply) {
+    if (reply?.url != null && reply!.url!.isNotEmpty) {
+      final type = reply.messageType;
+      return type == 'image' || type == 'video' || type == 'document';
+    }
+    return false;
+  }
+
+  String? _getReplyMediaUrl(Messages? reply) {
+    if (reply?.url != null && reply!.url!.isNotEmpty) {
+      return reply.url!.first.url;
+    }
+    return null;
+  }
+
+  String _getReplyTypeLabel(Messages reply) {
+    switch (reply.messageType) {
+      case 'image': return 'Photo';
+      case 'video': return 'Video';
+      case 'document': return 'Document';
+      case 'audio': return 'Audio';
+      case 'contact': return 'Contact';
+      case 'location': return 'Location';
+      case 'live_location': return 'Live Location';
+      default: return reply.message ?? '';
+    }
+  }
+
+  IconData? _getReplyTypeIcon(Messages reply) {
+    switch (reply.messageType) {
+      case 'image': return Icons.photo_camera;
+      case 'video': return Icons.videocam;
+      case 'document': return Icons.insert_drive_file;
+      case 'audio': return Icons.mic;
+      case 'contact': return Icons.person;
+      case 'location': return Icons.location_on;
+      case 'live_location': return Icons.location_on;
+      default: return null;
+    }
   }
 
   @override
@@ -228,39 +661,6 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     return Column(
       children: [
         Obx(() {
-          Messages? reply = chatViewController.replyMessage?.value;
-          if (reply?.id == null) return SizedBox.shrink();
-
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            margin: EdgeInsets.only(bottom: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText("Replying to",
-                        fontSize: 12, color: AppColors.grayText),
-                      messageTypeIconWithLabel(reply??Messages()),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.close, size: 20),
-                  onPressed: () {
-                    chatViewController.setReplyMessage(Messages());
-                  },
-                )
-              ],
-            ),
-          );
-        }),
-        Obx(() {
           return Column(
             children: [
               Padding(
@@ -269,55 +669,221 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   children: [
                     Expanded(
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 1),
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
                             )
                           ],
                         ),
-                        child: (isRecording)
-                            ? Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                          child: Row(crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Reply preview inside input container
+                            Obx(() {
+                              Messages? reply = chatViewController.replyMessage?.value;
+                              if (reply?.id == null) return SizedBox.shrink();
+                              final bool hasMedia = _hasReplyMedia(reply);
+                              final String? mediaUrl = _getReplyMediaUrl(reply);
+                              final String senderName = (reply?.myMessage ?? false)
+                                  ? "You"
+                                  : reply?.sender?.name ?? "";
+                              return Stack(
                                 children: [
-                                  InkWell(
-                                      onTap: cancelRecording,
-                                      child: Icon(
-                                        Icons.delete, color: Colors.red,)),
-                                  const SizedBox(width: 10,),
-                                  CustomText((isPaused)
-                                      ? "Recording Paused"
-                                      : "Recording..."),
-
-                                ],
+                                Container(
+                                margin: EdgeInsets.only(left: 6, right: 6, top: 6),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFF0F2F5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Left color accent bar
+                                    Container(
+                                      width: 4,
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(8),
+                                          bottomLeft: Radius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    // Text content
+                                    Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 6),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            CustomText(
+                                              senderName,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.primaryColor,
+                                              maxLines: 1,
+                                            ),
+                                            SizedBox(height: 2),
+                                            Row(
+                                              children: [
+                                                if (_getReplyTypeIcon(reply!) != null) ...[
+                                                  Icon(
+                                                    _getReplyTypeIcon(reply),
+                                                    size: 14,
+                                                    color: AppColors.grayText,
+                                                  ),
+                                                  SizedBox(width: 3),
+                                                ],
+                                                Expanded(
+                                                  child: CustomText(
+                                                    reply.messageType == 'text'
+                                                        ? (reply.message ?? '')
+                                                        : _getReplyTypeLabel(reply),
+                                                    fontSize: 12,
+                                                    color: AppColors.grayText,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    // Media thumbnail on the right
+                                    if (hasMedia && (reply.messageType == 'image' || reply.messageType == 'video'))
+                                      Padding(
+                                        padding: EdgeInsets.only(left: 6),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.only(
+                                            topRight: Radius.circular(8),
+                                            bottomRight: Radius.circular(8),
+                                          ),
+                                          child: Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              Image.network(
+                                                mediaUrl ?? '',
+                                                width: 52,
+                                                height: 52,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => Container(
+                                                  width: 52, height: 52,
+                                                  color: Colors.grey.shade300,
+                                                  child: Icon(Icons.broken_image, size: 20, color: Colors.grey),
+                                                ),
+                                              ),
+                                              if (reply.messageType == 'video')
+                                                Icon(Icons.play_circle_fill, size: 24, color: Colors.white70),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    else if (hasMedia && reply.messageType == 'document')
+                                      Padding(
+                                        padding: EdgeInsets.only(left: 6, right: 8),
+                                        child: Container(
+                                          width: 40, height: 40,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade50,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Icon(Icons.insert_drive_file, size: 22, color: Colors.red.shade400),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                              InkWell(
+                              // Close button positioned top-right
+                              Positioned(
+                                top: 8,
+                                right: 10,
+                                child: GestureDetector(
                                   onTap: () {
-                                    if (isPaused) {
-                                      resumeRecording();
-                                    } else {
-                                      pauseRecording();
-                                    }
+                                    chatViewController.setReplyMessage(Messages());
                                   },
+                                  child: Icon(Icons.close, size: 18, color: AppColors.grayText),
+                                ),
+                              ),
+                              ],
+                              );
+                            }),
+                            // Input row
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                              child: (isRecording)
+                            ? Padding(
+                          padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                          child: Row(
+                            children: [
+                              // Delete button
+                              GestureDetector(
+                                onTap: cancelRecording,
+                                child: Container(
+                                  width: 36, height: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.delete_outline_rounded, color: Colors.red.shade400, size: 20),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              // Recording indicator + timer
+                              Container(
+                                width: 8, height: 8,
+                                decoration: BoxDecoration(
+                                  color: isPaused ? Colors.grey : Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              CustomText(
+                                _formatRecordDuration(_recordingDuration),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                              SizedBox(width: 6),
+                              CustomText(
+                                isPaused ? "Paused" : "Recording",
+                                fontSize: 12,
+                                color: isPaused ? AppColors.grayText : Colors.red.shade400,
+                              ),
+                              Spacer(),
+                              // Pause/Resume button
+                              GestureDetector(
+                                onTap: () {
+                                  if (isPaused) {
+                                    resumeRecording();
+                                  } else {
+                                    pauseRecording();
+                                  }
+                                },
+                                child: Container(
+                                  width: 36, height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
                                   child: Icon(
-                                      (isPaused) ? Icons.play_arrow : Icons.pause)),
-                              Row(
-                                children: [
-                                  const CustomText("Slide left to cancel"),
-                                ],
-                              )
+                                    isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                                    color: AppColors.primaryColor,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-
                         ) :
                         Row(crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -475,6 +1041,9 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                           ],
                         ),
                       ),
+                          ],
+                        ),
+                      ),
                     ),
                     SizedBox(width: 8),
                     Obx(() {
@@ -535,12 +1104,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                               }
                             } else {
                               if (isRecording) {
-                                await submitRecordedAudio(recordedFilePath ?? "");
-                                setState(() {
-                                  isRecording = false;
-                                  isReadyToSend = false;
-                                  isPaused = false;
-                                });
+                                await _showAudioSendDialog();
                               }
                             }
                           },
@@ -549,7 +1113,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                               decoration: BoxDecoration(
                                 color:(chatViewController.isTextFieldEmpty.value || isRecording)?
                                 chatThemeController.myMessageBgColor.value:Colors.white,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(24),
                               ),
                               padding: EdgeInsets.all(14),
                               child: (chatViewController.isTextFieldEmpty.value || isRecording)
@@ -559,14 +1123,8 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                 width: 21,
                               )
                                   : GestureDetector(
-                                onLongPressStart: (details) =>
-                                    startRecording(details.globalPosition),
-                                onLongPressMoveUpdate: (details) =>
-                                    updateRecording(details.globalPosition),
-                                onLongPressEnd: (_) {
-                                  // stopRecording();
-                                },
-                                child: SvgPicture.asset(AppIconAssets.chat_mic_icon,color: Colors.black,),
+                                onTap: () => startRecording(Offset.zero),
+                                child: SvgPicture.asset(AppIconAssets.chat_mic_icon, color: Colors.black),
                               ),
                             ),
                           ),
@@ -655,120 +1213,219 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     FocusScope.of(context).unfocus();
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-      ),
-      builder: (_) =>
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30),
-            child: GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              childAspectRatio: 1.1,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 16,
-
-              children: [
-                _buildMediaOption(
-                  icon: AppIconAssets.chat_input_gallery,
-                  label: 'Image',
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                    _pickFromGallery(false);
-                  },
-                ),
-                _buildMediaOption(
-                  icon: AppIconAssets.chat_input_gallery,
-                  label: 'Video',
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                    _pickFromGallery(true);
-                  },
-                ),
-                // _buildMediaOption(
-                //   icon: AppIconAssets.chat_input_camera,
-                //   label: 'Camera',
-                //   onTap: () {
-                //     Navigator.pop(context);
-                //     _pickFromCamera();
-                //   },
-                // ),
-                // _buildMediaOption(
-                //   icon: AppIconAssets.chat_input_audio,
-                //   label: 'Audio',
-                //   onTap: () async{
-                //     Navigator.pop(context);
-                //     await _pickAudioFile();
-                //     // Implement audio logic here
-                //   },
-                // ),
-                _buildMediaOption(
-                  icon: AppIconAssets.chat_input_contact,
-                  label: 'Contact',
-                  onTap: () async {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                    await _pickContact();
-                  },
-                ),
-                _buildMediaOption(
-                  icon: AppIconAssets.chat_input_location,
-                  label: 'Location',
-                  onTap: () async {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context, MaterialPageRoute(builder: (context) =>
-                        SendLocationPage(
-                            onLiveLocationSubmit: (double lat, double long, String? duration)async{
-                              Map<String, dynamic> data = {
-                                if(isInitialFlow)
-                                  ApiKeys.other_user_id: widget.userId
-                                else
-                                  ApiKeys.conversation_id: widget.conversationId,
-                                ApiKeys.message_type: "live_location",
-                                  ApiKeys.message: "Live Location",
-                                ApiKeys.live_location_validity:duration,
-                                ApiKeys.latitude: lat,
-                                ApiKeys.longitude: long,
-                              };
-                             await sendMessageToUser(data: data, isInitial: isInitialFlow);
-                              Get.back();
-                        },
-                            onSubmit: (double lat, double long, String? address,
-                                String? name) async {
-                              await pickCurrentLocation(
-                                  lat, long, address, name);
-                              Navigator.pop(context);
-                            }
-                        )));
-                  },
-                ),
-                _buildMediaOption(
-                  icon: AppIconAssets.chat_input_document,
-                  label: 'Document',
-                  onTap: () async {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                    await _pickDocument();
-                  },
-                ),
-                _buildMediaOption(
-                  icon: AppIconAssets.chat_input_quick_reply,
-                  label: 'Quick Reply',
-                  onTap: () async {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                      showHiveBottomSheet(context,widget.userId??"",widget.conversationId,isInitialFlow);
-
-                  },
-                ),
-              ],
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 12),
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
+            SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: GridView.count(
+                crossAxisCount: 4,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                childAspectRatio: 0.78,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 20,
+                children: [
+                  // Row 1
+                  _buildMediaOption(
+                    iconData: Icons.camera_alt_outlined,
+                    iconColor: Color(0xFFFF5252),
+                    label: 'Camera',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      _pickFromCamera();
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.photo_outlined,
+                    iconColor: Color(0xFF7C4DFF),
+                    label: 'Image',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      _pickFromGallery(false);
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.videocam_outlined,
+                    iconColor: Color(0xFFE91E63),
+                    label: 'Video',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      _pickFromGallery(true);
+                    },
+                  ),
+
+                  _buildMediaOption(
+                    iconData: Icons.description_outlined,
+                    iconColor: Color(0xFF5C6BC0),
+                    label: 'Document',
+                    onTap: () async {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      await _pickDocument();
+                    },
+                  ),
+                  // Row 2
+                  _buildMediaOption(
+                    iconData: Icons.headset_outlined,
+                    iconColor: Color(0xFFFF6D00),
+                    label: 'Audio',
+                    onTap: () async {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      await _pickAudioFile();
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.location_on_outlined,
+                    iconColor: Color(0xFF009688),
+                    label: 'Location',
+                    onTap: () async {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context, MaterialPageRoute(builder: (context) =>
+                          SendLocationPage(
+                              onLiveLocationSubmit: (double lat, double long, String? duration)async{
+                                Map<String, dynamic> data = {
+                                  if(isInitialFlow)
+                                    ApiKeys.other_user_id: widget.userId
+                                  else
+                                    ApiKeys.conversation_id: widget.conversationId,
+                                  ApiKeys.message_type: "live_location",
+                                    ApiKeys.message: "Live Location",
+                                  ApiKeys.live_location_validity:duration,
+                                  ApiKeys.latitude: lat,
+                                  ApiKeys.longitude: long,
+                                };
+                               await sendMessageToUser(data: data, isInitial: isInitialFlow);
+                                Get.back();
+                          },
+                              onSubmit: (double lat, double long, String? address,
+                                  String? name) async {
+                                await pickCurrentLocation(
+                                    lat, long, address, name);
+                                Navigator.pop(context);
+                              }
+                          )));
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.person_outline_rounded,
+                    iconColor: Color(0xFF2196F3),
+                    label: 'Contact',
+                    onTap: () async {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      await _pickContact();
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.storefront_outlined,
+                    iconColor: Color(0xFFFF9800),
+                    label: 'Catalog',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      // TODO: Navigate to catalog screen
+                    },
+                  ),
+                  // Row 3
+                  _buildMediaOption(
+                    iconData: Icons.card_giftcard_outlined,
+                    iconColor: Color(0xFFD81B60),
+                    label: 'Send Gift',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      // TODO: Navigate to send gift screen
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.restaurant_outlined,
+                    iconColor: Color(0xFFEF6C00),
+                    label: 'Book Food',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      // TODO: Navigate to book food screen
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.local_taxi_outlined,
+                    iconColor: Color(0xFF00897B),
+                    label: 'Book Ride',
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      // TODO: Navigate to book ride screen
+                    },
+                  ),
+                  _buildMediaOption(
+                    iconData: Icons.quickreply_outlined,
+                    iconColor: Color(0xFF8D6E63),
+                    label: 'Quick Reply',
+                    onTap: () async {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                      showHiveBottomSheet(context,widget.userId??"",widget.conversationId,isInitialFlow);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 28),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _pickAudioFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg'],
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      String? filePath = result.files.first.path;
+      String fileName = filePath?.split('/').last ?? '';
+
+      dio.MultipartFile audioPart = await dio.MultipartFile.fromFile(
+        filePath!,
+        filename: fileName,
+      );
+
+      Map<String, dynamic> data = {
+        if(isInitialFlow)
+          ApiKeys.other_user_id: widget.userId
+        else
+          ApiKeys.conversation_id: widget.conversationId,
+        ApiKeys.message: chatViewController.sendMessageController.value.text,
+        ApiKeys.message_type: "audio",
+        ApiKeys.files: [audioPart],
+      };
+      print('SEND PAYLOAD (audio file): '+data.toString());
+      sendMessageToUser(data: data, isInitial: isInitialFlow);
+    }
   }
 
   Future<void> _pickDocument() async {
@@ -813,26 +1470,42 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
 
   Widget _buildMediaOption({
-    required String icon,
+    required IconData iconData,
+    required Color iconColor,
     required String label,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          (label == "Video") ? Padding(
-            padding: const EdgeInsets.only(bottom: 2.0, top: 1),
-            child: Icon(Icons.video_camera_back_outlined, size: 36,
-              color: AppColors.primaryColor,),
-          ) : SvgPicture.asset(icon, height: 38,
-            width: 38,),
-          SizedBox(height: 8),
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  iconColor.withValues(alpha: 0.15),
+                  iconColor.withValues(alpha: 0.06),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(iconData, color: iconColor, size: 26),
+          ),
+          SizedBox(height: 6),
           CustomText(
             label,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: AppColors.grayText,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -968,8 +1641,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   await chatViewController.generateUploadUrlsApi(
                     params: uploadParams,
                     listFile: selectedFiles,
-                    isInitialMessage: isInitialFlow,
-                    userId: widget.userId??'',
+                    userId: [widget.userId??''],
                     conversationId: widget.conversationId,
                     commands: commands,
                     messageType: messageType,

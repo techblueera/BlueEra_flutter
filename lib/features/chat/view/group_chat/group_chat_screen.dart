@@ -153,12 +153,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      AppImageAssets.chating_bg,
-                      fit: BoxFit.cover,
-                      width: SizeConfig.screenWidth,
-                      height: SizeConfig.screenHeight,
-                    ),
+                    Obx(() => chatThemeController.chatBackground()),
                     Column(crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 12,),
@@ -291,12 +286,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    AppImageAssets.chating_bg,
-                    fit: BoxFit.cover,
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.screenHeight,
-                  ),
+                  Obx(() => chatThemeController.chatBackground()),
                   Center(
                     child: SizedBox(
                       height: 22,

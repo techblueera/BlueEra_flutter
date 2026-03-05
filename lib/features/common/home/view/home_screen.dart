@@ -20,7 +20,6 @@ import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
-import '../../../chat/view/contacts/view/be_available_contacts_list.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 
 enum SavedFeedTab {
@@ -93,45 +92,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   ///DO NOT DELETE THIS CODE.....
-  SharedMedia? sharedMedia;
-
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     final handler = ShareHandlerPlatform.instance;
 
-    // App opened from share intent
-    handler.getInitialSharedMedia().then((SharedMedia? media) {
-      setState(() => sharedMedia = media);
-      if (media?.content?.isNotEmpty ?? false) {
-        _openChatScreen(media!);
-      }
-      if (media?.attachments?.isNotEmpty ?? false) {
-        _openChatScreen(media!);
-      }
-    });
-
-    // App running, receiving new share
+    // App running, receiving new share while app is open
     handler.sharedMediaStream.listen((SharedMedia media) {
-      setState(() => sharedMedia = media);
       _openChatScreen(media);
     });
   }
 
   void _openChatScreen(SharedMedia media) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isGuestUser()) {
-        createProfileScreen();
-      } else {
-        final _sharedText = media.content;
-        List<SharedAttachment?>? attachments = media.attachments ?? [];
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final sharedText = media.content;
+    final attachments = media.attachments ?? [];
 
-        if (_sharedText != null && _sharedText.isNotEmpty) {
-         Get.to(ChatForwardScreen(sharedText: _sharedText));
-        } else if ((attachments.isNotEmpty)) {
-          Get.to(ChatForwardScreen(sharedFiles: attachments),);
-        }
-      }
-    });
+    if (sharedText != null && sharedText.isNotEmpty) {
+      Get.to(() => ChatForwardScreen(sharedText: sharedText));
+    } else if (attachments.isNotEmpty) {
+      Get.to(() => ChatForwardScreen(sharedFiles: attachments));
+    }
   }
 
   Future<void> getPackageData() async {

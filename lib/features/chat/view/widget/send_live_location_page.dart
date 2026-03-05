@@ -3,16 +3,12 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:flutter/services.dart';
 
 
 class SendLocationPage extends StatefulWidget {
@@ -25,11 +21,11 @@ class SendLocationPage extends StatefulWidget {
 
 class _SendLocationPageState extends State<SendLocationPage> {
 
-
   LatLng? _currentPosition;
   LatLng? alternatCurrentPos;
-
   List<Placemark> _nearbyPlaces = [];
+  GoogleMapController? _mapController;
+  String _selectedDuration = '15min';
 
   @override
   void initState() {
@@ -46,43 +42,86 @@ class _SendLocationPageState extends State<SendLocationPage> {
         _currentPosition = LatLng(pos.latitude, pos.longitude);
         alternatCurrentPos = LatLng(pos.latitude, pos.longitude);
       });
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(_currentPosition!, 16),
+      );
       await _fetchNearbyPlaces(pos);
     }
   }
 
   Future<void> _fetchNearbyPlaces(Position position) async {
-    List<Placemark> placemarks =
-    await placemarkFromCoordinates(position.latitude, position.longitude);
+    final double lat = position.latitude;
+    final double lng = position.longitude;
+    // Offset ~200-500m in different directions to get diverse nearby places
+    final List<List<double>> offsets = [
+      [0, 0],
+      [0.002, 0.002],
+      [-0.002, 0.002],
+      [0.002, -0.002],
+      [-0.002, -0.002],
+      [0.004, 0],
+      [0, 0.004],
+      [-0.004, 0],
+      [0, -0.004],
+    ];
+
+    final Set<String> seen = {};
+    final List<Placemark> allPlaces = [];
+
+    for (final offset in offsets) {
+      try {
+        final placemarks = await placemarkFromCoordinates(
+          lat + offset[0], lng + offset[1],
+        );
+        for (final place in placemarks) {
+          final key = '${place.name}_${place.street}_${place.postalCode}';
+          if (!seen.contains(key) && place.name != null && place.name!.isNotEmpty) {
+            seen.add(key);
+            allPlaces.add(place);
+          }
+        }
+      } catch (_) {}
+      if (allPlaces.length >= 8) break;
+    }
 
     setState(() {
-      _nearbyPlaces = placemarks;
-      if (placemarks.isNotEmpty) {
-        // _address =
-        // "${placemarks.first.name}, ${placemarks.first.locality}, ${placemarks.first.country}";
-      }
+      _nearbyPlaces = allPlaces;
     });
   }
 
-  // Future<void> _onMapCreated(MapplsMapController controller) async {
-  //   mapController = controller;
-  //   await _addMarker();
-  // }
-
-  // Future<void> _addMarker() async {
-  //
-  //   if (_currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0) {
-  //     await mapController?.addSymbol(
-  //       SymbolOptions(
-  //         geometry: LatLng(_currentPosition?.latitude??0.0, _currentPosition?.longitude??0.0),
-  //         iconSize: 1.2,
-  //       ),
-  //     );
-  //     setState(() {});
-  //   }
-  // }
-  Symbol? _userSymbol;
-  bool _isImageAdded = false;
-
+  Widget _buildDurationTab(String value, String label) {
+    final bool isSelected = _selectedDuration == value;
+    return GestureDetector(
+      onTap: () {
+        if (_currentPosition != null) {
+          widget.onLiveLocationSubmit(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+            value,
+          );
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 22, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryColor.withValues(alpha: 0.1)
+              : Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: CustomText(
+          label,
+          fontSize: 12,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          color: isSelected ? AppColors.primaryColor : AppColors.grayText,
+        ),
+      ),
+    );
+  }
 
   Future<Duration?> showLocationDurationSheet(BuildContext context) {
     Duration selectedDuration = const Duration(minutes: 15);
@@ -101,38 +140,28 @@ class _SendLocationPageState extends State<SendLocationPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 🔹 Handle bar
                   Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
+                    width: 40, height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-
-                  // 🔹 Title
-                  const Text(
+                  CustomText(
                     "Share live location for",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
                   const SizedBox(height: 20),
-
-                  // 🔹 Options
                   _DurationTile(
                     title: "15 minutes",
                     subtitle: "Quick share",
@@ -147,7 +176,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
                   _DurationTile(
                     title: "1 hour",
                     subtitle: "Short trip",
-                    icon: Icons.schedule,
+                    icon: Icons.schedule_outlined,
                     selected: selectedDuration == const Duration(hours: 1),
                     onTap: () {
                       setState(() {
@@ -158,7 +187,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
                   _DurationTile(
                     title: "8 hours",
                     subtitle: "All day",
-                    icon: Icons.location_on_outlined,
+                    icon: Icons.access_time_filled_outlined,
                     selected: selectedDuration == const Duration(hours: 8),
                     onTap: () {
                       setState(() {
@@ -166,18 +195,21 @@ class _SendLocationPageState extends State<SendLocationPage> {
                       });
                     },
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // 🔹 Submit Button
+                  const SizedBox(height: 20),
                   CustomBtn(
-                    height: 48,
-                      isValidate: true,
-                      onTap: (){
-                      widget.onLiveLocationSubmit(_currentPosition!.latitude, _currentPosition!.longitude,durationToLabel(selectedDuration));
-                     Get.back();
-                      }, title: "Send"),
-                   SizedBox(height: SizeConfig.size40),
+                    height: 50,
+                    isValidate: true,
+                    onTap: () {
+                      widget.onLiveLocationSubmit(
+                        _currentPosition!.latitude,
+                        _currentPosition!.longitude,
+                        durationToLabel(selectedDuration),
+                      );
+                      Get.back();
+                    },
+                    title: "Share Live Location",
+                  ),
+                  SizedBox(height: SizeConfig.size20),
                 ],
               ),
             );
@@ -189,131 +221,274 @@ class _SendLocationPageState extends State<SendLocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: Color(0xFFF8F9FA),
       appBar: CommonBackAppBar(
-        title: "Send location",
+        title: "Send Location",
       ),
       body: (_currentPosition == null)
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(height: 16),
+                  CustomText(
+                    "Getting your location...",
+                    fontSize: 14,
+                    color: AppColors.grayText,
+                  ),
+                ],
+              ),
+            )
           : Column(
         children: [
-          SizedBox(
-            height: 250,
-            child:
-            GoogleMap(
-              onMapCreated: (controller) =>controller,
-              initialCameraPosition: CameraPosition(
-                target: LatLng(26.7836, 80.9013),
-                zoom: 14.0,
+          // Map section
+          Container(
+            height: 220,
+            margin: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: GoogleMap(
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  if (_currentPosition != null) {
+                    controller.animateCamera(
+                      CameraUpdate.newLatLngZoom(_currentPosition!, 16),
+                    );
+                  }
+                },
+                initialCameraPosition: CameraPosition(
+                  target: _currentPosition ?? LatLng(26.7836, 80.9013),
+                  zoom: 16.0,
+                ),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                compassEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                rotateGesturesEnabled: true,
+                tiltGesturesEnabled: true,
+                zoomGesturesEnabled: true,
+                scrollGesturesEnabled: true,
               ),
-              // markers: _markers,
-              myLocationEnabled: false,
-              compassEnabled: false,
-              rotateGesturesEnabled: true,
-              tiltGesturesEnabled: true,
-              zoomGesturesEnabled: true,
-              scrollGesturesEnabled: true,
             ),
-
           ),
-          const SizedBox(height: 6,),
+          SizedBox(height: 12),
 
-          ListTile(
-            leading: Icon(Icons.my_location,color: Colors.black,),
-            title: CustomText("Send Live Location",
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+          // Location action cards
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            subtitle: CustomText("Accurate to ~2 meters",
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.outline,
-            ),
-            onTap: () async{
-              final Duration? duration =
-                  await showLocationDurationSheet(context);
-
-              if (duration != null) {
-                print("User selected duration: $duration");
-
-                // 🔥 start location sharing logic here
-                // startSharingLocation(duration);
-              }
-              // Handle send current location
-              // widget.onSubmit(_currentPosition!.latitude, _currentPosition!.longitude,null,null);
-            },
-          ),
-          Divider(color: AppColors.grey99,),
-          ListTile(
-            leading: LocalAssets(imagePath: AppIconAssets.location_new,height: 24,width: 24,),
-
-            title: CustomText("Send your current location",
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-            subtitle: CustomText("Accurate to ~8 meters",
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.outline,
-            ),
-            onTap: () {
-              // Handle send current location
-              widget.onSubmit(_currentPosition!.latitude, _currentPosition!.longitude,null,null);
-            },
-          ),
-          Divider(color: AppColors.grey99,),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-            child: Align(
-                alignment: Alignment.centerLeft,
-                child: CustomText("Nearby places",
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                )),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _nearbyPlaces.length,
-              itemBuilder: (context, index) {
-                final place = _nearbyPlaces[index];
-                return ListTile(
-                  leading: Icon(Icons.location_pin,color: Colors.black,),
-                  title: CustomText(place.name ?? "Unknown",
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+            child: Column(
+              children: [
+                // Live location section with inline duration tabs
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: Color(0xFF00BFA5).withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.my_location_rounded, color: Color(0xFF00BFA5), size: 22),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText("Send Live Location",
+                              fontSize: 15, fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(height: 2),
+                            CustomText("Accurate to ~2 meters",
+                              fontSize: 12, color: AppColors.grayText,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  subtitle: CustomText(
-                      "${place.street}, ${place.locality}, ${place.postalCode}",
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.outline,
+                ),
+                SizedBox(height: 10),
+                // Duration tabs + send button
+                Padding(
+                  padding: EdgeInsets.only(left: 74,right: 16),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildDurationTab('15min', '15 min'),
+                      _buildDurationTab('1h', '1 hour'),
+
+                      _buildDurationTab('8h', '8 hours'),
+                    ],
                   ),
-                  onTap: ()async {
-                    // Handle selected place
-                    final fullAddress =
-                        "${place.name}, ${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
-                    try {
-                      List<Location> locations = await locationFromAddress(fullAddress);
-                      if (locations.isNotEmpty) {
-                        final selected = locations.first;
-                        widget.onSubmit(selected.latitude, selected.longitude,"${place.street}, ${place.locality}, ${place.postalCode}","${place.name ?? "Unknown"}");
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Failed to get location for this place")),
-                      );
-                    }
+                ),
+                SizedBox(height: 12),
+                Divider(height: 1, indent: 74, color: Colors.grey.shade200),
+                // Current location tile
+                InkWell(
+                  onTap: () {
+                    widget.onSubmit(_currentPosition!.latitude, _currentPosition!.longitude, null, null);
                   },
-                );
-              },
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44, height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.near_me_rounded, color: AppColors.primaryColor, size: 22),
+                        ),
+                        SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText("Send Current Location",
+                                fontSize: 15, fontWeight: FontWeight.w600,
+                              ),
+                              SizedBox(height: 2),
+                              CustomText("Accurate to ~8 meters",
+                                fontSize: 13, color: AppColors.grayText,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 22),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+          SizedBox(height: 16),
+
+          // Nearby places header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                CustomText("Nearby Places",
+                  fontSize: 15, fontWeight: FontWeight.w700,
+                ),
+                SizedBox(width: 6),
+                CustomText("(${_nearbyPlaces.length})",
+                  fontSize: 13, color: AppColors.grayText,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
+
+          // Nearby places list
+          Expanded(
+            child: _nearbyPlaces.isEmpty
+                ? Center(
+                    child: CustomText("No nearby places found",
+                      fontSize: 14, color: AppColors.grayText,
+                    ),
+                  )
+                : ListView.separated(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _nearbyPlaces.length,
+                    separatorBuilder: (_, __) => Divider(height: 1, indent: 58, color: Colors.grey.shade200),
+                    itemBuilder: (context, index) {
+                      final place = _nearbyPlaces[index];
+                      return InkWell(
+                        onTap: () async {
+                          final fullAddress =
+                              "${place.name}, ${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
+                          try {
+                            List<Location> locations = await locationFromAddress(fullAddress);
+                            if (locations.isNotEmpty) {
+                              final selected = locations.first;
+                              widget.onSubmit(
+                                selected.latitude,
+                                selected.longitude,
+                                "${place.street}, ${place.locality}, ${place.postalCode}",
+                                "${place.name ?? "Unknown"}",
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Failed to get location for this place")),
+                            );
+                          }
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40, height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.place_outlined, color: AppColors.grayText, size: 20),
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(place.name ?? "Unknown",
+                                      fontSize: 14, fontWeight: FontWeight.w600,
+                                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 2),
+                                    CustomText(
+                                      "${place.street}, ${place.locality}, ${place.postalCode}",
+                                      fontSize: 12, color: AppColors.grayText,
+                                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 }
+
 class _DurationTile extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -332,28 +507,33 @@ class _DurationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? Colors.blue.shade50 : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(16),
+          color: selected ? AppColors.primaryColor.withValues(alpha: 0.06) : Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? Colors.blue : Colors.transparent,
+            color: selected ? AppColors.primaryColor : Colors.transparent,
             width: 1.5,
           ),
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor:
-              selected ? Colors.blue : Colors.grey.shade300,
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.primaryColor.withValues(alpha: 0.12)
+                    : Colors.grey.shade200,
+                shape: BoxShape.circle,
+              ),
               child: Icon(
                 icon,
-                color: selected ? Colors.white : Colors.black54,
+                color: selected ? AppColors.primaryColor : AppColors.grayText,
+                size: 22,
               ),
             ),
             const SizedBox(width: 14),
@@ -361,25 +541,22 @@ class _DurationTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  CustomText(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
-                  Text(
+                  SizedBox(height: 1),
+                  CustomText(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
+                    fontSize: 12,
+                    color: AppColors.grayText,
                   ),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle, color: Colors.blue),
+              Icon(Icons.check_circle_rounded, color: AppColors.primaryColor, size: 22),
           ],
         ),
       ),

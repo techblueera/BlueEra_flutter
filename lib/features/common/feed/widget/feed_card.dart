@@ -1,7 +1,10 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -10,6 +13,8 @@ import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.da
 import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/qa_post_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -287,22 +292,79 @@ class _FeedCardState extends State<FeedCard> {
 
 bool _isSharing = false;
 
-Future<void> onShareButtonPressed(Post? post) async {
-  if (_isSharing) return;
+void onShareButtonPressed(Post? post) {
+  final shareUrl = postDeepLink(postId: post?.id.toString());
+  showShareOptionsDialog(shareUrl);
+}
 
-  try {
-    _isSharing = true;
-    final shareUrl = postDeepLink(postId: post?.id.toString());
-    await SharePlus.instance.share(
-      ShareParams(
-        text: shareUrl,
+void showShareOptionsDialog(String shareUrl) {
+  Get.bottomSheet(
+    Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-    );
-  } catch (e) {
-    debugPrint("Share failed: $e");
-  } finally {
-    _isSharing = false;
-  }
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          ListTile(
+            leading: LocalAssets(
+              imagePath: AppIconAssets.share_bold,
+              height: 24,
+              width: 24,
+              imgColor: AppColors.primaryColor,
+            ),
+            title: CustomText(
+              "Share within BlueEra",
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+            onTap: () {
+              Get.back();
+              Get.to(() => ChatForwardScreen(sharedText: shareUrl,stopChatNav: true,));
+            },
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: Icon(
+              Icons.share_outlined,
+              color: AppColors.primaryColor,
+              size: 24,
+            ),
+            title: CustomText(
+              "Share externally",
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+            onTap: () async {
+              Get.back();
+              if (_isSharing) return;
+              try {
+                _isSharing = true;
+                await SharePlus.instance.share(
+                  ShareParams(text: shareUrl),
+                );
+              } catch (e) {
+                debugPrint("Share failed: $e");
+              } finally {
+                _isSharing = false;
+              }
+            },
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // Future<void> onShareButtonPressed(Post? _post) async {

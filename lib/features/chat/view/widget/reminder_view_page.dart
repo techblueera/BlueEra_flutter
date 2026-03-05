@@ -72,12 +72,7 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
           return  Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                AppImageAssets.chating_bg,
-                fit: BoxFit.cover,
-                width: SizeConfig.screenWidth,
-                height: SizeConfig.screenHeight,
-              ),
+              Obx(() => chatThemeController.chatBackground()),
               Column(
                 children: [
                   Expanded(

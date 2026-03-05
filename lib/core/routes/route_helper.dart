@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -565,9 +566,11 @@ class RouteHelper {
       case RouteConstant.BottomNavigationBarScreen:
         final args = settings.arguments as Map<dynamic, dynamic>?;
         int? initialIndex = args?[ApiKeys.initialIndex];
+        SharedMedia? sharedMedia = args?['sharedMedia'] as SharedMedia?;
         return MaterialPageRoute(
           builder: (_) => BottomNavigationBarScreen(
             initialIndex: initialIndex,
+            sharedMedia: sharedMedia,
           ),
           settings: RouteSettings(
               name: RouteHelper.getBottomNavigationBarScreenRoute()),

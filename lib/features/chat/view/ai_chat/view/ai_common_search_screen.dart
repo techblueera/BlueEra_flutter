@@ -639,12 +639,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
         fit: StackFit.expand,
         children: [
           // Background
-          Image.asset(
-            AppImageAssets.chating_bg,
-            fit: BoxFit.cover,
-            width: SizeConfig.screenWidth,
-            height: SizeConfig.screenHeight,
-          ),
+          Obx(() => chatThemeController.chatBackground()),
 
           Column(
             children: [

@@ -1,9 +1,12 @@
+
+
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/add_message_symbol.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/bottom_caption_field.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/symbol_upload_widget.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/top_left_options.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_handler/share_handler.dart';
 
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/commom_textfield.dart';
@@ -13,8 +16,10 @@ import '../../auth/controller/add_chat_symbol_controller.dart';
 
 
 class AddChatSymbolScreen extends StatefulWidget {
-  AddChatSymbolScreen({super.key, this.message});
+  AddChatSymbolScreen({super.key, this.message, this.sharedText, this.sharedFiles});
   final  message;
+  final String? sharedText;
+  final List<SharedAttachment?>? sharedFiles;
 
   @override
   State<AddChatSymbolScreen> createState() => _AddChatSymbolScreenState();
@@ -25,9 +30,34 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     controller.clearData();
     super.initState();
+    _prefillSharedData();
+  }
+
+  void _prefillSharedData() {
+    if (widget.sharedText != null && widget.sharedText!.isNotEmpty) {
+      final text = widget.sharedText!;
+      final isLink = Uri.tryParse(text)?.hasScheme ?? false;
+      if (isLink) {
+        controller.choosePostType(PostType.link);
+      } else {
+        controller.choosePostType(PostType.text);
+      }
+      controller.linkTextSymbolController.text = text;
+    }
+    // else if (widget.sharedFiles != null && widget.sharedFiles!.isNotEmpty) {
+    //   final files = widget.sharedFiles!
+    //       .where((e) => e?.path != null && e!.path.isNotEmpty)
+    //       .map((e) => File(e!.path))
+    //       .toList();
+    //   if (files.isNotEmpty) {
+    //     final ext = files.first.path.split('.').last.toLowerCase();
+    //     final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(ext);
+    //     controller.choosePostType(isVideo ? PostType.video : PostType.image);
+    //     controller.imagesList.addAll(files);
+    //   }
+    // }
   }
 
   @override
