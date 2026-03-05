@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_handler/share_handler.dart';
 // import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -86,9 +87,13 @@ class _SplashScreenState extends State<SplashScreen> {
         if (await _initDeepLinks()) {
           // handled deep link
         } else {
+          final sharedMedia = await _getSharedMedia();
           Navigator.of(context).pushNamedAndRemoveUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: 0},
+            arguments: {
+              ApiKeys.initialIndex: 0,
+              if (sharedMedia != null) 'sharedMedia': sharedMedia,
+            },
             (Route<dynamic> route) => false,
           );
         }
@@ -101,6 +106,21 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     // await OnesignalService().initialize();
+  }
+
+  Future<SharedMedia?> _getSharedMedia() async {
+    try {
+      final handler = ShareHandlerPlatform.instance;
+      final media = await handler.getInitialSharedMedia();
+      if (media != null) {
+        handler.resetInitialSharedMedia();
+      }
+      if (media?.content?.isNotEmpty ?? false) return media;
+      if (media?.attachments?.isNotEmpty ?? false) return media;
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   late final AppLinks _appLinks;

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,161 @@ class ChatThemeController extends GetxController {
   Rx<Color> receiveMessageBgColor = AppColors.chat_bubble_receive_bg.obs;
   Rx<Color> readMessageStickColor = AppColors.chat_bubble_receive_bg.obs;
   Rx<Color> unReadMessageStickColor = AppColors.chat_bubble_receive_bg.obs;
+
+  // ── Theme Properties ──
+  RxBool isDarkMode = false.obs;
+  RxString chatBgAsset = ''.obs; // empty = use bgColor
+  RxString chatBgFilePath = ''.obs; // gallery picked wallpaper file path
+  Rx<Color> chatBgColor = Colors.white.obs;
+  Rx<Color> chatTextColor = Colors.black.obs;
+  Rx<Color> chatTimeColor = AppColors.grayText.obs;
+  Rx<Color> chatAppBarColor = Colors.white.obs;
+  Rx<Color> chatInputBgColor = Colors.white.obs;
+  Rx<Color> chatScaffoldColor = Color(0xFFF1F1F3).obs;
+  RxString chatFontFamily = 'Default'.obs;
+  RxDouble chatFontSize = 16.0.obs;
+
+  static const String _themeBoxName = 'chat_theme_settings';
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadThemeFromStorage();
+  }
+
+  Future<void> _loadThemeFromStorage() async {
+    final box = await Hive.openBox<String>(_themeBoxName);
+    final isDark = box.get('isDarkMode', defaultValue: 'false') == 'true';
+    final bgColorValue = int.tryParse(box.get('chatBgColor', defaultValue: '') ?? '');
+    final bgAsset = box.get('chatBgAsset', defaultValue: '') ?? '';
+    final bgFilePath = box.get('chatBgFilePath', defaultValue: '') ?? '';
+    final fontFamily = box.get('chatFontFamily', defaultValue: 'Default') ?? 'Default';
+    final fontSize = double.tryParse(box.get('chatFontSize', defaultValue: '16.0') ?? '16.0') ?? 16.0;
+
+    chatFontFamily.value = fontFamily;
+    chatFontSize.value = fontSize;
+    chatBgAsset.value = bgAsset;
+    chatBgFilePath.value = bgFilePath;
+
+    if (isDark) {
+      applyDarkTheme(save: false);
+    } else if (bgColorValue != null) {
+      applyChatBgColor(Color(bgColorValue), save: false);
+    } else {
+      applyLightTheme(save: false);
+    }
+  }
+
+  Future<void> _saveThemeToStorage() async {
+    final box = await Hive.openBox<String>(_themeBoxName);
+    await box.put('isDarkMode', isDarkMode.value.toString());
+    // ignore: deprecated_member_use
+    await box.put('chatBgColor', chatBgColor.value.value.toString());
+    await box.put('chatBgAsset', chatBgAsset.value);
+    await box.put('chatBgFilePath', chatBgFilePath.value);
+    await box.put('chatFontFamily', chatFontFamily.value);
+    await box.put('chatFontSize', chatFontSize.value.toString());
+  }
+
+  void applyLightTheme({bool save = true}) {
+    isDarkMode.value = false;
+    chatBgAsset.value = '';
+    chatBgFilePath.value = '';
+    chatBgColor.value = Colors.white;
+    chatTextColor.value = Colors.black;
+    chatTimeColor.value = AppColors.grayText;
+    chatAppBarColor.value = Colors.white;
+    chatInputBgColor.value = Colors.white;
+    chatScaffoldColor.value = Color(0xFFF1F1F3);
+    myMessageBgColor.value = AppColors.chat_bubble_my_bg;
+    receiveMessageBgColor.value = AppColors.chat_bubble_receive_bg;
+    if (save) _saveThemeToStorage();
+  }
+
+  void applyDarkTheme({bool save = true}) {
+    isDarkMode.value = true;
+    chatBgAsset.value = '';
+    chatBgFilePath.value = '';
+    chatBgColor.value = Color(0xFF0B141A);
+    chatTextColor.value = Color(0xFFE9EDEF);
+    chatTimeColor.value = Color(0xFF8696A0);
+    chatAppBarColor.value = Color(0xFF1F2C34);
+    chatInputBgColor.value = Color(0xFF1F2C34);
+    chatScaffoldColor.value = Color(0xFF0B141A);
+    myMessageBgColor.value = Color(0xFF005C4B);
+    receiveMessageBgColor.value = Color(0xFF1F2C34);
+    if (save) _saveThemeToStorage();
+  }
+
+  void applyChatBgColor(Color color, {bool save = true}) {
+    isDarkMode.value = false;
+    chatBgAsset.value = '';
+    chatBgFilePath.value = '';
+    chatBgColor.value = color;
+    // Keep other colors as light theme
+    chatTextColor.value = Colors.black;
+    chatTimeColor.value = AppColors.grayText;
+    chatAppBarColor.value = Colors.white;
+    chatInputBgColor.value = Colors.white;
+    chatScaffoldColor.value = Color(0xFFF1F1F3);
+    myMessageBgColor.value = AppColors.chat_bubble_my_bg;
+    receiveMessageBgColor.value = AppColors.chat_bubble_receive_bg;
+    if (save) _saveThemeToStorage();
+  }
+
+  void applyChatBgImage(String assetPath, {bool save = true}) {
+    chatBgAsset.value = assetPath;
+    chatBgFilePath.value = '';
+    if (save) _saveThemeToStorage();
+  }
+
+  void applyChatBgFile(String filePath, {bool save = true}) {
+    chatBgFilePath.value = filePath;
+    chatBgAsset.value = '';
+    if (save) _saveThemeToStorage();
+  }
+
+  void setChatFont(String fontFamily, {bool save = true}) {
+    chatFontFamily.value = fontFamily;
+    if (save) _saveThemeToStorage();
+  }
+
+  void setChatFontSize(double size, {bool save = true}) {
+    chatFontSize.value = size;
+    if (save) _saveThemeToStorage();
+  }
+
+  /// Public method to save current theme state to Hive
+  void saveTheme() => _saveThemeToStorage();
+
+  /// Build a TextStyle using the theme's font settings
+  TextStyle chatTextStyle({double? fontSize, FontWeight? fontWeight, Color? color}) {
+    return TextStyle(
+      fontFamily: chatFontFamily.value == 'Default' ? null : chatFontFamily.value,
+      fontSize: fontSize ?? chatFontSize.value,
+      fontWeight: fontWeight ?? FontWeight.w500,
+      color: color ?? chatTextColor.value,
+    );
+  }
+
+  /// Get background widget for chat screens
+  Widget chatBackground() {
+    if (chatBgFilePath.value.isNotEmpty) {
+      return Positioned.fill(
+        child: Image.file(File(chatBgFilePath.value), fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(color: chatBgColor.value),
+        ),
+      );
+    }
+    if (chatBgAsset.value.isNotEmpty) {
+      return Positioned.fill(
+        child: Image.asset(chatBgAsset.value, fit: BoxFit.cover),
+      );
+    }
+    return Positioned.fill(
+      child: Container(color: chatBgColor.value),
+    );
+  }
   Rx<ApiResponse> getListOfReminderMsgResponse = ApiResponse.initial('Initial').obs;
   RxList<ReminderMessage> reminderMessageModel = <ReminderMessage>[].obs;
   RxList<ReminderChatListModel> reminderChatList = <ReminderChatListModel>[].obs;

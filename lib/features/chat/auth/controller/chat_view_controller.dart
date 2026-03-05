@@ -711,7 +711,6 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -748,10 +747,8 @@ class ChatViewController extends GetxController {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
             scrollDown();
-            Future.delayed(Duration.zero, () {
-              localStorageHelper.saveMessagesByConversationId(
-                  userOpenConversationId.value, parsedData.messages!);
-            });
+            localStorageHelper.saveMessagesByConversationId(
+                userOpenConversationId.value, parsedData.messages!);
           } else {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
@@ -929,17 +926,15 @@ class ChatViewController extends GetxController {
       [Map<String, dynamic>? params]) async {
     final connectivityResult = await NetworkUtils.isConnected();
 
-    Future.delayed(Duration.zero, () {
-      if (connectivityResult) {
-        msg.sendPendingMsgParams = params;
-        localStorageHelper.saveSingleMessageToConversationId(
-            conversationId, msg,
-            sendStatus: "pending");
-      } else {
-        localStorageHelper.saveSingleMessageToConversationId(
-            conversationId, msg);
-      }
-    });
+    if (connectivityResult) {
+      msg.sendPendingMsgParams = params;
+      localStorageHelper.saveSingleMessageToConversationId(
+          conversationId, msg,
+          sendStatus: "pending");
+    } else {
+      localStorageHelper.saveSingleMessageToConversationId(
+          conversationId, msg);
+    }
   }
 
   Future<void> sendOfflineMessage(
@@ -948,38 +943,35 @@ class ChatViewController extends GetxController {
     List<Map<String, dynamic>> data =
         await localStorageHelper.getUnsentMessages(conversationId);
 
-    data.reversed;
-    if (data.isNotEmpty) {
-      Future.delayed(Duration.zero, () async {
-        for (int i = 0; i < data.length; i++) {
-          if ((data[i]["message_type"] == 'document' ||
-                  data[i]["message_type"] == 'text' ||
-                  data[i]["message_type"] == 'contact' ||
-                  data[i]["message_type"] == 'location') &&
-              data[i]['sendPendingMsgParams'] != null) {
-            if (data[i]['_id'] != null) {
-              sendOfflineMessageToServer(
-                  data[i]['sendPendingMsgParams'], data[i]['_id']);
-            }
-          } else if ((data[i]["message_type"] == 'image' ||
-                  data[i]["message_type"] == 'video') &&
-              data[i]['sendPendingMsgParams'] != null) {
-            List<File> listFiles = [];
-            List<dynamic> pendingFilePaths = data[i]['pendingFilePaths'];
-            listFiles = pendingFilePaths.map((e) => File(e)).toList();
-            await generateUploadUrlsApi(
-                params: data[i]['sendPendingMsgParams'],
-                listFile: listFiles,
-                isInitialMessage: false,
-                userId: data[i]['userId'] ?? "",
-                conversationId: data[i][ApiKeys.conversation_id],
-                commands: data[i]["comments"],
-                messageType: data[i]["message_type"],
-                isPendingMessage: true,
-                messageId: data[i]['_id']);
-          }
+    if (data.isEmpty) return;
+
+    data = data.reversed.toList();
+    for (int i = 0; i < data.length; i++) {
+      if ((data[i]["message_type"] == 'document' ||
+              data[i]["message_type"] == 'text' ||
+              data[i]["message_type"] == 'contact' ||
+              data[i]["message_type"] == 'location') &&
+          data[i]['sendPendingMsgParams'] != null) {
+        if (data[i]['_id'] != null) {
+          sendOfflineMessageToServer(
+              data[i]['sendPendingMsgParams'], data[i]['_id']);
         }
-      });
+      } else if ((data[i]["message_type"] == 'image' ||
+              data[i]["message_type"] == 'video') &&
+          data[i]['sendPendingMsgParams'] != null) {
+        List<File> listFiles = [];
+        List<dynamic> pendingFilePaths = data[i]['pendingFilePaths'];
+        listFiles = pendingFilePaths.map((e) => File(e)).toList();
+        await generateUploadUrlsApi(
+            params: data[i]['sendPendingMsgParams'],
+            listFile: listFiles,
+            userId: [data[i]['userId'] ?? ""],
+            conversationId: data[i][ApiKeys.conversation_id],
+            commands: data[i]["comments"],
+            messageType: data[i]["message_type"],
+            isPendingMessage: true,
+            messageId: data[i]['_id']);
+      }
     }
   }
 
@@ -1241,32 +1233,17 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> loadAllChatListFromLocal() async {
-    loadChatListWithType(
-        chatListModel: GetChatListModel(
-      type: AppConstants.personal_Chat_Type,
-      success: true,
-      chatList: await localStorageHelper
-          .getChatListFromLocal(AppConstants.personal_Chat_Type),
-      archived: [],
-    ));
+    final allChats = await localStorageHelper.getAllChatListsFromLocal();
 
-    loadChatListWithType(
-        chatListModel: GetChatListModel(
-      type: AppConstants.business_Chat_Type,
-      success: true,
-      chatList: await localStorageHelper
-          .getChatListFromLocal(AppConstants.business_Chat_Type),
-      archived: [],
-    ));
-
-    loadChatListWithType(
-        chatListModel: GetChatListModel(
-      type: AppConstants.group_Chat_Type,
-      success: true,
-      chatList: await localStorageHelper
-          .getChatListFromLocal(AppConstants.group_Chat_Type),
-      archived: [],
-    ));
+    for (final entry in allChats.entries) {
+      loadChatListWithType(
+          chatListModel: GetChatListModel(
+        type: entry.key,
+        success: true,
+        chatList: entry.value,
+        archived: [],
+      ));
+    }
   }
 
   void disposeSocket() {
@@ -1558,11 +1535,11 @@ class ChatViewController extends GetxController {
         if (sendFiles != null &&
             sendFiles.isNotEmpty &&
             params[ApiKeys.message_type] == 'video') {
-          Future.delayed(Duration(milliseconds: 200), () {});
-          getListOfMessageData?.remove(getListOfMessageData!.last);
+          if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
+            getListOfMessageData!.removeLast();
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
-          Future.delayed(Duration(milliseconds: 200), () {});
         }
 
         final data = responseModel.response?.data;
@@ -1637,10 +1614,11 @@ class ChatViewController extends GetxController {
       if (sendFiles != null &&
           sendFiles.isNotEmpty &&
           params[ApiKeys.message_type] == 'video') {
-        getListOfMessageData?.remove(getListOfMessageData!.last);
+        if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
+          getListOfMessageData!.removeLast();
+        }
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
-        Future.delayed(Duration(milliseconds: 200), () {});
       }
     }
     return null;
@@ -2128,9 +2106,8 @@ class ChatViewController extends GetxController {
   Future<void> generateUploadUrlsApi({
     required Map<String, dynamic> params,
     required List<File> listFile,
-    required bool isInitialMessage,
-     String? userId,
-     String? conversationId,
+    required List<String?>? userId,
+    String? conversationId,
     String? commands,
     required String messageType,
     bool? isPendingMessage,
@@ -2192,10 +2169,10 @@ class ChatViewController extends GetxController {
       }).toList();
 
       final Map<String, dynamic> messagePayload = {
-        if (isInitialMessage)
-          ApiKeys.other_user_id: userId
-        else
-          ApiKeys.conversation_id: conversationId,
+        // if (isInitialMessage)
+          ApiKeys.other_user_id: userId,
+        // else
+        //   ApiKeys.conversation_id: conversationId,
         if (commands != null) ApiKeys.message: commands,
         ApiKeys.message_type: messageType,
         ApiKeys.url: urlList,
@@ -2214,7 +2191,7 @@ class ChatViewController extends GetxController {
           filePathsList.add(e.path);
         });
         Messages message = Messages(
-            userId: userId,
+            userId: userId?.first,
             id: "${isoTime}_${params[ApiKeys.conversation_id]}",
             messageType: messageType,
             sendStatus: "pending",
@@ -2254,8 +2231,9 @@ class ChatViewController extends GetxController {
             sendFiles.isNotEmpty &&
             params[ApiKeys.message_type] == 'video' &&
             isPendingMessage == null) {
-          Future.delayed(Duration(milliseconds: 200), () {});
-          getListOfMessageData?.remove(getListOfMessageData!.last);
+          if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
+            getListOfMessageData!.removeLast();
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
         }
@@ -2306,10 +2284,11 @@ class ChatViewController extends GetxController {
       if (sendFiles != null &&
           sendFiles.isNotEmpty &&
           params[ApiKeys.message_type] == 'video') {
-        getListOfMessageData?.remove(getListOfMessageData!.last);
+        if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
+          getListOfMessageData!.removeLast();
+        }
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
-        Future.delayed(Duration(milliseconds: 200), () {});
       }
     }
     return null;

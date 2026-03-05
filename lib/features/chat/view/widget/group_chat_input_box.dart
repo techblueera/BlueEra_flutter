@@ -1076,8 +1076,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                   await chatViewController.generateUploadUrlsApi(
                     params: uploadParams,
                     listFile: selectedFiles,
-                    isInitialMessage: widget.isInitialMessage,
-                    userId: widget.userId,
+                    userId: [widget.userId],
                     conversationId: widget.conversationId,
                     commands: commands,
                     messageType: messageType,

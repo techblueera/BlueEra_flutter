@@ -21,7 +21,6 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
@@ -38,7 +37,6 @@ import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/chat_theme/chat_theme.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
-import '../../features/subscription/view/subscrption_new.dart';
 
 class AppConstants {
   static const String appName = 'BlueEra';
@@ -1260,6 +1258,52 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
 List<PopupMenuEntry<String>> popPupMenuForAiChat() {
   final items = <Map<String, dynamic>>[
       {'title':"Change Profile", "slud_id": 'change_profile'},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['slud_id'],
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
+List<PopupMenuEntry<String>> popPupMenuForPersonalChat() {
+  final items = <Map<String, dynamic>>[
+    {'title': "Report", "slud_id": 'report'},
+    {'title': "Block", "slud_id": 'block'},
+    {'title': "Clear Chat", "slud_id": 'clear_chat'},
+    {'title': "Media ", "slud_id": 'media'},
+    {'title': "Docs ", "slud_id": 'docs'},
+    {'title': "Chat Theme", "slud_id": 'chat_theme'},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];

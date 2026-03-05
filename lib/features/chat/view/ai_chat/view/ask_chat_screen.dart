@@ -71,12 +71,7 @@ class _AskChatScreenState extends State<AskChatScreen> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              AppImageAssets.chating_bg,
-              fit: BoxFit.cover,
-              width: SizeConfig.screenWidth,
-              height: SizeConfig.screenHeight,
-            ),
+            Obx(() => chatThemeController.chatBackground()),
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: 15, vertical: 10),

@@ -94,50 +94,32 @@ class _MessageBubbleState extends State<MessageBubble> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (metadata.title != null && metadata.title!.isNotEmpty)
-                        Text(
+                        CustomText(
                           metadata.title!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                            height: 1.3,
-                          ),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                          height: 1.3,
                         ),
                       if (metadata.desc != null && metadata.desc!.isNotEmpty) ...[
                         const SizedBox(height: 3),
-                        Text(
+                        CustomText(
                           metadata.desc!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.black54,
-                            height: 1.3,
-                          ),
+                          fontSize: 11,
+                          color: Colors.black54,
+                          height: 1.3,
                         ),
                       ],
                       const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Image.network(
-                            'https://www.google.com/s2/favicons?domain=$domain&sz=32',
-                            width: 13,
-                            height: 13,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(Icons.language, size: 13, color: Colors.grey),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            domain,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                      CustomText(
+                        domain,
+                        fontSize: 11,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
@@ -149,6 +131,56 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
+  String? _getReplyMediaUrl() {
+    final parent = widget.messages.replyParentMessage;
+    if (parent?.url != null && parent!.url!.isNotEmpty) {
+      final type = parent.messageType;
+      if (type == 'image' || type == 'video' || type == 'document') {
+        return parent.url!.first.url;
+      }
+    }
+    return null;
+  }
+
+  Widget _buildReplyMediaPreview() {
+    final parent = widget.messages.replyParentMessage!;
+    final mediaUrl = _getReplyMediaUrl();
+    final type = parent.messageType;
+    if (type == 'image' || type == 'video') {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.network(
+            mediaUrl ?? '',
+            width: 40, height: 40,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              width: 40, height: 40,
+              color: Colors.grey.shade200,
+              child: Icon(Icons.broken_image, size: 18, color: Colors.grey),
+            ),
+          ),
+          if (type == 'video')
+            Container(
+              width: 40, height: 40,
+              color: Colors.black26,
+              child: Icon(Icons.play_circle_fill, size: 20, color: Colors.white),
+            ),
+        ],
+      );
+    } else if (type == 'document') {
+      return Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(Icons.insert_drive_file, size: 20, color: Colors.red),
+      );
+    }
+    return SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -181,59 +213,76 @@ class _MessageBubbleState extends State<MessageBubble> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       (widget.messages.replyId!=null&&widget.messages.replyId!=''&&widget.messages.replyId!='null')?Container(
-                        height: 46,
                         margin: EdgeInsets.only(bottom: 4),
-
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(0),
                             topRight: Radius.circular(8),
                             bottomRight: Radius.circular(8),
+                            bottomLeft: Radius.circular(0),
                           ),
-                          color: AppColors.greyA5..withValues(alpha: 0.4),
-                        ),
-                        padding: EdgeInsets.only(right: 8),
-                        child: Center(child: Row(
-                          children: [
-                            Container(
-                              height: 40,
+                          color: widget.isReceiveMsg
+                              ? AppColors.primaryColor.withValues(alpha: 0.08)
+                              : Colors.grey.withValues(alpha: 0.15),
+                          border: Border(
+                            left: BorderSide(
+                              color: widget.isReceiveMsg
+                                  ? AppColors.primaryColor
+                                  : Colors.grey,
                               width: 3,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.white,
-                              ),
                             ),
-                            const SizedBox(width: 8,),
-
-                            InkWell(
-                              onTap: (){
-                                chatViewController.scrollController.jumpTo(100);
-                              },
-                              child: SizedBox(
-                                width: 200,
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: (){
+                            chatViewController.scrollController.jumpTo(100);
+                          },
+                          child: Row(
+                            children: [
+                              Expanded(
                                 child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     CustomText("${(widget.messages.replyParentMessage?.myMessage??false)?"You":widget.messages.replyParentMessage?.sender?.name}",
                                       fontWeight: FontWeight.w600,
-                                      color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
-                                      fontSize: 15,
-                                      maxLines: 2,
+                                      color: widget.isReceiveMsg ? AppColors.primaryColor : AppColors.grayText,
+                                      fontSize: 13,
+                                      maxLines: 1,
                                     ),
+                                    SizedBox(height: 2),
                                     replyMessageTypeIconWithLabel(widget.messages),
-
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
-                        )),
+                              if (_getReplyMediaUrl() != null)
+                                Padding(
+                                  padding: EdgeInsets.only(left: 8),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: _buildReplyMediaPreview(),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       ):SizedBox(),
                       Column(crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if ((widget.message.contains("https://")))
                             Padding(
                               padding: const EdgeInsets.only(bottom: 6),
-                              child: buildLinkPreview(widget.message),
+                              child: GestureDetector(
+                                onTap: () {
+                                  final regExp = RegExp(r'(https?:\/\/[^\s]+)');
+                                  final match = regExp.firstMatch(widget.message);
+                                  if (match != null) {
+                                    final url = match.group(0)!;
+                                    final isBlueEra = url.contains('blueera');
+                                    launchUrl(Uri.parse(url), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
+                                  }
+                                },
+                                child: buildLinkPreview(widget.message),
+                              ),
                             ),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -251,10 +300,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                                                   text: (widget.message.length <= 100)
                                                       ? widget.message
                                                       : widget.message.substring(0, 100),
-                                                  style: TextStyle(
+                                                  style: chatThemeController.chatTextStyle(
                                                     fontWeight: FontWeight.w500,
-                                                    color: widget.isReceiveMsg ? Colors.black : Colors.black,
-                                                    fontSize: 15,
                                                   ),
                                                 ),
                                                 if (widget.message.length > 100)
@@ -499,9 +546,8 @@ mainAxisAlignment: MainAxisAlignment.center,
       spans.add(
         TextSpan(
           text: parts[i],
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.black,
+          style: chatThemeController.chatTextStyle(
+            fontSize: chatThemeController.chatFontSize.value,
             fontWeight: isBold ? FontWeight.bold : FontWeight.w400,
           ),
         ),
@@ -581,10 +627,9 @@ mainAxisAlignment: MainAxisAlignment.center,
                     child: SingleChildScrollView(
                       child: SelectableText(
                         message,
-                        style: TextStyle(
+                        style: chatThemeController.chatTextStyle(
                           fontWeight: FontWeight.w500,
                           color: AppColors.black,
-                          fontSize: 16,
                         ),
                       ),
                     ),

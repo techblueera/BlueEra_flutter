@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
@@ -18,10 +19,55 @@ class LocalStorageHelper {
 
   LocalStorageHelper._internal();
 
-  Future<void> putConversation(String newMessage) async {
-    final box = await Hive.openBox<String>('conversationBox');
+  // ── Cached box references (avoid repeated openBox calls) ──
+  Box<String>? _messagesBox;
+  Box<String>? _chatListBox;
+  Box<String>? _conversationBox;
+  Box<String>? _userImagesBox;
 
-    // Get existing list from Hive
+  // ── Cached app documents directory ──
+  Directory? _appDocDir;
+
+  Future<Directory> get _appDocDirectory async {
+    _appDocDir ??= await getApplicationDocumentsDirectory();
+    return _appDocDir!;
+  }
+
+  Future<Box<String>> get _messagesBoxRef async {
+    if (_messagesBox != null && _messagesBox!.isOpen) return _messagesBox!;
+    _messagesBox = Hive.isBoxOpen('messagesBox')
+        ? Hive.box<String>('messagesBox')
+        : await Hive.openBox<String>('messagesBox');
+    return _messagesBox!;
+  }
+
+  Future<Box<String>> get _chatListBoxRef async {
+    if (_chatListBox != null && _chatListBox!.isOpen) return _chatListBox!;
+    _chatListBox = Hive.isBoxOpen('chatListJsonBox')
+        ? Hive.box<String>('chatListJsonBox')
+        : await Hive.openBox<String>('chatListJsonBox');
+    return _chatListBox!;
+  }
+
+  Future<Box<String>> get _conversationBoxRef async {
+    if (_conversationBox != null && _conversationBox!.isOpen) return _conversationBox!;
+    _conversationBox = Hive.isBoxOpen('conversationBox')
+        ? Hive.box<String>('conversationBox')
+        : await Hive.openBox<String>('conversationBox');
+    return _conversationBox!;
+  }
+
+  Future<Box<String>> get _userImagesBoxRef async {
+    if (_userImagesBox != null && _userImagesBox!.isOpen) return _userImagesBox!;
+    _userImagesBox = Hive.isBoxOpen('userImages')
+        ? Hive.box<String>('userImages')
+        : await Hive.openBox<String>('userImages');
+    return _userImagesBox!;
+  }
+
+  Future<void> putConversation(String newMessage) async {
+    final box = await _conversationBoxRef;
+
     final jsonString = box.get('openedConversationList');
     List<String> conversationList = [];
 
@@ -30,21 +76,18 @@ class LocalStorageHelper {
         final decoded = jsonDecode(jsonString) as List<dynamic>;
         conversationList = decoded.cast<String>();
       } catch (e) {
-        print("Error decoding openedConversationList: $e");
+        debugPrint("Error decoding openedConversationList: $e");
       }
     }
 
-    // Append new message
-    conversationList.add(newMessage);
-
-    // Save back to Hive
-    await box.put('openedConversationList', jsonEncode(conversationList));
+    if (!conversationList.contains(newMessage)) {
+      conversationList.add(newMessage);
+      await box.put('openedConversationList', jsonEncode(conversationList));
+    }
   }
 
-
-
   Future<List<String>> getConversation() async {
-    final box = await Hive.openBox<String>('conversationBox');
+    final box = await _conversationBoxRef;
     final jsonString = box.get('openedConversationList');
 
     if (jsonString == null || jsonString.isEmpty) return [];
@@ -53,14 +96,10 @@ class LocalStorageHelper {
       final decoded = jsonDecode(jsonString) as List<dynamic>;
       return decoded.cast<String>();
     } catch (e) {
-      print("Error decoding openedConversationList: $e");
+      debugPrint("Error decoding openedConversationList: $e");
       return [];
     }
   }
-  // Future<String> downloadAndSaveUserImageWithUId(String compressedPath, String userId) async {
-  //   await UserImageStorage.saveUserImage(userId, compressedPath);
-  //   return compressedPath;
-  // }
 
   Future<String> _downloadAndSaveImage(String imageUrl, String userId) async {
     try {
@@ -71,20 +110,18 @@ class LocalStorageHelper {
       final response = await http.get(Uri.parse(imageUrl));
 
       if (response.statusCode == 200) {
-        final directory = await getApplicationDocumentsDirectory();
+        final directory = await _appDocDirectory;
 
         final originalPath = '${directory.path}/$userId-original.jpg';
         final compressedPath = '${directory.path}/$userId-compressed.jpg';
 
-        // Save original image first
         final originalFile = File(originalPath);
         await originalFile.writeAsBytes(response.bodyBytes);
 
-        // ---- COMPRESS IMAGE HERE ----
         final compressedBytes = await FlutterImageCompress.compressWithFile(
           originalFile.path,
-          quality: 60,        // 0–100 (60 is good balance)
-          minWidth: 300,      // reduce resolution
+          quality: 60,
+          minWidth: 300,
           minHeight: 300,
           format: CompressFormat.jpeg,
         );
@@ -93,7 +130,6 @@ class LocalStorageHelper {
           final compressedFile = File(compressedPath);
           await compressedFile.writeAsBytes(compressedBytes);
 
-          // remove original large file
           if (await originalFile.exists()) {
             await originalFile.delete();
           }
@@ -104,7 +140,7 @@ class LocalStorageHelper {
         }
       }
     } catch (e) {
-      print('Failed to download/compress image: $e');
+      debugPrint('Failed to download/compress image: $e');
     }
 
     return '';
@@ -115,7 +151,7 @@ class LocalStorageHelper {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final dir = await getApplicationDocumentsDirectory();
+        final dir = await _appDocDirectory;
 
         final fileName =
             "$uniqueId-${DateTime.now().millisecondsSinceEpoch}.$mediaType";
@@ -125,38 +161,27 @@ class LocalStorageHelper {
         final file = File(filePath);
         await file.writeAsBytes(response.bodyBytes);
 
-        // ----------------------------------------------------
-        // 🔥 IMAGE COMPRESSION
-        // ----------------------------------------------------
-        if (mediaType.toLowerCase() == "jpg" ||
-            mediaType.toLowerCase() == "jpeg" ||
-            mediaType.toLowerCase() == "png") {
+        final lowerType = mediaType.toLowerCase();
+
+        if (lowerType == "jpg" || lowerType == "jpeg" || lowerType == "png") {
           return await _compressImageFile(filePath, uniqueId);
         }
 
-        // ----------------------------------------------------
-        // 🔥 VIDEO COMPRESSION
-        // ----------------------------------------------------
-        if (mediaType.toLowerCase() == "mp4" ||
-            mediaType.toLowerCase() == "mov" ||
-            mediaType.toLowerCase() == "mkv") {
+        if (lowerType == "mp4" || lowerType == "mov" || lowerType == "mkv") {
           return await _compressVideoFile(filePath, uniqueId);
         }
 
-        // ----------------------------------------------------
-        // Other documents (PDF, MP3, ZIP, etc.)
-        // ----------------------------------------------------
         return filePath;
       }
     } catch (e) {
-      print("Download error: $e");
+      debugPrint("Download error: $e");
     }
     return '';
   }
 
   Future<String> _compressImageFile(String filePath, String uniqueId) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      final dir = await _appDocDirectory;
       final outPath = '${dir.path}/$uniqueId-img-compressed.jpg';
 
       final compressedBytes = await FlutterImageCompress.compressWithFile(
@@ -171,86 +196,82 @@ class LocalStorageHelper {
         final file = File(outPath);
         await file.writeAsBytes(compressedBytes);
 
-        // Delete original image
         File(filePath).delete();
 
         return outPath;
       }
     } catch (e) {
-      print("Image compression error: $e");
+      debugPrint("Image compression error: $e");
     }
 
     return filePath;
   }
   Future<String> _compressVideoFile(String filePath, String uniqueId) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      final dir = await _appDocDirectory;
       final outPath = '${dir.path}/$uniqueId-video-compressed.mp4';
 
       final compressedVideo = await VideoCompress.compressVideo(
         filePath,
         quality: VideoQuality.MediumQuality,
-        deleteOrigin: false, // delete manually
+        deleteOrigin: false,
       );
 
       if (compressedVideo != null && compressedVideo.file != null) {
         final compressedFile = compressedVideo.file!;
         await compressedFile.copy(outPath);
 
-        // delete original video
         File(filePath).delete();
 
         return outPath;
       }
     } catch (e) {
-      print("Video compression error: $e");
+      debugPrint("Video compression error: $e");
     }
 
     return filePath;
   }
 
   Future<void> saveChatList(List<ChatList?> chats, String type) async {
+    final box = await _chatListBoxRef;
+    final userBox = await _userImagesBoxRef;
+
     List<Map<String, dynamic>> modifiedChats = [];
 
     for (var chat in chats) {
       final sender = chat?.sender;
 
       if (sender != null && sender.profileImage != null && sender.id != null) {
-
-        final localPath = await getOrDownloadUserImage(
+        final localPath = await _getOrDownloadUserImageWithBox(
           sender.profileImage!,
           sender.id!,
+          userBox,
         );
-
-        // Replace URL with local path
         sender.profileImage = localPath;
       }
 
       modifiedChats.add(chat?.toJson() ?? {});
     }
 
-    final encoded = jsonEncode(modifiedChats);
-    final box = await Hive.openBox<String>('chatListJsonBox');
-
-    // Save based on type
-    await box.put('${type}_chat_list', encoded);
+    await box.put('${type}_chat_list', jsonEncode(modifiedChats));
   }
 
   Future<String> getOrDownloadUserImage(String url, String userId) async {
     if (userId.isEmpty || url.isEmpty) return url;
+    final box = await _userImagesBoxRef;
+    return _getOrDownloadUserImageWithBox(url, userId, box);
+  }
 
-    final box = await Hive.openBox<String>('userImages');
+  Future<String> _getOrDownloadUserImageWithBox(String url, String userId, Box<String> box) async {
+    if (userId.isEmpty || url.isEmpty) return url;
 
-    // 1️⃣ Already stored?
     final existing = box.get(userId);
     if (existing != null && existing.isNotEmpty && File(existing).existsSync()) {
       return existing;
     }
 
-    // 2️⃣ Not stored → download & compress
     final savedPath = await _downloadAndSaveImage(url, userId);
 
-    // 3️⃣ Save to Hive for future use
     if (savedPath.isNotEmpty) {
       await box.put(userId, savedPath);
       return savedPath;
@@ -260,17 +281,39 @@ class LocalStorageHelper {
   }
 
   Future<List<ChatList>> getChatListFromLocal(String type) async {
-    final box = await Hive.openBox<String>('chatListJsonBox');
-    final jsonString = box.get('${type}_chat_list'); // <- separate key
+    final box = await _chatListBoxRef;
+    final jsonString = box.get('${type}_chat_list');
 
-    if (jsonString == null) return [];
+    if (jsonString == null || jsonString.isEmpty) return [];
     final decoded = jsonDecode(jsonString) as List<dynamic>;
 
     return decoded.map((e) => ChatList.fromJson(e)).toList();
   }
 
+  /// Load all 3 chat types in parallel (single box open)
+  Future<Map<String, List<ChatList>>> getAllChatListsFromLocal() async {
+    final box = await _chatListBoxRef;
+
+    final results = <String, List<ChatList>>{};
+    for (final type in [
+      AppConstants.personal_Chat_Type,
+      AppConstants.business_Chat_Type,
+      AppConstants.group_Chat_Type,
+    ]) {
+      final jsonString = box.get('${type}_chat_list');
+      if (jsonString != null && jsonString.isNotEmpty) {
+        final decoded = jsonDecode(jsonString) as List<dynamic>;
+        results[type] = decoded.map((e) => ChatList.fromJson(e)).toList();
+      } else {
+        results[type] = [];
+      }
+    }
+    return results;
+  }
+
 
   Future<void> saveMessagesByConversationId(String conversationId, List<Messages> messages) async {
+    final box = await _messagesBoxRef;
     final modifiedMessages = <Map<String, dynamic>>[];
 
     for (var message in messages) {
@@ -303,8 +346,6 @@ class LocalStorageHelper {
       modifiedMessages.add(messageMap);
     }
 
-    final box = await Hive.openBox<String>('messagesBox');
-
     await box.put(conversationId, jsonEncode(modifiedMessages));
   }
 
@@ -312,9 +353,8 @@ class LocalStorageHelper {
       String conversationId,
       Messages newMessage, {
         String sendStatus = "",
-        //pending
       }) async {
-    final box = await Hive.openBox<String>('messagesBox');
+    final box = await _messagesBoxRef;
 
     // 1. Get existing messages
     final jsonString = box.get(conversationId);
@@ -323,9 +363,9 @@ class LocalStorageHelper {
     if (jsonString != null && jsonString.isNotEmpty) {
       try {
         final decoded = jsonDecode(jsonString) as List<dynamic>;
-        existingMessages = decoded.cast<Map<String, dynamic>>();
+        existingMessages = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       } catch (e) {
-        print("Error decoding existing messages: $e");
+        debugPrint("Error decoding existing messages: $e");
       }
     }
 
@@ -366,37 +406,37 @@ class LocalStorageHelper {
     // 3. Convert to map & add send status
     final newMessageMap = newMessage.toJson();
     newMessageMap['url'] = localUrls;
-    newMessageMap['sendStatus'] = sendStatus; // 👈 ADDED HERE
+    newMessageMap['sendStatus'] = sendStatus;
 
-    // 4. Save message
+    // 4. Append and save
     existingMessages.add(newMessageMap);
     await box.put(conversationId, jsonEncode(existingMessages));
   }
 
   Future<List<Map<String, dynamic>>> getUnsentMessages(String conversationId) async {
-    final box = await Hive.openBox<String>('messagesBox');
+    final box = await _messagesBoxRef;
     final jsonString = box.get(conversationId);
 
     if (jsonString == null || jsonString.isEmpty) return [];
 
     final List<dynamic> decoded = jsonDecode(jsonString);
-    final messages = decoded.cast<Map<String, dynamic>>();
+    final messages = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
 
     return messages.where((msg) => msg['sendStatus'] == 'pending').toList();
   }
 
   Future<void> markMessageAsSent(String conversationId, String messageId) async {
-    final box = await Hive.openBox<String>('messagesBox');
+    final box = await _messagesBoxRef;
     final jsonString = box.get(conversationId);
 
     if (jsonString == null || jsonString.isEmpty) return;
 
     final List<dynamic> decoded = jsonDecode(jsonString);
-    final messages = decoded.cast<Map<String, dynamic>>();
+    final messages = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
 
     for (var msg in messages) {
       if (msg['_id'] == messageId) {
-        msg['sendStatus'] = 'sent'; // 👈 mark it as sent
+        msg['sendStatus'] = 'sent';
         break;
       }
     }
@@ -405,25 +445,7 @@ class LocalStorageHelper {
   }
 
   Future<List<Messages>> getMessagesByConversationId(String conversationId) async {
-
-    final box = await Hive.openBox<String>('messagesBox');
-    final jsonString = box.get(conversationId);
-
-    if (jsonString == null || jsonString.isEmpty) {
-      return [];
-    }
-
-    // try {
-      final List<dynamic> jsonList = jsonDecode(jsonString);
-
-      return jsonList.map((item) => Messages.fromJson(item)).toList();
-    // } catch (e) {
-    //   print("Error decoding messages: $e");
-    //   return [];
-    // }
-  }
-  Future<List<Messages>> getMediaMessagesByConversationId(String conversationId) async {
-    final box = await Hive.openBox<String>('messagesBox');
+    final box = await _messagesBoxRef;
     final jsonString = box.get(conversationId);
 
     if (jsonString == null || jsonString.isEmpty) {
@@ -432,14 +454,28 @@ class LocalStorageHelper {
 
     final List<dynamic> jsonList = jsonDecode(jsonString);
 
-    // Convert to Messages
-    List<Messages> allMessages =
-    jsonList.map((item) => Messages.fromJson(item)).toList();
+    return jsonList.map((item) => Messages.fromJson(item)).toList();
+  }
 
-    // FILTER: keep only messages with media
-    List<Messages> filtered = allMessages.where((msg) {
-      return (msg.messageType =="image"||msg.messageType =="video"||msg.messageType =="document") ;  // url exists + contains media list
-    }).toList();
+  Future<List<Messages>> getMediaMessagesByConversationId(String conversationId) async {
+    final box = await _messagesBoxRef;
+    final jsonString = box.get(conversationId);
+
+    if (jsonString == null || jsonString.isEmpty) {
+      return [];
+    }
+
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+
+    // Parse and filter in one pass
+    final List<Messages> filtered = [];
+    for (final item in jsonList) {
+      final map = item as Map<String, dynamic>;
+      final type = map['message_type'] as String?;
+      if (type == 'image' || type == 'video' || type == 'document') {
+        filtered.add(Messages.fromJson(map));
+      }
+    }
 
     return filtered;
   }

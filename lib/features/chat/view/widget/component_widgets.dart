@@ -23,6 +23,7 @@ import '../../../business/visit_business_profile/view/visit_business_profile_new
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
+import '../chat_theme/chat_theme.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
@@ -41,12 +42,13 @@ Widget timeAndReadInfoWidget({required Messages message,
   Color? indicateColor,
   Color? timeColor}) {
   final chatViewController = Get.find<ChatViewController>();
+  final chatThemeCtrl = Get.find<ChatThemeController>();
   return Row(
     mainAxisAlignment: MainAxisAlignment.end,
     crossAxisAlignment: CrossAxisAlignment.center,
     mainAxisSize: MainAxisSize.min,
     children: [
-      CustomText("${time}", color: timeColor ?? AppColors.black, fontSize: 10),
+      CustomText("${time}", color: timeColor ?? chatThemeCtrl.chatTimeColor.value, fontSize: 10),
       const SizedBox(
         width: 1.5,
       ),
@@ -256,7 +258,7 @@ Widget  ChatListTile({
           InkWell(
             onTap: () {
               if(chat?.symbolData?.isNotEmpty??false){
-                Get.to(SymbolViewImages(data: chat?.symbolData??[],userId: chat?.sender?.id,));
+                Get.to(SymbolViewImages(data: chat?.symbolData??[],userId: chat?.sender?.id, name: senderName, profileImage: senderProfileImage,));
                 //
               }else{
                 showDialog(
@@ -605,44 +607,42 @@ Widget replyMessageTypeIcons(Messages message) {
       ? Icon(
     Icons.camera_enhance_outlined,
     size: SizeConfig.size16,
-    color: Colors.white,
+    color: AppColors.grayText,
   )
       : (message.replyParentMessage?.messageType == "video")
       ? Icon(
     Icons.video_camera_back_outlined,
     size: SizeConfig.size16,
-    color: Colors.white,
+    color: AppColors.grayText,
   )
       : (message.replyParentMessage?.messageType == "location")
       ? Icon(
     Icons.location_on_outlined,
     size: SizeConfig.size16,
-    color: Colors.white,
+    color: AppColors.grayText,
   )
       : (message.replyParentMessage?.messageType == "document")
       ? Icon(
     Icons.picture_as_pdf_outlined,
     size: SizeConfig.size16,
-    color: Colors.white,
+    color: AppColors.grayText,
   )
       : (message.replyParentMessage?.messageType == "contact")
       ? Icon(
     Icons.person_2_outlined,
     size: SizeConfig.size16,
-    color: Colors.white,
+    color: AppColors.grayText,
   )
       : (message.replyParentMessage?.messageType == "audio")
       ? Icon(
     Icons.audio_file_outlined,
     size: SizeConfig.size16,
-    color: Colors.white,
+    color: AppColors.grayText,
   )
       : CustomText(
     "${message.replyParentMessage?.message}",
     fontWeight: FontWeight.w500,
-    color: !(message.myMessage ?? false)
-        ? Colors.black87
-        : Colors.white,
+    color: AppColors.grayText,
     fontSize: SizeConfig.size13,
   );
 }
@@ -703,8 +703,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       CustomText(
         "Image",
         fontWeight: FontWeight.w500,
-        color:
-        !(message.myMessage ?? false) ? Colors.black87 : Colors.white,
+        color: AppColors.grayText,
         fontSize: SizeConfig.size13,
       ),
     ],
@@ -719,9 +718,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       CustomText(
         "Video",
         fontWeight: FontWeight.w500,
-        color: !(message.myMessage ?? false)
-            ? Colors.black87
-            : Colors.white,
+        color: AppColors.grayText,
         fontSize: SizeConfig.size13,
       ),
     ],
@@ -736,9 +733,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       CustomText(
         "Location",
         fontWeight: FontWeight.w500,
-        color: !(message.myMessage ?? false)
-            ? Colors.black87
-            : Colors.white,
+        color: AppColors.grayText,
         fontSize: SizeConfig.size13,
       ),
     ],
@@ -753,9 +748,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       CustomText(
         "Document",
         fontWeight: FontWeight.w500,
-        color: !(message.myMessage ?? false)
-            ? Colors.black87
-            : Colors.white,
+        color: AppColors.grayText,
         fontSize: SizeConfig.size13,
       ),
     ],
@@ -770,9 +763,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       CustomText(
         "Contact",
         fontWeight: FontWeight.w500,
-        color: !(message.myMessage ?? false)
-            ? Colors.black87
-            : Colors.white,
+        color: AppColors.grayText,
         fontSize: SizeConfig.size13,
       ),
     ],
@@ -787,9 +778,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       CustomText(
         "Audio",
         fontWeight: FontWeight.w500,
-        color: !(message.myMessage ?? false)
-            ? Colors.black87
-            : Colors.white,
+        color: AppColors.grayText,
         fontSize: SizeConfig.size13,
       ),
     ],
@@ -797,9 +786,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       : CustomText(
     "${message.replyParentMessage?.message}",
     fontWeight: FontWeight.w500,
-    color: !(message.myMessage ?? false)
-        ? Colors.black87
-        : Colors.white,
+    color: AppColors.grayText,
     fontSize: SizeConfig.size13,
     maxLines: 1,
   );
@@ -1173,7 +1160,29 @@ AppBar getChatTitleAppBar(BuildContext context, {
       SizedBox(width: SizeConfig.size12),
       // SvgPicture.asset(AppIconAssets.chat_video_call),
       // const SizedBox(width: 12),
-
+      if(isGroupAppBar == null)
+        PopupMenuButton<String>(
+            icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
+            padding: EdgeInsets.zero,
+            offset: const Offset(-6, 36),
+            color: AppColors.white,
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            onSelected: (value) {
+              if(value == "clear_chat"){
+                showDeleteChatDialog(conversationId ?? '');
+              } else if(value == "report"){
+                // TODO: Handle report
+              } else if(value == "block"){
+                // TODO: Handle block
+              } else if(value == "media_files"){
+                // TODO: Navigate to media & files
+              } else if(value == "chat_theme"){
+                Get.to(() => ChatThemeScreen());
+              }
+            },
+            itemBuilder: (context) => popPupMenuForPersonalChat(),
+        ),
       if(isGroupAppBar != null)
         PopupMenuButton<String>(
             icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
@@ -1183,40 +1192,14 @@ AppBar getChatTitleAppBar(BuildContext context, {
             elevation: 8,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             onSelected: (value) {
-              if(value=="clear_chat"){
-                showDeleteChatDialog(conversationId??'');
+              if(value == "clear_chat"){
+                showDeleteChatDialog(conversationId ?? '');
               }
-              // if (value == "group_info") {
-              //   Navigator.push(
-              //     context,
-              //     PageRouteBuilder(
-              //       transitionDuration: const Duration(milliseconds: 400),
-              //       pageBuilder: (context, animation, secondaryAnimation) =>
-              //           ViewGroupMembers(
-              //             conversationId: conversationId,
-              //             type: type,
-              //
-              //           ),
-              //       transitionsBuilder: (context, animation, secondaryAnimation,
-              //           child) {
-              //         return ScaleTransition(
-              //           scale: Tween<double>(begin: 0.9, end: 1.0)
-              //               .animate(CurvedAnimation(
-              //               parent: animation, curve: Curves.easeOut)),
-              //           child: FadeTransition(
-              //             opacity: animation,
-              //             child: child,
-              //           ),
-              //         );
-              //       },
-              //     ),
-              //   );
-              // }
             },
-          itemBuilder: (context) => popPupMenuForGroupChat(),
+            itemBuilder: (context) => popPupMenuForGroupChat(),
         )
       else if (isFromAiChat==false)
-        SvgPicture.asset(AppIconAssets.chat_info_pop),
+        SizedBox(),
       SizedBox(width: SizeConfig.size8),
 
     ],

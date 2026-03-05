@@ -131,12 +131,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      AppImageAssets.chating_bg,
-                      fit: BoxFit.cover,
-                      width: SizeConfig.screenWidth,
-                      height: SizeConfig.screenHeight,
-                    ),
+                    Obx(() => chatThemeController.chatBackground()),
                     Column(
                       children: [
                         Expanded(
@@ -242,12 +237,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.asset(
-                        AppImageAssets.chating_bg,
-                        fit: BoxFit.cover,
-                        width: SizeConfig.screenWidth,
-                        height: SizeConfig.screenHeight,
-                      ),
+                      Obx(() => chatThemeController.chatBackground()),
                       Center(
                         child: SizedBox(
                           height: 22,

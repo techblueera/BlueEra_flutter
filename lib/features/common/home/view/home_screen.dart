@@ -20,7 +20,6 @@ import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
-import '../../../chat/view/contacts/view/be_available_contacts_list.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 
 enum SavedFeedTab {
@@ -93,16 +92,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   ///DO NOT DELETE THIS CODE.....
-  SharedMedia? sharedMedia;
-
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     final handler = ShareHandlerPlatform.instance;
 
-    // Initial share is already handled in SplashScreen for instant navigation.
-    // Only listen for new shares while app is running.
+    // App running, receiving new share while app is open
     handler.sharedMediaStream.listen((SharedMedia media) {
-      sharedMedia = media;
       _openChatScreen(media);
     });
   }
@@ -116,9 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final attachments = media.attachments ?? [];
 
     if (sharedText != null && sharedText.isNotEmpty) {
-      Get.to(ChatForwardScreen(sharedText: sharedText));
+      Get.to(() => ChatForwardScreen(sharedText: sharedText));
     } else if (attachments.isNotEmpty) {
-      Get.to(ChatForwardScreen(sharedFiles: attachments));
+      Get.to(() => ChatForwardScreen(sharedFiles: attachments));
     }
   }
 

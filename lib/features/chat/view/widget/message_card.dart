@@ -300,10 +300,10 @@ class _MessageCardState extends State<MessageCard>
         Align(
           alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
           child: AnimatedBuilder(
-            animation: _shakeAnimation,
+            animation: _shakeController,
             builder: (context, child) {
               return Transform.translate(
-                offset: Offset(_dragOffset + _shakeAnimation.value, 0),
+                offset: Offset(_dragOffset, 0),
                 child: child,
               );
             },
@@ -320,38 +320,28 @@ class _MessageCardState extends State<MessageCard>
                   if(widget.message.messageType=="video"||widget.message.messageType=="image"){
                     if(widget.message.url?.length == 1){
                       Get.to(()=>MediaSliderPage(conversationId: widget.conversationId??'', conversationPersonName: widget.name??"", seletedUrl: widget.message.url?.first.url??'',));
-                      //Dont Delete This Cmd
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (_) =>
-                      //         VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
-                      //   ),
-                      // );
                     }
-
+                  } else if (widget.message.messageType == "text" && (widget.message.message?.contains("https://") ?? false)) {
+                    final regExp = RegExp(r'(https?:\/\/[^\s]+)');
+                    final match = regExp.firstMatch(widget.message.message ?? '');
+                    if (match != null) {
+                      final url = match.group(0)!;
+                      final isBlueEra = url.contains('blueera');
+                      launchUrl(Uri.parse(url), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
+                    }
                   }
                 }
               },
               onHorizontalDragUpdate: (details) {
                 setState(() {
                   _dragOffset = (_dragOffset + details.delta.dx)
-                      .clamp(0, 60); // slide limit
+                      .clamp(0, 35); // slide limit
                 });
               },
-
               onHorizontalDragEnd: (details) {
-                if (details.primaryVelocity! > 0) {
+                if (_dragOffset > 25) {
                   chatViewController.setReplyMessage(widget.message);
                 }
-                if (_dragOffset > 40) {
-                  // Trigger reply
-                  chatViewController.setReplyMessage(widget.message);
-
-                  // Trigger shake animation
-                  _shakeController.forward(from: 0);
-                }
-                // Reset position after drag
                 setState(() => _dragOffset = 0);
               },
               child: Padding(
