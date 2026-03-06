@@ -81,7 +81,7 @@ class FeedControllerNew extends GetxController {
     // Pagination Logic: Load more when we are 3 items away from end
     if (index >= posts.length - 3 && hasMoreData) {
       fetchPosts(
-        cursor: nextCursor,
+        cursor: nextCursor,postType: "message_post"
       );
     }
   }
@@ -320,15 +320,15 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                           color: Colors.white,
                           fontSize: 13,
                         ),
-                      if ((post.user?.businessName?.isNotEmpty ?? false) &&
-                          (post.user?.businessName != null) &&
-                          (post.user?.businessName != "null"))
-                        CustomText(
-                          post.user?.businessName ?? "",
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      // if ((post.user?.businessName?.isNotEmpty ?? false) &&
+                      //     (post.user?.businessName != null) &&
+                      //     (post.user?.businessName != "null"))
+                      //   CustomText(
+                      //     post.user?.businessName ?? "",
+                      //     color: Colors.white,
+                      //     fontWeight: FontWeight.bold,
+                      //     fontSize: 16,
+                      //   ),
                     ],
                   ),
                 ],

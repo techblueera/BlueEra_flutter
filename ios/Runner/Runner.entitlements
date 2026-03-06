@@ -10,7 +10,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.shoutsocial.app</string>
+		<string>group.ai.bluecs.app</string>
 	</array>
 </dict>
 </plist>
