@@ -48,8 +48,7 @@ class _MyMedicalSuperCategoryScreenState extends State<MyMedicalSuperCategoryScr
                    message: 'You Have Nor Post any Product',
                    actionText: 'Add Product Now!',
                    actionCallback: ()=> Get.toNamed(
-                       RouteHelper.getGrocerySuperCategoryScreenRoute(),
-                       arguments: {ApiKeys.argMyGrocery: true}
+                        RouteHelper.getMedicalCategoryScreenRoute(),
                    ),
               ),
             );

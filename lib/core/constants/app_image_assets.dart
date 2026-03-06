@@ -57,7 +57,6 @@ class AppImageAssets {
   static const String bdmBanner = "${imgPath}bdm_banner.png";
   static const String qrBanner = "${imgPath}qr_banner.png";
 
-
   static String frontDeskImage = "${imgPath}front_desk_image.png";
   static String officeImage = "${imgPath}office_image.png";
   static String roadsideViewImage = "${imgPath}roadside_view_image.png";
@@ -66,6 +65,10 @@ class AppImageAssets {
   static String sampleGirlImage = "${imgPath}sample_girl_image.png";
   static const String transporterIcon = "${imgPath}transporter_icon.png";
   static const String selfPickupIcon = "${imgPath}self_pickup_icon.png";
+  static const String groceryImageFirst = "${imgPath}grocery_image_first.png";
+  static const String groceryImageSecond = "${imgPath}grocery_image_second.png";
+  static const String groceryImageThird = "${imgPath}grocery_image_third.png";
+  static const String groceryImageFourth = "${imgPath}grocery_image_fourth.png";
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";

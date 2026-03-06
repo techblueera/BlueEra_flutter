@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/user_grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_super_category_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_orders/my_grocery_orders.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -93,7 +93,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
               controller: _tabController,
               children: [
                 MyGroceryOrders(),
-                MyGrocerySuperCategoryScreen(),
+                MyGroceryStoreScreen(),
                 Center(child: CustomText(AppStrings.comingSoon))
               ]
             ),
@@ -192,7 +192,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
           child: InkWell(
             onTap: ()=> Get.toNamed(
                RouteHelper.getGrocerySuperCategoryScreenRoute(),
-               arguments: {ApiKeys.argMyGrocery: true}
             ),
             child: Container(
               height: SizeConfig.size40,

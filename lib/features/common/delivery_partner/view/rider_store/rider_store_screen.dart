@@ -181,7 +181,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
         return CommonServiceCard<CollapsibleGridModel>(
             service: item,
             getName: (item) => item.name,
-            getIcon: (item) => item.image??'',
+            getIcon: (item) => item.icon??'',
             iconHeight: SizeConfig.size60,
             boxShadow: [],
             onTap: (item) => onTap(item),
@@ -189,53 +189,6 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
       },
     );
   }
-
-
-  Widget _buildCategoryItem({
-    required String label,
-    required String iconPath,
-    required VoidCallback onTap
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(SizeConfig.size5),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            color: AppColors.greyE5,
-            width: 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Icon Section
-            LocalAssets(
-              imagePath: iconPath,
-              height: SizeConfig.size60,
-            ),
-
-            SizedBox(height: SizeConfig.paddingXSL),
-
-            // Label Section
-            CustomText(
-                label,
-                fontSize: SizeConfig.extraSmall,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-            ),
-
-          ],
-        ),
-      ),
-    );
-  }
-
 
   Widget _buildPaymentMode(String text){
     return Container(

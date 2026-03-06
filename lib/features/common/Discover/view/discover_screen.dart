@@ -316,7 +316,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           ],
                           crossAxisCount: 3,
                           getName: (item) => item.name,
-                          getIcon: (item) => item.image,
+                          getIcon: (item) => item.icon,
                           onTap: (item) => chooseDeliveryOption(),
                         // onTap: (item) => Get.toNamed(
                         //     RouteHelper.getRiderStoreScreenRoute())),

@@ -4082,32 +4082,32 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   CollapsibleGridModel(
      name: 'Breakfast',
      slugId: 'BREAKFAST',
-     image: AppImageAssets.breakfast,
+     icon: AppImageAssets.breakfast,
   ),
   CollapsibleGridModel(
      name: 'Fast-Food',
      slugId: 'FAST_FOOD',
-     image: AppImageAssets.fastFood,
+    icon: AppImageAssets.fastFood,
   ),
   CollapsibleGridModel(
      name: 'Lunch, Dinner',
      slugId: 'LUNCH_DINNER',
-     image: AppImageAssets.lunchDinner,
+    icon: AppImageAssets.lunchDinner,
   ),
   CollapsibleGridModel(
      name: 'Tiffin',
      slugId: 'TIFFIN',
-     image: AppImageAssets.tiffin,
+    icon: AppImageAssets.tiffin,
   ),
   CollapsibleGridModel(
      name: 'Sweets',
      slugId: 'SWEETS',
-     image: AppImageAssets.sweets,
+     icon: AppImageAssets.sweets,
   ),
   CollapsibleGridModel(
     name: 'Restaurant',
     slugId: 'RESTAURANT',
-    image: AppImageAssets.restaurant,
+    icon: AppImageAssets.restaurant,
   ),
 ];
 
