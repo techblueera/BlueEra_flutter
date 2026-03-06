@@ -44,6 +44,7 @@ import 'document_message_card.dart';
 import 'live_location_message_card.dart';
 import 'media_message_full_view.dart';
 import 'message_bubble.dart';
+import 'message_context_menu.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard(
@@ -76,6 +77,7 @@ class _MessageCardState extends State<MessageCard>
   double _dragOffset = 0;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
+  final _messageKey = GlobalKey();
 
   final chatViewController = Get.find<ChatViewController>();
 
@@ -309,7 +311,24 @@ class _MessageCardState extends State<MessageCard>
             },
             child: GestureDetector(
               onLongPress: (){
-                chatThemeController.activateSelection(widget.message);
+                if (chatThemeController.isMessageSelectionActive.value) {
+                  chatThemeController.selectMoreMessage(widget.message);
+                } else {
+                  showMessageContextMenu(
+                    context: context,
+                    message: widget.message,
+                    messageKey: _messageKey,
+                    isReceive: isReceive,
+                    messageWidget: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 1.4),
+                      child: messageWidget,
+                    ),
+                    conversationId: widget.conversationId,
+                    userId: widget.userId,
+                    name: widget.name,
+                    profileImage: widget.profileImage,
+                  );
+                }
               },
               onTap: (){
 
@@ -345,6 +364,7 @@ class _MessageCardState extends State<MessageCard>
                 setState(() => _dragOffset = 0);
               },
               child: Padding(
+                key: _messageKey,
                 padding: const EdgeInsets.symmetric(vertical: 1.4),
                 child: messageWidget,
               ),

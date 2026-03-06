@@ -1,9 +1,7 @@
-
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
@@ -291,12 +289,5 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
         ),
       );
     });
-  }
-
-  String formatTimeFromUtc(String utcString) {
-    DateTime utcDate = DateTime.parse(utcString);
-    DateTime localDate = utcDate.toLocal();
-    String formattedTime = DateFormat.jm().format(localDate); // e.g. 9:52 PM
-    return formattedTime;
   }
 }

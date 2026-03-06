@@ -7,12 +7,10 @@ import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_s
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_enum.dart';
-import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../core/services/notification_utils.dart';
@@ -50,10 +48,6 @@ class BusinessChatScreenUpdated extends StatefulWidget {
 }
 
 class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
-  final Color sentMessageColor = Color(0xFF007AFF);
-
-  final Color receivedMessageColor = Color(0xFFECECEC);
-  final Color backgroundColor = Color(0xFFF5F5F5);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
   final chatThemeController = Get.find<ChatThemeController>();
@@ -90,19 +84,8 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
     super.dispose();
   }
 
-  void launchDialPad(String phoneNumber) async {
-    final Uri url = Uri(scheme: 'tel', path: phoneNumber);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'Could not launch dialer';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
     return WillPopScope(
       onWillPop: () async {
         if (chatViewController.canPopBusiness.value) {
@@ -122,7 +105,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
       },
       child: Obx(() {
         return Scaffold(
-          backgroundColor: backgroundColor,
+          backgroundColor: Color(0xFFF5F5F5),
           appBar: (chatThemeController.isMessageSelectionActive.value &&
                   widget.type != "Admin")
               ? getChatOptionsAppBar(
@@ -268,43 +251,21 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                       ),
                                     ),
                                   )
-                                : LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      return ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          minHeight: constraints.maxHeight,
-                                        ),
-                                        child: IntrinsicHeight(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10),
-                                            child: SingleChildScrollView(
-                                              padding: EdgeInsets.zero,
-                                              controller: chatViewController
-                                                  .scrollController,
-                                              reverse: true,
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children:
-                                                    messages.map((message) {
-                                                  return MessageCard(
-                                                    message: message,
-                                                    isInitialMessage:
-                                                        widget.isInitialMessage,
-                                                    conversationId:
-                                                        widget.conversationId,
-                                                    userId: widget.userId,
-                                                    name: widget.name,
-                                                    contactNo: widget.contactNo,
-                                                    profileImage:
-                                                        widget.profileImage,
-                                                  );
-                                                }).toList(),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                : ListView.builder(
+                                    controller: chatViewController.scrollController,
+                                    reverse: true,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    itemCount: messages.length,
+                                    itemBuilder: (context, index) {
+                                      final message = messages[messages.length - 1 - index];
+                                      return MessageCard(
+                                        message: message,
+                                        isInitialMessage: widget.isInitialMessage,
+                                        conversationId: widget.conversationId,
+                                        userId: widget.userId,
+                                        name: widget.name,
+                                        contactNo: widget.contactNo,
+                                        profileImage: widget.profileImage,
                                       );
                                     },
                                   ),
@@ -438,119 +399,4 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
     );
   }
 
-  void showMessageEditDialog() {
-    Get.dialog(
-      AlertDialog(
-        insetPadding: EdgeInsets.symmetric(vertical: 12),
-        // Reduced outer spacing
-        contentPadding: const EdgeInsets.only(bottom: 10),
-        backgroundColor: AppColors.appBackgroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText(
-                    AppStrings.message,
-                    color: AppColors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Divider(color: AppColors.greyB4),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: TextFormField(
-                controller: editingController,
-                maxLines: 6,
-                minLines: 6,
-                keyboardType: TextInputType.text,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  hintText:AppStrings.typeMessage.tr,
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  InkWell(
-                    onTap: () => Get.back(),
-                    child: CustomText(
-                      AppStrings.close,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  InkWell(
-                    onTap: () async {
-                      ApiKeys;
-                      Map<String, dynamic> data = {
-                        ApiKeys.id:
-                            "${chatThemeController.selectedFirstMessage?.value?.id}",
-                        ApiKeys.type: "message",
-                        ApiKeys.message: "${editingController.text}"
-                      };
-                      bool value =
-                          await chatViewController.updateMessageApi(data);
-                      if (value) {
-                        chatViewController
-                            .emitEvent(ChatEmitEvents.messageReceived, {
-                          ApiKeys.conversation_id: widget.conversationId,
-                          ApiKeys.page: 1,
-                          ApiKeys.is_online_user: widget.userId,
-                          ApiKeys.per_page_message: 30,
-                        });
-                        chatThemeController.resetSelection();
-                        Get.back();
-                      }
-                    },
-                    child: CustomText(
-                      AppStrings.edit,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-          ],
-        ),
-      ),
-      useSafeArea: true,
-    );
-  }
 }

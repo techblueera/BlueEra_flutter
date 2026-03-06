@@ -7,6 +7,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
@@ -18,13 +25,18 @@ import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.view.WindowManager
+import java.net.URL
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity: FlutterActivity() {
     private val SCREEN_CHANNEL = "com.bluehr.screenshot/channel"
     private val VIDEO_CHANNEL = "com.bluehr.video/keep_screen_on"
     private val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
+    private val SHORTCUT_CHANNEL = "com.bluehr.shortcut/channel"
 
-    // 👉 Ringtone instance
     private var ringtone: Ringtone? = null
 
     private val CHANNEL = "com.vahcare.lab/pip"
@@ -93,6 +105,29 @@ class MainActivity: FlutterActivity() {
                 }
             }
 
+        // ------------------------------
+        // SHORTCUT CHANNEL
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SHORTCUT_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "createShortcut" -> {
+                        val conversationId = call.argument<String>("conversationId") ?: ""
+                        val name = call.argument<String>("name") ?: "Chat"
+                        val profileImageUrl = call.argument<String>("profileImage") ?: ""
+                        val userId = call.argument<String>("userId") ?: ""
+                        val chatType = call.argument<String>("chatType") ?: "personal"
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            createChatShortcut(conversationId, name, profileImageUrl, userId, chatType, result)
+                        } else {
+                            result.error("UNSUPPORTED", "Shortcuts require Android 8.0+", null)
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val filter = IntentFilter(ACTION_COMPLETE_RIDE)
             // Note: Use Context.RECEIVER_EXPORTED if targeting Android 14+
@@ -132,6 +167,91 @@ class MainActivity: FlutterActivity() {
     // ------------------------------
     private fun stopDefaultRingtone() {
         ringtone?.stop()
+    }
+
+    // ------------------------------
+    // CREATE CHAT SHORTCUT
+    // ------------------------------
+    private fun createChatShortcut(
+        conversationId: String,
+        name: String,
+        profileImageUrl: String,
+        userId: String,
+        chatType: String,
+        result: MethodChannel.Result
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            result.error("UNSUPPORTED", "Shortcuts require Android 8.0+", null)
+            return
+        }
+
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val shortcutManager = getSystemService(ShortcutManager::class.java)
+
+                val icon = if (profileImageUrl.isNotEmpty()) {
+                    try {
+                        val bitmap = withContext(Dispatchers.IO) {
+                            val url = URL(profileImageUrl)
+                            val connection = url.openConnection()
+                            connection.connectTimeout = 5000
+                            connection.readTimeout = 5000
+                            BitmapFactory.decodeStream(connection.getInputStream())
+                        }
+                        if (bitmap != null) {
+                            val circularBitmap = getCircularBitmap(bitmap)
+                            Icon.createWithBitmap(circularBitmap)
+                        } else {
+                            Icon.createWithResource(this@MainActivity, android.R.drawable.ic_dialog_info)
+                        }
+                    } catch (e: Exception) {
+                        Icon.createWithResource(this@MainActivity, android.R.drawable.ic_dialog_info)
+                    }
+                } else {
+                    Icon.createWithResource(this@MainActivity, android.R.drawable.ic_dialog_info)
+                }
+
+                val intent = Intent(this@MainActivity, MainActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = Uri.parse("https://blueera.ai/app/chat/$conversationId?userId=$userId&chatType=$chatType&name=${Uri.encode(name)}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+
+                val shortcutId = "chat_$conversationId"
+                val shortcut = ShortcutInfo.Builder(this@MainActivity, shortcutId)
+                    .setShortLabel(name)
+                    .setLongLabel(name)
+                    .setIcon(icon)
+                    .setIntent(intent)
+                    .build()
+
+                if (shortcutManager.isRequestPinShortcutSupported) {
+                    shortcutManager.requestPinShortcut(shortcut, null)
+                    result.success(true)
+                } else {
+                    result.error("NOT_SUPPORTED", "Pin shortcut not supported on this device", null)
+                }
+            } catch (e: Exception) {
+                result.error("ERROR", e.message, null)
+            }
+        }
+    }
+
+    private fun getCircularBitmap(bitmap: Bitmap): Bitmap {
+        val size = minOf(bitmap.width, bitmap.height)
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint().apply {
+            isAntiAlias = true
+        }
+        val path = Path().apply {
+            addCircle(size / 2f, size / 2f, size / 2f, Path.Direction.CCW)
+        }
+        canvas.clipPath(path)
+        val left = (size - bitmap.width) / 2f
+        val top = (size - bitmap.height) / 2f
+        canvas.drawBitmap(bitmap, left, top, paint)
+        return output
     }
 
     private val pipReceiver = object : BroadcastReceiver() {

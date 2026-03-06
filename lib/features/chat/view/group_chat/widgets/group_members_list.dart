@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../../core/constants/app_colors.dart';
@@ -84,8 +83,6 @@ class _GroupMembersListState extends State<GroupMembersList> {
                   text: 'Message',
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Implement message action
-                    print('Messaging ${member.name}');
                   },
                 ),
                 if (amIAdmin && member.id != userId) ...[
@@ -95,7 +92,6 @@ class _GroupMembersListState extends State<GroupMembersList> {
                     text: member.isAdmin == true ? 'Remove as Admin' : 'Make Admin',
                     onTap: () {
                       Navigator.pop(context);
-                      print('Toggling admin status for ${member.name}');
                     },
                   ),
                   const SizedBox(height: 12),
@@ -106,7 +102,6 @@ class _GroupMembersListState extends State<GroupMembersList> {
                     textColor: Colors.red.shade700,
                     onTap: () {
                       Navigator.pop(context);
-                      print('Removing ${member.name} from group');
                     },
                   ),
                 ],

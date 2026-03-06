@@ -99,8 +99,6 @@ class PersonalChatProfileController extends GetxController
   String? id,
   String? query,
 }) async {
-  print('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
-
   if (isInitialLoad) {
     page = 1;
     isTargetHasMoreData.value = true;
@@ -149,26 +147,16 @@ class PersonalChatProfileController extends GetxController
 
         // Display only first batch
         targetList.value = postResponse.data.take(displayLimit).toList();
-
-        print(
-            '📦 Initial enhanced load: Fetched ${postResponse.data.length}, '
-            'Displaying ${targetList.length}, '
-            'Cached ${_cachedPosts[type]!.length}');
       } else {
         // Subsequent loads: add new data to cache
         _cachedPosts[type]!.addAll(postResponse.data);
-        print(
-            '📦 Added ${postResponse.data.length} new posts to cache. '
-            'Total cached: ${_cachedPosts[type]!.length}');
       }
 
       // Check if we have more data available from server
       final expectedLimit = isInitialLoad ? initialFetchLimit : displayLimit;
       if (postResponse.data.length < expectedLimit) {
-        print('📄 No more data from server');
         isTargetHasMoreData.value = false;
       } else {
-        print('📄 More data available from server');
         isTargetHasMoreData.value = true;
         onPageIncrement();
       }
@@ -198,15 +186,5 @@ bool _hasMoreCachedData(PostType type) {
     final newPosts = cachedPosts.skip(currentDisplayed).take(displayLimit).toList();
     targetList.addAll(newPosts);
     _displayedCounts[type] = nextDisplayCount;
-
-    print('📱 Displayed ${newPosts.length} cached posts. Total displayed: ${targetList.length}');
-
-    // Update cache service with more posts if it's All Posts tab
-    // if (nextDisplayCount >= cachedPosts.length && isTargetHasMoreData.isTrue) {
-    //   _triggerBackgroundFetch(type);
-    // }
   }
-
-
-
 }

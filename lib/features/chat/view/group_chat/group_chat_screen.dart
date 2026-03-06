@@ -4,14 +4,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -40,15 +37,13 @@ class GroupChatScreen extends StatefulWidget {
 }
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
-  final Color sentMessageColor = Color(0xFF255DF6);
-  final Color receivedMessageColor = Color(0xFFECECEC);
-  final Color backgroundColor = Color(0xFFF5F5F5);
   final chatViewController = getOrPut(() => ChatViewController());
   final chatThemeController = getOrPut(() => ChatThemeController());
   final TextEditingController editingController = TextEditingController();
 
   @override
   void initState() {
+    super.initState();
     chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
       ApiKeys.conversation_id: widget.conversationId,
       ApiKeys.page: 1,
@@ -60,70 +55,45 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         userId: "", conversationId: widget.conversationId ?? '');
     chatThemeController.resetSelection();
 
-    checkPendingMessages();
-    Map<String, dynamic> data = {
-      ApiKeys.conversation_id: widget.conversationId
-    };
-    chatViewController.getGroupMembersApi(data);
-
-    super.initState();
+    _checkPendingMessages();
+    chatViewController.getGroupMembersApi({
+      ApiKeys.conversation_id: widget.conversationId,
+    });
   }
 
-  Future<void> checkPendingMessages() async {
-    final connectivityResult = await NetworkUtils.isConnected();
-    if (!connectivityResult) {
+  Future<void> _checkPendingMessages() async {
+    final connected = await NetworkUtils.isConnected();
+    if (!connected) {
       chatViewController.sendOfflineMessage(widget.conversationId ?? "");
     }
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     NetworkUtils.removeListener((connected) {});
     super.dispose();
   }
 
-  void launchDialPad(String phoneNumber) async {
-    final Uri url = Uri(scheme: 'tel', path: phoneNumber);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'Could not launch dialer';
-    }
-  }
-  //
-  // void _navigateToProfile({required String authorId}) {
-  //   // Navigator.push(context, MaterialPageRoute(builder: (context)=>ViewGroupMembers(
-  //   //   conversationId: widget.conversationId,
-  //   //   type: widget.type,
-  //   //   name: widget.name,
-  //   //   profileImage: widget.profileImage,
-  //   // )));
-  // }
-
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
-            ChatEmitEvents.ChatList, {ApiKeys.type: "group"}, );
+            ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
         return true;
       },
       child: Obx(() {
         return Scaffold(
-          backgroundColor: backgroundColor,
+          backgroundColor: Color(0xFFF5F5F5),
           appBar: (chatThemeController.isMessageSelectionActive.value &&
                   widget.type != "Admin")
               ? getChatOptionsAppBar(context,
                   profileImage: widget.profileImage,
                   editingController: editingController,
                   conversationId: widget.conversationId,
-
-                 )
+                )
               : getChatTitleAppBar(
-            isGroupPrivate: widget.isGroupPrivate,
+                  isGroupPrivate: widget.isGroupPrivate,
                   socketType: "group",
                   context,
                   userId: '',
@@ -136,141 +106,59 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           body: Obx(() {
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
-              List<Messages> messages =
-                  chatViewController.getListOfMessageData ?? [];
+              final messages = chatViewController.getListOfMessageData ?? [];
               messages.sort((a, b) {
                 final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
                     ? DateTime.parse(a.createdAt!).toLocal()
                     : DateTime.fromMillisecondsSinceEpoch(0);
-
                 final dateB = (b.createdAt != null && b.createdAt!.isNotEmpty)
                     ? DateTime.parse(b.createdAt!).toLocal()
                     : DateTime.fromMillisecondsSinceEpoch(0);
-
-                return dateA.compareTo(dateB); // descending
+                return dateA.compareTo(dateB);
               });
+
               return SafeArea(
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     Obx(() => chatThemeController.chatBackground()),
-                    Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 12,),
+                        SizedBox(height: 12),
                         HorizontalTabSelector(
-                            unSelectedBackgroundColor: AppColors.white,
-                            horizontalMargin: 14,
-                            horizontalPadding: 10,
-                            tabs: ['All',"Mentioned","Assigned","Pinned"],
-                            selectedIndex: chatViewController.groupChatScreenSelectedTab.value,
-                            onTabSelected: (index,val){
-                              chatViewController.groupChatScreenSelectedTab.value=index;
-                              if(index==0){
-                                chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
-                                  ApiKeys.conversation_id: widget.conversationId,
-                                  ApiKeys.page: 1,
-                                  ApiKeys.is_online_user: userId,
-                                  ApiKeys.per_page_message: 30,
-                                });;
-                              }else if(index==3){
-                                chatViewController.getPinMessageListDataApi({
-                                  ApiKeys.conversation_id:widget.conversationId
-                                });
-                              }
-                            },
-                            labelBuilder: (value)=>value),
-                        SizedBox(height: 8,),
+                          unSelectedBackgroundColor: AppColors.white,
+                          horizontalMargin: 14,
+                          horizontalPadding: 10,
+                          tabs: ['All', "Mentioned", "Assigned", "Pinned"],
+                          selectedIndex: chatViewController
+                              .groupChatScreenSelectedTab.value,
+                          onTabSelected: (index, val) {
+                            chatViewController
+                                .groupChatScreenSelectedTab.value = index;
+                            if (index == 0) {
+                              chatViewController.emitEvent(
+                                  ChatEmitEvents.messageReceived, {
+                                ApiKeys.conversation_id: widget.conversationId,
+                                ApiKeys.page: 1,
+                                ApiKeys.is_online_user: userId,
+                                ApiKeys.per_page_message: 30,
+                              });
+                            } else if (index == 3) {
+                              chatViewController.getPinMessageListDataApi({
+                                ApiKeys.conversation_id: widget.conversationId,
+                              });
+                            }
+                          },
+                          labelBuilder: (value) => value,
+                        ),
+                        SizedBox(height: 8),
                         Expanded(
-                          child: (messages.isEmpty)
-                              ? Center(
-                                  child: InkWell(
-                                    onTap: () {
-                                      Map<String, dynamic> data = {
-                                        ApiKeys.conversation_id:
-                                            widget.conversationId,
-                                        ApiKeys.message: "Namaste 🙏",
-                                        ApiKeys.message_type: "text",
-                                      };
-                                      chatViewController
-                                          .sendInitialMessage(data);
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 15, vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Colors.grey.withValues(alpha: 0.5),
-                                        // light color with 0.5 opacity
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: AppStrings.noConversationYet.tr,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: AppStrings.sayNamaste.tr,
-                                              style: TextStyle(
-                                                color: AppColors.primaryColor, // blue from theme
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-
-                              : LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight: constraints.maxHeight,
-                                      ),
-                                      child: IntrinsicHeight(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10),
-                                          child: SingleChildScrollView(
-                                            padding: EdgeInsets.zero,
-                                            controller: chatViewController
-                                                .scrollController,
-                                            reverse: true,
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
-                                              children: messages.map((message) {
-                                                return GroupMessageCard(
-                                                  message: message,
-                                                  isInitialMessage: false,
-                                                  conversationId:
-                                                      widget.conversationId,
-                                                  userId: '',
-                                                  name: widget.name,
-                                                  contactNo: '',
-                                                  profileImage:
-                                                      widget.profileImage,
-                                                );
-                                              }).toList(),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                          child: messages.isEmpty
+                              ? _buildEmptyState()
+                              : _buildMessageList(messages),
                         ),
-                        const SizedBox(
-                          height: 6,
-                        ),
+                        const SizedBox(height: 6),
                         GroupChatInputBar(
                           conversationId: widget.conversationId ?? '',
                         ),
@@ -280,22 +168,22 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   ],
                 ),
               );
-
             } else {
               return SafeArea(
-                  child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Obx(() => chatThemeController.chatBackground()),
-                  Center(
-                    child: SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Obx(() => chatThemeController.chatBackground()),
+                    Center(
+                      child: SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
-                  )
-                ],
-              ));
+                  ],
+                ),
+              );
             }
           }),
         );
@@ -303,4 +191,67 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     );
   }
 
+  Widget _buildEmptyState() {
+    return Center(
+      child: InkWell(
+        onTap: () {
+          chatViewController.sendInitialMessage({
+            ApiKeys.conversation_id: widget.conversationId,
+            ApiKeys.message: "Namaste \u{1F64F}",
+            ApiKeys.message_type: "text",
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: AppStrings.noConversationYet.tr,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                TextSpan(
+                  text: AppStrings.sayNamaste.tr,
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageList(List<Messages> messages) {
+    return ListView.builder(
+      controller: chatViewController.scrollController,
+      reverse: true,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final message = messages[messages.length - 1 - index];
+        return GroupMessageCard(
+          message: message,
+          isInitialMessage: false,
+          conversationId: widget.conversationId,
+          userId: '',
+          name: widget.name,
+          contactNo: '',
+          profileImage: widget.profileImage,
+        );
+      },
+    );
+  }
 }

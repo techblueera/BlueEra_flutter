@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_flag_controller.dart';
 import 'chat_flag_bottom_sheet.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -36,6 +37,7 @@ import '../group_chat/widgets/delete_chat_history_dialog.dart';
 import '../group_chat/widgets/pin_message_dialoge_widget.dart';
 import '../symbol_view/symbol_view_images.dart';
 import 'common_ai_chat_topics.dart';
+import 'chat_shortcut_service.dart';
 import 'common_delete_message.dart';
 
 Widget timeAndReadInfoWidget({required Messages message,
@@ -981,6 +983,31 @@ void _navigateToProfile({required String authorId, required String type}) {
   }
 }
 
+void _initiateCallFromChat({
+  required CallType callType,
+  String? otherUserId,
+  String? conversationId,
+  required String userName,
+  required String userImage,
+}) async {
+  if (!Get.isRegistered<CallController>()) {
+    Get.put(CallController());
+  }
+  final callController = Get.find<CallController>();
+
+  final success = await callController.initiateCall(
+    type: callType,
+    otherUserId: otherUserId,
+    existingConversationId: conversationId,
+    userName: userName,
+    userImage: userImage,
+  );
+
+  if (success) {
+    Get.toNamed('/OutgoingCallScreen');
+  }
+}
+
 AppBar getChatTitleAppBar(BuildContext context, {
   String? userId,
   String? conversationId,
@@ -1200,9 +1227,33 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isGroupAppBar == null&&isFromAiChat!=true)
         InkWell(
             onTap: () {
-              launchDialPad(contactNo ?? '');
+              _initiateCallFromChat(
+                callType: CallType.audio,
+                otherUserId: userId,
+                conversationId: conversationId,
+                userName: name ?? '',
+                userImage: profileImage ?? '',
+              );
             },
-            child: SvgPicture.asset(AppIconAssets.chat_call)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Icon(Icons.call, color: AppColors.chat_input_icon_color, size: 24),
+            )),
+      if(isGroupAppBar == null&&isFromAiChat!=true)
+        InkWell(
+            onTap: () {
+              _initiateCallFromChat(
+                callType: CallType.video,
+                otherUserId: userId,
+                conversationId: conversationId,
+                userName: name ?? '',
+                userImage: profileImage ?? '',
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Icon(Icons.videocam, color: AppColors.chat_input_icon_color, size: 24),
+            )),
       if(isFromAiChat==true)
         PopupMenuButton<String>(
           menuPadding: EdgeInsets.zero,
@@ -1279,6 +1330,14 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 // TODO: Navigate to media & files
               } else if(value == "chat_theme"){
                 Get.to(() => ChatThemeScreen());
+              } else if(value == "add_shortcut"){
+                ChatShortcutService.createChatShortcut(
+                  conversationId: conversationId ?? '',
+                  name: name ?? 'Chat',
+                  userId: userId ?? '',
+                  profileImage: profileImage,
+                  chatType: socketType ?? 'personal',
+                );
               }
             },
             itemBuilder: (context) => popPupMenuForPersonalChat(),

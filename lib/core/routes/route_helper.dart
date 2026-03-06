@@ -1,6 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
+import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
+import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -1620,6 +1623,21 @@ class RouteHelper {
 
 
 
+      case RouteConstant.OutgoingCallScreen:
+        return MaterialPageRoute(
+          builder: (_) => const OutgoingCallScreen(),
+          settings: const RouteSettings(name: '/OutgoingCallScreen'),
+        );
+      case RouteConstant.IncomingCallScreen:
+        return MaterialPageRoute(
+          builder: (_) => const IncomingCallScreen(),
+          settings: const RouteSettings(name: '/IncomingCallScreen'),
+        );
+      case RouteConstant.ActiveCallScreen:
+        return MaterialPageRoute(
+          builder: (_) => const ActiveCallScreen(),
+          settings: const RouteSettings(name: '/ActiveCallScreen'),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

@@ -27,6 +27,7 @@ import 'package:get/get.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../features/chat/auth/controller/call_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
@@ -167,9 +168,30 @@ class AppNotificationHandler {
         if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
           NotificationData rideNotification=NotificationData.fromJson(message.data);
           showFullCallScreen(rideNotification);
-          // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+        }
+        // Handle incoming call notification
+        if (message.data['call_type'] != null && message.data['missed_call'] == 'false') {
+          _handleIncomingCallPush(message);
+          return; // Don't show regular notification for active call
         }
     showNotification(message);
+  }
+
+  /// Handle incoming call push notification
+  void _handleIncomingCallPush(RemoteMessage message) {
+    final data = message.data;
+    showFlutterCallNotification(
+      callSessionId: data['call_id'] ?? '',
+      callerName: data['name'] ?? 'Unknown',
+      callerImage: data['profile_image'],
+      callType: data['call_type'],
+      extra: {
+        'room_id': data['room_id'] ?? '',
+        'conversation_id': data['conversation_id'] ?? '',
+        'call_type': data['call_type'] ?? '',
+        'call_id': data['call_id'] ?? '',
+      },
+    );
   }
   Future<void> showFullCallScreen(NotificationData rideNotification )async{
     String? pickupLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.deliveryLat.toString()),lng:double.parse(rideNotification.deliveryLong.toString()));

@@ -1303,6 +1303,7 @@ List<PopupMenuEntry<String>> popPupMenuForPersonalChat() {
     {'title': "Media ", "slud_id": 'media'},
     {'title': "Docs ", "slud_id": 'docs'},
     {'title': "Chat Theme", "slud_id": 'chat_theme'},
+    {'title': "Add Shortcut", "slud_id": 'add_shortcut'},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];

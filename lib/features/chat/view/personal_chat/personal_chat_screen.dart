@@ -1,23 +1,17 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/app_image_assets.dart';
-import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/chat_input_box.dart';
-import '../widget/common_delete_message.dart';
-import '../widget/common_reminder_option.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
-import '../widget/reminder_sheet.dart';
 
 class PersonalChatScreen extends StatefulWidget {
   PersonalChatScreen(
@@ -135,7 +129,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                     onTap: () {
                                       Map<String, dynamic> data = {
                                         ApiKeys.other_user_id: widget.userId,
-                                        ApiKeys.message: "Namaste 🙏",
+                                        ApiKeys.message: "Namaste \u{1F64F}",
                                         ApiKeys.message_type: "text",
                                       };
                                       chatViewController
@@ -145,7 +139,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 15, vertical: 10),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
+                                        color: Colors.grey.withValues(alpha: 0.5),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: RichText(
@@ -160,10 +154,9 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                               ),
                                             ),
                                             TextSpan(
-                                              text: "Say Namaste 🙏",
+                                              text: "Say Namaste \u{1F64F}",
                                               style: TextStyle(
-                                                color: Colors
-                                                    .blue, // blue from theme
+                                                color: Colors.blue,
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -174,121 +167,27 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                     ),
                                   ),
                                 )
-                              : LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight: constraints.maxHeight,
-                                      ),
-                                      child: IntrinsicHeight(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10),
-                                          child: SingleChildScrollView(
-                                            padding: EdgeInsets.zero,
-                                            controller: chatViewController
-                                                .scrollController,
-                                            reverse: (widget.type == "Admin")
-                                                ? false
-                                                : true,
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
-                                              children: messages.map((message) {
-                                                return MessageCard(
-                                                  message: message,
-                                                  isInitialMessage:false,
-                                                  conversationId: message.conversationId,
-                                                  userId: message.sender?.id,
-                                                  name: message.sender?.name,
-                                                  contactNo: message.sender?.contactNo,
-                                                  profileImage:message.sender?.profileImage,
-                                                );
-                                              }).toList(),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                              : ListView.builder(
+                                  controller: chatViewController.scrollController,
+                                  reverse: widget.type != "Admin",
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  itemCount: messages.length,
+                                  itemBuilder: (context, index) {
+                                    final message = widget.type == "Admin"
+                                        ? messages[index]
+                                        : messages[messages.length - 1 - index];
+                                    return MessageCard(
+                                      message: message,
+                                      isInitialMessage: false,
+                                      conversationId: message.conversationId,
+                                      userId: message.sender?.id,
+                                      name: message.sender?.name,
+                                      contactNo: message.sender?.contactNo,
+                                      profileImage: message.sender?.profileImage,
                                     );
                                   },
                                 ),
                         ),
-                        if(chatThemeController.isMessageSelectionActive.value)
-                          ChatActionBar(
-                            onReminderTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) =>
-                                    ReminderBottomSheet(
-                                      name: widget.name,
-                                      conversationId: widget.conversationId,
-                                      profileImagePath: widget.profileImage,
-                                    ),
-                              );
-                            },
-
-                            onCopyTap: () {
-                              // Copy logic here
-                            },
-
-                            onDeleteTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => CommonDeleteDialog(
-                                  showDeleteForEveryone:
-                                  chatThemeController.isDeleteForEveryOneAvailable.value,
-
-                                  onDeleteForMe: () async {
-                                    FocusScope.of(context).unfocus();
-
-                                    Map<String, dynamic> data = {
-                                      ApiKeys.conversation_id: "${widget.conversationId}",
-                                      ApiKeys.delete_from_every_one: false,
-                                      ApiKeys.message_id_list:
-                                      chatThemeController.selectedMessageIds
-                                    };
-
-                                    await chatViewController
-                                        .deleteChatMessage(data, widget.userId ?? '');
-
-                                    chatThemeController.resetSelection();
-                                    chatThemeController.deActivateSelection();
-                                    Navigator.pop(context);
-                                  },
-
-                                  onDeleteForEveryone: () async {
-                                    FocusScope.of(context).unfocus();
-
-                                    Map<String, dynamic> data = {
-                                      ApiKeys.conversation_id: "${widget.conversationId}",
-                                      ApiKeys.delete_from_every_one: true,
-                                      ApiKeys.message_id_list:
-                                      chatThemeController.selectedMessageIds
-                                    };
-
-                                    await chatViewController
-                                        .deleteChatMessage(data, widget.userId ?? '');
-
-                                    chatThemeController.resetSelection();
-                                    chatThemeController.deActivateSelection();
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              );
-                            },
-
-                            onForwardTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatForwardScreen(
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
                         const SizedBox(
                           height: 6,
                         ),
@@ -311,19 +210,14 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                   child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    AppImageAssets.chating_bg,
-                    fit: BoxFit.cover,
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.screenHeight,
-                  ),
+                  Obx(() => chatThemeController.chatBackground()),
                   Center(
                     child: SizedBox(
                       height: 22,
                       width: 22,
                       child: CircularProgressIndicator(),
                     ),
-                  )
+                  ),
                 ],
               ));
             }

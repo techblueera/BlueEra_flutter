@@ -8,6 +8,7 @@ import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart
 import 'package:BlueEra/features/chat/view/group_chat/group_chat_list.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/foundation.dart';
@@ -71,6 +72,9 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     }
     if (!Get.isRegistered<ChatPinArchiveController>()) {
       Get.put(ChatPinArchiveController());
+    }
+    if (!Get.isRegistered<CallController>()) {
+      Get.put(CallController());
     }
     if (Get.isRegistered<ChatThemeController>()) {
       chatThemeController = Get.find<ChatThemeController>();

@@ -38,7 +38,6 @@ class ViewGroupMembers extends StatefulWidget {
 
 class _ViewGroupMembersState extends State<ViewGroupMembers> {
   final chatViewController = Get.find<ChatViewController>();
-  bool publicGroup = false;
   int selectedIndex = 0;
 
   @override

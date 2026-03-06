@@ -12,6 +12,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/share_product_screen.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -127,6 +129,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<bool> _initDeepLinks() async {
     _appLinks = AppLinks();
+    // Handle links when app is already running
+    _appLinks.uriLinkStream.listen((uri) {
+      _handleDeepLink(uri);
+    });
+
     var uri = await _appLinks.getInitialLink();
     if (uri != null) {
       _handleDeepLink(uri);
@@ -134,8 +141,6 @@ class _SplashScreenState extends State<SplashScreen> {
     } else {
       return false;
     }
-
-    // Handle links when app is already running
   }
 
   void _handleDeepLink(Uri uri) async {
@@ -152,6 +157,30 @@ class _SplashScreenState extends State<SplashScreen> {
             break;
           case 'product':
             Get.to(() => ShareProductScreen(productId: id));
+            break;
+          case 'chat':
+            final conversationId = id;
+            final queryParams = uri.queryParameters;
+            final chatUserId = queryParams['userId'] ?? '';
+            final chatType = queryParams['chatType'] ?? 'personal';
+            final chatName = queryParams['name'] ?? '';
+            if (chatType == 'business') {
+              Get.to(() => BusinessChatScreenUpdated(
+                conversationId: conversationId,
+                userId: chatUserId,
+                type: chatType,
+                name: chatName,
+                isInitialMessage: false,
+              ));
+            } else {
+              Get.to(() => PersonalChatScreen(
+                conversationId: conversationId,
+                userId: chatUserId,
+                type: chatType,
+                name: chatName,
+                isInitialMessage: false,
+              ));
+            }
             break;
           case 'profile':
             final type = segments[3];
