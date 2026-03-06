@@ -5,7 +5,7 @@
       "Bash(flutter pub:*)",
       "Bash(grep:*)",
       "Bash(flutter analyze:*)",
-      "Bash(flutter:*)"
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

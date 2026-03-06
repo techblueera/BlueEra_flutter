@@ -26,7 +26,7 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Emergency Contact  Step: 2/3"),
+      appBar: const CommonBackAppBar(title: "Emergency Contact  ",actionText:"Step: 3/4"),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: CommonCardWidget(
@@ -42,6 +42,7 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
                 title: "Mobile Number",
                 hintText: "E.g. +919876543212",
                 keyBoardType: TextInputType.phone,
+                maxLength: 10,
                 textEditController: controller.mobileController,
               ),
               SizedBox(height: 16),

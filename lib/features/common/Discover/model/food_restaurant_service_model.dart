@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import '../../../../core/api/model/new_food_home_res_model.dart';
 FoodRestaurantServiceModel foodRestaurantServiceModelFromJson(String str) => FoodRestaurantServiceModel.fromJson(json.decode(str));
 String foodRestaurantServiceModelToJson(FoodRestaurantServiceModel data) => json.encode(data.toJson());
 class FoodRestaurantServiceModel {
@@ -17,7 +19,7 @@ class FoodRestaurantServiceModel {
     if (json['data'] != null) {
       data = [];
       json['data'].forEach((v) {
-        data?.add(Data.fromJson(v));
+        data?.add(FoodData.fromJson(v));
       });
     }
   }
@@ -25,7 +27,7 @@ class FoodRestaurantServiceModel {
   int? count;
   int? totalPages;
   int? currentPage;
-  List<Data>? data;
+  List<FoodData>? data;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -41,6 +43,7 @@ class FoodRestaurantServiceModel {
 
 }
 
+/*
 Data dataFromJson(String str) => Data.fromJson(json.decode(str));
 String dataToJson(Data data) => json.encode(data.toJson());
 class Data {
@@ -277,4 +280,4 @@ class Category {
     return map;
   }
 
-}
+}*/

@@ -318,7 +318,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                     right: 0,
                     child: AnimatedSlide(
                       offset: isVisible ? Offset.zero : const Offset(0, 1),
-                      duration: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       child: BottomNavigationBarWidget(
                         onHeaderVisibilityChanged: _toggleAppBar,

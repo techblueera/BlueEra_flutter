@@ -62,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
-  late SavedFeedTab _selectedSavedTab;
   final homeScreenController = Get.put(HomeScreenController());
 
   late PageController _pageController;
@@ -77,7 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
     searchController.addListener(() {
       setState(() {});
     });
-    _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _calculateHeaderHeight();
     });
@@ -87,7 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _pageController.dispose();
     searchController.dispose();
-
     super.dispose();
   }
 
@@ -171,11 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _toggleAppBarAndBottomNav(bool visible) {
-    if (widget.isHeaderVisible != visible && mounted) {
-      homeScreenController.isVisible.value = visible;
-      widget.onHeaderVisibilityChanged
-          .call(visible); // Notify parent to hide/show bottom nav
-    }
+    if (!mounted) return;
+    homeScreenController.isVisible.value = visible;
+    widget.onHeaderVisibilityChanged.call(visible);
   }
 
   Widget _buildCustomAppBar() {
@@ -209,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Obx(() => Stack(
               children: [
                 AnimatedPadding(
-                  duration: const Duration(milliseconds: 400),
+                  duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   padding: EdgeInsets.only(
                       top: (_headerHeight *
@@ -217,89 +212,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: PageView(
                     controller: _pageController,
                     scrollDirection: Axis.horizontal,
-                    // physics: AlwaysScrollableScrollPhysics(),
                     onPageChanged: (index) {
                       logs("PAGE CHANGE CALL $index");
                       setState(() {
                         selectedIndex = index;
+                        selectedSubIndex = 0;
                       });
                     },
-                    children: isIndividual()
-                        ? [
-                            // if (selectedIndex == 0)
-                            HomeFeedScreenNew(
-                              key: ValueKey('feedScreen_all'),
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                              postFilterType: PostType.all,
-                              query: searchController.text.isEmpty
-                                  ? null
-                                  : searchController.text,
-                              headerHeight: _headerHeight,
-                              isInParentScroll: false,
-                            ),
-                            // if (selectedIndex == 1)
-                            ChannelFeedScreen(
-                              headerHeight: _headerHeight,
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                            ),
-                            // if (selectedIndex == 2)
-                            OttScreen(
-                              headerHeight: _headerHeight,
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                            ),
-                            // // if (selectedIndex == 3)
-                            // SavedFeedScreen(
-                            //     onHeaderVisibilityChanged:
-                            //         _toggleAppBarAndBottomNav,
-                            //     query: searchController.text,
-                            //     selectedTab: _selectedSavedTab,
-                            //     headerHeight:
-                            //         _headerHeight + SizeConfig.size30),
-                          ]
-                        : [
-                            // if (selectedIndex == 0)
-                            HomeFeedScreenNew(
-                              key: ValueKey('feedScreen_all'),
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                              postFilterType: PostType.all,
-                              query: searchController.text.isEmpty
-                                  ? null
-                                  : searchController.text,
-                              headerHeight: _headerHeight,
-                              isInParentScroll: false,
-                            ),
-                            // if (selectedIndex == 1)
-                            ChannelFeedScreen(
-                              headerHeight: _headerHeight,
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                            ),
-                            // if (selectedIndex == 2)
-                            OttScreen(
-                              headerHeight: _headerHeight,
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                            ),
-                            // if (selectedIndex == 3)
-                            // SavedFeedScreen(
-                            //     onHeaderVisibilityChanged:
-                            //         _toggleAppBarAndBottomNav,
-                            //     query: searchController.text,
-                            //     selectedTab: _selectedSavedTab,
-                            //     headerHeight:
-                            //         _headerHeight + SizeConfig.size30),
-                          ],
+                    children: [
+                      HomeFeedScreenNew(
+                        key: const ValueKey('feedScreen_all'),
+                        onHeaderVisibilityChanged:
+                            _toggleAppBarAndBottomNav,
+                        postFilterType: PostType.all,
+                        query: searchController.text.isEmpty
+                            ? null
+                            : searchController.text,
+                        headerHeight: _headerHeight,
+                        isInParentScroll: false,
+                      ),
+                      ChannelFeedScreen(
+                        headerHeight: _headerHeight,
+                        onHeaderVisibilityChanged:
+                            _toggleAppBarAndBottomNav,
+                      ),
+                      OttScreen(
+                        headerHeight: _headerHeight,
+                        onHeaderVisibilityChanged:
+                            _toggleAppBarAndBottomNav,
+                      ),
+                    ],
                   ),
                 ),
 
-                /// Header stays same
-
+                /// Sticky header — slides up/down like LinkedIn
                 AnimatedPositioned(
-                  duration: const Duration(milliseconds: 400),
+                  duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   top: -homeScreenController.headerOffset.value * _headerHeight,
                   left: 0,
@@ -510,8 +458,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/*
-class _HomeScreenState extends State<HomeScreen> {
+/* Old _HomeScreenState removed - DO NOT DELETE
+(Preserved for reference only)
   final GlobalKey _headerKey = GlobalKey();
   double _headerHeight = 0;
   final List<String> postTab = [

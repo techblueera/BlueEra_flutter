@@ -26,7 +26,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Basic Info & Medical"),
+      appBar: const CommonBackAppBar(title: "Basic Info"),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -41,7 +41,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                 SizedBox(height: 16),
                 CommonTextField(
                   title: "Mobile Number",
-                  hintText: "E.g. +919876543210 or 1234567890",
+                  hintText: "E.g. +919876543210",
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
 
@@ -69,24 +69,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                   textEditController: controller.vehicleController,
                 ),
                 SizedBox(height: 16),
-                CommonTextField(
-                  title: "Blood Group",
-                  hintText: "E.g. A+, A-, B+, B-, O+, O-, AB+, AB-",
-                  textEditController: controller.bloodGroupController,
-                ),
-                SizedBox(height: 16),
-                CommonTextField(
-                  title: "Known Allergies",
-                  hintText: "E.g. Peanuts, Dust",
-                  textEditController: controller.allergiesController,
-                ),
-                SizedBox(height: 16),
-                CommonTextField(
-                  title: "Known Disease / Medical Condition",
-                  hintText: "E.g. Asthma",
-                  textEditController: controller.diseaseController,
-                ),
-                SizedBox(height: 24),
+
                 Obx(() => CustomBtn(
                       isValidate: controller.isValid.value && !controller.isSaving.value,
                       onTap: controller.isValid.value && !controller.isSaving.value

@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/find_contact_with_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/all_education_service_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/all_food_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_professional_consultant_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
@@ -44,7 +45,6 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../me/grocery/widget/grocery_data.dart';
 import 'book_your_transport/book_transport_main.dart';
-
 
 class ResponsiveSearchBar extends StatelessWidget {
   const ResponsiveSearchBar({super.key});
@@ -130,6 +130,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   Set<Marker> _markers = {};
   late final double userLat;
   late final double userLng;
+
   // bool isMapLoading = true;
   // BitmapDescriptor? _customIcon;
 
@@ -156,7 +157,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark, // Android Black
-        statusBarBrightness: Brightness.light,    // iOS Black
+        statusBarBrightness: Brightness.light, // iOS Black
       ),
       child: Scaffold(
           backgroundColor: AppColors.whiteF3,
@@ -246,7 +247,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   controller: _tabController,
                   isScrollable: isSmallScreen,
                   tabAlignment:
-                  isSmallScreen ? TabAlignment.start : TabAlignment.fill,
+                      isSmallScreen ? TabAlignment.start : TabAlignment.fill,
                   labelColor: AppColors.primaryColor,
                   unselectedLabelColor: AppColors.secondaryTextColor,
                   indicatorColor: AppColors.primaryColor,
@@ -281,615 +282,608 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size8,
       ),
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: ResponsiveSearchBar()),
-          _buildGap(),
+      child: CustomScrollView(slivers: [
+        SliverToBoxAdapter(child: ResponsiveSearchBar()),
+        _buildGap(),
 
-          SliverToBoxAdapter(child: DiscoverBannerSlider()),
-          _buildGap(gap: SizeConfig.paddingM),
+        SliverToBoxAdapter(child: DiscoverBannerSlider()),
+        _buildGap(gap: SizeConfig.paddingM),
 
-          /// Delivery Option
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-                bgImage: "discover_bg_card_green.png",
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: InkWell(
-                  onTap: () => chooseDeliveryOption(),
-                      // Get.toNamed(RouteHelper.getRiderStoreScreenRoute()),
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: _title(AppStrings.bookYourGroceryNdFood),
-                          ),
-                          SizedBox(width: SizeConfig.paddingXSL),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.paddingXSL),
-                      _buildMasonryGridWithIcons(
-                          items: [
-                            ...GroceryData.grocerySuperCategories.take(3).toList(),
-                            ...foodCategories.take(3).toList()
-                          ],
-                          crossAxisCount: 3,
-                          getName: (item) => item.name,
-                          getIcon: (item) => item.image,
-                          onTap: (item) => chooseDeliveryOption(),
-                        // onTap: (item) => Get.toNamed(
-                        //     RouteHelper.getRiderStoreScreenRoute())),
-                        )
-
-                    ],
-                  ),
-                )),
-          ),
-
-          _buildGap(),
-
-          /// Product
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                bgImage: "discover_bg_card_cream.png",
+        /// Delivery Option
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+              bgImage: "discover_bg_card_green.png",
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: InkWell(
+                onTap: () => chooseDeliveryOption(),
+                // Get.toNamed(RouteHelper.getRiderStoreScreenRoute()),
                 child: Column(
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: _title(AppStrings.shopping.tr),
+                          child: _title(AppStrings.bookYourGroceryNdFood),
                         ),
-                        SizedBox(
-                          width: SizeConfig.size8,
-                        ),
-                        _viewAll(
-                              () => Get.to(() => ProductLocalMarketScreen(
-                            businessProductsCategories:
-                            businessProductsCategories,
-                            businessProductStoreCategories:
-                            businessProductStoreCategories,
-                          )),
-                        ),
+                        SizedBox(width: SizeConfig.paddingXSL),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    _buildProductMasonryGrid(),
-                  ],
-                )),
-          ),
-
-          _buildGap(),
-
-          /// Medical
-          SliverToBoxAdapter(
-            child: CustomFormCard(
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _title(AppStrings.bookHealthService),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  Stack(
-                    children: [
-                      // The background image
-                      _bannerWidget(
-                        bannerImage: AppImageAssets.medicalHealthService,
-                        bannerHeight: SizeConfig.size180,
-                      ),
-                      // Gradient Overlay (Optional: Makes text/buttons more readable)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.3)
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Scrollable Buttons
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 10,
-                        child: _buildHorizontalTabs([
-                          'Hospitals',
-                          'Pharmacy',
-                          'Labs Test',
-                          'Doctors',
-                          'Wellness'
-                        ]),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          _buildGap(),
-
-          /// Self work
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_blue.png",
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _title(AppStrings.bookHomeServices),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size8,
-                      ),
-                      _viewAll(() => Get.to(() => AllSelfProfessionScreen(
-                        selfEmployedCategories:
-                        individualSkillWorkList.toList(),
-                      ))),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildBookHomeServiceMasonryGrid(),
-                ],
-              ),
-            ),
-          ),
-
-          _buildGap(),
-
-          /// Home made food, product, service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_yellow.png",
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _title(AppStrings.homemadeProducts),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildHomeMadeFoodServiceMasonryGrid(),
-                ],
-              ),
-            ),
-          ),
-
-          _buildGap(),
-
-          /// Stay Service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_green.png",
-              // color: AppColors.blueF4,
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _title(AppStrings.bookYourStay),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size8,
-                      ),
-                      // _viewAll(),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildMasonryGridWithIcons(
-                      items: stayItemsCategories,
-                      crossAxisCount: 2,
+                    _buildMasonryGridWithIcons(
+                      items: [
+                        ...GroceryData.grocerySuperCategories.take(3).toList(),
+                        ...foodCategories.take(3).toList()
+                      ],
+                      crossAxisCount: 3,
                       getName: (item) => item.name,
-                      getIcon: (item) => item.icon,
-                      onTap: (c) {
-                        Get.to(() => AllStayServiceScreen(
-                            stayCategories: stayItemsCategories,
-                            selectedStayCategory: c));
-                      }),
-                ],
-              ),
-            ),
-          ),
+                      getIcon: (item) => item.image,
+                      onTap: (item) => chooseDeliveryOption(),
+                      // onTap: (item) => Get.toNamed(
+                      //     RouteHelper.getRiderStoreScreenRoute())),
+                    )
+                  ],
+                ),
+              )),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          /// Consultation Service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_cream.png",
+        /// Product
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
               padding: EdgeInsets.all(SizeConfig.size10),
+              bgImage: "discover_bg_card_cream.png",
               child: Column(
                 children: [
                   Row(
                     children: [
                       Expanded(
-                        child: _title(AppStrings.professionals),
+                        child: _title(AppStrings.shopping.tr),
                       ),
                       SizedBox(
                         width: SizeConfig.size8,
                       ),
                       _viewAll(
-                            () => Get.to(() => AllProfessionConsultantScreen(
-                          professionalConsultantCategories:
-                          individualOnboardingConsultationList,
-                        )),
+                        () => Get.to(() => ProductLocalMarketScreen(
+                              businessProductsCategories:
+                                  businessProductsCategories,
+                              businessProductStoreCategories:
+                                  businessProductStoreCategories,
+                            )),
                       ),
                     ],
                   ),
                   SizedBox(height: SizeConfig.paddingXSL),
-                  _buildProfConsultantServiceMasonryGrid(),
+                  _buildProductMasonryGrid(),
                 ],
-              ),
-            ),
-          ),
+              )),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          /// Transport
-          SliverToBoxAdapter(
-            child: InkWell(
-              onTap: () {
-                Get.to(BookTransportMain());
-              },
-              child: CustomFormCardBGImg(
-                bgImage: "discover_bg_card_blue.png",
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        /// Medical
+        SliverToBoxAdapter(
+          child: CustomFormCard(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _title(AppStrings.bookHealthService),
+                SizedBox(height: SizeConfig.paddingXSL),
+                Stack(
                   children: [
-                    _title(AppStrings.bookYourTransport),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    CustomFormCard(
-                      isBorderAvailable: true,
-                      padding: EdgeInsets.all(SizeConfig.size10),
-                      // IntrinsicHeight ensures the vertical line stretches to match the fields
-                      child: IntrinsicHeight(
-                        child: Row(
-                          children: [
-                            // 1. LEFT SECTION: Icons and Dotted Line
-                            Column(
-                              children: [
-                                const Icon(Icons.home_outlined,
-                                    color: AppColors.secondaryTextColor,
-                                    size: 16),
-
-                                // The Dotted Line
-                                Expanded(
-                                  child: Padding(
-                                    padding:
-                                    const EdgeInsets.symmetric(vertical: 3),
-                                    child: CustomPaint(
-                                      size: const Size(1, double.infinity),
-                                      painter: DottedLinePainter(),
-                                    ),
-                                  ),
-                                ),
-
-                                const Icon(Icons.location_on_outlined,
-                                    color: AppColors.redLite, size: 16),
-                              ],
-                            ),
-
-                            const SizedBox(width: 16),
-
-                            // 2. MIDDLE SECTION
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // From
-                                  CustomText(
-                                      "${LocationService.userCurrentAddress.value.formattedAddress}",
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.greyBf,
-                                      fontWeight: FontWeight.w400),
-
-                                  SizedBox(height: SizeConfig.paddingS),
-
-                                  // Divider
-                                  CommonHorizontalDivider(
-                                      height: 1, color: AppColors.greyBf),
-
-                                  SizedBox(height: SizeConfig.paddingS),
-
-                                  // To
-                                  CustomText("To",
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.greyBf,
-                                      fontWeight: FontWeight.w400)
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(width: 16),
-
-                            // 3. RIGHT SECTION: Swap Button
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                                border: Border.all(color: AppColors.greyE5),
-                                boxShadow: [AppShadows.textFieldShadow],
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.swap_vert,
-                                    color: AppColors.secondaryTextColor),
-                                onPressed: () {
-                                  // Add swap logic here
-                                },
-                              ),
-                            ),
-                          ],
+                    // The background image
+                    _bannerWidget(
+                      bannerImage: AppImageAssets.medicalHealthService,
+                      bannerHeight: SizeConfig.size180,
+                    ),
+                    // Gradient Overlay (Optional: Makes text/buttons more readable)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.3)
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    _buildMasonryGridWithIcons(
-                        items: transportItemsCategories,
-                        crossAxisCount: 2,
-                        getName: (item) => item.name,
-                        getIcon: (item) => item.icon,
-                        onTap: (item) {
-                          Get.to(()=> BookTransportMain(
-                            vehicleType: item.slugId,
-                          ));
-                        }),
+                    // Scrollable Buttons
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 10,
+                      child: _buildHorizontalTabs([
+                        'Hospitals',
+                        'Pharmacy',
+                        'Labs Test',
+                        'Doctors',
+                        'Wellness'
+                      ]),
+                    ),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
-          _buildGap(),
+        ),
 
-          /// Stay Service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_yellow.png",
-              // color: AppColors.blueF4,
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _title(AppStrings.rentalServices),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size8,
-                      ),
-                      // _viewAll(),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildMasonryGridWithIcons(
-                      items: stayHomeItemsCategories,
-                      crossAxisCount: 2,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon,
-                      onTap: (c) {
-                        Get.to(() => AllStayServiceScreen(
-                            stayCategories: stayHomeItemsCategories,
-                            selectedStayCategory: c));
-                      }),
-                ],
-              ),
+        _buildGap(),
+
+        /// Self work
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_blue.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title(AppStrings.bookHomeServices),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    _viewAll(() => Get.to(() => AllSelfProfessionScreen(
+                          selfEmployedCategories:
+                              individualSkillWorkList.toList(),
+                        ))),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildBookHomeServiceMasonryGrid(),
+              ],
             ),
           ),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          /// Service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_green.png",
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _title(AppStrings.findServices),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size8,
-                      ),
-                      InkWell(
-                        onTap: () => Get.to(() => ServicesNearMeScreen(
-                          businessServicesCategories: businessOnboardingServicesCategories,
-                        )),
-                        child: _viewAll(),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildFindServiceMasonryGrid(),
-                ],
-              ),
+        /// Home made food, product, service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_yellow.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _title(AppStrings.homemadeProducts),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildHomeMadeFoodServiceMasonryGrid(),
+              ],
             ),
           ),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          /// Financial Sectors
-          SliverToBoxAdapter(
-            child: CustomFormCard(
-              border: Border.all(
-                  color: AppColors.greyA5
-              ),
-              padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                    child: _title(AppStrings.financialSectors),
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildFinancialSectorUi()
-                ],
-              ),
+        /// Stay Service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_green.png",
+            // color: AppColors.blueF4,
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title(AppStrings.bookYourStay),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    // _viewAll(),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildMasonryGridWithIcons(
+                    items: stayItemsCategories,
+                    crossAxisCount: 2,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (c) {
+                      Get.to(() => AllStayServiceScreen(
+                          stayCategories: stayItemsCategories,
+                          selectedStayCategory: c));
+                    }),
+              ],
             ),
           ),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          /// Automotive Service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_cream.png",
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _title(AppStrings.automotiveShowroom),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildMasonryGridWithIcons(
-                      items: automotiveServiceItemsCategories,
-                      crossAxisCount: 3,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon,
-                      onTap: (_) {
-                        commonSnackBar(message: "Coming Soon...");
-                      }),
-                ],
-              ),
+        /// Consultation Service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_cream.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title(AppStrings.professionals),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    _viewAll(
+                      () => Get.to(() => AllProfessionConsultantScreen(
+                            professionalConsultantCategories:
+                                individualOnboardingConsultationList,
+                          )),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildProfConsultantServiceMasonryGrid(),
+              ],
             ),
           ),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          /// Restorent
-          SliverToBoxAdapter(
+        /// Transport
+        SliverToBoxAdapter(
+          child: InkWell(
+            onTap: () {
+              Get.to(BookTransportMain());
+            },
             child: CustomFormCardBGImg(
               bgImage: "discover_bg_card_blue.png",
               padding: EdgeInsets.all(SizeConfig.size10),
               child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _title(AppStrings.restaurantNearby),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size8,
-                      ),
-                      _viewAll(),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  _buildRestaurantNearServiceMasonryGrid(),
-                ],
-              ),
-            ),
-          ),
-
-          _buildGap(),
-
-          /// Education Service
-          SliverToBoxAdapter(
-            child: CustomFormCardBGImg(
-              bgImage: "discover_bg_card_yellow.png",
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _title(AppStrings.educationTraining),
+                  _title(AppStrings.bookYourTransport),
+                  SizedBox(height: SizeConfig.paddingXSL),
+                  CustomFormCard(
+                    isBorderAvailable: true,
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    // IntrinsicHeight ensures the vertical line stretches to match the fields
+                    child: IntrinsicHeight(
+                      child: Row(
+                        children: [
+                          // 1. LEFT SECTION: Icons and Dotted Line
+                          Column(
+                            children: [
+                              const Icon(Icons.home_outlined,
+                                  color: AppColors.secondaryTextColor,
+                                  size: 16),
+
+                              // The Dotted Line
+                              Expanded(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 3),
+                                  child: CustomPaint(
+                                    size: const Size(1, double.infinity),
+                                    painter: DottedLinePainter(),
+                                  ),
+                                ),
+                              ),
+
+                              const Icon(Icons.location_on_outlined,
+                                  color: AppColors.redLite, size: 16),
+                            ],
+                          ),
+
+                          const SizedBox(width: 16),
+
+                          // 2. MIDDLE SECTION
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // From
+                                CustomText(
+                                    "${LocationService.userCurrentAddress.value.formattedAddress}",
+                                    fontSize: SizeConfig.medium,
+                                    color: AppColors.greyBf,
+                                    fontWeight: FontWeight.w400),
+
+                                SizedBox(height: SizeConfig.paddingS),
+
+                                // Divider
+                                CommonHorizontalDivider(
+                                    height: 1, color: AppColors.greyBf),
+
+                                SizedBox(height: SizeConfig.paddingS),
+
+                                // To
+                                CustomText("To",
+                                    fontSize: SizeConfig.medium,
+                                    color: AppColors.greyBf,
+                                    fontWeight: FontWeight.w400)
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(width: 16),
+
+                          // 3. RIGHT SECTION: Swap Button
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                              border: Border.all(color: AppColors.greyE5),
+                              boxShadow: [AppShadows.textFieldShadow],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.swap_vert,
+                                  color: AppColors.secondaryTextColor),
+                              onPressed: () {
+                                // Add swap logic here
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                   SizedBox(height: SizeConfig.paddingXSL),
                   _buildMasonryGridWithIcons(
-                      items: businessOnboardingEducationTrainingCategories,
-                      crossAxisCount: 3,
+                      items: transportItemsCategories,
+                      crossAxisCount: 2,
                       getName: (item) => item.name,
                       getIcon: (item) => item.icon,
-                      onTap: (c) {
-                        Get.to(() => AllEducationServiceScreen(
-                            professionalConsultantCategories:
-                            businessOnboardingEducationTrainingCategories,
-                            selectedProfessionConsultantData: c));
+                      onTap: (item) {
+                        Get.to(() => BookTransportMain(
+                              vehicleType: item.slugId,
+                            ));
                       }),
                 ],
               ),
             ),
           ),
+        ),
+        _buildGap(),
 
-          _buildGap(),
-
-          /// Near By Jobs
-          SliverToBoxAdapter(
-            child: InkWell(
-              onTap: () {
-                Widget dest =
-                isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
-
-                Get.to(() => dest);
-              },
-              child: CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        /// Stay Service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_yellow.png",
+            // color: AppColors.blueF4,
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    _title(AppStrings.findDreamJob),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.jobBanner,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 10,
-                            child: _buildHorizontalJobTabs([
-                              'Full-Time',
-                              'Part-Time',
-                              'Online',
-                              'Offline',
-                              'Near By'
-                            ]))
-                      ],
+                    Expanded(
+                      child: _title(AppStrings.rentalServices),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    // _viewAll(),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildMasonryGridWithIcons(
+                    items: stayHomeItemsCategories,
+                    crossAxisCount: 2,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (c) {
+                      Get.to(() => AllStayServiceScreen(
+                          stayCategories: stayHomeItemsCategories,
+                          selectedStayCategory: c));
+                    }),
+              ],
+            ),
+          ),
+        ),
+
+        _buildGap(),
+
+        /// Service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_green.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title(AppStrings.findServices),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    InkWell(
+                      onTap: () => Get.to(() => ServicesNearMeScreen(
+                            businessServicesCategories:
+                                businessOnboardingServicesCategories,
+                          )),
+                      child: _viewAll(),
                     ),
                   ],
                 ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildFindServiceMasonryGrid(),
+              ],
+            ),
+          ),
+        ),
+
+        _buildGap(),
+
+        /// Financial Sectors
+        SliverToBoxAdapter(
+          child: CustomFormCard(
+            border: Border.all(color: AppColors.greyA5),
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  child: _title(AppStrings.financialSectors),
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildFinancialSectorUi()
+              ],
+            ),
+          ),
+        ),
+
+        _buildGap(),
+
+        /// Automotive Service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_cream.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _title(AppStrings.automotiveShowroom),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildMasonryGridWithIcons(
+                    items: automotiveServiceItemsCategories,
+                    crossAxisCount: 3,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (_) {
+                      commonSnackBar(message: "Coming Soon...");
+                    }),
+              ],
+            ),
+          ),
+        ),
+
+        _buildGap(),
+
+        /// Restorent
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_blue.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title(AppStrings.restaurantNearby),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size8,
+                    ),
+                    _viewAll(),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildRestaurantNearServiceMasonryGrid(),
+              ],
+            ),
+          ),
+        ),
+
+        _buildGap(),
+
+        /// Education Service
+        SliverToBoxAdapter(
+          child: CustomFormCardBGImg(
+            bgImage: "discover_bg_card_yellow.png",
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _title(AppStrings.educationTraining),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _buildMasonryGridWithIcons(
+                    items: businessOnboardingEducationTrainingCategories,
+                    crossAxisCount: 3,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon,
+                    onTap: (c) {
+                      Get.to(() => AllEducationServiceScreen(
+                          professionalConsultantCategories:
+                              businessOnboardingEducationTrainingCategories,
+                          selectedProfessionConsultantData: c));
+                    }),
+              ],
+            ),
+          ),
+        ),
+
+        _buildGap(),
+
+        /// Near By Jobs
+        SliverToBoxAdapter(
+          child: InkWell(
+            onTap: () {
+              Widget dest =
+                  isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
+
+              Get.to(() => dest);
+            },
+            child: CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _title(AppStrings.findDreamJob),
+                  SizedBox(height: SizeConfig.paddingXSL),
+                  Stack(
+                    children: [
+                      _bannerWidget(
+                          bannerImage: AppImageAssets.jobBanner,
+                          bannerHeight: SizeConfig.size180),
+                      Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 10,
+                          child: _buildHorizontalJobTabs([
+                            'Full-Time',
+                            'Part-Time',
+                            'Online',
+                            'Offline',
+                            'Near By'
+                          ]))
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
+        ),
 
-          _buildGap(),
+        _buildGap(),
 
-          SliverToBoxAdapter(child: searchProductsViaAiWidget()),
+        SliverToBoxAdapter(child: searchProductsViaAiWidget()),
 
-          _buildGap(),
+        _buildGap(),
 
-          SliverPadding(
-            padding: EdgeInsets.only(bottom: 100),
-            sliver: SliverToBoxAdapter(
-              child: Builder(builder: (_) {
-                getOrPut(() => EmergencyProfileController());
-                return EmergencyQrWidget(key: ValueKey('emergency_qr'));
-              }),
-            ),
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: 100),
+          sliver: SliverToBoxAdapter(
+            child: Builder(builder: (_) {
+              getOrPut(() => EmergencyProfileController());
+              return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+            }),
           ),
-          
-        ]
-
-
-      ),
+        ),
+      ]),
     );
   }
 
@@ -911,7 +905,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   }
 
   Widget _buildGap({double? gap}) {
-    return SliverToBoxAdapter(child: SizedBox(height: gap ?? SizeConfig.paddingXSL));
+    return SliverToBoxAdapter(
+        child: SizedBox(height: gap ?? SizeConfig.paddingXSL));
   }
 
   Widget _bannerWidget(
@@ -1171,7 +1166,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
-
   Widget _buildProductMasonryGrid() {
     return MasonryGridView.count(
       crossAxisCount: 3,
@@ -1248,8 +1242,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           getIcon: (item) => item.icon ?? '',
           iconHeight: SizeConfig.size80,
           onTap: (item) {
-            commonSnackBar(message: "Coming soon...");
-          },
+            Get.to(AllFoodServiceScreen(
+              professionalConsultantCategories:
+              businessOnboardingFoodsCategories,
+              selectedProfessionConsultantData: categoryItem,
+            ));          },
         );
       },
     );
@@ -1274,7 +1271,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           iconHeight: SizeConfig.size80,
           onTap: (item) {
             Get.to(() => ServicesNearMeScreen(
-                  businessServicesCategories: businessOnboardingServicesCategories,
+                  businessServicesCategories:
+                      businessOnboardingServicesCategories,
                 ));
           },
         );
@@ -1381,7 +1379,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         itemBuilder: (context, index) {
           var categoryItem = financeCategories[index];
           return InkWell(
-            onTap: (){
+            onTap: () {
               commonSnackBar(message: "Coming Soon...");
             },
             child: Container(
@@ -1391,10 +1389,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [AppShadows.textFieldShadow],
-                border: Border.all(
-                    color: AppColors.greyE5,
-                    width:  1.0
-                ),
+                border: Border.all(color: AppColors.greyE5, width: 1.0),
               ),
               alignment: Alignment.center,
               child: Column(
@@ -1402,7 +1397,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   LocalAssets(
-                    imagePath: categoryItem.icon??'',
+                    imagePath: categoryItem.icon ?? '',
                     height: SizeConfig.size60,
                     width: SizeConfig.size80,
                   ),

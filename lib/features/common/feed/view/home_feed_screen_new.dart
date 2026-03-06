@@ -266,21 +266,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             headerHeight: (widget.headerHeight ?? SizeConfig.size100),
             onVisibilityChanged: (visible, offset) {
               final controller = Get.find<HomeScreenController>();
-              final currentOffset = controller.headerOffset.value;
-
-              // Linear animation step (same speed up/down)
-              const step = 0.25;
-
-              double newOffset = currentOffset;
-              if (visible) {
-                // show header
-                newOffset = (currentOffset - step).clamp(0.0, 1.0);
-              } else {
-                // hide header
-                newOffset = (currentOffset + step).clamp(0.0, 1.0);
-              }
-
-              controller.headerOffset.value = newOffset;
+              controller.headerOffset.value = offset;
               controller.isVisible.value = visible;
               widget.onHeaderVisibilityChanged?.call(visible);
             },
