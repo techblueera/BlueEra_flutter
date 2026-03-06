@@ -34,16 +34,13 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
   }
 
   void _setupInitialVideo() {
-    // 1. Reset or prepare logic to avoid duplicates if controller stays alive
-    if (controller.videos.isEmpty || controller.videos.first.id != widget.videoData.id) {
-      // Only insert if it's not already the first item
-      if (controller.videos.contains(widget.videoData)) {
-        controller.videos.remove(widget.videoData);
-      }
-      // controller.videos.insert(0, widget.videoData);
-    }
+    // Reset controller state for fresh navigation
+    controller.reset();
 
-    // 2. Fetch API videos
+    // Insert the tapped video first so it shows immediately at index 0
+    controller.videos.add(widget.videoData);
+
+    // Fetch remaining videos from API
     controller.fetchVideos(feedId: widget.videoData.id);
   }
 
@@ -60,10 +57,12 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
       // 3. REMOVED Obx() from here. Don't rebuild the whole PageView on change.
       body: SafeArea(
         child: Obx(() {
-          // We wrap PageView in Obx ONLY to listen to 'controller.videos' changes (API load)
-          // We do NOT listen to 'currentIndex' here.
-          if (controller.isLoading.value) {
+          if (controller.videos.isEmpty && controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.videos.isEmpty) {
+            return const SizedBox.shrink();
           }
 
           return PageView.builder(
@@ -71,15 +70,15 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
             scrollDirection: Axis.vertical,
             itemCount: controller.videos.length,
             onPageChanged: (index) {
-              // Update the reactive index for the items
               currentIndex.value = index;
 
-              // Smart Pre-caching logic
               controller.updateCurrentIndex(index);
               controller.disposeDistantVideos(index);
 
-              // Pagination
-              if (index == controller.videos.length - 2 && controller.hasMore.value) {
+              // Pagination — trigger when 3 items from end
+              if (index >= controller.videos.length - 3 &&
+                  controller.hasMore.value &&
+                  !controller.isLoadingMore.value) {
                 controller.fetchVideos(loadMore: true, feedId: '');
               }
             },

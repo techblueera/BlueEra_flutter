@@ -12,19 +12,27 @@ import 'package:BlueEra/core/api/model/video_post_model.dart' show VideoPost;
 class VideoFeedController extends GetxController {
   var videos = <VideoPost>[].obs;
   var isLoading = false.obs;
+  var isLoadingMore = false.obs;
   var hasMore = true.obs;
   int _page = 1;
-  int _currentIndex = 0; // Track current video index
-
-
+  int _currentIndex = 0;
+  String _feedId = '';
 
   @override
   void onInit() {
     super.onInit();
-
   }
-  /// observable video list
-  // RxList<VideoPost> videosList = <VideoPost>[].obs;
+
+  /// Reset all state for fresh navigation
+  void reset() {
+    videos.clear();
+    isLoading.value = false;
+    isLoadingMore.value = false;
+    hasMore.value = true;
+    _page = 1;
+    _feedId = '';
+    _currentIndex = 0;
+  }
 
   /// Load initial data
   void setVideos(List<VideoPost> list) {
@@ -51,15 +59,21 @@ class VideoFeedController extends GetxController {
   //   videosNotifier.value = list;
   // }
 
-  Future<void> fetchVideos({bool loadMore = false,required String feedId}) async {
-
-    if (isLoading.value) return;
-    isLoading.value = true;
+  Future<void> fetchVideos({bool loadMore = false, required String feedId}) async {
+    if (loadMore) {
+      if (isLoadingMore.value || !hasMore.value) return;
+      isLoadingMore.value = true;
+    } else {
+      if (isLoading.value) return;
+      isLoading.value = true;
+      _page = 1;
+      _feedId = feedId;
+      hasMore.value = true;
+    }
 
     try {
-      if (!loadMore) _page = 1;
-
-      final fetchedData = await HomeFeedRepo().userFeedServiceVideoRepo(pageNo: _page, feedID: feedId);
+      final fetchedData = await HomeFeedRepo()
+          .userFeedServiceVideoRepo(pageNo: _page, feedID: _feedId);
       final data = fetchedData.response?.data;
 
       late final Map<String, dynamic> json;
@@ -72,59 +86,37 @@ class VideoFeedController extends GetxController {
         throw Exception('Unexpected response type: ${data.runtimeType}');
       }
 
-      // final fetched = (json['data'] as List)
-      //     .map((item) => VideoPost.fromJson(item))
-      //     .toList();
+      final fetched = (json['data'] as List)
+          .map((item) => VideoPost.fromJson(item))
+          .where((post) => !videos.any((existing) => existing.id == post.id))
+          .toList();
 
-    final fetched = (json['data'] as List)
-        .map((item) => VideoPost.fromJson(item))
-        .where((post) => !videos.any((existing) => existing.id == post.id)) // ✅ skip duplicates
-        .toList();
-
-    if (fetched.isEmpty) {
-      hasMore.value = false;
-    } else {
-      if (loadMore) {
-        videos.addAll(fetched);
+      if (fetched.isEmpty) {
+        hasMore.value = false;
       } else {
-        // FIX: Check if 'videos' has data before accessing .first
-        if (videos.isNotEmpty) {
-          final firstVideo = videos.first;
-          // Keep the currently playing video, replace the rest
-          videos.assignAll([firstVideo, ...fetched]);
+        if (loadMore) {
+          videos.addAll(fetched);
         } else {
-          // First load (list was empty), just assign fetched data
-          videos.assignAll(fetched);
+          if (videos.isNotEmpty) {
+            final firstVideo = videos.first;
+            videos.assignAll([firstVideo, ...fetched]);
+          } else {
+            videos.assignAll(fetched);
+          }
         }
+        _page++;
       }
-      _page++;
-    }
-      // final fetched = (json['data'] as List)
-      //     .map((item) => VideoPost.fromJson(item))
-      //     .where((post) => !videos.any((existing) => existing.id == post.id)) // ✅ skip duplicates
-      //     .toList();
-      //
-      // if (fetched.isEmpty) {
-      //   hasMore.value = false;
-      // } else {
-      //   if (loadMore) {
-      //     videos.addAll(fetched);
-      //   } else {
-      //     final firstVideo = videos.first;
-      //     videos.assignAll([firstVideo, ...fetched]);
-      //   }
-      //   _page++;
-      // }
 
-      // ✅ Preload videos around current index
       _precacheVideosAroundIndex(_currentIndex);
-
-
     } catch (e) {
       debugPrint("Error fetching videos: $e");
-      hasMore.value = false;
+      if (!loadMore) hasMore.value = false;
     } finally {
-      isLoading.value = false;
+      if (loadMore) {
+        isLoadingMore.value = false;
+      } else {
+        isLoading.value = false;
+      }
     }
   }
 
