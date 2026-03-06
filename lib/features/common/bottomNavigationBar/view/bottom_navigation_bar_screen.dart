@@ -53,6 +53,7 @@ import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
+import '../../../me/manufacture/view/manufacture_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 import 'package:share_handler/share_handler.dart';
@@ -448,7 +449,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const OthersMain();
     } else if (checkInventoryEligibility(
         businessTypeGlobal, businessCategoryGlobal)) {
-      return const InventoryScreen(fromBottomNavBar: true);
+      return const ManufactureMain();
     } else {
       /// right now showing inventory (will remove this)
       return const InventoryScreen(fromBottomNavBar: true);

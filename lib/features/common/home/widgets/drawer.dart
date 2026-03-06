@@ -3,6 +3,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
 import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
+import 'package:BlueEra/features/personal/resume/sections/profile_section.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +37,7 @@ import '../../../personal/personal_profile/view/franchise/request_to_franchise.d
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
+import '../../../personal/personal_profile/view/profile_settings_drawer.dart';
 import '../../../personal/personal_profile/view/profile_setup_new_screen.dart';
 import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
@@ -381,11 +384,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "Franchise Inquiry",
-        onTap: () => Get.to(FranchiseInquiryScreen()),
+        onTap: () => Get.to(()=>FranchiseInquiryScreen()),
       ),
       MenuItemModel(
         title: "Account Settings",
-        onTap: () => Get.to(AccountSettingScreen()),
+        onTap: () => Get.to(()=>AccountSettingScreen()),
+      ), MenuItemModel(
+        title: "Profile Settings",
+        onTap: () => Get.to(()=>ProfileSettingsDrawer()),
       ),
       MenuItemModel(
         title: "Manage Notification",
@@ -407,6 +413,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       'assets/images/channel.png',
       'assets/images/documents.png',
       'assets/images/franchise.png',
+      'assets/images/profilesetting.png',
       'assets/images/profilesetting.png',
       'assets/images/notify.png',
       'assets/images/help.png'
