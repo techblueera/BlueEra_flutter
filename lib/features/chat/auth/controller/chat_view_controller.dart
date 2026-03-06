@@ -70,6 +70,7 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> groupDetailsResponse =
       ApiResponse.initial('Initial').obs;
   RxInt personalTabSelectedIndex=0.obs;
+  RxInt businessChatTabSelectedIndex=0.obs;
   Rx<ApiResponse> viewContactsListResponse = ApiResponse.initial('Initial').obs;
   final chatSocket = ChatSocketService();
   final aiSocket = AiSocketService();
@@ -272,6 +273,43 @@ class ChatViewController extends GetxController {
   RxInt businessTabIndexSelected = 0.obs;
   RxBool chatBotReading = false.obs;
   RxBool viewAllMembers = false.obs;
+
+  // Chat list selection mode (WhatsApp-style long press)
+  RxBool isChatListSelectionMode = false.obs;
+  RxList<String> selectedConversationIds = <String>[].obs;
+  RxList<ChatList?> selectedChatItems = <ChatList?>[].obs;
+
+  void toggleChatListSelection(ChatList? chat) {
+    final convId = chat?.conversationId ?? '';
+    if (convId.isEmpty) return;
+    if (selectedConversationIds.contains(convId)) {
+      selectedConversationIds.remove(convId);
+      selectedChatItems.removeWhere((c) => c?.conversationId == convId);
+    } else {
+      selectedConversationIds.add(convId);
+      selectedChatItems.add(chat);
+    }
+    if (selectedConversationIds.isEmpty) {
+      isChatListSelectionMode.value = false;
+    }
+  }
+
+  void exitChatListSelectionMode() {
+    isChatListSelectionMode.value = false;
+    selectedConversationIds.clear();
+    selectedChatItems.clear();
+  }
+
+  void selectAllChats(List<ChatList?> allChats) {
+    selectedConversationIds.clear();
+    selectedChatItems.clear();
+    for (final chat in allChats) {
+      if (chat?.conversationId != null) {
+        selectedConversationIds.add(chat!.conversationId!);
+        selectedChatItems.add(chat);
+      }
+    }
+  }
 
   File? editedGroupFile;
   File? editedGroupCoverFile;

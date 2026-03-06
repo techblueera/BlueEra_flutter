@@ -24,6 +24,9 @@ import '../../../core/routes/route_helper.dart';
 import '../../../widgets/custom_text_cm.dart';
 import '../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../auth/controller/add_chat_symbol_controller.dart';
+import '../auth/controller/chat_flag_controller.dart';
+import '../auth/controller/chat_pin_archive_controller.dart';
+import '../auth/model/GetChatListModel.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import 'add_symbol/add_symbol_screen.dart';
@@ -62,6 +65,12 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       chatViewController = Get.find<ChatViewController>();
     } else {
       chatViewController = Get.put(ChatViewController());
+    }
+    if (!Get.isRegistered<ChatFlagController>()) {
+      Get.put(ChatFlagController());
+    }
+    if (!Get.isRegistered<ChatPinArchiveController>()) {
+      Get.put(ChatPinArchiveController());
     }
     if (Get.isRegistered<ChatThemeController>()) {
       chatThemeController = Get.find<ChatThemeController>();
@@ -150,8 +159,16 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       widget.onHeaderVisibilityChanged?.call(true);
     });
 
-    return WillPopScope(
+    return Obx(() {
+      final isSelectionMode = chatViewController.isChatListSelectionMode.value;
+      final selectedCount = chatViewController.selectedConversationIds.length;
+
+      return WillPopScope(
       onWillPop: () async{
+        if (isSelectionMode) {
+          chatViewController.exitChatListSelectionMode();
+          return false;
+        }
         if(chatViewController.chatMainTabController?.index==0){
           bottomBarController.onChangeIndex(0);
         }else{
@@ -161,7 +178,8 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       },
       child: Scaffold(
         floatingActionButton: (_isFromForward()) ||
-            chatViewController.chatMainTabController?.index == 1
+            chatViewController.chatMainTabController?.index == 1 ||
+            isSelectionMode
             ? SizedBox()
             : SafeArea(
           child: Padding(
@@ -188,25 +206,118 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
+                if (isSelectionMode)
+                  SliverAppBar(
+                    backgroundColor: Colors.white,
+                    elevation: 0.5,
+                    floating: false,
+                    pinned: true,
+                    automaticallyImplyLeading: false,
+                    titleSpacing: 0,
+                    title: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.black),
+                          onPressed: () => chatViewController.exitChatListSelectionMode(),
+                        ),
+                        CustomText(
+                          "$selectedCount",
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      _selectionActionIcon(Icons.label_outline, () {
+                        // Label / flag action
+                      }),
+                      _selectionActionIcon(Icons.push_pin_outlined, () {
+                        final controller = Get.find<ChatPinArchiveController>();
+                        final ids = chatViewController.selectedConversationIds.toList();
+                        final isBiz = (chatViewController.chatMainTabController?.index ?? 0) == 1;
+                        final allPinned = ids.every((id) => controller.isPinned(id, isBusiness: isBiz));
+                        if (allPinned) {
+                          controller.unpinMultiple(ids, isBusiness: isBiz);
+                        } else {
+                          controller.pinMultiple(ids, isBusiness: isBiz);
+                        }
+                        chatViewController.exitChatListSelectionMode();
+                      }),
+                      _selectionActionIcon(Icons.volume_off_outlined, () {
+                        // Mute action
+                      }),
+                      _selectionActionIcon(Icons.archive_outlined, () {
+                        final controller = Get.find<ChatPinArchiveController>();
+                        final ids = chatViewController.selectedConversationIds.toList();
+                        final isBiz = (chatViewController.chatMainTabController?.index ?? 0) == 1;
+                        controller.archiveMultiple(ids, isBusiness: isBiz);
+                        chatViewController.exitChatListSelectionMode();
+                      }),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.black),
+                        offset: const Offset(0, 40),
+                        color: Colors.white,
+                        elevation: 8,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'mark_unread':
+                              break;
+                            case 'select_all':
+                              final currentTab = chatViewController.chatMainTabController?.index ?? 0;
+                              final List<ChatList> allChats;
+                              if (currentTab == 1) {
+                                allChats = chatViewController
+                                    .getBusinessChatListModel?.value.chatList
+                                    ?.whereType<ChatList>()
+                                    .toList() ?? [];
+                              } else {
+                                allChats = chatViewController
+                                    .getPersonalChatListModel?.value.chatList
+                                    ?.whereType<ChatList>()
+                                    .toList() ?? [];
+                              }
+                              chatViewController.selectAllChats(allChats);
+                              break;
+                            case 'lock_chats':
+                              break;
+                            case 'add_favourites':
+                              break;
+                            case 'clear_chats':
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: 'mark_unread', child: Text('Mark as unread')),
+                          const PopupMenuItem(value: 'select_all', child: Text('Select all')),
+                          const PopupMenuItem(value: 'lock_chats', child: Text('Lock chats')),
+                          const PopupMenuItem(value: 'add_favourites', child: Text('Add to Favourites')),
+                          const PopupMenuItem(value: 'clear_chats', child: Text('Clear chats')),
+                        ],
+                      ),
+                    ],
+                  )
+                else
                 SliverAppBar(
                   backgroundColor: Colors.white,
                   elevation: 0,
                   floating: true,
-                  // appear on scroll up
                   snap: true,
-                  // instantly snap down
                   pinned: false,
-                  // don't keep the header fixed
                   automaticallyImplyLeading: false,
                   flexibleSpace: Padding(
                     padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: _buildHeader(context), // your header row
+                    child: _buildHeader(context),
                   ),
                   expandedHeight: 72,
                 ),
+                if (!isSelectionMode)
                 SliverPersistentHeader(
-                  pinned: true, // TabBar should always stay visible
+                  pinned: true,
                   delegate: _TabBarDelegate(
                     TabBar(
                       onTap: (index) {
@@ -221,13 +332,8 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       },
                       controller: chatViewController.chatMainTabController,
                       labelColor: Colors.black,
-                      // isScrollable: true,
-
-                      // REMOVE LEFT SPACE
                       padding: EdgeInsets.zero,
                       labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      // adjust if needed
-
                       unselectedLabelColor: Colors.black54,
                       indicatorColor: Colors.lightBlue,
                       tabs:  [
@@ -334,6 +440,15 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
           ),
         ),
       ),
+    );
+    });
+  }
+
+  Widget _selectionActionIcon(IconData icon, VoidCallback onPressed) {
+    return IconButton(
+      icon: Icon(icon, color: Colors.black),
+      onPressed: onPressed,
+      splashRadius: 20,
     );
   }
 

@@ -14,6 +14,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import '../../auth/controller/chat_flag_controller.dart';
+import 'chat_flag_bottom_sheet.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
@@ -173,6 +175,52 @@ Widget noGroupChatsFound() {
   );
 }
 
+Widget _buildChatListName({
+  String? senderName,
+  String? senderContactNo,
+  required String conversationId,
+}) {
+  final flagCtrl = Get.isRegistered<ChatFlagController>()
+      ? Get.find<ChatFlagController>()
+      : null;
+  if (flagCtrl == null) {
+    return CustomText(
+      "${(senderName == null || senderName == "null") ? senderContactNo : senderName}",
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      fontSize: SizeConfig.size16,
+      fontWeight: FontWeight.bold,
+    );
+  }
+  return Obx(() {
+    final flag = flagCtrl.getFlagForConversation(conversationId);
+    return Row(
+      children: [
+        Flexible(
+          child: CustomText(
+            "${(senderName == null || senderName == "null") ? senderContactNo : senderName}",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            fontSize: SizeConfig.size16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (flag != null) ...[
+          const SizedBox(width: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              color: flag.color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(flag.emoji, style: const TextStyle(fontSize: 12)),
+          ),
+        ],
+      ],
+    );
+  });
+}
+
 Widget  ChatListTile({
   required Function onSelect,
   required String type,
@@ -180,6 +228,9 @@ Widget  ChatListTile({
   required bool? isForwardUI,
   bool? isFromGroupSelect,
   Function()? onTab,
+  Function()? onLongPress,
+  bool isChatListSelected = false,
+  bool isPinned = false,
   required int index,
   required ChatViewController chatViewController,
   required ChatList? chat,
@@ -228,8 +279,14 @@ Widget  ChatListTile({
       null))
       ? const SizedBox()
       : InkWell(
+    onLongPress: onLongPress,
     onTap: onTab ??
             () {
+          if (chatViewController.isChatListSelectionMode.value) {
+            chatViewController.toggleChatListSelection(chat);
+            onSelect();
+            return;
+          }
           if (isForwardUI == true) {
             selectChatListCard();
           } else {
@@ -245,7 +302,10 @@ Widget  ChatListTile({
             );
           }
         },
-    child: Padding(
+    child: Container(
+      color: isChatListSelected
+          ? AppColors.primaryColor.withValues(alpha: 0.08)
+          : Colors.transparent,
       padding: EdgeInsets.only(
         right: SizeConfig.size16,
         left: (chat?.symbolData?.isNotEmpty??false)?13.5:SizeConfig.size16,
@@ -441,14 +501,10 @@ Widget  ChatListTile({
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CustomText(
-                  "${(senderName == null || senderName == "null")
-                      ? senderContactNo
-                      : senderName}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  fontSize: SizeConfig.size16,
-                  fontWeight: FontWeight.bold,
+                _buildChatListName(
+                  senderName: senderName,
+                  senderContactNo: senderContactNo,
+                  conversationId: conversationId,
                 ),
                 SizedBox(height: SizeConfig.size2),
                 SizedBox(
@@ -527,19 +583,27 @@ Widget  ChatListTile({
                 color: AppColors.grey9A,
               ),
               SizedBox(height: SizeConfig.size6),
-              (index == 0 || index == 1 || index == 2)
-                  ? (unreadCount == 0)
-                  ? const SizedBox()
-                  : CircleAvatar(
-                radius: SizeConfig.size12,
-                backgroundColor: Colors.lightBlue,
-                child: CustomText(
-                  "$unreadCount",
-                  color: AppColors.white,
-                  fontSize: SizeConfig.size12,
-                ),
-              )
-                  : const SizedBox(),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isPinned)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Icon(Icons.push_pin,
+                          size: 14, color: Colors.grey.shade500),
+                    ),
+                  if ((index == 0 || index == 1 || index == 2) && unreadCount > 0)
+                    CircleAvatar(
+                      radius: SizeConfig.size12,
+                      backgroundColor: Colors.lightBlue,
+                      child: CustomText(
+                        "$unreadCount",
+                        color: AppColors.white,
+                        fontSize: SizeConfig.size12,
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
           if (isForwardUI == true)
@@ -553,7 +617,7 @@ Widget  ChatListTile({
                 ),
               ),
               child: Transform.scale(
-                scale: 1.3, // 👈 increase this (1.2 – 1.8 recommended)
+                scale: 1.3,
                 child: Checkbox(
                   activeColor: Colors.blue,
                   checkColor: Colors.white,
@@ -561,7 +625,17 @@ Widget  ChatListTile({
                   onChanged: (_) => selectChatListCard(),
                 ),
               ),
-            )
+            ),
+          if (isChatListSelected)
+            Container(
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 16),
+            ),
         ],
       ),
     ),
@@ -1078,28 +1152,54 @@ AppBar getChatTitleAppBar(BuildContext context, {
         : [
       SizedBox(width: SizeConfig.size8),
       if(isGroupAppBar == null&&isFromAiChat!=true)
+        Builder(
+          builder: (ctx) {
+            final flagCtrl = Get.isRegistered<ChatFlagController>()
+                ? Get.find<ChatFlagController>()
+                : Get.put(ChatFlagController());
+            return Obx(() {
+              final existingFlag = flagCtrl.getFlagForConversation(conversationId);
+              return InkWell(
+                onTap: () {
+                  Get.dialog(
+                    GestureDetector(
+                      onTap: () {
+                        Get.back();
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Material(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 12, top: 80),
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: ChatFlagDropdown(
+                                conversationId: conversationId ?? '',
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    barrierDismissible: false,
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: existingFlag != null
+                      ? Text(existingFlag.emoji, style: const TextStyle(fontSize: 20))
+                      : Icon(Icons.flag_outlined,
+                          color: AppColors.chat_input_icon_color, size: 24),
+                ),
+              );
+            });
+          },
+        ),
+      if(isGroupAppBar == null&&isFromAiChat!=true)
         InkWell(
             onTap: () {
-              // Map<String,dynamic> data={
-              //   if(conversationId!=null)
-              //     "conversation_id": "${conversationId}",
-              //   if(conversationId==null)
-              //     "other_user_id": "${userId}",
-              //   "call_type": "audio_call"
-              // };
-              // callController.callToUser(data);
-              // Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //         builder: (context) => AudioCallScreen(
-              //               isCaller: true,
-              //               conversationId: conversationId,
-              //               userId: userId,
-              //               callerName: name ?? '',
-              //           conversation_id: conversationId??'',
-              //           receiverImage: '',
-              //           receiverUserName: name ?? '',
-              //             )));
               launchDialPad(contactNo ?? '');
             },
             child: SvgPicture.asset(AppIconAssets.chat_call)),
