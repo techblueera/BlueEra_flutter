@@ -4,6 +4,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -81,7 +82,7 @@ import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_stores_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_subcategory_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_variant_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
@@ -93,7 +94,7 @@ import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_car
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_confirm_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_listing_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_subcategory_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/medical_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_variant_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
@@ -526,6 +527,9 @@ class RouteHelper {
 
   static String getGroceryStoresScreenRoute() =>
       RouteConstant.groceryStoresScreen;
+
+  static String getAddGrocerySnapSearchScreenRoute() =>
+      RouteConstant.addGrocerySnapSearchScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1619,6 +1623,12 @@ class RouteHelper {
                       selectedGroceryCategory: selectedGroceryCategoryData
                   ),
                   settings: RouteSettings(name: getGroceryStoresScreenRoute())
+              );
+
+    case RouteConstant.addGrocerySnapSearchScreen:
+                return MaterialPageRoute(
+                  builder: (_) => AddGrocerySnapSearchScreen(),
+                  settings: RouteSettings(name: getAddGrocerySnapSearchScreenRoute())
               );
 
 

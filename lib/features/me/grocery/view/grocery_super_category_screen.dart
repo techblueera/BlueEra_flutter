@@ -1,16 +1,22 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_category_item.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_data.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class GrocerySuperCategoryScreen extends StatelessWidget {
@@ -21,6 +27,8 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<CollapsibleGridModel> superCategories = GroceryData.grocerySuperCategories;
+
+
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
@@ -38,35 +46,121 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                 itemBuilder: (context) => groceryPopUpMenuItems(),
               ),
       ),
-      body: ListView.builder(
-        itemCount: superCategories.length,
-        padding: EdgeInsets.only(
-            left: SizeConfig.size8,
-            right: SizeConfig.size8,
-            top: SizeConfig.size15,
-            bottom: SizeConfig.size30,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8,
+          vertical: SizeConfig.size15,
         ),
-        itemBuilder: (context, index) {
-          var groceryData = superCategories[index];
+        child: SafeArea(
+          child: Column(
+            children: [
 
-          return GroceryCategoryItem(
-            url: groceryData.icon??'',
-            label: groceryData.name,
-            onTap: () {
-              // getCategoriesByTag(groceryData.slugId);
+              CustomFormCard(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        CustomText(
+                            'Bulk Upload Shop Product Photos',
+                            fontSize: SizeConfig.large,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w600
+                        ),
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      MasonryGridView.count(
+                        shrinkWrap: true,
+                        primary: false,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: controller.grocerySnapSearchPhotos.length,
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        padding: EdgeInsets.zero,
+                        itemBuilder: (context, index) {
+                          var item = controller.grocerySnapSearchPhotos[index];
+                          return InkWell(
+                            onTap:()=> Get.toNamed(RouteHelper.getAddGrocerySnapSearchScreenRoute()),
+                            child: ClipRRect(
+                             borderRadius: BorderRadius.circular(10.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.greyE5
+                                  ),
+                                ),
+                                child: LocalAssets(
+                                    imagePath: item,
+                                    height: SizeConfig.size120,
+                                    width: double.infinity,
+                                    boxFix: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    ],
+                  )
+              ),
 
-              Get.toNamed(
-                RouteHelper.getGroceryCategoryScreenRoute(),
-                arguments: {
-                  ApiKeys.argMyGrocery: true,
-                  ApiKeys.argArrGrocerySuperCategory: superCategories,
-                  ApiKeys.argArrGroceryCatKey: groceryData.slugId,
-                  ApiKeys.argArrGroceryCatName: groceryData.name,
-                },
-              );
-            },
-          );
-        },
+              SizedBox(
+                height: SizeConfig.paddingXSL
+              ),
+
+              CustomFormCard(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                        'Category',
+                        fontSize: SizeConfig.large,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600
+                    ),
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    MasonryGridView.count(
+                      shrinkWrap: true,
+                      primary: false,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: superCategories.length,
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context, index) {
+                        var superCategory = superCategories[index];
+                        return CommonServiceCard<CollapsibleGridModel>(
+                          service: superCategory,
+                          getName: (item) => item.name,
+                          getIcon: (item) => item.icon??'',
+                          iconHeight: SizeConfig.size60,
+                          boxShadow: [],
+                          onTap: (item) {
+                            // getCategoriesByTag(item.slugId);
+
+                            Get.toNamed(
+                              RouteHelper.getGroceryCategoryScreenRoute(),
+                              arguments: {
+                                ApiKeys.argMyGrocery: true,
+                                ApiKeys.argArrGrocerySuperCategory: superCategories,
+                                ApiKeys.argArrGroceryCatKey: item.slugId,
+                                ApiKeys.argArrGroceryCatName: item.name,
+                              },
+                            );
+                          },
+                        );
+                      },
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

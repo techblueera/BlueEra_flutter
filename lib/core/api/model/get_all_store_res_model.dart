@@ -26,6 +26,8 @@ class GetAllStoreResModel {
   bool? isFollowed;
   CategoryOfBusiness? categoryOfBusiness;
   SubCategoryOfBusiness? subCategoryOfBusiness;
+  int? totalProductCount;
+  int? totalCategoryCount;
 
   GetAllStoreResModel({
     this.livePhotos,
@@ -47,6 +49,8 @@ class GetAllStoreResModel {
     this.isFollowed,
     this.categoryOfBusiness,
     this.subCategoryOfBusiness,
+    this.totalProductCount,
+    this.totalCategoryCount,
   });
 
   factory GetAllStoreResModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +84,9 @@ class GetAllStoreResModel {
       subCategoryOfBusiness: json['sub_category_of_business'] != null
           ? SubCategoryOfBusiness.fromJson(json['sub_category_of_business'])
           : null,
+      totalProductCount: json['total_product_count'],
+      totalCategoryCount: json['total_category_count'],
+
     );
   }
 
@@ -104,6 +111,8 @@ class GetAllStoreResModel {
     map['is_followed'] = isFollowed;
     map['category_of_business'] = categoryOfBusiness?.toJson();
     map['sub_category_of_business'] = subCategoryOfBusiness?.toJson();
+    map['total_product_count'] = totalProductCount;
+    map['total_category_count'] = totalCategoryCount;
     return map;
   }
 
@@ -133,7 +142,9 @@ class GetAllStoreResModel {
     bool? isFollowed,
     num? distance,
     CategoryOfBusiness? categoryOfBusiness,
-    SubCategoryOfBusiness? subCategoryOfBusiness
+    SubCategoryOfBusiness? subCategoryOfBusiness,
+    int? totalProductCount,
+    int? totalCategoryCount
   }) {
     return GetAllStoreResModel(
       livePhotos: livePhotos ?? this.livePhotos,
@@ -155,6 +166,8 @@ class GetAllStoreResModel {
       isFollowed: isFollowed ?? this.isFollowed,
       categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
       subCategoryOfBusiness: subCategoryOfBusiness ?? this.subCategoryOfBusiness,
+      totalProductCount: totalProductCount ?? this.totalProductCount,
+      totalCategoryCount: totalCategoryCount ?? this.totalCategoryCount,
     );
   }
 }

@@ -9,7 +9,7 @@ class ApiResponse<T> {
 
   ApiResponse.initial([this.message]) : status = Status.INITIAL;
 
-  // ApiResponse.loading([this.message]) : status = Status.LOADING;
+  ApiResponse.loading([this.message]) : status = Status.LOADING;
 
   ApiResponse.error([this.message]) : status = Status.ERROR;
 

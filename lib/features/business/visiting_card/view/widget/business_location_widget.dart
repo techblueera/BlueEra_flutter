@@ -165,89 +165,82 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
     );
   }
 }
-/*
 
 
-// class BusinessLocationWidget extends StatefulWidget {
-//   final double latitude;
-//   final double longitude;
-//   final String businessName;
-//   final bool isTitleShow;
-//   final String? locationText;
-//   final double? padding;
-//
-//   const BusinessLocationWidget({
-//     super.key,
-//     required this.latitude,
-//     required this.longitude,
-//     required this.businessName,
-//     required this.isTitleShow,
-//     this.locationText,
-//     this.padding,
-//   });
-//
-//   @override
-//   State<BusinessLocationWidget> createState() => _BusinessLocationWidgetState();
-// }
-//
-//
-// class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
-//   // 1. Move the controller INSIDE the state
-//   GoogleMapController? _mapController;
-//
-//   final Set<Marker> _markers = {};
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadMarker();
-//   }
-//
-//   void _loadMarker() {
-//     _markers.add(
-//       Marker(
-//         markerId: const MarkerId("business_id"),
-//         position: LatLng(widget.latitude, widget.longitude),
-//         infoWindow: InfoWindow(title: widget.businessName),
-//       ),
-//     );
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return SizedBox(
-//       height: 250,
-//       width: double.infinity,
-//       child: ClipRRect(
-//         borderRadius: BorderRadius.circular(12),
-//         child: GoogleMap(
-//           mapType: MapType.normal,
-//           compassEnabled: false,
-//           myLocationEnabled: true, // Requires Info.plist permissions!
-//           myLocationButtonEnabled: false,
-//           // Use the widget's actual location for the initial position
-//           initialCameraPosition: CameraPosition(
-//             target: LatLng(widget.latitude, widget.longitude),
-//             zoom: 16.5,
-//           ),
-//           markers: _markers,
-//           onMapCreated: (GoogleMapController controller) {
-//             _mapController = controller;
-//           },
-//         ),
-//       ),
-//     );
-//   }
-//
-//   @override
-//   void dispose() {
-//     // 2. CRITICAL: Dispose the controller to stop the iOS crash
-//     _mapController?.dispose();
-//     super.dispose();
-//   }
-// }
-//
-// */
+class BusinessLocationMapWidget extends StatefulWidget {
+  final double latitude;
+  final double longitude;
+  final String businessName;
+
+  const BusinessLocationMapWidget({
+    super.key,
+    required this.latitude,
+    required this.longitude,
+    required this.businessName,
+  });
+
+  @override
+  State<BusinessLocationMapWidget> createState() => _BusinessLocationMapWidgetState();
+}
+
+
+class _BusinessLocationMapWidgetState extends State<BusinessLocationMapWidget> {
+  // 1. Move the controller INSIDE the state
+  GoogleMapController? _mapController;
+
+  final Set<Marker> _markers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarker();
+  }
+
+  void _loadMarker() {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId("business_id"),
+        position: LatLng(widget.latitude, widget.longitude),
+        infoWindow: InfoWindow(title: widget.businessName),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      width: double.infinity,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: GoogleMap(
+          mapType: MapType.normal,
+          compassEnabled: false,
+          myLocationEnabled: true, // Requires Info.plist permissions!
+          myLocationButtonEnabled: false,
+          // Use the widget's actual location for the initial position
+          initialCameraPosition: CameraPosition(
+            target: LatLng(widget.latitude, widget.longitude),
+            zoom: 14.0,
+          ),
+          markers: _markers,
+          onMapCreated: (GoogleMapController controller) {
+            _mapController = controller;
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    // 2. CRITICAL: Dispose the controller to stop the iOS crash
+    _mapController?.dispose();
+    super.dispose();
+  }
+}
+
+
 //
 // class BusinessLocationWidget extends StatefulWidget {
 //   final double latitude;

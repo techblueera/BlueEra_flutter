@@ -306,7 +306,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
                         )
                       ),
                       child: CustomText(
-                          '10 Category',
+                          '${store.totalCategoryCount} Category',
                           fontSize: SizeConfig.small,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w600),
@@ -326,7 +326,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
                           )
                       ),
                       child: CustomText(
-                          '10K Product',
+                          '${store.totalProductCount} Product',
                           fontSize: SizeConfig.small,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w600),

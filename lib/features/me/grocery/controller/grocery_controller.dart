@@ -1,24 +1,31 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/my_grocery_products_reponse.dart';
-import 'package:BlueEra/features/me/grocery/model/my_grocery_super_category_model.dart';
+import 'package:BlueEra/features/me/grocery/model/my_grocery_category_with_variants_model.dart';
 import 'package:BlueEra/features/me/grocery/view/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_varient_dialog.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -47,6 +54,10 @@ class GroceryController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> fetchMyGroceryCategoryResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> fetchGroceryBusinessProductsResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> grocerySnapSearchResponse =
+      ApiResponse.initial('Initial').obs;
 
   final selectedGroceryData = Rxn<GroceryNestedCategoryModel>();
 
@@ -65,6 +76,17 @@ class GroceryController extends GetxController {
   Map<String, List<VariantsData>> selectedProductVariants = {};
 
   Rx<OnboardingCategoryModel?> selectedGroceryCategoryData = Rx<OnboardingCategoryModel?>(null);
+
+  final RxList<File> grocerySnapSearchImages = <File>[].obs;
+  Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
+  // RxList<FoundProducts> groceryFoundProducts = <FoundProducts>[].obs;
+  List<String> grocerySnapSearchPhotos = [
+    AppImageAssets.groceryImageFirst,
+    AppImageAssets.groceryImageSecond,
+    AppImageAssets.groceryImageThird,
+    AppImageAssets.groceryImageFourth
+  ];
+  int maxUploadImages = 4;
 
   void toggleSelection(GroceryProductData p) {
     if (selectedGroceries.contains(p)) {
@@ -230,8 +252,42 @@ class GroceryController extends GetxController {
     );
   }
 
-  RxBool isInitialLoading = false.obs;
+  /// Pick and add images
+  Future<void> addImages() async {
+    final selectedImages = await pickImages('Shop Product Photos');
+    if (selectedImages == null || selectedImages.isEmpty) return;
 
+    final newFiles = selectedImages.map((e) => File(e)).toList();
+    final remaining = maxUploadImages - grocerySnapSearchImages.length;
+    if (remaining <= 0) {
+      commonSnackBar(
+          message:
+          '${AppStrings.youCanOnlyUpload.tr} $maxUploadImages ${AppStrings.images.tr}');
+      return;
+    }
+
+    grocerySnapSearchImages.addAll(newFiles.take(remaining));
+  }
+
+  Future<List<String>?> pickImages(String title) async {
+    final List<String>? selected =
+    await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+    if (selected != null && selected.isNotEmpty) {
+      return selected;
+    }
+    return null;
+  }
+
+  /// Remove image
+  void removeImageAt({
+    required int index,
+  }) {
+    if (index >= 0 && index < grocerySnapSearchImages.length) {
+      grocerySnapSearchImages.removeAt(index);
+    }
+  }
+
+  RxBool isInitialLoading = false.obs;
   Future<void> fetchBoth() async {
     try {
       isInitialLoading.value = true;
@@ -483,20 +539,78 @@ class GroceryController extends GetxController {
     return payload;
   }
 
-  /// Fetch Grocery Products
-  RxBool myGroceryCategoryLoading = true.obs;
-  RxList<MyGrocerySuperCategoryModel> myGroceryCategoryList = <MyGrocerySuperCategoryModel>[].obs;
+  Future<void> fetchGrocerySnapSearchApi() async {
+    if (grocerySnapSearchImages.length < 2) {
+      commonSnackBar(message: "Please upload at least 2 photos");
+      return;
+    }
 
-  Future<void> fetchMyGroceryCategory() async {
     try {
-      myGroceryCategoryLoading.value = true;
+
+      grocerySnapSearchResponse.value = ApiResponse.loading('Loading');
+
+      List<dio.MultipartFile> imageByPart = [];
+
+      for (final image in grocerySnapSearchImages) {
+        final fileName = image.path.split('/').last;
+        imageByPart.add(
+            await dio.MultipartFile.fromFile(
+              image.path,
+              filename: fileName,
+            ));
+      }
+      Map<String, dynamic> params = {
+        ApiKeys.images : imageByPart
+      };
+
+      ResponseModel responseModel = await GroceryRepo().fetchGrocerySnapSearchRepo(
+        params: params
+      );
+      if (responseModel.isSuccess) {
+        grocerySnapSearchResponse.value = ApiResponse.complete(responseModel);
+        var grocerySnapSearchResponseModel = GrocerySnapSearchResponseModel.fromJson(responseModel.response?.data);
+        productSnapSearchData.value = grocerySnapSearchResponseModel.data;
+        // groceryFoundProducts.value = grocerySnapSearchResponseModel.data?.foundProducts ?? [];
+      } else {
+        grocerySnapSearchResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      grocerySnapSearchResponse.value = ApiResponse.error('error');
+      log("Stack Trace===== $s");
+    }
+  }
+
+
+  /// Fetch Grocery Products
+  RxBool myGroceryLoading = true.obs;
+  RxList<MyGroceryCategoryWithVariantsModel> myGroceryCategoryList = <MyGroceryCategoryWithVariantsModel>[].obs;
+  RxList<BusinessProductData> groceryBusinessProductsList = <BusinessProductData>[].obs;
+
+  Future<void> fetchAllMyGroceryData() async {
+    try {
+      myGroceryLoading.value = true;
+
+      // 1. Run both repo calls in parallel
+      await Future.wait([
+        fetchMyGroceryCategoryWithVariants(),
+        fetchGroceryBusinessProductsRepo(),
+      ]);
+
+    } catch (e) {
+    } finally {
+      myGroceryLoading.value = false;
+    }
+  }
+
+  Future<void> fetchMyGroceryCategoryWithVariants() async {
+    try {
       ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo();
       if (responseModel.isSuccess) {
         fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
         final List listData = responseModel.response?.data ?? [];
 
         myGroceryCategoryList.value = listData
-            .map((e) => MyGrocerySuperCategoryModel.fromJson(e))
+            .map((e) => MyGroceryCategoryWithVariantsModel.fromJson(e))
             .toList();
 
         log("Loaded ${myGroceryCategoryList.length}");
@@ -506,11 +620,33 @@ class GroceryController extends GetxController {
     } catch (e) {
       fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
       log("ERROR===== $e");
-    } finally{
-      myGroceryCategoryLoading.value = false;
-    }
+     }
   }
 
+  Future<void> fetchGroceryBusinessProductsRepo() async {
+    try {
+      Map<String, dynamic> params = {
+        ApiKeys.businessId: userId,
+        ApiKeys.sortBy: "discount_high_to_low",
+      };
+      ResponseModel responseModel = await GroceryRepo().fetchGroceryBusinessProductsRepo(
+        params: params
+      );
+      if (responseModel.isSuccess) {
+
+        fetchGroceryBusinessProductsResponse.value = ApiResponse.complete(responseModel);
+        var groceryBusinessProductsModel = GroceryBusinessProductsModel.fromJson(responseModel.response?.data);
+        groceryBusinessProductsList.value = groceryBusinessProductsModel.data ?? [];
+
+        log("Loaded ${groceryBusinessProductsList.length}");
+      }else{
+        fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
+      log("Stack Trace===== $s");
+    }
+  }
 
   /// Fetch Grocery Products
   RxList<Products> myGroceryProductsList = <Products>[].obs;

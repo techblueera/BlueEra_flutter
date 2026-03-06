@@ -1,4 +1,4 @@
-class MyGrocerySuperCategoryModel {
+class MyGroceryCategoryWithVariantsModel {
   String? sId;
   String? name;
   String? key;
@@ -9,7 +9,7 @@ class MyGrocerySuperCategoryModel {
   String? createdAt;
   String? updatedAt;
 
-  MyGrocerySuperCategoryModel(
+  MyGroceryCategoryWithVariantsModel(
       {this.sId,
         this.name,
         this.key,
@@ -20,7 +20,7 @@ class MyGrocerySuperCategoryModel {
         this.createdAt,
         this.updatedAt});
 
-  MyGrocerySuperCategoryModel.fromJson(Map<String, dynamic> json) {
+  MyGroceryCategoryWithVariantsModel.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
     key = json['key'];

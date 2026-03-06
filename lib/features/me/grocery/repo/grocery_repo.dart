@@ -243,6 +243,33 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// GROCERY BUSINESS PRODUCTS...
+  Future<ResponseModel> fetchGroceryBusinessProductsRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      groceryBusinessProducts,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// GROCERY SNAP SEARCh...
+  Future<ResponseModel> fetchGrocerySnapSearchRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      grocerySnapSearch,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
 
 }
