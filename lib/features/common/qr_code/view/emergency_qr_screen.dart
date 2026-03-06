@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -22,11 +23,10 @@ class EmergencyQrWidget extends StatelessWidget {
   final RxBool _isSaving = false.obs;
 
   String get _qrData => 'https://emergency.blueera.ai/$userId';
+  final controller = Get.find<EmergencyProfileController>();
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<EmergencyProfileController>();
-
     return Obx(() {
       if (controller.isLoading.value) {
         return const Center(
@@ -67,10 +67,12 @@ class EmergencyQrWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                "Emergency QR",
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryColor,
+                controller.fullName.value.isNotEmpty
+                    ? controller.fullName.value
+                    : "Emergency QR",
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.secondaryTextColor,
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -87,9 +89,9 @@ class EmergencyQrWidget extends StatelessWidget {
                       errorCorrectionLevel: QrErrorCorrectLevel.H,
                       eyeStyle: QrEyeStyle(
                         eyeShape: QrEyeShape.square,
-                        color:  Color(0xFF1A1A2E),
+                        color: Color(0xFF1A1A2E),
                       ),
-                      dataModuleStyle:  QrDataModuleStyle(
+                      dataModuleStyle: QrDataModuleStyle(
                         dataModuleShape: QrDataModuleShape.square,
                         color: Color(0xFF1A1A2E),
                       ),
@@ -111,39 +113,51 @@ class EmergencyQrWidget extends StatelessWidget {
                       alignment: Alignment.center,
                       child: const CustomText(
                         'BE',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.black,
-                          letterSpacing: 1,
-                          height: 1,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                        letterSpacing: 1,
+                        height: 1,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              CustomText(
-                "Scan for emergency info",
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Obx(() => _actionButton(
-                        icon: Icons.download_rounded,
-                        label: _isSaving.value ? "Saving..." : "Save",
-                        onTap: _isSaving.value ? null : () => _saveQrToGallery(),
-                      )),
-                  const SizedBox(width: 16),
-                  _actionButton(
-                    icon: Icons.share_rounded,
-                    label: "Share",
-                    onTap: () => _shareQr(),
-                  ),
-                ],
+
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 50.0, vertical: 10),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.whiteE5,
+                    )),
+                child: CustomText(
+                  "Scan & Visit",
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              // const SizedBox(height: 12),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: [
+              //     Obx(() => _actionButton(
+              //           icon: Icons.download_rounded,
+              //           label: _isSaving.value ? "Saving..." : "Save",
+              //           onTap:
+              //               _isSaving.value ? null : () => _saveQrToGallery(),
+              //         )),
+              //     const SizedBox(width: 16),
+              //     _actionButton(
+              //       icon: Icons.share_rounded,
+              //       label: "Share",
+              //       onTap: () => _shareQr(),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
@@ -181,7 +195,7 @@ class EmergencyQrWidget extends StatelessWidget {
   Widget _buildDisabledQr(
       BuildContext context, EmergencyProfileController controller) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 1.0,),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -193,10 +207,10 @@ class EmergencyQrWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              "Emergency QR",
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              "Vehicle Safety - Parking QR Code",
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -212,11 +226,11 @@ class EmergencyQrWidget extends StatelessWidget {
                       version: QrVersions.auto,
                       size: 200,
                       gapless: true,
-                      eyeStyle:  QrEyeStyle(
+                      eyeStyle: QrEyeStyle(
                         eyeShape: QrEyeShape.square,
                         color: Colors.grey,
                       ),
-                      dataModuleStyle:  QrDataModuleStyle(
+                      dataModuleStyle: QrDataModuleStyle(
                         dataModuleShape: QrDataModuleShape.square,
                         color: Colors.grey,
                       ),
@@ -236,11 +250,11 @@ class EmergencyQrWidget extends StatelessWidget {
                     alignment: Alignment.center,
                     child: const CustomText(
                       'BE',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                        letterSpacing: 1,
-                        height: 1,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                      letterSpacing: 1,
+                      height: 1,
                     ),
                   ),
                 ],
@@ -248,23 +262,28 @@ class EmergencyQrWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             CustomText(
-              "No emergency data found",
-              fontSize: 13,
-              color: Colors.grey[600],
+              "Paste it to save lives",
+              color: Color(0xffD7A302),
+              fontWeight: FontWeight.w600,
             ),
             const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () => controller.navigateToCreateProfile(),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text("Create Emergency Profile"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+            InkWell(
+              onTap: () {
+                controller.navigateToCreateProfile();
+              },
+              child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 50.0, vertical: 10),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.primaryColor,
+                    )),
+                child: CustomText(
+                  "Generate Now",
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -334,8 +353,7 @@ class EmergencyQrWidget extends StatelessWidget {
       }
 
       final tempDir = await getTemporaryDirectory();
-      final file =
-          await File('${tempDir.path}/emergency_qr.png').create();
+      final file = await File('${tempDir.path}/emergency_qr.png').create();
       await file.writeAsBytes(pngBytes);
 
       await SharePlus.instance.share(ShareParams(

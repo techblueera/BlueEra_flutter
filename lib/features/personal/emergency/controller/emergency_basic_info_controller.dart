@@ -1,37 +1,55 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/emergency/repo/emergency_service_repo.dart';
 import 'package:BlueEra/features/personal/emergency/view/emergency_contact_screen.dart';
+import 'package:BlueEra/features/personal/emergency/view/emergency_medical_info_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class EmergencyBasicInfoController extends GetxController {
   final EmergencyServiceRepo _repo = EmergencyServiceRepo();
   final isSaving = false.obs;
+  final isMedicalSaving = false.obs;
 
   final fullNameController = TextEditingController();
   final mobileController = TextEditingController();
   final alternateController = TextEditingController();
   final emailController = TextEditingController();
   final vehicleController = TextEditingController();
-  final bloodGroupController = TextEditingController();
   final allergiesController = TextEditingController();
   final diseaseController = TextEditingController();
 
+  final bloodGroupTypes = ['A', 'B', 'AB', 'O'];
+  final bloodGroupSigns = ['+', '-'];
+  final selectedBloodGroupType = RxnString();
+  final selectedBloodGroupSign = RxnString();
+
   final isValid = false.obs;
+  final isValidMedical = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    isIndividual() ? userProfessionGlobal : businessNameGlobal;
+
+    logs(
+        "userNameGlobal=== ${isIndividual() ? userNameGlobal : businessNameGlobal}");
+    logs("userMobileGlobal=== ${userMobileGlobal}");
+    fullNameController.text = isIndividual() ? userNameGlobal : businessNameGlobal;
+    mobileController.text = userMobileGlobal;
     fullNameController.addListener(_validate);
     mobileController.addListener(_validate);
     alternateController.addListener(_validate);
     emailController.addListener(_validate);
     vehicleController.addListener(_validate);
-    bloodGroupController.addListener(_validate);
-    allergiesController.addListener(_validate);
-    diseaseController.addListener(_validate);
+    selectedBloodGroupType.listen((_) => _validateMedical());
+    selectedBloodGroupSign.listen((_) => _validateMedical());
+    allergiesController.addListener(_validateMedical);
+    diseaseController.addListener(_validateMedical);
   }
 
   bool _isValidPhone(String value) {
@@ -51,17 +69,18 @@ class EmergencyBasicInfoController extends GetxController {
   bool _isValidVehicle(String value) {
     final v = value.trim().toUpperCase();
     if (v.isEmpty) return true;
-    final re = RegExp(r'^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$');
+
+    // Standard: [State 2L][Dist 2D][Alpha 1-2L][Num 4D]
+    // BH Series: [Year 2D][BH][Num 4D][Alpha 1-2L]
+    final re =
+        RegExp(r'^([A-Z]{2}\d{2}[A-Z]{1,2}\d{4}|(\d{2}BH\d{4}[A-Z]{1,2}))$');
+
     return re.hasMatch(v);
   }
 
-  bool _isValidBloodGroup(String value) {
-    final allowed = {
-      'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-',
-    };
-    final v = value.trim().toUpperCase();
-    return allowed.contains(v);
-  }
+
+  String get mergedBloodGroup =>
+      '${selectedBloodGroupType.value ?? ''}${selectedBloodGroupSign.value ?? ''}';
 
   void _validate() {
     final ok = fullNameController.text.trim().isNotEmpty &&
@@ -69,9 +88,14 @@ class EmergencyBasicInfoController extends GetxController {
         (alternateController.text.trim().isEmpty ||
             _isValidPhone(alternateController.text)) &&
         _isValidEmail(emailController.text) &&
-        _isValidVehicle(vehicleController.text) &&
-        _isValidBloodGroup(bloodGroupController.text);
+        _isValidVehicle(vehicleController.text);
     isValid.value = ok;
+  }
+
+  void _validateMedical() {
+    final ok = selectedBloodGroupType.value != null &&
+        selectedBloodGroupSign.value != null;
+    isValidMedical.value = ok;
   }
 
   Future<void> submit() async {
@@ -79,6 +103,25 @@ class EmergencyBasicInfoController extends GetxController {
       commonSnackBar(message: "Please fill all required fields correctly");
       return;
     }
+
+    logs("vehicleController.text=== ${vehicleController.text}");
+    if (fullNameController.text.isEmpty) {
+      commonSnackBar(message: "Please fill Full Name fields correctly");
+      return;
+    }
+    else if (mobileController.text.isEmpty) {
+      commonSnackBar(message: "Please fill Mobile Number fields correctly");
+      return;
+    }
+    else if (alternateController.text.isEmpty) {
+      commonSnackBar(message: "Please fill Alternate Number fields correctly");
+      return;
+    }
+    else if (vehicleController.text.isEmpty) {
+      commonSnackBar(message: "Please fill vehicle fields correctly");
+      return;
+    }
+
     try {
       isSaving.value = true;
       final body = {
@@ -87,14 +130,11 @@ class EmergencyBasicInfoController extends GetxController {
         "alternateNumber": alternateController.text.trim(),
         "emailId": emailController.text.trim(),
         "vehicleNumber": vehicleController.text.trim().toUpperCase(),
-        "bloodGroup": bloodGroupController.text.trim().toUpperCase(),
-        "knownAllergies": allergiesController.text.trim(),
-        "knownDisease": diseaseController.text.trim(),
       };
       final ResponseModel res = await _repo.submitBasicInfo(body: body);
       if (res.isSuccess) {
         commonSnackBar(message: "Saved basic info");
-        Get.to(EmergencyContactScreen());
+        Get.to(EmergencyMedicalInfoScreen());
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
@@ -102,6 +142,32 @@ class EmergencyBasicInfoController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isSaving.value = false;
+    }
+  }
+
+  Future<void> submitMedical() async {
+    if (!isValidMedical.value) {
+      commonSnackBar(message: "Please fill all required fields correctly");
+      return;
+    }
+    try {
+      isMedicalSaving.value = true;
+      final body = {
+        "bloodGroup": mergedBloodGroup,
+        "knownAllergies": allergiesController.text.trim(),
+        "knownDisease": diseaseController.text.trim(),
+      };
+      final ResponseModel res = await _repo.submitBasicInfo(body: body);
+      if (res.isSuccess) {
+        commonSnackBar(message: "Saved medical info");
+        Get.to(EmergencyContactScreen());
+      } else {
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isMedicalSaving.value = false;
     }
   }
 }

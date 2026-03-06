@@ -12,6 +12,7 @@ import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/all_education_res_model.dart';
+import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
@@ -25,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import '../../../../core/api/model/new_food_home_res_model.dart';
 import '../model/get_booking_rider_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -53,13 +55,14 @@ class DiscoverController extends GetxController {
   var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
 
   var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;
-  var educationServiceResponse = ApiResponse.initial('Initial').obs;
-  var foodRestaurantServiceResponse = ApiResponse.initial('Initial').obs;
+
+  // var educationServiceResponse = ApiResponse.initial('Initial').obs;
+  // var foodRestaurantServiceResponse = ApiResponse.initial('Initial').obs;
   var rentalServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
   Set<Marker> markers = {};
   final ScrollController scrollController = ScrollController();
-  Rx<LatLng>? currentAddress= LatLng(0.0,0.0).obs;
+  Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
   final GlobalKey headerKey = GlobalKey();
   Function(bool isVisible)? onHeaderVisibilityChanged;
   final RxBool isHeaderVisible = true.obs;
@@ -85,8 +88,7 @@ class DiscoverController extends GetxController {
   RxList<SchoolDetailsData> schoolDetailsDataDataList =
       <SchoolDetailsData>[].obs;
 
-  RxList<SchoolDetailsData> foodRestaurantDataList =
-      <SchoolDetailsData>[].obs;
+  RxList<FoodData> foodRestaurantDataList = <FoodData>[].obs;
   RxBool isEarnServiceLoading = false.obs;
   RxBool isProfConServiceLoading = false.obs;
   RxBool isEducationServiceLoading = false.obs;
@@ -137,23 +139,24 @@ class DiscoverController extends GetxController {
   final receiversNumberController = TextEditingController();
   final parcelDescriptionController = TextEditingController();
   final parcelWeightController = TextEditingController();
-  RxList<ParcelCategoryModel> parcelDetailsList=<ParcelCategoryModel>[].obs;
+  RxList<ParcelCategoryModel> parcelDetailsList = <ParcelCategoryModel>[].obs;
 
-
-  void addParcelDetails(){
+  void addParcelDetails() {
     parcelDetailsList.add(ParcelCategoryModel(
-      category: selectedParcelCategory.value,
-      description:parcelDescriptionController.text ,
-      weightKg: parcelWeightController.text
-    ));
+        category: selectedParcelCategory.value,
+        description: parcelDescriptionController.text,
+        weightKg: parcelWeightController.text));
   }
-  void clearParcelField(){
+
+  void clearParcelField() {
     parcelDescriptionController.clear();
     parcelWeightController.clear();
   }
-  void removeParcelDetails(ParcelCategoryModel value){
+
+  void removeParcelDetails(ParcelCategoryModel value) {
     parcelDetailsList.remove(value);
   }
+
   var selectedRoomType = "".obs;
 
   List<String> getDynamicRoomTypes(HotelServiceData hotelData) {
@@ -174,6 +177,9 @@ class DiscoverController extends GetxController {
   Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData =
       Rx<OnboardingCategoryModel?>(null);
   Rx<OnboardingCategoryModel?> selectedEducationServiceData =
+      Rx<OnboardingCategoryModel?>(null);
+
+  Rx<OnboardingCategoryModel?> selectedFoodServiceData =
       Rx<OnboardingCategoryModel?>(null);
 
   /// Products
@@ -250,7 +256,6 @@ class DiscoverController extends GetxController {
   // ];
   // final selectedOption = Rxn<CollapsibleGridModel>();
 
-  
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy(
       {ProviderType? providerType,
@@ -452,8 +457,7 @@ class DiscoverController extends GetxController {
   }
 
   /// fetch Earn service
-  Future<void> fetchFoodRestaurantService(
-      {bool isLoadMore = false}) async {
+  Future<void> fetchFoodRestaurantService({bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isFoodRestaurantLoadingMore.value || !hasMoreFoodRestaurantData) {
         return;
@@ -467,22 +471,22 @@ class DiscoverController extends GetxController {
     }
 
     final Map<String, dynamic> queryParams = {
-      if (selectedEducationServiceData.value?.slugId != null)
-        "search": selectedEducationServiceData.value?.slugId,
-      ApiKeys.page: foodRestaurantServicePage,
-      ApiKeys.limit: limit,
+      if (selectedFoodServiceData.value?.slugId != null)
+        "categoryId": selectedFoodServiceData.value?.slugId,
+      // ApiKeys.page: foodRestaurantServicePage,
+      // ApiKeys.limit: limit,
     };
 
-    ResponseModel response = await SchoolRepo()
-        .getSearchSchoolRepo(reqParm: queryParams);
+    ResponseModel response = await SchoolRepo().getSearchFoodRepo(
+        reqParm: selectedFoodServiceData.value?.slugId ?? "");
 
     try {
       if (response.isSuccess) {
-        foodRestaurantServiceResponse.value = ApiResponse.complete(response);
+        // foodRestaurantServiceResponse.value = ApiResponse.complete(response);
         final responseModel =
-        AllEducationResModel.fromJson(response.response?.data);
+            FoodRestaurantServiceModel.fromJson(response.response?.data);
 
-        List<SchoolDetailsData> tempNewItems = responseModel.data ?? [];
+        List<FoodData> tempNewItems = responseModel.data ?? [];
         if (tempNewItems.length < limit) {
           hasMoreFoodRestaurantData = false;
         }
@@ -498,12 +502,12 @@ class DiscoverController extends GetxController {
         }
       } else {
         if (!isLoadMore) {
-          foodRestaurantServiceResponse.value = ApiResponse.error('error');
+          // foodRestaurantServiceResponse.value = ApiResponse.error('error');
         }
       }
     } catch (e, s) {
       print('stack trace --> $s');
-      foodRestaurantServiceResponse.value = ApiResponse.error('error');
+      // foodRestaurantServiceResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {
         isFoodRestaurantLoadingMore.value = false;
@@ -512,8 +516,8 @@ class DiscoverController extends GetxController {
       }
     }
   }
-  Future<void> fetchEducationServiceServices(
-      {bool isLoadMore = false}) async {
+
+  Future<void> fetchEducationServiceServices({bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isEducationServiceLoadingMore.value || !hasMoreEducationServiceData) {
         return;
@@ -533,14 +537,14 @@ class DiscoverController extends GetxController {
       ApiKeys.limit: limit,
     };
 
-    ResponseModel response = await SchoolRepo()
-        .getSearchSchoolRepo(reqParm: queryParams);
+    ResponseModel response =
+        await SchoolRepo().getSearchSchoolRepo(reqParm: queryParams);
 
     try {
       if (response.isSuccess) {
-        educationServiceResponse.value = ApiResponse.complete(response);
+        // educationServiceResponse.value = ApiResponse.complete(response);
         final responseModel =
-        AllEducationResModel.fromJson(response.response?.data);
+            AllEducationResModel.fromJson(response.response?.data);
 
         List<SchoolDetailsData> tempNewItems = responseModel.data ?? [];
         if (tempNewItems.length < limit) {
@@ -558,12 +562,12 @@ class DiscoverController extends GetxController {
         }
       } else {
         if (!isLoadMore) {
-          educationServiceResponse.value = ApiResponse.error('error');
+          // educationServiceResponse.value = ApiResponse.error('error');
         }
       }
     } catch (e, s) {
       print('stack trace --> $s');
-      educationServiceResponse.value = ApiResponse.error('error');
+      // educationServiceResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {
         isEducationServiceLoadingMore.value = false;
@@ -572,6 +576,7 @@ class DiscoverController extends GetxController {
       }
     }
   }
+
   Future<void> fetchProfessionalConsultantServices(
       {bool isLoadMore = false}) async {
     if (isLoadMore) {
@@ -956,6 +961,7 @@ class DiscoverController extends GetxController {
     }
   }
 }
+
 class ParcelCategoryModel {
   String? category;
   String? weightKg;

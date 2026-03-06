@@ -37,6 +37,14 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
+  // Future<ResponseModel> getSearchFoodRepo({required Map<String, dynamic> reqParm}) async {
+  Future<ResponseModel> getSearchFoodRepo({required String reqParm}) async {
+    final response = await ApiBaseHelper().getHTTP("food-service/api/home/category-page/${reqParm}",
+        // params: reqParm,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
   ///GET SCHOOL/UNIVERSITY DETAILS...
   Future<ResponseModel> getSchoolBranchRepo({required String schoolID}) async {
     final response = await ApiBaseHelper().getHTTP("${schoolContact}/$schoolID",

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_food_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -20,6 +21,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/api/model/new_food_home_res_model.dart';
 import '../../../../core/constants/app_enum.dart';
 
 class AllFoodServiceScreen extends StatefulWidget {
@@ -45,15 +47,15 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
   initState() {
     super.initState();
     _professionalConsultantCategories = widget.professionalConsultantCategories;
-    controller_.selectedEducationServiceData.value =
+    controller_.selectedFoodServiceData.value =
         widget.selectedProfessionConsultantData;
-    controller_.fetchEducationServiceServices();
+    controller_.fetchFoodRestaurantService();
 
     // Listener for Pagination
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
           scrollController.position.maxScrollExtent) {
-        controller_.fetchEducationServiceServices(isLoadMore: true);
+        controller_.fetchFoodRestaurantService(isLoadMore: true);
       }
     });
   }
@@ -126,7 +128,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
       accountType: AppConstants.individual,
     );
 
-    final fullList = [allItem, ..._professionalConsultantCategories];
+    final fullList = [..._professionalConsultantCategories];
 
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
@@ -134,21 +136,21 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
       getIcon: (item) => item.icon ?? '',
       isSelected: (item) {
         if (item.slugId == 'ALL_OPTION') {
-          return controller_.selectedEducationServiceData.value == null;
+          return controller_.selectedFoodServiceData.value == null;
         }
-        return controller_.selectedEducationServiceData.value?.slugId ==
+        return controller_.selectedFoodServiceData.value?.slugId ==
             item.slugId;
       },
       onTap: (item, index) {
         controller_.selectedTabIndex.value = index;
 
         if (item.slugId == 'ALL_OPTION') {
-          controller_.selectedEducationServiceData.value = null;
+          controller_.selectedFoodServiceData.value = null;
         } else {
-          controller_.selectedEducationServiceData.value = item;
+          controller_.selectedFoodServiceData.value = item;
         }
         // Single API Call (Clean & Shared)
-        controller_.fetchEducationServiceServices();
+        controller_.fetchFoodRestaurantService();
       },
     );
   }
@@ -162,19 +164,19 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
 
           Expanded(
             child: Obx(() {
-              if (controller_.isEducationServiceLoading.value &&
-                  controller_.schoolDetailsDataDataList.isEmpty) {
+              if (controller_.isFoodRestaurantLoading.value &&
+                  controller_.foodRestaurantDataList.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (controller_.schoolDetailsDataDataList.isEmpty) {
+              if (controller_.foodRestaurantDataList.isEmpty) {
                 return Center(
                     child: EmptyStateWidget(message: "No services found"));
               }
 
               return ListView.builder(
                   controller: scrollController,
-                  itemCount: controller_.schoolDetailsDataDataList.length +
+                  itemCount: controller_.foodRestaurantDataList.length +
                       (controller_.isEducationServiceLoadingMore.value
                           ? 1
                           : 0),
@@ -182,7 +184,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                   padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                   itemBuilder: (context, index) {
                     if (index ==
-                        controller_.schoolDetailsDataDataList.length) {
+                        controller_.foodRestaurantDataList.length) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16.0),
@@ -192,7 +194,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                     }
 
                     var service =
-                    controller_.schoolDetailsDataDataList[index];
+                    controller_.foodRestaurantDataList[index];
 
                     return selfProfessionCard(service);
                   });
@@ -203,13 +205,10 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
     );
   }
 
-  Widget selfProfessionCard(SchoolDetailsData service) {
+  Widget selfProfessionCard(FoodData service) {
     return InkWell(
       onTap: () {
-        final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
-
-        schoolAboutUsController.schoolDetailsData?.value = service;
-        Get.to(DiscoverSchoolHomeScreen());
+        Get.to(DiscoverFoodHomeScreen(foodData: service,));
       },
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
@@ -221,7 +220,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CachedAvatarWidget(
-                    imageUrl: service.logo ?? '',
+                    imageUrl: service.businessProfile?.logo ?? '',
                     size: SizeConfig.size40,
                     borderColor: Colors.white,
                     borderRadius: SizeConfig.size20,
@@ -232,13 +231,13 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.name ?? 'User',
+                      CustomText( service.businessProfile?.businessName ?? 'N/A',
                           // fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
                       // SizedBox(height: SizeConfig.size6),
                       CustomText(
-                        service.type ?? 'User',
+                        service.businessProfile?.typeOfBusiness ?? 'N/A',
                         fontSize: SizeConfig.small,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -262,7 +261,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                   SizedBox(width: SizeConfig.size8),
                   Expanded(
                     child: CustomText(
-                      service.location?.name,
+                      (service.businessProfile?.address?.isNotEmpty??false)?(service.businessProfile?.address??"N/A"):"N/A",
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -271,23 +270,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                   ),
                 ],
               ),
-              if (service.establishmentYear != null) ...[
-                SizedBox(height: SizeConfig.size6),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    children: [
-                      CustomText(
-                        "Since ${service.establishmentYear ?? ""}",
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.green00,
-                      ),
-                    ],
-                  ),
-                ),
-              ]
+
             ],
           )),
     );

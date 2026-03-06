@@ -8,6 +8,7 @@ class EmergencyProfileController extends GetxController {
   final EmergencyServiceRepo _repo = EmergencyServiceRepo();
   final isLoading = false.obs;
   final hasEmergencyData = false.obs;
+  final fullName = "".obs;
 
   @override
   void onInit() {
@@ -22,6 +23,9 @@ class EmergencyProfileController extends GetxController {
       if (res.isSuccess) {
         final data = res.data;
         hasEmergencyData.value = data != null && data['basicInfo'] != null;
+        if (data != null && data['basicInfo'] != null) {
+          fullName.value = data['basicInfo']['fullName'];
+        }
       } else {
         hasEmergencyData.value = false;
       }
