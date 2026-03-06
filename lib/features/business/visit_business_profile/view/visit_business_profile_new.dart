@@ -32,12 +32,14 @@ class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
   final String screenName;
   final String? isScreenFrom;
+  final bool showAppBar;
 
   const VisitBusinessProfileNew(
       {super.key,
       required this.businessId,
       required this.screenName,
-      this.isScreenFrom});
+      this.isScreenFrom,
+      this.showAppBar = true});
 
   @override
   State<VisitBusinessProfileNew> createState() =>
@@ -101,11 +103,11 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
         return false;
       },
       child: Scaffold(
-        appBar: CommonBackAppBar(
+        appBar: widget.showAppBar ? CommonBackAppBar(
           onBackTap: (){
             backPress();
           }
-        ),
+        ) : null,
         body: GetBuilder<ViewBusinessDetailsController>(
           init: controller,
           builder: (controller) {

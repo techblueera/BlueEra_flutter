@@ -794,5 +794,8 @@ abstract class BaseService {
   final String aiExpertise = 'ai-service/api/ai-expertise/generate';
   final String clearChatHistory = 'chat-service/group/clear';
   final String setReminder = 'chat-service/reminders/set-reminder';
+  //gst
+  final String getGst = 'chat-service/reminders/set-reminder';
+
 
 }
