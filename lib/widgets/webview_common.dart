@@ -25,6 +25,7 @@ class _CommonWebViewState extends State<CommonWebView> {
       ..loadRequest(Uri.parse(widget.urlLink));
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

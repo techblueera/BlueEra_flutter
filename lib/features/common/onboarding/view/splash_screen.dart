@@ -143,6 +143,10 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  bool _isValidMongoId(String id) {
+    return RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(id);
+  }
+
   void _handleDeepLink(Uri uri) async {
     debugPrint(
         "=====================================Deep link received:========================= $uri");
@@ -151,6 +155,13 @@ class _SplashScreenState extends State<SplashScreen> {
       if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
+
+        // Validate that the ID follows the expected MongoDB ObjectID format (24 hex characters)
+        if (!_isValidMongoId(id)) {
+          logs('Invalid ID format in deep link: $id');
+          return;
+        }
+
         switch (type) {
           case 'post':
             Get.to(() => PostDeatilPage(), arguments: {"postId": id});
@@ -164,6 +175,13 @@ class _SplashScreenState extends State<SplashScreen> {
             final chatUserId = queryParams['userId'] ?? '';
             final chatType = queryParams['chatType'] ?? 'personal';
             final chatName = queryParams['name'] ?? '';
+
+            // Validate chatUserId if it's provided
+            if (chatUserId.isNotEmpty && !_isValidMongoId(chatUserId)) {
+              logs('Invalid chat user ID in deep link: $chatUserId');
+              return;
+            }
+
             if (chatType == 'business') {
               Get.to(() => BusinessChatScreenUpdated(
                 conversationId: conversationId,
@@ -183,12 +201,24 @@ class _SplashScreenState extends State<SplashScreen> {
             }
             break;
           case 'profile':
-            final type = segments[3];
-            final id = segments[2];
-            redirectToProfileScreen(
-                accountType: type,
-                profileId: id,
-                screenName: AppConstants.deepLinkScreen);
+            // Ensure there is a segment for account type (segments[3])
+            if (segments.length >= 4) {
+              final accountType = segments[3].toUpperCase();
+              final profileId = segments[2];
+
+              // Validate that the account type is either INDIVIDUAL or BUSINESS
+              if (accountType == AppConstants.individual ||
+                  accountType == AppConstants.business) {
+                redirectToProfileScreen(
+                    accountType: accountType,
+                    profileId: profileId,
+                    screenName: AppConstants.deepLinkScreen);
+              } else {
+                logs('Invalid account type in profile deep link: $accountType');
+              }
+            } else {
+              logs('Profile deep link missing account type segment');
+            }
             break;
           default:
             logs('Unknown deep link type: $type');
@@ -198,8 +228,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
         // Fallback: try last segment as id (legacy)
         final last = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
-        if (last.isNotEmpty) {
+        if (last.isNotEmpty && _isValidMongoId(last)) {
           Get.to(() => PostDeatilPage(), arguments: {"postId": last});
+        } else if (last.isNotEmpty) {
+          logs('Invalid legacy ID in deep link: $last');
         }
       }
     } on Exception catch (e) {

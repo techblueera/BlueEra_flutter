@@ -74,7 +74,6 @@ class ServiceData {
   String? email;
   String? highestEducation;
   String? role;
-  String? password;
   String? currentOrganisation;
   String? bio;
   String? address;
@@ -128,7 +127,6 @@ class ServiceData {
         this.email,
         this.highestEducation,
         this.role,
-        this.password,
         this.currentOrganisation,
         this.bio,
         this.address,
@@ -183,7 +181,6 @@ class ServiceData {
     email = json['email'];
     highestEducation = json['highest_education'];
     role = json['role'];
-    password = json['password'];
     currentOrganisation = json['current_organisation'];
     bio = json['bio'];
     address = json['address'];
@@ -255,7 +252,6 @@ class ServiceData {
     data['email'] = this.email;
     data['highest_education'] = this.highestEducation;
     data['role'] = this.role;
-    data['password'] = this.password;
     data['current_organisation'] = this.currentOrganisation;
     data['bio'] = this.bio;
     data['address'] = this.address;

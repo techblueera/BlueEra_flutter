@@ -18,7 +18,9 @@ class _ResumeWebPreviewState extends State<ResumeWebPreview> {
   @override
   void initState() {
     super.initState();
-    controller = WebViewController()..loadHtmlString(widget.htmlContent);
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.disabled) // Disable JS if not needed
+      ..loadHtmlString(widget.htmlContent); // Consider sanitizing this content first
   }
 
   @override

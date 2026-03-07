@@ -68,12 +68,5 @@ Future<void> projectKeys({required String environmentType}) async {
     liveTrackSocket = Env.liveTrackSocket;
     // razorpayKey = "rzp_live_RYv0tzupV710iQ";
   }
-
-  // print('--- 📊 Environment Assignment Results ---');
-  // print('Base URL: ${baseUrl ?? "❌ NULL"}');
-  // print('Razorpay Key: ${razorpayKey ?? "❌ NULL"}');
-  // print('Chat Socket: ${chatSocketUrl ?? "❌ NULL"}');
-  // print('Live Track Socket: ${liveTrackSocket ?? "❌ NULL"}');
-
   await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
 }
