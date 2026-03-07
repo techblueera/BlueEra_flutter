@@ -22,7 +22,7 @@ class GroceryVariantDialog extends StatefulWidget {
 }
 
 class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
-  final TextEditingController weightController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
   final TextEditingController unitController = TextEditingController();
   final TextEditingController mrpController = TextEditingController();
   final TextEditingController sellingController = TextEditingController();
@@ -32,14 +32,14 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
   @override
   void initState() {
     super.initState();
-    weightController.addListener(_validateForm);
+    quantityController.addListener(_validateForm);
     unitController.addListener(_validateForm);
     mrpController.addListener(_validateForm);
     sellingController.addListener(_validateForm);
   }
 
   void _validateForm() {
-    final valid = weightController.text.isNotEmpty &&
+    final valid = quantityController.text.isNotEmpty &&
         unitController.text.isNotEmpty &&
         mrpController.text.isNotEmpty &&
         sellingController.text.isNotEmpty;
@@ -95,7 +95,7 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
 
                 Row(
                   children: [
-                    Expanded(child: _input("Quantity", "E.g. 100GM", weightController, isNumber: true)),
+                    Expanded(child: _input("Quantity", "E.g. 100GM", quantityController, isNumber: true)),
                     const SizedBox(width: 8),
                     Expanded(child: _input("Unit", "GM / KG / PCS", unitController, isCapitalize: true)),
                   ],
@@ -115,7 +115,7 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
                     onTap: (isFormValid && !isLoading)
                         ? () {
                       widget.onSubmit(
-                        weightController.text,
+                        quantityController.text,
                         unitController.text,
                         mrpController.text,
                         sellingController.text,

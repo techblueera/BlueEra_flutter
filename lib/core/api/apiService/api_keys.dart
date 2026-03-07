@@ -740,4 +740,5 @@ class ApiKeys {
   static const reminder_time = 'reminder_time';
   static const quick_option = 'quick_option';
   static const message_ids = 'message_ids';
+  static const argMissingProducts = 'argMissingProducts';
 }

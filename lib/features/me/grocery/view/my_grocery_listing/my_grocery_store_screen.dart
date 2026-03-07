@@ -135,6 +135,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                   var productsData = controller.groceryBusinessProductsList[index];
                   return Container(
                     width: SizeConfig.size150,
+                    margin: EdgeInsets.only(right: 8.0),
                     decoration: BoxDecoration(
                       color: AppColors.white,
                       borderRadius: BorderRadius.circular(10),
@@ -151,7 +152,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                             child: (productsData.product?.images?.isNotEmpty ?? false)
                                 ? CachedNetworkImage(
                               imageUrl: productsData.product?.images!.first.url??'',
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                               placeholder: (context, url) => Container(
                                 color: Colors.grey.shade200,
                                 child: Center(
@@ -187,37 +188,39 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                                 ),
                               ),
                               SizedBox(height: SizeConfig.size6),
-                              Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        border:
-                                        Border.all(color: AppColors.green00, width: 1),
-                                        borderRadius: BorderRadius.circular(2)),
-                                    padding: EdgeInsets.all(3.5),
-                                    child: Container(
-                                      height: 7,
-                                      width: 7,
+                              FittedBox(
+                                child: Row(
+                                  children: [
+                                    Container(
                                       decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(7),
-                                          color: AppColors.green00),
+                                          border:
+                                          Border.all(color: AppColors.green00, width: 1),
+                                          borderRadius: BorderRadius.circular(2)),
+                                      padding: EdgeInsets.all(3.5),
+                                      child: Container(
+                                        height: 7,
+                                        width: 7,
+                                        decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(7),
+                                            color: AppColors.green00),
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: SizeConfig.size6),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(4),
-                                        border:
-                                        Border.all(width: 0.5, color: AppColors.greyE5)),
-                                    padding:
-                                    EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
-                                    child: CustomText(
-                                      '${productsData.productVariant?.variantName}',
-                                      fontSize: 11,
-                                      color: Colors.grey,
+                                    SizedBox(width: SizeConfig.size6),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(4),
+                                          border:
+                                          Border.all(width: 0.5, color: AppColors.greyE5)),
+                                      padding:
+                                      EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
+                                      child: CustomText(
+                                        '${productsData.productVariant?.variantName}',
+                                        fontSize: 11,
+                                        color: Colors.grey,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                               SizedBox(height: SizeConfig.size6),
                               Column(

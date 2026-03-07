@@ -7,13 +7,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class AddGroceryScreen extends StatefulWidget {
@@ -56,14 +56,11 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
           horizontal: SizeConfig.size8,
           vertical: SizeConfig.size20,
         ),
-        child: Obx(() => GridView.builder(
+        child: Obx(() => MasonryGridView.count(
               itemCount: controller.selectedGroceries.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.75,
-              ),
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
               itemBuilder: (_, i) =>
                   groceryCard(controller.selectedGroceries[i], i),
             )),
@@ -86,7 +83,8 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.0),
-                child: SizedBox(
+                child: Container(
+                  padding: EdgeInsets.only(top: 4.0),
                   height: SizeConfig.size150,
                   width: double.infinity,
                   child: (p.images!=null && p.images!.isNotEmpty)
@@ -122,13 +120,16 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  "${p.name}",
-                  fontSize: SizeConfig.small,
-                  maxLines: 2,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
+                SizedBox(
+                  height: SizeConfig.size30,
+                  child: CustomText(
+                    "${p.name}",
+                    fontSize: SizeConfig.small,
+                    maxLines: 2,
+                    color: AppColors.mainTextColor,
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 SizedBox(height: SizeConfig.size6),
                 Row(
@@ -154,11 +155,11 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                           border:
                               Border.all(width: 0.5, color: AppColors.greyE5)),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
+                          EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       child: CustomText(
-                        '${p.variants?[0].weight} ${p.variants?[0].unit}',
+                        '${p.variants?[0].quantity}',
                         fontSize: 11,
-                        color: Colors.grey,
+                        color: AppColors.secondaryTextColor,
                       ),
                     ),
                   ],
@@ -236,6 +237,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
               ],
             ),
           ),
+          SizedBox(height: SizeConfig.size4),
         ],
       ),
     );

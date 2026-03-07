@@ -58,6 +58,8 @@ class GroceryController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> grocerySnapSearchResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> missingGroceryProductRequestsResponse =
+      ApiResponse.initial('Initial').obs;
 
   final selectedGroceryData = Rxn<GroceryNestedCategoryModel>();
 
@@ -73,7 +75,7 @@ class GroceryController extends GetxController {
 
   bool get isMaxLimitHit => selectedGroceries.length == maxLimit;
 
-  Map<String, List<VariantsData>> selectedProductVariants = {};
+  RxMap<String, List<VariantsData>> selectedProductVariants = <String, List<VariantsData>>{}.obs;
 
   Rx<OnboardingCategoryModel?> selectedGroceryCategoryData = Rx<OnboardingCategoryModel?>(null);
 
@@ -82,11 +84,9 @@ class GroceryController extends GetxController {
   // RxList<FoundProducts> groceryFoundProducts = <FoundProducts>[].obs;
   List<String> grocerySnapSearchPhotos = [
     AppImageAssets.groceryImageFirst,
-    AppImageAssets.groceryImageSecond,
-    AppImageAssets.groceryImageThird,
-    AppImageAssets.groceryImageFourth
+    AppImageAssets.groceryImageSecond
   ];
-  int maxUploadImages = 4;
+  int maxUploadImages = 2;
 
   void toggleSelection(GroceryProductData p) {
     if (selectedGroceries.contains(p)) {
@@ -103,21 +103,20 @@ class GroceryController extends GetxController {
 
   void toggleVariant(String productId, VariantsData variant) {
     selectedProductVariants.putIfAbsent(productId, () => []);
-
     final selectedList = selectedProductVariants[productId]!;
 
-    // Check if variant already exists (compare by sId)
-    final exists = selectedList.any((v) => v.sId == variant.sId);
-
-    if (exists) {
-      // REMOVE variant
+    if (selectedList.any((v) => v.sId == variant.sId)) {
       selectedList.removeWhere((v) => v.sId == variant.sId);
+
+      // If no variants left for this specific product, remove the key
+      if (selectedList.isEmpty) {
+        selectedProductVariants.remove(productId);
+      }
     } else {
-      // ADD variant
       selectedList.add(variant);
     }
 
-    update(); // refresh UI
+    selectedProductVariants.refresh();
   }
 
   bool isVariantSelected(String productId, String variantId) {
@@ -126,15 +125,14 @@ class GroceryController extends GetxController {
   }
 
   bool get canSubmitProducts {
-    for (final p in selectedGroceries) {
-      final variants = selectedProductVariants[p.sId];
+    // Check if there is ANY list in the map that is NOT empty
+    bool hasAtLeastOneVariant = selectedProductVariants.values.any((variants) => variants.isNotEmpty);
 
-      // If no entry OR empty variants list → invalid
-      if (variants == null || variants.isEmpty) {
-        return false;
-      }
-    }
-    return true;
+    print('--- Validation Check ---');
+    print('Total Product Keys: ${selectedProductVariants.length}');
+    print('Has at least one variant selected: $hasAtLeastOneVariant');
+
+    return hasAtLeastOneVariant;
   }
 
   PriceResult getPriceDetails(List<Pricing>? v) {
@@ -217,10 +215,16 @@ class GroceryController extends GetxController {
           mrp: variant.pricing?[0].mrp?.toString() ?? "",
           selling: variant.pricing?[0].sellingPrice?.toString() ?? "",
           onSubmit: (mrp, sellingPrice) {
-            variant.pricing?[0].mrp = int.tryParse(mrp);
-            variant.pricing?[0].sellingPrice = int.tryParse(sellingPrice);
-            update();
+            if (variant.pricing != null && variant.pricing!.isNotEmpty) {
+              variant.pricing![0] = variant.pricing![0].copyWith(
+                mrp: num.tryParse(mrp),
+                sellingPrice: num.tryParse(sellingPrice),
+              );
+            }
             Get.back();
+            // variant.pricing?[0].mrp = int.tryParse(mrp);
+            // variant.pricing?[0].sellingPrice = int.tryParse(sellingPrice);
+            // refresh();
           },
         );
       },
@@ -237,11 +241,11 @@ class GroceryController extends GetxController {
       builder: (_) {
         return GroceryVariantDialog(
           title: "Add More Variant",
-          onSubmit: (weight, unit, mrp, sellingPrice) {
+          onSubmit: (quantity, unit, mrp, sellingPrice) {
             createNewGroceryProductNewVariant(
                 groceryItem: groceryItem,
                 productId: groceryItem.sId ?? '',
-                weight: weight,
+                quantity: quantity,
                 unit: unit,
                 mrp: mrp,
                 sellingPrice: sellingPrice);
@@ -402,7 +406,7 @@ class GroceryController extends GetxController {
   Future<void> createNewGroceryProductNewVariant(
       {required GroceryProductData groceryItem,
       required String productId,
-      required String weight,
+      required String quantity,
       required String unit,
       required String mrp,
       required String sellingPrice}) async {
@@ -410,7 +414,7 @@ class GroceryController extends GetxController {
       isCreateNewGroceryProductNewVariantLoading.value = true;
       Map<String, dynamic> data = {
         ApiKeys.variantData: jsonEncode({
-          ApiKeys.weight: int.parse(weight),
+          ApiKeys.weight: int.parse(quantity),
           ApiKeys.unit: unit,
           ApiKeys.pricing: [
             {
@@ -438,11 +442,11 @@ class GroceryController extends GetxController {
       final jsonData = response.response?.data;
       log('id-- > ${jsonData['_id']}');
       final newVariant = VariantsData(
-        weight: int.tryParse(weight),
+        quantity: quantity,
         sId: jsonData['_id'],
         product: productId,
         unit: unit,
-        variantName: "${weight}${unit}",
+        variantName: "$quantity",
         pricing: [
           Pricing(
             mrp: int.tryParse(mrp),
@@ -527,7 +531,7 @@ class GroceryController extends GetxController {
           "cityName": city,
           "batches": [
             {
-              "quantity": variant.weight,
+              "quantity": variant.quantity,
               "mrp": variant.pricing?[0].mrp,
               "sellingPrice": variant.pricing?[0].sellingPrice,
             }
@@ -540,8 +544,8 @@ class GroceryController extends GetxController {
   }
 
   Future<void> fetchGrocerySnapSearchApi() async {
-    if (grocerySnapSearchImages.length < 2) {
-      commonSnackBar(message: "Please upload at least 2 photos");
+    if (grocerySnapSearchImages.length < 1) {
+      commonSnackBar(message: "Please upload at least 1 photo");
       return;
     }
 
@@ -708,9 +712,9 @@ class GroceryController extends GetxController {
       } else {
         fetchMyGroceryProductsResponse.value = ApiResponse.error('error');
       }
-    } catch (e) {
+    } catch (e, s) {
       fetchMyGroceryProductsResponse.value = ApiResponse.error('error');
-      log("ERROR===== $e");
+      log("Stack Trace===== $s");
     } finally{
       if (isLoadMore) {
         isMyGroceryDataLoadingMore.value = false;
@@ -755,79 +759,66 @@ class GroceryController extends GetxController {
     }
   }
 
+  RxBool missingProductRequestsLoading = false.obs;
+  Future<void> missingGroceryProductRequestsApi(List<MissingProducts> missingProducts) async {
+    try {
+      missingProductRequestsLoading.value = true;
 
-  /// if variant  has image then it will work
-  // void extractAllVariantsFromResponse(
-  //     List<MyGroceryProductsData> groceryProductData,
-  //     {bool isLoadMore = false}
-  //     ) {
-  //   if (!isLoadMore) {
-  //     myGroceryProductsVariantsList.clear();
-  //   }
-  //
-  //   for (final data in groceryProductData) {
-  //     final category = data.category;
-  //     if (category == null) continue;
-  //
-  //     final products = category.products ?? [];
-  //     for (final product in products) {
-  //       final variants = product.variants ?? [];
-  //       myGroceryProductsVariantsList.addAll(variants);
-  //     }
-  //   }
-  // }
+      final payload = buildMissingRequestsPayload(missingProducts);
+      if(payload.isEmpty) return;
 
-  /// if variant not has image then we need to fetch from product image and we will overwrite variant image (current scenario)
-  // void extractAllVariantsFromResponse(
-  //     List<Products> products, {
-  //       bool isLoadMore = false,
-  //     }) {
-  //   debugPrint("📦 START: Extracting variants. isLoadMore: $isLoadMore");
-  //
-  //   if (!isLoadMore) {
-  //     myGroceryProductsVariantsList.clear();
-  //     debugPrint("🧹 Cleared existing variants list.");
-  //   }
-  //
-  //   int variantsAddedCount = 0;
-  //
-  //   for (final product in products) {
-  //     // 1. Safely extract the parent product's image
-  //     Images? productImage;
-  //     if (product.images != null && product.images!.isNotEmpty) {
-  //       productImage = product.images![0];
-  //     }
-  //
-  //     final variants = product.variants ?? [];
-  //
-  //     // 2. Loop through variants to attach the image
-  //     for (final variant in variants) {
-  //       // Logic Fix: Initialize list if null, then ADD the image (don't access index 0)
-  //       bool appliedFallback = false;
-  //
-  //       if (productImage != null) {
-  //         if (variant.images == null) {
-  //           variant.images = [productImage]; // Initialize with parent image
-  //           appliedFallback = true;
-  //         } else if (variant.images!.isEmpty) {
-  //           variant.images!.add(productImage); // Add parent image to empty list
-  //           appliedFallback = true;
-  //         }
-  //       }
-  //
-  //       if (appliedFallback) {
-  //         debugPrint("   📎 Attached parent image to Variant ID: ${variant.sId}");
-  //       }
-  //
-  //       myGroceryProductsVariantsList.add(variant);
-  //       variantsAddedCount++;
-  //     }
-  //   }
-  //
-  //   debugPrint("✅ END: Total variants added in this batch: $variantsAddedCount");
-  //   debugPrint("📊 Total variants in list: ${myGroceryProductsVariantsList.length}");
-  // }
+      print(jsonEncode(payload));
 
+      final response = await GroceryRepo().missingGroceryProductRequestsRepo(
+        params: payload,
+      );
 
+      if (!response.isSuccess) {
+        missingGroceryProductRequestsResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      missingGroceryProductRequestsResponse.value = ApiResponse.complete(response);
+
+      Get.until((route) =>
+      route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+      commonSnackBar(
+        message: response.message ?? AppStrings.somethingWentWrong,
+      );
+    } catch (e) {
+      missingGroceryProductRequestsResponse.value = ApiResponse.error('error');
+    } finally {
+      missingProductRequestsLoading.value = false;
+    }
+  }
+
+  Map<String, dynamic> buildMissingRequestsPayload(List<MissingProducts> missingProducts) {
+    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+    String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
+    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
+
+    if(postalCode.isEmpty) {
+      commonSnackBar(message: 'Please enable your location permission for adding grocery');
+      return {};
+    }
+
+    Map<String, dynamic> payload = {};
+    payload["pincode"] = postalCode;
+    payload["cityName"] = city;
+    payload["items"] = missingProducts.map((product) {
+      return {
+        "name": product.name ?? "",
+        "brand": product.brand ?? "",
+        "searchKeywords": product.searchKeywords ?? "",
+        "approxPrice": product.approxPrice ?? 0,
+        "unit": product.unit ?? "",
+      };
+    }).toList();
+
+    return payload;
+  }
 
 }

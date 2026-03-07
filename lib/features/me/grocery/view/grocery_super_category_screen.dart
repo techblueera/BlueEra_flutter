@@ -92,7 +92,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                                 ),
                                 child: LocalAssets(
                                     imagePath: item,
-                                    height: SizeConfig.size120,
+                                    height: SizeConfig.size180,
                                     width: double.infinity,
                                     boxFix: BoxFit.cover,
                                 ),

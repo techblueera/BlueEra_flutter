@@ -502,7 +502,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                       child: CustomText(
-                        '${groceryProductData.variants?[0].weight?.toInt()} ${groceryProductData.variants?[0].unit}',
+                        '${groceryProductData.variants?[0].quantity}',
                         fontSize: 11,
                         color: Colors.grey,
                       ),
@@ -706,7 +706,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                 Row(
                     children: [
                       CustomText(
-                          '${variant.weight} ${variant.unit}',
+                          '${variant.quantity}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
