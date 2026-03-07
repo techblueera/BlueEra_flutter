@@ -417,7 +417,8 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: SizedBox(
+            child: Container(
+              padding: EdgeInsets.only(top: 4.0),
               height: SizeConfig.size140,
               width: double.infinity,
               child: (groceryProductData.images?.isNotEmpty ?? false)
@@ -443,7 +444,8 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
           ),
           Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: 9.0, vertical: SizeConfig.size6),
+                horizontal: 9.0,
+                vertical: SizeConfig.size6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -482,11 +484,11 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                           border:
                               Border.all(width: 0.5, color: AppColors.greyE5)),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
+                          EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       child: CustomText(
-                        '${groceryProductData.variants?[0].weight?.toInt()} ${groceryProductData.variants?[0].unit}',
+                        '${groceryProductData.variants?[0].quantity}',
                         fontSize: 11,
-                        color: Colors.grey,
+                        color: AppColors.secondaryTextColor,
                       ),
                     ),
                   ],
@@ -571,10 +573,10 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                     )
                   ],
                 ),
-                SizedBox(height: SizeConfig.size4),
               ],
             ),
           ),
+          SizedBox(height: SizeConfig.size4),
         ],
       ),
     );

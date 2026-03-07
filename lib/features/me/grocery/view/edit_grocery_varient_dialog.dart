@@ -27,30 +27,55 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
   final TextEditingController sellingController = TextEditingController();
 
   bool isFormValid = false;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
     mrpController.text = widget.mrp;
     sellingController.text = widget.selling;
-    _validateForm();
     mrpController.addListener(_validateForm);
     sellingController.addListener(_validateForm);
+    _validateForm();
   }
 
   void _validateForm() {
-    final valid =
-        mrpController.text.isNotEmpty &&
-        sellingController.text.isNotEmpty;
-    setState(() {
-      isFormValid = valid;
-    });
+    final mrpText = mrpController.text.trim();
+    final sellingText = sellingController.text.trim();
+
+    // 1. Basic Empty Check
+    if (mrpText.isEmpty || sellingText.isEmpty) {
+      _updateValidity(false, null);
+      return;
+    }
+
+    final mrp = double.tryParse(mrpText);
+    final selling = double.tryParse(sellingText);
+
+    if (mrp == null || selling == null) {
+      _updateValidity(false, "Enter valid numbers");
+    } else if (mrp <= 0) {
+      _updateValidity(false, "MRP must be > 0");
+    } else if (selling > mrp) {
+      _updateValidity(false, "Selling price cannot exceed MRP");
+    } else {
+      _updateValidity(true, null);
+    }
+  }
+
+  void _updateValidity(bool valid, String? message) {
+    if (isFormValid != valid || errorMessage != message) {
+      setState(() {
+        isFormValid = valid;
+        errorMessage = message;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.all(40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: EdgeInsets.only(
@@ -91,6 +116,19 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
             _input("Selling Price", "E.g. ₹1,999", sellingController, isNumber: true),
             const SizedBox(height: 20),
 
+            // Error Message Display
+            if (errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: CustomText(
+                  errorMessage!,
+                  fontSize: SizeConfig.extraSmall,
+                  color: Colors.red,
+                ),
+              ),
+
+            const SizedBox(height: 20),
+
             Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
@@ -102,7 +140,7 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
                 },
                 child: CustomText(
                   "Submit",
-                  fontSize: SizeConfig.small,
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: (isFormValid)
                       ? AppColors.primaryColor
@@ -110,6 +148,7 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
                 ),
               ),
             ),
+            const SizedBox(height: 5),
           ],
         ),
       ),
@@ -133,6 +172,7 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
           keyBoardType: isNumber ? TextInputType.number : TextInputType.text,
           hintText: hint,
           isCapitalize: isCapitalize,
+
         ),
       ],
     );

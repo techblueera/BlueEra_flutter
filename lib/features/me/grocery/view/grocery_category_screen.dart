@@ -57,6 +57,12 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen>
     super.initState();
   }
 
+  @override
+  dispose(){
+    deleteIfRegistered<GroceryController>();
+    super.dispose();
+  }
+
   void updateGroceryCategory(String incomingKey, {bool isInitial = false}) {
     _argArrGroceryCatKey = incomingKey;
 

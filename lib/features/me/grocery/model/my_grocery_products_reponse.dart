@@ -242,7 +242,7 @@ class Inventory {
 
 class Batches {
   String? batchNumber;
-  int? quantity;
+  String? quantity;
   int? mrp;
   int? sellingPrice;
   String? sId;

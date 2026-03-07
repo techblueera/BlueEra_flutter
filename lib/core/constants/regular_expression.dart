@@ -169,7 +169,7 @@ class ValidationMethod {
     return null;
   }
 
-  String? validatePrice(String? priceText, String? mrpText) {
+ String? validatePrice(String? priceText, String? mrpText) {
     if (priceText == null || priceText.isEmpty) return "Enter price";
     if (mrpText == null || mrpText.isEmpty) return "Enter MRP";
 

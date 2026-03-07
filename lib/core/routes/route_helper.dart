@@ -4,7 +4,10 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search.dart';
+import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -457,7 +460,8 @@ class RouteHelper {
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
 
-  static String getGroceryCartScreenRoute() => RouteConstant.groceryCartScreen;
+  static String getGroceryCartScreenRoute() =>
+      RouteConstant.groceryCartScreen;
 
   // static String getRiderProfileStatusScreenRoute() =>
   //     RouteConstant.RiderProfileStatusScreen;
@@ -479,12 +483,14 @@ class RouteHelper {
   static String getHospitalWardViewCategory() =>
       RouteConstant.hospitalWardViewCategory;
 
-  static String getRiderStoreScreenRoute() => RouteConstant.riderStoreScreen;
+  static String getRiderStoreScreenRoute() =>
+      RouteConstant.riderStoreScreen;
 
   static String getGroceryConfirmScreenRoute() =>
       RouteConstant.groceryConfirmScreen;
 
-  static String getAddSelfServiceRoute() => RouteConstant.addSelfServiceScreen;
+  static String getAddSelfServiceRoute() =>
+      RouteConstant.addSelfServiceScreen;
 
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
@@ -530,6 +536,9 @@ class RouteHelper {
 
   static String getAddGrocerySnapSearchScreenRoute() =>
       RouteConstant.addGrocerySnapSearchScreen;
+
+ static String getMissingGroceryItemsScreenRoute() =>
+      RouteConstant.missingGroceryItemsScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1625,10 +1634,21 @@ class RouteHelper {
                   settings: RouteSettings(name: getGroceryStoresScreenRoute())
               );
 
-    case RouteConstant.addGrocerySnapSearchScreen:
+      case RouteConstant.addGrocerySnapSearchScreen:
                 return MaterialPageRoute(
                   builder: (_) => AddGrocerySnapSearchScreen(),
                   settings: RouteSettings(name: getAddGrocerySnapSearchScreenRoute())
+              );
+
+      case RouteConstant.missingGroceryItemsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final GroceryController controller = args[ApiKeys.controller] as GroceryController;
+        final List<MissingProducts> argMissingProducts = args[ApiKeys.argMissingProducts] as List<MissingProducts>;
+                return MaterialPageRoute(
+                  builder: (_) => MissingGroceryItemsScreen(
+                      controller: controller,
+                      missingProducts: argMissingProducts),
+                  settings: RouteSettings(name: getMissingGroceryItemsScreenRoute())
               );
 
 

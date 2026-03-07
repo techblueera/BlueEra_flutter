@@ -111,6 +111,41 @@ class GroceryProductData {
     }
     return data;
   }
+
+  GroceryProductData copyWith({
+    String? sId,
+    String? name,
+    String? description,
+    String? brand,
+    String? category,
+    List<String>? tags,
+    List<Images>? images,
+    bool? isActive,
+    bool? isVegetarian,
+    String? countryOfOrigin,
+    String? createdAt,
+    String? updatedAt,
+    int? iV,
+    List<VariantsData>? variants,
+  }) {
+    return GroceryProductData(
+      sId: sId ?? this.sId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      brand: brand ?? this.brand,
+      category: category ?? this.category,
+      tags: tags ?? this.tags,
+      images: images ?? this.images,
+      isActive: isActive ?? this.isActive,
+      isVegetarian: isVegetarian ?? this.isVegetarian,
+      countryOfOrigin: countryOfOrigin ?? this.countryOfOrigin,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      iV: iV ?? this.iV,
+      variants: variants ?? this.variants,
+    );
+  }
+
 }
 
 class VariantsData {
@@ -120,7 +155,7 @@ class VariantsData {
   String? unit;
   List<Pricing>? pricing;
   List<ProductImage>? images;
-  num? weight;
+  String? quantity;
   String? createdAt;
   String? updatedAt;
   int? iV;
@@ -134,7 +169,7 @@ class VariantsData {
     this.unit,
     this.pricing,
     this.images,
-    this.weight,
+    this.quantity,
     this.createdAt,
     this.updatedAt,
     this.iV,
@@ -162,7 +197,7 @@ class VariantsData {
       });
     }
 
-    weight = json['weight'];
+    quantity = json['quantity'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
@@ -178,7 +213,7 @@ class VariantsData {
       'unit': unit,
       'pricing': pricing?.map((v) => v.toJson()).toList(),
       'images': images?.map((v) => v.toJson()).toList(),
-      'weight': weight,
+      'quantity': quantity,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       '__v': iV,
@@ -195,7 +230,7 @@ class VariantsData {
     String? unit,
     List<Pricing>? pricing,
     List<ProductImage>? images,
-    num? weight,
+    String? quantity,
     String? createdAt,
     String? updatedAt,
     int? iV,
@@ -209,7 +244,7 @@ class VariantsData {
       unit: unit ?? this.unit,
       pricing: pricing ?? this.pricing,
       images: images ?? this.images,
-      weight: weight ?? this.weight,
+      quantity: quantity ?? this.quantity,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       iV: iV ?? this.iV,
@@ -254,6 +289,44 @@ class Pricing {
     data['_id'] = this.sId;
     return data;
   }
+
+  Pricing copyWith({
+    String? pincode,
+    String? cityName,
+    num? mrp,
+    num? sellingPrice,
+    String? currency,
+    String? sId,
+  }) {
+    return Pricing(
+      pincode: pincode ?? this.pincode,
+      cityName: cityName ?? this.cityName,
+      mrp: mrp ?? this.mrp,
+      sellingPrice: sellingPrice ?? this.sellingPrice,
+      currency: currency ?? this.currency,
+      sId: sId ?? this.sId,
+    );
+  }
+
+}
+
+class ProductImage {
+  String? url;
+  String? id;
+
+  ProductImage({this.url, this.id});
+
+  factory ProductImage.fromJson(Map<String, dynamic> json) {
+    return ProductImage(
+      url: json['url'],
+      id: json['_id'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'url': url,
+    '_id': id,
+  };
 }
 
 class Pagination {
@@ -281,21 +354,3 @@ class Pagination {
   }
 }
 
-class ProductImage {
-  String? url;
-  String? id;
-
-  ProductImage({this.url, this.id});
-
-  factory ProductImage.fromJson(Map<String, dynamic> json) {
-    return ProductImage(
-      url: json['url'],
-      id: json['_id'],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'url': url,
-    '_id': id,
-  };
-}

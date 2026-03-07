@@ -173,7 +173,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                 Row(
                     children: [
                       CustomText(
-                          '${variant.weight} ${variant.unit}',
+                          '${variant.quantity}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
