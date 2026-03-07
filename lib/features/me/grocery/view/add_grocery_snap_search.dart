@@ -84,7 +84,9 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
 
           return CustomBtn(
             onTap: canSubmit && !loading
-                ? () => controller.addGroceryProductNewVariant()
+                ? () => controller.addGroceryProductNewVariant(
+              isSnapSearch: true
+            )
                 : null,
             isValidate: canSubmit,
             radius: SizeConfig.size8,
@@ -266,7 +268,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
 
       var _productSnapSearchData= controller.productSnapSearchData.value;
       var _groceryFoundProducts= _productSnapSearchData?.foundProducts ?? [];
-      var _groceryMissingProducts= _productSnapSearchData?.missingProducts ?? [];
+      // var _groceryMissingProducts= _productSnapSearchData?.missingProducts ?? [];
       print('found products-- ${_groceryFoundProducts.length}');
 
       return Column(
@@ -285,12 +287,13 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                   fontSize: 16,
                 ),
                 InkWell(
-                    onTap: ()=> Get.toNamed(RouteHelper.getMissingGroceryItemsScreenRoute(),
-                        arguments: {
-                          ApiKeys.controller: controller,
-                          ApiKeys.argMissingProducts:  _groceryMissingProducts
-                        }
-                    ),
+                   onTap:(){},
+                    // onTap: ()=> Get.toNamed(RouteHelper.getMissingGroceryItemsScreenRoute(),
+                    //     arguments: {
+                    //       ApiKeys.controller: controller,
+                    //       ApiKeys.argMissingProducts:  _groceryMissingProducts
+                    //     }
+                    // ),
                     child: CustomText(
                         "${_productSnapSearchData?.missingCount} Items missing",
                         color: Colors.red,

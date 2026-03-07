@@ -475,7 +475,7 @@ class GroceryController extends GetxController {
   }
 
   RxBool isAddGroceryProductsLoading = false.obs;
-  Future<void> addGroceryProductNewVariant() async {
+  Future<void> addGroceryProductNewVariant({bool isSnapSearch = false}) async {
     try {
       isAddGroceryProductsLoading.value = true;
 
@@ -499,8 +499,18 @@ class GroceryController extends GetxController {
       addGroceryProductVariantResponse.value = ApiResponse.complete(response);
       // final jsonData = response.response?.data;
 
-      Get.until((route) =>
-                  route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+      if(!isSnapSearch){
+        Get.until((route) =>
+        route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+      }else{
+        var _groceryMissingProducts= productSnapSearchData.value?.missingProducts ?? [];
+        Get.toNamed(RouteHelper.getMissingGroceryItemsScreenRoute(),
+            arguments: {
+              ApiKeys.controller: this,
+              ApiKeys.argMissingProducts:  _groceryMissingProducts
+            });
+      }
+
       commonSnackBar(
         message: response.message ?? AppStrings.somethingWentWrong,
       );
