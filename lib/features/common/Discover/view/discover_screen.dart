@@ -134,6 +134,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   // bool isMapLoading = true;
   // BitmapDescriptor? _customIcon;
 
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _qrWidgetKey = GlobalKey();
+
   @override
   void initState() {
     userLat = LocationService.lat;
@@ -282,11 +285,17 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size8,
       ),
-      child: CustomScrollView(slivers: [
+      child: CustomScrollView(
+          controller: _scrollController, // Attach the controller here
+          slivers: [
         SliverToBoxAdapter(child: ResponsiveSearchBar()),
         _buildGap(),
 
-        SliverToBoxAdapter(child: DiscoverBannerSlider()),
+        SliverToBoxAdapter(
+            child: DiscoverBannerSlider(
+          parentScrollController: _scrollController,
+          targetKey: _qrWidgetKey,
+        )),
         _buildGap(gap: SizeConfig.paddingM),
 
         /// Delivery Option
@@ -877,7 +886,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         SliverPadding(
           padding: EdgeInsets.only(bottom: 100),
           sliver: SliverToBoxAdapter(
-            child: Builder(builder: (_) {
+            child: Builder(
+                key: _qrWidgetKey,
+                builder: (_) {
               getOrPut(() => EmergencyProfileController());
               return EmergencyQrWidget(key: ValueKey('emergency_qr'));
             }),

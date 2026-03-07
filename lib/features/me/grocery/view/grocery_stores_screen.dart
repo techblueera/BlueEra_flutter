@@ -67,59 +67,67 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: SafeArea(
-        child: Column(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            leftCategoryList(),
             SizedBox(
-              height: SizeConfig.paddingM,
+              width: SizeConfig.size6,
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: InkWell(
-                onTap: () {},
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size10,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 1.2),
-                      boxShadow: [AppShadows.textFieldShadow]),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.franchiseIcon,
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(AppStrings.bookViaBlueEraPartner,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: SizeConfig.paddingXSL,
-            ),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leftCategoryList(),
-                  SizedBox(
-                    width: SizeConfig.size6,
-                  ),
-                  Expanded(child: rightContent()),
-                ],
-              ),
-            )
+            Expanded(child: rightContent()),
           ],
-        ),
+        )
+        // child: Column(
+        //   children: [
+        //     // SizedBox(
+        //     //   height: SizeConfig.paddingM,
+        //     // ),
+        //     // Padding(
+        //     //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        //     //   child: InkWell(
+        //     //     onTap: () {},
+        //     //     child: Container(
+        //     //       padding: EdgeInsets.symmetric(
+        //     //         vertical: SizeConfig.size10,
+        //     //         horizontal: SizeConfig.size10,
+        //     //       ),
+        //     //       decoration: BoxDecoration(
+        //     //           color: AppColors.white,
+        //     //           borderRadius: BorderRadius.circular(10.0),
+        //     //           border: Border.all(color: AppColors.greyE5, width: 1.2),
+        //     //           boxShadow: [AppShadows.textFieldShadow]),
+        //     //       child: Row(
+        //     //         children: [
+        //     //           LocalAssets(
+        //     //             imagePath: AppIconAssets.franchiseIcon,
+        //     //             height: SizeConfig.size30,
+        //     //             width: SizeConfig.size30,
+        //     //           ),
+        //     //           SizedBox(width: SizeConfig.size10),
+        //     //           CustomText(AppStrings.bookViaBlueEraPartner,
+        //     //               fontSize: SizeConfig.medium,
+        //     //               color: AppColors.secondaryTextColor,
+        //     //               fontWeight: FontWeight.w400),
+        //     //         ],
+        //     //       ),
+        //     //     ),
+        //     //   ),
+        //     // ),
+        //     // SizedBox(
+        //     //   height: SizeConfig.paddingXSL,
+        //     // ),
+        //     Row(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         leftCategoryList(),
+        //         SizedBox(
+        //           width: SizeConfig.size6,
+        //         ),
+        //         Expanded(child: rightContent()),
+        //       ],
+        //     )
+        //   ],
+        // ),
       ),
     );
   }
@@ -159,43 +167,42 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
   }
   
   Widget rightContent() {
-    return Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size8),
-      child: Expanded(
-        child: Obx(() {
-          if (controller.isAllStoreFirstLoading.value &&
-              controller.allStore.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return Obx(() {
+      if (controller.isAllStoreFirstLoading.value &&
+          controller.allStore.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-          if (controller.allStore.isEmpty) {
-            return Center(
-                child: EmptyStateWidget(message: "No store found"));
-          }
+      if (controller.allStore.isEmpty) {
+        return Center(
+            child: EmptyStateWidget(message: "No store found"));
+      }
 
-          return ListView.builder(
-              controller: storesScrollController,
-              itemCount: controller.allStore.length +
-                  (controller.isAllStoreLoadingMore.value ? 1 : 0),
-              shrinkWrap: true,
-              padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-              itemBuilder: (context, index) {
-                if (index == controller.allStore.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
+      return ListView.builder(
+          controller: storesScrollController,
+          itemCount: controller.allStore.length +
+              (controller.isAllStoreLoadingMore.value ? 1 : 0),
+          shrinkWrap: true,
+          padding: EdgeInsets.only(
+              top: SizeConfig.paddingM,
+              bottom: SizeConfig.paddingL,
+            right: SizeConfig.paddingXS,
+          ),
+          itemBuilder: (context, index) {
+            if (index == controller.allStore.length) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            }
 
-                var store = controller.allStore[index];
+            var store = controller.allStore[index];
 
-                return groceryStoreCard(store);
-              });
-        }),
-      ),
-    );
+            return groceryStoreCard(store);
+          });
+    });
   }
 
   Widget groceryStoreCard(GetAllStoreResModel store) {

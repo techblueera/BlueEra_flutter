@@ -44,19 +44,17 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
         title: "Grocery Items",
       ),
       bottomNavigationBar: _buildBottomAction(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBulkUploadSection(),
-              _buildProductList(),
-            ],
-          ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          vertical: SizeConfig.size15,
+          horizontal: SizeConfig.size8
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBulkUploadSection(),
+            _buildProductList(),
+          ],
         ),
       ),
     );
@@ -66,21 +64,21 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
     return Container(
       color: AppColors.white,
       padding: EdgeInsets.all(SizeConfig.size15),
-      child: SafeArea(
-        child: Obx(() {
+      child: Obx(() {
 
-          if (controller.productSnapSearchData.value == null) {
-            return const SizedBox.shrink();
-          }
+        if (controller.productSnapSearchData.value == null) {
+          return const SizedBox.shrink();
+        }
 
-          final bool canSubmit = controller.canSubmitProducts;
-          print('can submit-- $canSubmit');
+        final bool canSubmit = controller.canSubmitProducts;
+        print('can submit-- $canSubmit');
 
-          final int productCount = controller.selectedProductVariants.keys.length;
-          final variantCount = controller.selectedProductVariants.values.fold(0, (sum, list) => sum + list.length);
-          final bool loading = controller.isAddGroceryProductsLoading.value;
+        final int productCount = controller.selectedProductVariants.keys.length;
+        final variantCount = controller.selectedProductVariants.values.fold(0, (sum, list) => sum + list.length);
+        final bool loading = controller.isAddGroceryProductsLoading.value;
 
-          return CustomBtn(
+        return SafeArea(
+          child: CustomBtn(
             onTap: canSubmit && !loading
                 ? () => controller.addGroceryProductNewVariant(
               isSnapSearch: true
@@ -91,9 +89,9 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
             bgColor: canSubmit ? AppColors.primaryColor : Colors.grey,
             title: 'Publish $productCount Products, $variantCount Variants',
             isLoading: loading,
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 
@@ -251,17 +249,35 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
   // }
 
   Widget _buildProductList() {
-    return Obx(() {
 
+    // return Padding(
+    //   padding: EdgeInsets.symmetric(
+    //       vertical: 40.0
+    //   ),
+    //   child: Image.asset(
+    //     'assets/images/grocery_loading_indicator.gif',
+    //     fit: BoxFit.cover,
+    //     gaplessPlayback: true,
+    //   ),
+    // );
+
+    return Obx(() {
+      
       if(controller.grocerySnapSearchResponse.value.status == Status.INITIAL){
         return SizedBox();
       }
 
       if (controller.grocerySnapSearchResponse.value.status  == Status.LOADING) {
-        return const Center(child: Padding(
-          padding: EdgeInsets.all(40.0),
-          child: CircularProgressIndicator(),
-        ));
+        return Padding(
+          padding: EdgeInsets.symmetric(
+              vertical: 40.0
+          ),
+          child: Image.asset(
+            'assets/images/grocery_loading_indicator.gif',
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+          ),
+        );
       }
 
       var _productSnapSearchData= controller.productSnapSearchData.value;
@@ -310,6 +326,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
              shrinkWrap: true,
              physics: const NeverScrollableScrollPhysics(),
              itemCount: _groceryFoundProducts.length,
+             padding: EdgeInsets.only(bottom: 20),
              itemBuilder: (context, index) {
                final product = _groceryFoundProducts[index];
                return _buildProductCard(product);
