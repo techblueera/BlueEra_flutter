@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/job_seekar/view/addmore/job_seekar_add_more_screen.dart';
@@ -29,51 +30,49 @@ class UpdateJobSeekerScreen extends StatefulWidget {
 class _UpdateJobSeekerScreenState extends State<UpdateJobSeekerScreen> {
   final getResumeController = getOrPut(() => ProfilePicController());
 
-  final List<ServiceMenuItem> serviceMenus = [
+  List<ServiceMenuItem> get serviceMenus => [
     ServiceMenuItem(
-      title: "Basic Profile",
-      icon: AppIconAssets.basicProfile, // Replace with your actual icon asset
+      title: AppStrings.basicProfile.tr,
+      icon: AppIconAssets.basicProfile,
       page: () => JobSeekerPersonalDetailsScreen(),
     ),
     ServiceMenuItem(
-      title: "Education",
+      title: AppStrings.education.tr,
       icon: AppIconAssets.servicesOffered,
-      page: () => EducationSection(), // Update to your actual page
+      page: () => EducationSection(),
     ),
     ServiceMenuItem(
-      title: "Work Experience",
+      title: AppStrings.workExperience.tr,
       icon: AppIconAssets.aboutProfessional,
-      page: () => ExperienceSection(), // Update to your actual page
-      // page: () => JobSeekerWorkExpFormScreen(), // Update to your actual page
+      page: () => ExperienceSection(),
     ),
     ServiceMenuItem(
-      title: "Skills",
+      title: AppStrings.skills.tr,
       icon: AppIconAssets.galleryCertifications,
-      page: () => JobSeekerSkillViewScreen(), // Update to your actual page
-      // page: () => JobSeekerSkillsFormScreen(), // Update to your actual page
+      page: () => JobSeekerSkillViewScreen(),
     ),
     ServiceMenuItem(
-      title: "Certifications",
+      title: AppStrings.certifications.tr,
       icon: AppIconAssets.caseStudies,
       page: () => JobSeekerCertificationListingScreen(),
     ),
     ServiceMenuItem(
-      title: "Publication",
+      title: AppStrings.publication.tr,
       icon: AppIconAssets.caseStudies,
       page: () => JobSeekerPublicationListingScreen(),
     ),
     ServiceMenuItem(
-      title: "Portfolio Projects",
+      title: AppStrings.portfolioProjects.tr,
       icon: AppIconAssets.engagementModel,
       page: () => JobSeekerPortfolioScreen(),
     ),
     ServiceMenuItem(
-      title: "Resume",
+      title: AppStrings.resume.tr,
       icon: AppIconAssets.availability,
       page: () => ComingSoon(),
     ),
     ServiceMenuItem(
-      title: "Add More",
+      title: AppStrings.addMore.tr,
       icon: AppIconAssets.availability,
       page: () => AddMoreJobSeekerScreen(),
     ),
@@ -89,7 +88,7 @@ class _UpdateJobSeekerScreenState extends State<UpdateJobSeekerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Job Portfolio/ Resume",
+        title: AppStrings.jobPortfolioResume.tr,
       ),
       backgroundColor: AppColors.appBackgroundColor,
       body: SingleChildScrollView(

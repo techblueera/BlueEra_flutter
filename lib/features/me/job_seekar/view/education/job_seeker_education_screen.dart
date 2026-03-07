@@ -50,7 +50,7 @@ class _JobSeekerEducationScreenState extends State<JobSeekerEducationScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title:
-            widget.isEdit ? AppStrings.editEducation : AppStrings.addEducation,
+            widget.isEdit ? AppStrings.editEducation.tr : AppStrings.addEducation.tr,
       ),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingL),
@@ -67,7 +67,7 @@ class _JobSeekerEducationScreenState extends State<JobSeekerEducationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    AppStrings.education,
+                    AppStrings.education.tr,
                     fontSize: SizeConfig.small,
                   ),
                   SizedBox(height: SizeConfig.size10),
@@ -76,34 +76,34 @@ class _JobSeekerEducationScreenState extends State<JobSeekerEducationScreen> {
                         selectedValue: controller.qualification.value.isEmpty
                             ? null
                             : controller.qualification.value,
-                        hintText: AppStrings.selectQualification,
+                        hintText: AppStrings.selectQualification.tr,
                         onChanged: (val) {
                           controller.qualification.value = val ?? '';
                           controller.validate();
                         },
                         displayValue: (item) => item,
-                        title: AppStrings.education,
+                        title: AppStrings.education.tr,
                       )),
                   SizedBox(height: SizeConfig.size20),
                   CommonTextField(
-                    title: AppStrings.schoolCollegeName,
+                    title: AppStrings.schoolCollegeName.tr,
                     textEditController: controller.schoolController,
-                    hintText: AppStrings.schoolCollegeHint,
+                    hintText: AppStrings.schoolCollegeHint.tr,
                     fontSize: SizeConfig.small,
                   ),
                   SizedBox(height: SizeConfig.size18),
                   CommonTextField(
-                    title: AppStrings.boardName,
+                    title: AppStrings.boardName.tr,
                     textEditController: controller.boardController,
-                    hintText: AppStrings.boardNameHint,
+                    hintText: AppStrings.boardNameHint.tr,
                     fontSize: SizeConfig.small,
                   ),
                   SizedBox(height: SizeConfig.size18),
                   CommonTextField(
-                    title: AppStrings.passingYear,
+                    title: AppStrings.passingYear.tr,
                     textEditController: controller.yearController,
                     inputLength: 4,
-                    hintText: AppStrings.passingYearHint,
+                    hintText: AppStrings.passingYearHint.tr,
                     fontSize: SizeConfig.small,
                     keyBoardType: TextInputType.number,
                     inputFormatters: [
@@ -113,9 +113,9 @@ class _JobSeekerEducationScreenState extends State<JobSeekerEducationScreen> {
                   ),
                   SizedBox(height: SizeConfig.size18),
                   CommonTextField(
-                    title: AppStrings.performanceScore,
+                    title: AppStrings.performanceScore.tr,
                     textEditController: controller.scoreController,
-                    hintText: AppStrings.performanceScoreHint,
+                    hintText: AppStrings.performanceScoreHint.tr,
                     fontSize: SizeConfig.small,
                     keyBoardType: TextInputType.number,
                     inputFormatters: [
@@ -130,8 +130,8 @@ class _JobSeekerEducationScreenState extends State<JobSeekerEducationScreen> {
                       Expanded(
                         child: Obx(() => CustomBtn(
                               title: controller.editingId.value == null
-                                  ? AppStrings.save
-                                  : AppStrings.update,
+                                  ? AppStrings.save.tr
+                                  : AppStrings.update.tr,
                               isValidate: controller.isFormValid.value,
                               onTap: controller.isFormValid.value
                                   ? () async {

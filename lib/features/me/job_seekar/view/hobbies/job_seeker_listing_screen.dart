@@ -34,7 +34,7 @@ class _JobSeekerListingScreenState extends State<JobSeekerListingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.hobbies,
+        title: AppStrings.hobbies.tr,
       ),
       body: CommonCardWidget(
         child: Obx(() {
@@ -52,7 +52,7 @@ class _JobSeekerListingScreenState extends State<JobSeekerListingScreen> {
                   ),
                   SizedBox(width: 8),
                   CustomText(
-                    AppStrings.addHobbies,
+                    AppStrings.addHobbies.tr,
                     color: AppColors.primaryColor,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w500,
@@ -81,7 +81,7 @@ class _JobSeekerListingScreenState extends State<JobSeekerListingScreen> {
                                     .deleteHobby(hobby['_id'].toString());
                                 Navigator.of(context).pop();
                               },
-                              title: AppStrings.deleteHobby,
+                              title: AppStrings.deleteHobby.tr,
                               content:
                                   "${AppStrings.deleteConfirm.tr} '${hobby['name']}'?",
                             );
@@ -111,7 +111,7 @@ class _JobSeekerListingScreenState extends State<JobSeekerListingScreen> {
                     ),
                     SizedBox(width: 8),
                     CustomText(
-                      AppStrings.addHobbies,
+                      AppStrings.addHobbies.tr,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w500,
                     ),

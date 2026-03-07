@@ -3545,4 +3545,57 @@ class AppStrings {
   static const String createLaboratory = "create_laboratory";
   static const String failedToLoadData = "failed_to_load_data";
   static const String openTime = "open_time";
+
+  /// JOB SEEKER LOCALIZATION KEYS
+  static const String jobPortfolioResume = "job_portfolio_resume";
+  static const String basicProfile = "basic_profile";
+  static const String workExperience = "work_experience";
+  static const String portfolioProjects = "portfolio_projects";
+  static const String tellUsMoreAboutInfo = "tell_us_more_about_info";
+  static const String egCareerObjective = "eg_career_objective";
+  static const String selectWorkOption = "select_work_option";
+  static const String openToWork = "open_to_work";
+  static const String selectExperienceLevel = "select_experience_level";
+  static const String experienceLevel = "experience_level";
+  static const String enterValidEmail = "enter_valid_email";
+  static const String egNameHint = "eg_name_hint";
+  static const String egEmailHint = "eg_email_hint";
+  static const String egPhoneHint = "eg_phone_hint";
+  static const String projectTitle = "project_title";
+  static const String egFinanceTax = "eg_finance_tax";
+  static const String consultationMode = "consultation_mode";
+  static const String egOnline = "eg_online";
+  static const String whenWorkCompleted = "when_work_completed";
+  static const String uploadImage = "upload_image";
+  static const String tellUsMoreAboutProject = "tell_us_more_about_project";
+  static const String publication = "publication";
+  static const String intern = "intern";
+  static const String fresher = "fresher";
+  static const String midLevel = "mid_level";
+  static const String seniorLevel = "senior_level";
+  static const String editExperience = "edit_experience";
+  static const String addExperience = "add_experience";
+  static const String descriptionOfJobRole = "description_of_job_role";
+  static const String egCompanyName = "eg_company_name";
+  static const String rolesResponsibilities = "roles_responsibilities";
+  static const String describeKeyResponsibilities = "describe_key_responsibilities";
+
+  /// JOB SEEKER RESUME OVERVIEW KEYS
+  static const String myPortfolioResume = "my_portfolio_resume";
+  static const String createResume_ = "create_resume_";
+  static const String noEducationDetailsFound = "no_education_details_found";
+  static const String board = "board";
+  static const String percentage = "percentage";
+  static const String noExperienceAdded = "no_experience_added";
+  static const String currentRole = "current_role";
+  static const String fullTime = "full_time";
+  static const String partTime = "part_time";
+  static const String present = "present";
+  static const String noSkillsAdded = "no_skills_added";
+  static const String noProjectsAdded = "no_projects_added";
+  static const String projectName = "project_name";
+  static const String certificateAwards = "certificate_awards";
+  static const String noCertificatesOrAwards = "no_certificates_or_awards";
+  static const String certificate = "certificate";
+  static const String award = "award";
 }

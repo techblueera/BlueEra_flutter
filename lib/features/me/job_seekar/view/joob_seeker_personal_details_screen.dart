@@ -98,7 +98,7 @@ class _JobSeekerPersonalDetailsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Personal Details"),
+      appBar: CommonBackAppBar(title: AppStrings.personalDetails.tr),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.paddingS),
@@ -124,8 +124,8 @@ class _JobSeekerPersonalDetailsScreenState
                         onChange: (val) {
                           setState(() {});
                         },
-                        title: AppStrings.fullName,
-                        hintText: "E.g. Sujoy Ghosh",
+                        title: AppStrings.fullName.tr,
+                        hintText: AppStrings.egNameHint.tr,
                         fontSize: SizeConfig.small,
                         textEditController: nameController,
                       ),
@@ -150,11 +150,11 @@ class _JobSeekerPersonalDetailsScreenState
                             return null;
                           } else {
                             isValid = false;
-                            return 'Enter valid email';
+                            return AppStrings.enterValidEmail.tr;
                           }
                         },
-                        title: AppStrings.email,
-                        hintText: "E.g. bluecs.info@gmail.com",
+                        title: AppStrings.email.tr,
+                        hintText: AppStrings.egEmailHint.tr,
                         fontSize: SizeConfig.small,
                         textEditController: emailController,
                         keyBoardType: TextInputType.emailAddress,
@@ -163,8 +163,8 @@ class _JobSeekerPersonalDetailsScreenState
                       CommonTextField(
                         validationType: ValidationTypeEnum.pNumber,
                         onChange: (val) {},
-                        title: AppStrings.phoneNumber,
-                        hintText: "E.g. +91 1234567890",
+                        title: AppStrings.phoneNumber.tr,
+                        hintText: AppStrings.egPhoneHint.tr,
                         textEditController: phoneController,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -193,9 +193,9 @@ class _JobSeekerPersonalDetailsScreenState
                             );
                           },
                           textEditController: locationController,
-                          hintText: AppStrings.locationHint,
+                          hintText: AppStrings.locationHint.tr,
                           isValidate: false,
-                          title: AppStrings.location,
+                          title: AppStrings.location.tr,
 
                           // onChange: (value) => controller.validateForm(),
                           readOnly: true,
@@ -206,8 +206,8 @@ class _JobSeekerPersonalDetailsScreenState
                       // Obx(() {
                       //   return
                       AiDescriptionField(
-                        label: "Short Bio",
-                        hintText: "Tell us more about info...",
+                        label: AppStrings.shortBio.tr,
+                        hintText: AppStrings.tellUsMoreAboutInfo.tr,
                         controller: descriptionController,
                         rxValue: "".obs,
                         // Your RX variable from the controller
@@ -228,8 +228,8 @@ class _JobSeekerPersonalDetailsScreenState
 
                           setState(() {});
                         },
-                        title: AppStrings.careerObjective,
-                        hintText: "E.g.Give your career objective",
+                        title: AppStrings.careerObjective.tr,
+                        hintText: AppStrings.egCareerObjective.tr,
                         fontSize: SizeConfig.small,
                         textEditController: careerObjController,
                       ),
@@ -246,7 +246,7 @@ class _JobSeekerPersonalDetailsScreenState
                       CommonDropdownDialog<String>(
                         items: openWorkOptions,
                         selectedValue: selectedOpenWorkOption,
-                        hintText: "Select Work Option",
+                        hintText: AppStrings.selectWorkOption.tr,
                         onChanged: (val) {
                           selectedOpenWorkOption = val ?? "";
                           _validate();
@@ -254,15 +254,15 @@ class _JobSeekerPersonalDetailsScreenState
                           setState(() {});
                         },
                         displayValue: (item) => item,
-                        title: "Open To Work",
-                        dialogTitle: "Open To Work",
+                        title: AppStrings.openToWork.tr,
+                        dialogTitle: AppStrings.openToWork.tr,
                       ),
                       SizedBox(height: SizeConfig.paddingL),
 
                       CommonDropdownDialog<String>(
                         items: experienceLevelOptions,
                         selectedValue: selectedExpLevelOpt,
-                        hintText: "Select Experience Level",
+                        hintText: AppStrings.selectExperienceLevel.tr,
                         onChanged: (val) {
                           selectedExpLevelOpt = val ?? "";
                           _validate();
@@ -270,13 +270,13 @@ class _JobSeekerPersonalDetailsScreenState
                           setState(() {});
                         },
                         displayValue: (item) => item,
-                        title: 'Experience Level',
-                        dialogTitle: 'Experience Level',
+                        title: AppStrings.experienceLevel.tr,
+                        dialogTitle: AppStrings.experienceLevel.tr,
                       ),
 
                       SizedBox(height: SizeConfig.paddingXXL),
                       CustomBtn(
-                        title: AppStrings.update,
+                        title: AppStrings.update.tr,
                         isValidate: isValid,
                         onTap: (isValid == false ||
                                 phoneController.text.isEmpty ||

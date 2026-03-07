@@ -32,7 +32,7 @@ class _JobSeekerAddMoreInfoListingScreenState extends State<JobSeekerAddMoreInfo
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.addAdditionalInformation,
+        title: AppStrings.addAdditionalInformation.tr,
       ),
       body:         Obx(() {
         final items = additionalInfoController.additionalInfoList;

@@ -34,7 +34,7 @@ class _JobSeekerCertificationListingScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.certifications,
+        title: AppStrings.certifications.tr,
       ),
       body: Obx(() {
         final items = certificationsController.certificationsList;

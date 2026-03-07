@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
@@ -56,7 +57,7 @@ class _JobSeekerResumeOverviewScreenState
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "My Portfolio Resume",
+        title: AppStrings.myPortfolioResume.tr,
       ),
       backgroundColor: AppColors.appBackgroundColor,
       bottomNavigationBar: SafeArea(
@@ -67,7 +68,7 @@ class _JobSeekerResumeOverviewScreenState
               onTap: () {
                 Get.to(UpdateJobSeekerScreen());
               },
-              title: "Create Resume"),
+              title: AppStrings.createResume_.tr),
         ),
       ),
       body: Obx(() {
@@ -148,7 +149,7 @@ class _JobSeekerResumeOverviewScreenState
         children: [
           Row(
             children: [
-              Expanded(child: _title("Education")),
+              Expanded(child: _title(AppStrings.education.tr)),
               // GestureDetector(
               //   onTap: () {},
               //   child: CustomText(
@@ -165,7 +166,7 @@ class _JobSeekerResumeOverviewScreenState
           SizedBox(height: SizeConfig.size12),
           if (list.isEmpty)
             CustomText(
-              "No education details found",
+              AppStrings.noEducationDetailsFound.tr,
               color: AppColors.grey9B,
               fontSize: SizeConfig.medium,
             )
@@ -191,7 +192,7 @@ class _JobSeekerResumeOverviewScreenState
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CustomText(
-                          e.highestQualification ?? "N/A",
+                          e.highestQualification ?? AppStrings.na.tr,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.w700,
                           color: AppColors.mainTextColor,
@@ -212,7 +213,7 @@ class _JobSeekerResumeOverviewScreenState
                         ),
                         SizedBox(height: SizeConfig.size8),
                         CustomText(
-                          e.schoolOrCollegeName ?? "N/A",
+                          e.schoolOrCollegeName ?? AppStrings.na.tr,
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                           maxLines: 2,
@@ -220,7 +221,7 @@ class _JobSeekerResumeOverviewScreenState
                         ),
                         SizedBox(height: SizeConfig.size6),
                         CustomText(
-                          "Board: ${e.boardName ?? "N/A"}",
+                          "${AppStrings.board.tr}: ${e.boardName ?? AppStrings.na.tr}",
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                           maxLines: 1,
@@ -228,7 +229,7 @@ class _JobSeekerResumeOverviewScreenState
                         ),
                         SizedBox(height: SizeConfig.size6),
                         CustomText(
-                          "Percentage: ${_formatPercentage(e.percentage)}",
+                          "${AppStrings.percentage.tr}: ${_formatPercentage(e.percentage)}",
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                           maxLines: 1,
@@ -274,7 +275,7 @@ class _JobSeekerResumeOverviewScreenState
     final items = <Map<String, dynamic>>[];
     if (current != null) {
       items.add({
-        "title": current.designation ?? "Current Role",
+        "title": current.designation ?? AppStrings.currentRole.tr,
         "company": current.currentCompanyName ?? "",
         "jobType": current.jobType ?? "",
         "location": current.location ?? "",
@@ -287,7 +288,7 @@ class _JobSeekerResumeOverviewScreenState
     }
     for (final f in full) {
       items.add({
-        "title": f.designation ?? "Full-time",
+        "title": f.designation ?? AppStrings.fullTime.tr,
         "company": f.previousCompanyName ?? "",
         "jobType": f.jobType ?? "",
         "location": f.location ?? "",
@@ -300,7 +301,7 @@ class _JobSeekerResumeOverviewScreenState
     }
     for (final p in part) {
       items.add({
-        "title": p.designation ?? "Part-time",
+        "title": p.designation ?? AppStrings.partTime.tr,
         "company": p.previousCompanyName ?? "",
         "jobType": p.jobType ?? "",
         "location": p.location ?? "",
@@ -318,7 +319,7 @@ class _JobSeekerResumeOverviewScreenState
         children: [
           Row(
             children: [
-              Expanded(child: _title("Work Experience")),
+              Expanded(child: _title(AppStrings.workExperience.tr)),
               // GestureDetector(
               //   onTap: () {},
               //   child: CustomText(
@@ -333,7 +334,7 @@ class _JobSeekerResumeOverviewScreenState
           SizedBox(height: SizeConfig.size12),
           if (items.isEmpty)
             CustomText(
-              "No experience added",
+              AppStrings.noExperienceAdded.tr,
               color: AppColors.grey9B,
               fontSize: SizeConfig.medium,
             )
@@ -373,7 +374,7 @@ class _JobSeekerResumeOverviewScreenState
                               SizedBox(width: SizeConfig.size12),
                               Expanded(
                                 child: CustomText(
-                                  item['title'] ?? "N/A",
+                                  item['title'] ?? AppStrings.na.tr,
                                   fontSize: SizeConfig.medium,
                                   color: AppColors.black,
                                   fontWeight: FontWeight.w600,
@@ -468,7 +469,7 @@ class _JobSeekerResumeOverviewScreenState
                                     ),
                                     child: CustomText(
                                       item['isCurrent'] == true
-                                          ? "Present"
+                                          ? AppStrings.present.tr
                                           : _formatMonthYear(item['end']),
                                       fontSize: SizeConfig.medium,
                                       color: AppColors.black,
@@ -519,11 +520,11 @@ class _JobSeekerResumeOverviewScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _title("Skills"),
+          _title(AppStrings.skills.tr),
           SizedBox(height: SizeConfig.size12),
           if (skills.isEmpty)
             CustomText(
-              "No skills added",
+              AppStrings.noSkillsAdded.tr,
               color: AppColors.grey9B,
               fontSize: SizeConfig.medium,
             )
@@ -566,7 +567,7 @@ class _JobSeekerResumeOverviewScreenState
         children: [
           Row(
             children: [
-              Expanded(child: _title("Portfolio Projects")),
+              Expanded(child: _title(AppStrings.portfolioProjects.tr)),
               // GestureDetector(
               //   onTap: () {},
               //   child: CustomText(
@@ -581,7 +582,7 @@ class _JobSeekerResumeOverviewScreenState
           SizedBox(height: SizeConfig.size12),
           if (projects.isEmpty)
             CustomText(
-              "No projects added",
+              AppStrings.noProjectsAdded.tr,
               color: AppColors.grey9B,
               fontSize: SizeConfig.medium,
             )
@@ -632,7 +633,7 @@ class _JobSeekerResumeOverviewScreenState
                             children: [
                               Expanded(
                                 child: CustomText(
-                                  p.title ?? "Project Name",
+                                  p.title ?? AppStrings.projectName.tr,
                                   fontSize: SizeConfig.large,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.mainTextColor,
@@ -714,14 +715,14 @@ class _JobSeekerResumeOverviewScreenState
     final items = <Map<String, String>>[];
     for (final c in certs) {
       items.add({
-        "title": c.title ?? "Certificate",
+        "title": c.title ?? AppStrings.certificate.tr,
         "desc": c.issuingOrg ?? "",
         "image": c.certificateAttachment ?? "",
       });
     }
     for (final a in awards) {
       items.add({
-        "title": a.title ?? "Award",
+        "title": a.title ?? AppStrings.award.tr,
         "desc": a.description ?? "",
         "image": a.attachment ?? "",
       });
@@ -733,14 +734,14 @@ class _JobSeekerResumeOverviewScreenState
         children: [
           Row(
             children: [
-              Expanded(child: _title("Certificate & Awards")),
+              Expanded(child: _title(AppStrings.certificateAwards.tr)),
 
             ],
           ),
           SizedBox(height: SizeConfig.size12),
           if (items.isEmpty)
             CustomText(
-              "No certificates or awards",
+              AppStrings.noCertificatesOrAwards.tr,
               color: AppColors.grey9B,
               fontSize: SizeConfig.medium,
             )
@@ -850,18 +851,18 @@ class _JobSeekerResumeOverviewScreenState
 
 
   String _formatPercentage(String? p) {
-    if (p == null || p.isEmpty) return "N/A";
+    if (p == null || p.isEmpty) return AppStrings.na.tr;
     final v = double.tryParse(p);
     if (v == null) return p;
     return "${v.toStringAsFixed(2)}%";
   }
 
   String _formatMonthYear(dynamic d) {
-    if (d == null) return "N/A";
+    if (d == null) return AppStrings.na.tr;
     try {
       final m = d.month as int?;
       final y = d.year as int?;
-      if (m == null || y == null) return "N/A";
+      if (m == null || y == null) return AppStrings.na.tr;
       const months = [
         "Jan",
         "Feb",
@@ -879,7 +880,7 @@ class _JobSeekerResumeOverviewScreenState
       final name = months[(m - 1).clamp(0, 11)];
       return "$name,$y";
     } catch (_) {
-      return "N/A";
+      return AppStrings.na.tr;
     }
   }
 

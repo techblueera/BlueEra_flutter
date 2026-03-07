@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -32,7 +33,7 @@ class _AddExperienceScreenState extends State<AddExperienceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.isEdit ? "Edit Experience" : "Add Experience",
+        title: widget.isEdit ? AppStrings.editExperience.tr : AppStrings.addExperience.tr,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size16),
@@ -43,8 +44,8 @@ class _AddExperienceScreenState extends State<AddExperienceScreen> {
               // Title Field
               CommonTextField(
                 textEditController: personalController.companyNameController,
-                title: "Company Name",
-                hintText: "E.g., Blue CS",
+                title: AppStrings.companyName.tr,
+                hintText: AppStrings.egCompanyName.tr,
                 maxLength: 100,
                 isValidate: false,
                 onChange: (value) {
@@ -56,9 +57,9 @@ class _AddExperienceScreenState extends State<AddExperienceScreen> {
               // Description Field
               CommonTextField(
                 textEditController: personalController.roleResController,
-                title: "Roles & Responsibilities",
+                title: AppStrings.rolesResponsibilities.tr,
                 hintText:
-                    "Describe your key responsibilities and work at this company...",
+                    AppStrings.describeKeyResponsibilities.tr,
                 maxLine: 5,
                 maxLength: 200,
                 isValidate: false,
@@ -70,7 +71,7 @@ class _AddExperienceScreenState extends State<AddExperienceScreen> {
 
               // Save Button
               CustomBtn(
-                title: widget.isEdit ? "Update" : "Save",
+                title: widget.isEdit ? AppStrings.update.tr : AppStrings.save.tr,
                 onTap: personalController.isFormExperienceValid.value
                     ? () async {
                         await personalController.updateUserProfileDetails(

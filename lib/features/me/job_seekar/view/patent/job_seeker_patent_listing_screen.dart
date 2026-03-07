@@ -34,7 +34,7 @@ class _JobSeekerPatentListingScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.patents,
+        title: AppStrings.patents.tr,
       ),
       body: Obx(() {
         final items = patentController.entityList;

@@ -37,7 +37,7 @@ class _JobSeekerSkillViewScreenState extends State<JobSeekerSkillViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.skills,
+        title: AppStrings.skills.tr,
       ),
       body: Obx(() {
         return CommonCardWidget(
@@ -58,7 +58,7 @@ class _JobSeekerSkillViewScreenState extends State<JobSeekerSkillViewScreen> {
                       ),
                       SizedBox(width: 8),
                       CustomText(
-                        AppStrings.addSkills,
+                        AppStrings.addSkills.tr,
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w500,
@@ -84,7 +84,7 @@ class _JobSeekerSkillViewScreenState extends State<JobSeekerSkillViewScreen> {
                                       skillsController.deleteSkillsApi(skill);
                                       Navigator.of(context).pop();
                                     },
-                                    title: AppStrings.deleteSkill,
+                                    title: AppStrings.deleteSkill.tr,
                                     content:
                                         "${AppStrings.deleteConfirm.tr} '$skill'?",
                                   );
@@ -105,7 +105,7 @@ class _JobSeekerSkillViewScreenState extends State<JobSeekerSkillViewScreen> {
                           ),
                           SizedBox(width: 8),
                           CustomText(
-                            AppStrings.addSkills,
+                            AppStrings.addSkills.tr,
                             color: AppColors.primaryColor,
                             fontSize: SizeConfig.large,
                             fontWeight: FontWeight.w500,

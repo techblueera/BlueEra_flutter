@@ -36,7 +36,7 @@ class _JobSeekerPublicationListingScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.publications,
+        title: AppStrings.publications.tr,
       ),
       body: Obx(() {
         final publications = publicationsController.publications;
@@ -78,7 +78,7 @@ class _JobSeekerPublicationListingScreenState
               Navigator.of(context).pop();
               await publicationsController.deletePublicationApi(
                   publications[index]['_id'], index);
-              commonSnackBar(message: AppStrings.publicationDeleted);
+              commonSnackBar(message: AppStrings.publicationDeleted.tr);
             });
           },
         );

@@ -77,8 +77,8 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
     return Scaffold(
         appBar: CommonBackAppBar(
             title: widget.isEdit
-                ? AppStrings.editAdditionalInfo
-                : AppStrings.addAdditionalInformation),
+                ? AppStrings.editAdditionalInfo.tr
+                : AppStrings.addAdditionalInformation.tr),
         body: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingS),
           child: CommonCardWidget(
@@ -91,17 +91,17 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                     children: [
                       // Title Field
                       CommonTextField(
-                        title: AppStrings.title,
+                        title: AppStrings.title.tr,
                         textEditController: controller.titleController,
-                        hintText: AppStrings.langExample,
+                        hintText: AppStrings.langExample.tr,
                       ),
                       SizedBox(height: SizeConfig.size18),
 
                       // Additional Description (maps to 'info')
-                      CustomText(AppStrings.additionalDescription),
+                      CustomText(AppStrings.additionalDescription.tr),
                       SizedBox(height: SizeConfig.size10),
                       CommonTextField(
-                        hintText:AppStrings.describeThisInfo,
+                        hintText:AppStrings.describeThisInfo.tr,
                         textEditController: controller.infoController,
                         maxLine: 5,
                         maxLength: 200,
@@ -117,7 +117,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     CustomText(
-                                      AppStrings.date,
+                                      AppStrings.date.tr,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -131,7 +131,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       },
 
                                       child: CustomText(
-                                        AppStrings.remove,
+                                        AppStrings.remove.tr,
                                         color: AppColors.red,
                                       ),
                                     ),
@@ -160,7 +160,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       imagePath: AppIconAssets.addBlueIcon),
                                   SizedBox(width: SizeConfig.size4),
                                   CustomText(
-                                    AppStrings.addDate,
+                                    AppStrings.addDate.tr,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.large,
                                   ),
@@ -179,7 +179,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     CustomText(
-                                      AppStrings.photo,
+                                      AppStrings.photo.tr,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -191,7 +191,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                             () {}); // update UI for picker hide
                                       },
                                       child: CustomText(
-                                        AppStrings.remove,
+                                        AppStrings.remove.tr,
                                         color: AppColors.red,
                                       ),
                                     ),
@@ -225,7 +225,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       imagePath: AppIconAssets.addBlueIcon),
                                   SizedBox(width: SizeConfig.size4),
                                   CustomText(
-                                    AppStrings.addPhoto,
+                                    AppStrings.addPhoto.tr,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.large,
                                   ),
@@ -243,7 +243,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     CustomText(
-                                      AppStrings.moreDetails,
+                                      AppStrings.moreDetails.tr,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -255,7 +255,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                         setState(() {});
                                       },
                                       child: CustomText(
-                                        AppStrings.remove,
+                                        AppStrings.remove.tr,
                                         color: AppColors.red,
                                       ),
                                     ),
@@ -263,7 +263,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                 ),
                                 SizedBox(height: SizeConfig.size10),
                                 CommonTextField(
-                                  hintText: AppStrings.moreDetails,
+                                  hintText: AppStrings.moreDetails.tr,
                                   textEditController:
                                       controller.moreTextController,
                                   maxLine: 3,
@@ -280,7 +280,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                       imagePath: AppIconAssets.addBlueIcon),
                                   SizedBox(width: SizeConfig.size4),
                                   CustomText(
-                                    AppStrings.addMoreTextBox,
+                                    AppStrings.addMoreTextBox.tr,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.large,
                                   ),
@@ -291,7 +291,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
 
                       // Save / Update Button
                       CustomBtn(
-                        title: widget.isEdit ? AppStrings.update : AppStrings.save,
+                        title: widget.isEdit ? AppStrings.update.tr : AppStrings.save.tr,
                         isValidate: isValid,
                         onTap: isValid
                             ? () async {

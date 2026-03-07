@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:BlueEra/features/personal/auth/repo/languages_repo.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
@@ -23,6 +24,17 @@ class LocalizationService extends Translations {
   void clearInMemoryTranslations() {
     _translations.clear();
   }
+  /// Loads local asset translations as a base fallback
+  Future<Map<String, String>> _loadAssetTranslations(String languageCode) async {
+    try {
+      final jsonStr = await rootBundle.loadString('assets/translations/$languageCode.json');
+      final Map<String, dynamic> jsonData = jsonDecode(jsonStr);
+      return jsonData.map((k, v) => MapEntry(k, v.toString()));
+    } catch (_) {
+      return {};
+    }
+  }
+
   /// Loads translations from Hive if present, otherwise fetches from API
   Future<Map<String, String>> loadTranslations(String languageCode) async {
     try {
@@ -31,14 +43,17 @@ class LocalizationService extends Translations {
         return _translations[languageCode]!;
       }
 
-      // Step 2: load from Hive
+      // Step 2: load local asset JSON as base
+      final assetData = await _loadAssetTranslations(languageCode);
+
+      // Step 3: load from Hive
       final stored = box.get(languageCode);
       Map<String, String> localData = {};
       if (stored != null && stored is Map) {
         localData = Map<String, String>.from(stored);
       }
 
-      // Step 3: call API to get latest
+      // Step 4: call API to get latest
       final response = await LanguageRepo().downloadLanguage(languageCode);
       if (response.statusCode == 200) {
         final raw = response.response?.data;
@@ -47,17 +62,22 @@ class LocalizationService extends Translations {
         final Map<String, String> formatted =
         jsonData.map((k, v) => MapEntry(k, v.toString()));
 
-        // ✅ Step 4: Merge old + new keys
-        final merged = {...localData, ...formatted};
+        // Step 5: Merge: asset (base) < hive (cached) < API (latest)
+        final merged = {...assetData, ...localData, ...formatted};
 
         _translations[languageCode] = merged;
 
-        // Step 5: Save back to Hive
+        // Step 6: Save back to Hive
         await box.put(languageCode, merged);
         return merged;
       }
 
-      return localData;
+      // If API fails, merge asset + hive
+      final merged = {...assetData, ...localData};
+      if (merged.isNotEmpty) {
+        _translations[languageCode] = merged;
+      }
+      return merged;
     } catch (e, st) {
       print('⚠️ Error loading translations for $languageCode: $e\n$st');
       return {};

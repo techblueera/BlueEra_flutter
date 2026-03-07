@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/job_seekar/controller/job_seeker_portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/me/job_seekar/view/project_portfolio/job_seeker_portfolio_form_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
@@ -18,7 +19,7 @@ class JobSeekerPortfolioScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Portfolio Projects"),
+      appBar: CommonBackAppBar(title: AppStrings.portfolioProjects.tr),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 30.0, top: 10),
@@ -49,7 +50,7 @@ class JobSeekerPortfolioScreen extends StatelessWidget {
             itemCount: portfolioController.certificates.length,
           );
         }
-        return Center(child: CustomText("No data found"));
+        return Center(child: CustomText(AppStrings.noDataFound.tr));
       }),
     );
   }

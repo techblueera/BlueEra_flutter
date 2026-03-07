@@ -43,7 +43,7 @@ class _AddFullTimeExperienceScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.isEdit ? "Edit Experience" : "Add Experience"),
+          title: widget.isEdit ? AppStrings.editExperience.tr : AppStrings.addExperience.tr),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: SingleChildScrollView(
@@ -61,8 +61,8 @@ class _AddFullTimeExperienceScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CommonTextField(
-                      title: AppStrings.previousCompanyName,
-                      hintText: AppStrings.previousCompanyHint,
+                      title: AppStrings.previousCompanyName.tr,
+                      hintText: AppStrings.previousCompanyHint.tr,
                       fontSize: SizeConfig.small,
                       textEditController: controller.previousCompanyController,
                     ),
@@ -70,20 +70,20 @@ class _AddFullTimeExperienceScreenState
                     SizedBox(height: SizeConfig.size24),
 
                     CommonTextField(
-                      title: AppStrings.designation,
-                      hintText: AppStrings.designationHint,
+                      title: AppStrings.designation.tr,
+                      hintText: AppStrings.designationHint.tr,
                       fontSize: SizeConfig.small,
                       textEditController: controller.designationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText(AppStrings.jobType, fontSize: SizeConfig.small),
+                    CustomText(AppStrings.jobType.tr, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.jobTypeOptions,
                           selectedValue: controller.selectedJobType.value,
-                          hintText: AppStrings.jobTypeHint,
+                          hintText: AppStrings.jobTypeHint.tr,
                           onChanged: (val) =>
                               controller.selectedJobType.value = val,
                           displayValue: (item) => item,
@@ -91,12 +91,12 @@ class _AddFullTimeExperienceScreenState
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText(AppStrings.workMode, fontSize: SizeConfig.small),
+                    CustomText(AppStrings.workMode.tr, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.workTypeOptions,
                           selectedValue: controller.selectedWorkType.value,
-                          hintText: AppStrings.workModeHint,
+                          hintText: AppStrings.workModeHint.tr,
                           onChanged: (val) =>
                               controller.selectedWorkType.value = val,
                           displayValue: (item) => item,
@@ -105,15 +105,15 @@ class _AddFullTimeExperienceScreenState
                     SizedBox(height: SizeConfig.size24),
 
                     CommonTextField(
-                      title: AppStrings.location,
-                      hintText: AppStrings.locationHint,
+                      title: AppStrings.location.tr,
+                      hintText: AppStrings.locationHint.tr,
                       fontSize: SizeConfig.small,
                       textEditController: controller.locationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText(AppStrings.startDate,
+                    CustomText(AppStrings.startDate.tr,
                         fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
@@ -130,7 +130,7 @@ class _AddFullTimeExperienceScreenState
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText(AppStrings.endDate, fontSize: SizeConfig.small),
+                    CustomText(AppStrings.endDate.tr, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
                           selectedDay: controller.selectedEndDay.value,
@@ -146,8 +146,8 @@ class _AddFullTimeExperienceScreenState
 
                     SizedBox(height: SizeConfig.size24),
                     AiDescriptionField(
-                      label: "Description Of Job Role",
-                      hintText: AppStrings.jobRoleDescriptionHint,
+                      label: AppStrings.descriptionOfJobRole.tr,
+                      hintText: AppStrings.jobRoleDescriptionHint.tr,
                       controller: controller.descriptionController,
                       rxValue: "".obs,
                       // Your RX variable from the controller
@@ -176,8 +176,8 @@ class _AddFullTimeExperienceScreenState
                         Expanded(
                           child: Obx(() => CustomBtn(
                                 title: widget.isEdit
-                                    ? AppStrings.update
-                                    : AppStrings.save,
+                                    ? AppStrings.update.tr
+                                    : AppStrings.save.tr,
                                 isValidate: controller.isFormValid.value,
                                 onTap: controller.isFormValid.value
                                     ? () async {

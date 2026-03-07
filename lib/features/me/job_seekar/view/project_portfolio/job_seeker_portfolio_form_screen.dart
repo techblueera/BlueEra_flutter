@@ -41,7 +41,7 @@ class _JobSeekerPortfolioFormScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Portfolio Projects",
+        title: AppStrings.portfolioProjects.tr,
       ),
       body: SafeArea(
         child: CommonCardWidget(
@@ -66,21 +66,21 @@ class _JobSeekerPortfolioFormScreenState
                   // ),
 
                   CommonTextField(
-                    title: "Project Title",
+                    title: AppStrings.projectTitle.tr,
                     textEditController: portfolioController.titleController,
-                    hintText: "E.g. Finance & Tax",
+                    hintText: AppStrings.egFinanceTax.tr,
                     onChange: (val) {
                       setState(() {});
                     },
                   ),
 
                   SizedBox(height: SizeConfig.size12),
-                  const CustomText("Consultation Mode",
+                  CustomText(AppStrings.consultationMode.tr,
                       color: AppColors.mainTextColor),
                   const SizedBox(height: 10),
                   Obx(() => CommonDropdownDialog<String>(
-                        title: "Select Mode",
-                        hintText: "E.g. Online",
+                        title: AppStrings.selectMode.tr,
+                        hintText: AppStrings.egOnline.tr,
                         items: portfolioController.categoryList,
                         selectedValue:
                             portfolioController.selectedCategory.value.isEmpty
@@ -96,7 +96,7 @@ class _JobSeekerPortfolioFormScreenState
 
                   ///DOB selection
                   CustomText(
-                    'When the work was completed',
+                    AppStrings.whenWorkCompleted.tr,
                     fontSize: SizeConfig.medium,
                     color: AppColors.mainTextColor,
                   ),
@@ -127,7 +127,7 @@ class _JobSeekerPortfolioFormScreenState
                   SizedBox(height: SizeConfig.size12),
                   // if (!isEdit) ...[
                   CustomText(
-                    'Upload Image',
+                    AppStrings.uploadImage.tr,
                     fontSize: SizeConfig.medium,
                     color: AppColors.mainTextColor,
                   ),
@@ -139,9 +139,9 @@ class _JobSeekerPortfolioFormScreenState
                   // ],
                   Obx(() {
                     return AiDescriptionField(
-                      label: AppStrings.description,
+                      label: AppStrings.description.tr,
                       hintText:
-                          "Tell us more about the project or case study...",
+                          AppStrings.tellUsMoreAboutProject.tr,
                       controller: portfolioController.descriptionController,
                       rxValue: portfolioController.description,
                       // Your RX variable from the controller
@@ -155,7 +155,7 @@ class _JobSeekerPortfolioFormScreenState
                   SizedBox(height: SizeConfig.size20),
                   Obx(() => CustomBtn(
                         // title: isEdit ? "Update" : "Save",
-                        title: "Save",
+                        title: AppStrings.save.tr,
                         isValidate: !(portfolioController.isSaving.value),
                         onTap: portfolioController.isSaving.value
                             ? null
@@ -235,7 +235,7 @@ class _JobSeekerPortfolioFormScreenState
     }
     // Default: Show Upload Placeholder
     return CommonImageUploadTile(
-      title: "Upload Image",
+      title: AppStrings.uploadImage.tr,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

@@ -29,7 +29,7 @@ class _NgoOrgListingScreenState extends State<NgoOrgListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.ngoStudentOrganisations),
+      appBar: CommonBackAppBar(title: AppStrings.ngoStudentOrganisations.tr),
       body: Obx(() {
         final items = ngoController.entityList;
         return ResumeProfileSectionCard(

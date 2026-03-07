@@ -20,25 +20,25 @@ class AddMoreJobSeekerScreen extends StatefulWidget {
 }
 
 class _AddMoreJobSeekerScreenState extends State<AddMoreJobSeekerScreen> {
-  final List<ServiceMenuItem> serviceMenus = [
+  List<ServiceMenuItem> get serviceMenus => [
     ServiceMenuItem(
-      title: AppStrings.hobbies,
+      title: AppStrings.hobbies.tr,
       icon: AppIconAssets.basicProfile, // Replace with your actual icon asset
       page: () => JobSeekerListingScreen(),
     ),
     ServiceMenuItem(
-      title: AppStrings.addAdditionalInformation,
+      title: AppStrings.addAdditionalInformation.tr,
       icon: AppIconAssets.basicProfile,
       page: () =>
           JobSeekerAddMoreInfoListingScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
-      title: AppStrings.ngoStudentOrganisations,
+      title: AppStrings.ngoStudentOrganisations.tr,
       icon: AppIconAssets.servicesOffered,
       page: () => NgoOrgListingScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
-      title: AppStrings.patents,
+      title: AppStrings.patents.tr,
       icon: AppIconAssets.aboutProfessional,
       page: () => JobSeekerPatentListingScreen(), // Update to your actual page
     ),
@@ -49,7 +49,7 @@ class _AddMoreJobSeekerScreenState extends State<AddMoreJobSeekerScreen> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
-        title: AppStrings.addMore,
+        title: AppStrings.addMore.tr,
       ),
       body: SingleChildScrollView(
         child: Column(
