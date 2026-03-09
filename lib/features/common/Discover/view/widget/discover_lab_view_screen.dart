@@ -56,28 +56,8 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                           onTap: () async {
                             final chatViewController =
                                 Get.find<ChatViewController>();
-                            Map<String, dynamic> detas = {
-                              ApiKeys.user_id:  d.fullDetails?.profile?.userId
-                            };
-                            Map<String, dynamic>? checkCompleted =
-                                await chatViewController
-                                    .checkChatConnection(detas);
-                            chatViewController.openAnyOneChatFunction(
-                              profileImage: profile?.logoUrl,
-                              otherUserId:
-                                  (checkCompleted?[ApiKeys.conversation_id] ==
-                                          '')
-                                      ? (checkCompleted?[ApiKeys.other_user_id])
-                                      : null,
-                              // businessId: widget.businessProfileDetails.id,
-                              type: "business",
-                              isInitialMessage: true,
-                              userId: d.fullDetails?.profile?.userId,
-                              conversationId:
-                                  checkCompleted?[ApiKeys.conversation_id] ??
-                                      '',
-                              contactName: profile?.name,
-                              contactNo: '',
+                            chatViewController.checkChatConnectionAndOpenChat(
+                              userId: d.fullDetails?.profile?.userId ?? '',
                             );
                           },
                           title: AppStrings.chat),

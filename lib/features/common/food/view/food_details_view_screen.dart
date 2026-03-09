@@ -196,28 +196,10 @@ class FoodDetailsViewScreen extends StatelessWidget {
                             chatViewController.isChatFromBusinessProfile(true);
                             chatViewController.canPopBusiness.value=true;
 
-                            chatViewController.openAnyOneChatFunction(
+                            chatViewController.checkChatConnectionAndOpenChat(
+                              userId: business?.userId ?? '',
                               shareProductParams: data,
                               isWithProductSend: true,
-                              profileImage: business?.logo,
-                              otherUserId: (userDetailsMap[ApiKeys.conversation_id] ??
-                                  '') ==
-                                  ""
-                                  ? userDetailsMap[ApiKeys.other_user_id] ??
-                                  ''
-                                  : null,
-                              // businessId: business?.id,
-                              type: AppConstants.chatMsgBusinessType,
-                              isInitialMessage: (userDetailsMap[ApiKeys.conversation_id] ??
-                                  '') ==
-                                  ""
-                                  ? true
-                                  : false,
-                              userId: business?.userId,
-                              conversationId: (userDetailsMap[ApiKeys.conversation_id] ??
-                                  ''),
-                              contactName: business?.businessName,
-                              contactNo: "",
                             );
                           }
 

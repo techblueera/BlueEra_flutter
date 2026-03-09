@@ -20,7 +20,7 @@ import '../socket/chat_socket.dart';
 
 enum CallType { audio, video }
 
-enum CallStatus { idle, ringing, connecting, connected, ended }
+enum CallStatus { idle, ringing, accepting, outgoing, connecting, connected, ended }
 
 class CallController extends GetxController {
   final CallRepo _callRepo = CallRepo();
@@ -45,9 +45,16 @@ class CallController extends GetxController {
   var isSpeakerOn = false.obs;
   var isFrontCamera = true.obs;
 
-  // Remote user media state
+  // Remote user media state (1-to-1)
   var remoteAudioEnabled = true.obs;
   var remoteVideoEnabled = true.obs;
+
+  // Per-participant media state for group calls { peerId: { audio: bool, video: bool, name: String, image: String } }
+  final participantMediaState = <String, Map<String, dynamic>>{}.obs;
+
+  // Call type switch state
+  var isSwitchTypePending = false.obs;
+  var switchTypeRequestedBy = ''.obs;
 
   // Call timer
   var callDurationSeconds = 0.obs;
@@ -66,6 +73,9 @@ class CallController extends GetxController {
 
   // ICE candidate buffer for candidates arriving before remote description
   final _pendingCandidates = <String, List<RTCIceCandidate>>{};
+
+  // Pending SDP offer received while still ringing (before user accepts)
+  Map<String, dynamic>? _pendingOffer;
 
   bool _disposed = false;
 
@@ -139,11 +149,28 @@ class CallController extends GetxController {
       _handleRemoteIceCandidate(data);
     });
 
-    // Media toggle from remote
+    // Media toggle from remote (may send only the changed field)
     _socket.listenEvent('call:media-toggle', (data) {
       if (_disposed) return;
-      remoteAudioEnabled.value = data['is_audio_enabled'] ?? true;
-      remoteVideoEnabled.value = data['is_video_enabled'] ?? true;
+      final peerId = data['user_id'] ?? '';
+      if (data['is_audio_enabled'] != null) {
+        remoteAudioEnabled.value = data['is_audio_enabled'];
+      }
+      if (data['is_video_enabled'] != null) {
+        remoteVideoEnabled.value = data['is_video_enabled'];
+      }
+      // Update per-participant state for group calls
+      if (peerId.isNotEmpty) {
+        final current = participantMediaState[peerId] ?? {};
+        if (data['is_audio_enabled'] != null) {
+          current['audio'] = data['is_audio_enabled'];
+        }
+        if (data['is_video_enabled'] != null) {
+          current['video'] = data['is_video_enabled'];
+        }
+        participantMediaState[peerId] = current;
+        participantMediaState.refresh();
+      }
     });
 
     // Group call events
@@ -155,6 +182,28 @@ class CallController extends GetxController {
     _socket.listenEvent('call:participant-left', (data) {
       if (_disposed) return;
       _handleParticipantLeft(data);
+    });
+
+    // User(s) added to call by another participant
+    _socket.listenEvent('call:user-added', (data) {
+      if (_disposed) return;
+      _handleUserAdded(data);
+    });
+
+    // Call type switch events
+    _socket.listenEvent('call:switch-type-request', (data) {
+      if (_disposed) return;
+      _handleSwitchTypeRequest(data);
+    });
+
+    _socket.listenEvent('call:type-switched', (data) {
+      if (_disposed) return;
+      _handleTypeSwitched(data);
+    });
+
+    _socket.listenEvent('call:switch-type-declined', (data) {
+      if (_disposed) return;
+      _handleSwitchTypeDeclined(data);
     });
   }
 
@@ -204,7 +253,7 @@ class CallController extends GetxController {
 
     // Set state
     callType.value = type;
-    callStatus.value = CallStatus.ringing;
+    callStatus.value = CallStatus.outgoing;
     isCaller.value = true;
     callId.value = data['call_id'] ?? '';
     roomId.value = data['room_id'] ?? '';
@@ -246,6 +295,7 @@ class CallController extends GetxController {
     isCaller.value = false;
     callerName.value = data['caller_name'] ?? data['initiated_by'] ?? '';
     callerImage.value = data['caller_image'] ?? '';
+    _remoteUserId = data['initiated_by'] ?? '';
     callStatus.value = CallStatus.ringing;
 
     // Show incoming call screen via GetX navigation
@@ -254,14 +304,22 @@ class CallController extends GetxController {
 
   /// Accept an incoming call
   Future<bool> acceptCall() async {
+    // Immediately transition to accepting so call:answered-elsewhere
+    // won't reset our state while we're in the middle of accepting
+    final savedCallId = callId.value;
+    final savedRoomId = roomId.value;
+    final savedRemoteUserId = _remoteUserId;
+    final savedPendingOffer = _pendingOffer;
+    callStatus.value = CallStatus.accepting;
+
     // Request permissions
     final permissions = [Permission.microphone];
     if (callType.value == CallType.video) permissions.add(Permission.camera);
     await permissions.request();
 
     ResponseModel response = await _callRepo.acceptCall({
-      'call_id': callId.value,
-      'room_id': roomId.value,
+      'call_id': savedCallId,
+      'room_id': savedRoomId,
     });
 
     if (!response.isSuccess) {
@@ -271,7 +329,7 @@ class CallController extends GetxController {
       } else {
         commonSnackBar(message: response.message ?? 'Failed to accept call');
       }
-      _resetState();
+      _cleanup();
       return false;
     }
 
@@ -281,10 +339,30 @@ class CallController extends GetxController {
     callStatus.value = CallStatus.connecting;
 
     // Join socket room
-    _socket.emitEvent('call:join-room', {'room_id': roomId.value});
+    _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
 
     // Setup local media
     await _setupLocalMedia();
+
+    // If we already received an SDP offer while ringing, process it now
+    if (savedPendingOffer != null && savedRemoteUserId != null) {
+      final pc = await _createPeerConnection(savedRemoteUserId);
+      final sdp = RTCSessionDescription(
+        savedPendingOffer['sdp'],
+        savedPendingOffer['type'],
+      );
+      await pc.setRemoteDescription(sdp);
+      await _flushPendingCandidates(savedRemoteUserId);
+
+      final answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      _socket.emitEvent('call:answer', {
+        'room_id': savedRoomId,
+        'target_user_id': savedRemoteUserId,
+        'sdp': {'sdp': answer.sdp, 'type': answer.type},
+      });
+      _pendingOffer = null;
+    }
 
     // Keep screen on
     WakelockPlus.enable();
@@ -309,6 +387,10 @@ class CallController extends GetxController {
       'call_id': callId.value,
       'room_id': roomId.value,
     });
+    _socket.emitEvent('call:leave-room', {
+      'room_id': roomId.value,
+      'call_id': callId.value,
+    });
     _cleanup();
     Get.back();
   }
@@ -330,10 +412,15 @@ class CallController extends GetxController {
   // ==================== SOCKET EVENT HANDLERS ====================
 
   void _handleCallAccepted(dynamic data) async {
+    if (callStatus.value != CallStatus.outgoing) return;
+
     _ringTimer?.cancel();
     callStatus.value = CallStatus.connecting;
     final acceptedBy = data['accepted_by'] ?? '';
     _remoteUserId = acceptedBy;
+
+    // Navigate to ActiveCallScreen
+    Get.offNamed('/ActiveCallScreen');
 
     // Caller creates and sends the SDP offer
     final pc = peerConnections[_remoteUserId] ??
@@ -350,10 +437,16 @@ class CallController extends GetxController {
   }
 
   void _handleCallDeclined(dynamic data) {
+    final callEnded = data['call_ended'] ?? true;
     _ringTimer?.cancel();
-    commonSnackBar(message: 'Call declined');
-    _cleanup();
-    Get.back();
+    if (callEnded == true) {
+      commonSnackBar(message: 'Call declined');
+      _cleanup();
+      Get.back();
+    } else {
+      // Group call: some users declined but others may still answer
+      if (kDebugMode) print('User ${data['declined_by']} declined group call');
+    }
   }
 
   void _handleCallCancelled(dynamic data) {
@@ -372,6 +465,9 @@ class CallController extends GetxController {
   }
 
   void _handleAnsweredElsewhere(dynamic data) {
+    // Only dismiss if still ringing - do NOT reset if accepting or active
+    if (callStatus.value != CallStatus.ringing) return;
+
     FlutterCallkitIncoming.endCall(callId.value);
     _cleanup();
     if (Get.currentRoute == '/IncomingCallScreen') {
@@ -384,6 +480,19 @@ class CallController extends GetxController {
   void _handleRemoteOffer(dynamic data) async {
     final fromUserId = data['from_user_id'] ?? '';
     _remoteUserId = fromUserId;
+
+    // If still ringing, store the offer for when user actually accepts
+    if (callStatus.value == CallStatus.ringing) {
+      _pendingOffer = data['sdp'];
+      return;
+    }
+
+    // Only process if we're in accepting/connecting/connected state
+    if (callStatus.value != CallStatus.accepting &&
+        callStatus.value != CallStatus.connecting &&
+        callStatus.value != CallStatus.connected) {
+      return;
+    }
 
     final pc = peerConnections[fromUserId] ??
         await _createPeerConnection(fromUserId);
@@ -410,6 +519,12 @@ class CallController extends GetxController {
     final fromUserId = data['from_user_id'] ?? '';
     final pc = peerConnections[fromUserId];
     if (pc == null) return;
+
+    // Only set remote description if we're in 'have-local-offer' state
+    if (pc.signalingState !=
+        RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+      return;
+    }
 
     final sdp =
         RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
@@ -478,7 +593,189 @@ class CallController extends GetxController {
 
   void _handleParticipantLeft(dynamic data) async {
     final leftUserId = data['user_id'] ?? '';
+    participantMediaState.remove(leftUserId);
+    participantMediaState.refresh();
     await _closePeerConnection(leftUserId);
+  }
+
+  void _handleUserAdded(dynamic data) {
+    // Informational: another participant added user(s) to the call
+    final addedUsers = List<String>.from(data['added_users'] ?? []);
+    if (addedUsers.isNotEmpty) {
+      isGroupCall.value = true;
+    }
+  }
+
+  /// Add user(s) to the current active call
+  Future<Map<String, dynamic>?> addUsersToCall(List<String> userIds) async {
+    if (callId.value.isEmpty || roomId.value.isEmpty) return null;
+
+    ResponseModel response = await _callRepo.addUserToCall({
+      'call_id': callId.value,
+      'room_id': roomId.value,
+      'user_ids': userIds,
+    });
+
+    if (!response.isSuccess) {
+      commonSnackBar(message: response.message ?? 'Failed to add users');
+      return null;
+    }
+
+    final data = response.response?.data;
+    if (data == null) return null;
+
+    // Upgrade local state to group call
+    isGroupCall.value = true;
+
+    final addedUsers = List<String>.from(data['added_users'] ?? []);
+    final busyUsers = List<String>.from(data['busy_users'] ?? []);
+    final alreadyInCall = List<String>.from(data['already_in_call'] ?? []);
+
+    if (busyUsers.isNotEmpty) {
+      commonSnackBar(message: '${busyUsers.length} user(s) are on another call');
+    }
+    if (addedUsers.isNotEmpty) {
+      commonSnackBar(message: '${addedUsers.length} user(s) added to call');
+    }
+    if (addedUsers.isEmpty && busyUsers.isEmpty && alreadyInCall.isNotEmpty) {
+      commonSnackBar(message: 'User(s) already in this call');
+    }
+
+    return data;
+  }
+
+  // ==================== CALL TYPE SWITCH (Audio ↔ Video) ====================
+
+  /// Request to switch call type (audio ↔ video)
+  Future<void> switchCallType() async {
+    if (callId.value.isEmpty || roomId.value.isEmpty) return;
+
+    final currentType = callType.value == CallType.video ? 'video_call' : 'audio_call';
+    final newType = currentType == 'audio_call' ? 'video_call' : 'audio_call';
+
+    // If switching to video, request camera permission first
+    if (newType == 'video_call') {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        commonSnackBar(message: 'Camera permission required to switch to video');
+        return;
+      }
+    }
+
+    ResponseModel response = await _callRepo.switchCallType({
+      'call_id': callId.value,
+      'room_id': roomId.value,
+      'new_call_type': newType,
+    });
+
+    if (!response.isSuccess) {
+      commonSnackBar(message: response.message ?? 'Failed to switch call type');
+      return;
+    }
+
+    final data = response.response?.data;
+    if (data?['pending_approval'] == true) {
+      // Audio → video: waiting for other participants to accept
+      isSwitchTypePending.value = true;
+      commonSnackBar(message: 'Waiting for approval to switch to video...');
+    }
+    // Video → audio: call:type-switched will fire immediately from server
+  }
+
+  /// Respond to a switch type request (accept/decline)
+  Future<void> respondToSwitchType(bool accepted) async {
+    if (callId.value.isEmpty || roomId.value.isEmpty) return;
+
+    // If accepting, request camera permission first
+    if (accepted) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        // Auto-decline if can't get camera permission
+        accepted = false;
+      }
+    }
+
+    await _callRepo.respondToSwitchType({
+      'call_id': callId.value,
+      'room_id': roomId.value,
+      'accepted': accepted,
+    });
+
+    switchTypeRequestedBy.value = '';
+  }
+
+  void _handleSwitchTypeRequest(dynamic data) {
+    final requestedBy = data['requested_by'] ?? '';
+    switchTypeRequestedBy.value = requestedBy;
+
+    // Show dialog to accept/decline (handled by UI via observable)
+    // The ActiveCallScreen watches switchTypeRequestedBy
+  }
+
+  void _handleTypeSwitched(dynamic data) {
+    final newType = data['new_call_type'] ?? '';
+    final isVideo = newType == 'video_call';
+
+    isSwitchTypePending.value = false;
+    switchTypeRequestedBy.value = '';
+
+    callType.value = isVideo ? CallType.video : CallType.audio;
+
+    if (isVideo) {
+      // Enable local video - add video track if not present
+      _enableLocalVideo();
+      isSpeakerOn.value = true;
+      _setSpeakerphone(true);
+    } else {
+      // Disable camera
+      localStream?.getVideoTracks().forEach((track) => track.enabled = false);
+      isCameraOn.value = false;
+      isSpeakerOn.value = false;
+      _setSpeakerphone(false);
+    }
+  }
+
+  void _handleSwitchTypeDeclined(dynamic data) {
+    isSwitchTypePending.value = false;
+    commonSnackBar(message: 'Switch to video was declined');
+  }
+
+  /// Enable local video track (for audio → video switch)
+  Future<void> _enableLocalVideo() async {
+    // Check if we already have a video track
+    final existingVideoTracks = localStream?.getVideoTracks() ?? [];
+    if (existingVideoTracks.isNotEmpty) {
+      // Just enable the existing track
+      for (var track in existingVideoTracks) {
+        track.enabled = true;
+      }
+      isCameraOn.value = true;
+      return;
+    }
+
+    // No video track exists - get a new stream with video
+    try {
+      final videoStream = await navigator.mediaDevices.getUserMedia({
+        'audio': false,
+        'video': {'facingMode': 'user', 'width': 640, 'height': 480},
+      });
+
+      final videoTrack = videoStream.getVideoTracks().first;
+
+      // Add track to local stream
+      localStream?.addTrack(videoTrack);
+      localRenderer?.srcObject = localStream;
+
+      // Add track to all peer connections
+      for (final pc in peerConnections.values) {
+        await pc.addTrack(videoTrack, localStream!);
+      }
+
+      isCameraOn.value = true;
+    } catch (e) {
+      if (kDebugMode) print('Failed to enable video: $e');
+      commonSnackBar(message: 'Failed to enable camera');
+    }
   }
 
   /// Join an ongoing group call
@@ -726,7 +1023,7 @@ class CallController extends GetxController {
   void _startRingTimer() {
     _ringTimer?.cancel();
     _ringTimer = Timer(const Duration(seconds: 60), () {
-      if (callStatus.value == CallStatus.ringing && isCaller.value) {
+      if (callStatus.value == CallStatus.outgoing && isCaller.value) {
         cancelCall();
       }
     });
@@ -810,6 +1107,10 @@ class CallController extends GetxController {
     remoteAudioEnabled.value = true;
     remoteVideoEnabled.value = true;
     _remoteUserId = null;
+    _pendingOffer = null;
+    participantMediaState.clear();
+    isSwitchTypePending.value = false;
+    switchTypeRequestedBy.value = '';
   }
 
   // ==================== CALLKIT ====================
@@ -819,7 +1120,11 @@ class CallController extends GetxController {
       if (event == null) return;
       switch (event.event) {
         case Event.actionCallAccept:
-          acceptCall();
+          acceptCall().then((accepted) {
+            if (accepted) {
+              Get.offNamed('/ActiveCallScreen');
+            }
+          });
           break;
         case Event.actionCallDecline:
           declineCall();

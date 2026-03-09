@@ -541,14 +541,8 @@ class _ExistingContactTile extends StatelessWidget {
         } else {
           if (contact?.id != null) {
 
-            chatViewController.openAnyOneChatFunction(
-              type: contact?.accountType,
-              isInitialMessage: true,
-              userId: contact?.id,
-              conversationId: contact?.conversationId ?? '',
-              profileImage: contact?.profileImage,
-              contactName: contact?.name,
-              contactNo: contact?.contactNo,
+            chatViewController.checkChatConnectionAndOpenChat(
+              userId: contact!.id!,
               isFromContactList: true,
             );
           }

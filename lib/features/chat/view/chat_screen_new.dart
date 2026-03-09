@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/features/chat/view/group_chat/group_chat_list.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
@@ -31,7 +30,6 @@ import '../auth/model/GetChatListModel.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import 'add_symbol/add_symbol_screen.dart';
-import 'contacts/view/contact_list_page.dart';
 import 'find_contacts_with_service/find_contact_with_service.dart';
 
 class NewChatMainScreen extends StatefulWidget {
@@ -107,9 +105,6 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         } else if (index == 1) {
           chatViewController.emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.business_Chat_Type});
-        } else if (index == 2) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.group_Chat_Type});
         } else if (index == 3) {
           chatViewController.emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.order_Chat_Type});
@@ -183,6 +178,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       child: Scaffold(
         floatingActionButton: (_isFromForward()) ||
             chatViewController.chatMainTabController?.index == 1 ||
+            chatViewController.chatMainTabController?.index == 2 ||
             isSelectionMode
             ? SizedBox()
             : SafeArea(
@@ -194,15 +190,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
                 onPressed: () {
-                  if (chatViewController.chatMainTabController?.index ==
-                      2) {
-                    Get.to(ContactsPage(
-                      from: "group",
-                    ));
-                  } else {
-                    Get.toNamed(RouteHelper.getChatContactsRoute());
-                  }
-                  //
+                  Get.toNamed(RouteHelper.getChatContactsRoute());
                 },
               )),
         ),
@@ -343,7 +331,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       tabs:  [
                         Tab(text: "Personal"),
                         Tab(text: "Business"),
-                        Tab(text: "Group"),
+                        Tab(text: "Finder"),
                         Tab(text: "Orders"),
                       ],
                     ),
@@ -361,7 +349,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                         isNewGroupUI: widget.isNewGroupUI,),
                       BusinessChatsList(isForwardUI: widget.isForwardUI,
                         isNewGroupUI: widget.isNewGroupUI,),
-                      GroupChatListTabPage(),
+                      FindContactWithService(fromBottomNav: true),
                       OrdersTabView()
                     ],
                   ),
@@ -544,45 +532,46 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
           ),
         ),
         const SizedBox(width: 18),
-        InkWell(
-          onTap: () {
-            Get.to(FindContactWithService());
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              // gradient:  LinearGradient(
-              //   begin: Alignment.bottomCenter,
-              //   end: Alignment.topCenter,
-              //   transform: GradientRotation(10),
-              //   colors: [
-              //  AppColors.primaryColor.withOpacity(0.1),
-              //     AppColors.primaryColor.withOpacity(0.05),
-              //   ],
-              // ),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: AppColors.primaryColor
-                )
-            ),
-            margin: EdgeInsets.only(right: 6),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white, // inner background
-                borderRadius: BorderRadius.circular(14),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-              child: Row(
-                children: [
-                  SvgPicture.asset(AppIconAssets.chat_find,
-                      color: AppColors.primaryColor),
-                  SizedBox(width: 4,),
-                  CustomText("Find",
-                    color: AppColors.primaryColor,),
-                ],
-              ),
-            ),
-          ),
-        )
+        Icon(Icons.lock_clock)
+        // InkWell(
+        //   onTap: () {
+        //     Get.to(FindContactWithService());
+        //   },
+        //   child: Container(
+        //     decoration: BoxDecoration(
+        //       // gradient:  LinearGradient(
+        //       //   begin: Alignment.bottomCenter,
+        //       //   end: Alignment.topCenter,
+        //       //   transform: GradientRotation(10),
+        //       //   colors: [
+        //       //  AppColors.primaryColor.withOpacity(0.1),
+        //       //     AppColors.primaryColor.withOpacity(0.05),
+        //       //   ],
+        //       // ),
+        //         borderRadius: BorderRadius.circular(10),
+        //         border: Border.all(
+        //             color: AppColors.primaryColor
+        //         )
+        //     ),
+        //     margin: EdgeInsets.only(right: 6),
+        //     child: Container(
+        //       decoration: BoxDecoration(
+        //         color: Colors.white, // inner background
+        //         borderRadius: BorderRadius.circular(14),
+        //       ),
+        //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        //       child: Row(
+        //         children: [
+        //           SvgPicture.asset(AppIconAssets.chat_find,
+        //               color: AppColors.primaryColor),
+        //           SizedBox(width: 4,),
+        //           CustomText("Find",
+        //             color: AppColors.primaryColor,),
+        //         ],
+        //       ),
+        //     ),
+        //   ),
+        // )
 
         // if (!_isFromForward())
         //   InkWell(

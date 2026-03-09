@@ -140,27 +140,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
 
                       return;
                     }
-                    chatViewController.openAnyOneChatFunction(
-                      profileImage: widget.businessProfileDetails.logo,
-                      otherUserId:
-                          (viewBusinessDetailsController.conversationId.value ==
-                                  '')
-                              ? viewBusinessDetailsController.otherUserId?.value
-                              : null,
-                      // businessId: widget.businessProfileDetails.id,
-                      type: AppConstants.business,
-                      isInitialMessage:
-                          (viewBusinessDetailsController.conversationId.value ==
-                                  '')
-                              ? true
-                              : false,
-                      userId: widget.businessProfileDetails.userId,
-                      conversationId:
-                          viewBusinessDetailsController.conversationId.value,
-                      contactName: widget.businessProfileDetails.businessName,
-                      contactNo: widget.businessProfileDetails.businessNumber
-                          ?.officeMobNo?.number
-                          .toString(),
+                    chatViewController.checkChatConnectionAndOpenChat(
+                      userId: widget.businessProfileDetails.userId ?? '',
                     );
                   }),
                   const SizedBox(width: 6),

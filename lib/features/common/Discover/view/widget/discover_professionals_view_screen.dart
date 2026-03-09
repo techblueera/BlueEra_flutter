@@ -58,28 +58,8 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                           onTap: () async {
                             final chatViewController =
                                 Get.find<ChatViewController>();
-                            Map<String, dynamic> detas = {
-                              ApiKeys.user_id: data.userId
-                            };
-                            Map<String, dynamic>? checkCompleted =
-                                await chatViewController
-                                    .checkChatConnection(detas);
-                            chatViewController.openAnyOneChatFunction(
-                              profileImage: data.userDetails?.profileImage,
-                              otherUserId:
-                                  (checkCompleted?[ApiKeys.conversation_id] ==
-                                          '')
-                                      ? (checkCompleted?[ApiKeys.other_user_id])
-                                      : null,
-                              // businessId: widget.businessProfileDetails.id,
-                              type: "business",
-                              isInitialMessage: true,
-                              userId: data.userId,
-                              conversationId:
-                                  checkCompleted?[ApiKeys.conversation_id] ??
-                                      '',
-                              contactName: data.userDetails?.name,
-                              contactNo: data.userDetails?.contactNo.toString(),
+                            chatViewController.checkChatConnectionAndOpenChat(
+                              userId: data.userId ?? '',
                             );
                           },
                           title: "Chat"),

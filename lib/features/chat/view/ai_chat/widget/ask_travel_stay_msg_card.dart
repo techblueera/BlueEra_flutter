@@ -284,22 +284,10 @@ class AskTravelStayMsgCard extends StatelessWidget {
 
                                           ApiKeys.url: urlList??[],
                                         };
-                                        chatViewController.openAnyOneChatFunction(
-                                          shareProductParams:data,
+                                        chatViewController.checkChatConnectionAndOpenChat(
+                                          userId: "${profile?.sId}",
+                                          shareProductParams: data,
                                           isWithProductSend: true,
-                                          profileImage: "${profile?.coverUrl}",
-                                          otherUserId: (!hasConversation)
-                                              ? userDetailsMap[ApiKeys.other_user_id]??
-                                              ''
-                                              : null,
-                                          type: AppConstants.chatMsgBusinessType,
-                                          isInitialMessage: (!hasConversation)? true
-                                              : false,
-                                          userId:"${profile?.sId}",
-                                          conversationId: conversationId??
-                                              '',
-                                          contactName: "${profile?.name}" ,
-                                          contactNo: "",
                                         );
                                       }
                                     },

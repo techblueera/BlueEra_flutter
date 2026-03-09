@@ -257,22 +257,10 @@ class AskServiceMsgCard extends StatelessWidget {
 
                                           ApiKeys.url: urlList??[],
                                         };
-                                        chatViewController.openAnyOneChatFunction(
-                                          shareProductParams:data,
+                                        chatViewController.checkChatConnectionAndOpenChat(
+                                          userId: profile?.userId ?? '',
+                                          shareProductParams: data,
                                           isWithProductSend: true,
-                                          profileImage: profile?.logoUrl,
-                                          otherUserId: (!hasConversation)
-                                              ? userDetailsMap[ApiKeys.other_user_id]??
-                                              ''
-                                              : null,
-                                          type: AppConstants.chatMsgBusinessType,
-                                          isInitialMessage: (!hasConversation)? true
-                                              : false,
-                                          userId:profile?.userId,
-                                          conversationId: conversationId??
-                                              '',
-                                          contactName: profile?.profileName,
-                                          contactNo: "",
                                         );
                                       }
 

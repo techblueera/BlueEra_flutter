@@ -270,22 +270,10 @@ class AskEducationMsgCard extends StatelessWidget {
 
                                           ApiKeys.url: urlList??[],
                                         };
-                                        chatViewController.openAnyOneChatFunction(
-                                          shareProductParams:data,
+                                        chatViewController.checkChatConnectionAndOpenChat(
+                                          userId: "${institutions.ownerId}",
+                                          shareProductParams: data,
                                           isWithProductSend: true,
-                                          profileImage: "${institutions.logo}",
-                                          otherUserId: (!hasConversation)
-                                              ? userDetailsMap[ApiKeys.other_user_id]??
-                                              ''
-                                              : null,
-                                          type: AppConstants.chatMsgBusinessType,
-                                          isInitialMessage: (!hasConversation)? true
-                                              : false,
-                                          userId:"${institutions.ownerId}",
-                                          conversationId: conversationId??
-                                              '',
-                                          contactName: "${institutions.name}" ,
-                                          contactNo: "",
                                         );
                                       }
 

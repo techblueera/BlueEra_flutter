@@ -271,25 +271,10 @@ class AskInventoryProductMsgCard extends StatelessWidget {
                                          ApiKeys.mrp :'${product?.mrpPerUnit}',
                                          ApiKeys.url: urlList,
                                        };
-                                       chatViewController.
-                                       openAnyOneChatFunction(
+                                       chatViewController.checkChatConnectionAndOpenChat(
+                                         userId: business?.user_id ?? '',
                                          shareProductParams: data,
                                          isWithProductSend: true,
-                                         profileImage: business?.business_logo,
-                                         otherUserId: (!hasConversation)?
-                                         userDetailsMap[ApiKeys.other_user_id] ??
-                                             ''
-                                             : null,
-                                         // businessId: widget
-                                         //     .productStore?.sellerClassification?.owner?.id,
-                                         type: AppConstants.business_Chat_Type,
-                                         isInitialMessage: (!hasConversation)? true
-                                             : false,
-                                         userId: business?.user_id,
-                                         conversationId: (userDetailsMap[ApiKeys.conversation_id] ??
-                                             ''),
-                                         contactName: business?.business_name,
-                                         contactNo: business?.mobile_no,
                                        );
                                      }
 

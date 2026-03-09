@@ -76,7 +76,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
             ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
         chatViewController.emitEvent(
             ChatEmitEvents.newMessageReceived, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
-
         return true;
       },
       child: Obx(() {

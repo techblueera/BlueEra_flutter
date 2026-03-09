@@ -330,22 +330,10 @@ class AskConsultingTalkMsgCard extends StatelessWidget {
 
                                           ApiKeys.url: urlList??[],
                                         };
-                                        chatViewController.openAnyOneChatFunction(
-                                          shareProductParams:data,
+                                        chatViewController.checkChatConnectionAndOpenChat(
+                                          userId: "${consultingService.providerDetails?.id}",
+                                          shareProductParams: data,
                                           isWithProductSend: true,
-                                          profileImage: "${consultingService.providerDetails?.profileImage}",
-                                          otherUserId: (!hasConversation)
-                                              ? userDetailsMap[ApiKeys.other_user_id]??
-                                              ''
-                                              : null,
-                                          type: AppConstants.chatMsgBusinessType,
-                                          isInitialMessage: (!hasConversation)? true
-                                              : false,
-                                          userId:"${consultingService.providerDetails?.id}",
-                                          conversationId: conversationId??
-                                              '',
-                                          contactName: "${consultingService.providerDetails?.name}" ,
-                                          contactNo: "",
                                         );
                                       }
                                     },

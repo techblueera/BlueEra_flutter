@@ -398,27 +398,9 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
                               final chatViewController = Get.isRegistered<ChatViewController>()
                                   ? Get.find<ChatViewController>()
                                   : Get.put(ChatViewController());
-                              Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(
-                                  {ApiKeys.user_id: serviceData.id});
-                              if(userDetailsMap!=null){
-                                final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                final hasExisting = conversationId != null &&
-                                    conversationId.toString().isNotEmpty &&
-                                    conversationId.toString().toLowerCase() != 'null';
-                                chatViewController.openAnyOneChatFunction(
-                                  profileImage: serviceData.profileImage ?? '',
-                                  otherUserId: hasExisting
-                                      ? null
-                                      :userDetailsMap[ApiKeys.other_user_id] ?? '',
-                                  type: "personal",
-                                  isInitialMessage: !hasExisting,
-                                  userId: serviceData.id ?? '',
-                                  conversationId: userDetailsMap[ApiKeys.conversation_id] ?? '',
-                                  contactName: serviceData.name ?? '',
-                                  contactNo: "",
-                                );
-                              }
+                              chatViewController.checkChatConnectionAndOpenChat(
+                                userId: serviceData.id ?? '',
+                              );
 
                             },
                             icon: LocalAssets(
