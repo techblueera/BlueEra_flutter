@@ -32,7 +32,7 @@ class MyGroceryStoreScreen extends StatefulWidget {
 class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
   final viewBusinessDetailsController =
-        Get.find<ViewBusinessDetailsController>();
+  Get.find<ViewBusinessDetailsController>();
 
   @override
   void initState() {
@@ -61,32 +61,32 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
             child: Column(
               children: [
                 CustomFormCard(
-                  padding: EdgeInsets.zero,
-                  child: GroceryProfileHeader(
-                    details: businessProfileDetails,
-                    controller: viewBusinessDetailsController,
-                  )
+                    padding: EdgeInsets.zero,
+                    child: GroceryProfileHeader(
+                      details: businessProfileDetails,
+                      controller: viewBusinessDetailsController,
+                    )
                 ),
-            
+
                 if(controller.groceryBusinessProductsList.isNotEmpty)
-                _topSellingProduct(),
+                  _topSellingProduct(),
 
                 SizedBox(
                   height: SizeConfig.paddingM,
                 ),
-            
+
                 _categoryWithInventoryWidget(),
-            
+
                 SizedBox(
                   height: SizeConfig.paddingM,
                 ),
-            
+
                 _buildContactNdMapCard(businessProfileDetails),
 
                 SizedBox(
                   height: SizeConfig.size100,
                 ),
-            
+
               ],
             ),
           );
@@ -329,10 +329,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
               ),
               InkWell(
                 onTap: ()=> Get.toNamed(
-                    RouteHelper.getGrocerySuperCategoryScreenRoute(),
-                    arguments: {
-                      ApiKeys.argBulkUpload: false
-                    }
+                  RouteHelper.getGrocerySuperCategoryScreenRoute(),
                 ),
                 child: CustomText(
                     'Update Inventory',
@@ -402,10 +399,10 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              border: Border.all(color: AppColors.greyE5),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [AppShadows.textFieldShadow]
+                color: AppColors.white,
+                border: Border.all(color: AppColors.greyE5),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [AppShadows.textFieldShadow]
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,35 +451,35 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                     height: 30),
 
                 // Contact List
-               if(businessProfileDetails?.websiteUrl?.isNotEmpty ?? false)
-                _contactItem(
-                    AppIconAssets.website_click,
-                    businessProfileDetails?.websiteUrl ?? "",
-                    AppColors.primaryColor),
+                if(businessProfileDetails?.websiteUrl?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.website_click,
+                      businessProfileDetails?.websiteUrl ?? "",
+                      AppColors.primaryColor),
 
                 if(businessProfileDetails?.subCategoryDetails?.name?.isNotEmpty ?? false)
-                _contactItem(
-                    AppIconAssets.principal,
-                    businessProfileDetails?.subCategoryDetails?.name ?? "",
-                    AppColors.secondaryTextColor),
+                  _contactItem(
+                      AppIconAssets.principal,
+                      businessProfileDetails?.subCategoryDetails?.name ?? "",
+                      AppColors.secondaryTextColor),
 
                 if(businessProfileDetails?.ownerDetails?[0].email?.isNotEmpty ?? false)
-                _contactItem(
-                    AppIconAssets.email,
-                    businessProfileDetails?.ownerDetails?[0].email ?? "",
-                    AppColors.secondaryTextColor),
+                  _contactItem(
+                      AppIconAssets.email,
+                      businessProfileDetails?.ownerDetails?[0].email ?? "",
+                      AppColors.secondaryTextColor),
 
                 if(businessProfileDetails?.userContactNo?.isNotEmpty ?? false)
-                _contactItem(
-                    AppIconAssets.phone_outline,
-                    businessProfileDetails?.userContactNo?? "",
-                    AppColors.secondaryTextColor),
+                  _contactItem(
+                      AppIconAssets.phone_outline,
+                      businessProfileDetails?.userContactNo?? "",
+                      AppColors.secondaryTextColor),
 
                 if(businessProfileDetails?.address?.isNotEmpty ?? false)
-                _contactItem(
-                    AppIconAssets.location_new,
-                    businessProfileDetails?.address ?? "",
-                    AppColors.secondaryTextColor),
+                  _contactItem(
+                      AppIconAssets.location_new,
+                      businessProfileDetails?.address ?? "",
+                      AppColors.secondaryTextColor),
               ],
             ),
           ),
@@ -514,9 +511,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           // ),
 
           BusinessLocationMapWidget(
-              latitude: businessProfileDetails?.businessLocation?.lat ?? 0.0,
-              longitude: businessProfileDetails?.businessLocation?.lon ?? 0.0,
-              businessName: businessProfileDetails?.businessName ?? "",
+            latitude: businessProfileDetails?.businessLocation?.lat ?? 0.0,
+            longitude: businessProfileDetails?.businessLocation?.lon ?? 0.0,
+            businessName: businessProfileDetails?.businessName ?? "",
           ),
         ],
       ),

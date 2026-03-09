@@ -48,7 +48,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.selectedGroceryData.value = widget.arrGroceries.first;
-      controller.fetchUserGrocery();
+      controller.fetchBoth();
     });
     super.initState();
   }
@@ -113,9 +113,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
               ))),
           bottomNavigationBar: Obx(() {
             if (controller.selectedGroceriesVariants.isEmpty)
-              return EmptyStateWidget(
-                  message: 'No products found.'
-              );
+              return SizedBox();
             else
               return Material(
                 elevation: 8.0,
@@ -187,7 +185,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
         controller.selectedTabIndex.value = 0;
 
         log('new selection ${controller.selectedGroceryData.value}');
-        controller.fetchUserGrocery();
+        controller.fetchBoth();
       },
     );
   }

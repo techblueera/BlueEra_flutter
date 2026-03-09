@@ -133,7 +133,7 @@ class UserGroceryController extends GetxController{
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
 
-  Future<void> fetchUserGrocery() async {
+  Future<void> fetchBoth() async {
     try {
       isInitialLoading.value = true;
       await Future.wait([

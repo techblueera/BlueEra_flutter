@@ -27,6 +27,17 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> groceryCategoryOfChildWithInventoryRepo(
+      {required String key}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      GroceryCategoryOfChildren(key),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> userSearchGroceryCategoryRepo(
       {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
@@ -80,7 +91,7 @@ class GroceryRepo extends BaseService {
 
   /// Fetch My grocery Category
   Future<ResponseModel> fetchGroceryCategoryWithVariantRepo(
-      {List<Map<String, dynamic>>? params}) async {
+      {Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().getHTTP(
       groceryCategoryWithVariant,
       params: params,

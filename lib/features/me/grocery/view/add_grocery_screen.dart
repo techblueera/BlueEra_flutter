@@ -37,7 +37,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
-            child: SafeArea(
+            child: Obx(()=> SafeArea(
               child: CustomBtn(
                 onTap: () {
                   Get.toNamed(RouteHelper.getAddGroceryVariantScreenRoute());
@@ -47,7 +47,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                 title: 'Post ${controller.selectedGroceries.length} Products',
                 // isLoading: authController.isAddBusinessUserLoading.value
               ),
-            ),
+            )),
           ),
         ),
       ),

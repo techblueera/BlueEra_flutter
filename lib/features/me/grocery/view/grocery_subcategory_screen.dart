@@ -151,7 +151,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
       ));
   }
 
-  Widget  leftCategoryList() {
+  Widget leftCategoryList() {
     return CommonGenericLeftSideCategoryList<GroceryNestedCategoryModel>(
       items: widget.arrGroceries,
       getIcon: (item) => item.image ?? '',

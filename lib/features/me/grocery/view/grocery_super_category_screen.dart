@@ -1,14 +1,12 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_category_item.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_data.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
@@ -20,7 +18,8 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class GrocerySuperCategoryScreen extends StatelessWidget {
-  GrocerySuperCategoryScreen({super.key});
+  final bool isAvailBulkUpload;
+  GrocerySuperCategoryScreen({super.key, required this.isAvailBulkUpload});
 
   final controller = getOrPut(() => GroceryController());
 
@@ -55,59 +54,61 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           child: Column(
             children: [
 
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              if(isAvailBulkUpload)...[
+                CustomFormCard(
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         CustomText(
                             'Bulk Upload Shop Product Photos',
                             fontSize: SizeConfig.large,
                             color: AppColors.mainTextColor,
                             fontWeight: FontWeight.w600
                         ),
-                      SizedBox(height: SizeConfig.paddingXSL),
-                      MasonryGridView.count(
-                        shrinkWrap: true,
-                        primary: false,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: controller.grocerySnapSearchPhotos.length,
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        padding: EdgeInsets.zero,
-                        itemBuilder: (context, index) {
-                          var item = controller.grocerySnapSearchPhotos[index];
-                          return InkWell(
-                            onTap:()=> Get.toNamed(RouteHelper.getAddGrocerySnapSearchScreenRoute()),
-                            child: ClipRRect(
-                             borderRadius: BorderRadius.circular(10.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                      color: AppColors.greyE5
+                        SizedBox(height: SizeConfig.paddingXSL),
+                        MasonryGridView.count(
+                          shrinkWrap: true,
+                          primary: false,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: controller.grocerySnapSearchPhotos.length,
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index) {
+                            var item = controller.grocerySnapSearchPhotos[index];
+                            return InkWell(
+                              onTap:()=> Get.toNamed(RouteHelper.getAddGrocerySnapSearchScreenRoute()),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: AppColors.greyE5
+                                    ),
                                   ),
-                                ),
-                                child: LocalAssets(
+                                  child: LocalAssets(
                                     imagePath: item,
                                     height: SizeConfig.size180,
                                     width: double.infinity,
                                     boxFix: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      )
-                    ],
-                  )
-              ),
+                            );
+                          },
+                        )
+                      ],
+                    )
+                ),
 
-              SizedBox(
-                height: SizeConfig.paddingXSL
-              ),
+                SizedBox(
+                    height: SizeConfig.paddingXSL
+                ),
+              ],
 
               CustomFormCard(
                 padding: EdgeInsets.all(SizeConfig.size10),

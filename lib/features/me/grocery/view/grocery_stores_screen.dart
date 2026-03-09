@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/store/controller/new_store_controller.da
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -74,7 +73,9 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
             SizedBox(
               width: SizeConfig.size6,
             ),
-            Expanded(child: rightContent()),
+            Expanded(
+                child: rightContent()
+            ),
           ],
         )
         // child: Column(
@@ -206,8 +207,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
   }
 
   Widget groceryStoreCard(GetAllStoreResModel store) {
-
-
     return InkWell(
       onTap: (){
         // Get.to(SelfProfessionScreenPreview(service: service,

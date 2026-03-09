@@ -741,4 +741,5 @@ class ApiKeys {
   static const quick_option = 'quick_option';
   static const message_ids = 'message_ids';
   static const argMissingProducts = 'argMissingProducts';
+  static const argBulkUpload = 'argBulkUpload';
 }

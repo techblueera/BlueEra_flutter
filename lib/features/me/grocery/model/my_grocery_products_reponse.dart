@@ -243,8 +243,8 @@ class Inventory {
 class Batches {
   String? batchNumber;
   String? quantity;
-  int? mrp;
-  int? sellingPrice;
+  num? mrp;
+  num? sellingPrice;
   String? sId;
 
   Batches(

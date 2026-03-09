@@ -552,6 +552,7 @@ abstract class BaseService {
 
   final String searchGroceryCategory = 'grocery-service/api/products/search';
   String GroceryCategoryOfChildren(String key) => 'grocery-service/api/categories/key/$key/children';
+  String GroceryCategoryOfChildrenWithInventory(String key) => 'grocery-service/api/categories/key/$key/children/with-inventory';
   final String userSearchGroceryCategory = 'grocery-service/api/products/user/search';
   String createNewProductVariant(String productId) => 'grocery-service/api/products/$productId/variants';
   final String myGroceryProducts = 'grocery-service/api/inventory/my-products';

@@ -1489,9 +1489,14 @@ class RouteHelper {
       //      settings: RouteSettings(name: getGroceryCartScreenRoute())
       // );
       case RouteConstant.grocerySuperCategoryScreen:
+      final args = settings.arguments as Map<String, dynamic>;
+      final bool argBulkUpload = args[ApiKeys.argBulkUpload] as bool;
+
         return MaterialPageRoute(
             builder: (_) =>
-                GrocerySuperCategoryScreen(),
+                GrocerySuperCategoryScreen(
+                    isAvailBulkUpload: argBulkUpload
+                ),
             settings:
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
       case RouteConstant.paymentSettingScreen:

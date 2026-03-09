@@ -525,12 +525,23 @@ class GroceryController extends GetxController {
   List<Map<String, dynamic>> buildInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-    String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
-    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
+    final businessData = viewBusinessDetailsController.businessProfileDetails?.data;
 
-    if(postalCode.isEmpty){
-      commonSnackBar(message: 'Please enable your location permission for adding grocery');
-      return [];
+    print("City (Profile): ${businessData?.cityStatePincode}");
+    print("Pincode (Profile): ${businessData?.pincode}");
+
+    String city = (businessData?.cityStatePincode != null && businessData!.cityStatePincode!.isNotEmpty)
+        ? businessData.cityStatePincode!
+        : LocationService.userCurrentAddress.value.city;
+    String postalCode;
+    if (businessData?.pincode == null || businessData?.pincode == 0) {
+      postalCode = LocationService.userCurrentAddress.value.postalCode;
+    } else {
+      postalCode = businessData!.pincode.toString();
+    }
+
+    if (postalCode.isEmpty || postalCode == "0") {
+      commonSnackBar(message: 'Please enable GPS or update business pincode');
     }
 
     selectedProductVariants.forEach((productId, variants) {
@@ -618,7 +629,11 @@ class GroceryController extends GetxController {
 
   Future<void> fetchMyGroceryCategoryWithVariants() async {
     try {
-      ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo();
+      ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo(
+        params: {
+          ApiKeys.businessId: userId
+        }
+      );
       if (responseModel.isSuccess) {
         fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
         final List listData = responseModel.response?.data ?? [];
@@ -696,27 +711,42 @@ class GroceryController extends GetxController {
         fetchMyGroceryProductsResponse.value = ApiResponse.complete(responseModel);
         final data = responseModel.response?.data;
         MyGroceryProductsModel myGroceryProductsModel = MyGroceryProductsModel.fromJson(data);
-        List<Products> newItems = myGroceryProductsModel.data?[0].category?.products ?? [];
+        List<Products> newItems = [];
+        if (myGroceryProductsModel.data != null && myGroceryProductsModel.data!.isNotEmpty) {
+          newItems = myGroceryProductsModel.data![0].category?.products ?? [];
+        }
+
+        if (!isLoadMore) {
+          myGroceryProductsList.clear();
+        }
 
         if (newItems.isNotEmpty) {
-          // if(!isSubCategoryProducts){
-            if (isLoadMore) {
-              myGroceryProductsList.addAll(newItems);
-            } else {
-              myGroceryProductsList.clear();
-              myGroceryProductsList.assignAll(newItems);
-            }
-          // }else{
-          //   extractAllVariantsFromResponse(
-          //       newItems,
-          //       isLoadMore: isLoadMore,
-          //   );
-          // }
-
+          myGroceryProductsList.addAll(newItems);
           myGroceryDataPage++;
-        } else {
-          myGroceryDataHasMore = false;
         }
+
+        // 4. Update "Has More" based on pagination metadata
+        final pagination = myGroceryProductsModel.pagination;
+        if (pagination != null) {
+          // If current page matches or exceeds total pages, stop loading more
+          myGroceryDataHasMore = (pagination.page ?? 1) < (pagination.totalPages ?? 1);
+        } else {
+          // Fallback if pagination is null
+          myGroceryDataHasMore = newItems.isNotEmpty;
+        }
+
+        // if (newItems.isNotEmpty) {
+        //     if (isLoadMore) {
+        //       myGroceryProductsList.addAll(newItems);
+        //     } else {
+        //       myGroceryProductsList.clear();
+        //       myGroceryProductsList.assignAll(newItems);
+        //     }
+        //
+        //   myGroceryDataPage++;
+        // } else {
+        //   myGroceryDataHasMore = false;
+        // }
 
         log("Loaded ${newItems.length} items | Total: ${ myGroceryProductsList.length}");
       } else {
