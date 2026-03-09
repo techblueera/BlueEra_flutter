@@ -200,6 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: AppColors.lightBlueE9,
         extendBodyBehindAppBar: true,
         body: Obx(() => Stack(
               children: [
@@ -222,8 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       HomeFeedScreenNew(
                         key: const ValueKey('feedScreen_all'),
-                        onHeaderVisibilityChanged:
-                            _toggleAppBarAndBottomNav,
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                         postFilterType: PostType.all,
                         query: searchController.text.isEmpty
                             ? null
@@ -233,13 +233,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       ChannelFeedScreen(
                         headerHeight: _headerHeight,
-                        onHeaderVisibilityChanged:
-                            _toggleAppBarAndBottomNav,
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                       ),
                       OttScreen(
                         headerHeight: _headerHeight,
-                        onHeaderVisibilityChanged:
-                            _toggleAppBarAndBottomNav,
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                       ),
                     ],
                   ),
@@ -261,6 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildCustomAppBar(),
+
                           // --- PRIMARY TABS (Lekha, Community, etc.) ---
                           Padding(
                             padding:
@@ -298,7 +297,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                               Flexible(
                                                 child: CustomText(
-                                                  // "postTab[index] dsdsdsdsds",
                                                   postTab[index],
                                                   fontSize: 14,
                                                   maxLines: 1,
@@ -335,6 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           if (selectedIndex == 0) _buildSubFilterRow(),
+
                           if (selectedIndex == 1) _buildCommunitySubFilterRow(),
                         ],
                       ),
@@ -349,24 +348,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSubFilterRow() {
     return Container(
-      padding: const EdgeInsets.only(top: 12, right: 16, left: 16),
-      color: AppColors.appBackgroundColor,
-      // Slight grey background like the image
+      padding: const EdgeInsets.only(top: 6, right: 16, left: 16, bottom: 6),
+      // color: AppColors.appBackgroundColor,
       child: Row(
         children: [
-          // Filter Icon
           LocalAssets(imagePath: AppIconAssets.filterIcon),
-          const SizedBox(width: 15),
-
-          // Sub-tabs
-          _subFilterItem(
-            "For You",
-            index: 0,
-          ),
-          const SizedBox(width: 20),
-          _subFilterItem("Near Me", index: 1),
-          const SizedBox(width: 20),
-          _subFilterItem("Following", index: 2),
+          const SizedBox(width: 12),
+          _subFilterChip("For You", index: 0),
+          const SizedBox(width: 8),
+          _subFilterChip("Near Me", index: 1),
+          const SizedBox(width: 8),
+          _subFilterChip("Treanding", index: 2),
         ],
       ),
     );
@@ -374,27 +366,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCommunitySubFilterRow() {
     return Container(
-      padding: const EdgeInsets.only(top: 12, right: 16, left: 16,bottom: 0),
+      padding: const EdgeInsets.only(top: 6, right: 16, left: 16, bottom: 6),
       color: AppColors.white,
-      // Slight grey background like the image
       child: Row(
         children: [
-          // Filter Icon
           LocalAssets(imagePath: AppIconAssets.filterIcon),
-          const SizedBox(width: 15),
-
-          // Sub-tabs
-          _communitysubFilterItem(
-            "Joined",
-            index: 0,
-          ),
-          const SizedBox(width: 20),
-          _communitysubFilterItem("Suggested", index: 1),
-
-          // const SizedBox(width: 20),
-          // _communitysubFilterItem("Community", index: 2),
-          // const SizedBox(width: 20),
-          // _communitysubFilterItem("Near Me", index: 3),
+          const SizedBox(width: 12),
+          _communitySubFilterChip("Joined", index: 0),
+          const SizedBox(width: 8),
+          _communitySubFilterChip("Suggested", index: 1),
         ],
       ),
     );
@@ -414,39 +394,65 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   int selectedSubIndex = 0; // 0: For You, 1: Near Me, 2: Following
-  Widget _subFilterItem(String title, {required int index}) {
+
+  Widget _subFilterChip(String title, {required int index}) {
     bool isActive = selectedSubIndex == index;
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         setState(() {
           selectedSubIndex = index;
         });
       },
-      child: CustomText(
-        title,
-        fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-        color: isActive ? AppColors.primaryColor : AppColors.secondaryTextColor,
-        decoration: TextDecoration.underline,
-        decorationColor: AppColors.secondaryTextColor,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primaryColor : Color(0xffF3F7FA),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive
+                ? AppColors.primaryColor
+                : AppColors.transparent,
+            width: 1,
+          ),
+        ),
+        child: CustomText(
+          title,
+          fontSize: 14,
+          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+          color: isActive ? Colors.white : AppColors.secondaryTextColor,
+        ),
       ),
     );
   }
 
-  Widget _communitysubFilterItem(String title, {required int index}) {
+  Widget _communitySubFilterChip(String title, {required int index}) {
     bool isActive = selectedSubIndex == index;
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         Get.find<ChannelFeedController>().communityIndex.value = index;
         setState(() {
           selectedSubIndex = index;
         });
       },
-      child: CustomText(
-        title,
-        fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-        color: isActive ? AppColors.primaryColor : AppColors.secondaryTextColor,
-        decoration: TextDecoration.underline,
-        decorationColor: AppColors.secondaryTextColor,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primaryColor : Color(0xffF3F7FA),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive
+                ? AppColors.primaryColor
+                : AppColors.transparent,
+            width: 1,
+          ),
+        ),
+        child: CustomText(
+          title,
+          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+          color: isActive ? Colors.white : AppColors.secondaryTextColor,
+        ),
       ),
     );
   }

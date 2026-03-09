@@ -24,6 +24,8 @@ class FeedCardWidget extends StatelessWidget {
       ),
       decoration: BoxDecoration(
           color: AppColors.white,
+          borderRadius: BorderRadius.circular(20)
+          // color: AppColors.white,
           // boxShadow: [AppShadows.cardShadow],
           // borderRadius: BorderRadius.circular(12)
       ),
