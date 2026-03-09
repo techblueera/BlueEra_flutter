@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search.dart';
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/other_grocery_store_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -539,6 +540,9 @@ class RouteHelper {
 
  static String getMissingGroceryItemsScreenRoute() =>
       RouteConstant.missingGroceryItemsScreen;
+
+ static String getOtherGroceryStoreScreenRoute() =>
+      RouteConstant.otherGroceryStoreScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1439,10 +1443,12 @@ class RouteHelper {
             settings: RouteSettings(name: getAddGroceryVariantScreenRoute()));
       case RouteConstant.MyGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
+        final String userId = args[ApiKeys.userId] as String;
         final String argCategoryId = args[ApiKeys.argCategoryId] as String;
         final String argCategoryName = args[ApiKeys.argCategoryName] as String;
         return MaterialPageRoute(
             builder: (_) => MyGroceryProductsScreen(
+                  userId: userId,
                   categoryId: argCategoryId,
                   categoryName: argCategoryName,
                 ),
@@ -1655,6 +1661,18 @@ class RouteHelper {
                       missingProducts: argMissingProducts),
                   settings: RouteSettings(name: getMissingGroceryItemsScreenRoute())
               );
+
+      case RouteConstant.otherGroceryStoreScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String businessId = args[ApiKeys.businessId] as String;
+        final String userId = args[ApiKeys.userId] as String;
+        return MaterialPageRoute(
+            builder: (_) => OtherGroceryStoreScreen(
+                visitBusinessId: businessId,
+                userId: userId,
+            ),
+            settings: RouteSettings(name: getOtherGroceryStoreScreenRoute())
+        );
 
 
 

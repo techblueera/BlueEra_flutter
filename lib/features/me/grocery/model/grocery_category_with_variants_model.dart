@@ -1,4 +1,4 @@
-class MyGroceryCategoryWithVariantsModel {
+class GroceryCategoryWithVariantsModel {
   String? sId;
   String? name;
   String? key;
@@ -9,7 +9,7 @@ class MyGroceryCategoryWithVariantsModel {
   String? createdAt;
   String? updatedAt;
 
-  MyGroceryCategoryWithVariantsModel(
+  GroceryCategoryWithVariantsModel(
       {this.sId,
         this.name,
         this.key,
@@ -20,7 +20,7 @@ class MyGroceryCategoryWithVariantsModel {
         this.createdAt,
         this.updatedAt});
 
-  MyGroceryCategoryWithVariantsModel.fromJson(Map<String, dynamic> json) {
+  GroceryCategoryWithVariantsModel.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
     key = json['key'];

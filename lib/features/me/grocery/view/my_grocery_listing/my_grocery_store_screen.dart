@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -9,12 +11,13 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/my_grocery_category_with_variants_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_category_with_variants_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_profile_header_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +41,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   void initState() {
     // controller.fetchMyGroceryCategoryWithVariants();
     // controller.fetchGroceryBusinessProductsRepo();
-    controller.fetchAllMyGroceryData();
+    controller.fetchAllGroceryData(userId, otherStore: false);
     super.initState();
   }
 
@@ -309,7 +312,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   }
 
   Widget _categoryWithInventoryWidget(){
-    final groceryCategoryList = List<MyGroceryCategoryWithVariantsModel>.from(controller.myGroceryCategoryList);
+    final groceryCategoryList = List<GroceryCategoryWithVariantsModel>.from(controller.groceryCategoryList);
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -366,6 +369,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 boxShadow: [],
                 onTap: (_categoryItem) => Get.toNamed(RouteHelper.getMyGroceryProductsScreenRoute(),
                   arguments: {
+                    ApiKeys.userId: userId,
                     ApiKeys.argCategoryId: _categoryItem.sId,
                     ApiKeys.argCategoryName: _categoryItem.name
                   },
@@ -388,6 +392,8 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   }
 
   Widget _buildContactNdMapCard(BusinessProfileDetails? businessProfileDetails) {
+    final logoUrl = viewBusinessDetailsController.businessProfileDetails?.data?.logo;
+
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
       child: Column(
@@ -413,6 +419,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 Row(
                   children: [
                     Container(
+                      key: ValueKey(logoUrl),
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
@@ -422,29 +429,46 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                           BoxShadow(color: Colors.black12, blurRadius: 10)
                         ],
                         image: DecorationImage(
-                          image: (viewBusinessDetailsController.businessProfileDetails?.data?.logo?.isNotEmpty ?? false)
-                              ? NetworkImage(viewBusinessDetailsController.businessProfileDetails!.data!.logo!) as ImageProvider
+                          image: (logoUrl != null && logoUrl.isNotEmpty)
+                              ? NetworkImage(logoUrl) as ImageProvider
                               : AssetImage(AppIconAssets.place_holder_image),
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                            businessProfileDetails?.businessName,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
-                        const SizedBox(height: 5),
-                        CustomText(
-                          businessProfileDetails?.businessDescription,
-                          color: AppColors.secondaryTextColor,
-                          fontSize: 14,
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                              businessProfileDetails?.businessName,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                          const SizedBox(height: 5),
+                          (businessProfileDetails?.businessDescription?.isNotEmpty ??false)
+                              ? ExpandableText(
+                            text: businessProfileDetails?.businessDescription??'',
+                            trimLines: 3,
+                            isReadMoreNewLine: false,
+                            expandMode: ExpandMode.dialog,
+                            style: TextStyle(
+                              color: AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: AppConstants.OpenSans,
+                            ),
+                          )
+                              : CustomText(
+                            AppStrings.na,
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: AppConstants.OpenSans,
+                          ),
+                        ],
+                      ),
                     )
                   ],
                 ),

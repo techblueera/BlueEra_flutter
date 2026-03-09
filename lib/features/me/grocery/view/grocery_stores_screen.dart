@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
@@ -20,6 +21,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_enum.dart';
 
 class GroceryStoresScreen extends StatefulWidget {
@@ -209,14 +211,13 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
   Widget groceryStoreCard(GetAllStoreResModel store) {
     return InkWell(
       onTap: (){
-        // Get.to(SelfProfessionScreenPreview(service: service,
-        //
-        //
-        //   timingMap: timingMap,
-        //   priceDisplay: priceDisplay,
-        //   priceBadgeText: badgeText,
-        //   priceBadgeColor: badgeColor,
-        // ));
+        Get.toNamed(
+          RouteHelper.getOtherGroceryStoreScreenRoute(),
+          arguments: {
+            ApiKeys.userId: store.userId,
+            ApiKeys.businessId: store.id,
+          }
+        );
       },
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),

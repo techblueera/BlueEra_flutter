@@ -21,7 +21,7 @@ import 'package:BlueEra/features/me/grocery/model/children_of_grocery_category_r
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/my_grocery_products_reponse.dart';
-import 'package:BlueEra/features/me/grocery/model/my_grocery_category_with_variants_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_category_with_variants_model.dart';
 import 'package:BlueEra/features/me/grocery/view/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_varient_dialog.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -70,6 +70,11 @@ class GroceryController extends GetxController {
       selectedHorizontalTabIndex.value == 0
           ? (selectedGroceryData.value?.key ?? '')
           : arrChildrenOfGroceryCategory[selectedHorizontalTabIndex.value - 1].key ?? '';
+
+  String get currentTabName =>
+      selectedHorizontalTabIndex.value == 0
+          ? (selectedGroceryData.value?.name ?? 'All Items')
+          : (arrChildrenOfGroceryCategory[selectedHorizontalTabIndex.value - 1].name ?? '');
 
   int maxLimit = 10;
 
@@ -499,17 +504,21 @@ class GroceryController extends GetxController {
       addGroceryProductVariantResponse.value = ApiResponse.complete(response);
       // final jsonData = response.response?.data;
 
-      if(!isSnapSearch){
-        Get.until((route) =>
-        route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
-      }else{
-        var _groceryMissingProducts= productSnapSearchData.value?.missingProducts ?? [];
-        Get.toNamed(RouteHelper.getMissingGroceryItemsScreenRoute(),
-            arguments: {
-              ApiKeys.controller: this,
-              ApiKeys.argMissingProducts:  _groceryMissingProducts
-            });
+      final bool hasNoMissingProducts = (productSnapSearchData.value?.missingProducts ?? []).isEmpty;
+      final bool shouldGoToHome = !isSnapSearch || hasNoMissingProducts;
+
+      if (shouldGoToHome) {
+        Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+        return;
       }
+
+      Get.toNamed(
+        RouteHelper.getMissingGroceryItemsScreenRoute(),
+        arguments: {
+          ApiKeys.controller: this,
+          ApiKeys.argMissingProducts: productSnapSearchData.value!.missingProducts,
+        },
+      );
 
       commonSnackBar(
         message: response.message ?? AppStrings.somethingWentWrong,
@@ -608,17 +617,17 @@ class GroceryController extends GetxController {
 
   /// Fetch Grocery Products
   RxBool myGroceryLoading = true.obs;
-  RxList<MyGroceryCategoryWithVariantsModel> myGroceryCategoryList = <MyGroceryCategoryWithVariantsModel>[].obs;
+  RxList<GroceryCategoryWithVariantsModel> groceryCategoryList = <GroceryCategoryWithVariantsModel>[].obs;
   RxList<BusinessProductData> groceryBusinessProductsList = <BusinessProductData>[].obs;
 
-  Future<void> fetchAllMyGroceryData() async {
+  Future<void> fetchAllGroceryData(String userId, {required bool otherStore}) async {
     try {
       myGroceryLoading.value = true;
 
       // 1. Run both repo calls in parallel
       await Future.wait([
-        fetchMyGroceryCategoryWithVariants(),
-        fetchGroceryBusinessProductsRepo(),
+        fetchMyGroceryCategoryWithVariants(userId, otherStore),
+        fetchGroceryBusinessProductsRepo(userId, otherStore),
       ]);
 
     } catch (e) {
@@ -627,22 +636,33 @@ class GroceryController extends GetxController {
     }
   }
 
-  Future<void> fetchMyGroceryCategoryWithVariants() async {
+  Future<void> fetchMyGroceryCategoryWithVariants(String userId, bool otherStore) async {
     try {
-      ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo(
-        params: {
-          ApiKeys.businessId: userId
-        }
-      );
+      var params = {
+        ApiKeys.businessId: userId
+      };
+
+      ResponseModel responseModel;
+      if(!otherStore){
+        responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo(
+            params: params
+        );
+      }
+      else{
+         responseModel = await GroceryRepo().fetchPublicGroceryCategoryWithVariantRepo(
+            params: params
+        );
+      }
+
       if (responseModel.isSuccess) {
         fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
         final List listData = responseModel.response?.data ?? [];
 
-        myGroceryCategoryList.value = listData
-            .map((e) => MyGroceryCategoryWithVariantsModel.fromJson(e))
+        groceryCategoryList.value = listData
+            .map((e) => GroceryCategoryWithVariantsModel.fromJson(e))
             .toList();
 
-        log("Loaded ${myGroceryCategoryList.length}");
+        log("Loaded ${groceryCategoryList.length}");
       } else {
         fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
       }
@@ -652,15 +672,24 @@ class GroceryController extends GetxController {
      }
   }
 
-  Future<void> fetchGroceryBusinessProductsRepo() async {
+  Future<void> fetchGroceryBusinessProductsRepo(String userId, bool otherStore) async {
     try {
       Map<String, dynamic> params = {
         ApiKeys.businessId: userId,
         ApiKeys.sortBy: "discount_high_to_low",
       };
-      ResponseModel responseModel = await GroceryRepo().fetchGroceryBusinessProductsRepo(
-        params: params
-      );
+
+      ResponseModel responseModel;
+      if(!otherStore){
+        responseModel = await GroceryRepo().fetchGroceryBusinessProductsRepo(
+            params: params
+        );
+      }else{
+        responseModel = await GroceryRepo().fetchPublicGroceryBusinessProductsRepo(
+            params: params
+        );
+      }
+
       if (responseModel.isSuccess) {
 
         fetchGroceryBusinessProductsResponse.value = ApiResponse.complete(responseModel);
@@ -688,6 +717,7 @@ class GroceryController extends GetxController {
 
   Future<void> fetchMyGroceryProducts({
     required String categoryId,
+    required String userId,
     bool isLoadMore = false,
   }) async {
     if (isLoadMore) {
@@ -702,6 +732,7 @@ class GroceryController extends GetxController {
     try {
       Map<String, dynamic> params = {
         ApiKeys.page: myGroceryDataPage,
+        ApiKeys.businessId: userId,
         ApiKeys.limit: pageLimit,
         'categoryId': categoryId
       };

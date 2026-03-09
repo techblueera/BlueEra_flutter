@@ -10,11 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class MyGroceryProductsScreen extends StatefulWidget {
+  final String userId;
   final String categoryId;
   final String categoryName;
 
   const MyGroceryProductsScreen({
     super.key,
+    required this.userId,
     required this.categoryId,
     required this.categoryName});
 
@@ -25,24 +27,28 @@ class MyGroceryProductsScreen extends StatefulWidget {
 class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
-  late String categoryId;
-  late String categoryName;
+  late String _categoryId;
+  late String _categoryName;
+  late String _userId;
 
   @override
   void initState() {
     super.initState();
-    categoryId = widget.categoryId;
-    categoryName = widget.categoryName;
+    _userId = widget.userId;
+    _categoryId = widget.categoryId;
+    _categoryName = widget.categoryName;
     WidgetsBinding.instance.addPostFrameCallback((_){
       controller.fetchMyGroceryProducts(
-          categoryId: categoryId,
+          categoryId: _categoryId,
+          userId: _userId,
       );
 
       scrollController.addListener(() {
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 200) {
           controller.fetchMyGroceryProducts(
-              categoryId: categoryId,
+              categoryId: _categoryId,
+              userId: _userId,
               isLoadMore: true
           );
         }
@@ -60,7 +66,7 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: categoryName,
+        title: _categoryName,
       ),
       body: Obx((){
         // First time loading
