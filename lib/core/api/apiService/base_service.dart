@@ -562,7 +562,9 @@ abstract class BaseService {
   String getAllSymbolOneUser(String orderId) => "chat-service/symbols/user/$orderId";
   String deleteSymbolApi(String symbolId) => "chat-service/symbols/$symbolId";
   final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
+  final String publicGroceryCategoryWithVariant = 'grocery-service/api/categories/public/with-inventory';
   final String groceryBusinessProducts = 'grocery-service/api/inventory/business-products';
+  final String publicGroceryBusinessProducts = 'grocery-service/api/inventory/public/business-products';
   final String grocerySnapSearch = 'grocery-service/api/smart-cart/snap-search';
   final String missingGroceryProductRequests = 'grocery-service/api/missing-product-requests/bulk';
   final String groceryNestedCategory = 'grocery-service/api/categories/nested';

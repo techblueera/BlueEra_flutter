@@ -234,59 +234,62 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                     //   ),
 
                     // TABS
-                    SizedBox(
-                      height: 28,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: controller.arrChildrenOfGroceryCategory.length + 1,
-                        itemBuilder: (_, i) {
-                          bool selected =
-                              controller.selectedTabIndex.value == i;
+                    if(controller.arrChildrenOfGroceryWithInventoryCategory.isNotEmpty)
+                    ...[
+                      SizedBox(
+                        height: 28,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller.arrChildrenOfGroceryWithInventoryCategory.length + 1,
+                          itemBuilder: (_, i) {
+                            bool selected =
+                                controller.selectedTabIndex.value == i;
 
-                          var item;
-                          if (i != 0) {
-                            item =
-                                controller.arrChildrenOfGroceryCategory[i - 1];
-                          }
+                            var item;
+                            if (i != 0) {
+                              item =
+                              controller.arrChildrenOfGroceryWithInventoryCategory[i - 1];
+                            }
 
-                          return InkWell(
-                            onTap: () {
-                              controller.selectedTabIndex.value = i;
-                              controller.fetchUserGroceries();
-                            },
-                            child: Container(
-                              margin: EdgeInsets.symmetric(
-                                horizontal: i == 0 ? 0 : 3,
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: selected
-                                    ? AppColors.primaryColor
-                                    : AppColors.white,
-                                borderRadius: BorderRadius.circular(6),
-                                border: selected
-                                    ? null
-                                    : Border.all(
-                                        color: AppColors.greyLite, width: 0.5),
-                              ),
-                              child: Center(
-                                child: CustomText(
-                                  (i != 0) ? item.name : 'All',
+                            return InkWell(
+                              onTap: () {
+                                controller.selectedTabIndex.value = i;
+                                controller.fetchUserGroceries();
+                              },
+                              child: Container(
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: i == 0 ? 0 : 3,
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 6),
+                                decoration: BoxDecoration(
                                   color: selected
-                                      ? AppColors.white
-                                      : AppColors.secondaryTextColor,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 12,
+                                      ? AppColors.primaryColor
+                                      : AppColors.white,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: selected
+                                      ? null
+                                      : Border.all(
+                                      color: AppColors.greyLite, width: 0.5),
+                                ),
+                                child: Center(
+                                  child: CustomText(
+                                    (i != 0) ? item.name : 'All',
+                                    color: selected
+                                        ? AppColors.white
+                                        : AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                    ),
 
-                    SizedBox(height: 8),
+                      SizedBox(height: 8),
+                    ],
 
                     // GRID
                     Expanded(
@@ -347,7 +350,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                                     padding: EdgeInsets.all(SizeConfig.size20),
                                     child: EmptyStateWidget(
                                         message:
-                                        'No ${widget.arrGroceries.first.name?.tr} found.')
+                                        'No ${controller.currentTabName.tr} found.')
                         )
                     )
                   ],
@@ -434,6 +437,9 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
 
                       showProductVariantsBottomSheet(
                         context,
+                        productImage: (groceryProductData.images?.isNotEmpty??false)
+                            ? groceryProductData.images!.first.url ?? ''
+                            : '',
                         allVariants: groceryProductData.variants!,
                         onAdd: (variant) {
                           controller.addToCart(variant);
@@ -586,6 +592,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
 
   void showProductVariantsBottomSheet(
     BuildContext context, {
+    required String productImage,
     required List<VariantsData> allVariants,
     required Function(VariantsData variant) onAdd,
   }) {
@@ -627,6 +634,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
 
                     return _variantItem(
                       variant: variant,
+                      productImage: productImage,
                       onAdd: () {
                         onAdd(variant);
                         // Navigator.pop(context);
@@ -644,6 +652,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
 
   Widget _variantItem({
     required VariantsData variant,
+    required String productImage,
     required VoidCallback onAdd,
   }) {
     // final price = groceryController.getPriceDetails(variant.pricing);
@@ -658,36 +667,44 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
       ),
       child: Row(
         children: [
-          /// Variant Image
-          (variant.images != null && variant.images!.isNotEmpty)
+          /// Product Image
+          (productImage.isNotEmpty)
               ? CustomImageSlideshow(
-                  isLoading: false,
-                  width: SizeConfig.size50,
-                  height: SizeConfig.size50,
-                  imagePaths: variant.images!.map((i) => i.url ?? '').toList(),
-                  borderRadius: BorderRadius.circular(6),
-                )
+            isLoading: false,
+            width: SizeConfig.size50,
+            height: SizeConfig.size50,
+            imagePaths: [productImage],
+            borderRadius: BorderRadius.circular(6),
+          )
               : ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.fill,
-                    width: SizeConfig.size50,
-                    height: SizeConfig.size50,
-                  ),
-                ),
+            borderRadius: BorderRadius.circular(6),
+            child: LocalAssets(
+              imagePath: AppIconAssets.place_holder_image,
+              boxFix: BoxFit.fill,
+              width: SizeConfig.size50,
+              height: SizeConfig.size50,
+            ),
+          ),
 
-          // ClipRRect(
-          //   borderRadius: BorderRadius.circular(6),
-          //   child: CachedNetworkImage(
-          //     imageUrl: variant.images?.first.url ?? '',
-          //     width: SizeConfig.size50,
-          //     height: SizeConfig.size50,
-          //     fit: BoxFit.cover,
-          //     errorWidget: (_, __, ___) =>
-          //         LocalAssets(imagePath: AppIconAssets.place_holder_image),
-          //   ),
-          // ),
+          // /// Variant Image
+          // (variant.images != null && variant.images!.isNotEmpty)
+          //     ? CustomImageSlideshow(
+          //         isLoading: false,
+          //         width: SizeConfig.size50,
+          //         height: SizeConfig.size50,
+          //         imagePaths: variant.images!.map((i) => i.url ?? '').toList(),
+          //         borderRadius: BorderRadius.circular(6),
+          //       )
+          //     : ClipRRect(
+          //         borderRadius: BorderRadius.circular(6),
+          //         child: LocalAssets(
+          //           imagePath: AppIconAssets.place_holder_image,
+          //           boxFix: BoxFit.fill,
+          //           width: SizeConfig.size50,
+          //           height: SizeConfig.size50,
+          //         ),
+          //       ),
+
 
           SizedBox(width: SizeConfig.size10),
 

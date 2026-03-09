@@ -46,7 +46,12 @@ class UserGroceryController extends GetxController{
   String get currentTabKey =>
       selectedTabIndex.value == 0
           ? (selectedGroceryData.value?.key ?? '')
-          : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
+          : arrChildrenOfGroceryWithInventoryCategory[selectedTabIndex.value - 1].key ?? '';
+
+  String get currentTabName =>
+      selectedTabIndex.value == 0
+          ? (selectedGroceryData.value?.name ?? 'All Items')
+          : (arrChildrenOfGroceryWithInventoryCategory[selectedTabIndex.value - 1].name ?? '');
 
   RxList<VariantsData> selectedGroceriesVariants = <VariantsData>[].obs;
 
@@ -147,7 +152,7 @@ class UserGroceryController extends GetxController{
   }
 
   RxBool isGroceryCategoryOfChildrenLoading = false.obs;
-  RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryCategory =
+  RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryWithInventoryCategory =
       <ChildrenOfGroceryCategoryResponse>[].obs;
 
   Future<void> fetchChildrenOfGroceryCategory() async {
@@ -155,7 +160,7 @@ class UserGroceryController extends GetxController{
 
       isGroceryCategoryOfChildrenLoading.value = true;
       final response =
-      await GroceryRepo().groceryCategoryOfChildrenRepo(key: currentTabKey);
+      await GroceryRepo().groceryCategoryOfChildWithInventoryRepo(key: currentTabKey);
 
       if (!response.isSuccess) {
         commonSnackBar(
@@ -165,7 +170,7 @@ class UserGroceryController extends GetxController{
       }
 
       final jsonData = response.response?.data;
-      arrChildrenOfGroceryCategory.value =
+      arrChildrenOfGroceryWithInventoryCategory.value =
           ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
       groceryCategoryOfChildrenResponse.value = ApiResponse.complete(response);
       update();
@@ -195,13 +200,22 @@ class UserGroceryController extends GetxController{
         userGroceryHasMore = true;
       }
 
+      // final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+      // final businessData = viewBusinessDetailsController.businessProfileDetails?.data;
+      //
+      // print("Pincode (Profile): ${businessData?.pincode}");
 
+      double lat = LocationService.lat;
+      double lng = LocationService.lng;
       String postalCode = LocationService.userCurrentAddress.value.postalCode;
       if(postalCode.isEmpty) return;
 
       // log('current tab key-- $currentTabKey');
       Map<String, dynamic> queryParams = {
         ApiKeys.pincode: postalCode,
+        ApiKeys.lat: lat,
+        ApiKeys.lng: lng,
+        ApiKeys.range: kmRadius1500,
         ApiKeys.key: currentTabKey,
         ApiKeys.page: userGroceryPage,
         ApiKeys.limit: pageLimit

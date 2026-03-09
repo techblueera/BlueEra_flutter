@@ -1,44 +1,54 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/my_grocery_category_with_variants_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_profile_header_widget.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_category_with_variants_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 
-class MyGroceryStoreScreen extends StatefulWidget {
-  const MyGroceryStoreScreen({super.key});
+class OtherGroceryStoreScreen extends StatefulWidget {
+  final String visitBusinessId;
+  final String userId;
+  const OtherGroceryStoreScreen({
+    super.key,
+    required this.visitBusinessId,
+    required this.userId});
 
   @override
-  State<MyGroceryStoreScreen> createState() => _MyGroceryStoreScreenState();
+  State<OtherGroceryStoreScreen> createState() => _OtherGroceryStoreScreenState();
 }
 
-class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
+class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
 
   @override
   void initState() {
-    // controller.fetchMyGroceryCategoryWithVariants();
-    // controller.fetchGroceryBusinessProductsRepo();
-    controller.fetchAllMyGroceryData();
+    viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
+    controller.fetchAllGroceryData(widget.userId, otherStore: true);
     super.initState();
   }
 
@@ -50,23 +60,28 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: CommonBackAppBar(
+
+        ),
         body: Obx((){
-          if (controller.myGroceryLoading.value) {
+
+          final bool isProfileLoading = viewBusinessDetailsController.isProfileLoading.value;
+          final bool isGroceryLoading = controller.myGroceryLoading.value;
+
+          if (isProfileLoading || isGroceryLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.businessProfileDetails?.data;
+          BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
 
           return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size8,
+              vertical: SizeConfig.size15
+            ),
             child: Column(
               children: [
-                CustomFormCard(
-                    padding: EdgeInsets.zero,
-                    child: GroceryProfileHeader(
-                      details: businessProfileDetails,
-                      controller: viewBusinessDetailsController,
-                    )
-                ),
+                _groceryHeaderWidget(businessProfileDetails),
 
                 if(controller.groceryBusinessProductsList.isNotEmpty)
                   _topSellingProduct(),
@@ -75,7 +90,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                   height: SizeConfig.paddingM,
                 ),
 
-                _categoryWithInventoryWidget(),
+                _categoryWithInventoryWidget(businessProfileDetails),
 
                 SizedBox(
                   height: SizeConfig.paddingM,
@@ -92,6 +107,169 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           );
         }
         )
+    );
+  }
+
+  Widget _groceryHeaderWidget(BusinessProfileDetails? details){
+    return CustomFormCard(
+    padding: EdgeInsets.zero,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Banner + Profile Image
+        Container(
+          height: 170,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Banner Image
+
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
+                child: Container(
+                  height: 130,
+                  width: double.infinity,
+                  color: AppColors.greyLite, // Background color for the "empty" state
+                  child: (details?.coverimage != null && details!.coverimage!.isNotEmpty)
+                      ? Image.network(
+                    details.coverimage!,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return _buildErrorPlaceholder();
+                    },
+                  )
+                      : _buildErrorPlaceholder(), // Show icon if URL is null/empty
+                ),
+              ),
+
+              // Profile image overlapping banner bottom
+              Positioned(
+                left: 20,
+                top: 90, // makes it overlap smoothly
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: AppColors.white, width: 4),
+                  ),
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.white,
+                    child: details?.logo?.isNotEmpty == true
+                        ? ClipOval(
+                      child: NetWorkOcToAssets(imgUrl: details?.logo ?? "")
+                    )
+                        : LocalAssets(imagePath: AppIconAssets.user_out_line),
+                  ),
+                ),
+              ),
+
+              Positioned(
+                right: 5,
+                bottom: 10,
+                child: RatingBar.builder(
+                  initialRating: 0,
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  allowHalfRating: true,
+                  itemCount: 5,
+                  itemSize: 15, // Adjust size to match your UI
+                  unratedColor: AppColors.secondaryTextColor, // Matches the grey outlines in your image
+                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  itemBuilder: (context, _) => LocalAssets(
+                    imagePath: AppIconAssets.star_rounded,
+                    imgColor: Colors.amber, // Color when filled
+                  ),
+                  onRatingUpdate: (rating) {
+                    print(rating);
+                  },
+                ),
+              )
+
+            ],
+          ),
+        ),
+
+        // --- FORM SECTION ---
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              CustomText(details?.businessName,
+                  fontSize: 18,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  fontWeight: FontWeight.bold),
+              const SizedBox(height: 10),
+              ExpandableText(
+                text: details?.businessDescription ?? AppStrings.na,
+                trimLines: 4,
+                isReadMoreNewLine: false,
+                expandMode: ExpandMode.dialog,
+                style: TextStyle(
+                  color: AppColors.secondaryTextColor,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w400,
+                  fontFamily: AppConstants.OpenSans,
+                ),
+              ),
+              const SizedBox(height: 10),
+              CommonRatingRow(
+                rating:
+                double.tryParse(details?.avg_rating.toString() ?? '0.0') ?? 0.0,
+                reviews: details?.total_ratings?.toInt() ?? 0,
+                distance: '${calculateDistanceKm(
+                  LocationService.lat,
+                  LocationService.lng,
+                  details?.businessLocation?.lat?.toDouble() ?? 0.0,
+                  details?.businessLocation?.lon?.toDouble() ?? 0.0,
+                ).toStringAsFixed(2)} Km Away',
+              ),
+
+              // const SizedBox(height: 10),
+              // CustomText(
+              //   "Monday – Friday: 9:00 AM – 6:00 PM",
+              //   color: AppColors.secondaryTextColor,
+              //   fontSize: SizeConfig.small,
+              //   fontWeight: FontWeight.w400,
+              // )
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+      ],
+    )
+
+    );
+  }
+
+  Widget _buildErrorPlaceholder() {
+    return Center(
+      child: LocalAssets(
+        imagePath: AppIconAssets.place_holder_image,
+        boxFix: BoxFit.cover,
+        height: 130,
+        width: double.infinity,
+      ),
     );
   }
 
@@ -308,37 +486,19 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
     );
   }
 
-  Widget _categoryWithInventoryWidget(){
-    final groceryCategoryList = List<MyGroceryCategoryWithVariantsModel>.from(controller.myGroceryCategoryList);
+  Widget _categoryWithInventoryWidget(BusinessProfileDetails? details){
+    final groceryCategoryList = List<GroceryCategoryWithVariantsModel>.from(controller.groceryCategoryList);
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: CustomText(
-                    'Category',
-                    fontSize: SizeConfig.large,
-                    color: AppColors.mainTextColor,
-                    fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: SizeConfig.size8,
-              ),
-              InkWell(
-                onTap: ()=> Get.toNamed(
-                  RouteHelper.getGrocerySuperCategoryScreenRoute(),
-                ),
-                child: CustomText(
-                    'Update Inventory',
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
+          CustomText(
+          'Category',
+          fontSize: SizeConfig.large,
+          color: AppColors.mainTextColor,
+          fontWeight: FontWeight.w600),
 
           SizedBox(
             height: SizeConfig.paddingXSL,
@@ -363,6 +523,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 boxShadow: [],
                 onTap: (_categoryItem) => Get.toNamed(RouteHelper.getMyGroceryProductsScreenRoute(),
                   arguments: {
+                    ApiKeys.userId: details?.userId,
                     ApiKeys.argCategoryId: _categoryItem.sId,
                     ApiKeys.argCategoryName: _categoryItem.name
                   },
@@ -372,7 +533,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           )
               :
           EmptyStateWidget(
-            message: 'You don\'t have inventory yet, Want to create one?',
+            message: '${details?.businessName} don\'t have an inventory yet.',
           ),
 
           SizedBox(
@@ -385,6 +546,8 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   }
 
   Widget _buildContactNdMapCard(BusinessProfileDetails? businessProfileDetails) {
+    final logoUrl = businessProfileDetails?.logo;
+
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
       child: Column(
@@ -410,6 +573,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 Row(
                   children: [
                     Container(
+                      // key: ValueKey(logoUrl),
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
@@ -419,29 +583,46 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                           BoxShadow(color: Colors.black12, blurRadius: 10)
                         ],
                         image: DecorationImage(
-                          image: (viewBusinessDetailsController.businessProfileDetails?.data?.logo?.isNotEmpty ?? false)
-                              ? NetworkImage(viewBusinessDetailsController.businessProfileDetails!.data!.logo!) as ImageProvider
+                          image: (logoUrl != null && logoUrl.isNotEmpty)
+                              ? NetworkImage(logoUrl) as ImageProvider
                               : AssetImage(AppIconAssets.place_holder_image),
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                            businessProfileDetails?.businessName,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
-                        const SizedBox(height: 5),
-                        CustomText(
-                          businessProfileDetails?.businessDescription,
-                          color: AppColors.secondaryTextColor,
-                          fontSize: 14,
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                              businessProfileDetails?.businessName,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                          const SizedBox(height: 5),
+                          (businessProfileDetails?.businessDescription?.isNotEmpty ??false)
+                          ? ExpandableText(
+                            text: businessProfileDetails?.businessDescription??'',
+                            trimLines: 3,
+                            isReadMoreNewLine: false,
+                            expandMode: ExpandMode.dialog,
+                            style: TextStyle(
+                              color: AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: AppConstants.OpenSans,
+                            ),
+                          )
+                          : CustomText(
+                              AppStrings.na,
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: AppConstants.OpenSans,
+                          ),
+                        ],
+                      ),
                     )
                   ],
                 ),

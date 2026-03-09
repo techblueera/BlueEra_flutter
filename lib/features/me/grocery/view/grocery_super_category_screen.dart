@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -11,6 +10,7 @@ import 'package:BlueEra/features/me/grocery/widget/grocery_data.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -33,16 +33,18 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
       appBar: CommonBackAppBar(
           title: AppStrings.addProducts,
           buildCustomActionWidget:()=>
-              PopupMenuButton<String>(
-                padding: EdgeInsets.zero,
-                offset: const Offset(-6, 36),
-                color: AppColors.white,
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                onSelected: (value) {},
-                icon: Icon(Icons.more_vert, color: AppColors.mainTextColor),
-                itemBuilder: (context) => groceryPopUpMenuItems(),
+              Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: CustomBtn(
+                  height: SizeConfig.size35,
+                  width: SizeConfig.size70,
+                  onTap: (){},
+                  bgColor: AppColors.white,
+                  borderColor: AppColors.primaryColor,
+                  radius: 10.0,
+                  title: 'Tutorial',
+                  textColor: AppColors.primaryColor
+                 ),
               ),
       ),
       body: SingleChildScrollView(

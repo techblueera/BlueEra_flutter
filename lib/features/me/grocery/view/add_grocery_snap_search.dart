@@ -250,15 +250,44 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
 
   Widget _buildProductList() {
 
-    // return Padding(
-    //   padding: EdgeInsets.symmetric(
-    //       vertical: 40.0
-    //   ),
-    //   child: Image.asset(
-    //     'assets/images/grocery_loading_indicator.gif',
-    //     fit: BoxFit.cover,
-    //     gaplessPlayback: true,
-    //   ),
+    // return Column(
+    //   mainAxisAlignment: MainAxisAlignment.center,
+    //   children: [
+    //     EmptyStateWidget(
+    //       message: 'We couldn’t identify any products from this photo. \n'
+    //           'Try capturing a clearer shot or searching for individual items!',
+    //     ),
+    //     SizedBox(height: SizeConfig.paddingL),
+    //
+    //     // Retry with a better photo
+    //     CustomBtn(
+    //       width: SizeConfig.size120,
+    //       title: "Retry",
+    //       textColor: AppColors.white,
+    //       bgColor: AppColors.primaryColor,
+    //       radius: 10.0,
+    //       onTap: () {
+    //         controller.fetchGrocerySnapSearchApi();
+    //       },
+    //     ),
+    //
+    //     SizedBox(height: SizeConfig.paddingXSL),
+    //
+    //     // Secondary Action: TextButton for manual search
+    //     TextButton(
+    //       onPressed: () => Get.back(),
+    //       style: TextButton.styleFrom(
+    //         foregroundColor: AppColors.primaryColor, // Text color
+    //         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+    //         // Optional: Add a subtle splash/ripple effect
+    //       ),
+    //       child: CustomText(
+    //         "Search Manually",
+    //         fontSize: SizeConfig.medium,
+    //         fontWeight: FontWeight.w600,
+    //       ),
+    //     ),
+    //   ],
     // );
 
     return Obx(() {
@@ -288,6 +317,8 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
       return Column(
         children: [
 
+          if(_productSnapSearchData?.foundCount!=null &&
+              _productSnapSearchData?.missingCount!=null)
           Padding(
             padding: const EdgeInsets.symmetric(
                 vertical: 10.0
@@ -316,9 +347,44 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
             ),
           ),
 
-          if(_groceryFoundProducts.isEmpty)
-            EmptyStateWidget(
-               message: 'No grocery product found in our system',
+          if (_groceryFoundProducts.isEmpty)
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                EmptyStateWidget(
+                  message: 'We couldn’t identify any products from this photo. \n'
+                      'Try capturing a clearer shot or searching for individual items!',
+                ),
+                SizedBox(height: SizeConfig.paddingL),
+
+                // Retry with a better photo
+                CustomBtn(
+                  width: SizeConfig.size120,
+                  title: "Retry",
+                  textColor: AppColors.white,
+                  bgColor: AppColors.primaryColor,
+                  radius: 10.0,
+                  onTap: () {
+                    controller.fetchGrocerySnapSearchApi();
+                  },
+                ),
+
+                SizedBox(height: SizeConfig.paddingXSL),
+
+                // Secondary Action: TextButton for manual search
+                TextButton(
+                  onPressed: () => Get.back(),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+                  ),
+                  child: CustomText(
+                    "Search Manually",
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              ],
             ),
 
 

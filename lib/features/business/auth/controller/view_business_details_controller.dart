@@ -130,6 +130,7 @@ class ViewBusinessDetailsController extends GetxController {
 
   final controllerVisit = Get.put(VisitProfileController());
   final isLoading = false.obs;
+  final isProfileLoading = false.obs;
 
   /// business rating list
   RxList<BusinessRatingsData> businessRatingsList = <BusinessRatingsData>[].obs;
@@ -525,6 +526,7 @@ class ViewBusinessDetailsController extends GetxController {
 
   Future<void> viewBusinessProfileById(String userId) async {
     try {
+      isProfileLoading.value = true;
       ResponseModel responseModel =
           await BusinessProfileRepo().viewBusinessProfileById(userId);
 
@@ -563,6 +565,8 @@ class ViewBusinessDetailsController extends GetxController {
     } catch (e) {
       logs("ERROR ${e}");
       viewBusinessResponseNew = ApiResponse.error('error');
+    }finally{
+      isProfileLoading.value = false;
     }
   }
 

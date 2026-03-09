@@ -82,25 +82,43 @@ class CommonServiceCard<T> extends StatelessWidget {
     );
   }
 
-  Widget _buildImage(bool isUrl, String image){
-    return !(isUrl)
-        ? LocalAssets(
-      imagePath: image,
-      height: iconHeight ?? SizeConfig.size50,
-    ) : CachedNetworkImage(
+  Widget _buildImage(bool isUrl, String image) {
+    final double effectiveHeight = iconHeight ?? SizeConfig.size50;
+
+    if (image.isEmpty) {
+      return _buildPlaceholder(effectiveHeight);
+    }
+
+    if (!isUrl) {
+      return LocalAssets(
+        imagePath: image,
+        height: effectiveHeight,
+      );
+    }
+
+    // 3. Handle Network Images
+    return CachedNetworkImage(
       imageUrl: image,
-      // fit: BoxFit.fill,
-      height: iconHeight ?? SizeConfig.size50,
-      placeholder: (context, url) => Container(
-        color: Colors.grey.shade200,
-        child: Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      ),
-      errorWidget: (context, url, error) => LocalAssets(
+      height: effectiveHeight,
+      placeholder: (context, url) => _buildLoadingState(),
+      errorWidget: (context, url, error) => _buildPlaceholder(effectiveHeight),
+    );
+  }
+
+  Widget _buildPlaceholder(double effectiveHeight) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(effectiveHeight / 2),
+      child: LocalAssets(
         imagePath: AppIconAssets.place_holder_image,
         boxFix: BoxFit.cover,
+        height: effectiveHeight,
       ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(strokeWidth: 2),
     );
   }
 

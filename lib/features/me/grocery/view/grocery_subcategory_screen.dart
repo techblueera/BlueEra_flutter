@@ -391,7 +391,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(
                     message:
-                    'No ${widget.arrGroceries.first.name?.tr} found.')
+                    'No ${controller.currentTabName.tr} found.')
             ),
           )
 
