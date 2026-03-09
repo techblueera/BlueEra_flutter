@@ -116,12 +116,26 @@ class ChannelProfileHeader extends StatelessWidget {
                 SizedBox(height: SizeConfig.size2),
                 Row(
                   children: [
-                    CustomText(
-                      subtitle,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: subTitleColor ?? AppColors.secondaryTextColor,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        // The light blue background color from the image
+                        color: AppColors.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10), // Rounded "pill" shape
+                      ),
+                      child: CustomText(
+                        subtitle, // e.g., "Politician - PM Of India"
+                        fontSize: 14, // Adjust based on your SizeConfig.small
+                        fontWeight: FontWeight.w500, // Medium weight looks closer to the UI
+                        color: AppColors.primaryColor, // The blue text color
+                      ),
                     ),
+                    // CustomText(
+                    //   subtitle,
+                    //   fontSize: SizeConfig.small,
+                    //   fontWeight: FontWeight.w400,
+                    //   color: subTitleColor ?? AppColors.secondaryTextColor,
+                    // ),
                     if (postedAgo?.isNotEmpty ?? false) ...[
                       SizedBox(width: SizeConfig.size8),
                       PostMetaInfo(

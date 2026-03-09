@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
@@ -171,7 +172,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         if (posts.isEmpty) {
           return Column(
             children: [
-
               Expanded(
                 child: Center(
                   child: Padding(
@@ -227,7 +227,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                   post: item,
                   index: index,
                   postFilteredType: PostType.all,
-                  bottomPadding: 0,horizontalPadding: 1,
+                  bottomPadding: 10,horizontalPadding: 10,
                   isRepost: false,
                 ),
               );
