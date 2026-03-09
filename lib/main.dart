@@ -35,7 +35,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_handler/share_handler.dart';
 import 'core/services/home_cache_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
+import 'features/chat/auth/controller/call_controller.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
@@ -46,18 +48,74 @@ SharedMedia? pendingSharedMedia;
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ///INIT FIREBASE NOTIFICATION...
-
   await firebaseInitializeApp();
+
+  final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+
+  // Handle incoming call in background - show native call UI
+  if (operation == 'incoming_call') {
+    final data = message.data;
+    final callerName = data['senderName'] ?? 'Unknown';
+    final callerImage = data['senderProfileImage'] ?? '';
+    final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
+    showFlutterCallNotification(
+      callSessionId: data['notificationId'] ?? data['callId'] ?? '',
+      callerName: callerName,
+      callerImage: callerImage.isNotEmpty ? callerImage : null,
+      callType: callType,
+      extra: {
+        'senderId': data['senderId'] ?? '',
+        'conversationId': data['conversationId'] ?? '',
+        'callType': callType,
+        'callerName': callerName,
+        'callerImage': callerImage,
+        'operation': 'incoming_call',
+      },
+    );
+    return; // Don't play sound or show notification for calls
+  }
+
   if (message.notification != null) {
     await AppNotificationHandler().playCustomSound(message);
   }
 
-  if (message.data["operation"] == 'RIDE_ORDER_RECEIVED') {
+  if (operation == 'ride_order_received') {
     NotificationData rideNotification = NotificationData.fromJson(message.data);
     AppNotificationHandler().callShow(
         orderId: '${rideNotification.metadata?.orderId}',
         lng: double.parse(rideNotification.deliveryLong.toString()),
         lat: double.parse(rideNotification.deliveryLat.toString()));
+    return;
+  }
+
+  // For ALL other notifications in background: show our own notification
+  // with action buttons (Reply, Mark as Read, etc.)
+  // Firebase auto-shows from the FCM 'notification' object but WITHOUT actions.
+  // We must cancel Firebase's native notification and show our own.
+  final plugin = FlutterLocalNotificationsPlugin();
+  await plugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@drawable/ic_stat'),
+      iOS: DarwinInitializationSettings(),
+    ),
+    onDidReceiveBackgroundNotificationResponse: onBackgroundNotificationResponse,
+  );
+
+  // Small delay to ensure Firebase's auto-shown notification is posted first
+  await Future.delayed(const Duration(milliseconds: 500));
+
+  // Cancel ALL notifications (including Firebase's auto-shown ones).
+  // NotificationManagerCompat.cancelAll() removes every notification for this app.
+  await plugin.cancelAll();
+
+  final handler = AppNotificationHandler();
+  if (operation == 'missed_call') {
+    handler.showNotification(message,
+        channelId: 'missed_calls',
+        channelName: 'Missed Calls',
+        importance: Importance.defaultImportance);
+  } else {
+    handler.showNotification(message);
   }
 }
 

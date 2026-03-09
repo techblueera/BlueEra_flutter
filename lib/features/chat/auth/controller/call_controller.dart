@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
@@ -14,6 +15,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/services/pip_service.dart';
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
 import '../socket/chat_socket.dart';
@@ -22,13 +24,14 @@ enum CallType { audio, video }
 
 enum CallStatus { idle, ringing, accepting, outgoing, connecting, connected, ended }
 
-class CallController extends GetxController {
+class CallController extends GetxController with WidgetsBindingObserver {
   final CallRepo _callRepo = CallRepo();
   late ChatSocketService _socket;
 
   // --- Observable state ---
   var callType = CallType.audio.obs;
   var callStatus = CallStatus.idle.obs;
+  var isInPipMode = false.obs;
   var callerName = ''.obs;
   var callerImage = ''.obs;
   var remoteUserName = ''.obs;
@@ -85,13 +88,40 @@ class CallController extends GetxController {
     _socket = ChatSocketService();
     _setupCallSocketListeners();
     _setupCallKitListeners();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void onClose() {
     _disposed = true;
+    WidgetsBinding.instance.removeObserver(this);
+    PipService.updatePipStatus(false);
     _cleanup();
     super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // App going to background — check if in PiP
+      _checkPipMode();
+    } else if (state == AppLifecycleState.resumed) {
+      // App coming back to foreground
+      isInPipMode.value = false;
+    }
+  }
+
+  Future<void> _checkPipMode() async {
+    // Small delay so native PiP transition completes
+    await Future.delayed(const Duration(milliseconds: 300));
+    final inPip = await PipService.isInPipMode();
+    isInPipMode.value = inPip;
+  }
+
+  /// Enter PiP mode manually (minimize button)
+  Future<void> enterPipMode() async {
+    await PipService.enterPip();
+    isInPipMode.value = true;
   }
 
   // ==================== SOCKET EVENT LISTENERS ====================
@@ -275,8 +305,9 @@ class CallController extends GetxController {
     // Start 60-second ring timeout
     _startRingTimer();
 
-    // Keep screen on
+    // Keep screen on & enable PiP
     WakelockPlus.enable();
+    PipService.updatePipStatus(true);
 
     return true;
   }
@@ -304,6 +335,12 @@ class CallController extends GetxController {
 
   /// Accept an incoming call
   Future<bool> acceptCall() async {
+    // Prevent double accept (multiple CallKit listeners may fire)
+    if (callStatus.value == CallStatus.accepting ||
+        callStatus.value == CallStatus.connecting ||
+        callStatus.value == CallStatus.connected) {
+      return false;
+    }
     // Immediately transition to accepting so call:answered-elsewhere
     // won't reset our state while we're in the middle of accepting
     final savedCallId = callId.value;
@@ -364,14 +401,16 @@ class CallController extends GetxController {
       _pendingOffer = null;
     }
 
-    // Keep screen on
+    // Keep screen on & enable PiP
     WakelockPlus.enable();
+    PipService.updatePipStatus(true);
 
     return true;
   }
 
   /// Decline an incoming call
   Future<void> declineCall() async {
+    if (callStatus.value == CallStatus.idle) return;
     await _callRepo.declineCall({
       'call_id': callId.value,
       'room_id': roomId.value,
@@ -805,6 +844,7 @@ class CallController extends GetxController {
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
     await _setupLocalMedia();
     WakelockPlus.enable();
+    PipService.updatePipStatus(true);
 
     return true;
   }
@@ -1087,6 +1127,8 @@ class CallController extends GetxController {
     _pendingCandidates.clear();
 
     WakelockPlus.disable();
+    PipService.updatePipStatus(false);
+    isInPipMode.value = false;
     _resetState();
   }
 
@@ -1118,8 +1160,16 @@ class CallController extends GetxController {
   void _setupCallKitListeners() {
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       if (event == null) return;
+      final extra = event.body['extra'] as Map<String, dynamic>? ?? {};
+
+      // Only handle incoming_call events — skip ride orders and other types
+      final operation = (extra['operation'] ?? '').toString();
+      if (operation != 'incoming_call') return;
+
       switch (event.event) {
         case Event.actionCallAccept:
+          // If state isn't already set (push notification case), populate from extra
+          initStateFromCallKitExtra(extra);
           acceptCall().then((accepted) {
             if (accepted) {
               Get.offNamed('/ActiveCallScreen');
@@ -1127,6 +1177,7 @@ class CallController extends GetxController {
           });
           break;
         case Event.actionCallDecline:
+          initStateFromCallKitExtra(extra);
           declineCall();
           break;
         case Event.actionCallEnded:
@@ -1136,6 +1187,29 @@ class CallController extends GetxController {
           break;
       }
     });
+  }
+
+  /// Initialize call state from CallKit extra data (for push notification calls)
+  void initStateFromCallKitExtra(Map<String, dynamic> extra) {
+    if (callStatus.value != CallStatus.idle || extra.isEmpty) return;
+
+    // These come from the push notification payload passed via showFlutterCallNotification
+    final senderId = extra['senderId'] ?? '';
+    final convId = extra['conversationId'] ?? '';
+    final callTypeStr = extra['callType'] ?? '';
+
+    if (senderId.isNotEmpty) {
+      _remoteUserId = senderId;
+      callType.value = callTypeStr == 'video_call' ? CallType.video : CallType.audio;
+      conversationId.value = convId;
+      isCaller.value = false;
+      callStatus.value = CallStatus.ringing;
+      callerName.value = extra['callerName'] ?? '';
+      callerImage.value = extra['callerImage'] ?? '';
+
+      // Connect socket if not connected (app may have been in background)
+      _socket = ChatSocketService();
+    }
   }
 }
 
@@ -1147,30 +1221,48 @@ void showFlutterCallNotification({
   String? callType,
   Map<String, dynamic>? extra,
 }) async {
+  final isVideo = callType == 'video_call';
   final params = CallKitParams(
     id: callSessionId,
     nameCaller: callerName,
     appName: 'BlueEra',
     avatar: callerImage ?? '',
-    handle: 'Call From $callerName',
-    type: callType == 'video_call' ? 1 : 0,
+    handle: isVideo ? 'Incoming video call' : 'Incoming voice call',
+    type: isVideo ? 1 : 0,
     duration: 60000,
     textAccept: 'Accept',
     textDecline: 'Decline',
-    missedCallNotification: const NotificationParams(
+    missedCallNotification: NotificationParams(
       showNotification: true,
-      subtitle: 'Missed call',
+      isShowCallback: true,
+      subtitle: 'Missed ${isVideo ? 'video' : 'voice'} call',
+      callbackText: 'Call Back',
     ),
     extra: extra ?? {},
-    android: const AndroidParams(
+    android: AndroidParams(
       isShowLogo: true,
       isShowFullLockedScreen: true,
       isImportant: true,
+      isCustomNotification: true,
+      ringtonePath: 'system_ringtone_default',
+      backgroundColor: '#0955fa',
+      actionColor: '#4CAF50',
+      textColor: '#ffffff',
+      incomingCallNotificationChannelName: 'Incoming Calls',
+      missedCallNotificationChannelName: 'Missed Calls',
+      isShowCallID: false,
     ),
     ios: const IOSParams(
+      iconName: 'CallKitLogo',
+      handleType: 'generic',
       supportsVideo: true,
       supportsDTMF: true,
       supportsHolding: true,
+      maximumCallGroups: 2,
+      maximumCallsPerCallGroup: 1,
+      audioSessionMode: 'default',
+      audioSessionActive: true,
+      ringtonePath: 'system_ringtone_default',
     ),
   );
 

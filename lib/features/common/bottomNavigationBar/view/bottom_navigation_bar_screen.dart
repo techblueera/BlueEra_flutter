@@ -47,6 +47,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/routes/route_helper.dart';
+import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
@@ -114,15 +115,40 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-        if (event?.event == Event.actionCallAccept) {
-          // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-          Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-          FlutterCallkitIncoming.endAllCalls();
-        } else if (event?.event == Event.actionCallDecline) {
-          commonSnackBar(message: "Your Order Rejected by You");
-          Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-          // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-          FlutterCallkitIncoming.endAllCalls();
+        if (event == null) return;
+        final extra = event.body['extra'] as Map<String, dynamic>? ?? {};
+        final operation = (extra['operation'] ?? '').toString();
+
+        if (operation == 'incoming_call') {
+          // Normal call — ensure CallController is registered, then handle
+          if (!Get.isRegistered<CallController>()) {
+            Get.put(CallController());
+          }
+          final callController = Get.find<CallController>();
+
+          if (event.event == Event.actionCallAccept) {
+            // Populate call state from CallKit extra (needed when app was killed)
+            callController.initStateFromCallKitExtra(extra);
+            callController.acceptCall().then((accepted) {
+              if (accepted) {
+                Get.offNamed('/ActiveCallScreen');
+              }
+            });
+          } else if (event.event == Event.actionCallDecline) {
+            callController.initStateFromCallKitExtra(extra);
+            callController.declineCall();
+          }
+          return;
+        } else {
+          // Ride order events
+          if (event.event == Event.actionCallAccept) {
+            Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+            FlutterCallkitIncoming.endAllCalls();
+          } else if (event.event == Event.actionCallDecline) {
+            commonSnackBar(message: "Your Order Rejected by You");
+            Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+            FlutterCallkitIncoming.endAllCalls();
+          }
         }
       });
     });

@@ -31,6 +31,7 @@ import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import 'add_symbol/add_symbol_screen.dart';
 import 'find_contacts_with_service/find_contact_with_service.dart';
+import 'widget/chat_flag_bottom_sheet.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen({super.key,
@@ -221,8 +222,22 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       ],
                     ),
                     actions: [
-                      _selectionActionIcon(Icons.label_outline, () {
-                        // Label / flag action
+                      _selectionActionIcon(Icons.flag_outlined, () {
+                        final ids = chatViewController.selectedConversationIds.toList();
+                        if (ids.isEmpty) return;
+                        // Show flag bottom sheet for the first selected conversation,
+                        // then apply the chosen flag to all selected conversations
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => _MultiFlagBottomSheet(
+                            conversationIds: ids,
+                            onDone: () {
+                              chatViewController.exitChatListSelectionMode();
+                            },
+                          ),
+                        );
                       }),
                       _selectionActionIcon(Icons.push_pin_outlined, () {
                         final controller = Get.find<ChatPinArchiveController>();
@@ -586,6 +601,206 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         //   ),
         // if (!_isFromForward()) SizedBox(width: 18),
       ],
+    );
+  }
+}
+
+/// Bottom sheet to apply a flag to multiple selected conversations
+class _MultiFlagBottomSheet extends StatefulWidget {
+  final List<String> conversationIds;
+  final VoidCallback onDone;
+
+  const _MultiFlagBottomSheet({
+    required this.conversationIds,
+    required this.onDone,
+  });
+
+  @override
+  State<_MultiFlagBottomSheet> createState() => _MultiFlagBottomSheetState();
+}
+
+class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
+  final flagController = Get.find<ChatFlagController>();
+  String? selectedFlagId;
+
+  @override
+  void initState() {
+    super.initState();
+    // If all selected conversations have the same flag, pre-select it
+    final flags = widget.conversationIds
+        .map((id) => flagController.getFlagForConversation(id))
+        .toSet();
+    if (flags.length == 1 && flags.first != null) {
+      selectedFlagId = flags.first!.id;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                "Label ${widget.conversationIds.length} Chat${widget.conversationIds.length > 1 ? 's' : ''}",
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  showAddFlagLabelDialog(context, flagController);
+                },
+                child: const CustomText(
+                  "+ New Label",
+                  color: AppColors.primaryColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(() {
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: flagController.allFlags.length,
+                itemBuilder: (context, index) {
+                  final flag = flagController.allFlags[index];
+                  final isSelected = selectedFlagId == flag.id;
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedFlagId = isSelected ? null : flag.id;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
+                      margin: const EdgeInsets.only(bottom: 4),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? flag.color.withValues(alpha: 0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                        border: isSelected
+                            ? Border.all(color: flag.color, width: 1.5)
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: flag.color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              flag.emoji,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CustomText(
+                              flag.label,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(Icons.check_circle,
+                                color: flag.color, size: 22),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    for (final id in widget.conversationIds) {
+                      flagController.removeFlagFromConversation(id);
+                    }
+                    Navigator.pop(context);
+                    widget.onDone();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const CustomText(
+                    "Remove Label",
+                    color: AppColors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: selectedFlagId == null
+                      ? null
+                      : () {
+                          final flag = flagController.allFlags
+                              .firstWhere((f) => f.id == selectedFlagId);
+                          for (final id in widget.conversationIds) {
+                            flagController.assignFlagToConversation(id, flag);
+                          }
+                          Navigator.pop(context);
+                          widget.onDone();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const CustomText(
+                    "Apply",
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
     );
   }
 }

@@ -1001,6 +1001,136 @@ void _initiateCallFromChat({
   }
 }
 
+void _showCallOptionsBottomSheet({
+  required BuildContext context,
+  String? otherUserId,
+  String? conversationId,
+  required String userName,
+  required String userImage,
+  required String contactNo,
+}) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              _callOptionTile(
+                icon: Icons.call,
+                iconColor: Colors.green,
+                title: 'Voice Call',
+                subtitle: 'Call encrypted no contact share',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _initiateCallFromChat(
+                    callType: CallType.audio,
+                    otherUserId: otherUserId,
+                    conversationId: conversationId,
+                    userName: userName,
+                    userImage: userImage,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _callOptionTile(
+                icon: Icons.videocam,
+                iconColor: Colors.blue,
+                title: 'Video Call',
+                subtitle: 'Video call encrypted no contact share',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _initiateCallFromChat(
+                    callType: CallType.video,
+                    otherUserId: otherUserId,
+                    conversationId: conversationId,
+                    userName: userName,
+                    userImage: userImage,
+                  );
+                },
+              ),
+              if (contactNo.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                _callOptionTile(
+                  icon: Icons.phone_forwarded,
+                  iconColor: Colors.orange,
+                  title: 'Normal Call',
+                  subtitle: 'Dial $contactNo',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    launchUrl(Uri.parse('tel:$contactNo'));
+                  },
+                ),
+              ],
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _callOptionTile({
+  required IconData icon,
+  required Color iconColor,
+  required String title,
+  required String subtitle,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(12),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.grayText)),
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.grayText),
+        ],
+      ),
+    ),
+  );
+}
+
 AppBar getChatTitleAppBar(BuildContext context, {
   String? userId,
   String? conversationId,
@@ -1220,32 +1350,26 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isFromAiChat!=true)
         InkWell(
             onTap: () {
-              _initiateCallFromChat(
-                callType: CallType.audio,
+              _showCallOptionsBottomSheet(
+                context: context,
                 otherUserId: isGroupAppBar == null ? userId : null,
                 conversationId: conversationId,
                 userName: name ?? '',
                 userImage: profileImage ?? '',
+                contactNo: contactNo ?? '',
               );
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Icon(Icons.call, color: AppColors.chat_input_icon_color, size: 24),
-            )),
-      if(isFromAiChat!=true)
-        InkWell(
-            onTap: () {
-              _initiateCallFromChat(
-                callType: CallType.video,
-                otherUserId: isGroupAppBar == null ? userId : null,
-                conversationId: conversationId,
-                userName: name ?? '',
-                userImage: profileImage ?? '',
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Icon(Icons.videocam, color: AppColors.chat_input_icon_color, size: 24),
+              child: SvgPicture.asset(
+                'assets/svg/audio_and_video_call.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  AppColors.chat_input_icon_color,
+                  BlendMode.srcIn,
+                ),
+              ),
             )),
       if(isFromAiChat==true)
         PopupMenuButton<String>(

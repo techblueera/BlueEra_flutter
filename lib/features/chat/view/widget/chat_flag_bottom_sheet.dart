@@ -196,11 +196,11 @@ class _ChatFlagBottomSheetState extends State<ChatFlagBottomSheet> {
   }
 
   void _showAddNewLabelDialog(BuildContext context) {
-    _showAddLabelDialog(context, flagController);
+    showAddFlagLabelDialog(context, flagController);
   }
 }
 
-void _showAddLabelDialog(BuildContext context, ChatFlagController flagController) {
+void showAddFlagLabelDialog(BuildContext context, ChatFlagController flagController) {
   final nameController = TextEditingController();
   final emojiController = TextEditingController();
   Color selectedColor = Colors.blue;
@@ -371,7 +371,7 @@ class _ChatFlagDropdownState extends State<ChatFlagDropdown> {
                 InkWell(
                   onTap: () {
                     Get.back();
-                    _showAddLabelDialog(context, flagController);
+                    showAddFlagLabelDialog(context, flagController);
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(4),

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/services/chat_media_compression_service.dart';
 import 'package:BlueEra/features/chat/view/widget/picked_media_preview.dart';
 import 'package:BlueEra/features/chat/view/widget/quick_reply_bottom_sheet.dart';
 import 'package:BlueEra/features/chat/view/widget/send_live_location_page.dart';
@@ -1614,7 +1615,10 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                 mediaFiles: files,
                 onSend: (List<File> getFile, String? commands) async {
                   Navigator.pop(context);
-                  List<File> selectedFiles = getFile;
+
+                  // Compress media files before upload (~80% size reduction)
+                  List<File> selectedFiles = await ChatMediaCompressionService.compressMediaFiles(getFile);
+
                   List<String?> fileNames = [];
                   List<String?> fileTypes = [];
 
@@ -1667,7 +1671,12 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                 mediaFiles: [File(pickedFile.path)],
                 onSend: (val, String? commands) async {
                   Navigator.pop(context);
-                  String? imagePath = File(pickedFile.path).path;
+
+                  // Compress camera file before upload (~80% size reduction)
+                  File originalFile = File(pickedFile.path);
+                  File compressedFile = (await ChatMediaCompressionService.compressImage(originalFile)) ?? originalFile;
+
+                  String? imagePath = compressedFile.path;
                   String fileName = imagePath
                       .split('/')
                       .last;

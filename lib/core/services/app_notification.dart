@@ -1,17 +1,20 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison, unnecessary_new, unrelated_type_equality_checks, unused_local_variable
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/services/notifications/model/OneSignalNotificationDetailsModel.dart';
+import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
@@ -20,6 +23,7 @@ import 'package:flutter_callkit_incoming/entities/ios_params.dart';
 import 'package:flutter_callkit_incoming/entities/notification_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 // import 'package:http/http.dart' as http;
@@ -37,6 +41,146 @@ String notificationSound = 'sound/iphone_tone.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
 String chatNotificationSound = 'sound/messenger.mp3';
 
+/// Top-level handler for background notification actions (inline reply, mark as read, etc.)
+/// Must be a top-level or static function for flutter_local_notifications
+@pragma('vm:entry-point')
+void onBackgroundNotificationResponse(NotificationResponse response) {
+  // Delegate to async handler — use .then() to keep isolate alive until complete
+  _handleBackgroundNotificationResponse(response).then((_) {}).catchError((_) {});
+}
+
+Future<void> _handleBackgroundNotificationResponse(NotificationResponse response) async {
+  if (response.payload == null) return;
+  final data = json.decode(response.payload!) as Map<String, dynamic>;
+  final actionId = response.actionId ?? '';
+
+  // Initialize a local plugin instance (background isolate may not have the static one)
+  final plugin = FlutterLocalNotificationsPlugin();
+  await plugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@drawable/ic_stat'),
+      iOS: DarwinInitializationSettings(),
+    ),
+  );
+
+  // --- Inline reply (WhatsApp-style, no app open) ---
+  if (actionId.startsWith('reply_message_') && response.input != null && response.input!.isNotEmpty) {
+    final conversationId = data['conversationId'] ?? '';
+    // Send reply via REST API (works in background isolate without GetX context)
+    await _sendReplyViaApi(conversationId: conversationId, message: response.input!);
+    // Update notification to show sent reply (no sound/vibration)
+    await plugin.show(
+      response.id ?? 0,
+      data['senderName'] ?? data['title'] ?? '',
+      'You: ${response.input}',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'default',
+          'General Notifications',
+          channelDescription: '',
+          importance: Importance.low,
+          icon: '@drawable/ic_stat',
+          playSound: false,
+          enableVibration: false,
+        ),
+      ),
+    );
+    return;
+  }
+
+  // --- Mark as read — dismiss notification silently ---
+  if (actionId.startsWith('mark_read_')) {
+    await plugin.cancel(response.id ?? 0);
+    return;
+  }
+
+  // --- Chat actions (view chat / view conversation) ---
+  if (actionId.startsWith('view_chat_') || actionId.startsWith('view_conversation_')) {
+    final senderId = data['senderId'] ?? '';
+    if (senderId.isNotEmpty) {
+      final chatViewController = Get.put(ChatViewController());
+      chatViewController.connectSocket();
+      Future.delayed(const Duration(milliseconds: 500), () {
+        chatViewController.checkChatConnectionAndOpenChat(userId: senderId);
+      });
+    }
+    return;
+  }
+
+  // --- Connection actions ---
+  if (actionId.startsWith('accept_connection_') || actionId.startsWith('decline_connection_') ||
+      actionId.startsWith('view_profile_') || actionId.startsWith('message_')) {
+    Get.toNamed(RouteHelper.getNotificationScreenRoute());
+    return;
+  }
+
+  // --- Ride actions ---
+  if (actionId.startsWith('track_ride_') || actionId.startsWith('view_order_') ||
+      actionId.startsWith('accept_order_') || actionId.startsWith('contact_rider_')) {
+    Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+    return;
+  }
+
+  // --- Post / Reel actions ---
+  if (actionId.startsWith('view_post_') || actionId.startsWith('view_comment_') ||
+      actionId.startsWith('view_reel_') || actionId.startsWith('view_response_')) {
+    Get.toNamed(RouteHelper.getNotificationScreenRoute());
+    return;
+  }
+
+  // --- AI greeting actions ---
+  if (actionId.startsWith('open_chat_')) {
+    final chat = ChatViewController.personalAiChatModule;
+    Get.to(() => AiChatScreen(
+      profileImage: chat?.sender?.profileImage,
+      name: chat?.sender?.name,
+      type: chat?.sender?.accountType,
+    ));
+    return;
+  }
+
+  // --- Default: if no action matched, treat as regular notification tap ---
+  if (actionId.isEmpty && response.payload != null) {
+    AppNotificationHandler._onTapNotificationFromStatusBar(data);
+  }
+}
+
+/// Send reply message via direct REST API call.
+/// Works in both foreground and background isolate contexts.
+Future<void> _sendReplyViaApi({
+  required String conversationId,
+  required String message,
+}) async {
+  try {
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: SharedPreferenceUtils.authToken);
+    final storedBaseUrl = await storage.read(key: SharedPreferenceUtils.baseURL);
+    final apiUrl = (storedBaseUrl ?? baseUrl ?? '') + 'chat-service/chat/send-message';
+
+    if (token == null || token.isEmpty) return;
+
+    final dioClient = dio.Dio();
+    final formData = dio.FormData.fromMap({
+      'conversation_id': conversationId,
+      'message': message,
+      'message_type': 'text',
+    });
+
+    await dioClient.post(
+      apiUrl,
+      data: formData,
+      options: dio.Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'multipart/form-data',
+        },
+      ),
+    );
+  } catch (e) {
+    print('Notification reply API error: $e');
+  }
+}
+
 class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       new FlutterLocalNotificationsPlugin();
@@ -50,22 +194,38 @@ class AppNotificationHandler {
           notificationAppLaunchDetails!.notificationResponse?.payload;
     }
 
-    ///firebase initiallize
-    // await Firebase.initializeApp();
-    AndroidNotificationChannel channel = const AndroidNotificationChannel(
-      AppStrings.appName, // id
-      'Notifications', // title
+    /// Android Notification Channels per backend documentation
+    const AndroidNotificationChannel defaultChannel = AndroidNotificationChannel(
+      'default',
+      'General Notifications',
+      description: 'All standard push notifications',
       importance: Importance.high,
+    );
+
+    const AndroidNotificationChannel incomingCallChannel = AndroidNotificationChannel(
+      'incoming_calls',
+      'Incoming Calls',
+      description: 'Incoming voice and video call alerts',
+      importance: Importance.max,
+    );
+
+    const AndroidNotificationChannel missedCallChannel = AndroidNotificationChannel(
+      'missed_calls',
+      'Missed Calls',
+      description: 'Missed call notifications',
+      importance: Importance.defaultImportance,
     );
 
     ///local notification...
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    await flutterLocalNotificationsPlugin
+    final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+            AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(defaultChannel);
+    await androidPlugin?.createNotificationChannel(incomingCallChannel);
+    await androidPlugin?.createNotificationChannel(missedCallChannel);
 
     ///IOS Setup
     DarwinInitializationSettings initializationSettings =
@@ -110,8 +270,8 @@ class AppNotificationHandler {
 
   static AndroidNotificationDetails androidPlatformChannelSpecifics =
       const AndroidNotificationDetails(
-          AppStrings.appName, // id
-          'High Importance Notifications', // title
+          'default', // channel id — must match registered channel
+          'General Notifications', // title
           importance: Importance.high,
           playSound: true,
           enableVibration: false);
@@ -151,45 +311,161 @@ class AppNotificationHandler {
   /// handle notification when app in fore ground.. local notification......
   void getInitialMsg() {
     flutterLocalNotificationsPlugin.initialize(
-        const InitializationSettings(
-          android: AndroidInitializationSettings('@drawable/ic_stat'),
-          iOS: DarwinInitializationSettings(),
-        ), onDidReceiveNotificationResponse: (payLoad) {
-      if (payLoad != null && payLoad.payload != null) {
-        _onTapNotificationFromStatusBar(
-          json.decode(payLoad.payload!),
-        );
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@drawable/ic_stat'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      // Foreground: when app is open and user taps notification or action
+      onDidReceiveNotificationResponse: (response) {
+        if (response.payload != null) {
+          final data = json.decode(response.payload!) as Map<String, dynamic>;
+          if (response.actionId != null && response.actionId!.isNotEmpty) {
+            String? replyText;
+            if (response.input != null && response.input!.isNotEmpty) {
+              replyText = response.input;
+            }
+            _handleActionButtonTap(response.actionId!, data, replyText: replyText);
+          } else {
+            _onTapNotificationFromStatusBar(data);
+          }
+        }
+      },
+      // Background: handles Reply & Mark as Read WITHOUT opening the app
+      onDidReceiveBackgroundNotificationResponse: onBackgroundNotificationResponse,
+    );
+  }
+
+  /// Handle action button taps from notification
+  static void _handleActionButtonTap(String actionId, Map<String, dynamic> data, {String? replyText}) {
+    // Inline reply from notification (WhatsApp-style)
+    if (actionId.startsWith('reply_message_') && replyText != null && replyText.isNotEmpty) {
+      final conversationId = data['conversationId'] ?? '';
+      final senderId = data['senderId'] ?? '';
+      _sendQuickReply(conversationId: conversationId, senderId: senderId, message: replyText);
+      return;
+    }
+
+    // Chat actions - open chat screen
+    if (actionId.startsWith('reply_message_') || actionId.startsWith('view_chat_') || actionId.startsWith('view_conversation_')) {
+      final senderId = data['senderId'] ?? '';
+      _openChatWithUser(senderId);
+      return;
+    }
+
+    // Mark as read - dismiss notification silently
+    if (actionId.startsWith('mark_read_')) {
+      // Cancel the notification from tray
+      flutterLocalNotificationsPlugin.cancelAll();
+      return;
+    }
+
+    // Connection actions
+    if (actionId.startsWith('accept_connection_') || actionId.startsWith('decline_connection_') ||
+        actionId.startsWith('view_profile_') || actionId.startsWith('message_')) {
+      Get.toNamed(RouteHelper.getNotificationScreenRoute());
+      return;
+    }
+
+    // Ride actions
+    if (actionId.startsWith('track_ride_') || actionId.startsWith('view_order_') ||
+        actionId.startsWith('accept_order_') || actionId.startsWith('contact_rider_')) {
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      return;
+    }
+
+    // Post/Reel actions
+    if (actionId.startsWith('view_post_') || actionId.startsWith('view_comment_') ||
+        actionId.startsWith('view_reel_') || actionId.startsWith('view_response_')) {
+      Get.toNamed(RouteHelper.getNotificationScreenRoute());
+      return;
+    }
+
+    // AI greeting actions
+    if (actionId.startsWith('open_chat_')) {
+      final chat = ChatViewController.personalAiChatModule;
+      Get.to(() => AiChatScreen(
+        profileImage: chat?.sender?.profileImage,
+        name: chat?.sender?.name,
+        type: chat?.sender?.accountType,
+      ));
+      return;
+    }
+
+    // Default: treat as regular notification tap
+    _onTapNotificationFromStatusBar(data);
+  }
+
+  /// Send a quick reply from the notification inline input via REST API
+  static Future<void> _sendQuickReply({
+    required String conversationId,
+    required String senderId,
+    required String message,
+  }) async {
+    try {
+      final response = await ChatViewRepo().sendMessageToUser({
+        'conversation_id': conversationId,
+        'message': message,
+        'message_type': 'text',
+      });
+      // Dismiss the notification
+      flutterLocalNotificationsPlugin.cancelAll();
+    } catch (e) {
+      // Fallback: try direct API call
+      try {
+        await _sendReplyViaApi(conversationId: conversationId, message: message);
+        flutterLocalNotificationsPlugin.cancelAll();
+      } catch (_) {
+        // Last resort: open chat screen
+        _openChatWithUser(senderId);
       }
-    });
+    }
   }
 
   ///show notification msg
-  Future<void> showMsg(RemoteMessage message)async {
-        if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
-          NotificationData rideNotification=NotificationData.fromJson(message.data);
-          showFullCallScreen(rideNotification);
-        }
-        // Handle incoming call notification
-        if (message.data['call_type'] != null && message.data['missed_call'] == 'false') {
-          _handleIncomingCallPush(message);
-          return; // Don't show regular notification for active call
-        }
+  Future<void> showMsg(RemoteMessage message) async {
+    final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+
+    // Handle ride order received
+    if (operation == 'ride_order_received') {
+      NotificationData rideNotification = NotificationData.fromJson(message.data);
+      showFullCallScreen(rideNotification);
+      return;
+    }
+
+    // Handle incoming call - show native call UI, don't show regular notification
+    if (operation == 'incoming_call') {
+      _handleIncomingCallPush(message);
+      return;
+    }
+
+    // Handle missed call - show on missed_calls channel
+    if (operation == 'missed_call') {
+      showNotification(message, channelId: 'missed_calls', channelName: 'Missed Calls', importance: Importance.defaultImportance);
+      return;
+    }
+
+    // All other notifications on default channel
     showNotification(message);
   }
 
-  /// Handle incoming call push notification
+  /// Handle incoming call push notification using operation-based payload
   void _handleIncomingCallPush(RemoteMessage message) {
     final data = message.data;
+    final callerName = data['senderName'] ?? 'Unknown';
+    final callerImage = data['senderProfileImage'] ?? '';
+    final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
     showFlutterCallNotification(
-      callSessionId: data['call_id'] ?? '',
-      callerName: data['name'] ?? 'Unknown',
-      callerImage: data['profile_image'],
-      callType: data['call_type'],
+      callSessionId: data['notificationId'] ?? data['callId'] ?? '',
+      callerName: callerName,
+      callerImage: callerImage.isNotEmpty ? callerImage : null,
+      callType: callType,
       extra: {
-        'room_id': data['room_id'] ?? '',
-        'conversation_id': data['conversation_id'] ?? '',
-        'call_type': data['call_type'] ?? '',
-        'call_id': data['call_id'] ?? '',
+        'senderId': data['senderId'] ?? '',
+        'conversationId': data['conversationId'] ?? '',
+        'callType': callType,
+        'callerName': callerName,
+        'callerImage': callerImage,
+        'operation': 'incoming_call',
       },
     );
   }
@@ -288,35 +564,106 @@ class AppNotificationHandler {
   }
 
   Future<void> showNotification(
-    RemoteMessage notification,
-  ) async {
-    print("SHOW MSG 3");
+    RemoteMessage notification, {
+    String channelId = 'default',
+    String channelName = 'General Notifications',
+    Importance importance = Importance.high,
+  }) async {
+    final data = notification.data;
+    final operation = (data['operation'] ?? '').toString().toLowerCase();
+    final title = notification.notification?.title ?? data['title'] ?? "";
+    final body = notification.notification?.body ?? data['message'] ?? "";
+    final isChatMessage = _isChatOperation(operation);
+
+    // Build action buttons
+    final List<AndroidNotificationAction> androidActions = isChatMessage
+        ? _buildChatActions(data)
+        : _parseNotificationActions(data);
+
+    // Use BigTextStyle so notification expands on swipe down (like WhatsApp)
+    final styleInformation = BigTextStyleInformation(
+      body,
+      contentTitle: title,
+      summaryText: isChatMessage ? (data['senderContact'] ?? '') : null,
+    );
 
     flutterLocalNotificationsPlugin.show(
       notification.hashCode,
-      notification.notification?.title ?? "",
-      notification.notification?.body ?? "",
+      title,
+      body,
       NotificationDetails(
           android: AndroidNotificationDetails(
-            AppStrings.appName, // id
-            // AppStrings.appName, // id
-            'High Importance Notifications', // title
+            channelId,
+            channelName,
             channelDescription: '',
-            enableVibration: false,
-            // description
-            importance: Importance.high,
+            enableVibration: true,
+            importance: importance,
             icon: '@drawable/ic_stat',
             playSound: true,
-            // styleInformation: styleInformation,
+            styleInformation: styleInformation,
+            category: isChatMessage ? AndroidNotificationCategory.message : null,
+            actions: androidActions,
           ),
           iOS: DarwinNotificationDetails(
             presentBanner: true,
             presentSound: true,
           )),
-      payload: jsonEncode(notification.data),
+      payload: jsonEncode(data),
     );
-    print("SHOW MSG 4");
+  }
 
+  /// Check if operation is a chat/message type
+  bool _isChatOperation(String operation) {
+    return operation == 'sent_message' ||
+        operation == 'message_reminder' ||
+        operation == 'tagged_in_message' ||
+        operation == 'commented_on_message' ||
+        operation == 'liked_message';
+  }
+
+  /// Build WhatsApp-style action buttons for chat notifications
+  List<AndroidNotificationAction> _buildChatActions(Map<String, dynamic> data) {
+    final messageId = data['messageId'] ?? '';
+    final conversationId = data['conversationId'] ?? '';
+    return [
+      // Reply button with inline text input — showsUserInterface: false
+      // so user can type and send reply WITHOUT opening the app
+      AndroidNotificationAction(
+        'reply_message_$messageId',
+        'Reply',
+        showsUserInterface: false,
+        inputs: <AndroidNotificationActionInput>[
+          const AndroidNotificationActionInput(
+            label: 'Type a message...',
+          ),
+        ],
+      ),
+      // Mark as Read button — silently dismisses
+      AndroidNotificationAction(
+        'mark_read_$conversationId',
+        'Mark as Read',
+        showsUserInterface: false,
+      ),
+    ];
+  }
+
+  /// Parse action buttons from the FCM data 'actions' field (for non-chat notifications)
+  List<AndroidNotificationAction> _parseNotificationActions(Map<String, dynamic> data) {
+    final List<AndroidNotificationAction> actions = [];
+    try {
+      final actionsJson = data['actions'] ?? '[]';
+      final List<dynamic> parsed = jsonDecode(actionsJson);
+      for (final action in parsed) {
+        if (action is Map && action['id'] != null && action['text'] != null) {
+          actions.add(AndroidNotificationAction(
+            action['id'].toString(),
+            action['text'].toString(),
+            showsUserInterface: true,
+          ));
+        }
+      }
+    } catch (_) {}
+    return actions;
   }
 
   ///WORKING CODE..
@@ -390,20 +737,23 @@ class AppNotificationHandler {
   ///call when click on notification
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
+      final operation = (message.data['operation'] ?? '').toString().toLowerCase();
 
-      AndroidNotification? android = message.notification?.android;
+      // Always handle incoming calls on both platforms (CallKit handles native UI)
+      if (operation == 'incoming_call') {
+        _handleIncomingCallPush(message);
+        return;
+      }
 
-      ///FOR APP IS IN FOR GROUND....
-
-
-      ///IOS LOCAL NOTIFICATION IS TRIGGER BY SELF & ANDROID NOT HANDLE
-      if (notification != null && Platform.isAndroid) {
+      if (Platform.isAndroid) {
         playCustomSound(message);
         showMsg(message);
       } else if (Platform.isIOS) {
-        ///FOR IOS....
-        // callUnreadCount();
+        // iOS shows FCM notifications automatically in foreground,
+        // but we still handle missed calls and play sounds
+        if (operation == 'missed_call') {
+          playCustomSound(message);
+        }
       }
     });
 
@@ -431,86 +781,161 @@ class AppNotificationHandler {
   }
 
   static Future<void> _onTapNotificationFromStatusBar(
-    Map<String, dynamic> dataNotificationResponse,
+    Map<String, dynamic> data,
   ) async {
-    if (dataNotificationResponse['sender_user'] is String) {
-      dataNotificationResponse['sender_user'] =
-          jsonDecode(dataNotificationResponse['sender_user']);
-    }
-    OneSignalNotificationDetailsModel data =
-        OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
-    if(data.operation =='SEND_NIGHTLY_GREETING'){
-      final chat = ChatViewController.personalAiChatModule;
-
-      Get.to(()=> AiChatScreen(
-        profileImage: chat?.sender?.profileImage,
-        name: chat?.sender?.name,
-        type: chat?.sender?.accountType,
-     ));
-    }else
-    if (data.operation == "sent_message") {
-      OpenedMessageDataModel resModel=OpenedMessageDataModel.fromJson(dataNotificationResponse);
-      // if(resModel.conversationType==AppConstants.group_Chat_Type){
-      //   Get.to(()=>GroupChatScreen(
-      //     type: AppConstants.group_Chat_Type,
-      //     conversationId: resModel.conversationId,
-      //     profileImage: '',
-      //     name: resModel.senderName,
-      //   ));
-      // }else{
-        final chatViewController = Get.put(ChatViewController());
-        chatViewController.connectSocket();
-       Future.delayed(Duration(milliseconds: 500),(){
-         chatViewController.checkChatConnectionAndOpenChat(
-           userId: resModel.senderId ?? '',
-         );
-       });
-      // }
-
-    }else if(data.operation=="RIDE_ORDER_RECEIVED"){
-      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+    // Parse sender_user if it's a JSON string
+    if (data['sender_user'] is String) {
+      data['sender_user'] = jsonDecode(data['sender_user']);
     }
 
-    ///CLEAR ALL NOTIFICATION...
-   // var penNotification=await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-   //  log("kjdskjsj ${penNotification}");
+    final operation = (data['operation'] ?? '').toString().toLowerCase();
+
+    switch (operation) {
+      // Call operations
+      case 'incoming_call':
+        // Already handled by CallKit; tapping missed notification opens chat
+        if (data['senderId'] != null) {
+          _openChatWithUser(data['senderId']!);
+        }
+        break;
+      case 'missed_call':
+        if (data['senderId'] != null) {
+          _openChatWithUser(data['senderId']!);
+        }
+        break;
+
+      // Chat / Message operations
+      case 'sent_message':
+      case 'message_reminder':
+      case 'tagged_in_message':
+      case 'commented_on_message':
+      case 'liked_message':
+        _openChatWithUser(data['senderId'] ?? '');
+        break;
+
+      // Post operations
+      case 'created_post':
+      case 'liked_post':
+      case 'commented_on_post':
+      case 'reposted_post':
+      case 'tagged_on_post':
+      case 'reacted_to_post':
+      case 'reacted_to_comment':
+      case 'replied_on_comment':
+      case 'answered_question':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Reel operations
+      case 'liked_reel':
+      case 'commented_on_reel':
+      case 'reposted_reel':
+      case 'tagged_in_reel':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Connection operations
+      case 'sent_connection_request':
+      case 'received_connection_request':
+      case 'accepted_connection_request':
+      case 'followed_profile':
+      case 'user_enrolled':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Ride operations
+      case 'ride_order_created':
+      case 'ride_order_received':
+      case 'ride_order_accepted':
+      case 'ride_order_picked_up':
+      case 'ride_started':
+      case 'ride_order_completed':
+      case 'ride_order_rejected':
+      case 'ride_order_cancelled':
+      case 'ride_cancelled_by_rider':
+      case 'ride_payment_confirmed':
+        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+        break;
+
+      // Job operations
+      case 'new_application':
+      case 'application_status_updated':
+      case 'interview_scheduled':
+      case 'interview_rescheduled':
+      case 'interview_cancelled':
+      case 'job_closed':
+      case 'new_feedback_submitted':
+      case 'applied_for_job':
+        // Navigate to jobs section
+        break;
+
+      // AI Greetings
+      case 'send_morning_greeting':
+      case 'send_nightly_greeting':
+        final chat = ChatViewController.personalAiChatModule;
+        Get.to(() => AiChatScreen(
+          profileImage: chat?.sender?.profileImage,
+          name: chat?.sender?.name,
+          type: chat?.sender?.accountType,
+        ));
+        break;
+
+      // Admin notifications
+      case 'admin_bulk_notification':
+      case 'admin_system_announcement':
+      case 'admin_urgent_broadcast':
+        // Navigate to notifications screen
+        break;
+
+      default:
+        // Default: open notifications screen or home
+        break;
+    }
+
+    /// Clear all local notifications
     flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  /// Helper to open chat with a user by their ID
+  static void _openChatWithUser(String userId) {
+    if (userId.isEmpty) return;
+    final chatViewController = Get.put(ChatViewController());
+    chatViewController.connectSocket();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      chatViewController.checkChatConnectionAndOpenChat(userId: userId);
+    });
   }
 
   ///SET AUDIO SOUND....
   Future<void> playCustomSound(RemoteMessage dataNotificationResponse) async {
-    Map<String, dynamic> dataMap = dataNotificationResponse.data;
+    final operation = (dataNotificationResponse.data['operation'] ?? '').toString().toLowerCase();
     String playNotificationSound;
-    if (dataMap['sender_user'] is String) {
-      dataMap['sender_user'] = jsonDecode(dataMap['sender_user']);
-    }
+
+    // Don't play custom sound for incoming calls (CallKit handles its own ringtone)
+    if (operation == 'incoming_call') return;
+
     try {
-      OneSignalNotificationDetailsModel data =
-          OneSignalNotificationDetailsModel.fromJson(dataMap);
-      if (data.operation == "sent_message") {
+      if (operation == 'sent_message' ||
+          operation == 'message_reminder' ||
+          operation == 'tagged_in_message' ||
+          operation == 'commented_on_message' ||
+          operation == 'liked_message') {
         playNotificationSound = chatNotificationSound;
-      } else if (data.operation == "order_placed") {
+      } else if (operation == 'ride_order_received' ||
+          operation == 'ride_order_accepted' ||
+          operation == 'ride_order_created') {
         playNotificationSound = hello_delivery;
-      } else if (data.operation == "reposted_post" ||
-          data.operation == "commented_on_post") {
-        playNotificationSound = notificationSound;
       } else {
-        ///DEFAULT...
         playNotificationSound = notificationSound;
       }
     } on Exception {
       playNotificationSound = notificationSound;
-
-      // TODO
     }
 
-    // Permission.
     try {
       await audioPlayer.play(AssetSource(playNotificationSound));
     } on Exception catch (e) {
       logs("SOUND ERROR====${e.toString()}");
-      // TODO
     }
   }
 
