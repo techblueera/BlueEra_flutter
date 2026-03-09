@@ -1,6 +1,7 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/jobs/view/all_job_post_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -20,7 +21,7 @@ class _HotelJobListingScreenState extends State<HotelJobListingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Hotel Jobs",
+        title: AppStrings.createJob.tr,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -38,7 +39,7 @@ class _HotelJobListingScreenState extends State<HotelJobListingScreen> {
                       'createJobVia': 'hotel',
                     });
               },
-              title: "Create Job"),
+              title:  AppStrings.createJob),
         ),
       ),
 

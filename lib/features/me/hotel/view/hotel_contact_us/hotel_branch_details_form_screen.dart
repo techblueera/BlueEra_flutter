@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -45,46 +46,9 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              // _buildHeader("Branch"),
-              // CommonTextField(
-              //   textEditController: branchNameController,
-              //   hintText: "E.g. DPS Dehradun",
-              //   title: "Branch Name",
-              //   onChange: (_) => _triggerValidation(),
-              // ),
-              // SizedBox(height: 12),
-              // HttpsTextField(
-              //   controller: websiteController,
-              //   hintText: "https://dpsdehradun.com",
-              //   title: "Website URL",
-              //   onChange: (_) => _triggerValidation(),
-              // ),
-              // SizedBox(height: 12),
-              // CommonLocationSearchField(
-              //   controller: addressController,
-              //   title: "Location",
-              //   onSelected: (placeId, lat, lng, address) {
-              //     addressController.text = address;
-              //     controller.selectedLat = lat;
-              //     controller.selectedLng = lng;
-              //     _triggerValidation();
-              //   },
-              // ),
-
-              // SizedBox(height: 24),
-              // _buildHeader("Department"),
-              //
-              // CommonTextField(
-              //   textEditController: titleController,
-              //   hintText: "E.g. Admission Cell",
-              //   title: "Department/Role",
-              //   onChange: (_) => _triggerValidation(),
-              // ),
-              // SizedBox(height: 12),
-              // SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
-                title: "Location",
+                title:  AppStrings.location.tr,
                 isShowLeading: false,
                 onSelected: (placeId, lat, lng, address) {
                   addressController.text = address;
@@ -98,7 +62,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
-                title: "Email Address",
+                title: AppStrings.email,
                 onChange: (_) => _triggerValidation(),
               ),
 
@@ -106,7 +70,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
-                title: "Phone Number",
+                title:  AppStrings.phoneNumber,
                 maxLength: 10,
                 onChange: (_) => _triggerValidation(),
               ),
@@ -126,7 +90,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
                               phone: phoneController.text,
                             )
                         : null, // Button disabled if form invalid
-                    title: "Submit",
+                    title:  AppStrings.submit,
                     isValidate: controller.isFormValid.value,
                   )),
             ],

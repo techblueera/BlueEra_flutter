@@ -3304,6 +3304,7 @@ class AppStrings {
   static const String ourPopularServices = "our_popular_services";
   static const String ourAllServices = "our_all_services";
   static const String reception = "reception";
+  static const String homeSampleCollectionAvailable = "home_sample_collection_available";
 
   static const String chooseRoom = "choose_room";
   static const String noRoomsAvailable = "no_rooms_available";

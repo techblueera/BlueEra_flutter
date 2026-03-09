@@ -188,15 +188,15 @@ String timeAgo(DateTime date) {
   if (difference.inSeconds < 60) {
     return 'just now';
   } else if (difference.inMinutes < 60) {
-    return '${difference.inMinutes} min${difference.inMinutes > 1 ? '' : ''} ago';
+    return '${difference.inMinutes} m${difference.inMinutes > 1 ? '' : ''} ago';
   } else if (difference.inHours < 24) {
-    return '${difference.inHours} hour${difference.inHours > 1 ? '' : ''} ago';
+    return '${difference.inHours} h${difference.inHours > 1 ? '' : ''} ago';
   } else if (difference.inDays < 7) {
-    return '${difference.inDays} day${difference.inDays > 1 ? '' : ''} ago';
+    return '${difference.inDays} d${difference.inDays > 1 ? '' : ''} ago';
   } else if (difference.inDays < 14) {
-    return '1 week ago';
+    return '1 w ago';
   } else if (difference.inDays < 21) {
-    return '2 weeks ago';
+    return '2 w ago';
   } else if (difference.inDays < 28) {
     return '3 weeks ago';
   } else {

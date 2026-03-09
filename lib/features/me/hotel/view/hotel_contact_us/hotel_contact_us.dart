@@ -41,7 +41,7 @@ class _HotelContactUsState extends State<HotelContactUs> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Contact Us",
+        title:  AppStrings.contactUs,
         isShadowShow: false,
       ),
       body: SafeArea(
@@ -103,13 +103,13 @@ class _HotelContactUsState extends State<HotelContactUs> {
                                              if (dataHotel.data?.length == 1) {
                                             commonSnackBar(
                                                 message:
-                                                    "At least one branch contact is required");
+                                                AppStrings.minOneBranchRequired);
                                           }
                                           else {
                                             await showCommonDialog(
                                                 context: context,
                                                 text:
-                                                    'Are you sure you want to delete this branch contact?',
+                                                AppStrings.deleteBranchConfirm.tr,
                                                 confirmCallback: () async {
                                                   await controller
                                                       .deleteHotelBranchDepartmentController(
@@ -182,7 +182,7 @@ class _HotelContactUsState extends State<HotelContactUs> {
               onTapEvent: () {
                 Get.to(HotelBranchDetailsFormScreen());
               },
-              buttonName: "Add Another Branch",
+              buttonName:  AppStrings.addAnotherBranch.tr,
             ),
             SizedBox(
               height: SizeConfig.size25,

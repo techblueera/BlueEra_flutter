@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/app_strings.dart' show AppStrings;
 
 class LabFullDetailsScreen extends StatefulWidget {
   const LabFullDetailsScreen({super.key});
@@ -92,7 +93,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Test Report", fontWeight: FontWeight.w700),
+          CustomText(AppStrings.testReport.tr, fontWeight: FontWeight.w700),
           SizedBox(
             height: 200, // Adjusted height to accommodate the layout
             child: ListView.builder(
@@ -115,7 +116,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                     // Subtle shadow to match the "lifted" look
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: Offset(0, 4),
                       ),
@@ -158,7 +159,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _pill(
-                              "Reports within ${t.estimatedReportHours ?? 24} hours",
+                              "${AppStrings.reportsWithin.tr} ${t.estimatedReportHours ?? 24} ${AppStrings.hours.tr}",
                               Colors.white),
                           _pill("INR-${t.customerPrice ?? 0}", Colors.white,
                               isBold: true),
@@ -173,7 +174,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                           Icon(Icons.circle, size: 8, color: Colors.grey),
                           SizedBox(width: 8),
                           CustomText(
-                            "Home sample collection available",
+                            AppStrings.homeSampleCollectionAvailable.tr,
                             color: Colors.grey.shade700,
                             fontSize: 14,
                           ),
@@ -216,7 +217,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText("Our Popular Services", fontWeight: FontWeight.w700),
+        CustomText(AppStrings.ourPopularServices.tr, fontWeight: FontWeight.w700),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
           height: 70,
@@ -253,14 +254,14 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
   Widget _allServices(Facility? facility) {
     final chips = <String>[];
     if (facility?.wheelchairAssistance == true)
-      chips.add("Wheelchair Assistance");
+      chips.add("wheelchair_assistance".tr);
     if (facility?.doctorConsultationTieUp == true)
-      chips.add("Doctor Consultation Tie-up");
+      chips.add("doctor_consultation_tie_up".tr);
     if (facility?.insuranceCashlessSupport == true)
-      chips.add("Insurance / Cashless Support");
+      chips.add("insurance_cashless_support".tr);
     if (facility?.homeSampleCollection == true)
-      chips.add("Home Sample Collection");
-    if (facility?.digitalReport == true) chips.add("Digital Report");
+      chips.add("home_sample_collection".tr);
+    if (facility?.digitalReport == true) chips.add("digital_report".tr);
     final other = (facility?.other ?? [])
         .map((e) => e.label ?? '')
         .where((e) => e.toString().isNotEmpty)
@@ -270,7 +271,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Our All Services", fontWeight: FontWeight.w700),
+          CustomText(AppStrings.ourAllServices.tr, fontWeight: FontWeight.w700),
           SizedBox(height: SizeConfig.size8),
           Wrap(
             spacing: 8,
@@ -314,7 +315,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xffEAF2FF),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
       ),
       child: CustomText(text, fontSize: SizeConfig.small),
     );
@@ -374,7 +375,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 _contactItem(AppIconAssets.website_click,
                     profile?.websiteUrl ?? "", Colors.blue),
                 _contactItem(
-                    AppIconAssets.principal, "Reception", Colors.grey[700]!),
+                    AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
                 _contactItem(AppIconAssets.email, profile?.email ?? "",
                     AppColors.secondaryTextColor),
                 _contactItem(AppIconAssets.phone_outline,

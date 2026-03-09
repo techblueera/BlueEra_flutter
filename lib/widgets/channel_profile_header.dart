@@ -125,7 +125,7 @@ class ChannelProfileHeader extends StatelessWidget {
                       ),
                       child: CustomText(
                         subtitle, // e.g., "Politician - PM Of India"
-                        fontSize: 14, // Adjust based on your SizeConfig.small
+                        fontSize: SizeConfig.small, // Adjust based on your SizeConfig.small
                         fontWeight: FontWeight.w500, // Medium weight looks closer to the UI
                         color: AppColors.primaryColor, // The blue text color
                       ),

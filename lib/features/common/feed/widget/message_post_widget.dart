@@ -656,65 +656,74 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           ),
                           Padding(
                             padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size15,
+                                horizontal: SizeConfig.size5,
                                 vertical: SizeConfig.size5),
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                ViewFeedActionWidget(
-                                    iconPath: AppIconAssets.clock_new,
-                                    data: timeAgo(_post.createdAt != null
-                                        ? _post.createdAt ?? DateTime.now()
-                                        : DateTime.now())),
-                                ViewFeedActionWidget(
-                                  iconPath: AppIconAssets.eye_new,
-                                  data: formatNumberLikePost(
-                                      _post.viewsCount ?? 0),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (isGuestUser()) {
-                                      createProfileScreen();
-                                    } else {
-                                      widget.commentView();
-                                    }
-                                  },
+                                Flexible(
                                   child: ViewFeedActionWidget(
-                                      iconPath: AppIconAssets.comment_new,
-                                      data: formatNumberLikePost(
-                                          _post.commentsCount ?? 0)),
+                                      iconPath: AppIconAssets.clock_new,
+                                      data: timeAgo(_post.createdAt != null
+                                          ? _post.createdAt ?? DateTime.now()
+                                          : DateTime.now())),
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    if (isGuestUser()) {
-                                      createProfileScreen();
-                                    } else {
-                                      widget.likeFeed();
-                                    }
-                                  },
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                        right: SizeConfig.size10),
+                                Flexible(
+                                  child: ViewFeedActionWidget(
+                                    iconPath: AppIconAssets.eye_new,
+                                    data: formatNumberLikePost(
+                                        _post.viewsCount ?? 0),
+                                  ),
+                                ),
+                                Flexible(
+                                  child: InkWell(
+                                    onTap: () {
+                                      if (isGuestUser()) {
+                                        createProfileScreen();
+                                      } else {
+                                        widget.commentView();
+                                      }
+                                    },
+                                    child: ViewFeedActionWidget(
+                                        iconPath: AppIconAssets.comment_new,
+                                        data: formatNumberLikePost(
+                                            _post.commentsCount ?? 0)),
+                                  ),
+                                ),
+                                Flexible(
+                                  child: InkWell(
+                                    onTap: () {
+                                      if (isGuestUser()) {
+                                        createProfileScreen();
+                                      } else {
+                                        widget.likeFeed();
+                                      }
+                                    },
                                     child: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         LocalAssets(
                                           imagePath: AppIconAssets.like_new,
                                           width: SizeConfig.size24,
                                           height: SizeConfig.size24,
                                           imgColor: (widget.post?.isLiked ??
-                                                  false)
+                                              false)
                                               ? AppColors.primaryColor
                                               : AppColors.secondaryTextColor,
                                         ),
                                         SizedBox(
-                                          width: SizeConfig.size5,
+                                          width: SizeConfig.size3,
                                         ),
-                                        CustomText(
-                                          formatNumberLikePost(
-                                              _post.likesCount ?? 0),
-                                          color: AppColors.secondaryTextColor,
-                                          fontSize: SizeConfig.size12,
+                                        Flexible(
+                                          child: CustomText(
+                                            formatNumberLikePost(
+                                                _post.likesCount ?? 0),
+                                            color: AppColors.secondaryTextColor,
+                                            fontSize: SizeConfig.size12,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -722,7 +731,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 ),
                                 if (widget.post?.type?.toLowerCase() ==
                                     "message_post")
-                                  InkWell(
+                                  Flexible(child: InkWell(
                                     onTap: () {
                                       if (isGuestUser()) {
                                         createProfileScreen();
@@ -980,10 +989,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                         iconPath: AppIconAssets.repost_new,
                                         data: formatNumberLikePost(
                                             _post.repostCount ?? 0)),
-                                  ),
+                                  )),
                                 Padding(
-                                  padding:
-                                      EdgeInsets.only(left: SizeConfig.size5),
+                                  padding: const EdgeInsets.only(right: 8.0),
                                   child: InkWell(
                                     onTap: () => widget.onShareButtonPressed(),
                                     child: LocalAssets(
@@ -1044,24 +1052,26 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
 }
 
 ViewFeedActionWidget({required String iconPath, required String data}) {
-  return Padding(
-    padding: EdgeInsets.only(right: SizeConfig.size10),
-    child: Row(
-      children: [
-        LocalAssets(
-          imagePath: iconPath,
-          width: SizeConfig.size24,
-          height: SizeConfig.size24,
-        ),
-        SizedBox(
-          width: SizeConfig.size5,
-        ),
-        CustomText(
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      LocalAssets(
+        imagePath: iconPath,
+        width: SizeConfig.size24,
+        height: SizeConfig.size24,
+      ),
+      SizedBox(
+        width: SizeConfig.size3,
+      ),
+      Flexible(
+        child: CustomText(
           data,
           color: AppColors.secondaryTextColor,
           fontSize: SizeConfig.size12,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      ],
-    ),
+      ),
+    ],
   );
 }

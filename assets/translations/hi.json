@@ -197,5 +197,12 @@
   "certificate_awards": "प्रमाणपत्र और पुरस्कार",
   "no_certificates_or_awards": "कोई प्रमाणपत्र या पुरस्कार नहीं",
   "certificate": "प्रमाणपत्र",
-  "award": "पुरस्कार"
+  "award": "पुरस्कार",
+  "test_report": "परीक्षण रिपोर्ट",
+  "reports_within": "रिपोर्ट इतने घंटों में",
+  "hours": "घंटे",
+  "our_popular_services": "हमारी लोकप्रिय सेवाएं",
+  "our_all_services": "हमारी सभी सेवाएं",
+  "reception": "रिसेप्शन",
+  "home_sample_collection_available": "घर पर नमूना संग्रह उपलब्ध"
 }

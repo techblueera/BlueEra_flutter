@@ -227,7 +227,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                   post: item,
                   index: index,
                   postFilteredType: PostType.all,
-                  bottomPadding: 10,horizontalPadding: 10,
+                  bottomPadding: 0,horizontalPadding: 10,
                   isRepost: false,
                 ),
               );

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -91,9 +92,9 @@ class _LaboratoryMainState extends State<LaboratoryMain>
                         labelStyle:
                             const TextStyle(fontWeight: FontWeight.w600),
                         tabs: [
-                          Tab(text: "Home"),
-                          Tab(text: "Update"),
-                          Tab(text: "Statics"),
+                          Tab(text: AppStrings.home.tr),
+                          Tab(text:  AppStrings.update.tr),
+                          Tab(text:  AppStrings.statistics.tr),
                         ],
                       ),
                       Expanded(

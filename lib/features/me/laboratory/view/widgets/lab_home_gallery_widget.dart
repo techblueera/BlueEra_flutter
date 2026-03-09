@@ -30,7 +30,7 @@ class LabHomeGalleryWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(
-            title:"Gallery",
+            title:AppStrings.gallery,
           ),
           const SizedBox(height: 16),
           StaggeredGrid.count(

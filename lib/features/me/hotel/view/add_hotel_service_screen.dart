@@ -39,13 +39,10 @@ class AddHotelServiceScreen extends StatefulWidget {
 
 class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
   final List<Map<String, String>> menuList = [
-    // {"name": "Upload Document", "key": "UPLOAD_DOCUMENT"},
-    // {"name": "About Property", "key": "ABOUT_PROPERTY"},
     {"name": "Room Details", "key": "ROOM_DETAILS"},
     {"name": "Room Amenities", "key": "ROOM_AMENITIES"},
     {"name": "Hotel Amenities", "key": "HOTEL_AMENITIES"},
     {"name": "Hotel Policies", "key": "HOTEL_POLICIES"},
-    // {"name": "Restaurant Menu", "key": "RESTAURANT_MENU"},
     {"name": "Property Photos", "key": "PROPERTY_PHOTOS"},
     {"name": "Career", "key": "CAREER"},
     {"name": "Contact Us", "key": "CONTACT_US"},
@@ -66,7 +63,6 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    logs("hotelIDGlobal==== $hotelIDGlobal");
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/get_hotel_contact_us_res_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -61,7 +62,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Department",
+        title:  AppStrings.department,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -71,7 +72,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
             children: [
               CommonLocationSearchField(
                 controller: addressController,
-                title: "Location",
+                title: AppStrings.location,
                 isShowLeading: false,
                 onSelected: (placeId, lat, lng, address) {
                   addressController.text = address;
@@ -79,24 +80,17 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                 },
               ),
               SizedBox(height: 12),
-              // CommonTextField(
-              //   textEditController: titleController,
-              //   hintText: "E.g.Admission Cell",
-              //   title: "Department/Role",
-              //   onChange: (_) => _runValidation(),
-              // ),
-              // SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
-                title: "Email Address",
+                title: AppStrings.email,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
-                title: "Phone Number",
+                title: AppStrings.phoneNumber,
                 maxLength: 10,
                 onChange: (_) => _runValidation(),
               ),
@@ -105,7 +99,6 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                 return CustomBtn(
                     isValidate: schoolAboutUsController.isFormValid.value,
                     onTap: () async {
-                      // if (widget.isContactInfoEdit ?? false) {
                       await schoolAboutUsController.updateBranchDetails(
                           address: addressController.text,
                           email: emailController.text,
@@ -114,21 +107,9 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                           branchName: '',
                           website: '',
                           department: '');
-                      /* }
-                      else{
-                        await schoolAboutUsController
-                            .addBranchDepartmentController(
-                            reqBody: {
-                              "department": titleController.text,
-                              "email": emailController.text,
-                              "phone": phoneController.text,
-                            },
-                            branchID:
-                            widget.branchId ?? "");
-                        // addBranchDepartmentController
-                      }*/
+
                     },
-                    title: "Submit");
+                    title: AppStrings.submit);
               }),
             ],
           ),

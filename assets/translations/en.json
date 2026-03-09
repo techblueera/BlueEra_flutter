@@ -197,5 +197,12 @@
   "certificate_awards": "Certificate & Awards",
   "no_certificates_or_awards": "No certificates or awards",
   "certificate": "Certificate",
-  "award": "Award"
+  "award": "Award",
+  "test_report": "Test Report",
+  "reports_within": "Reports within",
+  "hours": "hours",
+  "our_popular_services": "Our Popular Services",
+  "our_all_services": "Our All Services",
+  "reception": "Reception",
+  "home_sample_collection_available": "Home sample collection available"
 }

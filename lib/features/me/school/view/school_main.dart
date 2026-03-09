@@ -74,38 +74,38 @@ class _SchoolMainState extends State<SchoolMain>
           return SafeArea(
             child: controller.hasSchool.value
                 ? Column(
-              children: [
-                SizedBox(
-                  height: SizeConfig.size12,
-                ),
-                TabBar(
-                  controller: _tabController,
-                  labelColor: AppColors.mainTextColor,
-                  unselectedLabelColor: AppColors.secondaryTextColor,
-                  indicatorColor: AppColors.primaryColor,
-                  indicatorWeight: 4,
-                  tabAlignment: TabAlignment.fill,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontFamily: AppConstants.OpenSans),
-                  tabs: [
-                    Tab(text: AppStrings.home.tr),
-                    Tab(text: AppStrings.update.tr),
-                    Tab(text: AppStrings.statistics.tr),
-                  ],
-                ),
-                Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        SchoolHomeScreen(),
-                        SchoolUpdateScreen(),
-                        SchoolStaticsScreen(),
-                      ],
-                    ))
-              ],
-            )
+                    children: [
+                      SizedBox(
+                        height: SizeConfig.size12,
+                      ),
+                      TabBar(
+                        controller: _tabController,
+                        labelColor: AppColors.mainTextColor,
+                        unselectedLabelColor: AppColors.secondaryTextColor,
+                        indicatorColor: AppColors.primaryColor,
+                        indicatorWeight: 4,
+                        tabAlignment: TabAlignment.fill,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        labelStyle: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontFamily: AppConstants.OpenSans),
+                        tabs: [
+                          Tab(text: AppStrings.home.tr),
+                          Tab(text: AppStrings.update.tr),
+                          Tab(text: AppStrings.statistics.tr),
+                        ],
+                      ),
+                      Expanded(
+                          child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          SchoolHomeScreen(),
+                          SchoolUpdateScreen(),
+                          SchoolStaticsScreen(),
+                        ],
+                      ))
+                    ],
+                  )
                 : SchoolNotCreateScreen(controller: controller),
           );
         }));

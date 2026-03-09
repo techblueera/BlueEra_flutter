@@ -18,7 +18,7 @@ class SchoolNotCreateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() {
-        return !controller.isAiLoading.value
+        return controller.isAiLoading.value
             ? Center(
               child: Column(
                   mainAxisSize: MainAxisSize.min,
