@@ -171,22 +171,10 @@ class ServiceDetailsScreen extends StatelessWidget {
 
                               ApiKeys.url: urlList,
                             };
-                            chatViewController.openAnyOneChatFunction(
-                              shareProductParams:data,
+                            chatViewController.checkChatConnectionAndOpenChat(
+                              userId: service.userId ?? '',
+                              shareProductParams: data,
                               isWithProductSend: true,
-                              profileImage: service.business?.logo,
-                              otherUserId: (!hasConversation)
-                                  ? userDetailsMap[ApiKeys.other_user_id]??
-                                  ''
-                                  : null,
-                              type: AppConstants.chatMsgBusinessType,
-                              isInitialMessage: (!hasConversation)? true
-                                  : false,
-                              userId: service.userId,
-                              conversationId: conversationId??
-                                  '',
-                              contactName: service.business?.businessName,
-                              contactNo: "",
                             );
                           }
 

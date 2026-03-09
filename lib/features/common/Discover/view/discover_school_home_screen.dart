@@ -48,31 +48,9 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
                     onTap: () async {
                       final chatViewController =
                       Get.find<ChatViewController>();
-                      Map<String, dynamic> detas = {
-                        ApiKeys.user_id:schoolAboutUsController
-                            .schoolDetailsData?.value.ownerId,
-                      };
-                      Map<String, dynamic>? checkCompleted =
-                      await chatViewController
-                          .checkChatConnection(detas);
-                      chatViewController.openAnyOneChatFunction(
-                        profileImage: schoolAboutUsController
-                            .schoolDetailsData?.value.logo,
-                        otherUserId:
-                        (checkCompleted?[ApiKeys.conversation_id] ==
-                            '')
-                            ? (checkCompleted?[ApiKeys.other_user_id])
-                            : null,
-                        type: "business",
-                        isInitialMessage: true,
+                      chatViewController.checkChatConnectionAndOpenChat(
                         userId: schoolAboutUsController
-                            .schoolDetailsData?.value.ownerId,
-                        conversationId:
-                        checkCompleted?[ApiKeys.conversation_id] ??
-                            '',
-                        contactName: schoolAboutUsController
-                            .schoolDetailsData?.value.name,
-                        contactNo:"",
+                            .schoolDetailsData?.value.ownerId ?? '',
                       );
                     },
                     title: AppStrings.chat),

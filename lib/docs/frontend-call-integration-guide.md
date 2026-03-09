@@ -29,16 +29,19 @@ The call system is fully in-house WebRTC. Audio/video streams flow **peer-to-pee
 - **Signaling** - Relaying SDP offers/answers and ICE candidates via Socket.IO
 - **Call state** - Tracking call lifecycle (ringing, connecting, connected, ended) via REST APIs
 - **Notifications** - Firebase push for incoming calls when the app is in background/killed
+- **Redis state** - Tracking active calls, participants, ringing timeouts (60s TTL), and busy status per user
 
 ```
 Flutter App A                 Backend (Socket.IO)              Flutter App B
      |                              |                              |
      |-- POST /call/initiate ------>|                              |
-     |<-- { room_id, ice_servers }  |--- socket: call:incoming --->|
-     |                              |--- firebase push ----------->|
+     |<-- { room_id, call_id,      |--- socket: call:incoming --->|
+     |     ice_servers, message }   |--- firebase push ----------->|
      |                              |                              |
      |                              |<-- POST /call/accept --------|
      |<-- socket: call:accepted ----|                              |
+     |                              |--- socket: call:answered---->| (other devices)
+     |                              |        -elsewhere            |
      |                              |                              |
      |-- socket: call:join-room --->|                              |
      |-- socket: call:offer ------->|--- socket: call:offer ------>|
@@ -57,7 +60,10 @@ Flutter App A                 Backend (Socket.IO)              Flutter App B
 - Media (audio/video) goes directly between devices, NOT through the server
 - Server only relays signaling messages (small JSON payloads)
 - STUN/TURN servers help with NAT traversal (getting through firewalls)
+- TURN credentials are time-limited and generated per-user (HMAC-based)
 - Group calls use **full mesh** - each participant connects to every other participant directly (max ~6 participants)
+- Redis tracks active calls with keys: `active_call:{roomId}`, `call_participants:{roomId}`, `user_active_call:{userId}`, `call_ringing:{roomId}:{userId}` (60s TTL)
+- All calls automatically create a message in the conversation timeline
 
 ---
 
@@ -221,11 +227,40 @@ class IceServer {
 }
 ```
 
+### 3.4 Call State (Client-Side)
+
+The frontend must track the current call state locally. The reference implementation uses these states:
+
+```dart
+enum CallState {
+  idle,       // No active call
+  ringing,    // Incoming call - showing incoming call UI
+  accepting,  // User tapped accept - transitioning (prevents call:answered-elsewhere from resetting)
+  outgoing,   // Outgoing call - waiting for receiver to accept
+  active,     // Call connected - media flowing
+}
+```
+
+**Client-side state variables:**
+
+```dart
+CallState callState = CallState.idle;
+Map<String, dynamic>? currentCallData;  // { room_id, call_id, call_type, conversation_id, ... }
+String? remoteUserId;                   // Target user for signaling relay
+MediaStream? localStream;
+RTCPeerConnection? peerConnection;
+Timer? callTimerInterval;
+DateTime? callStartTime;
+bool isMicMuted = false;
+bool isCameraOff = false;
+bool isSpeakerOff = false;
+```
+
 ---
 
 ## 4. REST API Endpoints
 
-All endpoints require `Authorization: Bearer <jwt_token>` header.
+All endpoints require `Authorization: Bearer <jwt_token>` header and `Content-Type: application/json`.
 
 Base URL: `{SERVER_URL}/call`
 
@@ -250,22 +285,65 @@ Base URL: `{SERVER_URL}/call`
   "call_id": "64abc123...",
   "conversation_id": "64abc456...",
   "message_id": "64abc789...",
-  "message": { /* full message object */ },
+  "message": {
+    "_id": "64abc789...",
+    "conversation_id": "64abc456...",
+    "sender_id": "user123",
+    "message_type": "video_call",
+    "message": "Video call",
+    "metadata": {
+      "call_id": "64abc123...",
+      "room_id": "a1b2c3d4-...",
+      "call_type": "video_call",
+      "call_status": "ringing",
+      "missed_call": false,
+      "call_decline": false,
+      "call_accept": false
+    },
+    "created_at": "2026-03-06T10:29:55.000Z"
+  },
   "ice_servers": {
     "iceServers": [
       { "urls": "stun:stun.l.google.com:19302" },
-      { "urls": "turn:turn.yourserver.com:3478", "username": "1709712000:user123", "credential": "base64hash" }
+      {
+        "urls": "turn:turn.yourserver.com:3478",
+        "username": "1709712000:user123",
+        "credential": "base64encodedhmac"
+      }
     ]
   },
-  "busy_users": []                    // list of user_ids who are on another call (group calls only)
+  "busy_users": []
 }
 ```
 
+**The `busy_users` field** is an array of user_ids who are currently on another call. For 1-to-1 calls, if the receiver is busy the entire call fails with 409. For group calls, busy users are simply excluded from ringing but the call still proceeds for available members.
+
 **Error responses:**
-- `400` - Invalid call_type or missing both conversation_id and other_user_id
+- `400` - Invalid `call_type` (must be "audio_call" or "video_call") or missing both `conversation_id` and `other_user_id`
+  ```json
+  { "success": false, "message": "call_type must be audio_call or video_call" }
+  ```
 - `409` - Caller already in a call, or receiver is busy (1-to-1)
+  ```json
+  { "success": false, "message": "User is on another call", "busy": true }
+  ```
+  ```json
+  { "success": false, "message": "You are already in a call" }
+  ```
 - `404` - Conversation not found
+  ```json
+  { "success": false, "message": "Conversation not found" }
+  ```
 - `500` - Server error
+
+**Side effects:**
+- Creates a `Call` document (status: "ringing") and `CallParticipant` documents for all participants
+- Creates a message in the conversation (message_type: "video_call" or "audio_call")
+- Sets Redis keys: `active_call:{roomId}`, `call_participants:{roomId}`, `user_active_call:{userId}`, `call_ringing:{roomId}:{userId}` (60s TTL)
+- Emits `call:incoming` socket event to all receivers
+- Sends Firebase push notification to offline receivers
+
+---
 
 ### 4.2 POST `/call/accept` - Accept incoming call
 
@@ -282,15 +360,50 @@ Base URL: `{SERVER_URL}/call`
 {
   "success": true,
   "ice_servers": {
-    "iceServers": [...]
+    "iceServers": [
+      { "urls": "stun:stun.l.google.com:19302" },
+      {
+        "urls": "turn:turn.yourserver.com:3478",
+        "username": "1709712000:user456",
+        "credential": "base64encodedhmac"
+      }
+    ]
   },
-  "call": { /* full call object */ }
+  "call": {
+    "_id": "64abc123...",
+    "conversation_id": "64abc456...",
+    "initiated_by": "user123",
+    "call_type": "video_call",
+    "status": "connecting",
+    "room_id": "a1b2c3d4-...",
+    "is_group_call": false,
+    "max_participants": 2,
+    "created_at": "2026-03-06T10:29:55.000Z"
+  }
 }
 ```
 
 **Error responses:**
-- `400` - Missing call_id or room_id
+- `400` - Missing `call_id` or `room_id`
+  ```json
+  { "success": false, "message": "call_id and room_id are required" }
+  ```
 - `404` - Call not found or no longer ringing (already accepted/cancelled/declined)
+  ```json
+  { "success": false, "message": "Call not found or no longer ringing" }
+  ```
+
+**Side effects:**
+- Updates `Call` status to "connecting" (atomic `findOneAndUpdate` to prevent race conditions)
+- Updates acceptor's `CallParticipant` status to "connecting" with `joined_at` timestamp
+- Sets `user_active_call:{userId}` in Redis
+- Emits `call:accepted` to the call initiator: `{ call_id, room_id, accepted_by: userId }`
+- Emits `call:answered-elsewhere` to the acceptor's OTHER devices/sockets: `{ call_id, room_id }`
+- Updates message metadata: `call_accept: true`, `call_status: "connecting"`
+
+**Important race condition note:** The backend uses atomic `findOneAndUpdate` with a status check (`status: "ringing"`) so that if two users try to accept simultaneously (e.g., multi-device), only the first succeeds. The second gets a 404. Handle this gracefully: dismiss the incoming call UI and show a toast like "Call already answered".
+
+---
 
 ### 4.3 POST `/call/decline` - Decline incoming call
 
@@ -310,6 +423,24 @@ Base URL: `{SERVER_URL}/call`
 }
 ```
 
+**Error responses:**
+- `400` - Missing `call_id` or `room_id`
+- `404` - Call not found or not in ringing state
+
+**Side effects:**
+- Updates decliner's `CallParticipant` status to "declined"
+- For **1-to-1 calls**: Ends the entire call (status: "ended", end_reason: "declined")
+- For **group calls**: Only ends the call if ALL receivers have declined
+- Emits `call:declined` to the initiator:
+  ```json
+  { "call_id": "...", "room_id": "...", "declined_by": "userId", "call_ended": true }
+  ```
+  - `call_ended` is `true` for 1-to-1 calls, or `true` for group calls only when all receivers declined
+- Cleans up Redis ringing key for the decliner
+- Updates message metadata: `call_decline: true`, `call_status: "declined"`
+
+---
+
 ### 4.4 POST `/call/cancel` - Cancel outgoing call (before anyone answers)
 
 **Request body:**
@@ -328,7 +459,19 @@ Base URL: `{SERVER_URL}/call`
 }
 ```
 
-**Error:** `404` if call not found or not cancellable (someone already accepted).
+**Error responses:**
+- `400` - Missing `call_id` or `room_id`
+- `404` - Call not found or not cancellable (someone already accepted)
+
+**Side effects:**
+- Updates `Call` status to "ended", end_reason to "missed"
+- Updates all "ringing" participants to status "missed"
+- Emits `call:cancelled` to all receivers: `{ call_id, room_id, cancelled_by: userId }`
+- Sends Firebase push notifications for missed calls to offline receivers
+- Cleans up all Redis keys for this call
+- Updates message metadata: `missed_call: true`, `call_status: "missed"`
+
+---
 
 ### 4.5 POST `/call/end` - End active call or leave group call
 
@@ -348,6 +491,26 @@ Base URL: `{SERVER_URL}/call`
 }
 ```
 
+**Side effects:**
+- Updates the caller's `CallParticipant` status to "left" with `left_at` and `duration_seconds`
+- Removes user from Redis `call_participants:{roomId}` and deletes `user_active_call:{userId}`
+- **For 1-to-1 calls or when < 2 participants remain:**
+  - Ends the entire call (status: "ended", end_reason: "completed")
+  - Calculates and stores `duration_seconds` on the Call document
+  - Emits `call:ended` to all remaining participants:
+    ```json
+    { "call_id": "...", "room_id": "...", "duration_seconds": 125, "ended_by": "userId" }
+    ```
+  - Updates message metadata: `call_status: "completed"`, `call_time: "02:05"`
+- **For group calls with 2+ participants remaining:**
+  - Emits `call:participant-left` to remaining participants:
+    ```json
+    { "call_id": "...", "room_id": "...", "user_id": "userId" }
+    ```
+  - The call continues for remaining participants
+
+---
+
 ### 4.6 POST `/call/join` - Join an ongoing group call
 
 **Request body:**
@@ -362,18 +525,142 @@ Base URL: `{SERVER_URL}/call`
 ```json
 {
   "success": true,
-  "ice_servers": { "iceServers": [...] },
-  "existing_participants": ["user_id_1", "user_id_2"],
-  "call": { /* full call object */ }
+  "ice_servers": {
+    "iceServers": [
+      { "urls": "stun:stun.l.google.com:19302" },
+      {
+        "urls": "turn:turn.yourserver.com:3478",
+        "username": "1709712000:user789",
+        "credential": "base64encodedhmac"
+      }
+    ]
+  },
+  "existing_participants": ["user123", "user456"],
+  "call": {
+    "_id": "64abc...",
+    "conversation_id": "64def...",
+    "call_type": "video_call",
+    "status": "connected",
+    "room_id": "uuid...",
+    "is_group_call": true,
+    "max_participants": 10,
+    "created_at": "2026-03-06T10:29:55.000Z"
+  }
 }
 ```
 
 **Error responses:**
 - `403` - Not a member of this conversation
+  ```json
+  { "success": false, "message": "Not a member of this conversation" }
+  ```
 - `404` - Group call not found or already ended
+  ```json
+  { "success": false, "message": "Group call not found or already ended" }
+  ```
 - `409` - Already in another call
+  ```json
+  { "success": false, "message": "You are already in a call" }
+  ```
 
-### 4.7 GET `/call/history` - Get call history
+**Side effects:**
+- Creates or updates `CallParticipant` (role: "joiner", status: "connecting")
+- Adds user to Redis `call_participants:{roomId}` and sets `user_active_call:{userId}`
+- Emits `call:participant-joined` to all existing participants in the room:
+  ```json
+  { "call_id": "...", "room_id": "...", "user_id": "newUserId", "existing_participants": ["user123", "user456"] }
+  ```
+
+---
+
+### 4.7 POST `/call/add-user` - Add user(s) to an active call
+
+Add one or more users to an ongoing call. Any active participant can add users. 1-to-1 calls are automatically upgraded to group calls.
+
+**Request body:**
+```json
+{
+  "call_id": "64abc123...",
+  "room_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "user_ids": ["64user1...", "64user2..."]
+}
+```
+
+**Success response (200):**
+```json
+{
+  "success": true,
+  "message": "2 user(s) added to call",
+  "added_users": ["64user1...", "64user2..."],
+  "busy_users": [],
+  "already_in_call": []
+}
+```
+
+**Response when no new users could be added (200):**
+```json
+{
+  "success": true,
+  "message": "No new users added",
+  "busy_users": ["64user1..."],
+  "already_in_call": ["64user2..."]
+}
+```
+
+**Error responses:**
+- `400` - Missing or invalid parameters
+  ```json
+  { "success": false, "message": "call_id, room_id, and user_ids[] required" }
+  ```
+- `403` - Requester is not an active participant
+  ```json
+  { "success": false, "message": "You are not an active participant in this call" }
+  ```
+- `404` - Call not found or already ended
+  ```json
+  { "success": false, "message": "Call not found or already ended" }
+  ```
+
+**Side effects:**
+- Automatically upgrades the call to `is_group_call: true` if it was a 1-to-1 call
+- Creates `CallParticipant` records (role: "receiver", status: "ringing") for each added user
+- Sets ringing state in Redis for each added user
+- Emits `call:incoming` socket event to each added user (same payload as a normal incoming call, with `added_by` field)
+- Sends push notification (`incoming_call` operation) to added users
+- Emits `call:user-added` to all existing participants:
+  ```json
+  { "call_id": "...", "room_id": "...", "added_users": ["64user1..."], "added_by": "requester_id" }
+  ```
+
+**Usage in Flutter:**
+
+```dart
+// Add users to an active call
+final response = await dio.post('/call/add-user', data: {
+  'call_id': currentCallData['call_id'],
+  'room_id': currentCallData['room_id'],
+  'user_ids': ['userId1', 'userId2'],
+});
+
+if (response.data['success']) {
+  final addedUsers = List<String>.from(response.data['added_users'] ?? []);
+  final busyUsers = List<String>.from(response.data['busy_users'] ?? []);
+
+  // Upgrade local state to group call
+  isGroupCall = true;
+
+  if (busyUsers.isNotEmpty) {
+    // Show toast: "Some users are on another call"
+  }
+
+  // Added users will receive call:incoming and join via the normal accept flow
+  // When they accept, you'll get call:accepted / call:participant-joined events
+}
+```
+
+---
+
+### 4.8 GET `/call/history` - Get call history
 
 **Query parameters:**
 - `conversation_id` (optional) - Filter by conversation
@@ -394,22 +681,39 @@ Base URL: `{SERVER_URL}/call`
       "end_reason": "completed",
       "room_id": "uuid...",
       "is_group_call": false,
+      "max_participants": 2,
+      "screen_sharing_enabled": false,
+      "recording_enabled": false,
       "duration_seconds": 125,
       "started_at": "2026-03-06T10:30:00.000Z",
       "ended_at": "2026-03-06T10:32:05.000Z",
       "created_at": "2026-03-06T10:29:55.000Z",
       "participants": [
         {
+          "_id": "64part1...",
+          "call_id": "64abc...",
           "user_id": "user123",
           "role": "initiator",
           "status": "left",
-          "duration_seconds": 125
+          "joined_at": "2026-03-06T10:29:55.000Z",
+          "left_at": "2026-03-06T10:32:05.000Z",
+          "duration_seconds": 125,
+          "is_video_enabled": true,
+          "is_audio_enabled": true,
+          "is_screen_sharing": false
         },
         {
+          "_id": "64part2...",
+          "call_id": "64abc...",
           "user_id": "user456",
           "role": "receiver",
           "status": "left",
-          "duration_seconds": 125
+          "joined_at": "2026-03-06T10:30:00.000Z",
+          "left_at": "2026-03-06T10:32:05.000Z",
+          "duration_seconds": 125,
+          "is_video_enabled": true,
+          "is_audio_enabled": true,
+          "is_screen_sharing": false
         }
       ]
     }
@@ -423,7 +727,91 @@ Base URL: `{SERVER_URL}/call`
 }
 ```
 
-### 4.8 GET `/call/active` - Check if user has an active call
+---
+
+### 4.9 POST `/call/switch-type` - Switch call type (audio ↔ video)
+
+Request to switch an active call between audio and video. **Video → audio** switches immediately (no approval needed). **Audio → video** sends a request to other participants who must accept (since it requires camera permission).
+
+**Request body:**
+```json
+{
+  "call_id": "64abc123...",
+  "room_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "new_call_type": "video_call"
+}
+```
+
+**Success response — immediate switch (video → audio) (200):**
+```json
+{
+  "success": true,
+  "message": "Call switched to audio",
+  "new_call_type": "audio_call"
+}
+```
+
+**Success response — pending approval (audio → video) (200):**
+```json
+{
+  "success": true,
+  "message": "Switch request sent to participants",
+  "new_call_type": "video_call",
+  "pending_approval": true
+}
+```
+
+**Error responses:**
+- `400` - Invalid parameters or call is already the requested type
+  ```json
+  { "success": false, "message": "Call is already a video call" }
+  ```
+- `403` - Not an active participant
+- `404` - Call not found or not active
+
+**Side effects:**
+- **Video → audio**: Updates `call_type` and `message_type` immediately. Emits `call:type-switched` to all participants.
+- **Audio → video**: Emits `call:switch-type-request` to other participants. No DB changes until someone accepts.
+
+---
+
+### 4.10 POST `/call/switch-type/respond` - Respond to switch request
+
+Accept or decline a request to switch from audio to video call.
+
+**Request body:**
+```json
+{
+  "call_id": "64abc123...",
+  "room_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "accepted": true
+}
+```
+
+**Success response — accepted (200):**
+```json
+{
+  "success": true,
+  "message": "Call switched to video",
+  "new_call_type": "video_call"
+}
+```
+
+**Success response — declined (200):**
+```json
+{
+  "success": true,
+  "message": "Switch to video declined"
+}
+```
+
+**Side effects:**
+- **Accepted**: Updates `call_type` to `video_call` and `message_type`. Emits `call:type-switched` to all participants.
+- **Declined**: Emits `call:switch-type-declined` to other participants.
+
+---
+
+### 4.11 GET `/call/active` - Check if user has an active call
 
 **Success response (200):**
 ```json
@@ -435,15 +823,24 @@ Base URL: `{SERVER_URL}/call`
     "initiated_by": "user123",
     "call_type": "video_call",
     "status": "connected",
+    "is_group_call": false,
     "room_id": "uuid...",
     "participants": ["user123", "user456"]
   }
 }
 ```
 
-Returns `"active_call": null` when no active call exists.
+Returns `"active_call": null` when no active call exists:
+```json
+{
+  "success": true,
+  "active_call": null
+}
+```
 
-### 4.9 GET `/call/ice-servers` - Get STUN/TURN config
+---
+
+### 4.12 GET `/call/ice-servers` - Get STUN/TURN config
 
 **Success response (200):**
 ```json
@@ -460,11 +857,15 @@ Returns `"active_call": null` when no active call exists.
 }
 ```
 
+**Note:** TURN credentials are time-limited (HMAC-based, generated per user). They expire after a set period. The ICE servers are also returned in the `/call/initiate`, `/call/accept`, and `/call/join` responses, so you typically don't need to call this endpoint separately unless reconnecting.
+
 ---
 
 ## 5. Socket.IO Events Reference
 
 Socket connection path: `/socket`
+
+Authentication: `io(serverUrl, { path: '/socket', auth: { token: jwtToken } })`
 
 ### 5.1 Events the CLIENT LISTENS TO (server -> client)
 
@@ -472,33 +873,37 @@ Socket connection path: `/socket`
 |-------|---------|------|
 | `call:incoming` | `{ call_id, room_id, conversation_id, call_type, initiated_by, is_group_call, message }` | Someone is calling you |
 | `call:accepted` | `{ call_id, room_id, accepted_by }` | Receiver accepted your call |
-| `call:declined` | `{ call_id, room_id, declined_by, call_ended }` | Receiver declined your call |
+| `call:declined` | `{ call_id, room_id, declined_by, call_ended }` | Receiver declined your call. `call_ended` is `true` for 1-to-1 or when all group receivers declined |
 | `call:cancelled` | `{ call_id, room_id, cancelled_by }` | Caller cancelled before you answered |
-| `call:ended` | `{ call_id, room_id, duration_seconds, ended_by, reason? }` | Call has ended |
-| `call:answered-elsewhere` | `{ call_id, room_id }` | You answered on another device, dismiss ringing |
-| `call:participant-joined` | `{ call_id, room_id, user_id, existing_participants }` | New participant joined group call |
-| `call:participant-left` | `{ call_id, room_id, user_id, reason? }` | Participant left group call |
-| `call:offer` | `{ room_id, from_user_id, sdp }` | Incoming WebRTC SDP offer |
-| `call:answer` | `{ room_id, from_user_id, sdp }` | Incoming WebRTC SDP answer |
-| `call:ice-candidate` | `{ room_id, from_user_id, candidate }` | Incoming ICE candidate |
+| `call:ended` | `{ call_id, room_id, duration_seconds, ended_by, reason? }` | Call has ended (either explicitly or because < 2 participants remain) |
+| `call:answered-elsewhere` | `{ call_id, room_id }` | You answered on another device, dismiss ringing on this device |
+| `call:participant-joined` | `{ call_id, room_id, user_id, existing_participants }` | New participant joined group call. `existing_participants` is an array of user_ids already in the call |
+| `call:participant-left` | `{ call_id, room_id, user_id, reason? }` | Participant left group call (but call continues) |
+| `call:offer` | `{ room_id, from_user_id, sdp }` | Incoming WebRTC SDP offer. `sdp` is the full RTCSessionDescription object |
+| `call:answer` | `{ room_id, from_user_id, sdp }` | Incoming WebRTC SDP answer. `sdp` is the full RTCSessionDescription object |
+| `call:ice-candidate` | `{ room_id, from_user_id, candidate }` | Incoming ICE candidate. `candidate` is the full RTCIceCandidate object |
 | `call:media-toggle` | `{ user_id, is_video_enabled, is_audio_enabled }` | Remote user toggled camera/mic |
 | `call:screen-share-start` | `{ user_id }` | Remote user started screen sharing |
 | `call:screen-share-stop` | `{ user_id }` | Remote user stopped screen sharing |
-| `call:user-joined` | `{ user_id }` | User joined the Socket.IO call room |
-| `call:user-left` | `{ user_id }` | User left the Socket.IO call room |
+| `call:user-added` | `{ call_id, room_id, added_users, added_by }` | New user(s) were added to the call by a participant. `added_users` is an array of user_ids. Added users receive `call:incoming` separately |
+| `call:switch-type-request` | `{ call_id, room_id, new_call_type, requested_by }` | A participant requests to switch from audio to video. Show accept/decline UI |
+| `call:type-switched` | `{ call_id, room_id, new_call_type, switched_by }` | Call type was switched. Update UI, enable/disable camera accordingly |
+| `call:switch-type-declined` | `{ call_id, room_id, declined_by }` | Switch to video request was declined by a participant |
+| `call:user-joined` | `{ user_id }` | User joined the Socket.IO call room (broadcast when `call:join-room` is emitted) |
+| `call:user-left` | `{ user_id }` | User left the Socket.IO call room (broadcast when `call:leave-room` is emitted) |
 
 ### 5.2 Events the CLIENT EMITS (client -> server)
 
 | Event | Payload | When |
 |-------|---------|------|
-| `call:offer` | `{ room_id, target_user_id, sdp }` | Sending SDP offer to a specific user |
-| `call:answer` | `{ room_id, target_user_id, sdp }` | Sending SDP answer to a specific user |
-| `call:ice-candidate` | `{ room_id, target_user_id, candidate }` | Sending ICE candidate to a specific user |
-| `call:join-room` | `{ room_id }` | Join the Socket.IO room for this call |
-| `call:leave-room` | `{ room_id, call_id }` | Leave the Socket.IO room |
-| `call:media-toggle` | `{ room_id, is_video_enabled, is_audio_enabled }` | Notify others of camera/mic toggle |
-| `call:screen-share-start` | `{ room_id }` | Notify others of screen share start |
-| `call:screen-share-stop` | `{ room_id }` | Notify others of screen share stop |
+| `call:offer` | `{ room_id, target_user_id, sdp }` | Sending SDP offer to a specific user. Server relays as `{ room_id, from_user_id, sdp }` |
+| `call:answer` | `{ room_id, target_user_id, sdp }` | Sending SDP answer to a specific user. Server relays as `{ room_id, from_user_id, sdp }` |
+| `call:ice-candidate` | `{ room_id, target_user_id, candidate }` | Sending ICE candidate to a specific user. Server relays as `{ room_id, from_user_id, candidate }` |
+| `call:join-room` | `{ room_id }` | Join the Socket.IO room for this call. Server broadcasts `call:user-joined` to room |
+| `call:leave-room` | `{ room_id, call_id }` | Leave the Socket.IO room. Server broadcasts `call:user-left` to room. If < 2 participants remain, server emits `call:ended` |
+| `call:media-toggle` | `{ room_id, is_video_enabled, is_audio_enabled }` | Notify others of camera/mic toggle. Server broadcasts with `user_id` added |
+| `call:screen-share-start` | `{ room_id }` | Notify others of screen share start. Server broadcasts with `user_id` added |
+| `call:screen-share-stop` | `{ room_id }` | Notify others of screen share stop. Server broadcasts with `user_id` added |
 
 ---
 
@@ -510,34 +915,77 @@ Socket connection path: `/socket`
 // 1. Request camera/mic permissions
 await [Permission.camera, Permission.microphone].request();
 
-// 2. Call the API
-final response = await dio.post('/call/initiate', data: {
-  'call_type': 'video_call',       // or 'audio_call'
-  'other_user_id': otherUserId,    // or 'conversation_id': conversationId
-});
-
-final roomId = response.data['room_id'];
-final callId = response.data['call_id'];
-final iceServers = IceServerConfig.fromJson(response.data['ice_servers']);
-final conversationId = response.data['conversation_id'];
-
-// 3. Navigate to OutgoingCallScreen
-// Show ringing UI with caller info, play ringing sound
-// Start a 60-second timer - if no answer, call POST /call/cancel
-
-// 4. Join the Socket.IO call room
-socket.emit('call:join-room', { 'room_id': roomId });
-
-// 5. Create RTCPeerConnection with ICE servers (but DON'T create offer yet)
-final peerConnection = await createPeerConnection(iceServers.toWebRTCConfig());
-
-// 6. Get local media stream and add tracks
+// 2. Get local media stream FIRST (so user sees their preview)
 final localStream = await navigator.mediaDevices.getUserMedia({
   'audio': true,
   'video': callType == 'video_call',
 });
+
+// Show local video preview if video call
+if (callType == 'video_call') {
+  localVideoRenderer.srcObject = localStream;
+}
+
+// 3. Call the API
+final response = await dio.post('/call/initiate', data: {
+  'call_type': 'video_call',       // or 'audio_call'
+  'conversation_id': conversationId,  // preferred for existing conversations
+  // OR 'other_user_id': otherUserId,  // for new 1-to-1 calls
+});
+
+if (!response.data['success']) {
+  // Stop media on failure
+  localStream.getTracks().forEach((track) => track.stop());
+  // Show error: response.data['message']
+  return;
+}
+
+final roomId = response.data['room_id'];
+final callId = response.data['call_id'];
+final conversationId = response.data['conversation_id'];
+final messageId = response.data['message_id'];
+final iceServers = response.data['ice_servers']['iceServers'];
+
+// Check for busy users (group calls)
+final busyUsers = response.data['busy_users'] ?? [];
+
+// 4. Store call data locally
+currentCallData = {
+  'room_id': roomId,
+  'call_id': callId,
+  'conversation_id': conversationId,
+  'call_type': callType,
+  'message_id': messageId,
+};
+
+// 5. Navigate to OutgoingCallScreen
+// Show ringing UI with contact info, play ringing sound
+callState = CallState.outgoing;
+
+// 6. Join the Socket.IO call room
+socket.emit('call:join-room', { 'room_id': roomId });
+
+// 7. Create RTCPeerConnection with ICE servers from response
+final peerConnection = await createPeerConnection({
+  'iceServers': iceServers.isNotEmpty
+    ? iceServers
+    : [{ 'urls': 'stun:stun.l.google.com:19302' }],
+});
+
+// 8. Add local tracks to peer connection
 localStream.getTracks().forEach((track) {
   peerConnection.addTrack(track, localStream);
+});
+
+// 9. Create and send SDP offer immediately
+// (The receiver may not be ready yet, but the offer will be relayed when they join)
+final offer = await peerConnection.createOffer();
+await peerConnection.setLocalDescription(offer);
+
+socket.emit('call:offer', {
+  'room_id': roomId,
+  'target_user_id': remoteUserId,
+  'sdp': offer,  // Send the full RTCSessionDescription object
 });
 ```
 
@@ -546,15 +994,24 @@ localStream.getTracks().forEach((track) {
 ```dart
 // Listen for the call:incoming socket event
 socket.on('call:incoming', (data) {
+  // Ignore if already in a call
+  if (callState != CallState.idle) return;
+
   final callId = data['call_id'];
   final roomId = data['room_id'];
-  final callType = data['call_type'];
-  final initiatedBy = data['initiated_by'];
-  final isGroupCall = data['is_group_call'];
+  final callType = data['call_type'];          // "audio_call" or "video_call"
+  final initiatedBy = data['initiated_by'];     // caller's user_id
+  final isGroupCall = data['is_group_call'];    // boolean
   final conversationId = data['conversation_id'];
+  final message = data['message'];              // full message object
+
+  // Resolve caller info from your local conversation list
+  // Store as currentCallData for use when accepting/declining
+
+  callState = CallState.ringing;
 
   // Show IncomingCallScreen with Accept/Decline buttons
-  // Play ringtone
+  // Play ringtone, vibrate
   // If app is in background, this comes via Firebase push (see Section 10)
 });
 ```
@@ -562,71 +1019,122 @@ socket.on('call:incoming', (data) {
 ### Step 3: Receiver accepts
 
 ```dart
-// 1. Call the API
-final response = await dio.post('/call/accept', data: {
-  'call_id': callId,
-  'room_id': roomId,
-});
+// IMPORTANT: Copy currentCallData to local vars before async work,
+// because call:answered-elsewhere may null it mid-flight
+final callData = {...currentCallData};
+final pendingOffer = callData['pendingOffer'];  // May have been stored from early call:offer
 
-final iceServers = IceServerConfig.fromJson(response.data['ice_servers']);
+// Immediately transition to 'accepting' state so call:answered-elsewhere
+// won't reset our state while we're in the middle of accepting
+callState = CallState.accepting;
 
-// 2. Navigate to ActiveCallScreen
-// Stop ringtone
-
-// 3. Join the Socket.IO call room
-socket.emit('call:join-room', { 'room_id': roomId });
-
-// 4. Create RTCPeerConnection
-final peerConnection = await createPeerConnection(iceServers.toWebRTCConfig());
-
-// 5. Get local media stream and add tracks
+// 1. Get local media
 final localStream = await navigator.mediaDevices.getUserMedia({
   'audio': true,
-  'video': callType == 'video_call',
+  'video': callData['call_type'] == 'video_call',
 });
+
+// 2. Call the API
+final response = await dio.post('/call/accept', data: {
+  'call_id': callData['call_id'],
+  'room_id': callData['room_id'],
+});
+
+if (!response.data['success']) {
+  // Accept failed (likely race condition - call already answered elsewhere)
+  localStream.getTracks().forEach((track) => track.stop());
+  resetCallState();
+  // Show toast: "Call already answered" or response.data['message']
+  return;
+}
+
+final iceServers = response.data['ice_servers']['iceServers'];
+
+// 3. Navigate to ActiveCallScreen
+// Stop ringtone
+
+// 4. Join the Socket.IO call room
+socket.emit('call:join-room', { 'room_id': callData['room_id'] });
+
+// 5. Create RTCPeerConnection with ICE servers from accept response
+final peerConnection = await createPeerConnection({
+  'iceServers': iceServers.isNotEmpty
+    ? iceServers
+    : [{ 'urls': 'stun:stun.l.google.com:19302' }],
+});
+
+// 6. Add local tracks
 localStream.getTracks().forEach((track) {
   peerConnection.addTrack(track, localStream);
 });
 
-// 6. Wait for the caller to send the SDP offer (see Step 4)
+// 7. If we already received an SDP offer while ringing, process it now
+if (pendingOffer != null) {
+  await peerConnection.setRemoteDescription(
+    RTCSessionDescription(pendingOffer['sdp'], pendingOffer['type']),
+  );
+  final answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+  socket.emit('call:answer', {
+    'room_id': callData['room_id'],
+    'target_user_id': callData['initiated_by'],  // caller
+    'sdp': answer,
+  });
+}
+
+callState = CallState.active;
 ```
 
-### Step 4: Caller receives accepted event and begins WebRTC negotiation
+### Step 4: Caller receives accepted event
 
 ```dart
 // The CALLER listens for call:accepted
 socket.on('call:accepted', (data) async {
+  if (callState != CallState.outgoing || currentCallData == null) return;
+
+  // Set remote user if not already set
+  remoteUserId ??= data['accepted_by'];
+
   // Stop ringing sound
   // Navigate to ActiveCallScreen
+  callState = CallState.active;
 
-  // Create and send SDP offer
-  final offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-
-  socket.emit('call:offer', {
-    'room_id': roomId,
-    'target_user_id': data['accepted_by'],
-    'sdp': offer.toMap(),
-  });
+  // If peer connection already has a local description (offer was created),
+  // re-send it to make sure the receiver gets it
+  if (peerConnection != null && peerConnection.localDescription != null) {
+    socket.emit('call:offer', {
+      'room_id': currentCallData['room_id'],
+      'target_user_id': data['accepted_by'],
+      'sdp': peerConnection.localDescription,
+    });
+  }
 });
 ```
 
 ### Step 5: Receiver handles SDP offer and sends answer
 
 ```dart
+// Handle incoming SDP offers
 socket.on('call:offer', (data) async {
-  final sdp = RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
-  await peerConnection.setRemoteDescription(sdp);
+  if (callState == CallState.ringing && currentCallData != null) {
+    // Store offer for when user actually accepts
+    currentCallData['pendingOffer'] = data['sdp'];
+    return;
+  }
 
-  // Create and send SDP answer
-  final answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-
-  socket.emit('call:answer', {
-    'room_id': roomId,
-    'target_user_id': data['from_user_id'],
-    'sdp': answer.toMap(),
-  });
+  if (callState == CallState.active && peerConnection != null) {
+    // Already in call - handle renegotiation or initial offer after accept
+    await peerConnection.setRemoteDescription(
+      RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']),
+    );
+    final answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    socket.emit('call:answer', {
+      'room_id': data['room_id'],
+      'target_user_id': data['from_user_id'],
+      'sdp': answer,
+    });
+  }
 });
 ```
 
@@ -634,9 +1142,14 @@ socket.on('call:offer', (data) async {
 
 ```dart
 socket.on('call:answer', (data) async {
-  final sdp = RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
-  await peerConnection.setRemoteDescription(sdp);
-  // WebRTC will now start ICE negotiation automatically
+  // Only set remote description if we're in 'have-local-offer' state
+  if (peerConnection != null &&
+      peerConnection.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+    await peerConnection.setRemoteDescription(
+      RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']),
+    );
+    // WebRTC will now start ICE negotiation automatically
+  }
 });
 ```
 
@@ -645,21 +1158,30 @@ socket.on('call:answer', (data) async {
 ```dart
 // Send local ICE candidates to the other peer
 peerConnection.onIceCandidate = (RTCIceCandidate candidate) {
-  socket.emit('call:ice-candidate', {
-    'room_id': roomId,
-    'target_user_id': remoteUserId,
-    'candidate': candidate.toMap(),
-  });
+  if (remoteUserId != null && currentCallData != null) {
+    socket.emit('call:ice-candidate', {
+      'room_id': currentCallData['room_id'],
+      'target_user_id': remoteUserId,
+      'candidate': candidate,  // Send the full RTCIceCandidate object
+    });
+  }
 };
 
 // Receive remote ICE candidates
 socket.on('call:ice-candidate', (data) async {
-  final candidate = RTCIceCandidate(
-    data['candidate']['candidate'],
-    data['candidate']['sdpMid'],
-    data['candidate']['sdpMLineIndex'],
-  );
-  await peerConnection.addCandidate(candidate);
+  if (peerConnection != null && data['candidate'] != null) {
+    try {
+      await peerConnection.addCandidate(
+        RTCIceCandidate(
+          data['candidate']['candidate'],
+          data['candidate']['sdpMid'],
+          data['candidate']['sdpMLineIndex'],
+        ),
+      );
+    } catch (err) {
+      print('ICE candidate error: $err');
+    }
+  }
 });
 ```
 
@@ -671,20 +1193,30 @@ peerConnection.onTrack = (RTCTrackEvent event) {
   if (event.streams.isNotEmpty) {
     // Set the remote stream to a RTCVideoRenderer
     remoteRenderer.srcObject = event.streams[0];
+    // Hide the "no video" placeholder for video calls
+    if (currentCallData?['call_type'] == 'video_call') {
+      // Show remote video, hide avatar placeholder
+    }
   }
 };
 
-// Connection state changes
-peerConnection.onConnectionState = (RTCPeerConnectionState state) {
+// ICE connection state changes
+peerConnection.onIceConnectionState = (RTCIceConnectionState state) {
   switch (state) {
-    case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
+    case RTCIceConnectionState.RTCIceConnectionStateConnected:
+    case RTCIceConnectionState.RTCIceConnectionStateCompleted:
       // Call is live! Start call timer
       break;
-    case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
-      // ICE failed - end call
+    case RTCIceConnectionState.RTCIceConnectionStateFailed:
+    case RTCIceConnectionState.RTCIceConnectionStateClosed:
+      // ICE failed - end the call
+      if (callState == CallState.active) {
+        endCurrentCall();
+      }
       break;
-    case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
-      // Temporary disconnection - show reconnecting UI
+    case RTCIceConnectionState.RTCIceConnectionStateDisconnected:
+      // Temporary disconnection - show "Reconnecting..." UI
+      // May recover on its own
       break;
     default:
       break;
@@ -696,27 +1228,70 @@ peerConnection.onConnectionState = (RTCPeerConnectionState state) {
 
 ```dart
 // When user taps hang up button
-Future<void> endCall() async {
+Future<void> endCurrentCall() async {
+  if (currentCallData == null) return;
+
   // 1. Call the API
-  await dio.post('/call/end', data: {
-    'call_id': callId,
-    'room_id': roomId,
-  });
+  try {
+    await dio.post('/call/end', data: {
+      'call_id': currentCallData['call_id'],
+      'room_id': currentCallData['room_id'],
+    });
+  } catch (err) {
+    print('End call error: $err');
+  }
 
   // 2. Leave socket room
-  socket.emit('call:leave-room', { 'room_id': roomId, 'call_id': callId });
+  socket.emit('call:leave-room', {
+    'room_id': currentCallData['room_id'],
+    'call_id': currentCallData['call_id'],
+  });
 
-  // 3. Close WebRTC
-  localStream?.getTracks().forEach((track) => track.stop());
-  await peerConnection?.close();
-
-  // 4. Navigate back to chat
+  // 3. Cleanup
+  resetCallState();  // closes peer connection, stops local stream, resets UI
 }
 
 // Also listen for the other person ending
 socket.on('call:ended', (data) {
-  // Same cleanup as above, then navigate back
+  // Clean up and navigate back to chat
+  resetCallState();
+  // Optionally refresh chat list to update call message bubble
 });
+```
+
+### Complete resetCallState function
+
+```dart
+void resetCallState() {
+  callState = CallState.idle;
+  currentCallData = null;
+  remoteUserId = null;
+  isMicMuted = false;
+  isCameraOff = false;
+  isSpeakerOff = false;
+
+  // Stop call timer
+  callTimerInterval?.cancel();
+  callTimerInterval = null;
+  callStartTime = null;
+
+  // Close all overlays/screens
+  // Hide incoming, outgoing, and active call UIs
+
+  // Cleanup WebRTC
+  if (localStream != null) {
+    localStream!.getTracks().forEach((track) => track.stop());
+    localStream = null;
+  }
+  if (peerConnection != null) {
+    peerConnection!.close();
+    peerConnection = null;
+  }
+
+  // Clear video renderers
+  localVideoRenderer.srcObject = null;
+  remoteVideoRenderer.srcObject = null;
+}
 ```
 
 ---
@@ -734,7 +1309,11 @@ final response = await dio.post('/call/initiate', data: {
   'call_type': 'video_call',
   'conversation_id': groupConversationId,
 });
-// Response includes busy_users array
+
+// Response includes busy_users array - users already on another call
+final busyUsers = List<String>.from(response.data['busy_users'] ?? []);
+// These users won't receive the call:incoming event
+// The call still proceeds for all non-busy members
 ```
 
 ### 7.2 Data structure for managing multiple peer connections
@@ -777,7 +1356,7 @@ socket.on('call:participant-joined', (data) async {
     socket.emit('call:ice-candidate', {
       'room_id': roomId,
       'target_user_id': newUserId,
-      'candidate': candidate.toMap(),
+      'candidate': candidate,
     });
   };
 
@@ -790,7 +1369,7 @@ socket.on('call:participant-joined', (data) async {
   socket.emit('call:offer', {
     'room_id': roomId,
     'target_user_id': newUserId,
-    'sdp': offer.toMap(),
+    'sdp': offer,
   });
 });
 ```
@@ -833,6 +1412,158 @@ socket.on('call:participant-left', (data) {
 });
 ```
 
+### 7.6 Adding users to an active call
+
+Any participant in an active call can add other users. This works for both 1-to-1 and group calls. A 1-to-1 call is automatically upgraded to a group call when a user is added.
+
+```dart
+// Show a contact picker UI, then call the API
+Future<void> addUsersToCall(List<String> userIdsToAdd) async {
+  if (currentCallData == null) return;
+
+  final response = await dio.post('/call/add-user', data: {
+    'call_id': currentCallData['call_id'],
+    'room_id': currentCallData['room_id'],
+    'user_ids': userIdsToAdd,
+  });
+
+  if (response.data['success']) {
+    // Upgrade local state to group call
+    isGroupCall = true;
+
+    final added = List<String>.from(response.data['added_users'] ?? []);
+    final busy = List<String>.from(response.data['busy_users'] ?? []);
+
+    if (busy.isNotEmpty) {
+      showToast('${busy.length} user(s) are on another call');
+    }
+    if (added.isNotEmpty) {
+      showToast('${added.length} user(s) added to call');
+    }
+
+    // Added users will receive call:incoming and join via the normal accept flow.
+    // When they accept, you'll get call:participant-joined events,
+    // and peer connections are created in the normal group call handler.
+  } else {
+    showToast(response.data['message'] ?? 'Failed to add users');
+  }
+}
+
+// Listen for the call:user-added event (informational for existing participants)
+socket.on('call:user-added', (data) {
+  final addedUsers = List<String>.from(data['added_users'] ?? []);
+  final addedBy = data['added_by'];
+  // Optionally show toast: "User X added Y to the call"
+  // The actual peer connections are created when added users accept (call:participant-joined)
+});
+```
+
+**Important notes:**
+- When a 1-to-1 call is upgraded, both existing participants must switch to the group call peer connection model (multiple `RTCPeerConnection` instances instead of one)
+- The added users go through the standard `call:incoming` → `accept` → `call:accepted` / `call:participant-joined` flow
+- The `call:user-added` event is purely informational for existing participants; no action is required
+
+### 7.7 Switching call type (audio ↔ video)
+
+Any active participant can request to switch the call between audio and video.
+
+- **Video → audio**: Switches immediately. All participants receive `call:type-switched` and should disable their cameras.
+- **Audio → video**: Requires approval from other participants (camera permission needed). The requester calls `POST /call/switch-type`, other participants see a prompt, and one of them responds via `POST /call/switch-type/respond`.
+
+```dart
+// ── Requesting a switch ──
+
+Future<void> switchCallType() async {
+  final currentType = currentCallData?['call_type'];
+  final newType = currentType == 'audio_call' ? 'video_call' : 'audio_call';
+
+  final response = await dio.post('/call/switch-type', data: {
+    'call_id': currentCallData['call_id'],
+    'room_id': currentCallData['room_id'],
+    'new_call_type': newType,
+  });
+
+  if (response.data['success']) {
+    if (response.data['pending_approval'] == true) {
+      // Audio → video: waiting for other participants to accept
+      showToast('Waiting for approval to switch to video...');
+    }
+    // Video → audio: call:type-switched will fire immediately
+  } else {
+    showToast(response.data['message'] ?? 'Failed to switch');
+  }
+}
+
+// ── Receiving a switch request (audio → video) ──
+
+socket.on('call:switch-type-request', (data) {
+  // Show a dialog: "User wants to switch to video call"
+  // with Accept / Decline buttons
+  showSwitchTypeDialog(
+    onAccept: () async {
+      // Request camera permission first
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        // Decline if no permission
+        await dio.post('/call/switch-type/respond', data: {
+          'call_id': data['call_id'],
+          'room_id': data['room_id'],
+          'accepted': false,
+        });
+        return;
+      }
+
+      await dio.post('/call/switch-type/respond', data: {
+        'call_id': data['call_id'],
+        'room_id': data['room_id'],
+        'accepted': true,
+      });
+    },
+    onDecline: () async {
+      await dio.post('/call/switch-type/respond', data: {
+        'call_id': data['call_id'],
+        'room_id': data['room_id'],
+        'accepted': false,
+      });
+    },
+  );
+});
+
+// ── Handling the actual switch ──
+
+socket.on('call:type-switched', (data) {
+  final newType = data['new_call_type'];
+  final isVideo = newType == 'video_call';
+
+  // Update local state
+  currentCallData['call_type'] = newType;
+
+  // Update UI label
+  // Update call screen to show/hide video elements
+
+  if (isVideo) {
+    // Enable camera - get video track if not already available
+    enableLocalVideo();
+  } else {
+    // Disable camera
+    localStream?.getVideoTracks().forEach((track) => track.enabled = false);
+    isCameraOff = true;
+  }
+});
+
+// ── Switch declined ──
+
+socket.on('call:switch-type-declined', (data) {
+  showToast('Switch to video was declined');
+});
+```
+
+**Important notes:**
+- Only one switch request should be active at a time per call
+- When switching to video, all participants need camera permission — if someone can't grant it, they should decline
+- The switch button UI should show the opposite type (audio call shows video icon, video call shows phone icon)
+- For group calls, the first participant to respond determines the outcome
+
 ---
 
 ## 8. WebRTC Implementation
@@ -841,7 +1572,13 @@ socket.on('call:participant-left', (data) {
 
 ```dart
 Future<RTCPeerConnection> createPeerConnection(Map<String, dynamic> iceConfig) async {
-  final pc = await createPeerConnection(iceConfig, {
+  final config = {
+    'iceServers': iceConfig['iceServers']?.isNotEmpty == true
+        ? iceConfig['iceServers']
+        : [{ 'urls': 'stun:stun.l.google.com:19302' }],
+  };
+
+  final pc = await createPeerConnection(config, {
     'mandatory': {
       'OfferToReceiveAudio': true,
       'OfferToReceiveVideo': true,
@@ -857,31 +1594,37 @@ Future<RTCPeerConnection> createPeerConnection(Map<String, dynamic> iceConfig) a
 ```dart
 // Toggle microphone
 void toggleMic() {
-  final audioTrack = localStream?.getAudioTracks().first;
-  if (audioTrack != null) {
-    audioTrack.enabled = !audioTrack.enabled;
-    isMicEnabled = audioTrack.enabled;
+  if (localStream == null) return;
+  isMicMuted = !isMicMuted;
+  localStream!.getAudioTracks().forEach((track) {
+    track.enabled = !isMicMuted;
+  });
 
-    // Notify other participants
+  // Notify other participants via socket
+  if (socket != null && currentCallData != null) {
     socket.emit('call:media-toggle', {
-      'room_id': roomId,
-      'is_audio_enabled': isMicEnabled,
-      'is_video_enabled': isCameraEnabled,
+      'room_id': currentCallData['room_id'],
+      'is_audio_enabled': !isMicMuted,
+      // Note: only send the field that changed, or send both
     });
   }
 }
 
 // Toggle camera
 void toggleCamera() {
-  final videoTrack = localStream?.getVideoTracks().first;
-  if (videoTrack != null) {
-    videoTrack.enabled = !videoTrack.enabled;
-    isCameraEnabled = videoTrack.enabled;
+  if (localStream == null) return;
+  isCameraOff = !isCameraOff;
+  localStream!.getVideoTracks().forEach((track) {
+    track.enabled = !isCameraOff;
+  });
 
+  // Hide/show local video PiP
+  // Update UI to reflect camera state
+
+  if (socket != null && currentCallData != null) {
     socket.emit('call:media-toggle', {
-      'room_id': roomId,
-      'is_video_enabled': isCameraEnabled,
-      'is_audio_enabled': isMicEnabled,
+      'room_id': currentCallData['room_id'],
+      'is_video_enabled': !isCameraOff,
     });
   }
 }
@@ -899,7 +1642,11 @@ socket.on('call:media-toggle', (data) {
   final userId = data['user_id'];
   final isVideoEnabled = data['is_video_enabled'];
   final isAudioEnabled = data['is_audio_enabled'];
-  // Update UI for this participant (show avatar if video off, show mute icon, etc.)
+  // Update UI: show avatar if video off, show mute icon if audio off
+  // For 1-to-1: toggle the remote-no-video placeholder visibility
+  if (isVideoEnabled != null) {
+    // Show/hide remote video placeholder based on isVideoEnabled
+  }
 });
 ```
 
@@ -907,12 +1654,15 @@ socket.on('call:media-toggle', (data) {
 
 ```dart
 // Toggle between speaker and earpiece
+// In the web tester, this simply mutes/unmutes the remote video element
+// In Flutter, use the audio_session package or flutter_webrtc helper
 void toggleSpeaker() {
+  isSpeakerOff = !isSpeakerOff;
+
+  // For flutter_webrtc:
   final audioTrack = localStream?.getAudioTracks().first;
   if (audioTrack != null) {
-    // For flutter_webrtc:
-    audioTrack.enableSpeakerphone(!isSpeakerOn);
-    isSpeakerOn = !isSpeakerOn;
+    audioTrack.enableSpeakerphone(!isSpeakerOff);
   }
 }
 ```
@@ -922,29 +1672,47 @@ void toggleSpeaker() {
 ## 9. UI Screens Required
 
 ### 9.1 Outgoing Call Screen
-- Shows when YOU initiate a call
-- Displays: other user's avatar, name, "Calling..." text, call type (audio/video)
-- Buttons: Hang up (red, calls POST /call/cancel)
-- Auto-cancel after 60 seconds if no answer
+- Shows when YOU initiate a call (callState = `outgoing`)
+- Displays: other user's avatar, name, "Calling..." text, call type icon (phone or video)
+- Buttons: Cancel/Hang up (red, calls POST `/call/cancel`)
+- Auto-cancel after 60 seconds if no answer (backend also has 60s Redis TTL on ringing state)
 - Plays ringing tone
-- Transitions to Active Call Screen when `call:accepted` is received
+- Transitions to Active Call Screen when `call:accepted` socket event is received
+- Transitions back when `call:declined` is received (show "Call declined" briefly)
 
 ### 9.2 Incoming Call Screen
 - Shows when YOU receive a call via `call:incoming` socket event or Firebase push
-- Displays: caller's avatar, name, "Incoming video/audio call" text
+- Only show if `callState == idle` (ignore if already in a call)
+- Displays: caller's avatar, name, "Incoming video/audio call" text with type icon
 - Buttons: Accept (green), Decline (red)
-- Accept -> POST /call/accept -> transition to Active Call Screen
-- Decline -> POST /call/decline -> dismiss
+- Accept -> set callState to `accepting` -> POST `/call/accept` -> transition to Active Call Screen
+- Decline -> POST `/call/decline` -> dismiss and reset
 - Auto-dismiss when `call:cancelled` received (caller hung up)
+- Auto-dismiss when `call:answered-elsewhere` received (you answered on another device) - but ONLY if `callState == ringing` (not if `accepting` or `active`)
 - Play ringtone, vibrate
+- Pulse ring animation around caller avatar
 
 ### 9.3 Active Call Screen (1-to-1)
-- Shows during connected call
-- Video call: full-screen remote video, small local video preview (draggable PiP)
-- Audio call: centered avatar of other user, call duration timer
-- Buttons: Mute mic, Toggle camera (video call), Switch camera (video call), Speaker toggle, Hang up
-- Call duration timer starts when `RTCPeerConnectionState.connected`
-- Transitions to ended state when `call:ended` received
+- Shows during connected call (callState = `active`)
+- **Video call layout:**
+  - Full-screen remote video
+  - Small local video preview (draggable PiP, bottom-right, 120x160px)
+  - Local video mirrors horizontally (`transform: scaleX(-1)`)
+  - When remote camera is off: show avatar + name centered (the "no-video" placeholder)
+- **Audio call layout:**
+  - Centered avatar of other user
+  - Name below avatar
+  - No video elements
+- **Controls bar** (bottom, gradient overlay):
+  - Toggle mic (shows on/off icon, pink background when muted)
+  - Toggle camera (shows on/off icon, pink background when off, hides local PiP)
+  - End call (larger red button, center)
+  - Toggle speaker (shows on/off icon, pink background when off)
+  - Screen share button (hidden by default, for future use)
+- **Top info bar** (gradient overlay):
+  - Green dot + call timer (MM:SS format, starts counting from active state)
+  - Call type label ("Video Call" / "Audio Call")
+- Timer starts from `callState = active` (when `showActiveCall` is called), not from WebRTC connection
 
 ### 9.4 Active Call Screen (Group)
 - Grid layout for video tiles (2x2, 3x2 depending on participants)
@@ -953,7 +1721,7 @@ void toggleSpeaker() {
 - Dynamically adds/removes tiles on `call:participant-joined` / `call:participant-left`
 
 ### 9.5 Call History Screen
-- List of past calls fetched from GET /call/history
+- List of past calls fetched from GET `/call/history`
 - Each item shows: user avatar/name, call type icon (audio/video), call direction (incoming/outgoing/missed), duration, timestamp
 - Missed calls highlighted in red
 - Tap to call back (initiate new call)
@@ -990,7 +1758,7 @@ The backend sends Firebase notifications with this data:
   "android": {
     "priority": "high",
     "notification": {
-      "channelId": "incoming_calls"     // or "missed_calls"
+      "channelId": "incoming_calls"
     }
   },
   "apns": {
@@ -1003,6 +1771,13 @@ The backend sends Firebase notifications with this data:
   }
 }
 ```
+
+**Missed call notifications** are sent when:
+- The caller cancels (POST `/call/cancel`)
+- The ringing timeout expires (60 seconds)
+- The socket disconnects while call is ringing
+
+For missed calls, `missed_call` is `"true"` and `channelId` is `"missed_calls"`.
 
 ### 10.2 Handling incoming call push
 
@@ -1109,28 +1884,33 @@ FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
 ## 11. Edge Cases & Error Handling
 
 ### 11.1 Caller cancels before receiver answers
-- Caller taps hang up during ringing -> POST /call/cancel
+- Caller taps hang up during ringing -> POST `/call/cancel`
+- Also emit `call:leave-room` with `{ room_id }` to leave the socket room
 - Receiver gets `call:cancelled` socket event -> dismiss incoming call UI
 - If receiver was showing CallKit, call `FlutterCallkitIncoming.endCall(callId)`
+- Backend marks all "ringing" participants as "missed" and sends Firebase missed call notifications
 
 ### 11.2 Receiver declines
-- Receiver taps decline -> POST /call/decline
-- Caller gets `call:declined` socket event -> show "Call declined" and navigate back
+- Receiver taps decline -> POST `/call/decline`
+- Caller gets `call:declined` socket event with `{ call_ended: true }` -> show "Call declined" and navigate back
+- For group calls: `call_ended` may be `false` if other receivers are still ringing
 
 ### 11.3 Ringing timeout (60 seconds)
 - Start a 60-second timer when initiating a call
-- If no `call:accepted` received within 60 seconds -> POST /call/cancel
-- The backend also has a 60-second TTL on ringing state in Redis
+- If no `call:accepted` received within 60 seconds -> POST `/call/cancel`
+- The backend also has a 60-second TTL on ringing state in Redis (`call_ringing:{roomId}:{userId}`)
+- The backend handles disconnect cleanup automatically
 
 ### 11.4 User already in a call (busy)
-- Response from /call/initiate: `409` with `{ "busy": true, "message": "User is on another call" }`
-- Show "User is busy" in the UI
+- Response from `/call/initiate`: `409` with `{ "success": false, "busy": true, "message": "User is on another call" }`
+- For 1-to-1 calls: show "User is busy" in the UI and stop local media
+- For group calls: the call proceeds, and `busy_users` in the response lists who was excluded
 
 ### 11.5 Network disconnection during call
-- `RTCPeerConnectionState.disconnected` - show "Reconnecting..." UI
-- If it transitions to `failed` - end the call
-- The backend auto-cleans up when the socket disconnects (calls `handleCallDisconnect`)
-- On reconnect, check GET /call/active to see if a call is still active and rejoin
+- `RTCIceConnectionState.disconnected` - show "Reconnecting..." UI (may recover automatically)
+- If it transitions to `failed` or `closed` - end the call via `endCurrentCall()`
+- The backend auto-cleans up when the socket disconnects (calls `handleCallDisconnect` which marks participant as "left" and ends call if < 2 remain)
+- On app reconnect, check GET `/call/active` to see if a call is still active and rejoin
 
 ### 11.6 App goes to background during call
 - Keep the WebRTC connection alive
@@ -1140,11 +1920,22 @@ FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
 
 ### 11.7 Answered on another device
 - Listen for `call:answered-elsewhere` -> dismiss incoming call UI
+- **Critical:** Only reset if `callState == ringing`. Do NOT reset if `callState == accepting` or `active` (you're the one who answered)
 - This handles the case where user has the app on both phone and tablet
 
 ### 11.8 Call already accepted by someone else (race condition)
-- POST /call/accept returns `404` with "Call not found or no longer ringing"
-- Dismiss the incoming call UI and show a toast "Call already answered"
+- POST `/call/accept` returns `404` with `{ "success": false, "message": "Call not found or no longer ringing" }`
+- The backend uses atomic `findOneAndUpdate` with status check, so only the first acceptor succeeds
+- Dismiss the incoming call UI, stop any local media acquired, and show a toast "Call already answered"
+
+### 11.9 SDP offer arrives before user accepts
+- When `call:offer` arrives while `callState == ringing`, store it as `currentCallData.pendingOffer`
+- When the user accepts and peer connection is created, process the stored offer immediately
+- This avoids a timing issue where the caller sends the offer before the receiver has a peer connection
+
+### 11.10 Signaling state check for SDP answer
+- Before calling `setRemoteDescription` with an SDP answer, check `peerConnection.signalingState == 'have-local-offer'`
+- This prevents errors from duplicate or late-arriving answers
 
 ---
 
@@ -1185,14 +1976,51 @@ String getCallDisplayText(CallModel call, String currentUserId) {
 
 ### 12.2 Message bubble in chat
 
-When displaying call messages in the chat conversation (message_type == "video_call" or "audio_call"), use the `metadata` fields:
+When displaying call messages in the chat conversation (message_type == `"video_call"` or `"audio_call"`), use the `metadata` fields from the message object:
 
 ```dart
-// metadata.call_status: "completed", "missed", "declined", "ringing"
-// metadata.call_time: "02:05" (duration string, only for completed calls)
-// metadata.missed_call: true/false
-// metadata.call_decline: true/false
-// metadata.call_id: links to the full call record
+// metadata fields available:
+// metadata.call_id: String - links to the full call record
+// metadata.room_id: String - the call room UUID
+// metadata.call_type: String - "audio_call" or "video_call"
+// metadata.call_status: String - "ringing", "connecting", "completed", "missed", "declined"
+// metadata.call_time: String - formatted duration (e.g., "02:05"), only present for completed calls
+// metadata.missed_call: bool - true if call was missed
+// metadata.call_decline: bool - true if call was declined
+// metadata.call_accept: bool - true if call was accepted
+```
+
+**Bubble rendering logic (from the reference implementation):**
+
+```dart
+Widget buildCallBubble(Message msg) {
+  final metadata = msg.metadata ?? {};
+  final isVideo = msg.messageType == 'video_call';
+  final isMissed = metadata['missed_call'] == true;
+  final isDeclined = metadata['call_decline'] == true;
+
+  String statusText = 'Ended';
+  Color statusColor = Colors.grey;
+
+  if (isMissed) {
+    statusText = 'Missed call';
+    statusColor = Colors.orange;
+  } else if (isDeclined) {
+    statusText = 'Declined';
+    statusColor = Colors.pink;
+  } else if (metadata['call_time'] != null) {
+    statusText = 'Duration: ${metadata['call_time']}';
+    statusColor = Colors.teal;
+  }
+
+  return CallBubbleWidget(
+    icon: isVideo ? Icons.videocam : Icons.phone,
+    title: isVideo ? 'Video Call' : 'Audio Call',
+    statusText: statusText,
+    statusColor: statusColor,
+    isMissed: isMissed,
+  );
+}
 ```
 
 ---
@@ -1263,6 +2091,8 @@ socket.on('call:screen-share-stop', (data) {
 });
 ```
 
+**Note:** The screen share button is hidden by default in the reference implementation (`hidden` class on `btn-toggle-screen`). Enable it when ready to support screen sharing.
+
 ---
 
 ## 14. Testing Checklist
@@ -1276,25 +2106,49 @@ socket.on('call:screen-share-stop', (data) {
 - [ ] Cancel outgoing call (hang up before answer)
 - [ ] Call auto-cancels after 60 seconds of ringing
 - [ ] End active call (both sides)
-- [ ] Toggle microphone during call
-- [ ] Toggle camera during call (video)
+- [ ] Toggle microphone during call (verify icon changes + remote notification)
+- [ ] Toggle camera during call (verify PiP hides/shows + remote sees avatar)
 - [ ] Switch front/back camera
 - [ ] Toggle speaker/earpiece
-- [ ] Network disconnection recovery
+- [ ] Network disconnection recovery (ICE reconnection)
 - [ ] App background/foreground transitions during call
 - [ ] CallKit incoming call UI (iOS)
 - [ ] Heads-up notification (Android)
-- [ ] Busy user scenario (409 response)
+- [ ] Busy user scenario (409 response with `busy: true`)
+- [ ] Media permission denied handling (`NotAllowedError`)
 
 ### Group Calls
 - [ ] Initiate group call from group conversation
-- [ ] All members receive incoming call notification
+- [ ] All non-busy members receive incoming call notification
+- [ ] `busy_users` array correctly lists excluded users
 - [ ] Multiple members accept and connect
-- [ ] New participant joins ongoing call (POST /call/join)
-- [ ] Participant leaves - call continues with remaining
+- [ ] New participant joins ongoing call (POST `/call/join`)
+- [ ] Participant leaves - call continues with remaining (if >= 2)
 - [ ] Last two participants - one leaves - call ends
 - [ ] Media toggle works across all participants
 - [ ] Video grid dynamically adds/removes tiles
+
+### Switch Call Type
+- [ ] Switch video → audio (immediate, no approval needed)
+- [ ] Switch audio → video (sends request, receiver sees prompt)
+- [ ] Accept switch to video (camera enables on both sides)
+- [ ] Decline switch to video (requester gets notification)
+- [ ] Switch button icon updates correctly (shows opposite type)
+- [ ] UI label updates (Audio Call ↔ Video Call)
+- [ ] Camera auto-enables when switching to video
+- [ ] Camera auto-disables when switching to audio
+- [ ] Cannot switch to same type (already audio/video error)
+- [ ] Switch works in group calls (first responder decides)
+
+### Add User to Call
+- [ ] Add a single user to an active 1-to-1 call (auto-upgrades to group)
+- [ ] Add multiple users at once
+- [ ] Busy users reported correctly (not added, no error)
+- [ ] Already-in-call users reported correctly
+- [ ] Added user receives `call:incoming` and can accept normally
+- [ ] Existing participants receive `call:user-added` event
+- [ ] After accept, peer connections are established with all existing participants
+- [ ] 1-to-1 call properly transitions to group call UI after add
 
 ### Call History
 - [ ] Fetch call history (all calls)
@@ -1305,8 +2159,12 @@ socket.on('call:screen-share-stop', (data) {
 - [ ] Tap to call back
 
 ### Edge Cases
-- [ ] Answered on another device (call:answered-elsewhere)
-- [ ] Race condition - two users accept simultaneously (404 for second)
-- [ ] Call with no conversation_id (auto-creates personal/business conversation)
+- [ ] Answered on another device (`call:answered-elsewhere` - only resets if `callState == ringing`)
+- [ ] Race condition - two users accept simultaneously (second gets 404, graceful handling)
+- [ ] SDP offer arrives before accept (stored as `pendingOffer`, processed after accept)
+- [ ] SDP answer arrives with wrong signaling state (check `have-local-offer` before setting)
+- [ ] Call with `other_user_id` instead of `conversation_id` (auto-creates conversation)
 - [ ] Socket reconnection during ringing
 - [ ] Firebase push arriving when app is killed
+- [ ] Call message bubbles display correctly in chat (metadata fields)
+- [ ] Call state properly resets on logout/disconnect

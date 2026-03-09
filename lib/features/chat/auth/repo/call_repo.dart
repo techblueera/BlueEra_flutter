@@ -89,6 +89,42 @@ class CallRepo {
     return await ApiBaseHelper().getHTTP(url);
   }
 
+  /// POST /call/switch-type
+  Future<ResponseModel> switchCallType(Map<String, dynamic> params) async {
+    return await ApiBaseHelper().postHTTP(
+      '$_basePath/switch-type',
+      isMultipart: false,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  /// POST /call/switch-type/respond
+  Future<ResponseModel> respondToSwitchType(Map<String, dynamic> params) async {
+    return await ApiBaseHelper().postHTTP(
+      '$_basePath/switch-type/respond',
+      isMultipart: false,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  /// POST /call/add-user
+  Future<ResponseModel> addUserToCall(Map<String, dynamic> params) async {
+    return await ApiBaseHelper().postHTTP(
+      '$_basePath/add-user',
+      isMultipart: false,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// GET /call/active
   Future<ResponseModel> getActiveCall() async {
     return await ApiBaseHelper().getHTTP('$_basePath/active');

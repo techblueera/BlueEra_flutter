@@ -442,15 +442,8 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                             chatViewController.sendMessage(data);
                           }
                         }
-                        chatViewController.openAnyOneChatFunction(
-                          type: _selectedUsers.first.accountType,
-                          isInitialMessage: true,
-                          userId: _selectedUsers.first.id,
-                          conversationId:
-                              _selectedUsers.first.conversationId ?? '',
-                          profileImage: _selectedUsers.first.profileImage,
-                          contactName: _selectedUsers.first.name,
-                          contactNo: _selectedUsers.first.contactNo,
+                        chatViewController.checkChatConnectionAndOpenChat(
+                          userId: _selectedUsers.first.id!,
                           isFromContactList: true,
                         );
                         return ;

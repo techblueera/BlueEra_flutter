@@ -203,21 +203,6 @@ class AppImageAssets {
   static String VehicleSupport = "${imgPath}VehicleSupport.png";
   static String autoPartsShop = "${imgPath}auto_parts_shop.png";
   static String vehicleAccessories = "${imgPath}vehicle_accessories.png";
-  static String find_heath_care = "${imgPath}find_heath_care.png";
-  static String find_hotel_and_stay = "${imgPath}find_hotel_and_stay.png";
-  static String find_education_and_training = "${imgPath}find_education_and_training.png";
-  static String find_beauty_care = "${imgPath}find_beauty_care.png";
-  static String find_finance_service = "${imgPath}find_finance_service.png";
-  static String find_tourism_travel = "${imgPath}find_tourism_travel.png";
-  static String find_service_center = "${imgPath}find_service_center.png";
-  static String find_it_and_comm = "${imgPath}find_it_and_comm.png";
-  static String find_publicity_img = "${imgPath}find_publicity_img.png";
-  static String find_automative_img = "${imgPath}find_automative_img.png";
-  static String find_logistics_img = "${imgPath}find_logistics_img.png";
-  static String find_events_img = "${imgPath}find_events_img.png";
-  static String find_real_estate_img = "${imgPath}find_real_estate_img.png";
-  static String find_quality_img = "${imgPath}find_quality_img.png";
-  static String find_consulting_img = "${imgPath}find_consulting_img.png";
   static String locationMarkerIcon = "${imgPath}location_marker_icon.png";
   static String welcomeSubscriptionOffer = "${imgPath}welcome_subscription_offer.png";
 

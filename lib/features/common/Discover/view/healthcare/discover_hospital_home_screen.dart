@@ -177,27 +177,8 @@ class EmergencyActionCard extends StatelessWidget {
               phoneNo: appointmentNo,
               onTap: () async {
                 final chatViewController = Get.find<ChatViewController>();
-                Map<String, dynamic> detas = {
-                  ApiKeys.user_id:
-                      controller.hospitalDataResModel?.value.data?.userId,
-                };
-                Map<String, dynamic>? checkCompleted =
-                    await chatViewController.checkChatConnection(detas);
-                chatViewController.openAnyOneChatFunction(
-                  profileImage:
-                      controller.hospitalDataResModel?.value.data?.logoUrl,
-                  otherUserId: (checkCompleted?[ApiKeys.conversation_id] == '')
-                      ? (checkCompleted?[ApiKeys.other_user_id])
-                      : null,
-                  // businessId: widget.businessProfileDetails.id,
-                  type: "business",
-                  isInitialMessage: true,
-                  userId: controller.hospitalDataResModel?.value.data?.userId,
-                  conversationId:
-                      checkCompleted?[ApiKeys.conversation_id] ?? '',
-                  contactName:
-                      controller.hospitalDataResModel?.value.data?.name,
-                  contactNo: "",
+                chatViewController.checkChatConnectionAndOpenChat(
+                  userId: controller.hospitalDataResModel?.value.data?.userId ?? '',
                 );
               },
             ),

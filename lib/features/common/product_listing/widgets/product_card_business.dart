@@ -240,23 +240,10 @@ class _ProductCardState extends State<ProductCardBusiness> {
                       ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
                       ApiKeys.url: urlList,
                     };
-                    chatViewController.openAnyOneChatFunction(
+                    chatViewController.checkChatConnectionAndOpenChat(
+                      userId: widget.businessData?.userId ?? '',
                       shareProductParams: data,
                       isWithProductSend: true,
-                      profileImage: widget.businessData?.logo,
-                      otherUserId:  (!hasConversation)
-                          ? userDetailsMap[ApiKeys.other_user_id]??
-                          ''
-                          : null,
-                      type: AppConstants.chatMsgBusinessType,
-                      isInitialMessage:  (!hasConversation)? true
-                          : false,
-                      userId: widget.businessData?.userId,
-                      conversationId: (conversationId ?? ''),
-                      contactName: widget.businessData?.businessName,
-                      contactNo: widget
-                          .businessData?.businessNumber?.officeMobNo?.number
-                          .toString(),
                     );
 
                   }

@@ -1188,23 +1188,10 @@ class _StoreProductPreviewScreenProductState
                       ApiKeys.mrp :product.mrp,
                       ApiKeys.url: urlList,
                     };
-                    chatViewController.openAnyOneChatFunction(
+                    chatViewController.checkChatConnectionAndOpenChat(
+                      userId: widget.productStore?.user_id ?? '',
                       shareProductParams: data,
                       isWithProductSend: true,
-                      profileImage: widget.productStore?.business_logo,
-                      otherUserId: (!hasConversation)?  userDetailsMap[ApiKeys.other_user_id] ??
-                          ''
-                          : null,
-                      // businessId: widget
-                      //     .productStore?.sellerClassification?.owner?.id,
-                      type: AppConstants.chatMsgBusinessType,
-                      isInitialMessage: (!hasConversation)? true
-                          : false,
-                      userId: widget.productStore?.user_id,
-                      conversationId: ( userDetailsMap[ApiKeys.conversation_id] ??
-                          ''),
-                      contactName: widget.productStore?.business_name,
-                      contactNo: widget.productStore?.mobile_no,
                     );
                   }
 

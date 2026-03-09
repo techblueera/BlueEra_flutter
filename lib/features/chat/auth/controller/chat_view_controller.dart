@@ -1763,10 +1763,13 @@ class ChatViewController extends GetxController {
     }
   }
   Future<void> checkChatConnectionAndOpenChat(
-      {required Map<String, dynamic> params,bool? isFromContactList,
+      {required String userId,bool? isFromContactList,
         bool? isWithProductSend,
         Map<String, dynamic>? shareProductParams,
       }) async {
+    Map<String, dynamic> params = {
+      ApiKeys.user_id: userId
+    };
     ResponseModel responseModel =
     await ChatViewRepo().checkChatConnectionApi(params);
 

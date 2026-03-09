@@ -332,22 +332,10 @@ class AskHomeServiceMsgCard extends StatelessWidget {
 
                                           ApiKeys.url: urlList??[],
                                         };
-                                        chatViewController.openAnyOneChatFunction(
-                                          shareProductParams:data,
+                                        chatViewController.checkChatConnectionAndOpenChat(
+                                          userId: "${homeServices.providerDetails?.id}",
+                                          shareProductParams: data,
                                           isWithProductSend: true,
-                                          profileImage: "${homeServices.providerDetails?.profileImage}",
-                                          otherUserId: (!hasConversation)
-                                              ? userDetailsMap[ApiKeys.other_user_id]??
-                                              ''
-                                              : null,
-                                          type: AppConstants.chatMsgBusinessType,
-                                          isInitialMessage: (!hasConversation)? true
-                                              : false,
-                                          userId:"${homeServices.providerDetails?.id}",
-                                          conversationId: conversationId??
-                                              '',
-                                          contactName: "${homeServices.providerDetails?.name}" ,
-                                          contactNo: "",
                                         );
                                       }
 

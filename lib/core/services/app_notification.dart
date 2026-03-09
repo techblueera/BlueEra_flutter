@@ -461,15 +461,8 @@ class AppNotificationHandler {
         final chatViewController = Get.put(ChatViewController());
         chatViewController.connectSocket();
        Future.delayed(Duration(milliseconds: 500),(){
-         chatViewController.openAnyOneChatFunction(
-           type: resModel.conversationType ?? '',
-           conversationId: resModel.conversationId ?? '',
-           userId: resModel.senderId,
-           contactName: resModel.senderName,
-           contactNo: resModel.senderContact,
-           profileImage: resModel.senderProfileImage,
-
-           isInitialMessage: false,
+         chatViewController.checkChatConnectionAndOpenChat(
+           userId: resModel.senderId ?? '',
          );
        });
       // }

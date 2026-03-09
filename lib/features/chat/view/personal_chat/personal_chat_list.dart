@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -12,6 +13,7 @@ import '../../auth/model/GetChatListModel.dart';
 import '../ai_chat/view/ai_chat_screen.dart';
 import '../archive_chat/archive_chat_list.dart';
 import '../flag_chat/flag_chat_list.dart';
+import '../group_chat/group_chat_list.dart';
 import '../pin_chat/pin_chat_list.dart';
 import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
@@ -28,14 +30,9 @@ class PersonalChatsList extends StatefulWidget {
 }
 
 class _PersonalChatsListState extends State<PersonalChatsList> {
-  final chatViewController = Get.find<ChatViewController>();
-  late final ChatPinArchiveController pinArchiveController;
+  final chatViewController = getOrPut(() => ChatViewController());
+  final pinArchiveController = getOrPut(() => ChatPinArchiveController());
 
-  @override
-  void initState() {
-    super.initState();
-    pinArchiveController = Get.find<ChatPinArchiveController>();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,19 +56,23 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
               if(widget.isForwardUI==false)
               HorizontalTabSelector(horizontalMargin: 14,
                 horizontalPadding: 10,
-                  tabs: ['All',"Pinned","Reminder","Flagged","Records"],
+                  tabs: ['All',"Group","Pinned","Flagged","Records"],
                   selectedIndex: chatViewController.personalTabSelectedIndex.value,
                   onTabSelected: (index,val){
                 chatViewController.personalTabSelectedIndex.value=index;
+                if(index==1){
+                  chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                      {ApiKeys.type: AppConstants.group_Chat_Type});
+                }
                   },
                   labelBuilder: (value)=>value),
               if(chatViewController.personalTabSelectedIndex.value==0)
                 (widget.isForwardUI==false)?
                     Expanded(child: personalChatListWidget(data,theme)):personalChatListWidget(data,theme)
-              else if(chatViewController.personalTabSelectedIndex.value==1)
-                const PinChatList()
+              else if(chatViewController.personalTabSelectedIndex.value==1 && widget.isForwardUI==false)
+                Expanded(child: const GroupChatListTabPage())
               else if(chatViewController.personalTabSelectedIndex.value==2)
-                ReminderChatList()
+                const PinChatList()
               else if(chatViewController.personalTabSelectedIndex.value==3)
                 const FlagChatList()
               else if(chatViewController.personalTabSelectedIndex.value==4)

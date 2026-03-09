@@ -198,103 +198,103 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
           // ),
           InkWell(
             onTap: ()async{
-              if(symbolSelected==true){
-                Get.off(()=>AddChatSymbolScreen(
-                  sharedText: widget.sharedText,
-                  sharedFiles: widget.sharedFiles,
-                ));
-              }else{
-                List<String?> userIds= chatViewController.selectedChatList.map((e)=>e?.sender?.id).toList();
+              // Forward to selected contacts first (if any)
+              if(chatViewController.selectedUserIds.isNotEmpty){
                 if(widget.sharedFiles!=null||widget.sharedText!=null){
                   if (widget.sharedText != null) {
+                    List<String?> userIds= chatViewController.selectedChatList.map((e)=>e?.sender?.id).toList();
                     Map<String, dynamic> data = {
                       ApiKeys.other_user_id: jsonEncode(userIds),
                       ApiKeys.message: "${widget.sharedText}",
                       ApiKeys.message_type: "text",
                     };
                       await chatViewController.sendMessage(data);
-                    if(widget.stopChatNav!=true){
-                      bottomBarController.onChangeIndex(3);
-                    }
                     chatViewController.emitEvent(
                         ChatEmitEvents.ChatList,
                         {ApiKeys.type: AppConstants.personal_Chat_Type});
-                    Get.back();
-
                   }
 
-                }else if (widget.sharedFiles != null) {
-                  List<File> selectedFiles = [];
-                  List<SharedAttachment?>? sharedList =
-                      widget.sharedFiles;
+                  if (widget.sharedFiles != null) {
+                    List<String?> userIds= chatViewController.selectedChatList.map((e)=>e?.sender?.id).toList();
+                    List<File> selectedFiles = [];
+                    List<SharedAttachment?>? sharedList =
+                        widget.sharedFiles;
 
-                  if (sharedList != null && sharedList.isNotEmpty) {
-                    selectedFiles = sharedList
-                        .where((e) =>
-                    e?.path != null && e!.path.isNotEmpty)
-                        .map((e) => File(e!.path))
-                        .toList();
-                  }
+                    if (sharedList != null && sharedList.isNotEmpty) {
+                      selectedFiles = sharedList
+                          .where((e) =>
+                      e?.path != null && e!.path.isNotEmpty)
+                          .map((e) => File(e!.path))
+                          .toList();
+                    }
 
-                  List<String?> fileNames = [];
-                  List<String?> fileTypes = [];
-                  for (var file in selectedFiles) {
-                    Map<String, String?> fileInfo = getFileInfo(file);
-                    fileNames.add(fileInfo['fileName']);
-                    fileTypes.add(fileInfo['mimeType']);
-                  }
+                    List<String?> fileNames = [];
+                    List<String?> fileTypes = [];
+                    for (var file in selectedFiles) {
+                      Map<String, String?> fileInfo = getFileInfo(file);
+                      fileNames.add(fileInfo['fileName']);
+                      fileTypes.add(fileInfo['mimeType']);
+                    }
 
-                  String firstFileExtension = selectedFiles.first.path
-                      .split('.')
-                      .last
-                      .toLowerCase();
-                  String messageType = ['mp4', 'mov', 'avi', 'mkv']
-                      .contains(firstFileExtension)
-                      ? 'video'
-                      : 'image';
+                    String firstFileExtension = selectedFiles.first.path
+                        .split('.')
+                        .last
+                        .toLowerCase();
+                    String messageType = ['mp4', 'mov', 'avi', 'mkv']
+                        .contains(firstFileExtension)
+                        ? 'video'
+                        : 'image';
 
-                  final uploadParams = {
-                    ApiKeys.fileName: fileNames,
-                    ApiKeys.fileType: fileTypes,
-                  };
-
-                  await chatViewController.generateUploadUrlsApi(
-                    params: uploadParams,
-                    listFile: selectedFiles,
-                    userId: userIds,
-                    messageType: messageType,
-                  );
-                  chatViewController.emitEvent(
-                      ChatEmitEvents.ChatList,
-                      {ApiKeys.type: AppConstants.personal_Chat_Type});
-                  if(widget.stopChatNav!=true){
-                    bottomBarController.onChangeIndex(3);
-                  }
-
-
-                  Get.back();
-                }else{
-                  if(chatViewController.selectedUserIds.isNotEmpty){
-                    Map<String, dynamic> data = {
-                      ApiKeys.forward_id:
-                      chatThemeController.selectedMessageIds,
-                      ApiKeys.forward_to_conversations:
-                      chatViewController.selectedUserIds,
+                    final uploadParams = {
+                      ApiKeys.fileName: fileNames,
+                      ApiKeys.fileType: fileTypes,
                     };
 
-                    bool value = await chatViewController
-                        .forwardMessageApi(data);
-
-                    if (value) {
-                      chatViewController.emitEvent(
-                          ChatEmitEvents.ChatList,
-                          {ApiKeys.type: AppConstants.personal_Chat_Type});
-                      chatThemeController.selectedMessageIds.clear();
-                      chatThemeController.isMessageSelectionActive.value=false;
-                      Get.back();
-                      Get.back();
-                    }
+                    await chatViewController.generateUploadUrlsApi(
+                      params: uploadParams,
+                      listFile: selectedFiles,
+                      userId: userIds,
+                      messageType: messageType,
+                    );
+                    chatViewController.emitEvent(
+                        ChatEmitEvents.ChatList,
+                        {ApiKeys.type: AppConstants.personal_Chat_Type});
                   }
+                }else{
+                  // Forward existing messages to selected contacts
+                  Map<String, dynamic> data = {
+                    ApiKeys.forward_id:
+                    chatThemeController.selectedMessageIds,
+                    ApiKeys.forward_to_conversations:
+                    chatViewController.selectedUserIds,
+                  };
+
+                  bool value = await chatViewController
+                      .forwardMessageApi(data);
+
+                  if (value) {
+                    chatViewController.emitEvent(
+                        ChatEmitEvents.ChatList,
+                        {ApiKeys.type: AppConstants.personal_Chat_Type});
+                    chatThemeController.selectedMessageIds.clear();
+                    chatThemeController.isMessageSelectionActive.value=false;
+                  }
+                }
+              }
+
+              // Navigate to symbol screen if symbol selected
+              if(symbolSelected==true){
+                Get.off(()=>AddChatSymbolScreen(
+                  sharedText: widget.sharedText,
+                  sharedFiles: widget.sharedFiles,
+                ));
+              }else{
+                if(widget.stopChatNav!=true){
+                  bottomBarController.onChangeIndex(3);
+                }
+                Get.back();
+                if(widget.sharedFiles==null && widget.sharedText==null){
+                  Get.back();
                 }
               }
 

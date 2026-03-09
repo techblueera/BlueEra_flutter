@@ -292,15 +292,8 @@ Widget  ChatListTile({
           if (isForwardUI == true) {
             selectChatListCard();
           } else {
-            chatViewController.openAnyOneChatFunction(
-              // businessId: senderBusinessId,
-              type: type,
-              isInitialMessage: false,
-              userId: senderId,
-              conversationId: conversationId,
-              profileImage: senderProfileImage,
-              contactName: senderName,
-              contactNo: senderContactNo,
+            chatViewController.checkChatConnectionAndOpenChat(
+              userId: senderId ?? '',
             );
           }
         },
@@ -1224,12 +1217,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
             });
           },
         ),
-      if(isGroupAppBar == null&&isFromAiChat!=true)
+      if(isFromAiChat!=true)
         InkWell(
             onTap: () {
               _initiateCallFromChat(
                 callType: CallType.audio,
-                otherUserId: userId,
+                otherUserId: isGroupAppBar == null ? userId : null,
                 conversationId: conversationId,
                 userName: name ?? '',
                 userImage: profileImage ?? '',
@@ -1239,12 +1232,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Icon(Icons.call, color: AppColors.chat_input_icon_color, size: 24),
             )),
-      if(isGroupAppBar == null&&isFromAiChat!=true)
+      if(isFromAiChat!=true)
         InkWell(
             onTap: () {
               _initiateCallFromChat(
                 callType: CallType.video,
-                otherUserId: userId,
+                otherUserId: isGroupAppBar == null ? userId : null,
                 conversationId: conversationId,
                 userName: name ?? '',
                 userImage: profileImage ?? '',

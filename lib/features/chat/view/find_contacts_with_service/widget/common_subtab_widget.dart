@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_text_cm.dart';
+
 class CommonSubTabWidget extends StatelessWidget {
   final String title;
   final int index;
@@ -15,67 +16,96 @@ class CommonSubTabWidget extends StatelessWidget {
     super.key,
     required this.title,
     required this.onTap,
-    this.icon, required this.index, required this.selectedIndex,
+    this.icon,
+    required this.index,
+    required this.selectedIndex,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isSelected = selectedIndex == index;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
       onTap: onTap,
-      child: Container(
-        height: SizeConfig.size120,
-        width: SizeConfig.size114,
-        margin: const EdgeInsets.symmetric(horizontal: 3),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: isSelected
-              ? Border.all(color: AppColors.primaryColor)
-              : null,
+      child:
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: CustomText(
+          title,
+          textAlign: TextAlign.center,
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          color: isSelected ? AppColors.primaryColor : Colors.grey.shade700,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          decoration: TextDecoration.underline,
+          decorationColor: isSelected ? AppColors.primaryColor : Colors.black,
         ),
-        child: Stack(
-          children: [
-            if(icon!=null)
-            Center(child: Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: LocalAssets(
-                boxFix: BoxFit.cover,
-              height: 50,
-                width: 50, imagePath:icon??'',
-              ),
-            )),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              left: 0,
-              child: Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  gradient:isSelected? LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.primaryColor.withOpacity(0.0),
-                      AppColors.primaryColor.withOpacity(0.2),
-                    ],
-                  ):null,
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomText(title,textAlign: TextAlign.center,fontSize: 10,fontWeight: FontWeight.w600,),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      )
+      // AnimatedContainer(
+      //   duration: const Duration(milliseconds: 200),
+      //   curve: Curves.easeOut,
+      //   height: SizeConfig.size114,
+      //   width: SizeConfig.size100,
+      //   margin: const EdgeInsets.symmetric(horizontal: 4),
+      //   decoration: BoxDecoration(
+      //     color: AppColors.white,
+      //     borderRadius: BorderRadius.circular(14),
+      //     border: Border.all(
+      //       color: isSelected ? AppColors.primaryColor : Colors.grey.shade200,
+      //       width: isSelected ? 1.5 : 1,
+      //     ),
+      //     boxShadow: isSelected
+      //         ? [
+      //             BoxShadow(
+      //               color: AppColors.primaryColor.withValues(alpha: 0.12),
+      //               blurRadius: 10,
+      //               offset: const Offset(0, 3),
+      //             ),
+      //           ]
+      //         : [
+      //             BoxShadow(
+      //               color: Colors.black.withValues(alpha: 0.04),
+      //               blurRadius: 6,
+      //               offset: const Offset(0, 2),
+      //             ),
+      //           ],
+      //   ),
+      //   child: Column(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: [
+      //       // if (icon != null)
+      //       //   Container(
+      //       //     padding: const EdgeInsets.all(6),
+      //       //     decoration: BoxDecoration(
+      //       //       color: isSelected
+      //       //           ? AppColors.primaryColor.withValues(alpha: 0.08)
+      //       //           : Colors.grey.shade50,
+      //       //       shape: BoxShape.circle,
+      //       //     ),
+      //       //     child: LocalAssets(
+      //       //       boxFix: BoxFit.cover,
+      //       //       height: 36,
+      //       //       width: 36,
+      //       //       imagePath: icon ?? '',
+      //       //     ),
+      //       //   ),
+      //       // const SizedBox(height: 8),
+      //       Padding(
+      //         padding: const EdgeInsets.symmetric(horizontal: 4),
+      //         child: CustomText(
+      //           title,
+      //           textAlign: TextAlign.center,
+      //           fontSize: 10,
+      //           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+      //           color: isSelected ? AppColors.primaryColor : Colors.grey.shade700,
+      //           maxLines: 2,
+      //           overflow: TextOverflow.ellipsis,
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      // ),
     );
   }
 }

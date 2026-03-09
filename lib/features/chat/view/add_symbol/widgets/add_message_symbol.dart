@@ -27,6 +27,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
   final controller = Get.put(AddChatSymbolController());
 
   final List<Color> colorOptions = [
+    Colors.black,
     Color(0xFF26C2DC),
     AppColors.primaryColor,
     Color(0xFF7ACAA5),
