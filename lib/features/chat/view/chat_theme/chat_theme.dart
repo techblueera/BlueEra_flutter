@@ -365,7 +365,8 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
     if (_bgAsset.isNotEmpty) {
       return Image.asset(_bgAsset, fit: BoxFit.cover);
     }
-    return Container(color: _bgColor);
+    // Default background image
+    return Image.asset(AppImageAssets.chatDefaultBg, fit: BoxFit.cover);
   }
 
   Widget _previewBubble({required String text, required bool isMe}) {
@@ -563,6 +564,7 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
   // ─────────────────────────────────────────────────────────
   Widget _buildWallpaperSection() {
     final wallpapers = [
+      {'asset': AppImageAssets.chatDefaultBg, 'name': 'Default'},
       {'asset': AppImageAssets.chatBgLight, 'name': 'Light'},
       {'asset': AppImageAssets.chatBgDark, 'name': 'Dark'},
       {'asset': AppImageAssets.chatBgBlueShade, 'name': 'Blue'},

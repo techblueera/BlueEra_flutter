@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -174,8 +175,9 @@ class ChatThemeController extends GetxController {
         child: Image.asset(chatBgAsset.value, fit: BoxFit.cover),
       );
     }
+    // Default background image for all chat screens
     return Positioned.fill(
-      child: Container(color: chatBgColor.value),
+      child: Image.asset(AppImageAssets.chatDefaultBg, fit: BoxFit.cover),
     );
   }
   Rx<ApiResponse> getListOfReminderMsgResponse = ApiResponse.initial('Initial').obs;

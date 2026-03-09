@@ -17,6 +17,11 @@ class ActiveCallScreen extends StatefulWidget {
 class _ActiveCallScreenState extends State<ActiveCallScreen> {
   late Worker _switchTypeWorker;
 
+  // Draggable local video position
+  double _localVideoX = -1;
+  double _localVideoY = -1;
+  bool _positionInitialized = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,93 +44,167 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   Widget build(BuildContext context) {
     final controller = Get.find<CallController>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF121B22),
-      body: Obx(() {
-        final isVideo = controller.callType.value == CallType.video;
-        final isGroup = controller.isGroupCall.value;
+    return PopScope(
+      canPop: !controller.isInPipMode.value,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF121B22),
+        body: Obx(() {
+          final isVideo = controller.callType.value == CallType.video;
+          final isGroup = controller.isGroupCall.value;
+          final isPip = controller.isInPipMode.value;
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // Main content area
-            if (isGroup)
-              _buildGroupCallBody(controller, isVideo)
-            else if (isVideo)
-              _buildVideoCallBody(controller)
-            else
-              _buildAudioCallBody(controller),
-            // Top bar
-            _buildTopBar(context, controller),
-            // Bottom controls
-            _buildBottomControls(controller, isVideo),
-          ],
+          // PiP mode: show minimal UI
+          if (isPip) {
+            return _buildPipModeUI(controller, isVideo);
+          }
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // Main content area
+              if (isGroup)
+                _buildGroupCallBody(controller, isVideo)
+              else if (isVideo)
+                _buildVideoCallBody(controller)
+              else
+                _buildAudioCallBody(controller),
+              // Top bar
+              _buildTopBar(context, controller),
+              // Bottom controls
+              _buildBottomControls(controller, isVideo),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ==================== PiP MODE UI ====================
+
+  Widget _buildPipModeUI(CallController controller, bool isVideo) {
+    // Minimal UI shown in PiP window
+    if (isVideo && controller.remoteStreams.isNotEmpty) {
+      final remoteRenderer = controller.remoteRenderers.values.firstOrNull;
+      if (remoteRenderer != null) {
+        return RTCVideoView(
+          remoteRenderer,
+          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
         );
-      }),
+      }
+    }
+    // Audio call or no remote video — show avatar + timer
+    return Container(
+      color: const Color(0xFF121B22),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildCircleAvatar(
+              name: controller.remoteUserName.value,
+              image: controller.remoteUserImage.value,
+              radius: 30,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              controller.formattedCallDuration,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   // ==================== 1-to-1 VIDEO CALL ====================
 
   Widget _buildVideoCallBody(CallController controller) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Remote video (full screen)
-        Obx(() {
-          if (controller.remoteStreams.isNotEmpty &&
-              controller.remoteVideoEnabled.value) {
-            final remoteRenderer =
-                controller.remoteRenderers.values.firstOrNull;
-            if (remoteRenderer != null) {
-              return RTCVideoView(
-                remoteRenderer,
-                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double videoW = 110;
+        const double videoH = 150;
+        // Initialize position to bottom-right on first build
+        if (!_positionInitialized) {
+          _localVideoX = constraints.maxWidth - videoW - 16;
+          _localVideoY = constraints.maxHeight - videoH - 140;
+          _positionInitialized = true;
+        }
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Remote video (full screen)
+            Obx(() {
+              if (controller.remoteStreams.isNotEmpty &&
+                  controller.remoteVideoEnabled.value) {
+                final remoteRenderer =
+                    controller.remoteRenderers.values.firstOrNull;
+                if (remoteRenderer != null) {
+                  return RTCVideoView(
+                    remoteRenderer,
+                    objectFit:
+                        RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                  );
+                }
+              }
+              return _buildAvatarPlaceholder(
+                name: controller.remoteUserName.value,
+                image: controller.remoteUserImage.value,
+                radius: 50,
+                showCameraOff: !controller.remoteVideoEnabled.value,
               );
-            }
-          }
-          return _buildAvatarPlaceholder(
-            name: controller.remoteUserName.value,
-            image: controller.remoteUserImage.value,
-            radius: 50,
-            showCameraOff: !controller.remoteVideoEnabled.value,
-          );
-        }),
-        // Local video PiP (bottom right, draggable)
-        if (controller.localRenderer != null)
-          Obx(() {
-            if (!controller.isCameraOn.value) {
-              return const SizedBox.shrink();
-            }
-            return Positioned(
-              bottom: 120,
-              right: 16,
-              child: Container(
-                width: 110,
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+            }),
+            // Local video PiP (draggable anywhere)
+            if (controller.localRenderer != null)
+              Obx(() {
+                if (!controller.isCameraOn.value) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned(
+                  left: _localVideoX,
+                  top: _localVideoY,
+                  child: GestureDetector(
+                    onPanUpdate: (details) {
+                      setState(() {
+                        _localVideoX = (_localVideoX + details.delta.dx)
+                            .clamp(0.0, constraints.maxWidth - videoW);
+                        _localVideoY = (_localVideoY + details.delta.dy)
+                            .clamp(0.0, constraints.maxHeight - videoH);
+                      });
+                    },
+                    child: Container(
+                      width: videoW,
+                      height: videoH,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: RTCVideoView(
+                        controller.localRenderer!,
+                        mirror: true,
+                        objectFit:
+                            RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                      ),
                     ),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: RTCVideoView(
-                  controller.localRenderer!,
-                  mirror: true,
-                  objectFit:
-                      RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                ),
-              ),
-            );
-          }),
-      ],
+                  ),
+                );
+              }),
+          ],
+        );
+      },
     );
   }
 
@@ -458,6 +537,20 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
                     ],
                   ),
                 ),
+                // Minimize (PiP) button
+                GestureDetector(
+                  onTap: () => controller.enterPipMode(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.picture_in_picture_alt,
+                        color: Colors.white, size: 20),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 // Add user button (WhatsApp style)
                 Obx(() {
                   if (controller.callStatus.value == CallStatus.connected) {
@@ -591,59 +684,66 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
           top: false,
           child: Padding(
             padding:
-                const EdgeInsets.only(left: 24, right: 24, bottom: 16, top: 24),
+                const EdgeInsets.only(left: 24, right: 24, bottom: 16, top: 20),
             child: Obx(() {
               final currentIsVideo = controller.callType.value == CallType.video;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Camera toggle (video only)
-                  if (currentIsVideo)
-                    Obx(() => _buildControlButton(
-                          icon: controller.isCameraOn.value
-                              ? Icons.videocam
-                              : Icons.videocam_off,
-                          label: 'Camera',
-                          isActive: !controller.isCameraOn.value,
-                          onTap: () => controller.toggleCamera(),
-                        )),
-                  // Mic toggle
-                  Obx(() => _buildControlButton(
-                        icon: controller.isMicOn.value
-                            ? Icons.mic
-                            : Icons.mic_off,
-                        label: 'Mute',
-                        isActive: !controller.isMicOn.value,
-                        onTap: () => controller.toggleMic(),
-                      )),
-                  // End call (large red)
-                  _buildEndCallButton(controller),
-                  // Speaker toggle
-                  Obx(() => _buildControlButton(
-                        icon: controller.isSpeakerOn.value
-                            ? Icons.volume_up
-                            : Icons.hearing,
-                        label: 'Speaker',
-                        isActive: controller.isSpeakerOn.value,
-                        onTap: () => controller.toggleSpeaker(),
-                      )),
-                  // Switch call type button (audio shows video icon, video shows phone icon)
-                  if (controller.callStatus.value == CallStatus.connected)
-                    Obx(() => _buildControlButton(
-                          icon: currentIsVideo ? Icons.call : Icons.videocam,
-                          label: currentIsVideo ? 'Audio' : 'Video',
-                          isActive: controller.isSwitchTypePending.value,
-                          onTap: controller.isSwitchTypePending.value
-                              ? null
-                              : () => controller.switchCallType(),
-                        )),
-                  // Switch camera (video only)
-                  if (currentIsVideo)
-                    _buildControlButton(
-                      icon: Icons.flip_camera_ios,
-                      label: 'Flip',
-                      onTap: () => controller.switchCamera(),
-                    ),
+                  // Row 1: Camera, Mic, Speaker, Flip (media controls)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      if (currentIsVideo)
+                        Obx(() => _buildControlButton(
+                              icon: controller.isCameraOn.value
+                                  ? Icons.videocam
+                                  : Icons.videocam_off,
+                              label: 'Camera',
+                              isActive: !controller.isCameraOn.value,
+                              onTap: () => controller.toggleCamera(),
+                            )),
+                      Obx(() => _buildControlButton(
+                            icon: controller.isMicOn.value
+                                ? Icons.mic
+                                : Icons.mic_off,
+                            label: 'Mute',
+                            isActive: !controller.isMicOn.value,
+                            onTap: () => controller.toggleMic(),
+                          )),
+                      Obx(() => _buildControlButton(
+                            icon: controller.isSpeakerOn.value
+                                ? Icons.volume_up
+                                : Icons.hearing,
+                            label: 'Speaker',
+                            isActive: controller.isSpeakerOn.value,
+                            onTap: () => controller.toggleSpeaker(),
+                          )),
+                      if (currentIsVideo)
+                        _buildControlButton(
+                          icon: Icons.flip_camera_ios,
+                          label: 'Flip',
+                          onTap: () => controller.switchCamera(),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Row 2: Switch type, End call
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      if (controller.callStatus.value == CallStatus.connected)
+                        Obx(() => _buildControlButton(
+                              icon: currentIsVideo ? Icons.call : Icons.videocam,
+                              label: currentIsVideo ? 'Audio' : 'Video',
+                              isActive: controller.isSwitchTypePending.value,
+                              onTap: controller.isSwitchTypePending.value
+                                  ? null
+                                  : () => controller.switchCallType(),
+                            )),
+                      _buildEndCallButton(controller),
+                    ],
+                  ),
                 ],
               );
             }),

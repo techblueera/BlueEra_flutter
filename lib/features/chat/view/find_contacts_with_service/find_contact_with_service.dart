@@ -153,6 +153,9 @@ class _FindContactWithServiceState extends State<FindContactWithService>
                           onTabSelected: (index, value) {
                             tabController?.animateTo(index);
                             _handleTabSelection(index); // Call your API logic
+                          setState(() {
+
+                          });
                           },
                           labelBuilder: (label) => label,
                         ),

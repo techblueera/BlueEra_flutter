@@ -73,6 +73,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
+
             ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
         chatViewController.emitEvent(
             ChatEmitEvents.newMessageReceived, {ApiKeys.type: AppConstants.personal_Chat_Type}, );

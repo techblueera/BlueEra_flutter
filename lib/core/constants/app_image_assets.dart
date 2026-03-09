@@ -14,6 +14,7 @@ class AppImageAssets {
   static const String franchise_home = '${imgPath}franchise_home.png';
   static const String franchise_logo = '${imgPath}franchise_logo.png';
   static const String chatBgBlueShade = '${imgPath}chat_bg_blue_shade.png';
+  static const String chatDefaultBg = '${imgPath}chat_default_bg.png';
 
 
   static const String markerBlue = '${imgPath}marker_blue.png';

@@ -1092,6 +1092,7 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().sendMessageToUserLargeFile(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
+
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
@@ -1223,7 +1224,7 @@ class ChatViewController extends GetxController {
     // if(chatList.isEmpty){
 
     Map<String,dynamic> params={
-      if(otherUserId != null && otherUserId.isNotEmpty)
+      if(conversationId.isEmpty)
         ApiKeys.other_user_id: otherUserId
       else
         ApiKeys.conversation_id: conversationId,
@@ -1233,6 +1234,17 @@ class ChatViewController extends GetxController {
       if (name != null && name == "BlueEra Orders")
         ApiKeys.orders_conversation: true
     };
+    //    Map<String,dynamic> params={
+    //       if(conversationId.isEmpty)
+    //         ApiKeys.other_user_id: otherUserId
+    //       else
+    //         ApiKeys.conversation_id: conversationId,
+    //       ApiKeys.page: 1,
+    //       ApiKeys.is_online_user: userId,
+    //       ApiKeys.per_page_message: 30,
+    //       if (name != null && name == "BlueEra Orders")
+    //         ApiKeys.orders_conversation: true
+    //     };
     emitEvent(
         ChatEmitEvents.messageReceived,params);
     // }
@@ -1791,6 +1803,7 @@ class ChatViewController extends GetxController {
       if (isWithProductSend == true) {
         await sendProductMessages(shareProductParams ?? {});
       }
+
 
       if (type == AppConstants.business_Chat_Type) {
         if (isFromContactList != null && isFromContactList) {
