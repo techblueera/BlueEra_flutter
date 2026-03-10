@@ -14,10 +14,12 @@ class ChatSocketService {
 
   ChatSocketService._internal();
 
-  static late IO.Socket _socket;
-
+  static IO.Socket? _socket;
 
   bool _isConnected = false;
+
+  // Buffered listeners registered before socket was connected
+  final List<MapEntry<String, Function(dynamic)>> _pendingListeners = [];
 
   Future<void> connectToSocket() async {
     try {
@@ -30,21 +32,25 @@ class ChatSocketService {
             .build(),
       );
 
-      _socket.connect();
-      _socket.onConnect((_) {
+      _socket!.connect();
+      _socket!.onConnect((_) {
         _isConnected = true;
-        _socket.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
-        _socket.emit(ChatEmitEvents.isOnlineFromChatList, {});
-        _socket.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
+        _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+        _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
+        _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
+
+        // Replay any listeners that were registered before socket was ready
+        for (final entry in _pendingListeners) {
+          _socket!.on(entry.key, entry.value);
+        }
+        _pendingListeners.clear();
       });
 
-      _socket.onConnectError((err) {
+      _socket!.onConnectError((err) {
         print('Chat Socket Connect error: $err');
-
       });
 
-      _socket.onDisconnect((_) => print('Disconnected'));
-
+      _socket!.onDisconnect((_) => print('Disconnected'));
 
     } catch (e) {
       print("Socket connection failed: $e");
@@ -52,33 +58,39 @@ class ChatSocketService {
     }
   }
 
-  void emitEvent(String event, dynamic data) async{
-    if (_isConnected) {
-      _socket.emit(event, data);
+  void emitEvent(String event, dynamic data) async {
+    if (_isConnected && _socket != null) {
+      _socket!.emit(event, data);
     } else {
-     await connectToSocket();
-      _socket.emit(event, data);
+      await connectToSocket();
+      _socket?.emit(event, data);
       print("⚠ Cannot emit, socket not connected");
     }
   }
-  void emitDisposeEvent(String event, dynamic data) async{
 
-    if (_isConnected) {
-      _socket.emit(event, data);
+  void emitDisposeEvent(String event, dynamic data) async {
+    if (_isConnected && _socket != null) {
+      _socket!.emit(event, data);
     } else {
       print("⚠ Cannot emit, socket not connected");
     }
   }
 
   void listenEvent(String event, Function(dynamic) callback) {
-    _socket.on(event, callback);
+    if (_socket != null) {
+      _socket!.on(event, callback);
+    } else {
+      // Buffer until socket connects
+      _pendingListeners.add(MapEntry(event, callback));
+    }
   }
 
   void disconnectSocket() {
-    _socket.disconnect();
+    _socket?.disconnect();
   }
+
   void disposeSocket() {
-    _socket.dispose();
+    _socket?.dispose();
   }
 
   bool get isConnected => _isConnected;

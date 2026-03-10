@@ -101,6 +101,8 @@
     <string>ca-app-pub-4151367085462604~5043177104</string>
     <key>FirebaseAppDelegateProxyEnabled</key>
     <false/>
+    <key>FirebaseMessagingAutoInitEnabled</key>
+    <true/>
     <!-- Add for share_handler start -->
     <!-- The 'NSUserActivityTypes' key is only needed if you plan to use the recordSentMessage API allowing for conversations to show up as direct share suggestions -->
     <key>NSUserActivityTypes</key>

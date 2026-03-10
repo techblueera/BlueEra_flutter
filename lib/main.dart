@@ -88,10 +88,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     return;
   }
 
-  // For ALL other notifications in background: show our own notification
-  // with action buttons (Reply, Mark as Read, etc.)
-  // Firebase auto-shows from the FCM 'notification' object but WITHOUT actions.
-  // We must cancel Firebase's native notification and show our own.
+  // For ALL other notifications in background: use the generic data-only renderer.
+  // Backend sends data-only FCM messages, so we render them ourselves with
+  // action buttons, BigPictureStyle, grouping, etc.
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
     const InitializationSettings(
@@ -105,18 +104,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Future.delayed(const Duration(milliseconds: 500));
 
   // Cancel ALL notifications (including Firebase's auto-shown ones).
-  // NotificationManagerCompat.cancelAll() removes every notification for this app.
   await plugin.cancelAll();
 
-  final handler = AppNotificationHandler();
-  if (operation == 'missed_call') {
-    handler.showNotification(message,
-        channelId: 'missed_calls',
-        channelName: 'Missed Calls',
-        importance: Importance.defaultImportance);
-  } else {
-    handler.showNotification(message);
-  }
+  // Use the generic showFromData renderer which reads all backend fields:
+  // channelId, channelName, channelImportance, style, imageUrl, groupKey, actions, etc.
+  AppNotificationHandler.flutterLocalNotificationsPlugin = plugin;
+  await AppNotificationHandler().showFromData(message.data);
 }
 
 getDeviceInfo() async {
@@ -173,6 +166,12 @@ Future<void> main() async {
   unFocus();
   Get.put(NavigationHelperController());
   Get.put(GlobalMessageService());
+
+  /// Register CallController early so it's available for push notification handlers
+  /// (incoming call notifications can arrive before user navigates to chat)
+  if (!Get.isRegistered<CallController>()) {
+    Get.put(CallController(), permanent: true);
+  }
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
 

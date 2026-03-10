@@ -26,8 +26,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
-// import 'package:http/http.dart' as http;
-// import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:http/http.dart' as http;
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -216,6 +215,41 @@ class AppNotificationHandler {
       importance: Importance.defaultImportance,
     );
 
+    const AndroidNotificationChannel messagesChannel = AndroidNotificationChannel(
+      'messages',
+      'Messages',
+      description: 'Chat messages and tagged messages',
+      importance: Importance.high,
+    );
+
+    const AndroidNotificationChannel ridesChannel = AndroidNotificationChannel(
+      'rides',
+      'Ride Updates',
+      description: 'Ride order status updates',
+      importance: Importance.high,
+    );
+
+    const AndroidNotificationChannel announcementsChannel = AndroidNotificationChannel(
+      'announcements',
+      'Announcements',
+      description: 'Admin and system announcements',
+      importance: Importance.defaultImportance,
+    );
+
+    const AndroidNotificationChannel channelsChannel = AndroidNotificationChannel(
+      'channels',
+      'Channels',
+      description: 'Channel and follower updates',
+      importance: Importance.defaultImportance,
+    );
+
+    const AndroidNotificationChannel ongoingCallChannel = AndroidNotificationChannel(
+      'ongoing_call',
+      'Ongoing Calls',
+      description: 'Shows when a call is in progress',
+      importance: Importance.low,
+    );
+
     ///local notification...
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -226,6 +260,11 @@ class AppNotificationHandler {
     await androidPlugin?.createNotificationChannel(defaultChannel);
     await androidPlugin?.createNotificationChannel(incomingCallChannel);
     await androidPlugin?.createNotificationChannel(missedCallChannel);
+    await androidPlugin?.createNotificationChannel(messagesChannel);
+    await androidPlugin?.createNotificationChannel(ridesChannel);
+    await androidPlugin?.createNotificationChannel(announcementsChannel);
+    await androidPlugin?.createNotificationChannel(channelsChannel);
+    await androidPlugin?.createNotificationChannel(ongoingCallChannel);
 
     ///IOS Setup
     DarwinInitializationSettings initializationSettings =
@@ -319,6 +358,17 @@ class AppNotificationHandler {
       onDidReceiveNotificationResponse: (response) {
         if (response.payload != null) {
           final data = json.decode(response.payload!) as Map<String, dynamic>;
+          // Handle ongoing call notification tap → return to active call screen
+          if (data['action'] == 'open_active_call') {
+            if (response.actionId == 'hangup_call') {
+              if (Get.isRegistered<CallController>()) {
+                Get.find<CallController>().endCall();
+              }
+            } else {
+              Get.toNamed('/ActiveCallScreen');
+            }
+            return;
+          }
           if (response.actionId != null && response.actionId!.isNotEmpty) {
             String? replyText;
             if (response.input != null && response.input!.isNotEmpty) {
@@ -391,6 +441,14 @@ class AppNotificationHandler {
       return;
     }
 
+    // Ongoing call: Hang Up action
+    if (actionId == 'hangup_call') {
+      if (Get.isRegistered<CallController>()) {
+        Get.find<CallController>().endCall();
+      }
+      return;
+    }
+
     // Default: treat as regular notification tap
     _onTapNotificationFromStatusBar(data);
   }
@@ -438,17 +496,51 @@ class AppNotificationHandler {
       return;
     }
 
-    // Handle missed call - show on missed_calls channel
-    if (operation == 'missed_call') {
-      showNotification(message, channelId: 'missed_calls', channelName: 'Missed Calls', importance: Importance.defaultImportance);
-      return;
-    }
-
-    // All other notifications on default channel
-    showNotification(message);
+    // Use the generic data-only renderer for all other notifications.
+    // This reads channelId, channelName, channelImportance, style, imageUrl,
+    // groupKey, actions, etc. directly from the data payload.
+    await showFromData(message.data);
   }
 
-  /// Handle incoming call push notification using operation-based payload
+  /// Handle incoming call when app is in foreground — open in-app call screen directly
+  void _handleIncomingCallForeground(RemoteMessage message) {
+    final data = message.data;
+    final senderId = data['senderId'] ?? '';
+    final convId = data['conversationId'] ?? '';
+    final callerNameStr = data['senderName'] ?? 'Unknown';
+    final callerImageStr = data['senderProfileImage'] ?? '';
+    final callTypeStr = (data['message'] ?? '').toString().contains('video')
+        ? 'video_call'
+        : 'voice_call';
+
+    // Ensure CallController exists
+    if (!Get.isRegistered<CallController>()) {
+      Get.put(CallController(), permanent: true);
+    }
+    final callController = Get.find<CallController>();
+
+    // If already ringing/active (socket event may have arrived first), skip
+    if (callController.callStatus.value != CallStatus.idle) return;
+
+    // Use initStateFromCallKitExtra which sets all state including _remoteUserId & socket
+    callController.initStateFromCallKitExtra({
+      'senderId': senderId,
+      'conversationId': convId,
+      'callType': callTypeStr,
+      'callerName': callerNameStr,
+      'callerImage': callerImageStr,
+      'callId': data['callId'] ?? data['notificationId'] ?? '',
+      'roomId': data['roomId'] ?? data['room_id'] ?? '',
+      'operation': 'incoming_call',
+    });
+
+    // Navigate to the in-app incoming call screen (avoid duplicate)
+    if (Get.currentRoute != '/IncomingCallScreen') {
+      Get.toNamed('/IncomingCallScreen');
+    }
+  }
+
+  /// Handle incoming call push notification using operation-based payload (background/killed)
   void _handleIncomingCallPush(RemoteMessage message) {
     final data = message.data;
     final callerName = data['senderName'] ?? 'Unknown';
@@ -465,6 +557,8 @@ class AppNotificationHandler {
         'callType': callType,
         'callerName': callerName,
         'callerImage': callerImage,
+        'callId': data['callId'] ?? data['notificationId'] ?? '',
+        'roomId': data['roomId'] ?? data['room_id'] ?? '',
         'operation': 'incoming_call',
       },
     );
@@ -612,6 +706,169 @@ class AppNotificationHandler {
     );
   }
 
+  // ─── Generic data-only FCM renderer (per backend notification guide) ───
+
+  /// Show notification from a data-only FCM payload.
+  /// Reads all fields from the backend: title, body, imageUrl, style,
+  /// channelId, channelName, channelImportance, groupKey, notificationId, actions.
+  Future<void> showFromData(Map<String, dynamic> data) async {
+    final title = (data['title'] ?? 'BlueEra').toString();
+    final body = (data['body'] ?? data['message'] ?? '').toString();
+    final imageUrl = (data['imageUrl'] ?? '').toString();
+    final style = (data['style'] ?? 'default').toString();
+    final channelId = (data['channelId'] ?? 'default').toString();
+    final channelName = (data['channelName'] ?? 'Notifications').toString();
+    final channelImportance = (data['channelImportance'] ?? 'default').toString();
+    final groupKey = (data['groupKey'] ?? '').toString();
+    final notificationId = (data['notificationId'] ?? '${DateTime.now().millisecondsSinceEpoch}').toString();
+    final actionsJson = (data['actions'] ?? '[]').toString();
+    final operation = (data['operation'] ?? '').toString().toLowerCase();
+    final isChatMessage = _isChatOperation(operation);
+
+    // Parse action buttons from backend
+    List<Map<String, dynamic>> backendActions = [];
+    try {
+      backendActions = List<Map<String, dynamic>>.from(jsonDecode(actionsJson));
+    } catch (_) {}
+
+    // Map importance string to Android importance level
+    final importance = _mapImportanceFromString(channelImportance);
+
+    // Download image for BigPictureStyle if needed
+    ByteArrayAndroidBitmap? bigPicture;
+    if (style == 'bigPicture' && imageUrl.isNotEmpty) {
+      bigPicture = await _downloadImageAsBitmap(imageUrl);
+    }
+
+    // Build style information
+    final styleInformation = _buildStyleInformation(style, body, bigPicture, title);
+
+    // Build action buttons: prefer chat-specific actions for chat messages,
+    // otherwise use backend-provided actions
+    final List<AndroidNotificationAction> androidActions = isChatMessage
+        ? _buildChatActions(data)
+        : backendActions.isNotEmpty
+            ? backendActions.take(3).map((a) {
+                return AndroidNotificationAction(
+                  (a['id'] ?? '').toString(),
+                  (a['text'] ?? '').toString(),
+                  showsUserInterface: true,
+                );
+              }).toList()
+            : _parseNotificationActions(data);
+
+    // Generate numeric ID from notification ID string
+    final numId = notificationId.hashCode.abs() % 2147483647;
+
+    // Build Android notification details
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      importance: importance,
+      priority: importance == Importance.max || importance == Importance.high
+          ? Priority.high
+          : Priority.defaultPriority,
+      playSound: true,
+      enableVibration: true,
+      icon: '@drawable/ic_stat',
+      groupKey: groupKey.isNotEmpty ? groupKey : null,
+      styleInformation: styleInformation,
+      category: isChatMessage ? AndroidNotificationCategory.message : null,
+      actions: androidActions,
+    );
+
+    // Build iOS notification details
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      interruptionLevel: InterruptionLevel.active,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      numId,
+      title,
+      body,
+      NotificationDetails(android: androidDetails, iOS: iosDetails),
+      payload: jsonEncode(data),
+    );
+
+    // Show group summary notification on Android (bundles multiple notifications)
+    if (groupKey.isNotEmpty && Platform.isAndroid) {
+      await flutterLocalNotificationsPlugin.show(
+        groupKey.hashCode.abs() % 2147483647,
+        title,
+        body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channelId,
+            channelName,
+            importance: importance,
+            icon: '@drawable/ic_stat',
+            groupKey: groupKey,
+            setAsGroupSummary: true,
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Build style information based on backend-provided style field
+  StyleInformation _buildStyleInformation(
+    String style,
+    String body,
+    ByteArrayAndroidBitmap? bigPicture,
+    String title,
+  ) {
+    switch (style) {
+      case 'bigPicture':
+        if (bigPicture != null) {
+          return BigPictureStyleInformation(
+            bigPicture,
+            contentTitle: title,
+            summaryText: body,
+            hideExpandedLargeIcon: false,
+          );
+        }
+        return BigTextStyleInformation(body, contentTitle: title);
+      case 'bigText':
+        return BigTextStyleInformation(body, contentTitle: title);
+      default:
+        return DefaultStyleInformation(true, true);
+    }
+  }
+
+  /// Map importance string from backend to Android Importance level
+  Importance _mapImportanceFromString(String level) {
+    switch (level) {
+      case 'max':
+        return Importance.max;
+      case 'high':
+        return Importance.high;
+      case 'low':
+        return Importance.low;
+      case 'min':
+        return Importance.min;
+      default:
+        return Importance.defaultImportance;
+    }
+  }
+
+  /// Download an image from URL and return as ByteArrayAndroidBitmap for BigPictureStyle
+  Future<ByteArrayAndroidBitmap?> _downloadImageAsBitmap(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(
+        const Duration(seconds: 5),
+      );
+      if (response.statusCode == 200) {
+        return ByteArrayAndroidBitmap(response.bodyBytes);
+      }
+    } catch (e) {
+      debugPrint('[Notification] Failed to download image: $e');
+    }
+    return null;
+  }
+
   /// Check if operation is a chat/message type
   bool _isChatOperation(String operation) {
     return operation == 'sent_message' ||
@@ -739,22 +996,19 @@ class AppNotificationHandler {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final operation = (message.data['operation'] ?? '').toString().toLowerCase();
 
-      // Always handle incoming calls on both platforms (CallKit handles native UI)
+      // Incoming call in foreground: open in-app WhatsApp-style call screen directly
       if (operation == 'incoming_call') {
-        _handleIncomingCallPush(message);
+        _handleIncomingCallForeground(message);
         return;
       }
 
-      if (Platform.isAndroid) {
-        playCustomSound(message);
-        showMsg(message);
-      } else if (Platform.isIOS) {
-        // iOS shows FCM notifications automatically in foreground,
-        // but we still handle missed calls and play sounds
-        if (operation == 'missed_call') {
-          playCustomSound(message);
-        }
-      }
+      // Play custom sound for foreground notifications
+      playCustomSound(message);
+
+      // Use the generic data-only renderer for both platforms.
+      // Data-only messages are NOT auto-displayed by Firebase,
+      // so we must render them ourselves.
+      showMsg(message);
     });
 
     /// when app is in background and user tap on it.

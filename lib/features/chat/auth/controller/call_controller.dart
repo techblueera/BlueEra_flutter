@@ -7,6 +7,7 @@ import 'package:flutter_callkit_incoming/entities/ios_params.dart';
 import 'package:flutter_callkit_incoming/entities/notification_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart' hide navigator;
 import 'package:permission_handler/permission_handler.dart';
@@ -79,6 +80,11 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   // Pending SDP offer received while still ringing (before user accepts)
   Map<String, dynamic>? _pendingOffer;
+
+  // Ongoing call notification
+  static const int _ongoingNotificationId = 99001;
+  static const String _ongoingChannelId = 'ongoing_call';
+  Timer? _notificationTimer;
 
   bool _disposed = false;
 
@@ -247,13 +253,18 @@ class CallController extends GetxController with WidgetsBindingObserver {
     required String userName,
     required String userImage,
   }) async {
-    // Request permissions
-    final permissions = [Permission.microphone];
-    if (type == CallType.video) permissions.add(Permission.camera);
-    final statuses = await permissions.request();
-    if (statuses.values.any((s) => s.isDenied || s.isPermanentlyDenied)) {
-      commonSnackBar(message: 'Camera/Microphone permission required');
-      return false;
+    // Request permissions (wrapped in try-catch to avoid PlatformException
+    // when another permission request is already in progress)
+    try {
+      final permissions = [Permission.microphone];
+      if (type == CallType.video) permissions.add(Permission.camera);
+      final statuses = await permissions.request();
+      if (statuses.values.any((s) => s.isDenied || s.isPermanentlyDenied)) {
+        commonSnackBar(message: 'Camera/Microphone permission required');
+        return false;
+      }
+    } catch (e) {
+      if (kDebugMode) print('Permission request error (may already be in progress): $e');
     }
 
     final params = <String, dynamic>{
@@ -329,8 +340,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _remoteUserId = data['initiated_by'] ?? '';
     callStatus.value = CallStatus.ringing;
 
-    // Show incoming call screen via GetX navigation
-    Get.toNamed('/IncomingCallScreen');
+    // Show incoming call screen via GetX navigation (avoid duplicate if push already opened it)
+    if (Get.currentRoute != '/IncomingCallScreen') {
+      Get.toNamed('/IncomingCallScreen');
+    }
   }
 
   /// Accept an incoming call
@@ -349,10 +362,15 @@ class CallController extends GetxController with WidgetsBindingObserver {
     final savedPendingOffer = _pendingOffer;
     callStatus.value = CallStatus.accepting;
 
-    // Request permissions
-    final permissions = [Permission.microphone];
-    if (callType.value == CallType.video) permissions.add(Permission.camera);
-    await permissions.request();
+    // Request permissions (wrapped in try-catch to avoid PlatformException
+    // when another permission request is already in progress)
+    try {
+      final permissions = [Permission.microphone];
+      if (callType.value == CallType.video) permissions.add(Permission.camera);
+      await permissions.request();
+    } catch (e) {
+      if (kDebugMode) print('Permission request error (may already be in progress): $e');
+    }
 
     ResponseModel response = await _callRepo.acceptCall({
       'call_id': savedCallId,
@@ -381,12 +399,13 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // Setup local media
     await _setupLocalMedia();
 
-    // If we already received an SDP offer while ringing, process it now
-    if (savedPendingOffer != null && savedRemoteUserId != null) {
+    // If we received an SDP offer while ringing/accepting, process it now
+    final offerToProcess = _pendingOffer ?? savedPendingOffer;
+    if (offerToProcess != null && savedRemoteUserId != null) {
       final pc = await _createPeerConnection(savedRemoteUserId);
       final sdp = RTCSessionDescription(
-        savedPendingOffer['sdp'],
-        savedPendingOffer['type'],
+        offerToProcess['sdp'],
+        offerToProcess['type'],
       );
       await pc.setRemoteDescription(sdp);
       await _flushPendingCandidates(savedRemoteUserId);
@@ -405,7 +424,24 @@ class CallController extends GetxController with WidgetsBindingObserver {
     WakelockPlus.enable();
     PipService.updatePipStatus(true);
 
+    // Start a 30-second connection timeout — if not connected by then, end the call
+    _startConnectionTimeout();
+
     return true;
+  }
+
+  Timer? _connectionTimer;
+
+  void _startConnectionTimeout() {
+    _connectionTimer?.cancel();
+    _connectionTimer = Timer(const Duration(seconds: 30), () {
+      if (callStatus.value == CallStatus.connecting ||
+          callStatus.value == CallStatus.accepting) {
+        if (kDebugMode) print('Call connection timeout — ending call');
+        commonSnackBar(message: 'Call connection timed out');
+        endCall();
+      }
+    });
   }
 
   /// Decline an incoming call
@@ -491,16 +527,12 @@ class CallController extends GetxController with WidgetsBindingObserver {
   void _handleCallCancelled(dynamic data) {
     FlutterCallkitIncoming.endCall(callId.value);
     _cleanup();
-    Get.back();
+    _navigateBackFromCallScreen();
   }
 
   void _handleCallEnded(dynamic data) {
     _cleanup();
-    if (Get.currentRoute == '/ActiveCallScreen' ||
-        Get.currentRoute == '/OutgoingCallScreen' ||
-        Get.currentRoute == '/IncomingCallScreen') {
-      Get.back();
-    }
+    _navigateBackFromCallScreen();
   }
 
   void _handleAnsweredElsewhere(dynamic data) {
@@ -509,7 +541,15 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     FlutterCallkitIncoming.endCall(callId.value);
     _cleanup();
-    if (Get.currentRoute == '/IncomingCallScreen') {
+    _navigateBackFromCallScreen();
+  }
+
+  /// Safely navigate back from any call screen if currently on one
+  void _navigateBackFromCallScreen() {
+    final route = Get.currentRoute;
+    if (route == '/ActiveCallScreen' ||
+        route == '/OutgoingCallScreen' ||
+        route == '/IncomingCallScreen') {
       Get.back();
     }
   }
@@ -520,8 +560,9 @@ class CallController extends GetxController with WidgetsBindingObserver {
     final fromUserId = data['from_user_id'] ?? '';
     _remoteUserId = fromUserId;
 
-    // If still ringing, store the offer for when user actually accepts
-    if (callStatus.value == CallStatus.ringing) {
+    // If still ringing or in the middle of accepting, store the offer
+    if (callStatus.value == CallStatus.ringing ||
+        callStatus.value == CallStatus.accepting) {
       _pendingOffer = data['sdp'];
       return;
     }
@@ -922,6 +963,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       if (_disposed) return;
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
+          _connectionTimer?.cancel();
           callStatus.value = CallStatus.connected;
           _startCallTimer();
           break;
@@ -1058,6 +1100,8 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       callDurationSeconds.value++;
     });
+    // Start the ongoing call notification
+    _showOngoingCallNotification();
   }
 
   void _startRingTimer() {
@@ -1086,9 +1130,71 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _pendingCandidates.remove(peerId);
   }
 
+  // ==================== ONGOING CALL NOTIFICATION ====================
+
+  void _showOngoingCallNotification() {
+    _notificationTimer?.cancel();
+    // Update notification every second with call duration
+    _notificationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateOngoingNotification();
+    });
+    // Show immediately
+    _updateOngoingNotification();
+  }
+
+  Future<void> _updateOngoingNotification() async {
+    final plugin = FlutterLocalNotificationsPlugin();
+    final name = callerName.value.isNotEmpty
+        ? callerName.value
+        : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Unknown');
+    final duration = formattedCallDuration;
+    final isVideo = callType.value == CallType.video;
+
+    final androidDetails = AndroidNotificationDetails(
+      _ongoingChannelId,
+      'Ongoing Calls',
+      channelDescription: 'Shows when a call is in progress',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      autoCancel: false,
+      showWhen: false,
+      icon: '@drawable/ic_stat',
+      category: AndroidNotificationCategory.call,
+      usesChronometer: false,
+      actions: <AndroidNotificationAction>[
+        const AndroidNotificationAction(
+          'hangup_call',
+          'Hang Up',
+          showsUserInterface: true,
+          cancelNotification: true,
+        ),
+      ],
+    );
+
+    await plugin.show(
+      _ongoingNotificationId,
+      '${isVideo ? 'Video' : 'Voice'} call with $name',
+      'Ongoing call · $duration',
+      NotificationDetails(android: androidDetails),
+      payload: '{"action":"open_active_call"}',
+    );
+  }
+
+  Future<void> _cancelOngoingNotification() async {
+    _notificationTimer?.cancel();
+    _notificationTimer = null;
+    try {
+      final plugin = FlutterLocalNotificationsPlugin();
+      await plugin.cancel(_ongoingNotificationId);
+    } catch (_) {}
+  }
+
   void _cleanup() {
     _callTimer?.cancel();
     _ringTimer?.cancel();
+    _connectionTimer?.cancel();
+    _cancelOngoingNotification();
 
     // Stop local tracks
     if (localStream != null) {
@@ -1207,8 +1313,19 @@ class CallController extends GetxController with WidgetsBindingObserver {
       callerName.value = extra['callerName'] ?? '';
       callerImage.value = extra['callerImage'] ?? '';
 
+      // Set callId and roomId from push notification data (critical for acceptCall API)
+      if (extra['callId'] != null && extra['callId'].toString().isNotEmpty) {
+        callId.value = extra['callId'];
+      }
+      if (extra['roomId'] != null && extra['roomId'].toString().isNotEmpty) {
+        roomId.value = extra['roomId'];
+      }
+
       // Connect socket if not connected (app may have been in background)
       _socket = ChatSocketService();
+      if (!_socket.isConnected) {
+        _socket.connectToSocket();
+      }
     }
   }
 }
