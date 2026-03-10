@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
@@ -186,6 +187,21 @@ class _HomeScreenState extends State<HomeScreen> {
       isGuestLogout: isGuestUser(),
       controller: searchController,
       onClearCallback: () => searchController.clear(),
+      buildCustomActionWidget: isGuestUser()
+          ? null
+          : () => GestureDetector(
+                onTap: () {
+                  Get.toNamed('/CallListScreen');
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8.0, right: 4.0),
+                  child: Icon(
+                    Icons.call_rounded,
+                    color: AppColors.black28,
+                    size: 24,
+                  ),
+                ),
+              ),
       onNotificationTap: () {
         Navigator.pushNamed(
           context,

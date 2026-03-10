@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
@@ -1676,6 +1677,11 @@ class RouteHelper {
 
 
 
+      case RouteConstant.CallListScreen:
+        return MaterialPageRoute(
+          builder: (_) => const CallListScreen(),
+          settings: const RouteSettings(name: '/CallListScreen'),
+        );
       case RouteConstant.OutgoingCallScreen:
         return MaterialPageRoute(
           builder: (_) => const OutgoingCallScreen(),

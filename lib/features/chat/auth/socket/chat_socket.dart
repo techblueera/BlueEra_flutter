@@ -21,8 +21,19 @@ class ChatSocketService {
   // Buffered listeners registered before socket was connected
   final List<MapEntry<String, Function(dynamic)>> _pendingListeners = [];
 
+  // All registered listeners — kept so they can be re-registered on reconnect
+  final List<MapEntry<String, Function(dynamic)>> _registeredListeners = [];
+
   Future<void> connectToSocket() async {
+    // If already connected, don't create a new socket
+    if (_isConnected && _socket != null && _socket!.connected) {
+      return;
+    }
+
     try {
+      // Dispose old socket if exists
+      _socket?.dispose();
+
       _socket = IO.io(chatSocketUrl,
         IO.OptionBuilder()
             .setTransports(['websocket'])
@@ -39,9 +50,15 @@ class ChatSocketService {
         _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
         _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
 
+        // Re-register ALL known listeners on the new socket
+        for (final entry in _registeredListeners) {
+          _socket!.on(entry.key, entry.value);
+        }
+
         // Replay any listeners that were registered before socket was ready
         for (final entry in _pendingListeners) {
           _socket!.on(entry.key, entry.value);
+          _registeredListeners.add(entry);
         }
         _pendingListeners.clear();
       });
@@ -50,7 +67,10 @@ class ChatSocketService {
         print('Chat Socket Connect error: $err');
       });
 
-      _socket!.onDisconnect((_) => print('Disconnected'));
+      _socket!.onDisconnect((_) {
+        _isConnected = false;
+        print('Disconnected');
+      });
 
     } catch (e) {
       print("Socket connection failed: $e");
@@ -77,6 +97,9 @@ class ChatSocketService {
   }
 
   void listenEvent(String event, Function(dynamic) callback) {
+    // Track all listeners so they survive socket reconnections
+    _registeredListeners.add(MapEntry(event, callback));
+
     if (_socket != null) {
       _socket!.on(event, callback);
     } else {

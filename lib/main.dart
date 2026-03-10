@@ -38,6 +38,8 @@ import 'core/services/home_cache_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/chat/auth/controller/call_controller.dart';
+import 'features/chat/view/call_screen/active_call_screen.dart';
+import 'features/chat/view/call_screen/widget/ongoing_call_overlay.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
@@ -323,10 +325,17 @@ class _MyAppState extends State<MyApp> {
             // Safe null handling:
             if (child != null) child,
             const GlobalMessage(),
+            // WhatsApp-style ongoing call overlay — shown above app bar
+            const OngoingCallOverlay(),
           ],
         );
       },
       home: Obx(() {
+        // Call accepted from killed state — show ONLY the call screen
+        if (CallController.launchedForCall.value) {
+          return const ActiveCallScreen();
+        }
+
         // Still loading (null or loading flag)
         if (appController.isLoading.value ||
             appController.isInMaintenance.value == null) {

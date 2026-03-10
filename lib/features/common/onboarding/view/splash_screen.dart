@@ -21,6 +21,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 // import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -63,6 +64,9 @@ class _SplashScreenState extends State<SplashScreen> {
     // final logoutRequired = await _shouldLogoutAfterUpdate();
     // log('logout required--> $logoutRequired');
 
+    // If a call was accepted from CallKit during cold start, skip everything
+    if (CallController.launchedForCall.value) return;
+
     // If shared media is pending and user is logged in, skip splash delay
     if (isLoginStatus == "true" && pendingSharedMedia != null && !isGuestUser()) {
       final media = pendingSharedMedia!;
@@ -85,6 +89,12 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     Timer(const Duration(seconds: 2), () async {
+      // If a call was accepted from CallKit (killed state), skip normal navigation —
+      // CallController will navigate directly to ActiveCallScreen
+      if (CallController.launchedForCall.value) {
+        return;
+      }
+
       if (isLoginStatus == "true") {
         if (await _initDeepLinks()) {
           // handled deep link

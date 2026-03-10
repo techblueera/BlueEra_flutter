@@ -162,6 +162,7 @@ class RouteConstant {
   static const String hospitalDepartmentsScreen = "/HospitalDepartmentsScreen";
 
   // Call screens
+  static const String CallListScreen = "/CallListScreen";
   static const String OutgoingCallScreen = "/OutgoingCallScreen";
   static const String IncomingCallScreen = "/IncomingCallScreen";
   static const String ActiveCallScreen = "/ActiveCallScreen";

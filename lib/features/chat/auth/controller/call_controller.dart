@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
@@ -16,6 +17,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/services/app_notification.dart';
 import '../../../../core/services/pip_service.dart';
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
@@ -81,10 +83,19 @@ class CallController extends GetxController with WidgetsBindingObserver {
   // Pending SDP offer received while still ringing (before user accepts)
   Map<String, dynamic>? _pendingOffer;
 
+  // Completer to signal when local media is ready (for offer race condition)
+  Completer<void>? _mediaReadyCompleter;
+
   // Ongoing call notification
   static const int _ongoingNotificationId = 99001;
   static const String _ongoingChannelId = 'ongoing_call';
   Timer? _notificationTimer;
+
+  /// Reactive flag: when true, app shows only the call screen (killed-state accept)
+  static final launchedForCall = false.obs;
+
+  /// Whether this session was a call-only cold start (used to navigate to home on call end)
+  static bool _coldStartCall = false;
 
   bool _disposed = false;
 
@@ -309,12 +320,19 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
 
     // Setup local media & peer connection (don't create offer yet)
+    _mediaReadyCompleter = Completer<void>();
     await _setupLocalMedia();
+    if (!_mediaReadyCompleter!.isCompleted) {
+      _mediaReadyCompleter!.complete();
+    }
     await _createPeerConnection(otherUserId ?? '');
     _remoteUserId = otherUserId;
 
     // Start 60-second ring timeout
     _startRingTimer();
+
+    // Show notification to keep app in foreground
+    _showConnectingNotification();
 
     // Keep screen on & enable PiP
     WakelockPlus.enable();
@@ -371,7 +389,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
     } catch (e) {
       if (kDebugMode) print('Permission request error (may already be in progress): $e');
     }
-
+log("sdkjcskjlcskjc ${{
+  'call_id': savedCallId,
+  'room_id': savedRoomId,
+}}");
     ResponseModel response = await _callRepo.acceptCall({
       'call_id': savedCallId,
       'room_id': savedRoomId,
@@ -393,11 +414,18 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     callStatus.value = CallStatus.connecting;
 
+    // Show ongoing notification immediately to keep app in foreground
+    _showConnectingNotification();
+
     // Join socket room
     _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
 
-    // Setup local media
+    // Setup local media — signal when ready so offer handler can wait
+    _mediaReadyCompleter = Completer<void>();
     await _setupLocalMedia();
+    if (!_mediaReadyCompleter!.isCompleted) {
+      _mediaReadyCompleter!.complete();
+    }
 
     // If we received an SDP offer while ringing/accepting, process it now
     final offerToProcess = _pendingOffer ?? savedPendingOffer;
@@ -452,7 +480,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       'room_id': roomId.value,
     });
     _cleanup();
-    Get.back();
+    _navigateBackFromCallScreen();
   }
 
   /// Cancel an outgoing call (before anyone answers)
@@ -467,7 +495,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       'call_id': callId.value,
     });
     _cleanup();
-    Get.back();
+    _navigateBackFromCallScreen();
   }
 
   /// End an active call
@@ -481,7 +509,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       'call_id': callId.value,
     });
     _cleanup();
-    Get.back();
+    _navigateBackFromCallScreen();
   }
 
   // ==================== SOCKET EVENT HANDLERS ====================
@@ -516,7 +544,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _ringTimer?.cancel();
     if (callEnded == true) {
       commonSnackBar(message: 'Call declined');
-      _cleanup();
+      _leaveRoomAndCleanup();
       Get.back();
     } else {
       // Group call: some users declined but others may still answer
@@ -526,12 +554,12 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   void _handleCallCancelled(dynamic data) {
     FlutterCallkitIncoming.endCall(callId.value);
-    _cleanup();
+    _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
 
   void _handleCallEnded(dynamic data) {
-    _cleanup();
+    _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
 
@@ -540,12 +568,30 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (callStatus.value != CallStatus.ringing) return;
 
     FlutterCallkitIncoming.endCall(callId.value);
-    _cleanup();
+    _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
+  }
+
+  /// Leave socket room and cleanup — ensures server knows we left
+  void _leaveRoomAndCleanup() {
+    if (roomId.value.isNotEmpty) {
+      _socket.emitEvent('call:leave-room', {
+        'room_id': roomId.value,
+        'call_id': callId.value,
+      });
+    }
+    _cleanup();
   }
 
   /// Safely navigate back from any call screen if currently on one
   void _navigateBackFromCallScreen() {
+    if (_coldStartCall) {
+      // App was launched only for this call — go to home screen
+      _coldStartCall = false;
+      launchedForCall.value = false;
+      Get.offAllNamed('/BottomNavigationBarScreen');
+      return;
+    }
     final route = Get.currentRoute;
     if (route == '/ActiveCallScreen' ||
         route == '/OutgoingCallScreen' ||
@@ -567,11 +613,16 @@ class CallController extends GetxController with WidgetsBindingObserver {
       return;
     }
 
-    // Only process if we're in accepting/connecting/connected state
-    if (callStatus.value != CallStatus.accepting &&
-        callStatus.value != CallStatus.connecting &&
+    // Only process if we're in connecting/connected state
+    if (callStatus.value != CallStatus.connecting &&
         callStatus.value != CallStatus.connected) {
       return;
+    }
+
+    // Wait for local media to be ready before creating peer connection
+    // (offer can arrive while _setupLocalMedia is still running)
+    if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
+      await _mediaReadyCompleter!.future;
     }
 
     final pc = peerConnections[fromUserId] ??
@@ -1132,61 +1183,111 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   // ==================== ONGOING CALL NOTIFICATION ====================
 
+  /// Get the already-initialized plugin from AppNotificationHandler
+  FlutterLocalNotificationsPlugin get _notificationPlugin =>
+      AppNotificationHandler.flutterLocalNotificationsPlugin;
+
+  /// Show a notification during connecting phase to keep app in foreground
+  Future<void> _showConnectingNotification() async {
+    try {
+      final name = callerName.value.isNotEmpty
+          ? callerName.value
+          : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Connecting');
+      final isVideo = callType.value == CallType.video;
+
+      final androidDetails = AndroidNotificationDetails(
+        _ongoingChannelId,
+        'Ongoing Calls',
+        channelDescription: 'Shows when a call is in progress',
+        importance: Importance.max,
+        priority: Priority.high,
+        ongoing: true,
+        autoCancel: false,
+        showWhen: false,
+        playSound: false,
+        enableVibration: false,
+        icon: '@drawable/ic_stat',
+        category: AndroidNotificationCategory.call,
+        actions: <AndroidNotificationAction>[
+          const AndroidNotificationAction(
+            'hangup_call',
+            'Hang Up',
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+        ],
+      );
+
+      await _notificationPlugin.show(
+        _ongoingNotificationId,
+        '${isVideo ? 'Video' : 'Voice'} call with $name',
+        'Connecting...',
+        NotificationDetails(android: androidDetails),
+        payload: '{"action":"open_active_call"}',
+      );
+    } catch (e) {
+      if (kDebugMode) print('Connecting notification error: $e');
+    }
+  }
+
   void _showOngoingCallNotification() {
     _notificationTimer?.cancel();
-    // Update notification every second with call duration
+    // Show immediately, then update every second with call duration
+    _updateOngoingNotification();
     _notificationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       _updateOngoingNotification();
     });
-    // Show immediately
-    _updateOngoingNotification();
   }
 
   Future<void> _updateOngoingNotification() async {
-    final plugin = FlutterLocalNotificationsPlugin();
-    final name = callerName.value.isNotEmpty
-        ? callerName.value
-        : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Unknown');
-    final duration = formattedCallDuration;
-    final isVideo = callType.value == CallType.video;
+    try {
+      final name = callerName.value.isNotEmpty
+          ? callerName.value
+          : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Unknown');
+      final duration = formattedCallDuration;
+      final isVideo = callType.value == CallType.video;
 
-    final androidDetails = AndroidNotificationDetails(
-      _ongoingChannelId,
-      'Ongoing Calls',
-      channelDescription: 'Shows when a call is in progress',
-      importance: Importance.low,
-      priority: Priority.low,
-      ongoing: true,
-      autoCancel: false,
-      showWhen: false,
-      icon: '@drawable/ic_stat',
-      category: AndroidNotificationCategory.call,
-      usesChronometer: false,
-      actions: <AndroidNotificationAction>[
-        const AndroidNotificationAction(
-          'hangup_call',
-          'Hang Up',
-          showsUserInterface: true,
-          cancelNotification: true,
-        ),
-      ],
-    );
+      final androidDetails = AndroidNotificationDetails(
+        _ongoingChannelId,
+        'Ongoing Calls',
+        channelDescription: 'Shows when a call is in progress',
+        importance: Importance.max,
+        priority: Priority.high,
+        ongoing: true,
+        autoCancel: false,
+        showWhen: false,
+        playSound: false,
+        enableVibration: false,
+        icon: '@drawable/ic_stat',
+        category: AndroidNotificationCategory.call,
+        usesChronometer: false,
+        actions: <AndroidNotificationAction>[
+          const AndroidNotificationAction(
+            'hangup_call',
+            'Hang Up',
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+        ],
+      );
 
-    await plugin.show(
-      _ongoingNotificationId,
-      '${isVideo ? 'Video' : 'Voice'} call with $name',
-      'Ongoing call · $duration',
-      NotificationDetails(android: androidDetails),
-      payload: '{"action":"open_active_call"}',
-    );
+      await _notificationPlugin.show(
+        _ongoingNotificationId,
+        '${isVideo ? 'Video' : 'Voice'} call with $name',
+        'Ongoing call · $duration',
+        NotificationDetails(android: androidDetails),
+        payload: '{"action":"open_active_call"}',
+      );
+    } catch (e) {
+      if (kDebugMode) print('Ongoing notification error: $e');
+    }
   }
 
   Future<void> _cancelOngoingNotification() async {
     _notificationTimer?.cancel();
     _notificationTimer = null;
     try {
-      final plugin = FlutterLocalNotificationsPlugin();
-      await plugin.cancel(_ongoingNotificationId);
+      await _notificationPlugin.cancel(_ongoingNotificationId);
     } catch (_) {}
   }
 
@@ -1256,6 +1357,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     remoteVideoEnabled.value = true;
     _remoteUserId = null;
     _pendingOffer = null;
+    _mediaReadyCompleter = null;
     participantMediaState.clear();
     isSwitchTypePending.value = false;
     switchTypeRequestedBy.value = '';
@@ -1276,9 +1378,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
         case Event.actionCallAccept:
           // If state isn't already set (push notification case), populate from extra
           initStateFromCallKitExtra(extra);
+          // Signal the app to show only the call screen (skips splash/home)
+          launchedForCall.value = true;
+          _coldStartCall = true;
           acceptCall().then((accepted) {
-            if (accepted) {
-              Get.offNamed('/ActiveCallScreen');
+            if (!accepted) {
+              // Accept failed — reset to normal app flow
+              launchedForCall.value = false;
+              _coldStartCall = false;
             }
           });
           break;

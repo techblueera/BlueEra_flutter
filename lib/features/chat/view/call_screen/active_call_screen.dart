@@ -45,7 +45,12 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     final controller = Get.find<CallController>();
 
     return PopScope(
-      canPop: !controller.isInPipMode.value,
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          controller.enterPipMode();
+        }
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFF121B22),
         body: Obx(() {
@@ -492,8 +497,8 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => Get.back(),
-                  child: const Icon(Icons.arrow_back_ios,
+                  onTap: () => controller.enterPipMode(),
+                  child: const Icon(Icons.picture_in_picture_alt_rounded,
                       color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 12),
