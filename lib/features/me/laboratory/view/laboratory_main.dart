@@ -93,7 +93,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
                             const TextStyle(fontWeight: FontWeight.w600),
                         tabs: [
                           Tab(text: AppStrings.home.tr),
-                          Tab(text:  AppStrings.update.tr),
+                          Tab(text:  AppStrings.create.tr),
                           Tab(text:  AppStrings.statistics.tr),
                         ],
                       ),

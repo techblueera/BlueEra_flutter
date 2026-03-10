@@ -17,6 +17,9 @@ class FacilityController extends GetxController {
   RxBool insuranceCashlessSupport = false.obs;
   RxBool homeSampleCollection = false.obs;
   RxBool digitalReport = false.obs;
+  RxBool upiPayment = false.obs;
+  RxBool cardPayment = false.obs;
+  RxBool healthPackage = false.obs;
 
   RxBool otherEnabled = false.obs;
   var others = <FacilityOther>[].obs;
@@ -133,27 +136,33 @@ class FacilityController extends GetxController {
         }
       }
     }
-    isValid.value = (anyStandard || (otherEnabled.value && others.isNotEmpty)) && othersOk;
+    isValid.value =
+        (anyStandard || (otherEnabled.value && others.isNotEmpty)) && othersOk;
   }
 
   Future<bool> saveFacilities() async {
     isLoading.value = true;
     try {
       final payload = Facilities(
-        laboratoryId: labIDGlobal,
-        wheelchairAssistance: wheelchairAssistance.value,
-        doctorConsultationTieUp: doctorConsultationTieUp.value,
-        insuranceCashlessSupport: insuranceCashlessSupport.value,
-        homeSampleCollection: homeSampleCollection.value,
-        digitalReport: digitalReport.value,
-        other: others,
-      ).toJson();
+              laboratoryId: labIDGlobal,
+              wheelchairAssistance: wheelchairAssistance.value,
+              doctorConsultationTieUp: doctorConsultationTieUp.value,
+              insuranceCashlessSupport: insuranceCashlessSupport.value,
+              homeSampleCollection: homeSampleCollection.value,
+              digitalReport: digitalReport.value,
+              credit_card_payment: cardPayment.value,
+              health_checkup_pkg: healthPackage.value,
+              upi_online: upiPayment.value
+              // other: others,
+              )
+          .toJson();
       ResponseModel res = await _repo.createOrUpdateFacilities(payload);
       if (res.isSuccess) {
         commonSnackBar(message: "Facilities saved");
         return true;
       } else {
-        commonSnackBar(message: res.response?.data['message'] ?? "Failed to save");
+        commonSnackBar(
+            message: res.response?.data['message'] ?? "Failed to save");
         return false;
       }
     } catch (e) {
