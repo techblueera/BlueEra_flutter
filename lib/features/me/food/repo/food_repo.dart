@@ -13,8 +13,11 @@ class FoodRepo extends BaseService {
 
   ///GET FOOD CATEGORY...
   Future<ResponseModel> getFoodCategoryRepo() async {
-    final response = await ApiBaseHelper().getHTTP("${categoryTree}",
-        onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(
+        "${categoryTree}",
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
@@ -66,11 +69,13 @@ class FoodRepo extends BaseService {
   Future<ResponseModel> getFoodByCategoryIdRepo({required String catID}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${foodServiceProduct}category=$catID",
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
   }
+
   Future<ResponseModel> getHomeFoodByIdRepo({required String businessProfile}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${homeFood}$businessProfile",
@@ -79,6 +84,7 @@ class FoodRepo extends BaseService {
     );
     return response;
   }
+
   // POST: Create a new contact
   Future<ResponseModel> addFoodContactRepo({
     required Map<String, dynamic> reqBody,

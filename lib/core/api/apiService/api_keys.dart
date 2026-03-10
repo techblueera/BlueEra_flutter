@@ -743,4 +743,6 @@ class ApiKeys {
   static const argMissingProducts = 'argMissingProducts';
   static const argBulkUpload = 'argBulkUpload';
   static const range = 'range';
+  static const argGroceryCategoryWithInventory = 'argGroceryCategoryWithInventory';
+
 }

@@ -7,7 +7,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -21,7 +20,7 @@ import 'package:BlueEra/features/me/grocery/model/children_of_grocery_category_r
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/my_grocery_products_reponse.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_category_with_variants_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_varient_dialog.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -92,6 +91,8 @@ class GroceryController extends GetxController {
     AppImageAssets.groceryImageSecond
   ];
   int maxUploadImages = 2;
+
+  RxBool isSearchOpen = false.obs;
 
   void toggleSelection(GroceryProductData p) {
     if (selectedGroceries.contains(p)) {
@@ -617,7 +618,7 @@ class GroceryController extends GetxController {
 
   /// Fetch Grocery Products
   RxBool myGroceryLoading = true.obs;
-  RxList<GroceryCategoryWithVariantsModel> groceryCategoryList = <GroceryCategoryWithVariantsModel>[].obs;
+  RxList<GroceryCategoryWithInventoryModel> groceryCategoryList = <GroceryCategoryWithInventoryModel>[].obs;
   RxList<BusinessProductData> groceryBusinessProductsList = <BusinessProductData>[].obs;
 
   Future<void> fetchAllGroceryData(String userId, {required bool otherStore}) async {
@@ -626,7 +627,7 @@ class GroceryController extends GetxController {
 
       // 1. Run both repo calls in parallel
       await Future.wait([
-        fetchMyGroceryCategoryWithVariants(userId, otherStore),
+        fetchGroceryCategoryWithInventory(userId, otherStore),
         fetchGroceryBusinessProductsRepo(userId, otherStore),
       ]);
 
@@ -636,7 +637,7 @@ class GroceryController extends GetxController {
     }
   }
 
-  Future<void> fetchMyGroceryCategoryWithVariants(String userId, bool otherStore) async {
+  Future<void> fetchGroceryCategoryWithInventory(String userId, bool otherStore) async {
     try {
       var params = {
         ApiKeys.businessId: userId
@@ -644,12 +645,12 @@ class GroceryController extends GetxController {
 
       ResponseModel responseModel;
       if(!otherStore){
-        responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo(
+        responseModel = await GroceryRepo().fetchGroceryCategoryWithInventoryRepo(
             params: params
         );
       }
       else{
-         responseModel = await GroceryRepo().fetchPublicGroceryCategoryWithVariantRepo(
+         responseModel = await GroceryRepo().fetchPublicGroceryCategoryWithInventoryRepo(
             params: params
         );
       }
@@ -659,7 +660,7 @@ class GroceryController extends GetxController {
         final List listData = responseModel.response?.data ?? [];
 
         groceryCategoryList.value = listData
-            .map((e) => GroceryCategoryWithVariantsModel.fromJson(e))
+            .map((e) => GroceryCategoryWithInventoryModel.fromJson(e))
             .toList();
 
         log("Loaded ${groceryCategoryList.length}");
@@ -707,34 +708,34 @@ class GroceryController extends GetxController {
   }
 
   /// Fetch Grocery Products
-  RxList<Products> myGroceryProductsList = <Products>[].obs;
+  RxList<Products> groceryProductsList = <Products>[].obs;
   // RxList<Variants> myGroceryProductsVariantsList = <Variants>[].obs;
-  RxBool isMyGroceryDataFirstLoading = false.obs;
-  RxBool isMyGroceryDataLoadingMore = false.obs;
-  int myGroceryDataPage = 1;
-  bool myGroceryDataHasMore = true;
+  RxBool isGroceryDataFirstLoading = false.obs;
+  RxBool isGroceryDataLoadingMore = false.obs;
+  int groceryDataPage = 1;
+  bool groceryDataHasMore = true;
   int pageLimit = 20;
 
-  Future<void> fetchMyGroceryProducts({
-    required String categoryId,
+  Future<void> fetchGroceryProducts({
     required String userId,
+    required String categoryId,
     bool isLoadMore = false,
   }) async {
     if (isLoadMore) {
-      if (isMyGroceryDataLoadingMore.value || !myGroceryDataHasMore) return;
-      isMyGroceryDataLoadingMore.value = true;
+      if (isGroceryDataLoadingMore.value || !groceryDataHasMore) return;
+      isGroceryDataLoadingMore.value = true;
     } else {
-      isMyGroceryDataFirstLoading.value = true;
-      myGroceryDataPage = 1;
-      myGroceryDataHasMore = true;
+      isGroceryDataFirstLoading.value = true;
+      groceryDataPage = 1;
+      groceryDataHasMore = true;
     }
 
     try {
       Map<String, dynamic> params = {
-        ApiKeys.page: myGroceryDataPage,
-        ApiKeys.businessId: userId,
+        ApiKeys.page: groceryDataPage,
         ApiKeys.limit: pageLimit,
-        'categoryId': categoryId
+        ApiKeys.businessId: userId,
+        ApiKeys.categoryId: categoryId
       };
 
       ResponseModel responseModel = await GroceryRepo().fetchMyGroceryProductsRepo(queryParam: params);
@@ -748,22 +749,25 @@ class GroceryController extends GetxController {
         }
 
         if (!isLoadMore) {
-          myGroceryProductsList.clear();
+          groceryProductsList.clear();
         }
 
         if (newItems.isNotEmpty) {
-          myGroceryProductsList.addAll(newItems);
-          myGroceryDataPage++;
+          groceryProductsList.addAll(newItems);
+          groceryDataPage++;
         }
+
+        log("Loaded ${newItems.length} items | Total: ${ groceryProductsList.length}");
+
 
         // 4. Update "Has More" based on pagination metadata
         final pagination = myGroceryProductsModel.pagination;
         if (pagination != null) {
           // If current page matches or exceeds total pages, stop loading more
-          myGroceryDataHasMore = (pagination.page ?? 1) < (pagination.totalPages ?? 1);
+          groceryDataHasMore = (pagination.page ?? 1) < (pagination.totalPages ?? 1);
         } else {
           // Fallback if pagination is null
-          myGroceryDataHasMore = newItems.isNotEmpty;
+          groceryDataHasMore = newItems.isNotEmpty;
         }
 
         // if (newItems.isNotEmpty) {
@@ -779,7 +783,6 @@ class GroceryController extends GetxController {
         //   myGroceryDataHasMore = false;
         // }
 
-        log("Loaded ${newItems.length} items | Total: ${ myGroceryProductsList.length}");
       } else {
         fetchMyGroceryProductsResponse.value = ApiResponse.error('error');
       }
@@ -788,10 +791,45 @@ class GroceryController extends GetxController {
       log("Stack Trace===== $s");
     } finally{
       if (isLoadMore) {
-        isMyGroceryDataLoadingMore.value = false;
+        isGroceryDataLoadingMore.value = false;
       } else {
-        isMyGroceryDataFirstLoading.value = false;
+        isGroceryDataFirstLoading.value = false;
       }
+    }
+  }
+
+  /// Fetch Grocery Nested Categories With Inventory
+  RxBool groceryNestedCategoryWithInventoryLoading = true.obs;
+  RxList<GroceryNestedCategoryModel> groceryNestedCategoryWithInventoryList =
+      <GroceryNestedCategoryModel>[].obs;
+
+  Future<void> fetchGroceryNestedCategoryWithInventory(
+      { required String userId,
+        required String groceryCatKey
+      }) async {
+    try {
+      groceryNestedCategoryWithInventoryLoading.value = true;
+      groceryNestedCategoryWithInventoryList.clear();
+
+      ResponseModel responseModel =
+          await GroceryRepo().fetchGroceryNestedCategoryWithInventoryRepo(
+              queryParams: {
+                ApiKeys.businessId: userId,
+                ApiKeys.categoryKey: groceryCatKey}
+          );
+      if (responseModel.isSuccess) {
+        final GroceryNestedCategoryModel groceryNestedCategoryModel = GroceryNestedCategoryModel.fromJson(responseModel.response?.data);
+        groceryNestedCategoryWithInventoryList.value = groceryNestedCategoryModel.children ?? [];
+        log('Nested categories with inventory loaded: ${groceryNestedCategoryWithInventoryList.length}');
+      } else {
+        commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e, s) {
+      log('Error fetching nested categories with inventory: $e\n$s');
+    } finally {
+      groceryNestedCategoryWithInventoryLoading.value = false;
     }
   }
 
@@ -799,12 +837,13 @@ class GroceryController extends GetxController {
   RxBool groceryNestedCategoryLoading = true.obs;
   RxList<GroceryNestedCategoryModel> groceryNestedCategoryList = <GroceryNestedCategoryModel>[].obs;
 
-  Future<void> fetchGroceryNestedCategory(String groceryTagId) async {
+  /// Fetch Grocery Nested Categories
+  Future<void> fetchGroceryNestedCategory(String groceryCatKey) async {
     try {
       groceryNestedCategoryLoading.value = true;
       groceryNestedCategoryList.clear();
 
-      final cachedData = await HiveServices().getGroceryNestedCategories(groceryTagId);
+      final cachedData = await HiveServices().getGroceryNestedCategories(groceryCatKey);
       if (cachedData != null && cachedData.isNotEmpty) {
         groceryNestedCategoryLoading.value = false;
         groceryNestedCategoryList.assignAll(cachedData);
@@ -812,13 +851,13 @@ class GroceryController extends GetxController {
       }
 
       ResponseModel responseModel = await GroceryRepo().fetchGroceryNestedCategoryRepo(
-          queryParams: {ApiKeys.categoryKey: groceryTagId}
+          queryParams: {ApiKeys.categoryKey: groceryCatKey}
       );
       if (responseModel.isSuccess) {
         fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
         final GroceryNestedCategoryModel groceryNestedCategoryModel = GroceryNestedCategoryModel.fromJson(responseModel.response?.data);
         groceryNestedCategoryList.value = groceryNestedCategoryModel.children ?? [];
-        await HiveServices().saveGroceryNestedCategories(groceryTagId, groceryNestedCategoryList);
+        await HiveServices().saveGroceryNestedCategories(groceryCatKey, groceryNestedCategoryList);
       } else {
         fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
       }

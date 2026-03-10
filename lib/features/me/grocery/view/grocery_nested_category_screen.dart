@@ -19,13 +19,13 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 
-class GroceryCategoryScreen extends StatefulWidget {
+class GroceryNestedCategoryScreen extends StatefulWidget {
   final List<CollapsibleGridModel> argArrGrocerySuperCat;
   final String argArrGroceryCatKey;
   final String argArrGroceryCatName;
   final bool isMyGrocery;
 
-  const GroceryCategoryScreen(
+  const GroceryNestedCategoryScreen(
       {super.key,
       required this.argArrGrocerySuperCat,
       required this.argArrGroceryCatKey,
@@ -33,10 +33,10 @@ class GroceryCategoryScreen extends StatefulWidget {
       required this.isMyGrocery});
 
   @override
-  State<GroceryCategoryScreen> createState() => _GroceryCategoryScreenState();
+  State<GroceryNestedCategoryScreen> createState() => _GroceryNestedCategoryScreenState();
 }
 
-class _GroceryCategoryScreenState extends State<GroceryCategoryScreen>
+class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController searchController = TextEditingController();
   final _groceryController = getOrPut(() => GroceryController());

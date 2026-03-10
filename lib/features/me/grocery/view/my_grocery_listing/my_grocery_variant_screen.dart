@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_v
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../../model/my_grocery_products_reponse.dart';
 
@@ -106,20 +107,17 @@ class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
 
                 final childAspectRatio = itemWidth / approximateItemHeight;
 
-                return GridView.builder(
+                return MasonryGridView.count(
                   controller: scrollController,
                   padding: EdgeInsets.symmetric(
                       horizontal: SizeConfig.size8,
                       vertical: SizeConfig.size10
                   ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: crossSpacing,
-                    mainAxisSpacing: mainSpacing,
-                    childAspectRatio: childAspectRatio,
-                  ),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                   itemCount: _variants.length +
-                      (controller.isMyGroceryDataLoadingMore.value ? 1 : 0),
+                      (controller.isGroceryDataLoadingMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
                     final variantItem = _variants[index];
 

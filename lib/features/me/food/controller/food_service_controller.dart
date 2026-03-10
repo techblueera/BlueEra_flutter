@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -17,7 +20,8 @@ import 'package:get/get.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodServiceController extends GetxController {
-  Rx<ApiResponse> getFoodCategoryResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getFoodCategoryResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getFoodByCategoryIDResponse =
       ApiResponse.initial('Initial').obs;
   RxList<FoodCategoryData> foodSubCateList = <FoodCategoryData>[].obs;
@@ -26,12 +30,20 @@ class FoodServiceController extends GetxController {
   RxString selectedSubFoodTypeIDCat = "".obs;
   RxString selectedFoodTypeID = "".obs;
   var selectedCategoryId = '1'.obs;
+  RxString selectedSubCategoryId = "".obs;
+  RxList<Children> subCategoryTabs = <Children>[].obs;
 
-  @override
-  void onInit() {
-    // TODO: implement onInit
-    super.onInit();
-  }
+  List<Map<String, String>> foodSnapSearchPhotos = [
+    {
+      'title': 'Upload Photo',
+      'image': AppImageAssets.groceryImageFirst
+      },
+    {
+      'title': 'Upload List',
+      'image': AppImageAssets.groceryImageSecond
+    },
+  ];
+  int maxUploadImages = 2;
 
   void changeCategory(String id) {
     selectedCategoryId.value = id;

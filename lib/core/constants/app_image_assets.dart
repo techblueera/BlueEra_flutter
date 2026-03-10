@@ -68,6 +68,7 @@ class AppImageAssets {
   static const String selfPickupIcon = "${imgPath}self_pickup_icon.png";
   static const String groceryImageFirst = "${imgPath}grocery_image_first.png";
   static const String groceryImageSecond = "${imgPath}grocery_image_second.png";
+  static const String foodDummyImage = "${imgPath}food_dummy_image.png";
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";

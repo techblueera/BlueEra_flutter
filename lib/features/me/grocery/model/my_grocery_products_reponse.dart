@@ -152,7 +152,7 @@ class Variants {
   String? sku;
   List<Pricing>? pricing;
   List<Images>? images;
-  int? weight;
+  String? quantity;
   Inventory? inventory;
 
   Variants(
@@ -162,7 +162,7 @@ class Variants {
         this.sku,
         this.pricing,
         this.images,
-        this.weight,
+        this.quantity,
         this.inventory});
 
   Variants.fromJson(Map<String, dynamic> json) {
@@ -182,7 +182,7 @@ class Variants {
         images!.add(new Images.fromJson(v));
       });
     }
-    weight = json['weight'];
+    quantity = json['quantity'];
     inventory = json['inventory'] != null
         ? new Inventory.fromJson(json['inventory'])
         : null;
@@ -200,7 +200,7 @@ class Variants {
     if (this.images != null) {
       data['images'] = this.images!.map((v) => v.toJson()).toList();
     }
-    data['weight'] = this.weight;
+    data['quantity'] = this.quantity;
     if (this.inventory != null) {
       data['inventory'] = this.inventory!.toJson();
     }

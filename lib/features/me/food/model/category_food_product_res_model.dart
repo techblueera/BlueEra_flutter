@@ -70,7 +70,7 @@ class CategoryFoodProductData {
     images = json['images'] != null ? json['images'].cast<String>() : [];
     category = json['category'] != null ? Category.fromJson(json['category']) : null;
     dietaryType = json['dietaryType'];
-    cookingMethod = json['cookingMethod'];
+    cookingMethod = json['cookingMethod'] != null ? json['cookingMethod'].cast<String>() : [];
     ingredients = json['ingredients'] != null ? json['ingredients'].cast<String>() : [];
     if (json['servingInfo'] != null) {
       servingInfo = [];
@@ -104,7 +104,7 @@ class CategoryFoodProductData {
   List<String>? images;
   Category? category;
   String? dietaryType;
-  String? cookingMethod;
+  List<String>? cookingMethod;
   List<String>? ingredients;
   List<dynamic>? servingInfo;
   NutritionalInfo? nutritionalInfo;

@@ -70,23 +70,26 @@ class MyGroceryVariantCard extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: SizeConfig.size5),
-
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size6,
+                    horizontal: SizeConfig.size10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title
-                    CustomText(
-                      variantItem.variantName,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    SizedBox(
+                      // height: SizeConfig.size28,
+                      child: CustomText(
+                        variantItem.variantName,
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    SizedBox(height: SizeConfig.size10),
+                    SizedBox(height: SizeConfig.paddingXSL),
 
                     Row(
                       children: [
@@ -113,7 +116,7 @@ class MyGroceryVariantCard extends StatelessWidget {
                           padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                           child: CustomText(
-                            '${variantItem.weight?.toInt()} ${variantItem.unit}',
+                            '${variantItem.inventory?.batches?[0].quantity}',
                             fontSize: 11,
                             color: Colors.grey,
                           ),
@@ -189,7 +192,9 @@ class MyGroceryVariantCard extends StatelessWidget {
                           ],
                         ),
                       ],
-                    )
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSmall),
 
 
                   ],
@@ -284,7 +289,7 @@ class MyGroceryVariantCard extends StatelessWidget {
                           padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                           child: CustomText(
-                            '${variantItem.weight?.toInt()} ${variantItem.unit}',
+                            '${variantItem.quantity}',
                             fontSize: 11,
                             color: Colors.grey,
                           ),

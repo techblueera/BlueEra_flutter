@@ -109,7 +109,8 @@ class Children {
       this.level, 
       this.createdAt, 
       this.updatedAt, 
-      this.v, 
+      this.v,
+      this.children,
     });
 
   Children.fromJson(dynamic json) {
@@ -124,7 +125,12 @@ class Children {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
-
+    if (json['children'] != null) {
+      children = [];
+      json['children'].forEach((v) {
+        children?.add(Children.fromJson(v));
+      });
+    }
   }
   String? id;
   String? name;
@@ -137,6 +143,7 @@ class Children {
   String? createdAt;
   String? updatedAt;
   int? v;
+  List<Children>? children;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -151,7 +158,9 @@ class Children {
     map['createdAt'] = createdAt;
     map['updatedAt'] = updatedAt;
     map['__v'] = v;
-
+    if (children != null) {
+      map['children'] = children?.map((v) => v.toJson()).toList();
+    }
     return map;
   }
 
