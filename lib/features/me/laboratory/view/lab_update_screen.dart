@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_test_catalog_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,82 +17,89 @@ import 'facility_screen.dart';
 
 class LabUpdateScreen extends StatelessWidget {
   LabUpdateScreen({super.key});
-
   List<ServiceMenuItem> get serviceMenus => [
-    ServiceMenuItem(
-      title: AppStrings.description.tr,
-      icon: AppIconAssets.other_privacy,
-      page: () => const LabDescriptionScreen(),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.basicBloodTest.tr,
-      icon: AppIconAssets.BasicBloodTest,
-      page: () => LabTestListScreen(
-        collection: 'Blood test',
-        title: AppStrings.basicBloodTest.tr,
-      ),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.pathology.tr,
-      icon: AppIconAssets.Pathology,
-      page: () => LabTestListScreen(
-        collection: 'Pathology',
-        title: AppStrings.pathology.tr,
-      ),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.radiology.tr,
-      icon: AppIconAssets.Radiology,
-      page: () => LabTestListScreen(
-        collection: 'Radiology',
-        title: AppStrings.radiology.tr,
-      ),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.pulmonologyDiagnostics.tr,
-      icon: AppIconAssets.PulmonologyDiagnostics,
-      page: () => LabTestListScreen(
-        collection: 'Pulmonology Diagnostics',
-        title: AppStrings.pulmonologyDiagnostics.tr,
-      ),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.ophthalmologyEnt.tr,
-      icon: AppIconAssets.OphthalmologyENT,
-      page: () => LabTestListScreen(
-        collection: 'Ophthalmology & ENT',
-        title: AppStrings.ophthalmologyEnt.tr,
-      ),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.othersAddManually.tr,
-      icon: AppIconAssets.OthersLab,
-      page: () => LabTestListScreen(
-        collection: 'Others',
-        title: AppStrings.others.tr,
-      ),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.facility.tr,
-      icon: AppIconAssets.other_office_facility,
-      page: () => FacilityScreen(),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.gallery.tr,
-      icon: AppIconAssets.other_gallery,
-      page: () => LabServicePhotosPhotoScreen(),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.createHealthCamp.tr,
-      icon: AppIconAssets.OthersLab,
-      page: () => const HealthCampListScreen(),
-    ),
-    ServiceMenuItem(
-      title: AppStrings.contactUs.tr,
-      icon: AppIconAssets.contact_us,
-      page: () => LabContactUsScreen(),
-    ),
-  ];
+        ServiceMenuItem(
+          title: AppStrings.description.tr,
+          icon: AppIconAssets.other_privacy,
+          page: () => const LabDescriptionScreen(),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.basicBloodTest.tr,
+          icon: AppIconAssets.BasicBloodTest,
+          page: () => LabTestCatalogScreen(
+            collection: 'Blood & Routine Tests',
+            title: AppStrings.basicBloodTest.tr,
+          ),
+        ),
+        ServiceMenuItem(
+          title: "Preventive & Wellness Checkups",
+          icon: AppIconAssets.Pathology,
+          page: () => LabTestCatalogScreen(
+            collection: 'Preventive & Wellness Checkups',
+            title: "Preventive & Wellness Checkups",
+          ),
+        ),
+        ServiceMenuItem(
+          title: "Women, Pregnancy & Child Health",
+          icon: AppIconAssets.Radiology,
+          page: () => LabTestCatalogScreen(
+            collection: 'Women, Pregnancy & Child Health',
+            title: "Women, Pregnancy & Child Health",
+          ),
+        ),
+        ServiceMenuItem(
+          title: "Diagnostics & Imaging",
+          icon: AppIconAssets.PulmonologyDiagnostics,
+          page: () => LabTestCatalogScreen(
+            collection: 'Diagnostics & Imaging',
+            title: "Diagnostics & Imaging",
+          ),
+        ),
+        ServiceMenuItem(
+          title: "Organ & System Health",
+          icon: AppIconAssets.BasicBloodTest,
+          page: () => LabTestCatalogScreen(
+            collection: 'Organ & System Health',
+            title: "Organ & System Health",
+          ),
+        ),
+        ServiceMenuItem(
+          title: "Infection, Cancer & Immunity",
+          icon: AppIconAssets.OphthalmologyENT,
+          page: () => LabTestCatalogScreen(
+            collection: 'Infection, Cancer & Immunity',
+            title: "Infection, Cancer & Immunity",
+          ),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.othersAddManually.tr,
+          icon: AppIconAssets.OthersLab,
+          page: () => LabTestCatalogScreen(
+            collection: 'Others',
+            title: AppStrings.others.tr,
+          ),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.facility.tr,
+          icon: AppIconAssets.other_office_facility,
+          page: () => FacilityScreen(),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.gallery.tr,
+          icon: AppIconAssets.other_gallery,
+          page: () => LabServicePhotosPhotoScreen(),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.createHealthCamp.tr,
+          icon: AppIconAssets.OthersLab,
+          page: () => const HealthCampListScreen(),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.contactUs.tr,
+          icon: AppIconAssets.contact_us,
+          page: () => LabContactUsScreen(),
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {

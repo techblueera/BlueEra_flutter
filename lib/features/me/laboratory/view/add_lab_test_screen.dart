@@ -18,9 +18,10 @@ import 'package:get/get.dart';
 class AddLabTestScreen extends StatefulWidget {
   final PathologyTest? testToEdit;
   final String collection;
+  final String? catalogId;
 
   const AddLabTestScreen(
-      {super.key, this.testToEdit, required this.collection});
+      {super.key, this.testToEdit, required this.collection, this.catalogId});
 
   @override
   State<AddLabTestScreen> createState() => _AddLabTestScreenState();
@@ -102,7 +103,9 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.testToEdit == null ? AppStrings.addTest.tr : AppStrings.editTest.tr),
+          title: widget.testToEdit == null
+              ? AppStrings.addTest.tr
+              : AppStrings.editTest.tr),
       body: CommonCardWidget(
         child: SingleChildScrollView(
           // padding: EdgeInsets.all(SizeConfig.size16),
@@ -116,13 +119,16 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   title: AppStrings.testName.tr,
                   hintText: AppStrings.egText.tr,
                   isValidate: true,
-                  onChange: (val){
-                    setState(() {
-
-                    });
+                  onChange: (val) {
+                    setState(() {});
                   },
                 ),
                 SizedBox(height: SizeConfig.size16),
+                CustomText(
+                  AppStrings.testCategory.tr,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
                 CommonDropdownDialog<TestCategory>(
                   items: controller.categories,
                   selectedValue: selectedCategory,
@@ -148,11 +154,16 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                     "test_category": selectedCategory?.name
                   },
                 ),
-
                 SizedBox(height: SizeConfig.size16),
                 _buildParameterSelection(),
                 if (!isRadiology) ...[
                   SizedBox(height: SizeConfig.size16),
+
+                  CustomText(
+                    AppStrings.specimen.tr,
+                    color: AppColors.mainTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.paddingXSL),
                   CommonDropdownDialog<String>(
                     items: controller.specimenList,
                     selectedValue: selectedSpecimen,
@@ -166,6 +177,12 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                     },
                   ),
                   SizedBox(height: SizeConfig.size16),
+
+                  CustomText(
+                    AppStrings.specimenCollectionMethod.tr,
+                    color: AppColors.mainTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.paddingXSL),
                   CommonDropdownDialog<String>(
                     items: controller.collectionMethods,
                     selectedValue: selectedCollectionMethod,
@@ -187,6 +204,12 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   keyBoardType: TextInputType.number,
                 ),
                 SizedBox(height: SizeConfig.size16),
+
+                CustomText(
+                  AppStrings.gender.tr,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
                 CommonDropdownDialog<String>(
                   items: controller.genderList,
                   selectedValue: selectedGender,
@@ -213,14 +236,16 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   hintText: AppStrings.egText.tr,
                 ),
                 SizedBox(height: SizeConfig.size16),
-                _buildSwitchRow(AppStrings.applicableForChild.tr, applicableForChild,
+                _buildSwitchRow(
+                    AppStrings.applicableForChild.tr, applicableForChild,
                     (val) {
                   setState(() {
                     applicableForChild = val;
                   });
                 }),
-                SizedBox(height: SizeConfig.size8),
-                _buildSwitchRow(AppStrings.prescriptionRequired.tr, prescriptionRequired,
+                SizedBox(height: SizeConfig.size16),
+                _buildSwitchRow(
+                    AppStrings.prescriptionRequired.tr, prescriptionRequired,
                     (val) {
                   setState(() {
                     prescriptionRequired = val;
@@ -246,7 +271,9 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 Obx(() => CustomBtn(
                       onTap: _submitForm,
                       isValidate: true,
-                      title: widget.testToEdit == null ? AppStrings.post.tr : AppStrings.update.tr,
+                      title: widget.testToEdit == null
+                          ? AppStrings.post.tr
+                          : AppStrings.update.tr,
                       isLoading: controller.isLoading.value,
                     )),
                 SizedBox(height: SizeConfig.size60),
@@ -262,8 +289,10 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(AppStrings.testParameters.tr,
-            fontWeight: FontWeight.w600, fontSize: SizeConfig.size14),
+        CustomText(
+          AppStrings.testParameters.tr,
+          color: AppColors.mainTextColor,
+        ),
         SizedBox(height: SizeConfig.size8),
         CommonDropdownDialog<TestParameter>(
           items: controller.parameters,
@@ -303,17 +332,28 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
 
   Widget _buildSwitchRow(
       String title, bool value, ValueChanged<bool> onChanged) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(title,
-            fontWeight: FontWeight.w600, fontSize: SizeConfig.size14),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppColors.primaryColor,
+    return CommonCardWidget(
+      borderColorColor: AppColors.whiteE5,
+      padding: 0,
+      cardMargin: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(title,
+               color: AppColors.mainTextColor,),
+            Transform.scale(
+              scale: 0.75,
+              child: Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: AppColors.primaryColor,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -325,7 +365,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
       }
 
       final test = PathologyTest(
-        id: widget.testToEdit?.id,
+        id: widget.catalogId ?? widget.testToEdit?.id,
         testName: nameController.text,
         testCategory: selectedCategory!.id,
         description: descriptionController.text,

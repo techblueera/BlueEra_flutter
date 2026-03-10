@@ -5,6 +5,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/empty_blood_test_add_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -59,16 +61,21 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                   schoolAboutUsController: controller,
                 ),
                 SizedBox(height: SizeConfig.size12),
-                _basicTest(tests),
-                SizedBox(height: SizeConfig.size16),
+                BloodTestEmptyState(),
+                SizedBox(height: SizeConfig.size12),
+                CategorySelector(),
+
+                SizedBox(height: SizeConfig.size12),
+                // _basicTest(tests),
+                // SizedBox(height: SizeConfig.size16),
                 CommonCardWidget(
                     padding: 10,
                     cardMargin: 0,
                     child: _popularServices(tests, profile)),
                 SizedBox(height: SizeConfig.size16),
-                CommonCardWidget(
-                    padding: 10, cardMargin: 0, child: _allServices(facility)),
-                SizedBox(height: SizeConfig.size16),
+                // CommonCardWidget(
+                //     padding: 10, cardMargin: 0, child: _allServices(facility)),
+                // SizedBox(height: SizeConfig.size16),
                 LabHomeGalleryWidget(photos: galleries),
                 // SizedBox(height: SizeConfig.size16),
                 _contact(contact, isWide),

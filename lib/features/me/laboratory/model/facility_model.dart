@@ -35,8 +35,11 @@ class Facilities {
   bool insuranceCashlessSupport;
   bool homeSampleCollection;
   bool digitalReport;
+  bool upi_online;
+  bool credit_card_payment;
+  bool health_checkup_pkg;
   List<FacilityOther> other;
-
+  //
   Facilities({
     this.id,
     this.laboratoryId,
@@ -46,6 +49,9 @@ class Facilities {
     this.insuranceCashlessSupport = false,
     this.homeSampleCollection = false,
     this.digitalReport = false,
+    this.upi_online = false,
+    this.credit_card_payment = false,
+    this.health_checkup_pkg = false,
     List<FacilityOther>? other,
   }) : other = other ?? [];
 
@@ -58,6 +64,9 @@ class Facilities {
         insuranceCashlessSupport: json["insuranceCashlessSupport"] ?? false,
         homeSampleCollection: json["homeSampleCollection"] ?? false,
         digitalReport: json["digitalReport"] ?? false,
+    upi_online: json["upi_online"] ?? false,
+    credit_card_payment: json["credit_card_payment"] ?? false,
+    health_checkup_pkg: json["health_checkup_pkg"] ?? false,
         other: (json["other"] as List? ?? [])
             .map((e) => FacilityOther.fromJson(e))
             .toList(),
@@ -71,6 +80,9 @@ class Facilities {
         "insuranceCashlessSupport": insuranceCashlessSupport,
         "homeSampleCollection": homeSampleCollection,
         "digitalReport": digitalReport,
+        "upi_online": upi_online,
+        "credit_card_payment": credit_card_payment,
+        "health_checkup_pkg": health_checkup_pkg,
         "other": other.map((e) => e.toJson()).toList(),
       };
 }

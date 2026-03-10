@@ -165,3 +165,65 @@ class PathologyTest {
     return data;
   }
 }
+
+class TestCatalogItem {
+  String? id;
+  String? testName;
+  String? packageType;
+  String? description;
+  int? estimatedReportHours;
+  String? gender;
+  String? groupCategory;
+  String? organSystemTested;
+  String? postTestGuidance;
+  bool? prescriptionRequired;
+  String? specimen;
+  String? specimenCollectionMethod;
+  int? suggestedCustomerPrice;
+  int? suggestedTestFees;
+  String? testCategory;
+  String? testMethod;
+  List<String>? testParameters;
+
+  TestCatalogItem({
+    this.id,
+    this.testName,
+    this.packageType,
+    this.description,
+    this.estimatedReportHours,
+    this.gender,
+    this.groupCategory,
+    this.organSystemTested,
+    this.postTestGuidance,
+    this.prescriptionRequired,
+    this.specimen,
+    this.specimenCollectionMethod,
+    this.suggestedCustomerPrice,
+    this.suggestedTestFees,
+    this.testCategory,
+    this.testMethod,
+    this.testParameters,
+  });
+
+  factory TestCatalogItem.fromJson(Map<String, dynamic> json) => TestCatalogItem(
+        id: json["_id"],
+        testName: json["testName"],
+        packageType: json["packageType"],
+        description: json["description"],
+        estimatedReportHours: json["estimatedReportHours"],
+        gender: json["gender"],
+        groupCategory: json["groupCategory"],
+        organSystemTested: json["organSystemTested"],
+        postTestGuidance: json["postTestGuidance"],
+        prescriptionRequired: json["prescriptionRequired"],
+        specimen: json["specimen"],
+        specimenCollectionMethod: json["specimenCollectionMethod"],
+        suggestedCustomerPrice: json["suggestedCustomerPrice"],
+        suggestedTestFees: json["suggestedTestFees"],
+        testCategory: json["testCategory"],
+        testMethod: json["testMethod"],
+        testParameters: json["testParameters"] != null
+            ? List<String>.from(json["testParameters"].map((x) => x.toString()))
+            : null,
+      );
+}

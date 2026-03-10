@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_test_catalog_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -22,6 +23,7 @@ class LabTestListScreen extends StatefulWidget {
 
 class _LabTestListScreenState extends State<LabTestListScreen> {
   late final LabTestController controller;
+  final String _catalogGroup = "Blood & Routine Tests";
 
   @override
   void initState() {
@@ -31,19 +33,20 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
     } else {
       controller = Get.find<LabTestController>();
     }
-    controller.fetchTests(widget.collection);
+
+      controller.fetchTests(widget.collection);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.title ?? widget.collection,
-        showRightTextButton: true,
+        title: widget.title ?? "",
+        showRightTextButton: false,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Get.to(() => AddLabTestScreen(collection: widget.collection));
+          Get.to(() => LabTestCatalogScreen(collection: widget.collection));
         },
         child: Icon(
           Icons.add,
@@ -51,6 +54,8 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
         ),
       ),
       body: Obx(() {
+
+
         if (controller.isLoading.value && controller.tests.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -149,6 +154,7 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
       }),
     );
   }
+
 
   Widget _pill(String text) {
     return Container(

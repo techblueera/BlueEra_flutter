@@ -11,6 +11,7 @@ class LabTestController extends GetxController {
   var categories = <TestCategory>[].obs;
   var parameters = <TestParameter>[].obs;
   var tests = <PathologyTest>[].obs;
+  var catalogTests = <TestCatalogItem>[].obs;
   var descriptionTest = ''.obs;
   final List<String> specimenList = [
     'Blood',
@@ -71,6 +72,47 @@ class LabTestController extends GetxController {
       }
     } catch (e) {
       print("Error fetching tests: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchCatalog({
+    required String groupCategory,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    isLoading.value = true;
+    try {
+      ResponseModel res = await _repo.getTestCatalog(
+          groupCategory: groupCategory, page: page, limit: limit);
+      if (res.isSuccess) {
+        List data = res.response?.data['data'] ?? [];
+        catalogTests.value =
+            data.map((e) => TestCatalogItem.fromJson(e)).toList();
+      }
+    } catch (e) {
+      print("Error fetching catalog: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> selectCatalog(String id) async {
+    isLoading.value = true;
+    try {
+      ResponseModel res = await _repo.selectCatalogTests([id]);
+      if (res.isSuccess) {
+        commonSnackBar(message: "Selected successfully");
+        return true;
+      } else {
+        commonSnackBar(
+            message: res.response?.data['message'] ?? "Failed to select");
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: "Error selecting: $e");
+      return false;
     } finally {
       isLoading.value = false;
     }

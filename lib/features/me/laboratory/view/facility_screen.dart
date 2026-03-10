@@ -42,18 +42,29 @@ class _FacilityScreenState extends State<FacilityScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildSwitch(AppStrings.homeSampleCollection.tr,
+                      controller.homeSampleCollection),
                   _buildSwitch(
                       AppStrings.wheelchairAssistance.tr, controller.wheelchairAssistance),
+
+                  _buildSwitch(AppStrings.digitalReport.tr,
+                      controller.digitalReport),
+
                   _buildSwitch(AppStrings.doctorConsultationTieUp.tr,
                       controller.doctorConsultationTieUp),
                   _buildSwitch(AppStrings.insuranceCashlessSupport.tr,
                       controller.insuranceCashlessSupport),
-                  _buildSwitch(AppStrings.homeSampleCollection.tr,
-                      controller.homeSampleCollection),
-                  _buildSwitch(AppStrings.digitalReport.tr,
-                      controller.digitalReport),
+
+                  _buildSwitch(AppStrings.online_upi_payment,
+                      controller.upiPayment),
+
+                  _buildSwitch(AppStrings.credit_card_payment,
+                      controller.cardPayment),
+                  _buildSwitch(AppStrings.health_checkup_packages,
+                      controller.healthPackage),
+
                   // SizedBox(height: SizeConfig.size16),
-                  _buildOtherSection(),
+                  // _buildOtherSection(),
                   SizedBox(height: SizeConfig.size20),
                   CustomBtn(
                     title: AppStrings.save,
@@ -72,6 +83,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
           }),
         ),
       ),
+/*
       floatingActionButton: Obx(() {
         return Visibility(
           visible: controller.otherEnabled.value,
@@ -84,27 +96,36 @@ class _FacilityScreenState extends State<FacilityScreen> {
           ),
         );
       }),
+*/
     );
   }
 
   Widget _buildSwitch(String title, RxBool value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(title,
-            fontSize: SizeConfig.size14, fontWeight: FontWeight.w600),
-        Transform.scale(
-          scale: 0.8,
-          child: Switch(
-            value: value.value,
-            onChanged: (val) {
-              value.value = val;
-              controller.validateForm();
-            },
-            activeColor: AppColors.primaryColor,
-          ),
+    return CommonCardWidget(
+      padding: 0,
+      cardMargin: 8,
+      borderColorColor: AppColors.whiteE5,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(title,
+                color: AppColors.mainTextColor,),
+            Transform.scale(
+              scale: 0.8,
+              child: Switch(
+                value: value.value,
+                onChanged: (val) {
+                  value.value = val;
+                  controller.validateForm();
+                },
+                activeColor: AppColors.primaryColor,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

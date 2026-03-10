@@ -725,6 +725,9 @@ abstract class BaseService {
   final String testCategories = 'lab-service/test-categories';
   final String testParameters = 'lab-service/test-parameters';
   final String  testPathology= 'lab-service/pathology-tests';
+  // Test catalog (predefined tests)
+  final String testCatalog = 'lab-service/test-catalog';
+  final String testCatalogSelect = 'lab-service/test-catalog/select';
   final String  testLabServiceFullDetails= 'lab-service/laboratory-profiles/full-details';
   final String  professionalSearch= 'earn-service/professional/search';
   // final String  joinAsBdm= 'wallet-service/bdm';

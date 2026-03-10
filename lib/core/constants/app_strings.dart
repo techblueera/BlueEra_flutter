@@ -3599,4 +3599,7 @@ class AppStrings {
   static const String noCertificatesOrAwards = "no_certificates_or_awards";
   static const String certificate = "certificate";
   static const String award = "award";
+  static const String online_upi_payment = "online_upi_payment";
+  static const String credit_card_payment = "credit_card_payment";
+  static const String  health_checkup_packages= "health_checkup_packages";
 }
