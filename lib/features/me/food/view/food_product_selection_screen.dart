@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.da
 import 'package:BlueEra/features/me/food/view/widget/custom_add_button_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,18 +30,39 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   @override
   void initState() {
-    controller.selectedCategoryId.value =
-        widget.foodCategoryData.children?.firstOrNull?.id ?? "";
-    // TODO: implement initState...
-    controller.getFoodByCategoryIDController(
-        categoryId: widget.foodCategoryData.children?.firstOrNull?.id ?? "");
     super.initState();
+
+    final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
+
+    if (firstLevel1 != null) {
+      // 1. Assign Level 1 Data
+      controller.selectedCategoryId.value = firstLevel1.id ?? "";
+
+      // 2. Sync Sub-category Tabs list
+      controller.subCategoryTabs.assignAll(firstLevel1.children ?? []);
+
+      // 3. Determine Level 2 ID (Defaulting to "All")
+      controller.selectedSubCategoryId.value = "All";
+
+      // --- DEBUG LOGS ---
+      debugPrint("--- InitState Product Selection ---");
+      debugPrint("Selected Level 1 (Sidebar): ${firstLevel1.name} (ID: ${controller.selectedCategoryId.value})");
+      debugPrint("Sub-categories found: ${controller.subCategoryTabs.length}");
+      debugPrint("Selected Level 2 (Tab): ${controller.selectedSubCategoryId.value}");
+      // ------------------
+
+      // 4. API Call
+      controller.getFoodByCategoryIDController(
+          categoryId: controller.selectedCategoryId.value
+      );
+    } else {
+      debugPrint("--- InitState Warning: No Level 1 Categories found ---");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.white,
       appBar: AppBar(
         leading: InkWell(
             onTap: () {
@@ -50,7 +72,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         actions: [
           InkWell(
             onTap: () {
-              Get.to(FoodEntryScreen(
+              Get.to(()=> FoodEntryScreen(
                 foodCategoryData: widget.foodCategoryData,
               ));
             },
@@ -82,86 +104,88 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       ),
       body: Row(
         children: [
-          // 1. Left Side: Category List
-          CommonGenericLeftSideCategoryList<Children>(
-            items: widget.foodCategoryData.children ?? [],
-            getIcon: (cat) => cat.image ?? '',
-            getLabel: (cat) => cat.name ?? '',
-            isSelected: (cat) => controller.selectedCategoryId.value == cat.id,
-            onTap: (cat, index) {
-              controller.changeCategory(cat.id ?? "");
-              controller.getFoodByCategoryIDController(
-                  categoryId: cat.id ?? "");
-              setState(() {});
-            },
-          ),
+          _buildLeftSidebar(),
+          _buildRightContent()
+        ],
+      ),
+    );
+  }
 
-          // 1. Left Side: Category List
-          // Container(
-          //   width: 100,
-          //   decoration: BoxDecoration(
-          //     color: Colors.white,
-          //     border: Border(right: BorderSide(color: Colors.grey.shade200)),
-          //   ),
-          //   child: ListView.builder(
-          //     itemCount: widget.foodCategoryData.children?.length,
-          //     itemBuilder: (context, index) {
-          //       final cat = widget.foodCategoryData.children?[index];
-          //       bool isSelected =
-          //           controller.selectedCategoryId.value == cat?.id;
-          //       return GestureDetector(
-          //         onTap: () {
-          //           controller.changeCategory(cat?.id ?? "");
-          //           controller.getFoodByCategoryIDController(
-          //               categoryId: cat?.id ?? "");
-          //           setState(() {});
-          //         },
-          //         child: Container(
-          //           color: isSelected
-          //               ? Colors.blue.withValues(alpha: 0.1)
-          //               : Colors.transparent,
-          //           padding:
-          //               const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          //           child: Column(
-          //             children: [
-          //               CircleAvatar(
-          //                 radius: 25,
-          //                 backgroundColor: Colors.blue.shade50,
-          //                 child: CachedNetworkImage(
-          //                     imageUrl: cat?.image ?? ''
-          //                 ),
-          //                 // backgroundImage:,
-          //               ),
-          //               const SizedBox(height: 8),
-          //               CustomText(
-          //                 cat?.name,
-          //                 fontSize: 12,
-          //                 textAlign: TextAlign.center,
-          //                 color: isSelected
-          //                     ? AppColors.primaryColor
-          //                     : AppColors.secondaryTextColor,
-          //               ),
-          //             ],
-          //           ),
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
 
-          // 2. Right Side: Product List
+  // 1. LEFT SIDE WIDGET
+  Widget _buildLeftSidebar() {
+    return CommonGenericLeftSideCategoryList<Children>(
+      items: widget.foodCategoryData.children ?? [],
+      getIcon: (cat) => cat.image ?? '',
+      getLabel: (cat) => cat.name ?? '',
+      isSelected: (cat) => controller.selectedCategoryId.value == cat.id,
+      onTap: (cat, index) {
+        // Print sub-categories in log
+        debugPrint("Sub-categories for ${cat.name}: ${cat.children?.map((e) => e.name).toList()}");
 
-          Expanded(
-            child: Obx(() => ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: controller.categoryFoodProductDataList.length,
-                  itemBuilder: (context, index) {
-                    final product =
-                        controller.categoryFoodProductDataList[index];
-                    return _buildProductCard(context, product);
-                  },
-                )),
-          ),
+        controller.selectedCategoryId.value = cat.id ?? "";
+        controller.subCategoryTabs.assignAll(cat.children ?? []);
+        controller.selectedSubCategoryId.value = "All";
+
+        controller.getFoodByCategoryIDController(
+            categoryId: cat.id ?? ""
+        );
+      },
+    );
+  }
+
+  // 2. RIGHT SIDE WIDGET
+  Widget _buildRightContent() {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() {
+            final List<dynamic> tabData = ["All", ...controller.subCategoryTabs];
+
+            // This ensures the common widget knows which tab to highlight.
+            int currentIndex = tabData.indexWhere((item) {
+              final String id = (item is String) ? "All" : (item.id ?? "");
+              return id == controller.selectedSubCategoryId.value;
+            });
+
+            if (currentIndex == -1) currentIndex = 0;
+
+            return HorizontalTabSelector<dynamic>(
+              tabs: tabData,
+              selectedIndex: currentIndex,
+              labelBuilder: (item) => (item is String) ? item : (item.name ?? ""),
+              horizontalPadding: 16,
+              verticalPadding: 8,
+              verticalMargin: 10,
+              unSelectedBackgroundColor: AppColors.white,
+              unSelectedBorderColor: AppColors.greyE5,
+              onTabSelected: (index, label) {
+                var selectedItem = tabData[index];
+                final String itemId = (selectedItem is String) ? "All" : (selectedItem.id ?? "");
+
+                controller.selectedSubCategoryId.value = itemId;
+
+                String targetId = (itemId == "All")
+                    ? controller.selectedCategoryId.value
+                    : itemId;
+
+                controller.getFoodByCategoryIDController(categoryId: targetId);
+              },
+            );
+          }),
+
+          // Product List
+          Obx(() => Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: controller.categoryFoodProductDataList.length,
+              itemBuilder: (context, index) {
+                final product = controller.categoryFoodProductDataList[index];
+                return _buildProductCard(context, product);
+              },
+            ),
+          )),
         ],
       ),
     );
@@ -223,8 +247,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     : Color(0xff008000),
                           ),
                           const SizedBox(width: 5),
-                          _tagWidget(
-                              (product.cookingMethod ?? ""), Colors.grey),
+                          Flexible(
+                            child: _tagWidget(
+                                (product.cookingMethod ?? []).join(', '),
+                                Colors.grey),
+                          ),
                         ],
                       ),
                     ],
@@ -269,7 +296,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           SizedBox(
             width: 5,
           ),
-          CustomText(label, color: AppColors.secondaryTextColor, fontSize: 10),
+          Flexible(child: CustomText(
+              label,
+              color: AppColors.secondaryTextColor,
+              fontSize: 10,
+               maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+          )),
         ],
       ),
     );

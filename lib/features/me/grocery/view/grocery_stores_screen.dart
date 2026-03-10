@@ -80,57 +80,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
             ),
           ],
         )
-        // child: Column(
-        //   children: [
-        //     // SizedBox(
-        //     //   height: SizeConfig.paddingM,
-        //     // ),
-        //     // Padding(
-        //     //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-        //     //   child: InkWell(
-        //     //     onTap: () {},
-        //     //     child: Container(
-        //     //       padding: EdgeInsets.symmetric(
-        //     //         vertical: SizeConfig.size10,
-        //     //         horizontal: SizeConfig.size10,
-        //     //       ),
-        //     //       decoration: BoxDecoration(
-        //     //           color: AppColors.white,
-        //     //           borderRadius: BorderRadius.circular(10.0),
-        //     //           border: Border.all(color: AppColors.greyE5, width: 1.2),
-        //     //           boxShadow: [AppShadows.textFieldShadow]),
-        //     //       child: Row(
-        //     //         children: [
-        //     //           LocalAssets(
-        //     //             imagePath: AppIconAssets.franchiseIcon,
-        //     //             height: SizeConfig.size30,
-        //     //             width: SizeConfig.size30,
-        //     //           ),
-        //     //           SizedBox(width: SizeConfig.size10),
-        //     //           CustomText(AppStrings.bookViaBlueEraPartner,
-        //     //               fontSize: SizeConfig.medium,
-        //     //               color: AppColors.secondaryTextColor,
-        //     //               fontWeight: FontWeight.w400),
-        //     //         ],
-        //     //       ),
-        //     //     ),
-        //     //   ),
-        //     // ),
-        //     // SizedBox(
-        //     //   height: SizeConfig.paddingXSL,
-        //     // ),
-        //     Row(
-        //       crossAxisAlignment: CrossAxisAlignment.start,
-        //       children: [
-        //         leftCategoryList(),
-        //         SizedBox(
-        //           width: SizeConfig.size6,
-        //         ),
-        //         Expanded(child: rightContent()),
-        //       ],
-        //     )
-        //   ],
-        // ),
       ),
     );
   }
@@ -161,6 +110,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
           groceryController.selectedGroceryCategoryData.value = null;
         } else {
           groceryController.selectedGroceryCategoryData.value = item;
+          controller.businessCategoryId = item.slugId;
         }
 
         // Single API Call (Clean & Shared)

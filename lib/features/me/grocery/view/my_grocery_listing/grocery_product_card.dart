@@ -84,7 +84,7 @@ class GroceryProductCard extends StatelessWidget {
                           ? CustomImageSlideshow(
                         isLoading: false,
                         height: SizeConfig.size130,
-                        width: SizeConfig.size180,
+                        width: SizeConfig.size140,
                         imagePaths: [groceryProducts.images![0].url!],
                         borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
                         boxFit: BoxFit.contain,
@@ -112,7 +112,7 @@ class GroceryProductCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6.0),
                           ),
                           child: CustomText(
-                              '+${groceryProducts.variants?.length??0} Product',
+                              '+${groceryProducts.variants?.length??0} Variants',
                               fontSize: SizeConfig.extraSmall,
                               fontWeight: FontWeight.w600,
                               color: AppColors.whiteFE

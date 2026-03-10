@@ -11,7 +11,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_category_with_variants_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_profile_header_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -312,7 +312,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   }
 
   Widget _categoryWithInventoryWidget(){
-    final groceryCategoryList = List<GroceryCategoryWithVariantsModel>.from(controller.groceryCategoryList);
+    final groceryCategoryList = List<GroceryCategoryWithInventoryModel>.from(controller.groceryCategoryList);
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -367,13 +367,26 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 getIcon: (_categoryItem) => _categoryItem.image??'',
                 iconHeight: SizeConfig.size60,
                 boxShadow: [],
-                onTap: (_categoryItem) => Get.toNamed(RouteHelper.getMyGroceryProductsScreenRoute(),
-                  arguments: {
-                    ApiKeys.userId: userId,
-                    ApiKeys.argCategoryId: _categoryItem.sId,
-                    ApiKeys.argCategoryName: _categoryItem.name
-                  },
-                ),
+                onTap: (_categoryItem) {
+                  return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+                    arguments: {
+                      ApiKeys.userId: userId,
+                      ApiKeys.argGroceryCategoryWithInventory: groceryCategoryList,
+                      ApiKeys.argArrGroceryCatKey: _categoryItem.key,
+                      ApiKeys.argArrGroceryCatName: _categoryItem.name,
+                    },
+                  );
+
+
+                //   return Get.toNamed(RouteHelper.getMyGroceryProductsScreenRoute(),
+                //   arguments: {
+                //     ApiKeys.userId: userId,
+                //     ApiKeys.argCategoryId: _categoryItem.sId,
+                //     ApiKeys.argCategoryName: _categoryItem.name
+                //   },
+                // );
+
+                },
               );
             },
           )
