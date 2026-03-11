@@ -45,12 +45,13 @@ CategoryFoodProductData dataFromJson(String str) => CategoryFoodProductData.from
 String dataToJson(CategoryFoodProductData data) => json.encode(data.toJson());
 class CategoryFoodProductData {
   CategoryFoodProductData({
-      this.id, 
+      this.id,
       this.name, 
       this.images, 
       this.category, 
       this.dietaryType, 
-      this.cookingMethod, 
+      this.description,
+      this.cookingMethod,
       this.ingredients, 
       this.servingInfo, 
       this.nutritionalInfo, 
@@ -70,6 +71,7 @@ class CategoryFoodProductData {
     images = json['images'] != null ? json['images'].cast<String>() : [];
     category = json['category'] != null ? Category.fromJson(json['category']) : null;
     dietaryType = json['dietaryType'];
+    description = json['description'];
     cookingMethod = json['cookingMethod'] != null ? json['cookingMethod'].cast<String>() : [];
     ingredients = json['ingredients'] != null ? json['ingredients'].cast<String>() : [];
     if (json['servingInfo'] != null) {
@@ -104,6 +106,7 @@ class CategoryFoodProductData {
   List<String>? images;
   Category? category;
   String? dietaryType;
+  String? description;
   List<String>? cookingMethod;
   List<String>? ingredients;
   List<dynamic>? servingInfo;
@@ -130,6 +133,7 @@ class CategoryFoodProductData {
       map['category'] = category?.toJson();
     }
     map['dietaryType'] = dietaryType;
+    map['description'] = description;
     map['cookingMethod'] = cookingMethod;
     map['ingredients'] = ingredients;
     if (servingInfo != null) {
@@ -149,6 +153,50 @@ class CategoryFoodProductData {
     map['displayMrp'] = displayMrp;
     map['variantId'] = variantId;
     return map;
+  }
+
+  CategoryFoodProductData copyWith({
+    String? id,
+    String? name,
+    List<String>? images,
+    Category? category,
+    String? dietaryType,
+    String? description,
+    List<String>? cookingMethod,
+    List<String>? ingredients,
+    List<dynamic>? servingInfo,
+    NutritionalInfo? nutritionalInfo,
+    List<dynamic>? tags,
+    bool? isActive,
+    String? createdAt,
+    String? updatedAt,
+    int? v,
+    int? displayPrice,
+    int? displayMrp,
+    String? variantId,
+    List<FoodVariants>? variants,
+  }) {
+    return CategoryFoodProductData(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      images: images ?? this.images,
+      category: category ?? this.category,
+      dietaryType: dietaryType ?? this.dietaryType,
+      description: description ?? this.description,
+      cookingMethod: cookingMethod ?? this.cookingMethod,
+      ingredients: ingredients ?? this.ingredients,
+      servingInfo: servingInfo ?? this.servingInfo,
+      nutritionalInfo: nutritionalInfo ?? this.nutritionalInfo,
+      tags: tags ?? this.tags,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      v: v ?? this.v,
+      displayPrice: displayPrice ?? this.displayPrice,
+      displayMrp: displayMrp ?? this.displayMrp,
+      variantId: variantId ?? this.variantId,
+      variants: variants ?? this.variants,
+    );
   }
 
 }
@@ -268,6 +316,34 @@ class FoodVariants {
     map['updatedAt'] = updatedAt;
     map['__v'] = v;
     return map;
+  }
+
+  FoodVariants copyWith({
+    String? id,
+    String? product,
+    String? variantName,
+    String? quantityLabel,
+    int? mrp,
+    int? baseSellingPrice,
+    bool? isActive,
+    bool? isDefault,
+    String? createdAt,
+    String? updatedAt,
+    int? v,
+  }) {
+    return FoodVariants(
+      id: id ?? this.id,
+      product: product ?? this.product,
+      variantName: variantName ?? this.variantName,
+      quantityLabel: quantityLabel ?? this.quantityLabel,
+      mrp: mrp ?? this.mrp,
+      baseSellingPrice: baseSellingPrice ?? this.baseSellingPrice,
+      isActive: isActive ?? this.isActive,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      v: v ?? this.v,
+    );
   }
 
 }

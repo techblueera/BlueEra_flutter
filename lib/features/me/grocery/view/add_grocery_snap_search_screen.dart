@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -107,62 +109,82 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
             shrinkWrap: true,
             primary: false,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.grocerySnapSearchPhotos.length,
+            // Use the config list length
+            itemCount: controller.grocerySnapSearchConfig.length,
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
             padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
-              return Obx(() {
-                bool hasImage = index < controller.grocerySnapSearchImages.length;
+              final config = controller.grocerySnapSearchConfig[index];
+              final String title = config['title']!;
+              final String placeholder = config['image']!;
 
-                return InkWell(
-                  onTap: hasImage
-                      ? () =>  navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: AppStrings.imageViewer,
-                      // imageUrls: [post?.author.profileImage ?? ''],
-                      imageUrls: [controller.grocerySnapSearchImages[index].path],
-                      initialIndex: 0,
-                    ),
-                  )
-                      : () => controller.addImages(),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: Container(
-                          height: SizeConfig.size180,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.greyE5),
-                            image: DecorationImage(
-                              image: (hasImage
-                                  ? FileImage(controller.grocerySnapSearchImages[index])
-                                  : AssetImage(controller.grocerySnapSearchPhotos[index])) as ImageProvider,
-                              fit: BoxFit.cover,
+              return Obx(() {
+                final File? capturedFile = controller.grocerySnapSearchImagesMap[title];
+                final bool hasImage = capturedFile != null;
+
+                return Column(
+                  children: [
+                    InkWell(
+                      onTap: hasImage
+                          ? () => navigatePushTo(
+                        context,
+                        ImageViewScreen(
+                          appBarTitle: title,
+                          imageUrls: [capturedFile.path],
+                          initialIndex: 0,
+                        ),
+                      )
+                          : () => controller.addImagesBySlot(title),
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            child: Container(
+                              height: SizeConfig.size180,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: hasImage ? AppColors.primaryColor : AppColors.greyE5,
+                                  width: hasImage ? 1.5 : 1,
+                                ),
+                                image: DecorationImage(
+                                  // Swaps between static asset and captured file
+                                  image: (hasImage
+                                      ? FileImage(capturedFile)
+                                      : AssetImage(placeholder)) as ImageProvider,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          if (hasImage)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () => controller.removeImageBySlot(title),
+                                child: CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: Colors.red.withOpacity(0.8),
+                                  child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                      if (hasImage)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: GestureDetector(
-                            onTap: () => controller.removeImageAt(index: index),
-                            child: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: Colors.red.withValues(alpha: 0.8),
-                              child: const Icon(Icons.close, size: 14, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    CustomText(
+                      title,
+                      fontSize: 12,
+                      color: hasImage ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                      fontWeight: hasImage ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ],
                 );
               });
             },
@@ -171,17 +193,14 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
           Align(
             alignment: Alignment.centerRight,
             child: CustomBtn(
-              width: 70,
-              height: 30,
+              width: 80,
+              height: 35,
               title: "Submit",
               textColor: AppColors.primaryColor,
               bgColor: AppColors.white,
               borderColor: AppColors.primaryColor,
-              radius: 10.0,
-              onTap: () {
-                controller.fetchGrocerySnapSearchApi();
-              },
-
+              radius: 8.0,
+              onTap: () => controller.fetchGrocerySnapSearchApi(),
             ),
           )
         ],
@@ -189,219 +208,118 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
     );
   }
 
-  // Widget _buildProductList() {
-  //   return Obx(() {
-  //
-  //     if(controller.grocerySnapSearchResponse.value.status == Status.INITIAL){
-  //       return SizedBox();
-  //     }
-  //
-  //     if (controller.grocerySnapSearchResponse.value.status  == Status.LOADING) {
-  //       return const Center(child: Padding(
-  //         padding: EdgeInsets.all(40.0),
-  //         child: CircularProgressIndicator(),
-  //       ));
-  //     }
-  //
-  //     var _productSnapSearchData= controller.productSnapSearchData.value;
-  //     var _groceryFoundProducts= _productSnapSearchData?.foundProducts;
-  //     print('found products-- ${_groceryFoundProducts?.length}');
-  //
-  //     return Column(
-  //       children: [
-  //
-  //         Padding(
-  //           padding: const EdgeInsets.symmetric(
-  //               vertical: 10.0
-  //           ),
-  //           child: Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               CustomText(
-  //                 "${_productSnapSearchData?.foundCount} Items Found",
-  //                 fontWeight: FontWeight.bold,
-  //                 fontSize: 16,
-  //               ),
-  //               CustomText("${_productSnapSearchData?.missingCount} Items missing", color: Colors.red, fontWeight: FontWeight.w500),
-  //             ],
-  //           ),
-  //         ),
-  //
-  //         if(_groceryFoundProducts?.isEmpty??false)
-  //           EmptyStateWidget(
-  //              message: 'No grocery product found in our system',
-  //           ),
-  //
-  //
-  //          ListView.builder(
-  //            shrinkWrap: true,
-  //            physics: const NeverScrollableScrollPhysics(),
-  //            itemCount: _groceryFoundProducts!.length,
-  //            itemBuilder: (context, index) {
-  //              final product = _groceryFoundProducts[index];
-  //              return _buildProductCard(product);
-  //            },
-  //          )
-  //        ,
-  //       ],
-  //     );
-  //   });
-  // }
-
   Widget _buildProductList() {
-
-    // return Column(
-    //   mainAxisAlignment: MainAxisAlignment.center,
-    //   children: [
-    //     EmptyStateWidget(
-    //       message: 'We couldn’t identify any products from this photo. \n'
-    //           'Try capturing a clearer shot or searching for individual items!',
-    //     ),
-    //     SizedBox(height: SizeConfig.paddingL),
-    //
-    //     // Retry with a better photo
-    //     CustomBtn(
-    //       width: SizeConfig.size120,
-    //       title: "Retry",
-    //       textColor: AppColors.white,
-    //       bgColor: AppColors.primaryColor,
-    //       radius: 10.0,
-    //       onTap: () {
-    //         controller.fetchGrocerySnapSearchApi();
-    //       },
-    //     ),
-    //
-    //     SizedBox(height: SizeConfig.paddingXSL),
-    //
-    //     // Secondary Action: TextButton for manual search
-    //     TextButton(
-    //       onPressed: () => Get.back(),
-    //       style: TextButton.styleFrom(
-    //         foregroundColor: AppColors.primaryColor, // Text color
-    //         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
-    //         // Optional: Add a subtle splash/ripple effect
-    //       ),
-    //       child: CustomText(
-    //         "Search Manually",
-    //         fontSize: SizeConfig.medium,
-    //         fontWeight: FontWeight.w600,
-    //       ),
-    //     ),
-    //   ],
-    // );
-
     return Obx(() {
-      
-      if(controller.grocerySnapSearchResponse.value.status == Status.INITIAL){
-        return SizedBox();
+      final response = controller.grocerySnapSearchResponse.value;
+      final searchData = controller.productSnapSearchData.value;
+
+      // 1. Initial State
+      if (response.status == Status.INITIAL) return const SizedBox();
+
+      // 2. Loading State
+      if (response.status == Status.LOADING) return _buildLoadingState();
+
+      final foundProducts = searchData?.foundProducts ?? [];
+
+      if (searchData == null || foundProducts.isEmpty) {
+        return _buildEmptyState();
       }
 
-      if (controller.grocerySnapSearchResponse.value.status  == Status.LOADING) {
-        return Padding(
-          padding: EdgeInsets.symmetric(
-              vertical: 40.0
-          ),
-          child: Image.asset(
-            'assets/images/grocery_loading_indicator.gif',
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-          ),
-        );
-      }
-
-      var _productSnapSearchData= controller.productSnapSearchData.value;
-      var _groceryFoundProducts= _productSnapSearchData?.foundProducts ?? [];
-      // var _groceryMissingProducts= _productSnapSearchData?.missingProducts ?? [];
-      print('found products-- ${_groceryFoundProducts.length}');
-
+      // 3. Success State
       return Column(
         children: [
+          // Summary Header (Items Found vs Missing)
+          _buildSummaryHeader(searchData),
 
-          if(_productSnapSearchData?.foundCount!=null &&
-              _productSnapSearchData?.missingCount!=null)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 10.0
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CustomText(
-                  "${_productSnapSearchData?.foundCount} Items Found",
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                InkWell(
-                   onTap:(){},
-                    // onTap: ()=> Get.toNamed(RouteHelper.getMissingGroceryItemsScreenRoute(),
-                    //     arguments: {
-                    //       ApiKeys.controller: controller,
-                    //       ApiKeys.argMissingProducts:  _groceryMissingProducts
-                    //     }
-                    // ),
-                    child: CustomText(
-                        "${_productSnapSearchData?.missingCount} Items missing",
-                        color: Colors.red,
-                        fontWeight: FontWeight.w500)),
-              ],
-            ),
+          // Result View: Either the List or the Empty State
+          foundProducts.isEmpty
+              ? _buildEmptyState()
+              : ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: foundProducts.length,
+            padding: const EdgeInsets.only(bottom: 20),
+            itemBuilder: (context, index) {
+              return _buildProductCard(foundProducts[index]);
+            },
           ),
-
-          if (_groceryFoundProducts.isEmpty)
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                EmptyStateWidget(
-                  message: 'We couldn’t identify any products from this photo. \n'
-                      'Try capturing a clearer shot or searching for individual items!',
-                ),
-                SizedBox(height: SizeConfig.paddingL),
-
-                // Retry with a better photo
-                CustomBtn(
-                  width: SizeConfig.size120,
-                  title: "Retry",
-                  textColor: AppColors.white,
-                  bgColor: AppColors.primaryColor,
-                  radius: 10.0,
-                  onTap: () {
-                    controller.fetchGrocerySnapSearchApi();
-                  },
-                ),
-
-                SizedBox(height: SizeConfig.paddingXSL),
-
-                // Secondary Action: TextButton for manual search
-                TextButton(
-                  onPressed: () => Get.back(),
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
-                  ),
-                  child: CustomText(
-                    "Search Manually",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-
-
-           ListView.builder(
-             shrinkWrap: true,
-             physics: const NeverScrollableScrollPhysics(),
-             itemCount: _groceryFoundProducts.length,
-             padding: EdgeInsets.only(bottom: 20),
-             itemBuilder: (context, index) {
-               final product = _groceryFoundProducts[index];
-               return _buildProductCard(product);
-             },
-           )
-         ,
         ],
       );
     });
+  }
+
+  Widget _buildLoadingState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40.0),
+      child: Center(
+        child: Image.asset(
+          'assets/images/grocery_loading_indicator.gif',
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(height: SizeConfig.paddingL),
+        const EmptyStateWidget(
+          message: 'We couldn’t identify any products from this photo. \n'
+              'Try capturing a clearer shot or searching for individual items!',
+        ),
+        SizedBox(height: SizeConfig.paddingL),
+        CustomBtn(
+          width: SizeConfig.size120,
+          title: "Retry",
+          textColor: AppColors.white,
+          bgColor: AppColors.primaryColor,
+          radius: 10.0,
+          onTap: () => controller.fetchGrocerySnapSearchApi(),
+        ),
+        SizedBox(height: SizeConfig.paddingXSL),
+        TextButton(
+          onPressed: () => Get.back(),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+          ),
+          child: CustomText(
+            "Search Manually",
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget  _buildSummaryHeader(var data) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          CustomText(
+            "${data.foundCount ?? 0} Items Found",
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+          InkWell(
+            onTap: () {
+              // Future navigation logic for missing items
+            },
+            child: CustomText(
+              "${data.missingCount ?? 0} Items missing",
+              color: Colors.red,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildProductCard(FoundProducts foundProducts){

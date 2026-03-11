@@ -36,7 +36,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     // TODO: implement initState
-vc.variantList.clear();
+    vc.variantList.clear();
     product = widget.foodData.data ?? FoodGenAiData();
     super.initState();
   }

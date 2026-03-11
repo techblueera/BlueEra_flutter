@@ -129,4 +129,19 @@ class FoodRepo extends BaseService {
     );
     return response;
   }
+
+  /// FOOD SNAP SEARCH...
+  Future<ResponseModel> fetchFoodSnapSearchRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      foodSnapSearch,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

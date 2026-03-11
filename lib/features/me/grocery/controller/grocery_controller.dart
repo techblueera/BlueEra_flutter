@@ -83,13 +83,22 @@ class GroceryController extends GetxController {
 
   Rx<OnboardingCategoryModel?> selectedGroceryCategoryData = Rx<OnboardingCategoryModel?>(null);
 
-  final RxList<File> grocerySnapSearchImages = <File>[].obs;
   Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
   // RxList<FoundProducts> groceryFoundProducts = <FoundProducts>[].obs;
-  List<String> grocerySnapSearchPhotos = [
-    AppImageAssets.groceryImageFirst,
-    AppImageAssets.groceryImageSecond
+
+  final List<Map<String, String>> grocerySnapSearchConfig = [
+    {
+      'title': 'Upload Photo',
+      'image': AppImageAssets.groceryImageFirst,
+    },
+    {
+      'title': 'Upload List',
+      'image': AppImageAssets.groceryImageSecond,
+    },
   ];
+
+// 2. Reactive Map to store captured files by their Title
+  final RxMap<String, File?> grocerySnapSearchImagesMap = <String, File?>{}.obs;
   int maxUploadImages = 2;
 
   RxBool isSearchOpen = false.obs;
@@ -262,39 +271,25 @@ class GroceryController extends GetxController {
     );
   }
 
-  /// Pick and add images
-  Future<void> addImages() async {
-    final selectedImages = await pickImages('Shop Product Photos');
+  /// Pick and replace image for a specific slot
+  Future<void> addImagesBySlot(String title) async {
+    final selectedImages = await pickImages(title);
     if (selectedImages == null || selectedImages.isEmpty) return;
 
-    final newFiles = selectedImages.map((e) => File(e)).toList();
-    final remaining = maxUploadImages - grocerySnapSearchImages.length;
-    if (remaining <= 0) {
-      commonSnackBar(
-          message:
-          '${AppStrings.youCanOnlyUpload.tr} $maxUploadImages ${AppStrings.images.tr}');
-      return;
-    }
+    // Replace the specific slot with the first image picked
+    grocerySnapSearchImagesMap[title] = File(selectedImages.first);
+  }
 
-    grocerySnapSearchImages.addAll(newFiles.take(remaining));
+  /// Remove image for a specific slot
+  void removeImageBySlot(String title) {
+    // Setting to null reverts the UI to the static placeholder
+    grocerySnapSearchImagesMap[title] = null;
   }
 
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected =
     await SelectProductImageDialog.showLogoDialog(Get.context!, title);
-    if (selected != null && selected.isNotEmpty) {
-      return selected;
-    }
-    return null;
-  }
-
-  /// Remove image
-  void removeImageAt({
-    required int index,
-  }) {
-    if (index >= 0 && index < grocerySnapSearchImages.length) {
-      grocerySnapSearchImages.removeAt(index);
-    }
+    return (selected != null && selected.isNotEmpty) ? selected : null;
   }
 
   RxBool isInitialLoading = false.obs;
@@ -575,37 +570,47 @@ class GroceryController extends GetxController {
   }
 
   Future<void> fetchGrocerySnapSearchApi() async {
-    if (grocerySnapSearchImages.length < 1) {
+    // 1. Filter out the null values from the map to get actual files
+    final List<File> activeImages = grocerySnapSearchImagesMap.values
+        .where((file) => file != null)
+        .cast<File>()
+        .toList();
+
+    // 2. Validate that at least one image is uploaded
+    if (activeImages.isEmpty) {
       commonSnackBar(message: "Please upload at least 1 photo");
       return;
     }
 
     try {
-
       grocerySnapSearchResponse.value = ApiResponse.loading('Loading');
 
       List<dio.MultipartFile> imageByPart = [];
 
-      for (final image in grocerySnapSearchImages) {
+      // 3. Iterate through the valid files only
+      for (final image in activeImages) {
         final fileName = image.path.split('/').last;
         imageByPart.add(
-            await dio.MultipartFile.fromFile(
-              image.path,
-              filename: fileName,
-            ));
+          await dio.MultipartFile.fromFile(
+            image.path,
+            filename: fileName,
+          ),
+        );
       }
+
       Map<String, dynamic> params = {
-        ApiKeys.images : imageByPart
+        ApiKeys.images: imageByPart,
       };
 
       ResponseModel responseModel = await GroceryRepo().fetchGrocerySnapSearchRepo(
-        params: params
+        params: params,
       );
+
       if (responseModel.isSuccess) {
         grocerySnapSearchResponse.value = ApiResponse.complete(responseModel);
-        var grocerySnapSearchResponseModel = GrocerySnapSearchResponseModel.fromJson(responseModel.response?.data);
+        var grocerySnapSearchResponseModel =
+        GrocerySnapSearchResponseModel.fromJson(responseModel.response?.data);
         productSnapSearchData.value = grocerySnapSearchResponseModel.data;
-        // groceryFoundProducts.value = grocerySnapSearchResponseModel.data?.foundProducts ?? [];
       } else {
         grocerySnapSearchResponse.value = ApiResponse.error('error');
       }
@@ -614,7 +619,6 @@ class GroceryController extends GetxController {
       log("Stack Trace===== $s");
     }
   }
-
 
   /// Fetch Grocery Products
   RxBool myGroceryLoading = true.obs;

@@ -73,32 +73,44 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                           shrinkWrap: true,
                           primary: false,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.grocerySnapSearchPhotos.length,
+                          itemCount: controller.grocerySnapSearchConfig.length,
                           crossAxisCount: 2,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
                           padding: EdgeInsets.zero,
                           itemBuilder: (context, index) {
-                            var item = controller.grocerySnapSearchPhotos[index];
+                            var item = controller.grocerySnapSearchConfig[index];
                             return InkWell(
                               onTap:()=> Get.toNamed(RouteHelper.getAddGrocerySnapSearchScreenRoute()),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: AppColors.greyE5
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                            color: AppColors.greyE5
+                                        ),
+                                      ),
+                                      child: LocalAssets(
+                                        imagePath: item['image']!,
+                                        height: SizeConfig.size180,
+                                        width: double.infinity,
+                                        boxFix: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
-                                  child: LocalAssets(
-                                    imagePath: item,
-                                    height: SizeConfig.size180,
-                                    width: double.infinity,
-                                    boxFix: BoxFit.cover,
+                                  SizedBox(height: SizeConfig.size6),
+                                  CustomText(
+                                      item['title']!,
+                                      fontSize: SizeConfig.small,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w400
                                   ),
-                                ),
+                                ],
                               ),
                             );
                           },
