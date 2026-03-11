@@ -13,6 +13,8 @@ class HealthCamp {
   String? createdAt;
   String? updatedAt;
   int? v;
+  List<String>? images;
+  List<String>? testCategories;
 
   HealthCamp({
     this.id,
@@ -29,6 +31,8 @@ class HealthCamp {
     this.createdAt,
     this.updatedAt,
     this.v,
+    this.images,
+    this.testCategories,
   });
 
   factory HealthCamp.fromJson(Map<String, dynamic> json) => HealthCamp(
@@ -46,6 +50,12 @@ class HealthCamp {
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
         v: json["__v"],
+        images: json["images"] != null
+            ? List<String>.from(json["images"])
+            : null,
+        testCategories: json["testCategories"] != null
+            ? List<String>.from(json["testCategories"])
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -59,5 +69,6 @@ class HealthCamp {
         "endDate": endDate,
         "startTime": startTime,
         "laboratoryId": laboratoryId,
+        if (testCategories != null) "testCategories": testCategories,
       };
 }

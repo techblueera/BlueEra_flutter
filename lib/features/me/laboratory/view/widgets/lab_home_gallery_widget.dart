@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../../model/lab_full_details_res_model.dart';
+import '../../model/new_lab_full_details_res_model.dart';
 
 class LabHomeGalleryWidget extends StatelessWidget {
   final List<Galleries>? photos;

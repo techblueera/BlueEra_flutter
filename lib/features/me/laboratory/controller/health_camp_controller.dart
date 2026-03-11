@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
 import 'package:BlueEra/features/me/laboratory/repo/health_camp_repo.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +21,7 @@ class HealthCampController extends GetxController {
   final sqFootController = TextEditingController();
   final priceController = TextEditingController();
   final discountPriceController = TextEditingController();
+  final searchController = TextEditingController();
   RxString activityType = "".obs;
 
   RxInt startDay = 1.obs;
@@ -26,6 +30,22 @@ class HealthCampController extends GetxController {
   RxInt endDay = 1.obs;
   RxInt endMonth = 1.obs;
   RxInt endYear = DateTime.now().year.obs;
+
+  // Image upload fields
+  var selectedImages = <File>[].obs;
+  final int maxImages = 5;
+  final int minImages = 1;
+
+  // Test category fields
+  final List<String> testCategoryOptions = [
+    "Blood & Routine Tests",
+    "Preventive & Wellness Checkups",
+    "Women, Pregnancy & Child Health",
+    "Diagnostics & Imaging",
+    "Organ & System Health",
+    "Infection, Cancer & Immunity",
+  ];
+  var selectedTestCategories = <String>[].obs;
 
   RxString selectedTime = "".obs;
   final List<String> timeSlots = [
@@ -51,7 +71,34 @@ class HealthCampController extends GetxController {
     final discount = int.tryParse(discountPriceController.text.trim() == "" ? "0" : discountPriceController.text.trim()) ?? 0;
     final hasDate = startDay.value > 0 && startMonth.value > 0 && startYear.value > 0 && endDay.value > 0 && endMonth.value > 0 && endYear.value > 0;
     final hasTime = selectedTime.value.isNotEmpty;
-    isValid.value = title.isNotEmpty && desc.isNotEmpty && hasDate && hasTime && price >= 0 && discount >= 0 && sq >= 0;
+    final hasImages = selectedImages.length >= minImages;
+    isValid.value = title.isNotEmpty && desc.isNotEmpty && hasDate && hasTime && price >= 0 && discount >= 0 && sq >= 0 && hasImages;
+  }
+
+  void addImages(List<String> paths) {
+    final remaining = maxImages - selectedImages.length;
+    if (remaining <= 0) {
+      commonSnackBar(message: "Maximum $maxImages images allowed");
+      return;
+    }
+    final newFiles = paths.take(remaining).map((e) => File(e)).toList();
+    selectedImages.addAll(newFiles);
+    validateForm();
+  }
+
+  void removeImage(int index) {
+    if (index >= 0 && index < selectedImages.length) {
+      selectedImages.removeAt(index);
+      validateForm();
+    }
+  }
+
+  void toggleTestCategory(String category) {
+    if (selectedTestCategories.contains(category)) {
+      selectedTestCategories.remove(category);
+    } else {
+      selectedTestCategories.add(category);
+    }
   }
 
   Future<void> fetchCamps() async {
@@ -84,8 +131,22 @@ class HealthCampController extends GetxController {
         endDate: end,
         startTime: selectedTime.value,
         laboratoryId: labIDGlobal,
+        testCategories: selectedTestCategories.isNotEmpty
+            ? selectedTestCategories.toList()
+            : null,
       ).toJson();
-      ResponseModel res = await _repo.createHealthCamp(payload);
+
+      final imageParts = await multiPartMultipleImages(
+        arrImages: selectedImages.toList(),
+      );
+      if (imageParts.isNotEmpty) {
+        payload['images'] = imageParts;
+      }
+
+      ResponseModel res = await _repo.createHealthCamp(
+        payload,
+        isMultipart: imageParts.isNotEmpty,
+      );
       if (res.isSuccess) {
         commonSnackBar(message: "Health camp created");
         await fetchCamps();
@@ -118,8 +179,23 @@ class HealthCampController extends GetxController {
         endDate: end,
         startTime: selectedTime.value,
         laboratoryId: labIDGlobal,
+        testCategories: selectedTestCategories.isNotEmpty
+            ? selectedTestCategories.toList()
+            : null,
       ).toJson();
-      ResponseModel res = await _repo.updateHealthCamp(existing.id!, payload);
+
+      final imageParts = await multiPartMultipleImages(
+        arrImages: selectedImages.toList(),
+      );
+      if (imageParts.isNotEmpty) {
+        payload['images'] = imageParts;
+      }
+
+      ResponseModel res = await _repo.updateHealthCamp(
+        existing.id!,
+        payload,
+        isMultipart: imageParts.isNotEmpty,
+      );
       if (res.isSuccess) {
         commonSnackBar(message: "Health camp updated");
         await fetchCamps();
@@ -167,6 +243,8 @@ class HealthCampController extends GetxController {
       endDay.value = DateTime.now().day;
       endMonth.value = DateTime.now().month;
       endYear.value = DateTime.now().year;
+      selectedImages.clear();
+      selectedTestCategories.clear();
     } else {
       typeController.text = camp.title ?? "";
       descController.text = camp.description ?? "";
@@ -174,6 +252,9 @@ class HealthCampController extends GetxController {
       priceController.text = (camp.price ?? 0).toString();
       discountPriceController.text = (camp.discountPrice ?? 0).toString();
       selectedTime.value = camp.startTime ?? "";
+      selectedImages.clear();
+      selectedTestCategories.value =
+          camp.testCategories?.toList() ?? [];
       try {
         final s = DateTime.tryParse(camp.startDate ?? "");
         final e = DateTime.tryParse(camp.endDate ?? "");

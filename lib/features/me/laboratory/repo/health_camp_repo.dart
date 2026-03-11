@@ -8,12 +8,27 @@ class HealthCampRepo extends BaseService {
     return await ApiBaseHelper().getHTTP(labHealthCamps);
   }
 
-  Future<ResponseModel> createHealthCamp(Map<String, dynamic> data) async {
-    return await ApiBaseHelper().postHTTP(labHealthCamps, params: data);
+  Future<ResponseModel> createHealthCamp(
+    Map<String, dynamic> data, {
+    bool isMultipart = false,
+  }) async {
+    return await ApiBaseHelper().postHTTP(
+      labHealthCamps,
+      params: data,
+      isMultipart: isMultipart,
+    );
   }
 
-  Future<ResponseModel> updateHealthCamp(String id, Map<String, dynamic> data) async {
-    return await ApiBaseHelper().putHTTP("$labHealthCamps/$id", params: data);
+  Future<ResponseModel> updateHealthCamp(
+    String id,
+    Map<String, dynamic> data, {
+    bool isMultipart = false,
+  }) async {
+    return await ApiBaseHelper().putHTTP(
+      "$labHealthCamps/$id",
+      params: data,
+      isMultipart: isMultipart,
+    );
   }
 
   Future<ResponseModel> deleteHealthCamp(String id) async {

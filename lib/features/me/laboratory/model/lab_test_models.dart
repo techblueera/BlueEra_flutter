@@ -86,6 +86,7 @@ class PathologyTest {
   int? testFees;
   int? customerPrice;
   String? collection;
+  String? packageType;
 
   PathologyTest({
     this.id,
@@ -106,6 +107,7 @@ class PathologyTest {
     this.testFees,
     this.customerPrice,
     this.collection,
+    this.packageType,
   });
 
   factory PathologyTest.fromJson(Map<String, dynamic> json) => PathologyTest(
@@ -136,6 +138,7 @@ class PathologyTest {
         testFees: json["testFees"],
         customerPrice: json["customerPrice"],
         collection: json["collection"],
+    packageType: json["packageType"],
       );
 
   Map<String, dynamic> toJson() {
@@ -157,7 +160,8 @@ class PathologyTest {
       "prescriptionRequired": prescriptionRequired,
       "testFees": testFees,
       "customerPrice": customerPrice,
-      "collection": collection,
+      "groupCategory": collection,
+      "packageType":packageType
     };
     if (id != null) data["_id"] = id;
     if (userId != null) data["userId"] = userId;

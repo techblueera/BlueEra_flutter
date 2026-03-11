@@ -3510,6 +3510,8 @@ class AppStrings {
   static const String testParameters = "test_parameters";
   static const String selectParameter = "select_parameter";
   static const String egParameters = "eg_parameters";
+  static const String packageType = "package_type";
+  static const String selectPackageType = "select_package_type";
 
   /// FACILITY SCREEN
   static const String wheelchairAssistance = "wheelchair_assistance";
@@ -3535,6 +3537,11 @@ class AppStrings {
   static const String sqFoot = "sq_foot";
   static const String discountPrice = "discount_price";
   static const String selectStartTime = "select_start_time";
+  static const String campImages = "camp_images";
+  static const String addImages = "add_images";
+  static const String minOneImageRequired = "min_one_image_required";
+  static const String testOffers = "test_offers";
+  static const String selectTestCategories = "select_test_categories";
 
   /// LAB PREVIEW & PROFILES SCREENS
   static const String diagnosticLabPreview = "diagnostic_lab_preview";

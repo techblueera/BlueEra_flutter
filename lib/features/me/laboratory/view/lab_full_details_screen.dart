@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/empty_blood_test_add_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
@@ -350,7 +351,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                if (controller.details.value?.profile?.logoUrl?.isNotEmpty ??
+                if (controller.details.value?.profile?.coverUrl?.isNotEmpty ??
                     false)
                   Container(
                     width: 100,
@@ -362,7 +363,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                       ],
                       image: DecorationImage(
                           image: NetworkImage(
-                              controller.details.value?.profile?.logoUrl ?? ''),
+                              controller.details.value?.profile?.coverUrl ?? ''),
                           fit: BoxFit.cover),
                     ),
                   ),
