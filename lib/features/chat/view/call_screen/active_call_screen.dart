@@ -44,25 +44,11 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   Widget build(BuildContext context) {
     final controller = Get.find<CallController>();
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) {
-          controller.enterPipMode();
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFF121B22),
         body: Obx(() {
           final isVideo = controller.callType.value == CallType.video;
           final isGroup = controller.isGroupCall.value;
-          final isPip = controller.isInPipMode.value;
-
-          // PiP mode: show minimal UI
-          if (isPip) {
-            return _buildPipModeUI(controller, isVideo);
-          }
-
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -80,47 +66,6 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
             ],
           );
         }),
-      ),
-    );
-  }
-
-  // ==================== PiP MODE UI ====================
-
-  Widget _buildPipModeUI(CallController controller, bool isVideo) {
-    // Minimal UI shown in PiP window
-    if (isVideo && controller.remoteStreams.isNotEmpty) {
-      final remoteRenderer = controller.remoteRenderers.values.firstOrNull;
-      if (remoteRenderer != null) {
-        return RTCVideoView(
-          remoteRenderer,
-          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-        );
-      }
-    }
-    // Audio call or no remote video — show avatar + timer
-    return Container(
-      color: const Color(0xFF121B22),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildCircleAvatar(
-              name: controller.remoteUserName.value,
-              image: controller.remoteUserImage.value,
-              radius: 30,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              controller.formattedCallDuration,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -162,7 +107,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
                 showCameraOff: !controller.remoteVideoEnabled.value,
               );
             }),
-            // Local video PiP (draggable anywhere)
+            // Local video (draggable anywhere)
             if (controller.localRenderer != null)
               Obx(() {
                 if (!controller.isCameraOn.value) {
@@ -497,8 +442,15 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => controller.enterPipMode(),
-                  child: const Icon(Icons.picture_in_picture_alt_rounded,
+                  onTap: (){
+                    Get.back();
+                    Future.delayed(Duration.zero,(){
+                      setState(() {
+
+                      });
+                    });
+                  },
+                  child: const Icon(Icons.arrow_back_rounded,
                       color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 12),
@@ -542,20 +494,6 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
                     ],
                   ),
                 ),
-                // Minimize (PiP) button
-                GestureDetector(
-                  onTap: () => controller.enterPipMode(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.picture_in_picture_alt,
-                        color: Colors.white, size: 20),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 // Add user button (WhatsApp style)
                 Obx(() {
                   if (controller.callStatus.value == CallStatus.connected) {

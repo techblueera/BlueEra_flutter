@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
@@ -18,7 +18,7 @@ import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/app_notification.dart';
-import '../../../../core/services/pip_service.dart';
+
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
 import '../socket/chat_socket.dart';
@@ -27,14 +27,14 @@ enum CallType { audio, video }
 
 enum CallStatus { idle, ringing, accepting, outgoing, connecting, connected, ended }
 
-class CallController extends GetxController with WidgetsBindingObserver {
+class CallController extends GetxController {
   final CallRepo _callRepo = CallRepo();
   late ChatSocketService _socket;
 
   // --- Observable state ---
   var callType = CallType.audio.obs;
   var callStatus = CallStatus.idle.obs;
-  var isInPipMode = false.obs;
+
   var callerName = ''.obs;
   var callerImage = ''.obs;
   var remoteUserName = ''.obs;
@@ -105,41 +105,17 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _socket = ChatSocketService();
     _setupCallSocketListeners();
     _setupCallKitListeners();
-    WidgetsBinding.instance.addObserver(this);
+
   }
 
   @override
   void onClose() {
     _disposed = true;
-    WidgetsBinding.instance.removeObserver(this);
-    PipService.updatePipStatus(false);
+
     _cleanup();
     super.onClose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      // App going to background — check if in PiP
-      _checkPipMode();
-    } else if (state == AppLifecycleState.resumed) {
-      // App coming back to foreground
-      isInPipMode.value = false;
-    }
-  }
-
-  Future<void> _checkPipMode() async {
-    // Small delay so native PiP transition completes
-    await Future.delayed(const Duration(milliseconds: 300));
-    final inPip = await PipService.isInPipMode();
-    isInPipMode.value = inPip;
-  }
-
-  /// Enter PiP mode manually (minimize button)
-  Future<void> enterPipMode() async {
-    await PipService.enterPip();
-    isInPipMode.value = true;
-  }
 
   // ==================== SOCKET EVENT LISTENERS ====================
 
@@ -336,7 +312,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Keep screen on & enable PiP
     WakelockPlus.enable();
-    PipService.updatePipStatus(true);
+
 
     return true;
   }
@@ -450,7 +426,7 @@ log("sdkjcskjlcskjc ${{
 
     // Keep screen on & enable PiP
     WakelockPlus.enable();
-    PipService.updatePipStatus(true);
+
 
     // Start a 30-second connection timeout — if not connected by then, end the call
     _startConnectionTimeout();
@@ -936,7 +912,7 @@ log("sdkjcskjlcskjc ${{
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
     await _setupLocalMedia();
     WakelockPlus.enable();
-    PipService.updatePipStatus(true);
+
 
     return true;
   }
@@ -1334,8 +1310,6 @@ log("sdkjcskjlcskjc ${{
     _pendingCandidates.clear();
 
     WakelockPlus.disable();
-    PipService.updatePipStatus(false);
-    isInPipMode.value = false;
     _resetState();
   }
 
@@ -1368,7 +1342,8 @@ log("sdkjcskjlcskjc ${{
   void _setupCallKitListeners() {
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       if (event == null) return;
-      final extra = event.body['extra'] as Map<String, dynamic>? ?? {};
+      final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
+
 
       // Only handle incoming_call events — skip ride orders and other types
       final operation = (extra['operation'] ?? '').toString();
@@ -1388,13 +1363,22 @@ log("sdkjcskjlcskjc ${{
               _coldStartCall = false;
             }
           });
+          Future.delayed(Duration(seconds: 1),(){
+            FlutterCallkitIncoming.endAllCalls();
+          });
           break;
         case Event.actionCallDecline:
           initStateFromCallKitExtra(extra);
           declineCall();
+          Future.delayed(Duration(seconds: 1),(){
+            FlutterCallkitIncoming.endAllCalls();
+          });
           break;
         case Event.actionCallEnded:
           endCall();
+          Future.delayed(Duration(seconds: 1),(){
+            FlutterCallkitIncoming.endAllCalls();
+          });
           break;
         default:
           break;

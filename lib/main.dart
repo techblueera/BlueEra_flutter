@@ -35,6 +35,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_handler/share_handler.dart';
 import 'core/services/home_cache_service.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/chat/auth/controller/call_controller.dart';
@@ -174,6 +175,27 @@ Future<void> main() async {
   if (!Get.isRegistered<CallController>()) {
     Get.put(CallController(), permanent: true);
   }
+
+  /// Check if app was launched by accepting an incoming call from killed state.
+  /// Must run BEFORE runApp() so launchedForCall is true at first build.
+  try {
+    final activeCalls = await FlutterCallkitIncoming.activeCalls();
+    if (activeCalls is List && activeCalls.isNotEmpty) {
+      final extra = Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
+      final operation = (extra['operation'] ?? '').toString();
+      final accepted = activeCalls[0]['accepted'] == true;
+      if (operation == 'incoming_call' && accepted) {
+        CallController.launchedForCall.value = true;
+        // Pre-populate call state so acceptCall() has the data it needs
+        final callController = Get.find<CallController>();
+        callController.initStateFromCallKitExtra(extra);
+        Future.delayed(Duration(seconds: 1),(){
+          FlutterCallkitIncoming.endAllCalls();
+        });
+
+      }
+    }
+  } catch (_) {}
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
 

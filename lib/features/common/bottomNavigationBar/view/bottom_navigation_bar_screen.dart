@@ -48,6 +48,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
+import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
@@ -111,31 +112,31 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeUserData();
     _initializeSocketConnections();
     checkByRiderCall();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _handlePostFrameInitialization();
-      FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-        if (event == null) return;
-        final extra = event.body['extra'] as Map<String, dynamic>? ?? {};
-        final operation = (extra['operation'] ?? '').toString();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _handlePostFrameInitialization();
+    //   FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+    //     if (event == null) return;
+    //     final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
+    //     final operation = (extra['operation'] ?? '').toString();
+    //
+    //     if (operation == 'incoming_call') {
+    //       // Call events are handled by CallController._setupCallKitListeners()
+    //       // which is registered permanently in main(). No duplicate handling needed.
+    //       return;
+    //     } else {
+    //       // Ride order events
+    //       if (event.event == Event.actionCallAccept) {
+    //         Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+    //         FlutterCallkitIncoming.endAllCalls();
+    //       } else if (event.event == Event.actionCallDecline) {
+    //         commonSnackBar(message: "Your Order Rejected by You");
+    //         Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+    //         FlutterCallkitIncoming.endAllCalls();
+    //       }
+    //     }
+    //   });
+    // });
 
-        if (operation == 'incoming_call') {
-          // Call events are handled by CallController._setupCallKitListeners()
-          // which is registered permanently in main(). No duplicate handling needed.
-          return;
-        } else {
-          // Ride order events
-          if (event.event == Event.actionCallAccept) {
-            Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-            FlutterCallkitIncoming.endAllCalls();
-          } else if (event.event == Event.actionCallDecline) {
-            commonSnackBar(message: "Your Order Rejected by You");
-            Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-            FlutterCallkitIncoming.endAllCalls();
-          }
-        }
-      });
-    });
-    // _fetchAllAdminVideos();
   }
 
   Future<void> checkByRiderCall() async {
@@ -143,7 +144,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (orderId != null) {
       // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      FlutterCallkitIncoming.endAllCalls();
+      Future.delayed(Duration(seconds: 1),(){
+        FlutterCallkitIncoming.endAllCalls();
+      });
     }
   }
 
@@ -151,10 +154,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     var calls = await FlutterCallkitIncoming.activeCalls();
     if (calls is List) {
       if (calls.isNotEmpty) {
+        // Skip voice/video calls — those are handled by CallController
+        final extra = Map<String, dynamic>.from(calls[0]['extra']as Map? ?? {});
+        final operation = (extra['operation'] ?? '').toString();
+        if (operation == 'incoming_call') return null;
+
         bool accepted = calls[0]['accepted'];
 
         if (accepted) {
-          return calls[0]['extra']['orderId'].toString();
+          return extra['orderId'].toString();
         } else {
           return 'rejected';
         }
@@ -295,6 +303,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     chatViewController.disposeSocket();
     super.dispose();
   }
+  final callController = getOrPut(() => CallController());
 
   @override
   Widget build(BuildContext context) {
@@ -313,6 +322,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 // Your dynamic screen based on index
                 Obx(() {
                   return Positioned.fill(
+                    top: (callController.callStatus.value != CallStatus.connected)?0:50,
                     child: _getScreen(
                         bottomBarController.currentIndex.value, isVisible),
                   );
@@ -398,6 +408,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarVisibleNotifier.value = visible;
     }
   }
+
 
   Widget meScreens() {
     if (isGuestUser()) return GuestDashBoardScreen();
