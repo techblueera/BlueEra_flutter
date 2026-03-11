@@ -721,6 +721,7 @@ abstract class BaseService {
   final String  labFullDetails= 'lab-service/laboratory-profiles/full-details/$userId';
   final String  labFacilities= 'lab-service/facilities';
   final String labHealthCamps = 'lab-service/health-camps';
+  final String labHealthCampsFd = 'lab-service/health-camps';
   final String  labProfiles= 'lab-service/laboratory-profiles';
   final String testCategories = 'lab-service/test-categories';
   final String testParameters = 'lab-service/test-parameters';

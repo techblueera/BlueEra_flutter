@@ -19,4 +19,8 @@ class HealthCampRepo extends BaseService {
   Future<ResponseModel> deleteHealthCamp(String id) async {
     return await ApiBaseHelper().deleteHTTP("$labHealthCamps/$id");
   }
+
+  Future<ResponseModel> getHealthCampFullDetails() async {
+    return await ApiBaseHelper().getHTTP(labHealthCampsFd);
+  }
 }
