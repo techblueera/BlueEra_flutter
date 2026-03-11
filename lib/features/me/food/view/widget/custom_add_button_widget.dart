@@ -4,42 +4,47 @@ import 'package:flutter/material.dart';
 
 class CustomAddButton extends StatelessWidget {
   final VoidCallback onTap;
-
-  const CustomAddButton({super.key, required this.onTap});
+  final bool isAdded;
+  const CustomAddButton({
+    super.key,
+    required this.onTap,
+    this.isAdded = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        // Adjust width and height to match your specific UI needs
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          // 1. The Light Blue Gradient Background
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50, // Lighter top
-              const Color(0xFFE3F2FD), // Subtle blue middle/bottom
-            ],
-          ),
-          // 2. The Solid Blue Border
+          // 1. Dynamic Background Based on isAdded
+          color: isAdded ? Colors.green.withValues(alpha: 0.1) : Colors.blue.shade50,
+
+          // 2. Dynamic Border
           border: Border.all(
-            color: Colors.blue.shade600,
+            color: isAdded ? Colors.green.shade600 : Colors.blue.shade600,
             width: 1.5,
           ),
-          // 3. Rounded Corners
+
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Center(
-          child: CustomText(
-            "ADD",
-            color: AppColors.primaryColor,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isAdded) ...[
+              const Icon(Icons.check, color: Colors.green, size: 14),
+              const SizedBox(width: 4),
+            ],
+            CustomText(
+              isAdded ? "ADDED" : "ADD",
+              color: isAdded ? Colors.green.shade700 : AppColors.primaryColor,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ],
         ),
       ),
     );
