@@ -3542,6 +3542,13 @@ class AppStrings {
   static const String minOneImageRequired = "min_one_image_required";
   static const String testOffers = "test_offers";
   static const String selectTestCategories = "select_test_categories";
+  static const String healthCamp = "health_camp";
+  static const String readMore = "read_more";
+  static const String readLess = "read_less";
+  static const String availableFreeTest = "available_free_test";
+  static const String availableDiscountedTest = "available_discounted_test";
+  static const String campAlreadyExists = "camp_already_exists";
+  static const String confirmDeleteCamp = "confirm_delete_camp";
 
   /// LAB PREVIEW & PROFILES SCREENS
   static const String diagnosticLabPreview = "diagnostic_lab_preview";

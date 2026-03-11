@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
+import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
@@ -166,10 +167,8 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     final detailsData = detailsResponse.response?.data;
                     final placeDetails =
                     PlaceDetailsResponse.fromJson(detailsData);
-                    // controller.lat.value=placeDetails.result?.geometry?.location?.lat??0.0;
-                    // controller.lng.value=placeDetails.result?.geometry?.location?.lng??0.0;
-                    // logs(
-                    //     "placeDetails.result?.website ${placeDetails.result?.website}");
+                    controller.lat.value=placeDetails.result?.geometry?.location?.lat??0.0;
+                    controller.lng.value=placeDetails.result?.geometry?.location?.lng??0.0;
                   } catch (e) {
                     print("Error fetching place details: $e");
                   }
@@ -322,72 +321,127 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          AppStrings.testOffers.tr,
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
+        // "Add Discount Test" toggle row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              "Add Discount Test",
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+            Obx(() => Switch(
+                  value: controller.addDiscountTestEnabled.value,
+                  onChanged: (val) {
+                    controller.addDiscountTestEnabled.value = val;
+                    if (val && controller.selectedTestCategories.isEmpty) {
+                      _showAddDiscountTestBottomSheet();
+                    }
+                  },
+                  activeTrackColor: AppColors.primaryColor,
+                )),
+          ],
         ),
-        SizedBox(height: SizeConfig.size8),
-        GestureDetector(
-          onTap: () => _showTestCategoryBottomSheet(),
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size12,
-              vertical: SizeConfig.size12,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(width: 1, color: AppColors.greyE5),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Obx(() => controller.selectedTestCategories.isEmpty
-                      ? CustomText(
-                          AppStrings.selectCategory.tr,
-                          fontSize: 12,
-                          color: AppColors.greyA5,
-                        )
-                      : CustomText(
-                          controller.selectedTestCategories.take(1).join(", "),
-                          fontSize: 12,
-                          maxLines: 2,
-                        )),
+        // Selected categories as chips + "Add" tap area
+        Obx(() {
+          if (!controller.addDiscountTestEnabled.value) {
+            return const SizedBox.shrink();
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (controller.selectedTestCategories.isNotEmpty) ...[
+                Wrap(
+                  spacing: SizeConfig.size8,
+                  runSpacing: SizeConfig.size4,
+                  children: controller.selectedTestCategories
+                      .map((cat) => Chip(
+                            label: CustomText(cat, fontSize: 11),
+                            deleteIcon: const Icon(Icons.close, size: 14),
+                            onDeleted: () =>
+                                controller.toggleTestCategory(cat),
+                            backgroundColor:
+                                AppColors.primaryColor.withValues(alpha: 0.1),
+                            side: BorderSide.none,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ))
+                      .toList(),
                 ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 16,
-                  color: AppColors.mainTextColor,
-                ),
+                SizedBox(height: SizeConfig.size8),
               ],
-            ),
-          ),
-        ),
-        SizedBox(height: SizeConfig.size8),
-        Obx(() => Wrap(
-              spacing: SizeConfig.size8,
-              runSpacing: SizeConfig.size4,
-              children: controller.selectedTestCategories
-                  .map((cat) => Chip(
-                        label: CustomText(cat, fontSize: 11),
-                        deleteIcon:
-                            const Icon(Icons.close, size: 14),
-                        onDeleted: () =>
-                            controller.toggleTestCategory(cat),
-                        backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+              // Selected test discounts display
+              if (controller.selectedTestDiscounts.isNotEmpty) ...[
+                ...controller.selectedTestDiscounts.map((discount) {
+                  return Container(
+                    margin: EdgeInsets.only(bottom: SizeConfig.size8),
+                    padding: EdgeInsets.all(SizeConfig.size12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.greyE5),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                discount.test?.testName ?? "",
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              SizedBox(height: 4),
+                              CustomText(
+                                "${discount.discountValue ?? 0}% ${discount.discountType ?? 'percentage'}",
+                                fontSize: 11,
+                                color: AppColors.greyA5,
+                              ),
+                            ],
+                          ),
                         ),
-                      ))
-                  .toList(),
-            )),
+                        GestureDetector(
+                          onTap: () => controller
+                              .removeTestDiscount(discount.test?.id ?? ""),
+                          child: const Icon(Icons.close,
+                              size: 18, color: AppColors.red),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                SizedBox(height: SizeConfig.size4),
+              ],
+              // Add button to open category selection
+              GestureDetector(
+                onTap: () => _showAddDiscountTestBottomSheet(),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primaryColor),
+                  ),
+                  child: Center(
+                    child: CustomText(
+                      "Add Test Offer",
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
       ],
     );
   }
 
-  void _showTestCategoryBottomSheet() {
+  /// Step 1: Bottom sheet with 6 categories + checkboxes → "Next" button
+  void _showAddDiscountTestBottomSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -403,29 +457,27 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Header
                 Padding(
                   padding: EdgeInsets.all(SizeConfig.size16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        AppStrings.selectCategory.tr,
+                        "Add Discounted Test",
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: CustomText(
-                          AppStrings.done.tr,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                        ),
+                        child: const Icon(Icons.close,
+                            size: 22, color: AppColors.mainTextColor),
                       ),
                     ],
                   ),
                 ),
                 const Divider(height: 1),
+                // Category list with checkboxes
                 ...controller.testCategoryOptions.map((category) {
                   return Obx(() {
                     final isSelected =
@@ -460,9 +512,46 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     );
                   });
                 }),
-                SizedBox(height: SizeConfig.size20),
+                // "Next" button
+                Padding(
+                  padding: EdgeInsets.all(SizeConfig.size16),
+                  child: Obx(() => CustomBtn(
+                        title: "Next",
+                        isValidate:
+                            controller.selectedTestCategories.isNotEmpty,
+                        onTap: controller.selectedTestCategories.isNotEmpty
+                            ? () {
+                                Navigator.pop(context);
+                                _showSelectTestBottomSheet();
+                              }
+                            : null,
+                      )),
+                ),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Step 2: TabBar bottom sheet with selected categories as tabs,
+  /// showing test catalog per tab with checkboxes + discount input
+  void _showSelectTestBottomSheet() {
+    // Fetch lab tests for all selected categories
+    controller.fetchAllSelectedTests();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.85,
+            child: _SelectTestTabView(controller: controller),
           ),
         );
       },
@@ -524,5 +613,225 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
         ),
       ),
     );
+  }
+}
+
+/// TabBar-based test selection view for the "Select Test" bottom sheet
+class _SelectTestTabView extends StatefulWidget {
+  final HealthCampController controller;
+
+  const _SelectTestTabView({required this.controller});
+
+  @override
+  State<_SelectTestTabView> createState() => _SelectTestTabViewState();
+}
+
+class _SelectTestTabViewState extends State<_SelectTestTabView>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  HealthCampController get controller => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: controller.selectedTestCategories.length,
+      vsync: this,
+    );
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        final cat = controller.selectedTestCategories[_tabController.index];
+        controller.fetchTestsForCategory(cat);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final categories = controller.selectedTestCategories.toList();
+
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                "Select Test",
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Icon(Icons.close,
+                    size: 22, color: AppColors.mainTextColor),
+              ),
+            ],
+          ),
+        ),
+        // Tab bar with selected categories
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: AppColors.white,
+          unselectedLabelColor: AppColors.mainTextColor,
+          labelStyle: const TextStyle(
+            fontSize: 12,
+            fontFamily: AppConstants.OpenSans,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontFamily: AppConstants.OpenSans,
+            fontWeight: FontWeight.w400,
+          ),
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: AppColors.primaryColor,
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          dividerColor: Colors.transparent,
+          tabAlignment: TabAlignment.start,
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          tabs: categories
+              .map((cat) => Tab(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(cat),
+                    ),
+                  ))
+              .toList(),
+        ),
+        SizedBox(height: SizeConfig.size8),
+        // Tab bar view with test catalog per tab
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: categories.map((category) {
+              return _buildTestList(category);
+            }).toList(),
+          ),
+        ),
+        // "Post" button at the bottom
+        Padding(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          child: CustomBtn(
+            title: "Post",
+            isValidate: true,
+            onTap: () => Navigator.pop(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTestList(String category) {
+    return Obx(() {
+      if (controller.isTestsLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      final tests = controller.getTestsForCategory(category);
+      if (tests.isEmpty) {
+        return Center(
+          child: CustomText(
+            "No tests found",
+            fontSize: 14,
+            color: AppColors.greyA5,
+          ),
+        );
+      }
+      return ListView.separated(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+        itemCount: tests.length,
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final item = tests[index];
+          return Obx(() {
+            final isSelected = controller.isTestSelected(item.id ?? "");
+            return InkWell(
+              onTap: () => controller.toggleTestDiscount(item),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomCheckBox(
+                      isChecked: isSelected,
+                      onChanged: () => controller.toggleTestDiscount(item),
+                      size: 22,
+                      borderColor: AppColors.greyE5,
+                    ),
+                    SizedBox(width: SizeConfig.size12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            item.testName ?? "",
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          if (item.testParameters != null &&
+                              item.testParameters!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: CustomText(
+                                item.testParameters!
+                                    .map((p) => p is TestParameter
+                                        ? (p.name ?? '')
+                                        : p.toString())
+                                    .join(", "),
+                                fontSize: 11,
+                                color: AppColors.greyA5,
+                                maxLines: 2,
+                              ),
+                            ),
+                          if (item.specimen != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: CustomText(
+                                "Reports within ${item.estimatedReportHours ?? 0} Hrs - ${item.specimen ?? ''} sample collection",
+                                fontSize: 10,
+                                color: AppColors.greyA5,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (item.testFees != null)
+                          CustomText(
+                            "INR ${item.testFees}",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        if (item.customerPrice != null &&
+                            item.customerPrice != item.testFees)
+                          CustomText(
+                            "INR ${item.customerPrice}",
+                            fontSize: 10,
+                            color: AppColors.greyA5,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          });
+        },
+      );
+    });
   }
 }

@@ -23,7 +23,6 @@ class LabTestListScreen extends StatefulWidget {
 
 class _LabTestListScreenState extends State<LabTestListScreen> {
   late final LabTestController controller;
-  final String _catalogGroup = "Blood & Routine Tests";
 
   @override
   void initState() {
