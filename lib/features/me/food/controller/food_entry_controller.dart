@@ -1,14 +1,15 @@
 import 'dart:io';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../view/food_ai_details_screen.dart';
 
 class FoodEntryController extends GetxController {
   // Text Controllers
@@ -33,7 +34,8 @@ class FoodEntryController extends GetxController {
   }
 
   void validateForm() {
-    isFormValid.value = foodNameController.text.trim().isNotEmpty &&
+    isFormValid.value =
+        foodNameController.text.trim().isNotEmpty &&
         foodCategoryController.text.trim().isNotEmpty;
   }
 
@@ -64,7 +66,7 @@ class FoodEntryController extends GetxController {
 
   Rx<FoodGenAiResModel>? aiFoodResModel = FoodGenAiResModel().obs;
 
-  Future<void> onGenerate() async {
+  Future<void> onGenerate({required bool isCreateFromMissingProduct}) async {
     if (isFormValid.value) {
       try {
         ResponseModel response =
@@ -78,9 +80,14 @@ class FoodEntryController extends GetxController {
           final data = response.response?.data;
           aiFoodResModel?.value = FoodGenAiResModel.fromJson(data);
 
-          Get.to(()=> FoodDetailScreen(
-            foodData: aiFoodResModel?.value ?? FoodGenAiResModel(),
-          ));
+          Get.toNamed(
+              RouteHelper.getFoodAiDetailScreenRoute(),
+              arguments: {
+                ApiKeys.argFoodGenAiResModel: aiFoodResModel?.value ?? FoodGenAiResModel(),
+                ApiKeys.argIsCreateFromMissingProduct: isCreateFromMissingProduct,
+              }
+          );
+
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }

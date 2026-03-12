@@ -1,42 +1,38 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/food/controller/food_entry_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
-class FoodDetailScreen extends StatefulWidget {
+class FoodAiDetailScreen extends StatefulWidget {
   final FoodGenAiResModel foodData;
+  final bool isCreateFromMissingProduct;
 
-  const FoodDetailScreen({
+  const FoodAiDetailScreen({
     super.key,
     required this.foodData,
+    required this.isCreateFromMissingProduct,
   });
 
   @override
-  State<FoodDetailScreen> createState() => _FoodDetailScreenState();
+  State<FoodAiDetailScreen> createState() => _FoodAiDetailScreenState();
 }
 
-class _FoodDetailScreenState extends State<FoodDetailScreen> {
+class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
   FoodGenAiData product = FoodGenAiData();
   final vc = Get.find<FoodServiceController>();
   final foodEntryController = Get.find<FoodEntryController>();
@@ -75,7 +71,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           child: CustomBtn(
               isValidate: vc.variantList.isNotEmpty,
               onTap: vc.variantList.isNotEmpty?() {
-                vc.createFoodProductViaAiApi(foodData: product);
+                vc.createFoodProductViaAiApi(
+                    foodData: product,
+                    isCreateFromMissingProduct: isCreateFromMissingProduct
+                );
               }:null,
               title: AppStrings.postNow),
         ));
@@ -332,7 +331,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: file == null ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
+                        color: file == null ? Colors.black.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.1),
                       ),
                       child: Center(
                         child: file == null

@@ -18,8 +18,13 @@ import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodEntryAiScreen extends StatefulWidget {
   final FoodCategoryData foodCategoryData;
+  final bool isCreateFromMissingProduct;
 
-  const FoodEntryAiScreen({super.key, required this.foodCategoryData});
+  const FoodEntryAiScreen({
+    super.key,
+    required this.foodCategoryData,
+    required this.isCreateFromMissingProduct,
+  });
 
   @override
   State<FoodEntryAiScreen> createState() => _FoodEntryAiScreenState();
@@ -225,7 +230,9 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               Obx(() {
                 return CustomBtn(
                   onTap: controller.isFormValid.value
-                      ? controller.onGenerate
+                      ? ()=> controller.onGenerate(
+                    isCreateFromMissingProduct: widget.isCreateFromMissingProduct
+                  )
                       : null,
                   title: AppStrings.generate,
                   isValidate: controller.isFormValid.value,

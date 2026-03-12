@@ -1,13 +1,12 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
-import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
-import 'package:BlueEra/features/me/food/view/widget/custom_add_button_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -16,7 +15,6 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
 class ProductSelectionScreen extends StatefulWidget {
@@ -96,9 +94,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         actions: [
           InkWell(
             onTap: () {
-              Get.to(()=> FoodEntryAiScreen(
-                foodCategoryData: widget.foodCategoryData,
-              ));
+              Get.toNamed(RouteHelper.getFoodEntryAiScreenRoute(),
+                  arguments: {
+                    ApiKeys.argCategoryData: widget.foodCategoryData,
+                    ApiKeys.argIsCreateFromMissingProduct: false,
+                  });
             },
             child: Container(
               margin: EdgeInsets.only(right: 15),

@@ -124,7 +124,13 @@ class MissingFoodItemsScreen extends StatelessWidget {
           CustomBtn(
             height: 32,
             width: 60,
-            onTap: () {  },
+            onTap: () {
+              // Get.toNamed(RouteHelper.getFoodEntryAiScreenRoute(),
+              //     arguments: {
+              //       ApiKeys.argCategoryData: widget.foodCategoryData,
+              //       ApiKeys.argIsCreateFromMissingProduct: true,
+              //     });
+            },
             borderColor: AppColors.primaryColor,
             textColor: AppColors.primaryColor,
             bgColor: AppColors.white,

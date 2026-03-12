@@ -75,7 +75,8 @@ class ProductVariantBottomSheet extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CustomText("All Variant", fontSize: 18, fontWeight: FontWeight.bold),
+        CustomText("All Variant",
+            fontSize: 18, fontWeight: FontWeight.bold),
         IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Get.back(),

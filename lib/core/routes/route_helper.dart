@@ -4,10 +4,15 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
-
+import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
 import 'package:BlueEra/features/me/food/view/add_food_snap_search_screen.dart';
+import 'package:BlueEra/features/me/food/view/add_single_food_product_screen.dart';
+import 'package:BlueEra/features/me/food/view/food_ai_details_screen.dart';
+import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
+import 'package:BlueEra/features/me/food/view/food_product_selection_screen.dart';
 import 'package:BlueEra/features/me/food/view/missing_food_itmes_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
@@ -559,6 +564,18 @@ class RouteHelper {
 
   static String getGroceryNestedCategoryWithInventoryScreenRoute() =>
       RouteConstant.groceryNestedCategoryWithInventoryScreen;
+
+  static String getAddSingleProductScreenRoute() =>
+      RouteConstant.addSingleProductScreen;
+
+  static String getProductSelectionScreenRoute() =>
+      RouteConstant.productSelectionScreen;
+
+  static String getFoodEntryAiScreenRoute() =>
+      RouteConstant.foodEntryAiScreen;
+
+  static String getFoodAiDetailScreenRoute() =>
+      RouteConstant.foodAiDetailScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1586,7 +1603,6 @@ class RouteHelper {
             settings: RouteSettings(name: getEarnServiceAvailableOptionsScreenRoute())
         );
 
-
       case RouteConstant.medicalScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool? argFromBottomNavBar =
@@ -1724,6 +1740,53 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => AddFoodSnapSearchScreen(),
             settings: RouteSettings(name: getAddFoodSnapSearchScreenRoute())
+        );
+
+
+      case RouteConstant.addSingleProductScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final FoodServiceController controller = args[ApiKeys.controller] as FoodServiceController;
+        final String productId = args[ApiKeys.productId] as String;
+        return MaterialPageRoute(
+            builder: (_) => AddSingleProductScreen(
+              controller: controller,
+              foodProductId: productId
+            ),
+            settings: RouteSettings(name: getAddSingleProductScreenRoute())
+        );
+
+      case RouteConstant.productSelectionScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final FoodCategoryData foodCategoryData = args[ApiKeys.argCategoryData] as FoodCategoryData;
+        return MaterialPageRoute(
+            builder: (_) => ProductSelectionScreen(
+                foodCategoryData: foodCategoryData
+            ),
+            settings: RouteSettings(name: getProductSelectionScreenRoute())
+        );
+
+      case RouteConstant.foodEntryAiScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final FoodCategoryData foodCategoryData = args[ApiKeys.argCategoryData] as FoodCategoryData;
+        final bool isCreateFromMissingProduct = args[ApiKeys.argIsCreateFromMissingProduct] as bool;
+        return MaterialPageRoute(
+            builder: (_) => FoodEntryAiScreen(
+                foodCategoryData: foodCategoryData,
+                isCreateFromMissingProduct: isCreateFromMissingProduct
+            ),
+            settings: RouteSettings(name: getFoodEntryAiScreenRoute())
+        );
+
+        case RouteConstant.foodAiDetailScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final FoodGenAiResModel foodGenAiResModel = args[ApiKeys.argFoodGenAiResModel] as FoodGenAiResModel;
+        final bool isCreateFromMissingProduct = args[ApiKeys.argIsCreateFromMissingProduct] as bool;
+        return MaterialPageRoute(
+            builder: (_) => FoodAiDetailScreen(
+                foodData: foodGenAiResModel,
+                isCreateFromMissingProduct: isCreateFromMissingProduct
+            ),
+            settings: RouteSettings(name: getFoodAiDetailScreenRoute())
         );
 
 

@@ -744,5 +744,7 @@ class ApiKeys {
   static const argBulkUpload = 'argBulkUpload';
   static const range = 'range';
   static const argGroceryCategoryWithInventory = 'argGroceryCategoryWithInventory';
+  static const argFoodGenAiResModel = 'argFoodGenAiResModel';
+  static const argIsCreateFromMissingProduct = 'argIsCreateFromMissingProduct';
 
 }

@@ -295,21 +295,14 @@ class FoodServiceController extends GetxController {
       isFormValid.value = false;
     }
   }
+
   Future<void> createFoodProductViaAiApi(
-      {required FoodGenAiData foodData}) async {
+      {
+        required FoodGenAiData foodData,
+        required bool isCreateFromMissingProduct
+      }) async {
     try {
       Map<String, dynamic> paramsReq = {};
-
-      // prepare product details json
-      final productDetailsMap = {
-        "name": foodData.name,
-        "description": foodData.description,
-        "category": selectedSubFoodTypeIDCat.value,
-        "dietaryType": foodData.dietaryType,
-        "ingredients": foodData.ingredients
-      };
-      paramsReq["productData"] = productDetailsMap;
-      paramsReq['variantData'] = variantList.map((v) => v.toJson()).toList();
 
       List<String> uploadedImages = [];
 
@@ -331,7 +324,18 @@ class FoodServiceController extends GetxController {
         }
       }
 
-      if (uploadedImages.isNotEmpty) paramsReq["productImages"] = uploadedImages;
+      // prepare product details json
+      final productDetailsMap = {
+        "name": foodData.name,
+        "description": foodData.description,
+        "cookingMethod": foodData.cookingMethod,
+        "category": selectedSubFoodTypeIDCat.value,
+        "dietaryType": foodData.dietaryType,
+        "ingredients": foodData.ingredients,
+        if (uploadedImages.isNotEmpty) "images": uploadedImages
+      };
+      paramsReq["productData"] = productDetailsMap;
+      paramsReq['variantData'] = variantList.map((v) => v.toJson()).toList();
 
       // call repo
       final responseModel =
@@ -339,11 +343,28 @@ class FoodServiceController extends GetxController {
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
+        final String? newProductId = responseModel.response?.data['product']['_id'];
 
-        Get.to(()=> AddSingleProductScreen(
-          controller: this,
-          foodProductId: responseModel.response?.data['product']['_id'],
-        ));
+        if(!isCreateFromMissingProduct){
+          Get.offNamedUntil(
+            RouteHelper.getAddSingleProductScreenRoute(),
+                (route) => route.settings.name == RouteHelper.getProductSelectionScreenRoute(),
+            arguments: {
+              ApiKeys.controller: this,
+              ApiKeys.productId: newProductId,
+            },
+          );
+        }else{
+          Get.offNamedUntil(
+            RouteHelper.getMissingFoodItemsScreenRoute(),
+                (route) => route.settings.name == RouteHelper.getProductSelectionScreenRoute(),
+            arguments: {
+              ApiKeys.controller: this,
+              ApiKeys.productId: newProductId,
+            },
+          );
+        }
+
 
       } else {
         commonSnackBar(
@@ -516,14 +537,14 @@ class FoodServiceController extends GetxController {
 
   Future<void> getSingleFoodProductApi({required String FoodId}) async {
     try {
-      getSingleFoodProductResponse.value = ApiResponse.loading("Loading");
+      getSingleFoodProductResponse.value = ApiResponse.loading("Initial");
       ResponseModel response =
       await FoodRepo().fetchSingleFoodProductDetailsRepo(foodID: FoodId);
       if (response.isSuccess) {
         singleFoodProductData.value =
             CategoryFoodProductData.fromJson(response.response?.data['data']);
         getSingleFoodProductResponse.value =
-            ApiResponse.complete(categoryFoodProductDataList);
+            ApiResponse.complete(singleFoodProductData);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         getSingleFoodProductResponse.value =

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -143,9 +144,10 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                                   item.id ?? "";
 
                               // Action for item tap
-                              Get.to(()=> ProductSelectionScreen(
-                                foodCategoryData: item,
-                              ));
+                              Get.toNamed(RouteHelper.getProductSelectionScreenRoute(),
+                              arguments: {
+                                ApiKeys.argCategoryData: item
+                              });
                             },
                           );
 

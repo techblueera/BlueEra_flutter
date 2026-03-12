@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/food/controller/food_service_controller.dart
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -31,7 +32,6 @@ class AddSingleProductScreen extends StatefulWidget {
 
 
 class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
-  // Temporary selection for the UI
   final RxList<FoodVariants> selectedVariants = <FoodVariants>[].obs;
   late FoodServiceController vc;
 
@@ -45,32 +45,24 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const CustomText("Add Product", fontSize: 18, fontWeight: FontWeight.bold),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          onPressed: () => Get.back(),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+      appBar: CommonBackAppBar(
+        title: "Add Product",
       ),
       bottomNavigationBar: Obx((){
-        if(vc.getSingleFoodProductResponse.value == Status.COMPLETE){
-          _buildBottomActionSection();
+        if(vc.getSingleFoodProductResponse.value.status == Status.COMPLETE){
+          return _buildBottomActionSection();
         }
-        return SizedBox();
+        return const SizedBox.shrink();
       }),
       body: SafeArea(
         child: Obx(() {
-
-          if(vc.getSingleFoodProductResponse.value == Status.LOADING){
+          if(vc.getSingleFoodProductResponse.value.status == Status.INITIAL){
             return Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          if(vc.getSingleFoodProductResponse.value == Status.ERROR){
+          if(vc.getSingleFoodProductResponse.value.status == Status.ERROR){
             return Center(
               child: CustomText(
                 'Something went wrong. unable to fetch data'
@@ -145,7 +137,22 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
                 style: TextStyle(color: AppColors.secondaryTextColor, fontSize: 13),
               ),
               const SizedBox(height: 10),
-              _tagWidget((liveProduct.cookingMethod ?? []).join(', ')),
+              Row(
+                children: [
+                  LocalAssets(
+                    imagePath: AppIconAssets.food_category,
+                    imgColor: liveProduct.dietaryType?.toLowerCase() == "veg"
+                        ? const Color(0xff008000)
+                        : AppColors.red00,
+                  ),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: _tagWidget(
+                      (liveProduct.cookingMethod ?? []).join(', '),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         )
@@ -249,7 +256,7 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
 
               // 2. Refresh the selectedVariants list
               // This forces the Obx to redraw the prices in the UI
-              selectedVariants.refresh();
+              vc.singleFoodProductData.refresh();
 
             },
           );
@@ -275,11 +282,13 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
         color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
       ),
-      child: PositiveCustomBtn(
-        title: "Post Now",
-        onTap: () => vc.addSingleProductToInventory(
-            productId: widget.foodProductId,
-            selectedVariants: selectedVariants
+      child: SafeArea(
+        child: PositiveCustomBtn(
+          title: "Post Now",
+          onTap: () => vc.addSingleProductToInventory(
+              productId: widget.foodProductId,
+              selectedVariants: selectedVariants
+          ),
         ),
       ),
     );
@@ -298,11 +307,14 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
   Widget _buildAddVariantButton(CategoryFoodProductData liveProduct) {
     return InkWell(
       onTap: () {
-        Get.back();
         vc.clearAllField();
         addOrVariantBottomSheet(
             onAdd: (foodVariants){
-              liveProduct.variants?.add(foodVariants);
+              vc.singleFoodProductData.value?.variants?.add(foodVariants);
+              vc.singleFoodProductData.refresh();
+
+              // 3. Optional: Automatically select the new variant
+              selectedVariants.add(foodVariants);
             }
         );
       },
@@ -314,22 +326,6 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
         ],
       ),
     );
-
-    // return Padding(
-    //   padding: const EdgeInsets.symmetric(vertical: 10),
-    //   child: TextButton.icon(
-    //     onPressed: () {
-    //       widget.controller.clearAllField();
-    //       addOrVariantBottomSheet(
-    //         onAdd: (newVariant) {
-    //           liveProduct.variants?.add(newVariant);
-    //         },
-    //       );
-    //     },
-    //     icon: const Icon(Icons.add_circle_outline),
-    //     label: const CustomText("Add Custom Variant"),
-    //   ),
-    // );
 
   }
 
