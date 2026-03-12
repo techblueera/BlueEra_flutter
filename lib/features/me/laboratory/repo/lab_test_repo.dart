@@ -28,6 +28,10 @@ class LabTestRepo extends BaseService {
     return await ApiBaseHelper().deleteHTTP("$testPathology/$id");
   }
 
+  Future<ResponseModel> getPathologyTestsByLab(String labId, String collection) async {
+    return await ApiBaseHelper().getHTTP("$testPathology/laboratory/$labId?collection=$collection");
+  }
+
   // Catalog: GET predefined tests
   Future<ResponseModel> getTestCatalog({
     required String groupCategory,

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
+import 'package:BlueEra/features/me/laboratory/repo/health_camp_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/health_camp_form_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -14,34 +15,102 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class HealthCampDetailScreen extends StatefulWidget {
-  const HealthCampDetailScreen({super.key});
+  final bool isOwnProfile;
+  final String? labId;
+
+  const HealthCampDetailScreen({
+    super.key,
+    this.isOwnProfile = true,
+    this.labId,
+  });
 
   @override
   State<HealthCampDetailScreen> createState() => _HealthCampDetailScreenState();
 }
 
 class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
-  late final HealthCampController controller;
+  HealthCampController? controller;
   bool _isDescExpanded = false;
+
+  // For other user's camp (read-only)
+  HealthCamp? _otherCamp;
+  bool _isOtherLoading = false;
 
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<HealthCampController>()) {
-      controller = Get.put(HealthCampController(), permanent: true);
+    if (widget.isOwnProfile) {
+      if (!Get.isRegistered<HealthCampController>()) {
+        controller = Get.put(HealthCampController(), permanent: true);
+      } else {
+        controller = Get.find<HealthCampController>();
+      }
+      controller!.fetchCampFullDetails();
     } else {
-      controller = Get.find<HealthCampController>();
+      _fetchOtherUserCamp();
     }
-    controller.fetchCampFullDetails();
+  }
+
+  Future<void> _fetchOtherUserCamp() async {
+    setState(() => _isOtherLoading = true);
+    try {
+      final res = await HealthCampRepo().getHealthCampsByLab(widget.labId!);
+      if (res.isSuccess) {
+        List data = res.response?.data['data'] ?? [];
+        if (data.isNotEmpty) {
+          setState(() => _otherCamp = HealthCamp.fromJson(data.last));
+        }
+      }
+    } catch (e) {
+      print("Error fetching other user camp: $e");
+    } finally {
+      setState(() => _isOtherLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isOwnProfile) {
+      return _buildOwnProfileScreen();
+    }
+    return _buildOtherProfileScreen();
+  }
+
+  Widget _buildOtherProfileScreen() {
+    return Scaffold(
+      appBar: CommonBackAppBar(title: AppStrings.healthCamp.tr),
+      body: _isOtherLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _otherCamp == null
+              ? Center(
+                  child: CustomText(
+                    AppStrings.noHealthCampsFound.tr,
+                    color: AppColors.greyA5,
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: EdgeInsets.all(SizeConfig.size12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCampHeader(_otherCamp!),
+                      SizedBox(height: SizeConfig.size12),
+                      if (_otherCamp!.testDiscounts != null &&
+                          _otherCamp!.testDiscounts!.isNotEmpty)
+                        _buildTestCategoryGroup(
+                            _otherCamp!.title ?? "", _otherCamp!.testDiscounts!),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildOwnProfileScreen() {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.healthCamp.tr,
         buildCustomActionWidget: () => Obx(() {
-          final camp = controller.campDetail.value;
+          final camp = controller!.campDetail.value;
           if (camp == null) return const SizedBox.shrink();
           return Row(
             mainAxisSize: MainAxisSize.min,
@@ -50,7 +119,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
                 icon: const Icon(Icons.edit_outlined, size: 22),
                 onPressed: () async {
                   await Get.to(() => HealthCampFormScreen(existing: camp));
-                  controller.fetchCampFullDetails();
+                  controller!.fetchCampFullDetails();
                 },
               ),
               IconButton(
@@ -63,10 +132,10 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
         }),
       ),
       body: Obx(() {
-        if (controller.isDetailLoading.value) {
+        if (controller!.isDetailLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        final camp = controller.campDetail.value;
+        final camp = controller!.campDetail.value;
         if (camp == null) {
           return Center(
             child: Column(
@@ -80,7 +149,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
                 GestureDetector(
                   onTap: () async {
                     await Get.to(() => const HealthCampFormScreen());
-                    controller.fetchCampFullDetails();
+                    controller!.fetchCampFullDetails();
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(
@@ -612,8 +681,8 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
       text: AppStrings.confirmDeleteCamp.tr,
       confirmCallback: () async {
         Get.back();
-        await controller.deleteCamp(camp.id!);
-        controller.fetchCampFullDetails();
+        await controller?.deleteCamp(camp.id??"");
+        controller?.fetchCampFullDetails();
       },
       cancelCallback: () => Get.back(),
       confirmText: AppStrings.delete,

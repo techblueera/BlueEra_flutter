@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/controller/user_medical_controller.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_create_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_super_category_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_orders/my_medical_orders.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -30,8 +31,8 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
   TabController? _tabController;
   final TextEditingController searchController = TextEditingController();
   final List<Tab> _tabs = [
-    Tab(text: AppStrings.myOrder.tr),
-    Tab(text: AppStrings.myStore.tr),
+    Tab(text: AppStrings.home.tr),
+    Tab(text: AppStrings.create.tr),
     Tab(text: AppStrings.statistics.tr),
   ];
 
@@ -79,7 +80,7 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
                       controller: _tabController,
                       labelColor: AppColors.primaryColor,
                       unselectedLabelColor: Colors.grey[600],
-                      indicatorColor: Colors.blue,
+                      indicatorColor: AppColors.primaryColor,
                       indicatorWeight: 2,
                       labelStyle: TextStyle(fontWeight: FontWeight.w600),
                       tabs: _tabs,
@@ -92,7 +93,8 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
               controller: _tabController,
               children: [
                 MyMedicalOrders(),
-                MyMedicalSuperCategoryScreen(),
+                // MyMedicalSuperCategoryScreen(),
+                MedicalCreateScreen(),
                 Center(child: CustomText(AppStrings.comingSoon))
               ]
             ),

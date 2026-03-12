@@ -221,6 +221,16 @@ class MedicalRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> fetchMedicalProfileFd({required String businessId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      medicalProfileFd(businessId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> fetchGroceryNestedCategoryRepo(
       {Map<String, dynamic>? queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

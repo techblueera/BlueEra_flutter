@@ -11,6 +11,8 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/me/laboratory/controller/lab_profiles_list_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -20,6 +22,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/empty_health_camp_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -86,8 +89,16 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               labViewHeader(d),
-              SizedBox(height: SizeConfig.size14),
-              _basicTest(tests),
+
+              SizedBox(height: SizeConfig.size16),
+              CategorySelector(labID: d.id,),
+
+              SizedBox(height: SizeConfig.size16),
+              EmptyHealthCampWidget(
+                isOwnProfile: false,
+                labId: d.id,
+              ),
+
               SizedBox(height: SizeConfig.size16),
               CommonCardWidget(
                   padding: 10,
@@ -117,6 +128,8 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       cardMargin: 0,
       child: Column(
         mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
@@ -167,113 +180,18 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           // --- FORM SECTION ---
           ServiceHomeHeaderTitleWidget(
             title: profile?.name ?? "",
-            description: profile?.description ?? "",
+            description: "",
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 12),
+            child: allServices(data.fullDetails?.facility, context),
+          ),
+
         ],
       ),
     );
   }
 
-  Widget _basicTest(List<Tests> tests) {
-    final List<Color> cardColors = [
-      Color(0xFFFFFBEB), // Soft Yellow/Cream
-      Color(0xFFF0FDF4), // Soft Green
-      Color(0xFFEFF6FF), // Soft Blue
-      Color(0xFFFAF5FF), // Soft Purple
-    ];
-    if (tests.isEmpty) return const SizedBox.shrink();
-    return CommonCardWidget(
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ServiceHomeTitleWidget(
-            title: AppStrings.testReport,
-          ),
-          SizedBox(
-            height: 150, // Adjusted height to accommodate the layout
-            child: ListView.builder(
-              itemCount: tests.length,
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 0),
-              itemBuilder: (BuildContext context, int index) {
-                final t = tests[index];
-                // Logic to repeat the 4 colors
-                final backgroundColor = cardColors[index % cardColors.length];
-
-                return Container(
-                  width: 300,
-                  // Fixed width for horizontal cards
-                  margin: EdgeInsets.only(right: 12, top: 8, bottom: 8),
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
-                    // Subtle shadow to match the "lifted" look
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Row: Title and More Icon
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              t.testName ?? "",
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          // Icon(Icons.more_vert, color: Colors.black87),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      CustomText(
-                        t.description ?? "",
-                        color: Colors.grey.shade600,
-                        maxLines: 1,
-                        fontSize: SizeConfig.small,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Divider(color: Colors.grey.shade300, height: 1),
-                      ),
-
-                      // Middle Row: Report Time and Price
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _pill(
-                              "${AppStrings.reportsWithin.tr} ${t.estimatedReportHours ?? 24} ${AppStrings.hours.tr}",
-                              Colors.white),
-                          _pill("INR-${t.customerPrice ?? 0}", Colors.white,
-                              isBold: true),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-
-// Helper method for the styled pills
-  }
 
   // Helper method for the styled pills
   Widget _pill(String text, Color bgColor, {bool isBold = false}) {
@@ -446,11 +364,8 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                     fontSize: 16, fontWeight: FontWeight.bold),
 
                 const SizedBox(height: 5),
-                CustomText(
-                  data.description ?? "",
-                  color: AppColors.secondaryTextColor,
-                  // fontSize: 12,
-                ),
+
+                ExpandableText(text:   data.description ?? "",),
                 const Divider(height: 15),
 
                 // Contact List

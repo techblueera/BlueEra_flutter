@@ -453,6 +453,38 @@ String formatIndianNumber(num? number) {
     return number.toString();
   }
 }
+final List<Map<String, String>> categories = [
+  {
+    "title": "Ayurveda & Nutrition",
+    "key": "Ayurveda_Nutrition",
+    "image": "assets/category/medical/AyurvedaNutrition.png"
+  },
+  {
+    "title": "Home & Patient Care",
+    "key": "Home_Patient_Care",
+    "image": "assets/category/medical/lab_wellness_img.png"
+  },
+  {
+    "title": "Medical Devices",
+    "key": "Medical_Devices",
+    "image": "assets/category/medical/Medical_Devices.png"
+  },
+  {
+    "title": "OTC Medicines",
+    "key": "OTC_Medicines",
+    "image": "assets/category/medical/OTC_Medicines.png"
+  },
+  {
+    "title": "Personal & Baby Care",
+    "key": "Personal_Baby_Care",
+    "image": "assets/category/medical/Personal_Baby_Care.png"
+  },
+  {
+    "title": "Wound Care & First Aid",
+    "key": "Wound_Care_First_Aid",
+    "image": "assets/category/medical/Wound_Care_First_Aid.png"
+  },
+];
 
 String formattedCreatedAt(String? createdAt) {
   if (createdAt == null || createdAt.isEmpty) return "";
@@ -1710,6 +1742,7 @@ const String ALL_SERVICE_PROFILE = "ALL_SERVICE_PROFILE";
 // Services
 const String CONSULTING_HR_SERVICE = "CONSULTING_HR_SERVICE";
 const String HEALTHCARE_MEDICAL_SERVICES = "HEALTHCARE_MEDICAL_SERVICES";
+const String INSTRUMENTS_PHARMACY_ = "INSTRUMENTS PHARMACY";
 const String EDUCATION_TRAINING = "EDUCATION_TRAINING";
 const String HOTELS_STAY_SERVICE = "HOTELS_STAY_SERVICE";
 const String BEAUTY_PERSONAL_CARE = "BEAUTY_PERSONAL_CARE";

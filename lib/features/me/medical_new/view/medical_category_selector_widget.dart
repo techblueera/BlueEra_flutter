@@ -1,50 +1,18 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-class CategorySelector extends StatelessWidget {
-  const CategorySelector({super.key,  this.labID});
+class MedicalCategorySelectorWidget extends StatelessWidget {
+  const MedicalCategorySelectorWidget({super.key,  this.labID});
   final String? labID;
   @override
   Widget build(BuildContext context) {
     // List of data for the grid
-    final List<Map<String, String>> categories = [
-      {
-        "title": "blood_routine",
-        "key": "Blood & Routine Tests",
-        "image": "assets/category/medical/lab_blood_test_img.png"
-      },
-      {
-        "title": "preventive_wellness",
-        "key": "Preventive & Wellness Checkups",
-        "image": "assets/category/medical/lab_wellness_img.png"
-      },
-      {
-        "title": "women_pregnancy",
-        "key": "Women, Pregnancy & Child Health",
-        "image": "assets/category/medical/lab_women_helth_img.png"
-      },
-      {
-        "title": "diagnostics_imaging",
-        "key": "Diagnostics & Imaging",
-        "image": "assets/category/medical/lab_diagnostics_img.png"
-      },
-      {
-        "title": "organ_system",
-        "key": "Organ & System Health",
-        "image": "assets/category/medical/lab_organ_img.png"
-      },
-      {
-        "title": "infection_immunity",
-        "key": "Infection, Cancer & Immunity",
-        "image": "assets/category/medical/lab_infection_img.png"
-      },
-    ];
 
     return Container(
-      padding: EdgeInsets.all(SizeConfig.size16),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -52,12 +20,13 @@ class CategorySelector extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          SizedBox(height: SizeConfig.size16,),
           // Header Section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                "update_your_test", // Using GetX translation
+                "Update Your Medical Products", // Using GetX translation
                 fontWeight: FontWeight.w700,
               ),
               // const Icon(Icons.edit_outlined, size: 24),
@@ -79,10 +48,13 @@ class CategorySelector extends StatelessWidget {
             itemBuilder: (context, index) {
               return InkWell(
                 onTap: () {
-                  Get.to(LabTestListScreen(
-                    collection: categories[index]['key'] ?? "",
-                    title: categories[index]['title'],labId: labID,
-                  ));
+                  // Get.to(LabTestListScreen(
+                  //   collection: categories[index]['key'] ?? "",
+                  //   title: categories[index]['title'],labId: labID,
+                  // ));  // Get.to(LabTestListScreen(
+                  //   collection: categories[index]['key'] ?? "",
+                  //   title: categories[index]['title'],labId: labID,
+                  // ));
                 },
                 child: Container(
                   decoration: BoxDecoration(

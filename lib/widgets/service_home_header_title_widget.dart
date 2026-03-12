@@ -19,7 +19,7 @@ class ServiceHomeHeaderTitleWidget extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
+mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
           CustomText(title,
@@ -28,7 +28,7 @@ class ServiceHomeHeaderTitleWidget extends StatelessWidget {
               color: AppColors.mainTextColor,
               overflow: TextOverflow.ellipsis,
               fontWeight: FontWeight.bold),
-          // if(description.isNotEmpty)...[
+          if(description.isNotEmpty)...[
             const SizedBox(height: 10),
             ExpandableText(
               text: description,
@@ -43,7 +43,7 @@ class ServiceHomeHeaderTitleWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-          // ],
+          ],
 
         ],
       ),

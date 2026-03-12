@@ -71,7 +71,7 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
   }
 
   Widget medicalCard(MedicalProductData p, int index) {
-    final price = controller.getPriceDetails(p.variants?[0].pricing);
+    final price = controller.getPriceDetails(p.variants?.firstOrNull?.pricing);
 
     return Container(
       decoration: BoxDecoration(
@@ -155,7 +155,7 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                       child: CustomText(
-                        '${p.variants?[0].weight} ${p.variants?[0].unit}',
+                        '${p.variants?.firstOrNull?.weight} ${p.variants?.firstOrNull?.unit}',
                         fontSize: 11,
                         color: Colors.grey,
                       ),

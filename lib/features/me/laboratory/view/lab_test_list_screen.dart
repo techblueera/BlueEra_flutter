@@ -14,8 +14,14 @@ import 'package:get/get.dart';
 class LabTestListScreen extends StatefulWidget {
   final String collection;
   final String? title;
+  final String? labId;
 
-  const LabTestListScreen({super.key, required this.collection, this.title});
+  const LabTestListScreen({
+    super.key,
+    required this.collection,
+    this.title,
+    this.labId,
+  });
 
   @override
   State<LabTestListScreen> createState() => _LabTestListScreenState();
@@ -23,6 +29,8 @@ class LabTestListScreen extends StatefulWidget {
 
 class _LabTestListScreenState extends State<LabTestListScreen> {
   late final LabTestController controller;
+
+  bool get _isOtherProfile => widget.labId != null;
 
   @override
   void initState() {
@@ -33,7 +41,11 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
       controller = Get.find<LabTestController>();
     }
 
+    if (_isOtherProfile) {
+      controller.fetchTestsByLab(widget.labId!, widget.collection);
+    } else {
       controller.fetchTests(widget.collection);
+    }
   }
 
   @override
@@ -43,18 +55,18 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
         title: widget.title ?? "",
         showRightTextButton: false,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(() => LabTestCatalogScreen(collection: widget.collection));
-        },
-        child: Icon(
-          Icons.add,
-          color: AppColors.white,
-        ),
-      ),
+      floatingActionButton: _isOtherProfile
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                Get.to(() => LabTestCatalogScreen(collection: widget.collection));
+              },
+              child: Icon(
+                Icons.add,
+                color: AppColors.white,
+              ),
+            ),
       body: Obx(() {
-
-
         if (controller.isLoading.value && controller.tests.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -65,10 +77,6 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
               children: [
                 CustomText(AppStrings.noTestsFound.tr, color: AppColors.grey99),
                 SizedBox(height: SizeConfig.size10),
-                // ElevatedButton(
-                //   onPressed: () => Get.to(() => AddLabTestScreen(collection: widget.collection)),
-                //   child: const Text("Add Test"),
-                // ),
               ],
             ),
           );
@@ -117,32 +125,34 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
                       ],
                     ),
                   ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.black),
-                        onPressed: () {
-                          Get.to(() => AddLabTestScreen(
-                              testToEdit: t, collection: widget.collection));
-                        },
-                      ),
-                      IconButton(
-                        icon:
-                            const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () {
-                          showCommonDialog(
-                            context: context,
-                            text: AppStrings.deleteThisTest.tr,
-                            confirmCallback: () =>
-                                controller.deleteTest(t.id!, widget.collection),
-                            cancelCallback: () => Get.back(),
-                            confirmText: AppStrings.delete,
-                            cancelText: AppStrings.cancel,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                  if (!_isOtherProfile)
+                    Column(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.black),
+                          onPressed: () {
+
+                            Get.to(() => AddLabTestScreen(
+                                testToEdit: t, collection: widget.collection));
+                          },
+                        ),
+                        IconButton(
+                          icon:
+                              const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () {
+                            showCommonDialog(
+                              context: context,
+                              text: AppStrings.deleteThisTest.tr,
+                              confirmCallback: () =>
+                                  controller.deleteTest(t.id!, widget.collection),
+                              cancelCallback: () => Get.back(),
+                              confirmText: AppStrings.delete,
+                              cancelText: AppStrings.cancel,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                 ],
               ),
             );
@@ -154,14 +164,13 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
     );
   }
 
-
   Widget _pill(String text) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.06),
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
       ),
       child: CustomText(text,
           fontSize: SizeConfig.small, color: AppColors.primaryColor),

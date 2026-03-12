@@ -67,7 +67,7 @@ class MedicalProductData {
     name = json['name'];
     description = json['description'];
     brand = json['brand'];
-    category = json['category'];
+    category = json['category_'];
     tags = json['tags'].cast<String>();
     if (json['images'] != null) {
       images = <Images>[];
