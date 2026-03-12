@@ -1,12 +1,13 @@
+import 'dart:io';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../view/food_ai_details_screen.dart';
 
 class FoodEntryController extends GetxController {
@@ -16,10 +17,12 @@ class FoodEntryController extends GetxController {
   var categoryList = <Children>[].obs;
   // Observable selections for radio buttons
   var selectedFoodType = "Non-Veg".obs;
-  var selectedCookingMethod = "Boiled".obs;
   var selectedCategoryId = "".obs;
   // Observable for validation
   var isFormValid = false.obs;
+
+  RxList<File?> foodSearchImages = <File?>[null].obs;
+  RxList<String> selectedCookingMethods = <String>[].obs;
 
   @override
   void onInit() {
@@ -34,24 +37,48 @@ class FoodEntryController extends GetxController {
         foodCategoryController.text.trim().isNotEmpty;
   }
 
+  void toggleCookingMethod(String method) {
+    if (selectedCookingMethods.contains(method)) {
+      selectedCookingMethods.remove(method);
+    } else {
+      selectedCookingMethods.add(method);
+    }
+  }
+
+  Future<void> pickImageForIndex(BuildContext context, int index) async {
+    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+      context,
+      AppStrings.productImage,
+    );
+
+    if (selected != null && selected.isNotEmpty) {
+      foodSearchImages[index] = File(selected.first);
+    }
+  }
+
+  void removeImage(int index) {
+    if (index >= 0 && index < foodSearchImages.length) {
+      foodSearchImages[index] = null;
+    }
+  }
+
   Rx<FoodGenAiResModel>? aiFoodResModel = FoodGenAiResModel().obs;
 
   Future<void> onGenerate() async {
     if (isFormValid.value) {
-      Get.back();
       try {
         ResponseModel response =
             await FoodRepo().getFoodAiGenerateRepo(reqBody: {
           "name": foodNameController.text,
           "foodType": selectedFoodType.value,
-          "cookingMethod": selectedCookingMethod.value,
+          "cookingMethod": selectedCookingMethods,
           "category": foodCategoryController.text
         });
         if (response.isSuccess) {
           final data = response.response?.data;
           aiFoodResModel?.value = FoodGenAiResModel.fromJson(data);
 
-          Get.to(FoodDetailScreen(
+          Get.to(()=> FoodDetailScreen(
             foodData: aiFoodResModel?.value ?? FoodGenAiResModel(),
           ));
         } else {

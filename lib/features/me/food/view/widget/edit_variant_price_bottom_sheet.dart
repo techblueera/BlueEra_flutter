@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 void showEditVariantPriceSheet({
   required FoodVariants vData,
   required String productId,
-   Function(int newPrice, int newMrp)? onUpdate,
+  required Function(int newPrice, int newMrp) onUpdate,
 }) {
   final vc = Get.find<FoodServiceController>();
   vc.mrpController.text = vData.mrp.toString();
@@ -85,18 +85,7 @@ void showEditVariantPriceSheet({
                                       int parsedPrice = int.tryParse(vc.priceController.text) ?? 0;
                                       int parsedMrp = int.tryParse(vc.mrpController.text) ?? 0;
 
-                                      vc.updateLocalVariantPrice(
-                                          productId,
-                                          vData.id ?? "",
-                                          parsedPrice,
-                                          parsedMrp
-                                      );
-
-                                      // 2. Trigger Callback for StatefulWidget setState
-                                      // onUpdate(parsedPrice, parsedMrp);
-
-                                  // vc.updateFoodProductVariantPriceController(variantData: vData, foodTyeID: foodTypeID);
-                                  // print("Data: ${vc.nameController.text}");
+                                      onUpdate(parsedPrice, parsedMrp);
 
                                   Get.back();
                                 });

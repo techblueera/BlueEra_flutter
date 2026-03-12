@@ -13,6 +13,7 @@ import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
+import 'package:BlueEra/features/me/food/view/add_single_food_product_screen.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
@@ -28,6 +29,8 @@ class FoodServiceController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> foodSnapSearchResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getSingleFoodProductResponse =
+      ApiResponse.initial('Initial').obs;
 
   RxList<FoodCategoryData> foodSubCateList = <FoodCategoryData>[].obs;
   RxList<CategoryFoodProductData> categoryFoodProductDataList =
@@ -37,6 +40,8 @@ class FoodServiceController extends GetxController {
   var selectedCategoryId = '1'.obs;
   RxString selectedSubCategoryId = "".obs;
   RxList<Children> subCategoryTabs = <Children>[].obs;
+
+  Rxn<CategoryFoodProductData> singleFoodProductData = Rxn<CategoryFoodProductData>();
 
   FoodProductSnapSearchData? productSnapSearchData;
   List<Map<String, String>> foodSnapSearchPhotos = [
@@ -181,18 +186,31 @@ class FoodServiceController extends GetxController {
   final quantityController = TextEditingController();
   final mrpController = TextEditingController();
   final priceController = TextEditingController();
-  var foodImages = <XFile>[].obs;
+  var foodImages = <XFile?>[null, null].obs;
 
   // Observable list of variants
-  var variantList = <Map<String, dynamic>>[].obs;
+  var variantList = <FoodVariants>[].obs;
   var isFormValid = false.obs;
 
-  void removeImage(int index, RxList<XFile> targetList) {
-    targetList.removeAt(index);
+  /// Method for the second box only
+  Future<void> pickSecondImage(BuildContext context) async {
+    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+      context,
+      AppStrings.productImage,
+    );
+
+    if (selected != null && selected.isNotEmpty) {
+      XFile newFile = XFile(selected.first);
+      foodImages.add(newFile);
+    }
+  }
+
+  void removeSecondImage() {
+    foodImages.removeAt(1);
   }
 
   // Track if we are editing an item
-  int? editingIndex;
+  // int? editingIndex;
 
   void validate() {
     isFormValid.value = nameController.text.trim().isNotEmpty &&
@@ -201,62 +219,59 @@ class FoodServiceController extends GetxController {
         priceController.text.trim().isNotEmpty;
   }
 
-  Future<void> addOrUpdateVariant({
-    required String foodId,
-  }) async {
-    final variant = {
-      "variantName": nameController.text.trim(),
-      "mrp": int.tryParse(mrpController.text.trim()) ?? 0,
-      "quantityLabel": quantityController.text.trim(),
-      "baseSellingPrice": int.tryParse(priceController.text.trim()) ?? 0,
-      "isDefault": false
-    };
+  // Future<void> addOrUpdateVariant({
+  //   required String foodId,
+  // }) async {
+  //   final variant = {
+  //     "variantName": nameController.text.trim(),
+  //     "mrp": int.tryParse(mrpController.text.trim()) ?? 0,
+  //     "quantityLabel": quantityController.text.trim(),
+  //     "baseSellingPrice": int.tryParse(priceController.text.trim()) ?? 0,
+  //     "isDefault": false
+  //   };
+  //
+  //   if (editingIndex != null) {
+  //     // Update existing
+  //     variantList[editingIndex!] = variant;
+  //   } else {
+  //     // Add new
+  //     variantList.add(variant);
+  //     if (foodId.isNotEmpty) {
+  //       try {
+  //         // call repo
+  //         final responseModel = await FoodRepo().addFoodVariantRepo(
+  //             params: {"variantData": variant}, foodID: foodId);
+  //
+  //         if (responseModel.isSuccess) {
+  //           commonSnackBar(
+  //               message: responseModel.message ?? AppStrings.success);
+  //
+  //           Get.until((route) =>
+  //               route.settings.name ==
+  //               RouteHelper.getBottomNavigationBarScreenRoute());
+  //         } else {
+  //           commonSnackBar(
+  //               message:
+  //                   responseModel.message ?? AppStrings.somethingWentWrong);
+  //         }
+  //       } catch (e, s) {
+  //         print('stack trace-- $s');
+  //         commonSnackBar(message: e.toString());
+  //       }
+  //     }
+  //   }
+  //
+  //   clearAllField();
+  // }
 
-    if (editingIndex != null) {
-      // Update existing
-      variantList[editingIndex!] = variant;
-    } else {
-      // Add new
-      variantList.add(variant);
-      if (foodId.isNotEmpty) {
-        try {
-          // call repo
-          final responseModel = await FoodRepo().addFoodVariantRepo(
-              params: {"variantData": variant}, foodID: foodId);
-
-          if (responseModel.isSuccess) {
-            commonSnackBar(
-                message: responseModel.message ?? AppStrings.success);
-
-            Get.until((route) =>
-                route.settings.name ==
-                RouteHelper.getBottomNavigationBarScreenRoute());
-          } else {
-            commonSnackBar(
-                message:
-                    responseModel.message ?? AppStrings.somethingWentWrong);
-          }
-        } catch (e, s) {
-          print('stack trace-- $s');
-          commonSnackBar(message: e.toString());
-        }
-      }
-    }
-
-    clearAllField();
-  }
-
-  void deleteVariant(int index) {
-    variantList.removeAt(index);
-  }
 
   void prepareEdit(int index) {
-    editingIndex = index;
+    // editingIndex = index;
     final item = variantList[index];
-    nameController.text = item['variantName'];
-    mrpController.text = item['mrp'].toString();
-    quantityController.text = item['quantityLabel'];
-    priceController.text = item['baseSellingPrice'].toString();
+    nameController.text = item.variantName??'';
+    mrpController.text = item.mrp.toString();
+    quantityController.text = item.quantityLabel.toString();
+    priceController.text = item.baseSellingPrice.toString();
     validate(); // Refresh validation for edit mode
   }
 
@@ -266,7 +281,7 @@ class FoodServiceController extends GetxController {
     mrpController.clear();
     priceController.clear();
     isFormValid.value = false;
-    editingIndex = null;
+    // editingIndex = null;
   }
 
   void validateVariantPrice() {
@@ -288,25 +303,35 @@ class FoodServiceController extends GetxController {
       // prepare product details json
       final productDetailsMap = {
         "name": foodData.name,
+        "description": foodData.description,
         "category": selectedSubFoodTypeIDCat.value,
         "dietaryType": foodData.dietaryType,
         "ingredients": foodData.ingredients
       };
       paramsReq["productData"] = productDetailsMap;
-      paramsReq['variantData'] = variantList;
+      paramsReq['variantData'] = variantList.map((v) => v.toJson()).toList();
 
       List<String> uploadedImages = [];
-      for (int i = 0; i < foodImages.length; i++) {
-        UploadResult? result =
-            await S3UploadService.uploadFile(File(foodImages[i].path));
+
+      // 1. Filter out nulls and loop through valid XFiles
+      final validFiles = foodImages.whereType<XFile>().toList();
+
+      if (validFiles.isEmpty) {
+        commonSnackBar(message: "Please ensure the primary image is present.");
+        return;
+      }
+      for (var xFile in validFiles) {
+        UploadResult? result = await S3UploadService.uploadFile(File(xFile.path));
+
         if (result.isSuccess) {
           uploadedImages.add(result.url);
         } else {
-          commonSnackBar(message: "Image upload failed");
+          commonSnackBar(message: "One of the images failed to upload.");
+          return; // Stop process if a single upload fails
         }
       }
-      if (uploadedImages.isNotEmpty)
-        paramsReq["productImages"] = uploadedImages;
+
+      if (uploadedImages.isNotEmpty) paramsReq["productImages"] = uploadedImages;
 
       // call repo
       final responseModel =
@@ -315,9 +340,11 @@ class FoodServiceController extends GetxController {
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
 
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
+        Get.to(()=> AddSingleProductScreen(
+          controller: this,
+          foodProductId: responseModel.response?.data['product']['_id'],
+        ));
+
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -486,5 +513,83 @@ class FoodServiceController extends GetxController {
       log("Stack Trace===== $s");
     }
   }
+
+  Future<void> getSingleFoodProductApi({required String FoodId}) async {
+    try {
+      getSingleFoodProductResponse.value = ApiResponse.loading("Loading");
+      ResponseModel response =
+      await FoodRepo().fetchSingleFoodProductDetailsRepo(foodID: FoodId);
+      if (response.isSuccess) {
+        singleFoodProductData.value =
+            CategoryFoodProductData.fromJson(response.response?.data['data']);
+        getSingleFoodProductResponse.value =
+            ApiResponse.complete(categoryFoodProductDataList);
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        getSingleFoodProductResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      getSingleFoodProductResponse.value =
+          ApiResponse.error(e.toString());
+      debugPrint("Error adding to inventory: $e");
+    }
+
+  }
+
+  Future<void> addSingleProductToInventory({
+    required String productId,
+    required List<FoodVariants> selectedVariants,
+    bool isMissingFoodCreation = false
+  }) async {
+    try {
+      // 1. Validation
+      if (selectedVariants.isEmpty) {
+        commonSnackBar(message: "Please select at least one variant.");
+        return;
+      }
+
+      // 2. Prepare the Request List (The API expects a List of objects)
+      List<Map<String, dynamic>> tempReqList = [];
+
+      for (var vData in selectedVariants) {
+        tempReqList.add({
+          "productVariant": vData.id,
+          "product": productId,
+          "location": {
+            "type": "Point",
+            "coordinates": [LocationService.lat, LocationService.lng],
+            "address": LocationService.userCurrentAddress.value.formattedAddress,
+            "pincode": LocationService.userCurrentAddress.value.postalCode
+          },
+          "price": {
+            "mrp": vData.mrp,
+            "sellingPrice": vData.baseSellingPrice,
+            "currency": "INR",
+            "packingCharges": 20 // Default or from controller
+          },
+          "isAvailable": vData.isActive ?? true,
+          "preparationTime": 30 // Default or from controller
+        });
+      }
+
+      // 3. Call Repository
+      final responseModel = await FoodRepo().addKitchenInventoryRepo(params: tempReqList);
+
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: responseModel.message ?? "Product added to inventory");
+        if(isMissingFoodCreation){
+          // logic for missing product creation flow
+        }else{
+          Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+        }
+      } else {
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      debugPrint("Error adding to inventory: $e");
+    }
+  }
+
 
 }

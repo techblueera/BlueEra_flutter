@@ -6,7 +6,7 @@ import 'package:BlueEra/features/me/food/controller/food_service_controller.dart
 import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
-import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/view/widget/custom_add_button_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
@@ -96,7 +96,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         actions: [
           InkWell(
             onTap: () {
-              Get.to(()=> FoodEntryScreen(
+              Get.to(()=> FoodEntryAiScreen(
                 foodCategoryData: widget.foodCategoryData,
               ));
             },

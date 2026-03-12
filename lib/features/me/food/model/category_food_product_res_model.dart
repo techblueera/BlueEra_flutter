@@ -311,7 +311,6 @@ class FoodVariants {
     map['baseSellingPrice'] = baseSellingPrice;
     map['isActive'] = isActive;
     map['isDefault'] = isDefault;
-
     map['createdAt'] = createdAt;
     map['updatedAt'] = updatedAt;
     map['__v'] = v;
