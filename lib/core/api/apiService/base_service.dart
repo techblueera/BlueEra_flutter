@@ -566,6 +566,7 @@ abstract class BaseService {
   final String groceryBusinessProducts = 'grocery-service/api/inventory/business-products';
   final String publicGroceryBusinessProducts = 'grocery-service/api/inventory/public/business-products';
   final String grocerySnapSearch = 'grocery-service/api/smart-cart/snap-search';
+  final String foodSnapSearch = 'food-service/api/smart-cart/snap-search';
   final String missingGroceryProductRequests = 'grocery-service/api/missing-product-requests/bulk';
   final String groceryNestedCategory = 'grocery-service/api/categories/nested';
   final String groceryNestedCategoryWithInventory = 'grocery-service/api/categories/nested/with-inventory';
@@ -721,6 +722,7 @@ abstract class BaseService {
   final String  labFullDetails= 'lab-service/laboratory-profiles/full-details/$userId';
   final String  labFacilities= 'lab-service/facilities';
   final String labHealthCamps = 'lab-service/health-camps';
+  final String labHealthCampsFd = 'lab-service/health-camps';
   final String  labProfiles= 'lab-service/laboratory-profiles';
   final String testCategories = 'lab-service/test-categories';
   final String testParameters = 'lab-service/test-parameters';

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profiles_list_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -154,7 +155,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                         BoxShadow(color: Colors.black12, blurRadius: 10)
                       ],
                       image: DecorationImage(
-                          image: NetworkImage((profile?.logoUrl ?? "")),
+                          image: NetworkImage((profile?.coverUrl ?? "")),
                           fit: BoxFit.cover),
                     ),
                   ),
@@ -426,7 +427,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                if (data.logoUrl?.isNotEmpty ?? false)
+                if (data.coverUrl?.isNotEmpty ?? false)
                   Container(
                     width: 100,
                     height: 100,
@@ -436,7 +437,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                         BoxShadow(color: Colors.black12, blurRadius: 10)
                       ],
                       image: DecorationImage(
-                          image: NetworkImage(data.logoUrl ?? ''),
+                          image: NetworkImage(data.coverUrl ?? ''),
                           fit: BoxFit.cover),
                     ),
                   ),

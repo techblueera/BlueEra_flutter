@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
@@ -7,6 +8,8 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/view/widget/custom_add_button_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -26,7 +29,8 @@ class ProductSelectionScreen extends StatefulWidget {
 }
 
 class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
-  final controller = Get.find<FoodServiceController>();
+  final controller = getOrPut(() => FoodServiceController());
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -58,11 +62,31 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     } else {
       debugPrint("--- InitState Warning: No Level 1 Categories found ---");
     }
+    // scrollController.addListener(_onScrollListener);
+  }
+
+  // void _onScrollListener(){
+  //   if (scrollController.position.pixels >=
+  //       scrollController.position.maxScrollExtent - 200 &&
+  //       !controller.isGroceryCategoryProductsLoadingMore.value &&
+  //       controller.groceryCategoryProductsHasMore) {
+  //     controller.getFoodByCategoryIDController(
+  //       isLoadMore: true,
+  //     );
+  //   }
+  // }
+
+  @override
+  void dispose() {
+    deleteIfRegistered<FoodServiceController>();
+    // scrollController.removeListener(_onScrollListener);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: _buildBottomPublishBar(),
       appBar: AppBar(
         leading: InkWell(
             onTap: () {
@@ -178,11 +202,14 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           // Product List
           Obx(() => Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               itemCount: controller.categoryFoodProductDataList.length,
               itemBuilder: (context, index) {
                 final product = controller.categoryFoodProductDataList[index];
-                return _buildProductCard(context, product);
+                return FoodProductCard(
+                  product: product,
+                  onShowVariants: (p) => _showVariantSheet(context, p),
+                );
               },
             ),
           )),
@@ -191,316 +218,75 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     );
   }
 
-  Widget _buildProductCard(
-      BuildContext context, CategoryFoodProductData product) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 15),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: product.images?.firstOrNull ?? "",
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Center(
-                      child: LocalAssets(imagePath: AppIconAssets.foodIcon),
-                    ),
-                    placeholder: (context, url) =>
-                        Container(color: Colors.grey[200]),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        product.name,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      CustomText(
-                        product.dietaryType,
-                        fontSize: 12,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.food_category,
-                            imgColor:
-                                product.dietaryType?.toLowerCase() == "non-veg"
-                                    ? AppColors.red00
-                                    : Color(0xff008000),
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: _tagWidget(
-                                (product.cookingMethod ?? []).join(', '),
-                                Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              ],
+  Widget _buildBottomPublishBar() {
+    return Obx(() {
+      // 1. Count of unique Products (Keys in the Map)
+      final int productCount = controller.selectedVariantsMap.keys.length;
+
+      // 2. Count of total individual Variants (Sum of all list lengths)
+      final int totalVariantsCount = controller.selectedVariantsMap.values
+          .fold(0, (sum, list) => sum + list.length);
+
+      // Only show if at least one product is selected
+      if (productCount == 0) return const SizedBox.shrink();
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
-            // const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () => _showVariantSheet(context, product),
-                  child: CustomText(
-                    "${product.variants?.length} Variants",
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                CustomAddButton(
-                  onTap: () {
-                    _showVariantSheet(context, product);
-                  },
-                )
-              ],
-            )
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _tagWidget(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-          border: Border.all(color: AppColors.whiteE5),
-          borderRadius: BorderRadius.circular(4)),
-      child: Row(
-        children: [
-          LocalAssets(imagePath: AppIconAssets.boiled),
-          SizedBox(
-            width: 5,
+        child: SafeArea(
+          child: Row(
+            children: [
+              // Left Side: Summary Info
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      "$productCount Products Selected, $totalVariantsCount Total Variants ready",
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    CustomText(
+                      "Ready to publish to inventory",
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 140,
+                child: PositiveCustomBtn(
+                  onTap: () => controller.bulkPublishInventory(isSnapSearch: true),
+                  title: "Publish All",
+                ),
+              ),
+            ],
           ),
-          Flexible(child: CustomText(
-              label,
-              color: AppColors.secondaryTextColor,
-              fontSize: 10,
-               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-          )),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
   // 3. Bottom Sheet Implementation
   void _showVariantSheet(
       BuildContext context, CategoryFoodProductData product) {
     Get.bottomSheet(
-      SafeArea(
-        child: Container(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText("All Variant",
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                  IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Get.back()),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.foodIcon,
-                      width: 50,
-                      height: 50,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          product.name,
-                          fontWeight: FontWeight.w600,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        CustomText(
-                          product.dietaryType,
-                          fontSize: 12,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            LocalAssets(
-                              imagePath: AppIconAssets.food_category,
-                              imgColor:
-                                  product.dietaryType?.toLowerCase() == "veg"
-                                      ? Color(0xff008000)
-                                      : AppColors.red00,
-                            ),
-                            const SizedBox(width: 5),
-                            _tagWidget((""), Colors.grey),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-
-              const Divider(),
-
-              ...product.variants?.map((vc) {
-                    final item = vc;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        border:
-                            Border.all(color: Colors.grey.shade300, width: 1),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Title: Name - Quantity
-                                CustomText(
-                                  "${item.variantName} - ${item.quantityLabel} ",
-                                  fontSize: 16,
-                                  color: AppColors.secondaryTextColor,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 8),
-                                // Prices: Selling | MRP
-                                Row(
-                                  children: [
-                                    Flexible(
-                                      child: CustomText(
-                                        "Selling-₹${item.baseSellingPrice}",
-                                        fontSize: 15,
-                                        color: AppColors.secondaryTextColor,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      height: 15,
-                                      width: 1.5,
-                                      color: Colors.grey.shade300,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    CustomText(
-                                      "₹${item.mrp}",
-                                      fontSize: 15,
-                                      color: AppColors.secondaryTextColor,
-                                      decoration: TextDecoration
-                                          .lineThrough, // Strikethrough
-                                      decorationColor: Colors.black54,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Actions Column
-                          Column(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Get.back();
-                                  controller.clearAllField();
-                                  showEditVariantPriceSheet(
-                                      item, product.id ?? "");
-                                },
-                                child: LocalAssets(
-                                  imagePath: AppIconAssets.editIcon,
-                                  imgColor: Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList() ??
-                  [],
-              // const SizedBox(height: 20),
-              InkWell(
-                  onTap: () {
-                    Get.back();
-
-                    final vc = Get.find<FoodServiceController>();
-                    vc.clearAllField();
-
-                    showVariantBottomSheet(foodID: product.id ?? "");
-                  },
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Icon(
-                        Icons.add,
-                        color: AppColors.primaryColor,
-                      ),
-                      CustomText(
-                        "Add More Variant",
-                        color: AppColors.primaryColor,
-                      ),
-                    ],
-                  )),
-              const SizedBox(height: 20),
-              PositiveCustomBtn(
-                  onTap: () async {
-                    // lat--> 26.8466933, lng--> 80.946165
-                    final vc = Get.find<FoodServiceController>();
-                    await vc.addKitchenInventoryController(data: product);
-                  },
-                  title: "Post Product"),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
+      ProductVariantBottomSheet(
+        product: product,
+        controller: controller,
+        isSnapSearch: false,
       ),
       isScrollControlled: true,
     );

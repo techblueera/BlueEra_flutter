@@ -30,6 +30,34 @@ class LabTestController extends GetxController {
     'Other'
   ];
   final List<String> genderList = ['Male', 'Female'];
+  final List<String> packageTypeList = [
+    "Basic Blood Test",
+    "Basic Health Checkup",
+    "Full Body Checkup",
+    "Executive Health Package",
+    "Diabetes Package",
+    "Thyroid Package",
+    "Heart Check-up Package",
+    "Senior Citizen Package",
+    "Men Health Package",
+    "Women's Health Package",
+    "Fertility & Pregnancy Package",
+    "Pediatric Health Package",
+    "Pathology",
+    "Radiology",
+    "Pulmonology Diagnostics",
+    "Ophthalmology & ENT",
+    "Gastroenterology Package",
+    "Neurological Package",
+    "Cancer Screening Package",
+    "HIV / STI Package",
+    "Kidney Disease Package",
+    "Liver Disease Package",
+    "Bone & Joint Package",
+    "Autoimmune Package",
+    "Allergy & Immunology Package",
+    "Infectious Disease Package",
+  ];
 
   @override
   void onInit() {

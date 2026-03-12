@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -155,18 +156,18 @@ class _LabHeaderViewState extends State<LabHeaderView> {
                                             .details
                                             .value
                                             ?.profile
-                                            ?.logoUrl
+                                            ?.coverUrl
                                             ?.isNotEmpty ??
                                         false)
                                     ? (widget.schoolAboutUsController.details
-                                            .value?.profile?.logoUrl ??
+                                            .value?.profile?.coverUrl ??
                                         "")
                                     : widget
                                             .schoolAboutUsController
                                             .details
                                             .value
                                             ?.profile
-                                            ?.logoUrl
+                                            ?.coverUrl
                                              ??
                                         ""),
                                 fit: BoxFit.cover),

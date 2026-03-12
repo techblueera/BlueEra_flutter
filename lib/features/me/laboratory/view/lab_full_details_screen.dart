@@ -5,10 +5,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/empty_blood_test_add_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/empty_health_camp_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/health_camp_detail_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -60,10 +63,14 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 LabHeaderView(
                   schoolAboutUsController: controller,
                 ),
+
                 SizedBox(height: SizeConfig.size12),
                 BloodTestEmptyState(),
                 SizedBox(height: SizeConfig.size12),
                 CategorySelector(),
+
+                SizedBox(height: SizeConfig.size12),
+                EmptyHealthCampWidget(),
 
                 SizedBox(height: SizeConfig.size12),
                 // _basicTest(tests),
@@ -84,6 +91,52 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
           );
         });
       }),
+    );
+  }
+
+  Widget _buildHealthCampCard() {
+    return GestureDetector(
+      onTap: () => Get.to(() => const HealthCampDetailScreen()),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.local_hospital_outlined,
+                color: AppColors.primaryColor,
+                size: 24,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    AppStrings.healthCamp.tr,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                  SizedBox(height: 2),
+                  CustomText(
+                    "Manage your health camp",
+                    fontSize: 11,
+                    color: AppColors.greyA5,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: AppColors.greyA5),
+          ],
+        ),
+      ),
     );
   }
 
@@ -350,7 +403,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                if (controller.details.value?.profile?.logoUrl?.isNotEmpty ??
+                if (controller.details.value?.profile?.coverUrl?.isNotEmpty ??
                     false)
                   Container(
                     width: 100,
@@ -362,7 +415,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                       ],
                       image: DecorationImage(
                           image: NetworkImage(
-                              controller.details.value?.profile?.logoUrl ?? ''),
+                              controller.details.value?.profile?.coverUrl ?? ''),
                           fit: BoxFit.cover),
                     ),
                   ),

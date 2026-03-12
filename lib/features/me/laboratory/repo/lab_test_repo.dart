@@ -13,7 +13,7 @@ class LabTestRepo extends BaseService {
   }
 
   Future<ResponseModel> getPathologyTests(String collection) async {
-    return await ApiBaseHelper().getHTTP("$testPathology?collection=$collection");
+    return await ApiBaseHelper().getHTTP("$testPathology?groupCategory=$collection");
   }
 
   Future<ResponseModel> createPathologyTest(Map<String, dynamic> data) async {

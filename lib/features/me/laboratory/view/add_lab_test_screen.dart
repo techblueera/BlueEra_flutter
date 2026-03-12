@@ -44,6 +44,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   String? selectedSpecimen;
   String? selectedCollectionMethod;
   String? selectedGender;
+  String? selectedPackageType;
   bool applicableForChild = false;
   bool prescriptionRequired = false;
 
@@ -92,6 +93,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
       selectedSpecimen = widget.testToEdit!.specimen;
       selectedCollectionMethod = widget.testToEdit!.specimenCollectionMethod;
       selectedGender = widget.testToEdit!.gender;
+      selectedPackageType = widget.testToEdit!.packageType;
       applicableForChild = widget.testToEdit!.applicableForChild ?? false;
       prescriptionRequired = widget.testToEdit!.prescriptionRequired ?? false;
     }
@@ -267,6 +269,24 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   keyBoardType: TextInputType.number,
                   isValidate: true,
                 ),
+                SizedBox(height: SizeConfig.size16),
+                CustomText(
+                  AppStrings.packageType.tr,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                CommonDropdownDialog<String>(
+                  items: controller.packageTypeList,
+                  selectedValue: selectedPackageType,
+                  title: AppStrings.packageType.tr,
+                  hintText: AppStrings.selectPackageType.tr,
+                  displayValue: (value) => value,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedPackageType = value;
+                    });
+                  },
+                ),
                 SizedBox(height: SizeConfig.size32),
                 Obx(() => CustomBtn(
                       onTap: _submitForm,
@@ -382,6 +402,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
         testFees: int.tryParse(feesController.text) ?? 0,
         customerPrice: int.tryParse(priceController.text) ?? 0,
         collection: widget.collection,
+        packageType: selectedPackageType,
       );
 
       bool success;

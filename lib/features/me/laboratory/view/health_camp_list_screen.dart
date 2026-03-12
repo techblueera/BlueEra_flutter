@@ -37,12 +37,14 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
       appBar: CommonBackAppBar(
         title: AppStrings.healthCamps.tr,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(() => const HealthCampFormScreen());
-        },
-        child: const Icon(Icons.add,color: AppColors.white,),
-      ),
+      floatingActionButton: Obx(() => controller.hasCamp
+          ? const SizedBox.shrink()
+          : FloatingActionButton(
+              onPressed: () {
+                Get.to(() => const HealthCampFormScreen());
+              },
+              child: const Icon(Icons.add, color: AppColors.white),
+            )),
       body: Obx(() {
         if (controller.isLoading.value && controller.camps.isEmpty) {
           return const Center(child: CircularProgressIndicator());
@@ -137,9 +139,9 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.06),
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
       ),
       child: CustomText(text, fontSize: SizeConfig.small, color: AppColors.primaryColor),
     );

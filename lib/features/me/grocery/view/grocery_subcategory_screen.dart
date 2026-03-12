@@ -40,13 +40,13 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
 
   @override
   void initState() {
+    super.initState();
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.selectedGroceryData.value = widget.arrGroceries.first;
       // controller.selectedGroceryData.value = widget.selectedGroceryData;
       controller.fetchBoth();
     });
-    super.initState();
   }
 
   void _onScrollListener(){
@@ -350,43 +350,27 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
               ),
             )
                 : controller.arrGroceryCategoryProducts.isNotEmpty
-                ? Builder(
-                    builder: (context) {
-                      double screenWidth = Get.width;
-                      double totalHorizontalPadding = 8.0;
-                      double crossAxisSpacing = 10.0;
-                      double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
-                      double desiredItemHeight = 370.0;
+                ? MasonryGridView.count(
+              controller: scrollController,
+              itemCount: controller.arrGroceryCategoryProducts.length +
+                  (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              padding: EdgeInsets.only(bottom: SizeConfig.size30),
+              itemBuilder: (_, i) {
+                if (i == controller.arrGroceryCategoryProducts.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
 
-                      return MasonryGridView.count(
-                        controller: scrollController,
-                        itemCount: controller.arrGroceryCategoryProducts.length +
-                            (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        //   crossAxisCount: 2,
-                        //   crossAxisSpacing: 10,
-                        //   mainAxisSpacing: 10,
-                        //   childAspectRatio: gridItemWidth / desiredItemHeight,
-                        // ),
-                        padding: EdgeInsets.only(bottom: SizeConfig.size30),
-                        itemBuilder: (_, i) {
-                          if (i == controller.arrGroceryCategoryProducts.length) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            );
-                          }
-
-                          return groceryCard(controller.arrGroceryCategoryProducts[i]);
-                        },
-                      );
-                    }
-                )
+                return groceryCard(controller.arrGroceryCategoryProducts[i]);
+              },
+            )
                 : Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(

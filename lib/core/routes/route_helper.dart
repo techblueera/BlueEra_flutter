@@ -5,11 +5,14 @@ import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
 import 'package:BlueEra/features/me/food/view/add_food_snap_search_screen.dart';
+import 'package:BlueEra/features/me/food/view/missing_food_itmes_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
-import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search.dart';
+import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/other_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_with_inventory_screen.dart';
@@ -544,6 +547,9 @@ class RouteHelper {
 
  static String getMissingGroceryItemsScreenRoute() =>
       RouteConstant.missingGroceryItemsScreen;
+
+  static String getMissingFoodItemsScreenRoute() =>
+      RouteConstant.missingFoodItemsScreen;
 
  static String getOtherGroceryStoreScreenRoute() =>
       RouteConstant.otherGroceryStoreScreen;
@@ -1689,6 +1695,17 @@ class RouteHelper {
                       missingProducts: argMissingProducts),
                   settings: RouteSettings(name: getMissingGroceryItemsScreenRoute())
               );
+
+      case RouteConstant.missingFoodItemsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final FoodServiceController controller = args[ApiKeys.controller] as FoodServiceController;
+        final List<MissingFoodProducts> argMissingProducts = args[ApiKeys.argMissingProducts] as List<MissingFoodProducts>;
+        return MaterialPageRoute(
+            builder: (_) => MissingFoodItemsScreen(
+                controller: controller,
+                missingProducts: argMissingProducts),
+            settings: RouteSettings(name: getMissingFoodItemsScreenRoute())
+        );
 
       case RouteConstant.otherGroceryStoreScreen:
         final args = settings.arguments as Map<String, dynamic>;
