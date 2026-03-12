@@ -1559,10 +1559,11 @@ class CallController extends GetxController {
           });
           break;
         case Event.actionCallEnded:
-          endCall();
-          Future.delayed(Duration(seconds: 1),(){
-            FlutterCallkitIncoming.endAllCalls();
-          });
+          // Don't end the actual call if CallActivity is handling it —
+          // endAllCalls() from accept flow triggers this event as a side effect
+          if (!isCallActivityActive) {
+            endCall();
+          }
           break;
         default:
           break;
