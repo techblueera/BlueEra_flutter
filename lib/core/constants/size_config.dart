@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../features/personal/personal_profile/controller/languge_list_controller.dart';
+import 'getx_utils.dart';
 
 class SizeConfig {
   static late bool isTablet;
@@ -14,7 +15,13 @@ class SizeConfig {
     screenWidth = mediaQuery.size.width;
     screenHeight = mediaQuery.size.height;
     isTablet = screenWidth >= 600;
-    langController=Get.find<LanguageListController>();
+    langController=  getOrPut(()=> LanguageListController());
+  }
+  static void init_Call(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    isTablet = screenWidth >= 600;
   }
 
   /// All padding sizes adapt to device type

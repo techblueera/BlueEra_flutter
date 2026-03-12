@@ -36,6 +36,7 @@ class MainActivity: FlutterActivity() {
     private val VIDEO_CHANNEL = "com.bluehr.video/keep_screen_on"
     private val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
     private val SHORTCUT_CHANNEL = "com.bluehr.shortcut/channel"
+    private val CALL_LAUNCHER_CHANNEL = "com.bluehr.call/launcher"
 
     private var ringtone: Ringtone? = null
 
@@ -123,6 +124,38 @@ class MainActivity: FlutterActivity() {
                         } else {
                             result.error("UNSUPPORTED", "Shortcuts require Android 8.0+", null)
                         }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ------------------------------
+        // CALL LAUNCHER CHANNEL — launches CallActivity in a separate task
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALL_LAUNCHER_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "launchCallActivity" -> {
+                        val intent = Intent(this@MainActivity, CallActivity::class.java).apply {
+                            addFlags(
+                                Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                            )
+                            putExtra("callId", call.argument<String>("callId") ?: "")
+                            putExtra("roomId", call.argument<String>("roomId") ?: "")
+                            putExtra("conversationId", call.argument<String>("conversationId") ?: "")
+                            putExtra("callType", call.argument<String>("callType") ?: "audio")
+                            putExtra("callerName", call.argument<String>("callerName") ?: "")
+                            putExtra("callerImage", call.argument<String>("callerImage") ?: "")
+                            putExtra("remoteUserId", call.argument<String>("remoteUserId") ?: "")
+                            putExtra("remoteUserName", call.argument<String>("remoteUserName") ?: "")
+                            putExtra("remoteUserImage", call.argument<String>("remoteUserImage") ?: "")
+                            putExtra("isCaller", call.argument<Boolean>("isCaller") ?: true)
+                            putExtra("isGroupCall", call.argument<Boolean>("isGroupCall") ?: false)
+                            putExtra("iceServers", call.argument<String>("iceServers") ?: "{}")
+                        }
+                        startActivity(intent)
+                        result.success(null)
                     }
                     else -> result.notImplemented()
                 }

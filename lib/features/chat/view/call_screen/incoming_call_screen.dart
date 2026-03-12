@@ -324,10 +324,10 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   onTap: () async {
                     _stopRingtone();
                     setState(() => _isAccepting = true);
+                    // acceptCall() handles launching CallActivity on Android main engine,
+                    // or does full WebRTC setup in CallActivity engine / iOS.
                     final accepted = await controller.acceptCall();
-                    if (accepted) {
-                      Get.offNamed('/ActiveCallScreen');
-                    } else {
+                    if (!accepted) {
                       setState(() => _isAccepting = false);
                     }
                   },

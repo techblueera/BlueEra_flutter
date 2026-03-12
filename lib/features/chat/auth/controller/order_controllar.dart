@@ -485,6 +485,8 @@ ApiKeys.additional_comments: ""
     };
     bool value = await sendMessageToOrderTab(params: addOrderTabPara);
     if (value) {
+      commonSnackBar(
+          message: "Order was Created by Self Pick-Up Successfully");
       final chatViewController = Get.find<ChatViewController>();
 
       Map<String, dynamic> datadd = {

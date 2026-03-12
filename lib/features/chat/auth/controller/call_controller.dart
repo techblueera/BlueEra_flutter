@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
@@ -13,7 +15,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart' hide navigator;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-
+import 'package:flutter/services.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
@@ -21,6 +23,8 @@ import '../../../../core/services/app_notification.dart';
 
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
+import '../service/call_activity_service.dart';
+import '../service/overlay_service.dart';
 import '../socket/chat_socket.dart';
 
 enum CallType { audio, video }
@@ -96,6 +100,14 @@ class CallController extends GetxController {
 
   /// Whether this session was a call-only cold start (used to navigate to home on call end)
   static bool _coldStartCall = false;
+
+  /// True when this CallController runs inside CallActivity's separate Flutter engine.
+  /// Prevents _navigateBackFromCallScreen from trying app routes that don't exist.
+  static bool isCallActivityEngine = false;
+
+  /// True when an outgoing/incoming call is being handled by CallActivity's separate task.
+  /// Prevents the main engine from reacting to socket events for the same call.
+  static bool isCallActivityActive = false;
 
   bool _disposed = false;
 
@@ -321,6 +333,7 @@ class CallController extends GetxController {
 
   void _handleIncomingCall(dynamic data) {
     if (callStatus.value != CallStatus.idle) return; // already in a call
+    if (isCallActivityActive) return; // call handled by separate task
 
     callId.value = data['call_id'] ?? '';
     roomId.value = data['room_id'] ?? '';
@@ -340,7 +353,9 @@ class CallController extends GetxController {
     }
   }
 
-  /// Accept an incoming call
+  /// Accept an incoming call.
+  /// On Android (main engine): does API accept, then launches CallActivity for WebRTC.
+  /// On CallActivity engine: does full accept (API + WebRTC).
   Future<bool> acceptCall() async {
     // Prevent double accept (multiple CallKit listeners may fire)
     if (callStatus.value == CallStatus.accepting ||
@@ -365,10 +380,7 @@ class CallController extends GetxController {
     } catch (e) {
       if (kDebugMode) print('Permission request error (may already be in progress): $e');
     }
-log("sdkjcskjlcskjc ${{
-  'call_id': savedCallId,
-  'room_id': savedRoomId,
-}}");
+
     ResponseModel response = await _callRepo.acceptCall({
       'call_id': savedCallId,
       'room_id': savedRoomId,
@@ -386,9 +398,40 @@ log("sdkjcskjlcskjc ${{
     }
 
     final data = response.response?.data;
-    _iceConfig = IceServerConfig.fromJson(data?['ice_servers'] ?? {});
+    final iceServersJson = data?['ice_servers'] ?? {};
+
+    // --- Android main engine: launch CallActivity to handle WebRTC ---
+    if (Platform.isAndroid && !isCallActivityEngine) {
+      isCallActivityActive = true;
+      await CallActivityService.launchCallActivity(
+        callId: savedCallId,
+        roomId: savedRoomId,
+        conversationId: conversationId.value,
+        callType: callType.value == CallType.video ? 'video' : 'audio',
+        callerName: callerName.value,
+        callerImage: callerImage.value,
+        remoteUserId: savedRemoteUserId ?? '',
+        remoteUserName: remoteUserName.value,
+        remoteUserImage: remoteUserImage.value,
+        isCaller: false,
+        isGroupCall: isGroupCall.value,
+        iceServers: jsonEncode(iceServersJson),
+      );
+      // Reset main engine state — CallActivity handles everything now
+      _cleanup();
+      _navigateBackFromCallScreen();
+      return true;
+    }
+
+    // --- CallActivity engine (or iOS): handle WebRTC here ---
+    _iceConfig = IceServerConfig.fromJson(iceServersJson);
 
     callStatus.value = CallStatus.connecting;
+
+    // Ensure socket is connected (CallActivity engine has its own socket)
+    if (!_socket.isConnected) {
+      _socket.connectToSocket();
+    }
 
     // Show ongoing notification immediately to keep app in foreground
     _showConnectingNotification();
@@ -424,9 +467,8 @@ log("sdkjcskjlcskjc ${{
       _pendingOffer = null;
     }
 
-    // Keep screen on & enable PiP
+    // Keep screen on
     WakelockPlus.enable();
-
 
     // Start a 30-second connection timeout — if not connected by then, end the call
     _startConnectionTimeout();
@@ -446,6 +488,56 @@ log("sdkjcskjlcskjc ${{
         endCall();
       }
     });
+  }
+
+  /// Called from CallActivity engine to set up an already-accepted incoming call.
+  /// The API accept was done by the main engine; this engine handles WebRTC/socket.
+  Future<bool> setupAcceptedCall({
+    required String iceServersJson,
+    required String remoteUserId,
+  }) async {
+    // Request permissions
+    try {
+      final permissions = [Permission.microphone];
+      if (callType.value == CallType.video) permissions.add(Permission.camera);
+      await permissions.request();
+    } catch (e) {
+      if (kDebugMode) print('Permission request error: $e');
+    }
+
+    // Parse ICE servers
+    try {
+      _iceConfig = IceServerConfig.fromJson(jsonDecode(iceServersJson));
+    } catch (_) {}
+    _remoteUserId = remoteUserId;
+
+    callStatus.value = CallStatus.connecting;
+
+    // Connect socket for this engine
+    if (!_socket.isConnected) {
+      _socket.connectToSocket();
+    }
+
+    // Show ongoing notification
+    _showConnectingNotification();
+
+    // Join socket room
+    _socket.emitEvent('call:join-room', {'room_id': roomId.value});
+
+    // Setup local media
+    _mediaReadyCompleter = Completer<void>();
+    await _setupLocalMedia();
+    if (!_mediaReadyCompleter!.isCompleted) {
+      _mediaReadyCompleter!.complete();
+    }
+
+    // Keep screen on
+    WakelockPlus.enable();
+
+    // Connection timeout
+    _startConnectionTimeout();
+
+    return true;
   }
 
   /// Decline an incoming call
@@ -529,12 +621,14 @@ log("sdkjcskjlcskjc ${{
   }
 
   void _handleCallCancelled(dynamic data) {
+    if (isCallActivityActive && !isCallActivityEngine) return;
     FlutterCallkitIncoming.endCall(callId.value);
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
 
   void _handleCallEnded(dynamic data) {
+    if (isCallActivityActive && !isCallActivityEngine) return;
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
@@ -561,6 +655,9 @@ log("sdkjcskjlcskjc ${{
 
   /// Safely navigate back from any call screen if currently on one
   void _navigateBackFromCallScreen() {
+    // In CallActivity engine, the wrapper handles activity finish — skip Flutter navigation
+    if (isCallActivityEngine) return;
+
     if (_coldStartCall) {
       // App was launched only for this call — go to home screen
       _coldStartCall = false;
@@ -1126,6 +1223,8 @@ log("sdkjcskjlcskjc ${{
     callDurationSeconds.value = 0;
     _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       callDurationSeconds.value++;
+      // Update floating overlay timer if active
+      OverlayService.updateTimer(formattedCallDuration);
     });
     // Start the ongoing call notification
     _showOngoingCallNotification();
@@ -1272,6 +1371,7 @@ log("sdkjcskjlcskjc ${{
     _ringTimer?.cancel();
     _connectionTimer?.cancel();
     _cancelOngoingNotification();
+    OverlayService.closeOverlay();
 
     // Stop local tracks
     if (localStream != null) {
@@ -1337,6 +1437,31 @@ log("sdkjcskjlcskjc ${{
     switchTypeRequestedBy.value = '';
   }
 
+  // ==================== FLOATING OVERLAY ====================
+
+  /// Show the floating overlay window (Android) when the user leaves the app
+  /// during an active call. Called from AppLifecycleHandler.
+  void showFloatingOverlay() {
+    final isActive = callStatus.value == CallStatus.connected ||
+        callStatus.value == CallStatus.connecting;
+    if (!isActive) return;
+
+    final name = callerName.value.isNotEmpty
+        ? callerName.value
+        : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Call');
+
+    OverlayService.showCallOverlay(
+      callerName: name,
+      isVideo: callType.value == CallType.video,
+      callTime: formattedCallDuration,
+    );
+  }
+
+  /// Hide the floating overlay when the user returns to the app
+  void hideFloatingOverlay() {
+    OverlayService.closeOverlay();
+  }
+
   // ==================== CALLKIT ====================
 
   void _setupCallKitListeners() {
@@ -1353,12 +1478,9 @@ log("sdkjcskjlcskjc ${{
         case Event.actionCallAccept:
           // If state isn't already set (push notification case), populate from extra
           initStateFromCallKitExtra(extra);
-          // Signal the app to show only the call screen (skips splash/home)
-          launchedForCall.value = true;
-          _coldStartCall = true;
+          // Accept call — on Android this launches CallActivity automatically
           acceptCall().then((accepted) {
-            if (!accepted) {
-              // Accept failed — reset to normal app flow
+            if (!accepted && !isCallActivityActive) {
               launchedForCall.value = false;
               _coldStartCall = false;
             }

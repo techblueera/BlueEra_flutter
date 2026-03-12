@@ -4,6 +4,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../features/chat/auth/controller/call_controller.dart';
 import '../../features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../features/common/delivery_partner/view/delivery_partner_orders/on_going_pip_screen.dart';
 import '../constants/app_constant.dart';
@@ -23,11 +24,45 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
     }
 
     }
+
+    // Handle floating call overlay on app lifecycle changes
+    _handleCallOverlayLifecycle(state);
+
     if (state == AppLifecycleState.resumed) {
       if (await LocationService().isLocationAvailable()) {
         log("Permission granted after returning from settings.");
         await LocationService.fetchLocation();
       }
+    }
+  }
+
+  /// Show floating overlay when app goes to background during an active call,
+  /// and hide it when the app returns to foreground.
+  void _handleCallOverlayLifecycle(AppLifecycleState state) {
+    if (!Get.isRegistered<CallController>()) return;
+    final callController = Get.find<CallController>();
+
+    switch (state) {
+      case AppLifecycleState.paused:
+        // App went to background — show floating overlay if call is active
+        callController.showFloatingOverlay();
+        break;
+      case AppLifecycleState.resumed:
+        // App returned to foreground — hide floating overlay
+        callController.hideFloatingOverlay();
+        // Reset CallActivity flag (activity may have finished)
+        CallController.isCallActivityActive = false;
+        break;
+      case AppLifecycleState.detached:
+        // App being killed — end call gracefully
+        final isActive = callController.callStatus.value == CallStatus.connected ||
+            callController.callStatus.value == CallStatus.connecting;
+        if (isActive) {
+          callController.endCall();
+        }
+        break;
+      default:
+        break;
     }
   }
 }

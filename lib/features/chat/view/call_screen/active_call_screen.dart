@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -6,6 +7,7 @@ import 'package:get/get.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/service/call_pip_service.dart';
 
 class ActiveCallScreen extends StatefulWidget {
   const ActiveCallScreen({super.key});
@@ -22,6 +24,9 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   double _localVideoY = -1;
   bool _positionInitialized = false;
 
+  // PiP state
+  bool _isInPipMode = false;
+
   @override
   void initState() {
     super.initState();
@@ -32,40 +37,129 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
         _showSwitchTypeDialog(context, controller, requestedBy);
       }
     });
+
+    // Setup PiP listeners
+    if (Platform.isAndroid) {
+      CallPipService.init();
+      CallPipService.onPipModeChanged = (isInPip) {
+        if (mounted) {
+          setState(() => _isInPipMode = isInPip);
+        }
+      };
+      CallPipService.onPipAction = (action) {
+        if (!mounted) return;
+        switch (action) {
+          case 'mute_toggle':
+            controller.toggleMic();
+            break;
+          case 'hangup':
+            controller.endCall();
+            break;
+        }
+      };
+    }
   }
 
   @override
   void dispose() {
     _switchTypeWorker.dispose();
+    CallPipService.dispose();
     super.dispose();
+  }
+
+  /// Enter PiP mode instead of closing the call screen
+  Future<bool> _enterPipMode() async {
+    if (!Platform.isAndroid) return false;
+    return await CallPipService.enterPipMode();
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<CallController>();
 
-    return Scaffold(
-        backgroundColor: const Color(0xFF121B22),
-        body: Obx(() {
-          final isVideo = controller.callType.value == CallType.video;
-          final isGroup = controller.isGroupCall.value;
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // Main content area
-              if (isGroup)
-                _buildGroupCallBody(controller, isVideo)
-              else if (isVideo)
-                _buildVideoCallBody(controller)
-              else
-                _buildAudioCallBody(controller),
-              // Top bar
-              _buildTopBar(context, controller),
-              // Bottom controls
-              _buildBottomControls(controller, isVideo),
-            ],
-          );
-        }),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        // Try entering PiP on back press (Android only)
+        if (Platform.isAndroid) {
+          final entered = await _enterPipMode();
+          if (entered) return;
+        }
+        // Fallback: just go back normally
+        if (context.mounted) Navigator.of(context).pop();
+      },
+      child: Scaffold(
+          backgroundColor: const Color(0xFF121B22),
+          body: Obx(() {
+            final isVideo = controller.callType.value == CallType.video;
+            final isGroup = controller.isGroupCall.value;
+
+            // In PiP mode: show simplified view (just video/avatar, no controls)
+            if (_isInPipMode) {
+              return _buildPipModeView(controller, isVideo);
+            }
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // Main content area
+                if (isGroup)
+                  _buildGroupCallBody(controller, isVideo)
+                else if (isVideo)
+                  _buildVideoCallBody(controller)
+                else
+                  _buildAudioCallBody(controller),
+                // Top bar
+                _buildTopBar(context, controller),
+                // Bottom controls
+                _buildBottomControls(controller, isVideo),
+              ],
+            );
+          }),
+      ),
+    );
+  }
+
+  // ==================== PiP MODE VIEW ====================
+
+  /// Simplified view shown when in Picture-in-Picture mode.
+  /// Hides all controls — just shows video feed or avatar with call timer.
+  Widget _buildPipModeView(CallController controller, bool isVideo) {
+    if (isVideo) {
+      // Show remote video in PiP
+      final remoteRenderer = controller.remoteRenderers.values.firstOrNull;
+      if (remoteRenderer != null && controller.remoteVideoEnabled.value) {
+        return RTCVideoView(
+          remoteRenderer,
+          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+        );
+      }
+    }
+    // Audio call or no remote video: show minimal info
+    return Container(
+      color: const Color(0xFF121B22),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildCircleAvatar(
+              name: controller.remoteUserName.value,
+              image: controller.remoteUserImage.value,
+              radius: 30,
+            ),
+            const SizedBox(height: 8),
+            Obx(() => Text(
+                  controller.formattedCallDuration,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                  ),
+                )),
+          ],
+        ),
+      ),
     );
   }
 
@@ -442,13 +536,13 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: (){
+                  onTap: () async {
+                    // Try entering PiP on back tap (Android only)
+                    if (Platform.isAndroid) {
+                      final entered = await _enterPipMode();
+                      if (entered) return;
+                    }
                     Get.back();
-                    Future.delayed(Duration.zero,(){
-                      setState(() {
-
-                      });
-                    });
                   },
                   child: const Icon(Icons.arrow_back_rounded,
                       color: Colors.white, size: 20),

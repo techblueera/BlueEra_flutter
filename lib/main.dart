@@ -40,7 +40,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/chat/auth/controller/call_controller.dart';
 import 'features/chat/view/call_screen/active_call_screen.dart';
+import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
 import 'features/chat/view/call_screen/widget/ongoing_call_overlay.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
@@ -131,6 +133,32 @@ getDeviceInfo() async {
   }
 }
 
+/// Listen for messages from the floating overlay window (hangup / expand actions)
+void _setupOverlayListener() {
+  if (!Platform.isAndroid) return;
+  FlutterOverlayWindow.overlayListener.listen((data) {
+    if (data is Map) {
+      final action = data['action'];
+      if (!Get.isRegistered<CallController>()) return;
+      final callController = Get.find<CallController>();
+
+      if (action == 'hangup') {
+        callController.endCall();
+      } else if (action == 'expand') {
+        // Bring app to foreground and navigate to active call screen
+        if (Get.currentRoute != '/ActiveCallScreen') {
+          Get.toNamed('/ActiveCallScreen');
+        }
+      }
+    }
+  });
+}
+
+/// Entry point for Android CallActivity (separate Flutter engine).
+/// Must be in main.dart so the engine can resolve it from the default library.
+@pragma('vm:entry-point')
+void callMain() => call_entry.callMainImpl();
+
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -175,6 +203,9 @@ Future<void> main() async {
   if (!Get.isRegistered<CallController>()) {
     Get.put(CallController(), permanent: true);
   }
+
+  /// Listen for messages from the floating overlay (hangup / expand)
+  _setupOverlayListener();
 
   /// Check if app was launched by accepting an incoming call from killed state.
   /// Must run BEFORE runApp() so launchedForCall is true at first build.
