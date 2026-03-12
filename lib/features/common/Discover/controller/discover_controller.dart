@@ -290,7 +290,7 @@ class DiscoverController extends GetxController {
       final Map<String, dynamic> queryParams = {
         ApiKeys.page: productDataPage,
         ApiKeys.limit: limit,
-        ApiKeys.maxDistance: kmRadius1000,
+        ApiKeys.maxDistance: kmRadius5000,
       };
       double lat = LocationService.lat != 0.0 ? LocationService.lat : 0.0;
       double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;

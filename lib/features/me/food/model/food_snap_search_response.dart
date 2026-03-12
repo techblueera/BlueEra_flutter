@@ -103,7 +103,19 @@ class MissingFoodProducts {
   num? approxPrice;
   String? unit;
 
-  MissingFoodProducts({this.name, this.brand, this.searchKeywords, this.approxPrice, this.unit});
+  // keys for local navigation management and missing product created flow
+  String? productId;
+  String? inventoryId;
+
+  MissingFoodProducts({
+    this.name,
+    this.brand,
+    this.searchKeywords,
+    this.approxPrice,
+    this.unit,
+    this.productId,
+    this.inventoryId,
+  });
 
   MissingFoodProducts.fromJson(Map<String, dynamic> json) {
     name = json['name'];
@@ -111,6 +123,8 @@ class MissingFoodProducts {
     searchKeywords = json['searchKeywords'];
     approxPrice = json['approxPrice'];
     unit = json['unit'];
+    productId = json['productId'];
+    inventoryId = json['inventoryId'];
   }
 
   Map<String, dynamic> toJson() {
@@ -120,6 +134,8 @@ class MissingFoodProducts {
     data['searchKeywords'] = this.searchKeywords;
     data['approxPrice'] = this.approxPrice;
     data['unit'] = this.unit;
+    data['productId'] = this.productId;
+    data['inventoryId'] = this.inventoryId;
     return data;
   }
 }

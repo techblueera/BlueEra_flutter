@@ -2,16 +2,23 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
+import 'package:BlueEra/features/me/food/controller/food_entry_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -32,13 +39,27 @@ class FoodDetailScreen extends StatefulWidget {
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
   FoodGenAiData product = FoodGenAiData();
   final vc = Get.find<FoodServiceController>();
+  final foodEntryController = Get.find<FoodEntryController>();
+  // final foodEntryController = getOrPut(() => FoodEntryController());
 
   @override
   void initState() {
-    // TODO: implement initState
-    vc.variantList.clear();
     product = widget.foodData.data ?? FoodGenAiData();
+    vc.variantList.clear();
+    vc.variantList.addAll(product.variants??[]);
+    syncImagesToUploadList();
     super.initState();
+  }
+
+  void syncImagesToUploadList() {
+    vc.foodImages.clear();
+
+    // Add the mandatory first image if it exists
+    if (foodEntryController.foodSearchImages[0] != null) {
+      vc.foodImages.add(XFile(foodEntryController.foodSearchImages[0]!.path));
+    }
+
+    // You can also manage additional images directly in foodImages
   }
 
   @override
@@ -59,29 +80,30 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               title: AppStrings.postNow),
         ));
       }),
-      body: CommonCardWidget(
-        padding: 0,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Responsive horizontal padding
-            double horizontalPadding = constraints.maxWidth > 600 ? 100 : 16;
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Responsive horizontal padding
+          double horizontalPadding =
+              constraints.maxWidth > 600 ? 100 : 16;
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                  horizontal: horizontalPadding, vertical: 20),
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 15),
+            child: CustomFormCard(
+              padding: EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
                     "Add Food Within 1 Min Via Al",
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: SizeConfig.large,
+                    color: AppColors.mainTextColor
                   ),
-                  _buildImageSection(),
-                  _buildSection(
-                      "Upload Food Images", vc.foodImages,context),
+                  _buildImageSection(context),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildInfoCard("Product Name", product.name ?? ""),
                   const SizedBox(height: 12),
                   _buildInfoCard("Food Description", product.description ?? "",
@@ -102,10 +124,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ),
                       InkWell(
                           onTap: () {
-                            // Get.back();
                             vc.clearAllField();
 
-                            showVariantBottomSheet();
+                            addOrVariantBottomSheet(
+                                onAdd: (foodVariants){
+                                  vc.variantList.add(foodVariants);
+                                }
+                            );
                             // showAddVariantSheet();
                           },
                           child: Row(
@@ -117,7 +142,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                 color: AppColors.primaryColor,
                               ),
                               CustomText(
-                                "Add Variant",
+                                vc.variantList.isNotEmpty ? "Add More Variant" : "Add Variant",
                                 color: AppColors.primaryColor,
                               ),
                             ],
@@ -152,7 +177,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                     children: [
                                       // Title: Name - Quantity
                                       CustomText(
-                                        "${item['variantName']} - ${item['quantityLabel']} ",
+                                        "${item.variantName} - ${item.quantityLabel} ",
                                         fontSize: 16,
                                         color: AppColors.secondaryTextColor,
                                         maxLines: 1,
@@ -164,7 +189,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                         children: [
                                           Flexible(
                                             child: CustomText(
-                                              "Selling-₹${item['baseSellingPrice']}",
+                                              "Selling-₹${item.baseSellingPrice}",
                                               fontSize: 15,
                                               color:
                                                   AppColors.secondaryTextColor,
@@ -178,7 +203,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           CustomText(
-                                            "₹${item['mrp']}",
+                                            "₹${item.mrp}",
                                             fontSize: 15,
                                             color: AppColors.secondaryTextColor,
                                             decoration: TextDecoration
@@ -196,7 +221,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                     InkWell(
                                       onTap: () {
                                         vc.prepareEdit(index);
-                                        showVariantBottomSheet();
+                                        addOrVariantBottomSheet(
+                                            editingIndex: index,
+                                            onAdd: (foodVariants){
+                                              vc.variantList[index] = foodVariants;
+                                            }
+                                        );
                                       },
                                       child: LocalAssets(
                                         imagePath: AppIconAssets.editIcon,
@@ -205,7 +235,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                     ),
                                     const SizedBox(height: 10),
                                     InkWell(
-                                      onTap: () => vc.deleteVariant(index),
+                                      onTap: () => vc.variantList.removeAt(index),
                                       child: const Icon(Icons.delete_outline,
                                           size: 22, color: Colors.redAccent),
                                     ),
@@ -218,109 +248,116 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ))
                 ],
               ),
-            );
-          },
-        ),
-      ),
-    );
-
-  }
-  Widget _buildSection(String title, RxList<XFile> imageList, BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
-              Text("Min-2 Images",
-                  style: TextStyle(color: Colors.grey, fontSize: 12)),
-            ],
-          ),
-          SizedBox(height: 12),
-          Obx(() =>
-              Row(
-                children: List.generate(4, (index) {
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        final path = await CommonImageUploadTile.pickImage(context: context);
-                        if (path != null) imageList.add(XFile(path));
-                      },
-                      // onTap: () => _showPickerOptions(imageList),
-                      child: Container(
-                        height: 80,
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: index < imageList.length
-                            ? Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                File(imageList[index].path),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: 80,
-
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: GestureDetector(
-                                onTap: () =>
-                                    vc.removeImage(
-                                        index, imageList),
-                                child: CircleAvatar(
-                                    radius: 10,
-                                    backgroundColor: Colors.red,
-                                    child: Icon(Icons.close,
-                                        size: 12, color: Colors.white)),
-                              ),
-                            )
-                          ],
-                        )
-                            : Icon(Icons.image_outlined, color: Colors.grey),
-                      ),
-                    ),
-                  );
-                }),
-              )),
-        ],
+            ),
+          );
+        },
       ),
     );
   }
 
-
-  Widget _buildImageSection() {
+  Widget _buildImageSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 12),
+        const CustomText("Upload product Images", fontWeight: FontWeight.normal),
         const SizedBox(height: 8),
-        const CustomText("Food Image", fontWeight: FontWeight.normal),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            imageUrl: "https://example.com/idli_image.jpg",
-            // Replace with real URL
-            width: 100,
-            height: 100,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(color: Colors.grey[200]),
-            errorWidget: (context, url, error) =>
-                const Icon(Icons.fastfood, size: 50),
+        Row(
+          children: [
+            // Box 1: Mandatory (Index 0)
+            Expanded(
+              child: Obx(() {
+                final XFile? xFile = vc.foodImages[0];
+                final File? file = xFile != null ? File(xFile.path) : null;
+
+                return _buildBaseImageBox(
+                  file: file,
+                  onTap: null, // Passing null disables the tap interaction
+                  showRemove: false,
+                );
+              }),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Box 2: Optional (Index 1)
+            Expanded(
+              child: Obx(() {
+                final XFile? xFile = vc.foodImages.length > 1 ? vc.foodImages[1] : null;
+                final File? file = xFile != null ? File(xFile.path) : null;
+
+                return _buildBaseImageBox(
+                  file: file,
+                  onTap: () => vc.pickSecondImage(context),
+                  showRemove: file != null,
+                  onRemove: () => vc.removeSecondImage(),
+                );
+              }),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBaseImageBox({
+    File? file,
+    VoidCallback? onTap, // Nullable to disable interaction
+    bool showRemove = false,
+    VoidCallback? onRemove,
+  }) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 170,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: file != null
+                        ? Image.file(file, fit: BoxFit.cover)
+                        : Image.asset(AppImageAssets.foodDummyImage, fit: BoxFit.cover),
+                  ),
+                ),
+                // Only show camera icon if interaction is allowed (onTap != null)
+                Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: file == null ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
+                      ),
+                      child: Center(
+                        child: file == null
+                              ? Icon(Icons.camera_alt_outlined, color: Colors.white, size: 30)
+                              : null
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
+        if (showRemove)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                child: const Icon(Icons.close, color: Colors.white, size: 14),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -332,8 +369,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.greyE5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,6 +382,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   fontWeight: FontWeight.bold, color: AppColors.mainTextColor),
               // const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
             ],
+          ),
+          const SizedBox(height: 8),
+          CommonHorizontalDivider(
+              height: 0.5,
+              color: AppColors.greyE5
           ),
           const SizedBox(height: 8),
           CustomText(
@@ -385,14 +427,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       _buildRadioPlaceholder(product.dietaryType ?? "", true)),
             ],
           ),
-          Row(
-            children: [
-              Expanded(
-                  child: _buildRadioPlaceholder(
-                      product.cookingMethod ?? "", true)),
-              Expanded(child: _buildRadioPlaceholder("Breakfast", true)),
-            ],
-          ),
+
+          // Row(
+          //   children: [
+          //     Expanded(
+          //         child: _buildRadioPlaceholder(
+          //             product.cookingMethod ?? "", true)),
+          //     Expanded(child: _buildRadioPlaceholder("Breakfast", true)),
+          //   ],
+          // ),
+
         ],
       ),
     );

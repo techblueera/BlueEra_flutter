@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -237,6 +237,14 @@ class ProductVariantBottomSheet extends StatelessWidget {
           showEditVariantPriceSheet(
             vData: item,
             productId: pId,
+            onUpdate: (newPrice, newMrp) {
+              controller.updateLocalVariantPrice(
+                pId,
+                item.id ?? "",
+                newPrice,
+                newMrp,
+              );
+            },
           );
         } else {
           commonSnackBar(
@@ -257,7 +265,12 @@ class ProductVariantBottomSheet extends StatelessWidget {
       onTap: () {
         Get.back();
         controller.clearAllField();
-        showVariantBottomSheet(foodID: liveProduct.id ?? "");
+        addOrVariantBottomSheet(
+            // foodID: liveProduct.id ?? "",
+            onAdd: (foodVariants){
+
+            }
+        );
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,

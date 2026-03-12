@@ -27,7 +27,7 @@ class AddProductViaAiStep1 extends StatefulWidget {
 }
 
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
-  final ProductController controller = Get.put(ProductController());
+  final ProductController controller = getOrPut(() => ProductController());
 
   @override
   void dispose() {

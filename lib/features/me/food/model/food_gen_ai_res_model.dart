@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 FoodGenAiResModel foodGenAiResModelFromJson(String str) => FoodGenAiResModel.fromJson(json.decode(str));
 String foodGenAiResModelToJson(FoodGenAiResModel data) => json.encode(data.toJson());
 class FoodGenAiResModel {
@@ -42,7 +44,9 @@ class FoodGenAiData {
       this.servingInfo, 
       this.shelfLife, 
       this.nutritionalInfo, 
-      this.tags,});
+      this.tags,
+      this.variants,
+  });
 
   FoodGenAiData.fromJson(dynamic json) {
     name = json['name'];
@@ -51,12 +55,18 @@ class FoodGenAiData {
     subCategory = json['subCategory'];
     dietaryType = json['dietaryType'];
     cuisineType = json['cuisineType'];
-    cookingMethod = json['cookingMethod'];
+    cookingMethod = json['cookingMethod'] != null ? json['cookingMethod'].cast<String>() : [];
     ingredients = json['ingredients'] != null ? json['ingredients'].cast<String>() : [];
     servingInfo = json['servingInfo'] != null ? json['servingInfo'].cast<String>() : [];
     shelfLife = json['shelfLife'];
     nutritionalInfo = json['nutritionalInfo'] != null ? NutritionalInfo.fromJson(json['nutritionalInfo']) : null;
     tags = json['tags'] != null ? json['tags'].cast<String>() : [];
+    if (json['variants'] != null) {
+      variants = [];
+      json['variants'].forEach((v) {
+        variants?.add(FoodVariants.fromJson(v));
+      });
+    }
   }
   String? name;
   String? description;
@@ -64,12 +74,13 @@ class FoodGenAiData {
   String? subCategory;
   String? dietaryType;
   String? cuisineType;
-  String? cookingMethod;
+  List<String>? cookingMethod;
   List<String>? ingredients;
   List<String>? servingInfo;
   String? shelfLife;
   NutritionalInfo? nutritionalInfo;
   List<String>? tags;
+  List<FoodVariants>? variants;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -86,11 +97,47 @@ class FoodGenAiData {
     if (nutritionalInfo != null) {
       map['nutritionalInfo'] = nutritionalInfo?.toJson();
     }
+    if (variants != null) {
+      map['variants'] = variants?.map((v) => v.toJson()).toList();
+    }
     map['tags'] = tags;
     return map;
   }
-
 }
+
+// class FoodVariants {
+//   FoodVariants({
+//     this.variantName,
+//     this.quantityLabel,
+//     this.mrp,
+//     this.baseSellingPrice,
+//     this.isDefault,
+//   });
+//
+//   FoodVariants.fromJson(dynamic json) {
+//     variantName = json['variantName'];
+//     quantityLabel = json['quantityLabel'];
+//     mrp = json['mrp'];
+//     baseSellingPrice = json['baseSellingPrice'];
+//     isDefault = json['isDefault'];
+//   }
+//
+//   String? variantName;
+//   String? quantityLabel;
+//   num? mrp;
+//   num? baseSellingPrice;
+//   bool? isDefault;
+//
+//   Map<String, dynamic> toJson() {
+//     final map = <String, dynamic>{};
+//     map['variantName'] = variantName;
+//     map['quantityLabel'] = quantityLabel;
+//     map['mrp'] = mrp;
+//     map['baseSellingPrice'] = baseSellingPrice;
+//     map['isDefault'] = isDefault;
+//     return map;
+//   }
+// }
 
 NutritionalInfo nutritionalInfoFromJson(String str) => NutritionalInfo.fromJson(json.decode(str));
 String nutritionalInfoToJson(NutritionalInfo data) => json.encode(data.toJson());

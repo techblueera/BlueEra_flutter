@@ -5,7 +5,8 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 class FoodRepo extends BaseService {
   ///GET SCHOOL/UNIVERSITY DETAILS...
   Future<ResponseModel> getFoodAiGenerateRepo({required Map<String,dynamic> reqBody}) async {
-    final response = await ApiBaseHelper().postHTTP("${foodAiGenerate}",
+    final response = await ApiBaseHelper().postHTTP(
+        "${foodAiGenerate}",
         params: reqBody,
         onError: (error) {}, onSuccess: (data) {});
     return response;
@@ -26,7 +27,7 @@ class FoodRepo extends BaseService {
       foodProduct,
       params: params,
       isMultipart: false,
-      showProgress: false,
+      showProgress: true,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -137,6 +138,18 @@ class FoodRepo extends BaseService {
       foodSnapSearch,
       params: params,
       isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
+  ///  SINGLE FOOD PRODUCT DETAILS...
+  Future<ResponseModel> fetchSingleFoodProductDetailsRepo({required String foodID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${foodProduct}/${foodID}",
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

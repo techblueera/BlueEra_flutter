@@ -68,12 +68,12 @@ class GroceryController extends GetxController {
   String get currentTabKey =>
       selectedHorizontalTabIndex.value == 0
           ? (selectedGroceryData.value?.key ?? '')
-          : arrChildrenOfGroceryCategory[selectedHorizontalTabIndex.value - 1].key ?? '';
+          : selectedGroceryData.value?.children?.first.key ?? '';
 
   String get currentTabName =>
       selectedHorizontalTabIndex.value == 0
           ? (selectedGroceryData.value?.name ?? 'All Items')
-          : (arrChildrenOfGroceryCategory[selectedHorizontalTabIndex.value - 1].name ?? '');
+          : selectedGroceryData.value?.children?.first.name ?? '';
 
   int maxLimit = 10;
 
@@ -297,7 +297,7 @@ class GroceryController extends GetxController {
     try {
       isInitialLoading.value = true;
       await Future.wait([
-        fetchChildrenOfGroceryCategory(),
+        // fetchChildrenOfGroceryCategory(),
         fetchGroceryCategoryProducts(),
       ]);
      } catch (e) {
@@ -306,36 +306,36 @@ class GroceryController extends GetxController {
     }
   }
 
-  RxBool isGroceryCategoryOfChildrenLoading = false.obs;
-  RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryCategory =
-      <ChildrenOfGroceryCategoryResponse>[].obs;
-
-  Future<void> fetchChildrenOfGroceryCategory() async {
-    try {
-
-      isGroceryCategoryOfChildrenLoading.value = true;
-      final response =
-      await GroceryRepo().groceryCategoryOfChildrenRepo(key: currentTabKey);
-
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
-      }
-
-      final jsonData = response.response?.data;
-      arrChildrenOfGroceryCategory.value =
-          ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
-      groceryCategoryOfChildrenResponse.value = ApiResponse.complete(response);
-      update();
-    } catch (e) {
-      groceryCategoryOfChildrenResponse.value = ApiResponse.error('error');
-      update();
-    } finally {
-      isGroceryCategoryOfChildrenLoading.value = false;
-    }
-  }
+  // RxBool isGroceryCategoryOfChildrenLoading = false.obs;
+  // RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryCategory =
+  //     <ChildrenOfGroceryCategoryResponse>[].obs;
+  //
+  // Future<void> fetchChildrenOfGroceryCategory() async {
+  //   try {
+  //
+  //     isGroceryCategoryOfChildrenLoading.value = true;
+  //     final response =
+  //     await GroceryRepo().groceryCategoryOfChildrenRepo(key: currentTabKey);
+  //
+  //     if (!response.isSuccess) {
+  //       commonSnackBar(
+  //         message: response.message ?? AppStrings.somethingWentWrong,
+  //       );
+  //       return;
+  //     }
+  //
+  //     final jsonData = response.response?.data;
+  //     arrChildrenOfGroceryCategory.value =
+  //         ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
+  //     groceryCategoryOfChildrenResponse.value = ApiResponse.complete(response);
+  //     update();
+  //   } catch (e) {
+  //     groceryCategoryOfChildrenResponse.value = ApiResponse.error('error');
+  //     update();
+  //   } finally {
+  //     isGroceryCategoryOfChildrenLoading.value = false;
+  //   }
+  // }
 
   RxBool isGroceryCategoryProductsLoading = false.obs;
   RxList<GroceryProductData> arrGroceryCategoryProducts = <GroceryProductData>[].obs;
@@ -847,12 +847,12 @@ class GroceryController extends GetxController {
       groceryNestedCategoryLoading.value = true;
       groceryNestedCategoryList.clear();
 
-      final cachedData = await HiveServices().getGroceryNestedCategories(groceryCatKey);
-      if (cachedData != null && cachedData.isNotEmpty) {
-        groceryNestedCategoryLoading.value = false;
-        groceryNestedCategoryList.assignAll(cachedData);
-        return;
-      }
+      // final cachedData = await HiveServices().getGroceryNestedCategories(groceryCatKey);
+      // if (cachedData != null && cachedData.isNotEmpty) {
+      //   groceryNestedCategoryLoading.value = false;
+      //   groceryNestedCategoryList.assignAll(cachedData);
+      //   return;
+      // }
 
       ResponseModel responseModel = await GroceryRepo().fetchGroceryNestedCategoryRepo(
           queryParams: {ApiKeys.categoryKey: groceryCatKey}
@@ -861,7 +861,7 @@ class GroceryController extends GetxController {
         fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
         final GroceryNestedCategoryModel groceryNestedCategoryModel = GroceryNestedCategoryModel.fromJson(responseModel.response?.data);
         groceryNestedCategoryList.value = groceryNestedCategoryModel.children ?? [];
-        await HiveServices().saveGroceryNestedCategories(groceryCatKey, groceryNestedCategoryList);
+        // await HiveServices().saveGroceryNestedCategories(groceryCatKey, groceryNestedCategoryList);
       } else {
         fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
       }
