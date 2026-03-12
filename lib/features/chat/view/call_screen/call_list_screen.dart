@@ -168,7 +168,7 @@ class _CallListScreenState extends State<CallListScreen>
       userName: sender.name ?? 'Unknown',
       userImage: sender.profileImage ?? '',
     );
-    Get.toNamed('/OutgoingCallScreen');
+    Get.toNamed('/CallRoomScreen');
   }
 
   void _initiateCallFromDummy(_DummyContact contact, CallType type) {
@@ -180,7 +180,7 @@ class _CallListScreenState extends State<CallListScreen>
       userName: contact.name,
       userImage: contact.imageUrl ?? '',
     );
-    Get.toNamed('/OutgoingCallScreen');
+    Get.toNamed('/CallRoomScreen');
   }
 
   @override

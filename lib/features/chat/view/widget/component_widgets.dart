@@ -1045,9 +1045,9 @@ void _initiateCallInApp({
     userImage: userImage,
   );
 
-  // if (success) {
-  //   Get.toNamed('/OutgoingCallScreen');
-  // }
+  if (success) {
+    Get.toNamed('/CallRoomScreen');
+  }
 }
 
 void _showCallOptionsBottomSheet({

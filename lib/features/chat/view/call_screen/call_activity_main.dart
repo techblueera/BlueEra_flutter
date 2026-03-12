@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -7,7 +8,6 @@ import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
-import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 
@@ -213,7 +213,7 @@ class _CallActivityWrapperState extends State<_CallActivityWrapper> {
       if (_callInitiated) return;
 
       _callInitiated = true;
-
+      log("kdjcksjcnscsdc ${widget.params}");
       if (widget.isCaller) {
         _initiateOutgoingCall();
       } else {
@@ -329,13 +329,13 @@ class _CallActivityWrapperState extends State<_CallActivityWrapper> {
 
       if (status == CallStatus.outgoing ||
           status == CallStatus.ringing) {
-        return const OutgoingCallScreen();
+        return const CallRoomScreen();
       }
 
       if (status == CallStatus.connecting ||
           status == CallStatus.connected ||
           status == CallStatus.accepting) {
-        return const ActiveCallScreen();
+        return const CallRoomScreen();
       }
 
       return const Scaffold(

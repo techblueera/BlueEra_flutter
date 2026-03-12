@@ -4,7 +4,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
-import 'package:BlueEra/features/chat/view/call_screen/active_call_screen.dart';
+
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
 import 'package:BlueEra/features/me/food/view/add_food_snap_search_screen.dart';
@@ -1734,7 +1734,7 @@ class RouteHelper {
         );
       case RouteConstant.OutgoingCallScreen:
         return MaterialPageRoute(
-          builder: (_) => const OutgoingCallScreen(),
+          builder: (_) => const CallRoomScreen(),
           settings: const RouteSettings(name: '/OutgoingCallScreen'),
         );
       case RouteConstant.IncomingCallScreen:
@@ -1744,8 +1744,13 @@ class RouteHelper {
         );
       case RouteConstant.ActiveCallScreen:
         return MaterialPageRoute(
-          builder: (_) => const ActiveCallScreen(),
+          builder: (_) => const CallRoomScreen(),
           settings: const RouteSettings(name: '/ActiveCallScreen'),
+        );
+      case RouteConstant.CallRoomScreen:
+        return MaterialPageRoute(
+          builder: (_) => const CallRoomScreen(),
+          settings: const RouteSettings(name: '/CallRoomScreen'),
         );
       default:
         return MaterialPageRoute(

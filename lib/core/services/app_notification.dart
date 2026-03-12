@@ -365,7 +365,7 @@ class AppNotificationHandler {
                 Get.find<CallController>().endCall();
               }
             } else {
-              Get.toNamed('/ActiveCallScreen');
+              Get.toNamed('/CallRoomScreen');
             }
             return;
           }
@@ -503,42 +503,42 @@ class AppNotificationHandler {
   }
 
   /// Handle incoming call when app is in foreground — open in-app call screen directly
-  void _handleIncomingCallForeground(RemoteMessage message) {
-    final data = message.data;
-    final senderId = data['senderId'] ?? '';
-    final convId = data['conversationId'] ?? '';
-    final callerNameStr = data['senderName'] ?? 'Unknown';
-    final callerImageStr = data['senderProfileImage'] ?? '';
-    final callTypeStr = (data['message'] ?? '').toString().contains('video')
-        ? 'video_call'
-        : 'voice_call';
-
-    // Ensure CallController exists
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController(), permanent: true);
-    }
-    final callController = Get.find<CallController>();
-
-    // If already ringing/active (socket event may have arrived first), skip
-    if (callController.callStatus.value != CallStatus.idle) return;
-
-    // Use initStateFromCallKitExtra which sets all state including _remoteUserId & socket
-    callController.initStateFromCallKitExtra({
-      'senderId': senderId,
-      'conversationId': convId,
-      'callType': callTypeStr,
-      'callerName': callerNameStr,
-      'callerImage': callerImageStr,
-      'callId': data['callId'] ?? data['notificationId'] ?? '',
-      'roomId': data['roomId'] ?? data['room_id'] ?? '',
-      'operation': 'incoming_call',
-    });
-
-    // Navigate to the in-app incoming call screen (avoid duplicate)
-    if (Get.currentRoute != '/IncomingCallScreen') {
-      Get.toNamed('/IncomingCallScreen');
-    }
-  }
+  // void _handleIncomingCallForeground(RemoteMessage message) {
+  //   final data = message.data;
+  //   final senderId = data['senderId'] ?? '';
+  //   final convId = data['conversationId'] ?? '';
+  //   final callerNameStr = data['senderName'] ?? 'Unknown';
+  //   final callerImageStr = data['senderProfileImage'] ?? '';
+  //   final callTypeStr = (data['message'] ?? '').toString().contains('video')
+  //       ? 'video_call'
+  //       : 'voice_call';
+  //
+  //   // Ensure CallController exists
+  //   if (!Get.isRegistered<CallController>()) {
+  //     Get.put(CallController(), permanent: true);
+  //   }
+  //   final callController = Get.find<CallController>();
+  //
+  //   // If already ringing/active (socket event may have arrived first), skip
+  //   if (callController.callStatus.value != CallStatus.idle) return;
+  //
+  //   // Use initStateFromCallKitExtra which sets all state including _remoteUserId & socket
+  //   callController.initStateFromCallKitExtra({
+  //     'senderId': senderId,
+  //     'conversationId': convId,
+  //     'callType': callTypeStr,
+  //     'callerName': callerNameStr,
+  //     'callerImage': callerImageStr,
+  //     'callId': data['callId'] ?? data['notificationId'] ?? '',
+  //     'roomId': data['roomId'] ?? data['room_id'] ?? '',
+  //     'operation': 'incoming_call',
+  //   });
+  //
+  //   // Navigate to the in-app incoming call screen (avoid duplicate)
+  //   if (Get.currentRoute != '/IncomingCallScreen') {
+  //     Get.toNamed('/IncomingCallScreen');
+  //   }
+  // }
 
   /// Handle incoming call push notification using operation-based payload (background/killed)
   void _handleIncomingCallPush(RemoteMessage message) {
@@ -546,6 +546,7 @@ class AppNotificationHandler {
     final callerName = data['senderName'] ?? 'Unknown';
     final callerImage = data['senderProfileImage'] ?? '';
     final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
+    Map<String, dynamic> payload = jsonDecode(data['payload']);
     showFlutterCallNotification(
       callSessionId: data['notificationId'] ?? data['callId'] ?? '',
       callerName: callerName,
@@ -557,8 +558,8 @@ class AppNotificationHandler {
         'callType': callType,
         'callerName': callerName,
         'callerImage': callerImage,
-        'callId': data['callId'] ?? data['notificationId'] ?? '',
-        'roomId': data['roomId'] ?? data['room_id'] ?? '',
+        'callId':payload["call_id"],
+        'roomId':payload["room_id"],
         'operation': 'incoming_call',
       },
     );
@@ -995,12 +996,12 @@ class AppNotificationHandler {
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final operation = (message.data['operation'] ?? '').toString().toLowerCase();
-
+      log("jhsjhsbajhbdasjdhb  For ${message.data}");
       // Incoming call in foreground: open in-app WhatsApp-style call screen directly
-      if (operation == 'incoming_call') {
-        _handleIncomingCallForeground(message);
-        return;
-      }
+      // if (operation == 'incoming_call') {
+      //   _handleIncomingCallForeground(message);
+      //   return;
+      // }
 
       // Play custom sound for foreground notifications
       playCustomSound(message);

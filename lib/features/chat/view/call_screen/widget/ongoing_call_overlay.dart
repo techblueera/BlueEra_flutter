@@ -27,7 +27,8 @@ class OngoingCallOverlay extends StatelessWidget {
       final route = Get.currentRoute;
       final isOnCallScreen = route == '/ActiveCallScreen' ||
           route == '/OutgoingCallScreen' ||
-          route == '/IncomingCallScreen';
+          route == '/IncomingCallScreen' ||
+          route == '/CallRoomScreen';
 
       if (!isActive || isOnCallScreen) {
         return const SizedBox.shrink();
@@ -48,8 +49,8 @@ class OngoingCallOverlay extends StatelessWidget {
           bottom: false,
           child: GestureDetector(
             onTap: () {
-              if (Get.currentRoute != '/ActiveCallScreen') {
-                Get.toNamed('/ActiveCallScreen');
+              if (Get.currentRoute != '/CallRoomScreen') {
+                Get.toNamed('/CallRoomScreen');
               }
             },
             child: Container(

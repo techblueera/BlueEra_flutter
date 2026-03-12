@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -34,12 +36,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_handler/share_handler.dart';
+import 'core/constants/getx_utils.dart';
 import 'core/services/home_cache_service.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/chat/auth/controller/call_controller.dart';
-import 'features/chat/view/call_screen/active_call_screen.dart';
+import 'features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
 import 'features/chat/view/call_screen/widget/ongoing_call_overlay.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -54,6 +57,7 @@ SharedMedia? pendingSharedMedia;
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ///INIT FIREBASE NOTIFICATION...
   await firebaseInitializeApp();
+  log("jhsjhsbajhbdasjdhb  Back ${message.data}");
 
   final operation = (message.data['operation'] ?? '').toString().toLowerCase();
 
@@ -63,6 +67,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final callerName = data['senderName'] ?? 'Unknown';
     final callerImage = data['senderProfileImage'] ?? '';
     final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
+    Map<String, dynamic> payload = jsonDecode(data['payload']);
     showFlutterCallNotification(
       callSessionId: data['notificationId'] ?? data['callId'] ?? '',
       callerName: callerName,
@@ -74,6 +79,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'callType': callType,
         'callerName': callerName,
         'callerImage': callerImage,
+        'callId':payload["call_id"],
+        'roomId':payload["room_id"],
         'operation': 'incoming_call',
       },
     );
@@ -146,8 +153,8 @@ void _setupOverlayListener() {
         callController.endCall();
       } else if (action == 'expand') {
         // Bring app to foreground and navigate to active call screen
-        if (Get.currentRoute != '/ActiveCallScreen') {
-          Get.toNamed('/ActiveCallScreen');
+        if (Get.currentRoute != '/CallRoomScreen') {
+          Get.toNamed('/CallRoomScreen');
         }
       }
     }
@@ -216,14 +223,15 @@ Future<void> main() async {
       final operation = (extra['operation'] ?? '').toString();
       final accepted = activeCalls[0]['accepted'] == true;
       if (operation == 'incoming_call' && accepted) {
-        CallController.launchedForCall.value = true;
-        // Pre-populate call state so acceptCall() has the data it needs
-        final callController = Get.find<CallController>();
+        final callController = getOrPut(() => CallController());
+        // Initialize call state from notification extras (sets remoteUserId, callType, etc.)
         callController.initStateFromCallKitExtra(extra);
-        Future.delayed(Duration(seconds: 1),(){
+        // Mark as handled so CallKit listener doesn't fire acceptCall again
+        CallController.setKilledStateAcceptHandled();
+        callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId']);
+        Future.delayed(Duration(seconds: 1), () {
           FlutterCallkitIncoming.endAllCalls();
         });
-
       }
     }
   } catch (_) {}
@@ -386,7 +394,7 @@ class _MyAppState extends State<MyApp> {
       home: Obx(() {
         // Call accepted from killed state — show ONLY the call screen
         if (CallController.launchedForCall.value) {
-          return const ActiveCallScreen();
+          return const CallRoomScreen();
         }
 
         // Still loading (null or loading flag)
