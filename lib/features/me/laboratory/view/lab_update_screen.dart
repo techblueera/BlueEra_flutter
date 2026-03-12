@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/laboratory/view/health_camp_detail_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_catalog_screen.dart';
@@ -92,7 +93,9 @@ class LabUpdateScreen extends StatelessWidget {
         ServiceMenuItem(
           title: AppStrings.createHealthCamp.tr,
           icon: AppIconAssets.OthersLab,
-          page: () => const HealthCampListScreen(),
+          page: () => const HealthCampDetailScreen(),
+            // Get.to(() => const HealthCampDetailScreen());
+
         ),
         ServiceMenuItem(
           title: AppStrings.contactUs.tr,

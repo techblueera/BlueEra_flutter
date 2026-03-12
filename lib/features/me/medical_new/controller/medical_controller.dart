@@ -243,7 +243,8 @@ class MedicalController extends GetxController {
       Map<String, dynamic> queryParams = {
         ApiKeys.page: medicalCategoryProductsPage,
         ApiKeys.limit: pageLimit,
-        ApiKeys.key: selectedMedicalData.value?.key,
+     "search": selectedMedicalData.value?.key,
+        "categoryStatus":"all"
       };
 
       final response = await MedicalRepo()

@@ -73,14 +73,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
             ),
           ),
         ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     Get.to(() => AddLabTestScreen(collection: widget.collection));
-      //   },
-      //   child: Icon(
-      //     Icons.add,
-      //     color: AppColors.white,
-      //   ),
+
       ),
       body: Obx(() {
         if (controller.isLoading.value && controller.catalogTests.isEmpty) {
@@ -235,71 +228,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
             );
           },
         );
-        // return ListView.separated(
-        //   padding: EdgeInsets.all(SizeConfig.size12),
-        //   itemBuilder: (_, i) {
-        //     final item = controller.catalogTests[i];
-        //     return InkWell(
-        //       onTap: () => _showCatalogBottomSheet(item),
-        //       child: Container(
-        //         decoration: BoxDecoration(
-        //           color: Colors.white,
-        //           borderRadius: BorderRadius.circular(12),
-        //           border: Border.all(color: Colors.grey.shade200),
-        //         ),
-        //         padding: EdgeInsets.all(SizeConfig.size12),
-        //         child: Row(
-        //           crossAxisAlignment: CrossAxisAlignment.start,
-        //           children: [
-        //             CircleAvatar(
-        //               backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-        //               child: CustomText(
-        //                 (item.testName ?? "T").substring(0, 1).toUpperCase(),
-        //                 color: AppColors.primaryColor,
-        //               ),
-        //             ),
-        //             SizedBox(width: SizeConfig.size12),
-        //             Expanded(
-        //               child: Column(
-        //                 crossAxisAlignment: CrossAxisAlignment.start,
-        //                 children: [
-        //                   CustomText(item.testName ?? "",
-        //                       fontWeight: FontWeight.w700,
-        //                       fontSize: SizeConfig.size15),
-        //                   if ((item.testParameters?.isNotEmpty ?? false))
-        //                     Padding(
-        //                       padding: EdgeInsets.only(top: SizeConfig.size4),
-        //                       child: CustomText(
-        //                         item.testParameters!.join(", "),
-        //                         fontSize: SizeConfig.small,
-        //                         color: AppColors.black28,
-        //                         maxLines: 2,
-        //                       ),
-        //                     ),
-        //                   SizedBox(height: SizeConfig.size8),
-        //                   Wrap(
-        //                     spacing: 8,
-        //                     runSpacing: 6,
-        //                     children: [
-        //                       _pill(
-        //                           "Reports within ${item.estimatedReportHours ?? 0} hours"),
-        //                       if (item.suggestedCustomerPrice != null)
-        //                         _pill("INR-${item.suggestedCustomerPrice}"),
-        //                     ],
-        //                   ),
-        //                 ],
-        //               ),
-        //             ),
-        //             Icon(Icons.arrow_forward_ios,
-        //                 size: 18, color: AppColors.black28),
-        //           ],
-        //         ),
-        //       ),
-        //     );
-        //   },
-        //   separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size10),
-        //   itemCount: controller.catalogTests.length,
-        // );
+
       }),
     );
   }

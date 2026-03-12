@@ -216,7 +216,7 @@ class _LabHeaderViewState extends State<LabHeaderView> {
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.bold),
                 const SizedBox(height: 10),
-                _allServices(widget.schoolAboutUsController.details.value?.facility),
+                allServices(widget.schoolAboutUsController.details.value?.facility, context),
                 const SizedBox(height: 10),
               ],
             ),
@@ -226,51 +226,92 @@ class _LabHeaderViewState extends State<LabHeaderView> {
     );
   }
 
-  Widget _allServices(Facility? facility) {
-    final chips = <String>[];
-    if (facility?.wheelchairAssistance == true)
-      chips.add(AppStrings.wheelchairAssistance.tr);
-    if (facility?.doctorConsultationTieUp == true)
-      chips.add(AppStrings.doctorConsultationTieUp.tr);
-    if (facility?.insuranceCashlessSupport == true)
-      chips.add(AppStrings.insuranceCashlessSupport.tr);
-    if (facility?.homeSampleCollection == true)
-      chips.add(AppStrings.homeSampleCollection.tr);
-    if (facility?.digitalReport == true)
-      chips.add(AppStrings.digitalReport.tr);
-    final other = (facility?.other ?? [])
-        .map((e) => e.label ?? '')
-        .where((e) => e.isNotEmpty)
-        .toList().take(2);
 
-    if (chips.isEmpty && other.isEmpty) return const SizedBox.shrink();
+}
+Widget allServices(Facility? facility, BuildContext context) {
+  final chips = <String>[];
+  if (facility?.wheelchairAssistance == true)
+    chips.add(AppStrings.wheelchairAssistance.tr);
+  if (facility?.doctorConsultationTieUp == true)
+    chips.add(AppStrings.doctorConsultationTieUp.tr);
+  if (facility?.insuranceCashlessSupport == true)
+    chips.add(AppStrings.insuranceCashlessSupport.tr);
+  if (facility?.homeSampleCollection == true)
+    chips.add(AppStrings.homeSampleCollection.tr);
+  if (facility?.digitalReport == true)
+    chips.add(AppStrings.digitalReport.tr);
+  final other = (facility?.other ?? [])
+      .map((e) => e.label ?? '')
+      .where((e) => e.isNotEmpty)
+      .toList();
+  final allChips = [...chips, ...other];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // CustomText(AppStrings.ourAllServices.tr, fontWeight: FontWeight.w700),
-        // SizedBox(height: SizeConfig.size8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ...chips.map((c) => _chip(c)).take(2),
-            // ...other.map((c) => _chip(c)),
-          ],
-        ),
-      ],
-    );
-  }
+  if (allChips.isEmpty) return const SizedBox.shrink();
 
-  Widget _chip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xffEAF2FF),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+  final displayChips = allChips.take(2).toList();
+  final hasMore = allChips.length > 2;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          ...displayChips.map((c) => chip(c)),
+          if (hasMore)
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: CustomText(
+                      AppStrings.ourAllServices.tr,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                    content: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: allChips.map((c) => chip(c)).toList(),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: CustomText('Close', color: AppColors.primaryColor),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xffEAF2FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+                ),
+                child: CustomText(
+                  '+${allChips.length - 2} View More',
+                  fontSize: SizeConfig.small,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ),
+        ],
       ),
-      child: CustomText(text, fontSize: SizeConfig.small),
-    );
-  }
+    ],
+  );
+}
+
+Widget chip(String text) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: const Color(0xffEAF2FF),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+    ),
+    child: CustomText(text, fontSize: SizeConfig.small),
+  );
 }

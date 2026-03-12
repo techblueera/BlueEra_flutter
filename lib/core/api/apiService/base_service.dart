@@ -700,7 +700,8 @@ abstract class BaseService {
   final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
   final String makeTransportBookOrder = 'rider-service/fare/orders';
 
-  final String searchMedicalCategory = 'health-service/api/ms/products/search';
+  final String searchMedicalCategory = 'health-service/api/ms/products/admin/all';
+  // final String searchMedicalCategory = 'health-service/api/ms/products/search';
   final String userSearchMedicalCategory = 'health-service/api/ms/products/user/search';
   String createNewMedicalProductVariant(String productId) => 'health-service/api/ms/products/$productId/variants';
   final String myMedicalProducts = 'health-service/api/ms/inventory/my-products';
@@ -710,6 +711,7 @@ abstract class BaseService {
   String updateMedicalOrder(String orderId) => "health-service/api/ms/orders/$orderId";
   String medicalServiceOrder(String orderId) =>  'health-service/api/ms/orders/$orderId/alternatives';
   final String medicalNestedCategory = 'health-service/api/ms/categories/nested';
+  String medicalProfileFd(String businessId) => 'health-service/api/ms/medical-profile/$businessId';
   final String medicalOrderUpdatePaymentStatus = 'rider-service/medical/orders/payment-status';
   final String medicalOrderAvailableItem = 'rider-service/medical/orders/available-items';
   final String myMedicalOrders = 'rider-service/medical/orders/business';
@@ -723,6 +725,7 @@ abstract class BaseService {
   final String  labFacilities= 'lab-service/facilities';
   final String labHealthCamps = 'lab-service/health-camps';
   final String labHealthCampsFd = 'lab-service/health-camps';
+  final String labHealthCampsByLab = 'lab-service/health-camps/laboratory';
   final String  labProfiles= 'lab-service/laboratory-profiles';
   final String testCategories = 'lab-service/test-categories';
   final String testParameters = 'lab-service/test-parameters';

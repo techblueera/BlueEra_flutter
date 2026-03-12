@@ -214,15 +214,13 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
                               ),
                             )
                           : controller.arrMedicalCategoryProducts.isNotEmpty
-                              ? Builder(builder: (context) {
-                                  double screenWidth = Get.width;
-                                  double totalHorizontalPadding = 8.0;
+                              ? LayoutBuilder(builder: (context, constraints) {
+                                  double availableWidth = constraints.maxWidth;
                                   double crossAxisSpacing = 10.0;
-                                  double gridItemWidth = (screenWidth -
-                                          totalHorizontalPadding -
+                                  double gridItemWidth = (availableWidth -
                                           crossAxisSpacing) /
                                       2;
-                                  double desiredItemHeight = 370.0;
+                                  double childAspectRatio = gridItemWidth / (gridItemWidth * 1.85);
 
                                   return GridView.builder(
                                     controller: scrollController,
@@ -238,8 +236,7 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
                                       crossAxisCount: 2,
                                       crossAxisSpacing: 10,
                                       mainAxisSpacing: 10,
-                                      childAspectRatio:
-                                          gridItemWidth / desiredItemHeight,
+                                      childAspectRatio: childAspectRatio,
                                     ),
                                     padding: EdgeInsets.only(
                                         bottom: SizeConfig.size30),
@@ -276,178 +273,141 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
     final bool isSelected =
         controller.selectedMedicalProducts.contains(medicalProductData);
     final price =
-        controller.getPriceDetails(medicalProductData.variants?[0].pricing);
+        controller.getPriceDetails(medicalProductData.variants?.firstOrNull?.pricing);
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: SizedBox(
-              height: SizeConfig.size140,
-              width: double.infinity,
-              child: (medicalProductData.images?.isNotEmpty ?? false)
-                  ? CachedNetworkImage(
-                      imageUrl: medicalProductData.images!.first.url ?? '',
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey.shade200,
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+      clipBehavior: Clip.hardEdge,
+      child: LayoutBuilder(builder: (context, constraints) {
+        final imageHeight = constraints.maxHeight * 0.42;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: SizedBox(
+                height: imageHeight,
+                width: double.infinity,
+                child: (medicalProductData.images?.isNotEmpty ?? false)
+                    ? CachedNetworkImage(
+                        imageUrl: medicalProductData.images!.first.url ?? '',
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey.shade200,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
-                      ),
-                      errorWidget: (context, url, error) => LocalAssets(
+                        errorWidget: (context, url, error) => LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                        ),
+                      )
+                    : LocalAssets(
                         imagePath: AppIconAssets.place_holder_image,
                         boxFix: BoxFit.cover,
                       ),
-                    )
-                  : LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
-                    ),
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: 9.0, vertical: SizeConfig.size6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  "${medicalProductData.name}",
-                  fontSize: SizeConfig.small,
-                  maxLines: 2,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
-                ),
-                SizedBox(height: SizeConfig.size6),
-                Row(
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          border:
-                              Border.all(color: AppColors.green00, width: 1),
-                          borderRadius: BorderRadius.circular(2)),
-                      padding: EdgeInsets.all(3.5),
-                      child: Container(
-                        height: 7,
-                        width: 7,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(7),
-                            color: AppColors.green00),
-                      ),
+                    CustomText(
+                      "${medicalProductData.name}",
+                      fontSize: SizeConfig.small,
+                      maxLines: 1,
+                      color: AppColors.mainTextColor,
+                      overflow: TextOverflow.ellipsis,
+                      fontWeight: FontWeight.w600,
                     ),
-                    SizedBox(width: SizeConfig.size6),
-                    Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                              width: 0.5, color: AppColors.greyE5)),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
-                      child: CustomText(
-                        '${medicalProductData.variants?[0].weight?.toInt()} ${medicalProductData.variants?[0].unit}',
-                        fontSize: 11,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size6),
-                Column(
-                  children: [
+                    SizedBox(height: 3),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        CustomText(
-                          "${AppStrings.price.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
+                        Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.green00, width: 1),
+                              borderRadius: BorderRadius.circular(2)),
+                          padding: EdgeInsets.all(3),
+                          child: Container(
+                            height: 6,
+                            width: 6,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: AppColors.green00),
+                          ),
                         ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            "${price.sellingRange}",
-                            fontSize: 10,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.bold,
+                        SizedBox(width: 4),
+                        Flexible(
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(width: 0.5, color: AppColors.greyE5)),
+                            padding: EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
+                            child: CustomText(
+                              '${medicalProductData.variants?.firstOrNull?.weight?.toInt()} ${medicalProductData.variants?.firstOrNull?.unit}',
+                              fontSize: 10,
+                              color: Colors.grey,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.mrp.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            "${price.mrpRange}",
-                            fontSize: 10,
-                            color: AppColors.grayText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.discount.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            "${price.discountRange}",
-                            fontSize: 10,
-                            color: AppColors.green00,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size8),
+                    SizedBox(height: 3),
+                    _priceRow(AppStrings.price.tr, "${price.sellingRange}", AppColors.primaryColor, isBold: true),
+                    SizedBox(height: 2),
+                    _priceRow(AppStrings.mrp.tr, "${price.mrpRange}", AppColors.grayText),
+                    SizedBox(height: 2),
+                    _priceRow(AppStrings.discount.tr, "${price.discountRange}", AppColors.green00, isBold: true),
+                    SizedBox(height: 3),
                     CustomBtn(
-                      height: SizeConfig.size36,
-                      onTap: () =>
-                          controller.toggleSelection(medicalProductData),
+                      height: SizeConfig.size30,
+                      onTap: () => controller.toggleSelection(medicalProductData),
                       title: isSelected ? 'Added' : 'Add',
-                      textColor: isSelected
-                          ? AppColors.white
-                          : AppColors.primaryColor,
-                      bgColor: isSelected
-                          ? AppColors.primaryColor
-                          : AppColors.white,
+                      textColor: isSelected ? AppColors.white : AppColors.primaryColor,
+                      bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
                       radius: 6.0,
                       borderColor: AppColors.primaryColor,
-                    )
+                    ),
                   ],
-                )
-              ],
+                ),
+              ),
             ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _priceRow(String label, String value, Color valueColor, {bool isBold = false}) {
+    return Row(
+      children: [
+        CustomText(
+          "$label: ",
+          fontSize: 10,
+          color: AppColors.secondaryTextColor,
+          fontWeight: FontWeight.w600,
+        ),
+        Flexible(
+          child: CustomText(
+            value,
+            fontSize: 10,
+            color: valueColor,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -23,4 +23,8 @@ class HealthCampRepo extends BaseService {
   Future<ResponseModel> getHealthCampFullDetails() async {
     return await ApiBaseHelper().getHTTP(labHealthCampsFd);
   }
+
+  Future<ResponseModel> getHealthCampsByLab(String labId) async {
+    return await ApiBaseHelper().getHTTP('$labHealthCampsByLab/$labId');
+  }
 }

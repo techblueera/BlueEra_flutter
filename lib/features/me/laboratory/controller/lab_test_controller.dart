@@ -105,6 +105,21 @@ class LabTestController extends GetxController {
     }
   }
 
+  Future<void> fetchTestsByLab(String labId, String collection) async {
+    isLoading.value = true;
+    try {
+      ResponseModel res = await _repo.getPathologyTestsByLab(labId, collection);
+      if (res.isSuccess) {
+        List data = res.response?.data['data'] ?? [];
+        tests.value = data.map((e) => PathologyTest.fromJson(e)).toList();
+      }
+    } catch (e) {
+      print("Error fetching tests by lab: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> fetchCatalog({
     required String groupCategory,
     int page = 1,
