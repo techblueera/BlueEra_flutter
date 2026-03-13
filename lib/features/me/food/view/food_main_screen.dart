@@ -86,7 +86,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                       fontFamily: AppConstants.OpenSans),
                   tabs: [
                     Tab(text: AppStrings.home.tr),
-                    Tab(text: AppStrings.update.tr),
+                    Tab(text: AppStrings.create.tr),
                     Tab(text: AppStrings.statistics.tr),
                   ],
                 ),

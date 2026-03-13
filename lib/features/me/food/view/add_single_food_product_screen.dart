@@ -17,13 +17,13 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class AddSingleProductScreen extends StatefulWidget {
-  final FoodServiceController controller;
   final String foodProductId;
+  final int? createMissingProductIndex;
 
   AddSingleProductScreen({
     super.key,
-    required this.controller,
     required this.foodProductId,
+    this.createMissingProductIndex,
   });
 
   @override
@@ -32,13 +32,12 @@ class AddSingleProductScreen extends StatefulWidget {
 
 
 class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
+  var vc = Get.find<FoodServiceController>();
   final RxList<FoodVariants> selectedVariants = <FoodVariants>[].obs;
-  late FoodServiceController vc;
 
   @override
   initState(){
     super.initState();
-    vc = widget.controller;
     vc.getSingleFoodProductApi(FoodId: widget.foodProductId);
   }
 
@@ -287,7 +286,8 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
           title: "Post Now",
           onTap: () => vc.addSingleProductToInventory(
               productId: widget.foodProductId,
-              selectedVariants: selectedVariants
+              selectedVariants: selectedVariants,
+              createMissingProductIndex: widget.createMissingProductIndex
           ),
         ),
       ),
@@ -309,6 +309,7 @@ class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
       onTap: () {
         vc.clearAllField();
         addOrVariantBottomSheet(
+            foodID: liveProduct.id ?? '',
             onAdd: (foodVariants){
               vc.singleFoodProductData.value?.variants?.add(foodVariants);
               vc.singleFoodProductData.refresh();

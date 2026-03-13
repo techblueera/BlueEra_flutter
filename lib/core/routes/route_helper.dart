@@ -1745,12 +1745,13 @@ class RouteHelper {
 
       case RouteConstant.addSingleProductScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final FoodServiceController controller = args[ApiKeys.controller] as FoodServiceController;
         final String productId = args[ApiKeys.productId] as String;
+        final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
+
         return MaterialPageRoute(
             builder: (_) => AddSingleProductScreen(
-              controller: controller,
-              foodProductId: productId
+              foodProductId: productId,
+              createMissingProductIndex: createMissingProductIndex
             ),
             settings: RouteSettings(name: getAddSingleProductScreenRoute())
         );
@@ -1767,12 +1768,10 @@ class RouteHelper {
 
       case RouteConstant.foodEntryAiScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final FoodCategoryData foodCategoryData = args[ApiKeys.argCategoryData] as FoodCategoryData;
-        final bool isCreateFromMissingProduct = args[ApiKeys.argIsCreateFromMissingProduct] as bool;
+        final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
         return MaterialPageRoute(
             builder: (_) => FoodEntryAiScreen(
-                foodCategoryData: foodCategoryData,
-                isCreateFromMissingProduct: isCreateFromMissingProduct
+                createMissingProductIndex: createMissingProductIndex
             ),
             settings: RouteSettings(name: getFoodEntryAiScreenRoute())
         );
@@ -1780,11 +1779,11 @@ class RouteHelper {
         case RouteConstant.foodAiDetailScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final FoodGenAiResModel foodGenAiResModel = args[ApiKeys.argFoodGenAiResModel] as FoodGenAiResModel;
-        final bool isCreateFromMissingProduct = args[ApiKeys.argIsCreateFromMissingProduct] as bool;
+        final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
         return MaterialPageRoute(
             builder: (_) => FoodAiDetailScreen(
                 foodData: foodGenAiResModel,
-                isCreateFromMissingProduct: isCreateFromMissingProduct
+                createMissingProductIndex: createMissingProductIndex
             ),
             settings: RouteSettings(name: getFoodAiDetailScreenRoute())
         );

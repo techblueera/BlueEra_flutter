@@ -29,8 +29,14 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
   final controller = getOrPut(() => FoodServiceController());
 
   @override
+  initState(){
+    super.initState();
+    controller.resetControllerFields();
+  }
+
+  @override
   dispose(){
-    deleteIfRegistered<FoodServiceController>();
+    // deleteIfRegistered<FoodServiceController>();
     super.dispose();
   }
 

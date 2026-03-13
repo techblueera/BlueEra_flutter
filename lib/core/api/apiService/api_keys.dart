@@ -745,6 +745,6 @@ class ApiKeys {
   static const range = 'range';
   static const argGroceryCategoryWithInventory = 'argGroceryCategoryWithInventory';
   static const argFoodGenAiResModel = 'argFoodGenAiResModel';
-  static const argIsCreateFromMissingProduct = 'argIsCreateFromMissingProduct';
+  static const argCreateMissingProductIndex = 'argCreateMissingProductIndex';
 
 }

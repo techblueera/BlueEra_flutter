@@ -112,30 +112,30 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeUserData();
     _initializeSocketConnections();
     checkByRiderCall();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   _handlePostFrameInitialization();
-    //   FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-    //     if (event == null) return;
-    //     final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
-    //     final operation = (extra['operation'] ?? '').toString();
-    //
-    //     if (operation == 'incoming_call') {
-    //       // Call events are handled by CallController._setupCallKitListeners()
-    //       // which is registered permanently in main(). No duplicate handling needed.
-    //       return;
-    //     } else {
-    //       // Ride order events
-    //       if (event.event == Event.actionCallAccept) {
-    //         Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-    //         FlutterCallkitIncoming.endAllCalls();
-    //       } else if (event.event == Event.actionCallDecline) {
-    //         commonSnackBar(message: "Your Order Rejected by You");
-    //         Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-    //         FlutterCallkitIncoming.endAllCalls();
-    //       }
-    //     }
-    //   });
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handlePostFrameInitialization();
+      // FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+      //   if (event == null) return;
+      //   final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
+      //   final operation = (extra['operation'] ?? '').toString();
+      //
+      //   if (operation == 'incoming_call') {
+      //     // Call events are handled by CallController._setupCallKitListeners()
+      //     // which is registered permanently in main(). No duplicate handling needed.
+      //     return;
+      //   } else {
+      //     // Ride order events
+      //     if (event.event == Event.actionCallAccept) {
+      //       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      //       FlutterCallkitIncoming.endAllCalls();
+      //     } else if (event.event == Event.actionCallDecline) {
+      //       commonSnackBar(message: "Your Order Rejected by You");
+      //       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      //       FlutterCallkitIncoming.endAllCalls();
+      //     }
+      //   }
+      // });
+    });
 
   }
 

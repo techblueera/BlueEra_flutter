@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 CategoryFoodProductResModel categoryFoodProductResModelFromJson(String str) => CategoryFoodProductResModel.fromJson(json.decode(str));
 String categoryFoodProductResModelToJson(CategoryFoodProductResModel data) => json.encode(data.toJson());
 class CategoryFoodProductResModel {

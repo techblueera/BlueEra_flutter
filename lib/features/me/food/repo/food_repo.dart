@@ -13,7 +13,7 @@ class FoodRepo extends BaseService {
   }
 
   ///GET FOOD CATEGORY...
-  Future<ResponseModel> getFoodCategoryRepo() async {
+  Future<ResponseModel> getFoodNestedCategoryRepo() async {
     final response = await ApiBaseHelper().getHTTP(
         "${categoryTree}",
         showProgress: false,
@@ -59,7 +59,7 @@ class FoodRepo extends BaseService {
 
   Future<ResponseModel> addKitchenInventoryRepo({required dynamic params,}) async {
     final response = await ApiBaseHelper().postHTTP(
-      "${otherKitchenInventory}",
+      "${kitchenInventory}",
       params: params,
       onError: (error) {},
       onSuccess: (data) {},
@@ -157,4 +157,19 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  ///GET My FOOD Inventory With Product...
+  Future<ResponseModel> getMyFoodProductByCategoryIdRepo({
+    required Map<String, dynamic> queryParam,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      kitchenInventory,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
+

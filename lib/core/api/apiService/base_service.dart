@@ -667,8 +667,9 @@ abstract class BaseService {
 
   final String adminVideos = 'video-service/admin-videos';
   final String otherContactUsService = 'other-service/contact';
-  final String otherKitchenInventory = 'food-service/api/kitchen-inventory';
+  final String kitchenInventory = 'food-service/api/kitchen-inventory';
   final String homeFood = 'food-service/api/home/';
+  String nestedCategoryWithInventory(String userId) => 'food-service/api/home/$userId';
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';
 

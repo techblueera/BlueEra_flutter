@@ -20,12 +20,12 @@ import 'package:get/get.dart';
 
 class FoodAiDetailScreen extends StatefulWidget {
   final FoodGenAiResModel foodData;
-  final bool isCreateFromMissingProduct;
+  final int? createMissingProductIndex;
 
   const FoodAiDetailScreen({
     super.key,
     required this.foodData,
-    required this.isCreateFromMissingProduct,
+    this.createMissingProductIndex,
   });
 
   @override
@@ -73,7 +73,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
               onTap: vc.variantList.isNotEmpty?() {
                 vc.createFoodProductViaAiApi(
                     foodData: product,
-                    isCreateFromMissingProduct: isCreateFromMissingProduct
+                    createMissingProductIndex: widget.createMissingProductIndex
                 );
               }:null,
               title: AppStrings.postNow),
@@ -149,102 +149,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-
-                  Obx(() => ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: vc.variantList.length,
-                        itemBuilder: (context, index) {
-                          final item = vc.variantList[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                  color: Colors.grey.shade300, width: 1),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Title: Name - Quantity
-                                      CustomText(
-                                        "${item.variantName} - ${item.quantityLabel} ",
-                                        fontSize: 16,
-                                        color: AppColors.secondaryTextColor,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      // Prices: Selling | MRP
-                                      Row(
-                                        children: [
-                                          Flexible(
-                                            child: CustomText(
-                                              "Selling-₹${item.baseSellingPrice}",
-                                              fontSize: 15,
-                                              color:
-                                                  AppColors.secondaryTextColor,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            height: 15,
-                                            width: 1.5,
-                                            color: Colors.grey.shade300,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          CustomText(
-                                            "₹${item.mrp}",
-                                            fontSize: 15,
-                                            color: AppColors.secondaryTextColor,
-                                            decoration: TextDecoration
-                                                .lineThrough, // Strikethrough
-                                            decorationColor: Colors.black54,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Actions Column
-                                Column(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        vc.prepareEdit(index);
-                                        addOrVariantBottomSheet(
-                                            editingIndex: index,
-                                            onAdd: (foodVariants){
-                                              vc.variantList[index] = foodVariants;
-                                            }
-                                        );
-                                      },
-                                      child: LocalAssets(
-                                        imagePath: AppIconAssets.editIcon,
-                                        imgColor: Colors.black,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      onTap: () => vc.variantList.removeAt(index),
-                                      child: const Icon(Icons.delete_outline,
-                                          size: 22, color: Colors.redAccent),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ))
+                  _buildVariantsList()
                 ],
               ),
             ),
@@ -359,6 +264,104 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
           ),
       ],
     );
+  }
+
+  Widget _buildVariantsList(){
+    return Obx(() => ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: vc.variantList.length,
+      itemBuilder: (context, index) {
+        final item = vc.variantList[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+                color: Colors.grey.shade300, width: 1),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    // Title: Name - Quantity
+                    CustomText(
+                      "${item.variantName} - ${item.quantityLabel} ",
+                      fontSize: 16,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    // Prices: Selling | MRP
+                    Row(
+                      children: [
+                        Flexible(
+                          child: CustomText(
+                            "Selling-₹${item.baseSellingPrice}",
+                            fontSize: 15,
+                            color:
+                            AppColors.secondaryTextColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 15,
+                          width: 1.5,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          "₹${item.mrp}",
+                          fontSize: 15,
+                          color: AppColors.secondaryTextColor,
+                          decoration: TextDecoration
+                              .lineThrough, // Strikethrough
+                          decorationColor: Colors.black54,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Actions Column
+              Column(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      vc.prepareEdit(index);
+                      addOrVariantBottomSheet(
+                          editingIndex: index,
+                          onAdd: (foodVariants){
+                            vc.variantList[index] = foodVariants;
+                          }
+                      );
+                    },
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.editIcon,
+                      imgColor: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  InkWell(
+                    onTap: () => vc.variantList.removeAt(index),
+                    child: const Icon(Icons.delete_outline,
+                        size: 22, color: Colors.redAccent),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ));
   }
 
   Widget _buildInfoCard(String title, String content,
@@ -479,3 +482,4 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
     );
   }
 }
+

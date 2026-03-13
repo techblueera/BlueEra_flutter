@@ -173,6 +173,7 @@ class DeliveryPartnerController extends GetxController {
           RiderProfileStep.vehicleInfo:
               riderOnboardingStatusData.value?.vehicleInformation ?? false,
         });
+
         /*     stepStatus.assignAll({
           RiderProfileStep.personalInfo:
               riderOnboardingStatusResponse.data?.personalInformation ?? false,
@@ -188,6 +189,7 @@ class DeliveryPartnerController extends GetxController {
           RiderProfileStep.vehicleInfo:
               riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
         });*/
+
       } else {
         ridersOnboardingStatusResponse.value = ApiResponse.error('error');
         commonSnackBar(
@@ -438,7 +440,7 @@ class DeliveryPartnerController extends GetxController {
           ridersOnboardingVehicleInformationResponse.value =
               ApiResponse.complete(response);
 
-          if(screenName == 'from_tab_view'){
+          // if(screenName == 'from_tab_view'){
             await setRiderServiceOptData(true);
             await getRiderServiceOptData();
 
@@ -447,9 +449,11 @@ class DeliveryPartnerController extends GetxController {
             Get.until((route) =>
             route.settings.name ==
                 RouteHelper.getBottomNavigationBarScreenRoute());
-          } else {
-            Get.back();
-          }
+          // }
+
+          // else {
+          //   Get.back();
+          // }
 
         } else {
           ridersOnboardingVehicleInformationResponse.value =

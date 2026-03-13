@@ -102,7 +102,7 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
         return RiderServiceScreen(
             fromBottomNavBar: widget.fromBottomNavBar
         );
-      }else if(userProfileTypeGlobal == GIG_WORKER && userProfessionGlobal==CAR_TAXI){
+     }  else if(userProfileTypeGlobal == GIG_WORKER && userProfessionGlobal==CAR_TAXI){
         return CabAndTransportPartner(
             fromBottomNavBar: widget.fromBottomNavBar
         );

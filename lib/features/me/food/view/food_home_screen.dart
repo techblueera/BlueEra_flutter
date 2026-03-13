@@ -1,36 +1,56 @@
 import 'dart:math';
 
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/view/food_contact_us_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
+import 'package:BlueEra/features/me/food/view/my_product_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_home_profile_header.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class RestaurantHomeScreen extends StatelessWidget {
-  final controller = Get.put(RestaurantController());
+
+class RestaurantHomeScreen extends StatefulWidget {
+  @override
+  State<RestaurantHomeScreen> createState() => _RestaurantHomeScreenState();
+}
+
+class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
+  final controller = getOrPut(() => RestaurantController());
+
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
+
+  @override
+  initState(){
+    super.initState();
+    controller.fetchHomeData();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.appBackgroundColor,
       child: Obx(() {
-        if (controller.isLoading.value) {
+        if(controller.foodHomeDataResponse.value.status == Status.INITIAL){
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -58,20 +78,13 @@ class RestaurantHomeScreen extends StatelessWidget {
 
                 ///Food Selection (Horizontal List)
                 if (controller.allFoodItems.isNotEmpty)
-                  CommonCardWidget(
-                    cardMargin: 10,
-                    padding: 0,
+                  CustomFormCard(
+                    padding: EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15.0),
-                          child: CustomText(AppStrings.foodSelection.tr,
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
+                        CustomText(AppStrings.foodSelection.tr,
+                            fontSize: 18, fontWeight: FontWeight.bold),
                         SizedBox(
                           height: 10,
                         ),
@@ -81,31 +94,13 @@ class RestaurantHomeScreen extends StatelessWidget {
                   ),
 
                 ///FOOD MENU...
-                if (data.foodMenu?.isNotEmpty ?? false)
-                  CommonCardWidget(
-                    cardMargin: 10,
-                    padding: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15.0),
-                          child: CustomText(AppStrings.ourMenu.tr,
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        _buildMenuCategories(data.foodMenu ?? []),
-                      ],
-                    ),
-                  ),
+                if (controller.foodMenuNestedCategory.isNotEmpty)
+                  _buildMenuCategories(controller.foodMenuNestedCategory),
 
                 (data.gallery?.isNotEmpty ?? false)
                     ?
 
                     /// Gallery
-
                     CommonCardWidget(
                         // cardMargin: 0,
                         // padding: 10,
@@ -142,6 +137,7 @@ class RestaurantHomeScreen extends StatelessWidget {
                             },
                             title: AppStrings.addGalleryPhoto.tr),
                       ),
+
                 (data.contact == null)
                     ? Padding(
                         padding: const EdgeInsets.only(
@@ -153,6 +149,7 @@ class RestaurantHomeScreen extends StatelessWidget {
                             title: AppStrings.addContactUs.tr),
                       )
                     : _buildContactCard(data.contact),
+
                 // Map Placeholder
                 if (data.contact != null)
                   BusinessLocationWidget(
@@ -360,7 +357,6 @@ class RestaurantHomeScreen extends StatelessWidget {
       height: 180,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: controller.allFoodItems.length,
         itemBuilder: (context, index) {
           final item = controller.allFoodItems[index];
@@ -397,9 +393,21 @@ class RestaurantHomeScreen extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                CustomText(
-                    "${item.price?.currency} ${item.price?.sellingPrice}",
-                    fontWeight: FontWeight.w500),
+
+                Row(
+                  children: [
+                    LocalAssets(
+                      imagePath: AppIconAssets.food_category,
+                      imgColor: item.product?.dietaryType?.toLowerCase() == "non-veg"
+                          ? AppColors.red00
+                          : const Color(0xff008000),
+                    ),
+                    const SizedBox(width: 5),
+                    CustomText(
+                        "₹${item.variants?[0].price?.sellingPrice}",
+                        fontWeight: FontWeight.w500),
+                  ],
+                ),
               ],
             ),
           );
@@ -409,92 +417,76 @@ class RestaurantHomeScreen extends StatelessWidget {
   }
 
   Widget _buildMenuCategories(List<FoodMenu> menus) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: menus.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // number of columns
-        crossAxisSpacing: 7,
-        mainAxisSpacing: 7,
-        childAspectRatio: 1, // adjust for height/width
-      ),
-      itemBuilder: (context, index) {
-        final category = menus[index];
 
-        return InkWell(
-          onTap: () {
-            // Get.to(ProductSelectionScreen(
-            //   foodCategoryData: FoodCategoryData(...),
-            // ));
-          },
-          child: Container(
-            height: 200,
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppColors.whiteE5,
-                ),
-                borderRadius: BorderRadius.circular(10)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                    child: LocalAssets(
-                  imagePath: 'assets/category/food_home/${category.key}.png',
-                )),
-                CustomText(
-                  category.name,
-                  maxLines: 2,
-                  fontSize: 12,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: menus.length,
-      itemBuilder: (context, index) {
-        final category = menus[index];
+    return Column(
+      children: [
+        SizedBox(height: SizeConfig.paddingXSL),
+        CustomFormCard(
+          padding: EdgeInsets.all(SizeConfig.size10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                  'Our Menu',
+                  fontSize: SizeConfig.large,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w600),
 
-        return InkWell(
-          onTap: () {
-            // Get.to(ProductSelectionScreen(
-            //   foodCategoryData: FoodCategoryData(
-            //       name: category.name,
-            //       id: category.id,
-            //       createdAt: category.createdAt,
-            //       children: [],
-            //       isActive: category.isActive,
-            //       key: category.key,
-            //       level: category.level,
-            //       parentId: category.parentId,
-            //       updatedAt: category.updatedAt,
-            //       v: category.v),
-            // ));
-          },
-          child: Container(
-            height: 160,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: DecorationImage(
-                image:
-                    AssetImage('assets/category/food_home/${category.key}.png'),
-                fit: BoxFit.cover,
+              SizedBox(
+                height: SizeConfig.paddingXSL,
               ),
-            ),
+
+              menus.isNotEmpty ?
+              MasonryGridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                padding: EdgeInsets.zero,
+                primary: false,
+                shrinkWrap: true,
+                itemCount: menus.length,
+                itemBuilder: (context, index) {
+                  var categoryItem = menus[index];
+                  return CommonServiceCard(
+                    service: categoryItem,
+                    getName: (_categoryItem) => _categoryItem.name??'',
+                    getIcon: (_categoryItem) => _categoryItem.image??'',
+                    iconHeight: SizeConfig.size60,
+                    boxShadow: [],
+                    onTap: (_categoryItem) {
+
+                      return Get.to(
+                              ()=> MyFoodProductScreen(
+                                foodMenu: _categoryItem,
+
+                      ));
+
+                      // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+                      //   arguments: {
+                      //     ApiKeys.userId: userId,
+                      //     ApiKeys.argGroceryCategoryWithInventory: foodCategoryList,
+                      //     ApiKeys.argArrGroceryCatKey: _categoryItem.key,
+                      //     ApiKeys.argArrGroceryCatName: _categoryItem.name,
+                      //   },
+                      // );
+
+                    },
+                  );
+                },
+              )
+                  :
+              EmptyStateWidget(
+                message: 'You don\'t have inventory yet, Want to create one?',
+              ),
+
+              SizedBox(
+                height: SizeConfig.paddingXSL,
+              ),
+
+            ],
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

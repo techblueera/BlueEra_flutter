@@ -4,12 +4,13 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_entry_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -17,13 +18,11 @@ import 'package:get/get.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodEntryAiScreen extends StatefulWidget {
-  final FoodCategoryData foodCategoryData;
-  final bool isCreateFromMissingProduct;
+  final int? createMissingProductIndex;
 
   const FoodEntryAiScreen({
     super.key,
-    required this.foodCategoryData,
-    required this.isCreateFromMissingProduct,
+    this.createMissingProductIndex,
   });
 
   @override
@@ -32,13 +31,21 @@ class FoodEntryAiScreen extends StatefulWidget {
 
 class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
   final FoodEntryController controller = getOrPut(() => FoodEntryController());
-  final controllerFoodService = Get.find<FoodServiceController>();
+  final vc = Get.find<FoodServiceController>();
 
   @override
   void initState() {
-    controller.categoryList.value = widget.foodCategoryData.children ?? [];
     super.initState();
-  }
+
+   // Wait for the frame to be ready before updating the controller list
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (vc.foodNestedCateList.isNotEmpty) {
+        controller.foodCateList.assignAll(vc.foodNestedCateList);
+        debugPrint("Categories assigned: ${controller.foodCateList.length}");
+      } else {
+        debugPrint("Warning: vc.foodSubCateList is empty at post-frame.");
+      }
+    });  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +77,16 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
 
                     return GestureDetector(
                       onTap: () => controller.pickImageForIndex(context, 0),
-                      child: SizedBox(
+                      child: Container(
                         width: 140,
                         height: 140,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: selectedFile==null ? Colors.red.withValues(alpha: 0.5) : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
                         child: Stack(
                           children: [
                             // 1. The Image Layer (File or Asset)
@@ -100,13 +114,15 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                                          ? Colors.black.withValues(alpha: 0.6)
                                          : null,
                                 ),
-                                child: const Center(
+                                child: selectedFile == null
+                                    ? const Center(
                                   child: Icon(
                                     Icons.camera_alt_outlined,
                                     color: Colors.white,
                                     size: 32,
                                   ),
-                                ),
+                                )
+                                    : null,
                               ),
                             ),
 
@@ -173,38 +189,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               // 2. Food Category
               _titleWidget("Food Category"),
               const SizedBox(height: 8),
-              Obx(() => CommonDropdown<Children>(
-                // Use the observable list from controller
-                items: controller.categoryList,
-
-                // Find the currently selected object based on the stored ID
-                selectedValue: controller.selectedCategoryId.value.isEmpty
-                    ? null
-                    : controller.categoryList.firstWhereOrNull((item) =>
-                item.id == controller.selectedCategoryId.value),
-
-                hintText: "Select Category",
-
-                // This tells the dropdown what text to show to the user
-                displayValue: (item) => item.name ?? "",
-
-                onChanged: (Children? val) {
-                  if (val != null) {
-                    controllerFoodService.selectedSubFoodTypeIDCat.value =
-                        val.id ?? "";
-
-                    controller.selectedCategoryId.value = val.id ?? "";
-                    controller.foodCategoryController.text = val.name ?? "";
-                    debugPrint("Selected Key: ${val.key}");
-                  }
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a category';
-                  }
-                  return null;
-                },
-              )),
+              _buildCategorySection(),
               const SizedBox(height: 16),
 
               // 2. Food Type Radio Group
@@ -230,9 +215,55 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               Obx(() {
                 return CustomBtn(
                   onTap: controller.isFormValid.value
-                      ? ()=> controller.onGenerate(
-                    isCreateFromMissingProduct: widget.isCreateFromMissingProduct
-                  )
+                      ? () {
+                    if (controller.isFormValid.value) {
+                      // 1. Image Validation
+                      if (controller.foodSearchImages.isEmpty || controller.foodSearchImages[0] == null) {
+                        commonSnackBar(message: "Please upload a food image to proceed.");
+                        return;
+                      }
+
+                      // 2. Determine the deepest selected category
+                      final lastCategory = controller.selectedLevel2.value ?? controller.selectedLevel1.value;
+
+                      // 3. Check if the selected category has further sub-categories (children)
+                      // If it has children, it means the user hasn't finished selecting the "last" category.
+                      bool isSelectionComplete = lastCategory != null &&
+                          (lastCategory.children == null || lastCategory.children!.isEmpty);
+
+                      if (!isSelectionComplete) {
+                        commonSnackBar(
+                          message: "Please select a specific sub-category/item type before generating.",
+                        );
+                        _showCategoryPicker(); // Automatically open the picker for them
+                        return;
+                      }
+
+                      // 4. Cooking Method Validation
+                      if(controller.selectedCookingMethods.isEmpty){
+                        commonSnackBar(
+                          message: "Please select a cooking method.",
+                        );
+                        return;
+                      }
+
+                      vc.selectedSubFoodTypeIDCat.value = lastCategory.id ?? '';
+
+                      Map<String, dynamic> reqParams = {
+                        "name": controller.foodNameController.text,
+                        "foodType": controller.selectedFoodType.value,
+                        "cookingMethod": controller.selectedCookingMethods,
+                        "category": lastCategory.id
+                      };
+
+                      controller.onGenerate(
+                          reqParams: reqParams,
+                          createMissingProductIndex: widget.createMissingProductIndex
+                      );
+                    }
+
+
+                      }
                       : null,
                   title: AppStrings.generate,
                   isValidate: controller.isFormValid.value,
@@ -244,6 +275,212 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
       ),
     );
   }
+
+  Widget _buildCategorySection() {
+    return GestureDetector(
+      onTap: _showCategoryPicker,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Obx(() {
+          bool hasSelection = controller.selectedLevel0.value != null;
+
+          return Row(
+            children: [
+              Expanded(
+                child: hasSelection
+                    ? _buildSelectionPath()
+                    : CustomText("Choose Category", color: Colors.grey[400]),
+              ),
+              const Icon(
+                  Icons.keyboard_arrow_down_outlined,
+                  size: 18,
+                  color: AppColors.secondaryTextColor),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildSelectionPath() {
+    // Collect non-null names into a list
+    List<String> path = [
+      if (controller.selectedLevel0.value != null) controller.selectedLevel0.value!.name!,
+      if (controller.selectedLevel1.value != null) controller.selectedLevel1.value!.name!,
+      if (controller.selectedLevel2.value != null) controller.selectedLevel2.value!.name!,
+    ];
+
+    return Wrap(
+      spacing: 4, // Horizontal space between items
+      runSpacing: 4, // Vertical space between lines
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: path.asMap().entries.map((entry) {
+        bool isLast = entry.key == path.length - 1;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isLast ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: CustomText(
+                entry.value,
+                fontSize: 11,
+                color: isLast ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            if (!isLast)
+              const Icon(Icons.chevron_right, size: 14, color: Colors.grey),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  void _showCategoryPicker() {
+    RxList<dynamic> currentDisplayList = <dynamic>[].obs;
+    currentDisplayList.assignAll(controller.foodCateList);
+
+    Get.bottomSheet(
+      isScrollControlled: true,
+      Obx(() => Container(
+        constraints: BoxConstraints(maxHeight: Get.height * 0.7),
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildInteractiveSheetHeader(currentDisplayList),
+
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: currentDisplayList.length,
+                itemBuilder: (context, index) {
+                  final item = currentDisplayList[index];
+                  final bool hasChildren = (item.children != null && item.children.isNotEmpty);
+
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+                    title: CustomText(item.name ?? ""),
+                    trailing: hasChildren ? const Icon(Icons.chevron_right, size: 18) : null,
+                    onTap: () {
+                      if (item.level == 0) {
+                        controller.selectedLevel0.value = item;
+                        controller.selectedLevel1.value = null;
+                        controller.selectedLevel2.value = null;
+                        currentDisplayList.assignAll(item.children!);
+                      } else if (item.level == 1) {
+                        controller.selectedLevel1.value = item;
+                        controller.selectedLevel2.value = null;
+                        if (hasChildren) {
+                          currentDisplayList.assignAll(item.children!);
+                        } else {
+                          Get.back();
+                        }
+                      } else {
+                        controller.selectedLevel2.value = item;
+                        Get.back();
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      )),
+    );
+  }
+
+  Widget _buildInteractiveSheetHeader(RxList<dynamic> currentList) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const CustomText("Select Category", fontWeight: FontWeight.bold, fontSize: 16),
+            IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
+          ],
+        ),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            // STEP 0: ALL
+            _pathStep("All", () {
+              controller.selectedLevel0.value = null;
+              controller.selectedLevel1.value = null;
+              controller.selectedLevel2.value = null;
+              currentList.assignAll(controller.foodCateList);
+            }, controller.selectedLevel0.value == null),
+
+            // STEP 1: Level 0
+            if (controller.selectedLevel0.value != null) ...[
+              const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
+              _pathStep(controller.selectedLevel0.value!.name!, () {
+                controller.selectedLevel1.value = null;
+                controller.selectedLevel2.value = null;
+                currentList.assignAll(controller.selectedLevel0.value!.children!);
+              }, controller.selectedLevel1.value == null),
+            ],
+
+            // STEP 2: Level 1
+            if (controller.selectedLevel1.value != null) ...[
+              const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
+              _pathStep(controller.selectedLevel1.value!.name!, () {
+                controller.selectedLevel2.value = null;
+                currentList.assignAll(controller.selectedLevel1.value!.children!);
+              }, controller.selectedLevel2.value == null),
+            ],
+
+            // STEP 3: Level 2 (Optional: showing current selection final leaf)
+            if (controller.selectedLevel2.value != null) ...[
+              const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
+              _pathStep(controller.selectedLevel2.value!.name!, () {}, true),
+            ],
+          ],
+        ),
+        SizedBox(height: 5),
+        CommonHorizontalDivider(
+          color: AppColors.greyE5,
+          height: 0.5,
+        )
+      ],
+    );
+  }
+
+  Widget _pathStep(String label, VoidCallback onTap, bool isCurrent) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: CustomText(
+          label,
+          fontSize: 12,
+          color: isCurrent ? AppColors.primaryColor : AppColors.secondaryTextColor,
+          fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
 
   Widget _titleWidget(String title){
     return CustomText(

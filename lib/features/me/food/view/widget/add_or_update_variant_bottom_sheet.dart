@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
@@ -9,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 void addOrVariantBottomSheet({
-  // String? foodID,
+  String? foodID,
   required Function(FoodVariants) onAdd, // Add this callback
   int? editingIndex
 }) {
@@ -79,21 +81,33 @@ void addOrVariantBottomSheet({
                 alignment: Alignment.centerRight,
                 child: Obx(() => PositiveCustomBtn(
                   onTap: vc.isFormValid.value
-                      ? () {
+                      ? () async {
+
                     // Create the model locally from text controllers
                     final newVariant = FoodVariants(
-                      variantName: vc.nameController.text,
-                      quantityLabel: vc.quantityController.text,
+                      variantName: vc.nameController.text.trim(),
+                      quantityLabel: vc.quantityController.text.trim(),
                       mrp: int.tryParse(vc.mrpController.text) ?? 0,
                       baseSellingPrice: int.tryParse(vc.priceController.text) ?? 0,
                       isDefault: vc.variantList.isEmpty, // First one is default
                     );
 
-                    onAdd(newVariant); // Trigger the callback
+                    // APi call cause , adding variants in existing product
+                    log('food id -- $foodID');
+                    if(foodID!=null){
+                      String? vId = await vc.addOrUpdateVariant(
+                          foodId: foodID,
+                          newVariant: newVariant
+                      ); // Logic to save/update
 
-                    // vc.clearAllField();
+                      if(vId==null) return;
+                      newVariant.id = vId;
+                      onAdd(newVariant); // Trigger the callback
+                    }
 
+                    vc.clearAllField();
                     Get.back(); // Close sheet
+
                   }
                       : null,
                   title: (editingIndex!=null) ? "Update" : "Submit",

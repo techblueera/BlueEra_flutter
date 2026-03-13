@@ -14,29 +14,31 @@ import 'package:get/get.dart';
 class FoodEntryController extends GetxController {
   // Text Controllers
   final foodNameController = TextEditingController();
-  final foodCategoryController = TextEditingController();
-  var categoryList = <Children>[].obs;
+
   // Observable selections for radio buttons
   var selectedFoodType = "Non-Veg".obs;
-  var selectedCategoryId = "".obs;
+
   // Observable for validation
   var isFormValid = false.obs;
 
   RxList<File?> foodSearchImages = <File?>[null].obs;
   RxList<String> selectedCookingMethods = <String>[].obs;
 
+  var foodCateList = <FoodCategoryData>[].obs;
+  var selectedLevel0 = Rxn<FoodCategoryData>(); // Base Category
+  var selectedLevel1 = Rxn<Children>(); // Sub Category
+  var selectedLevel2 = Rxn<Children>(); // Deepest Category
+
   @override
   void onInit() {
     super.onInit();
     // Re-validate whenever text changes
     foodNameController.addListener(validateForm);
-    foodCategoryController.addListener(validateForm);
   }
 
   void validateForm() {
     isFormValid.value =
-        foodNameController.text.trim().isNotEmpty &&
-        foodCategoryController.text.trim().isNotEmpty;
+        foodNameController.text.trim().isNotEmpty;
   }
 
   void toggleCookingMethod(String method) {
@@ -66,16 +68,12 @@ class FoodEntryController extends GetxController {
 
   Rx<FoodGenAiResModel>? aiFoodResModel = FoodGenAiResModel().obs;
 
-  Future<void> onGenerate({required bool isCreateFromMissingProduct}) async {
-    if (isFormValid.value) {
+  Future<void> onGenerate({
+    required Map<String, dynamic> reqParams,
+    int? createMissingProductIndex}) async {
       try {
         ResponseModel response =
-            await FoodRepo().getFoodAiGenerateRepo(reqBody: {
-          "name": foodNameController.text,
-          "foodType": selectedFoodType.value,
-          "cookingMethod": selectedCookingMethods,
-          "category": foodCategoryController.text
-        });
+            await FoodRepo().getFoodAiGenerateRepo(reqBody: reqParams);
         if (response.isSuccess) {
           final data = response.response?.data;
           aiFoodResModel?.value = FoodGenAiResModel.fromJson(data);
@@ -84,7 +82,7 @@ class FoodEntryController extends GetxController {
               RouteHelper.getFoodAiDetailScreenRoute(),
               arguments: {
                 ApiKeys.argFoodGenAiResModel: aiFoodResModel?.value ?? FoodGenAiResModel(),
-                ApiKeys.argIsCreateFromMissingProduct: isCreateFromMissingProduct,
+                ApiKeys.argCreateMissingProductIndex: createMissingProductIndex,
               }
           );
 
@@ -94,13 +92,11 @@ class FoodEntryController extends GetxController {
       } on Exception catch (e) {
         commonSnackBar(message: e.toString());
       }
-    }
   }
 
   @override
   void onClose() {
     foodNameController.dispose();
-    foodCategoryController.dispose();
     super.onClose();
   }
 }

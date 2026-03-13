@@ -167,7 +167,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+                color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
                 width: isSelected ? 1.5 : 1,
               ),
             ),
@@ -176,7 +176,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
                 Checkbox(
                   value: isSelected,
                   side: BorderSide(
-                    color: isSelected ? AppColors.primaryColor : Colors.grey.shade400,
+                    color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
                     width: 1.5,
                   ),
                   activeColor: AppColors.primaryColor,
@@ -267,7 +267,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
         Get.back();
         controller.clearAllField();
         addOrVariantBottomSheet(
-            // foodID: liveProduct.id ?? "",
+            foodID: liveProduct.id ?? "",
             onAdd: (foodVariants){
 
             }

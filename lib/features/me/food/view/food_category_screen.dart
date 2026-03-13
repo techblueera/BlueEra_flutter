@@ -34,7 +34,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
 
   @override
   void initState() {
-    foodServiceController.getFoodCategoryController();
+    foodServiceController.getFoodNestedCategoryApi();
     super.initState();
   }
 
@@ -121,18 +121,18 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                 Obx(() {
                   if (foodServiceController.getFoodCategoryResponse.value.status ==
                       Status.COMPLETE) {
-                    if (foodServiceController.foodSubCateList.isNotEmpty) {
+                    if (foodServiceController.foodNestedCateList.isNotEmpty) {
                       return MasonryGridView.count(
                         crossAxisCount: 3,
                         crossAxisSpacing: 6,
                         mainAxisSpacing: 6,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                        itemCount: foodServiceController.foodSubCateList.length,
+                        itemCount: foodServiceController.foodNestedCateList.length,
                         shrinkWrap: true,
                         primary: false,
                         physics: const NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          final item = foodServiceController.foodSubCateList[index];
+                          final item = foodServiceController.foodNestedCateList[index];
                           return CommonServiceCard<FoodCategoryData>(
                             service: item,
                             getName: (item) => item.name??'',

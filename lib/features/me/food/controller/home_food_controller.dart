@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -7,37 +9,46 @@ import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:get/get.dart';
 
 class RestaurantController extends GetxController {
+  Rx<ApiResponse> foodHomeDataResponse =
+      ApiResponse.initial('Initial').obs;
+
   // Observables
   var isLoading = true.obs;
   var restaurantData = Rxn<FoodData>();
+  var foodMenuNestedCategory = <FoodMenu>[].obs;
   var allFoodItems = <Items>[].obs;
 
-  @override
-  void onInit() {
-    fetchHomeData();
-    super.onInit();
-  }
+  // @override
+  // void onInit() {
+  //   fetchHomeData();
+  //   super.onInit();
+  // }
 
   void fetchHomeData() async {
     try {
-      isLoading(true);
+      foodHomeDataResponse.value = ApiResponse.initial('Initial');
 
       // call repo
       ResponseModel responseModel = await FoodRepo()
-          .getHomeFoodByIdRepo(businessProfile: userId);
-          // .getHomeFoodByIdRepo(businessProfile: "696f13baead58417505a8851");
+          .getHomeFoodByIdRepo(businessProfile: businessId);
 
       if (responseModel.isSuccess) {
         restaurantData.value =
             FoodHomeResModel.fromJson(responseModel.response?.data).data;
-
+        foodMenuNestedCategory.value = restaurantData.value?.foodMenu ?? [];
         _flattenItems();
+
+        foodHomeDataResponse.value = ApiResponse.complete(responseModel);
+
       } else {
+        foodHomeDataResponse.value = ApiResponse.error('error');
+
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } finally {
-      isLoading(false);
+    } catch (e) {
+      foodHomeDataResponse.value = ApiResponse.error('error');
+      log("ERROR===== $e");
     }
   }
 
@@ -46,7 +57,9 @@ class RestaurantController extends GetxController {
       var items = <Items>[];
       for (var menu in restaurantData.value!.foodMenu!) {
         for (var sub in menu.subCategories ?? []) {
-          if (sub.items != null) items.addAll(sub.items!);
+           for(var subSub in sub.subSubCategories ?? []){
+             if (subSub.items != null) items.addAll(subSub.items!);
+           }
         }
       }
       allFoodItems.value = items;

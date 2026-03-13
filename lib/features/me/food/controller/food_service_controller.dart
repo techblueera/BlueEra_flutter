@@ -6,14 +6,16 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
+import 'package:BlueEra/features/me/food/model/my_food_product_response_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
-import 'package:BlueEra/features/me/food/view/add_single_food_product_screen.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
@@ -31,8 +33,11 @@ class FoodServiceController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getSingleFoodProductResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getFoodCategoryWithInventoryResponse =
+      ApiResponse.initial('Initial').obs;
 
-  RxList<FoodCategoryData> foodSubCateList = <FoodCategoryData>[].obs;
+  RxList<FoodCategoryData> foodNestedCateList = <FoodCategoryData>[].obs;
+
   RxList<CategoryFoodProductData> categoryFoodProductDataList =
       <CategoryFoodProductData>[].obs;
   RxString selectedSubFoodTypeIDCat = "".obs;
@@ -42,6 +47,7 @@ class FoodServiceController extends GetxController {
   RxList<Children> subCategoryTabs = <Children>[].obs;
 
   Rxn<CategoryFoodProductData> singleFoodProductData = Rxn<CategoryFoodProductData>();
+  RxList<MissingFoodProducts> missingProducts = <MissingFoodProducts>[].obs;
 
   FoodProductSnapSearchData? productSnapSearchData;
   List<Map<String, String>> foodSnapSearchPhotos = [
@@ -65,7 +71,6 @@ class FoodServiceController extends GetxController {
     }
     return null;
   }
-
 
   /// Pick and replace image for a specific slot
   Future<void> addImagesByTitle(String title) async {
@@ -147,14 +152,35 @@ class FoodServiceController extends GetxController {
     selectedCategoryId.value = id;
   }
 
-  Future<void> getFoodCategoryController() async {
+  void resetControllerFields() {
+    // 1. Clear Lists & Maps
+    categoryFoodProductDataList.clear();
+    subCategoryTabs.clear();
+    foodSnapSearchImagesMap.clear();
+    selectedVariantsMap.clear();
+
+    // 2. Reset Strings & IDs
+    selectedSubFoodTypeIDCat.value = "";
+    selectedFoodTypeID.value = "";
+    selectedCategoryId.value = "1"; // Default back to '1'
+    selectedSubCategoryId.value = "";
+
+    // 3. Reset Rxn (Nullable objects)
+    singleFoodProductData.value = null;
+
+    // 4. Reset Objects/Data
+    productSnapSearchData = null;
+  }
+
+
+  Future<void> getFoodNestedCategoryApi() async {
     getFoodCategoryResponse.value = ApiResponse.initial("Initial");
-    ResponseModel response = await FoodRepo().getFoodCategoryRepo();
+    ResponseModel response = await FoodRepo().getFoodNestedCategoryRepo();
     if (response.isSuccess) {
       List rawList = response.response?.data['data'];
-      foodSubCateList.value =
+      foodNestedCateList.value =
           rawList.map((e) => FoodCategoryData.fromJson(e)).toList();
-      getFoodCategoryResponse.value = ApiResponse.complete(foodSubCateList);
+      getFoodCategoryResponse.value = ApiResponse.complete(foodNestedCateList);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       getFoodCategoryResponse.value =
@@ -219,50 +245,42 @@ class FoodServiceController extends GetxController {
         priceController.text.trim().isNotEmpty;
   }
 
-  // Future<void> addOrUpdateVariant({
-  //   required String foodId,
-  // }) async {
-  //   final variant = {
-  //     "variantName": nameController.text.trim(),
-  //     "mrp": int.tryParse(mrpController.text.trim()) ?? 0,
-  //     "quantityLabel": quantityController.text.trim(),
-  //     "baseSellingPrice": int.tryParse(priceController.text.trim()) ?? 0,
-  //     "isDefault": false
-  //   };
-  //
-  //   if (editingIndex != null) {
-  //     // Update existing
-  //     variantList[editingIndex!] = variant;
-  //   } else {
-  //     // Add new
-  //     variantList.add(variant);
-  //     if (foodId.isNotEmpty) {
-  //       try {
-  //         // call repo
-  //         final responseModel = await FoodRepo().addFoodVariantRepo(
-  //             params: {"variantData": variant}, foodID: foodId);
-  //
-  //         if (responseModel.isSuccess) {
-  //           commonSnackBar(
-  //               message: responseModel.message ?? AppStrings.success);
-  //
-  //           Get.until((route) =>
-  //               route.settings.name ==
-  //               RouteHelper.getBottomNavigationBarScreenRoute());
-  //         } else {
-  //           commonSnackBar(
-  //               message:
-  //                   responseModel.message ?? AppStrings.somethingWentWrong);
-  //         }
-  //       } catch (e, s) {
-  //         print('stack trace-- $s');
-  //         commonSnackBar(message: e.toString());
-  //       }
-  //     }
-  //   }
-  //
-  //   clearAllField();
-  // }
+  Future<String?> addOrUpdateVariant({
+    required String foodId,
+    required FoodVariants newVariant
+  }) async {
+
+    if (foodId.isNotEmpty) {
+      try {
+        // call repo
+        final responseModel = await FoodRepo().addFoodVariantRepo(
+            params: {"variantData": newVariant}, foodID: foodId);
+
+        if (responseModel.isSuccess) {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.success);
+
+          String variantId = responseModel.response?.data['data']['_id'];
+
+          return variantId;
+          // Get.until((route) =>
+          //     route.settings.name ==
+          //     RouteHelper.getBottomNavigationBarScreenRoute());
+        } else {
+          commonSnackBar(
+              message:
+              responseModel.message ?? AppStrings.somethingWentWrong);
+          return null;
+        }
+      } catch (e, s) {
+        print('stack trace-- $s');
+        commonSnackBar(message: e.toString());
+        return null;
+      }
+    }
+    return null;
+
+  }
 
 
   void prepareEdit(int index) {
@@ -299,7 +317,7 @@ class FoodServiceController extends GetxController {
   Future<void> createFoodProductViaAiApi(
       {
         required FoodGenAiData foodData,
-        required bool isCreateFromMissingProduct
+        int? createMissingProductIndex
       }) async {
     try {
       Map<String, dynamic> paramsReq = {};
@@ -343,26 +361,34 @@ class FoodServiceController extends GetxController {
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
-        final String? newProductId = responseModel.response?.data['product']['_id'];
+        final String? newProductId = responseModel.response?.data?['product']?['_id']?.toString();
 
-        if(!isCreateFromMissingProduct){
+        if(createMissingProductIndex==null){
           Get.offNamedUntil(
             RouteHelper.getAddSingleProductScreenRoute(),
                 (route) => route.settings.name == RouteHelper.getProductSelectionScreenRoute(),
             arguments: {
-              ApiKeys.controller: this,
               ApiKeys.productId: newProductId,
+              ApiKeys.argCreateMissingProductIndex: null
             },
           );
         }else{
-          Get.offNamedUntil(
-            RouteHelper.getMissingFoodItemsScreenRoute(),
-                (route) => route.settings.name == RouteHelper.getProductSelectionScreenRoute(),
-            arguments: {
-              ApiKeys.controller: this,
-              ApiKeys.productId: newProductId,
-            },
-          );
+
+          // if (createMissingProductIndex != -1) {
+            missingProducts[createMissingProductIndex].productId = newProductId;
+            missingProducts.refresh();
+
+            Get.offNamedUntil(
+              RouteHelper.getAddSingleProductScreenRoute(),
+                  (route) => route.settings.name == RouteHelper.getMissingFoodItemsScreenRoute(),
+              arguments: {
+                ApiKeys.controller: this,
+                ApiKeys.productId: newProductId,
+                ApiKeys.argCreateMissingProductIndex: createMissingProductIndex
+              },
+            );
+          // }
+
         }
 
 
@@ -561,7 +587,7 @@ class FoodServiceController extends GetxController {
   Future<void> addSingleProductToInventory({
     required String productId,
     required List<FoodVariants> selectedVariants,
-    bool isMissingFoodCreation = false
+    int? createMissingProductIndex
   }) async {
     try {
       // 1. Validation
@@ -599,16 +625,109 @@ class FoodServiceController extends GetxController {
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? "Product added to inventory");
-        if(isMissingFoodCreation){
-          // logic for missing product creation flow
-        }else{
+        if(createMissingProductIndex==null){
           Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+
+        }else{
+          // logic for missing product creation flow
+
+          // if (createMissingProductIndex != -1) {
+            final responseData = responseModel.response?.data['data'];
+            if (responseData != null && (responseData as List).isNotEmpty) {
+              final firstItem = responseData[0];
+
+              missingProducts[createMissingProductIndex].inventoryId =
+                  firstItem['_id']?.toString() ?? "";
+
+              // 3. Safe Image Extraction
+              final List<dynamic>? images = firstItem['product']?['images'];
+              missingProducts[createMissingProductIndex].inventoryImage =
+              (images != null && images.isNotEmpty)
+                  ? images.first.toString()
+                  : "";
+
+              // 4. IMPORTANT: Trigger the UI update
+              missingProducts.refresh();
+            }
+
+          // }
+          Get.until((route) => route.settings.name == RouteHelper.getMissingFoodItemsScreenRoute());
+
         }
       } else {
         commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       debugPrint("Error adding to inventory: $e");
+    }
+  }
+
+
+  /// My Product By Category
+  RxList<CategoryFoodProductData> categoryMyFoodProductDataList = <CategoryFoodProductData>[].obs;
+  RxBool isFoodCatProductsWithInvLoading = false.obs;
+  RxBool isFoodCatProductsWithInvLoadingMore = false.obs;
+  int foodCatProductsWithInvPage = 1;
+  bool foodCatProductsWithInvHasMore = true;
+  RxList<SubSubCategories> subSubFoodCat = <SubSubCategories>[].obs;
+
+  Future<void> getMyFoodProductByCategoryIdApi(
+      { required String categoryId,
+        bool isLoadMore = false
+      }) async {
+    try {
+      if (isLoadMore) {
+        isFoodCatProductsWithInvLoadingMore.value = true;
+      } else {
+        isFoodCatProductsWithInvLoading.value = true;
+        categoryMyFoodProductDataList.clear();
+        foodCatProductsWithInvPage = 1;
+        foodCatProductsWithInvHasMore = true;
+      }
+
+      Map<String, dynamic> queryParams = {
+        ApiKeys.categoryId: categoryId,
+        ApiKeys.businessId: businessId,
+        ApiKeys.page: foodCatProductsWithInvPage,
+        ApiKeys.limit: 20
+      };
+
+      ResponseModel response =
+      await FoodRepo().getMyFoodProductByCategoryIdRepo(
+          queryParam: queryParams,
+          );
+      if (response.isSuccess) {
+        var myFoodProductResponseModel = MyFoodProductResponseModel.fromJson(response.response?.data);
+
+        List<CategoryFoodProductData> newItems = (myFoodProductResponseModel.data ?? [])
+            .where((item) => item.productDetails != null) // Filter out nulls for safety
+            .map((item) => item.productDetails!)         // Extract the internal productDetails
+            .toList();
+
+        if (newItems.isNotEmpty) {
+          if (isLoadMore) {
+            categoryMyFoodProductDataList.addAll(newItems);
+          } else {
+            categoryMyFoodProductDataList.assignAll(newItems);
+          }
+
+          foodCatProductsWithInvPage++;
+        } else {
+          foodCatProductsWithInvHasMore = false;
+        }
+        log('total food products-- ${categoryMyFoodProductDataList.length}');
+
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('stack trace-- $s');
+    } finally {
+      if (isLoadMore) {
+        isFoodCatProductsWithInvLoadingMore.value = false;
+      } else {
+        isFoodCatProductsWithInvLoading.value = false;
+      }
     }
   }
 

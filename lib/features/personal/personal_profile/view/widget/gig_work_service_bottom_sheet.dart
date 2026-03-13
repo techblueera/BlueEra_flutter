@@ -119,6 +119,7 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
               ),
             ),
 
+            SizedBox(height: SizeConfig.paddingL),
 
             CustomBtn(
               height: SizeConfig.size40,
@@ -131,11 +132,13 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                print("Comparing: '$userProfessionGlobal' vs '${selectedService?.slugId}'");
+                print("Result: ${userProfessionGlobal.toLowerCase() == selectedService?.slugId.toLowerCase()}");
+
+                if(userProfessionGlobal.equalsIgnoreCase(selectedService?.slugId)){
                   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
                   return;
                 }
-
 
                 ChangeProfessionWarningDialog.show(
                   context,

@@ -1,6 +1,8 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
@@ -10,8 +12,9 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class MissingFoodItemsScreen extends StatelessWidget {
+class MissingFoodItemsScreen extends StatefulWidget {
   final FoodServiceController controller;
   final List<MissingFoodProducts> missingProducts;
 
@@ -22,61 +25,81 @@ class MissingFoodItemsScreen extends StatelessWidget {
   });
 
   @override
+  State<MissingFoodItemsScreen> createState() => _MissingFoodItemsScreenState();
+}
+
+class _MissingFoodItemsScreenState extends State<MissingFoodItemsScreen> {
+  var controller = Get.find<FoodServiceController>();
+
+  @override
+  initState(){
+    super.initState();
+    controller.missingProducts.assignAll(widget.missingProducts);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: "Missing Items",
-      ),
-      body: missingProducts.isNotEmpty
-          ? SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-            horizontal: 8.0,
-            vertical: 16.0,
+        appBar: CommonBackAppBar(
+          title: "Missing Items",
         ),
-        child: SafeArea(
-          child: CustomFormCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with Yellow Highlight
-                Padding(
-                    padding: const EdgeInsets.only(bottom: 10.0),
-                    child: CustomText(
-                    "Missing Items Name",
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.mainTextColor,
-                                    ),
-                  ),
-                const CommonHorizontalDivider(height: 1.0, color: AppColors.greyE5),
-          
-                // List of Items
-                ListView.separated(
-                  itemCount: missingProducts.length,
-                  shrinkWrap: true,
-                  primary: false,
-                  physics: const NeverScrollableScrollPhysics(),
-                  separatorBuilder: (context, index) => const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6.0),
-                    child: CommonHorizontalDivider(height: 0.5, color: AppColors.greyE5),
-                  ),
-                  itemBuilder: (context, index) {
-                    final item = missingProducts[index];
-                    return _buildItemRow(item);
-                  },
-                ),
+        body: Obx(() {
+          if (controller.missingProducts.isEmpty) {
+            return const EmptyStateWidget(message: 'No Missing Products');
+          }
 
-                SizedBox(height: 20)
-              ],
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 16.0,
             ),
-          ),
-        ),
-      )
-          : const EmptyStateWidget(message: 'No Missing Products'),
+            child: SafeArea(
+              child: CustomFormCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with Yellow Highlight
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
+                      child: CustomText(
+                        "Missing Items Name",
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                    const CommonHorizontalDivider(
+                        height: 1.0, color: AppColors.greyE5),
+
+                    // List of Items
+                    ListView.separated(
+                      itemCount: controller.missingProducts.length,
+                      shrinkWrap: true,
+                      primary: false,
+                      physics: const NeverScrollableScrollPhysics(),
+                      separatorBuilder: (context, index) =>
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6.0),
+                        child: CommonHorizontalDivider(
+                            height: 0.5, color: AppColors.greyE5),
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = controller.missingProducts[index];
+                        return _buildItemRow(item, index);
+                      },
+                    ),
+
+                    SizedBox(height: 20)
+                  ],
+                ),
+              ),
+            ),
+          );
+        })
     );
   }
 
-  Widget _buildItemRow(MissingFoodProducts item) {
+  Widget _buildItemRow(MissingFoodProducts item, int index) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12.0),
       child: Row(
@@ -121,24 +144,54 @@ class MissingFoodItemsScreen extends StatelessWidget {
           ),
 
           // Create Button
-          CustomBtn(
-            height: 32,
-            width: 60,
-            onTap: () {
-              // Get.toNamed(RouteHelper.getFoodEntryAiScreenRoute(),
-              //     arguments: {
-              //       ApiKeys.argCategoryData: widget.foodCategoryData,
-              //       ApiKeys.argIsCreateFromMissingProduct: true,
-              //     });
-            },
-            borderColor: AppColors.primaryColor,
-            textColor: AppColors.primaryColor,
-            bgColor: AppColors.white,
-            title: 'Create',
-            radius: 6.0,
-          ),
+          const SizedBox(width: 8),
+          _buildActionButton(item, index),
+
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButton(MissingFoodProducts item, int index) {
+    // SCENARIO 3: Inventory Created (Complete)
+    if (item.inventoryId != null && item.inventoryId!.isNotEmpty) {
+      return const Icon(Icons.check_circle, color: Colors.green, size: 28);
+    }
+
+    // SCENARIO 2: Product Created, but not in Inventory
+    if (item.productId != null && item.productId!.isNotEmpty) {
+      return CustomBtn(
+        height: 28,
+        width: 85,
+        title: 'Add Stock',
+        bgColor: AppColors.primaryColor,
+        onTap: () {
+          Get.toNamed(
+            RouteHelper.getAddSingleProductScreenRoute(),
+            arguments: {
+              ApiKeys.productId: item.productId,
+              ApiKeys.argCreateMissingProductIndex: index,
+            },
+          );
+        },
+      );
+    }
+
+    // SCENARIO 1: Product Not Created (Initial)
+    return CustomBtn(
+      height: 28,
+      width: 60,
+      title: 'Create',
+      textColor: AppColors.primaryColor,
+      radius: 10,
+      bgColor: AppColors.white,
+      borderColor: AppColors.primaryColor,
+      onTap: () {
+        Get.toNamed(RouteHelper.getFoodEntryAiScreenRoute(),
+            arguments: {
+              ApiKeys.argCreateMissingProductIndex: index,
+            });
+      },
     );
   }
 

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -33,6 +32,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    controller.resetControllerFields();
 
     final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
 
@@ -63,6 +63,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     // scrollController.addListener(_onScrollListener);
   }
 
+
+
   // void _onScrollListener(){
   //   if (scrollController.position.pixels >=
   //       scrollController.position.maxScrollExtent - 200 &&
@@ -76,7 +78,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   @override
   void dispose() {
-    deleteIfRegistered<FoodServiceController>();
+    // deleteIfRegistered<FoodServiceController>();
     // scrollController.removeListener(_onScrollListener);
     super.dispose();
   }
@@ -96,8 +98,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
             onTap: () {
               Get.toNamed(RouteHelper.getFoodEntryAiScreenRoute(),
                   arguments: {
-                    ApiKeys.argCategoryData: widget.foodCategoryData,
-                    ApiKeys.argIsCreateFromMissingProduct: false,
+                    ApiKeys.argCreateMissingProductIndex: null,
                   });
             },
             child: Container(

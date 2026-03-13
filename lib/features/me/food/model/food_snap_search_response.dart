@@ -106,6 +106,7 @@ class MissingFoodProducts {
   // keys for local navigation management and missing product created flow
   String? productId;
   String? inventoryId;
+  String? inventoryImage;
 
   MissingFoodProducts({
     this.name,
@@ -115,6 +116,7 @@ class MissingFoodProducts {
     this.unit,
     this.productId,
     this.inventoryId,
+    this.inventoryImage,
   });
 
   MissingFoodProducts.fromJson(Map<String, dynamic> json) {
@@ -125,6 +127,7 @@ class MissingFoodProducts {
     unit = json['unit'];
     productId = json['productId'];
     inventoryId = json['inventoryId'];
+    inventoryImage = json['inventoryImage'];
   }
 
   Map<String, dynamic> toJson() {
@@ -136,6 +139,7 @@ class MissingFoodProducts {
     data['unit'] = this.unit;
     data['productId'] = this.productId;
     data['inventoryId'] = this.inventoryId;
+    data['inventoryImage'] = this.inventoryImage;
     return data;
   }
 }
