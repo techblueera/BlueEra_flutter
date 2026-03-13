@@ -68,6 +68,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final callerImage = data['senderProfileImage'] ?? '';
     final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
     Map<String, dynamic> payload = jsonDecode(data['payload']);
+    print("payload 71 ${payload}");
     showFlutterCallNotification(
       callSessionId: data['notificationId'] ?? data['callId'] ?? '',
       callerName: callerName,
@@ -84,6 +85,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'operation': 'incoming_call',
       },
     );
+    // final controller=Get.put(CallController());
+
     return; // Don't play sound or show notification for calls
   }
 
@@ -217,7 +220,11 @@ Future<void> main() async {
   /// Check if app was launched by accepting an incoming call from killed state.
   /// Must run BEFORE runApp() so launchedForCall is true at first build.
   try {
+    // Future.delayed(Duration(seconds: 1), () {
+    //   FlutterCallkitIncoming.endAllCalls();
+    // });
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
+
     if (activeCalls is List && activeCalls.isNotEmpty) {
       final extra = Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
       final operation = (extra['operation'] ?? '').toString();
@@ -228,10 +235,10 @@ Future<void> main() async {
         callController.initStateFromCallKitExtra(extra);
         // Mark as handled so CallKit listener doesn't fire acceptCall again
         CallController.setKilledStateAcceptHandled();
+        // Mark as cold-start call so UI shows CallRoomScreen and navigates
+        // to home when call ends
+        CallController.markColdStartCall();
         callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId']);
-        Future.delayed(Duration(seconds: 1), () {
-          FlutterCallkitIncoming.endAllCalls();
-        });
       }
     }
   } catch (_) {}
@@ -392,6 +399,7 @@ class _MyAppState extends State<MyApp> {
         );
       },
       home: Obx(() {
+        print("CallController.launchedForCall.value ${CallController.launchedForCall.value}");
         // Call accepted from killed state — show ONLY the call screen
         if (CallController.launchedForCall.value) {
           return const CallRoomScreen();

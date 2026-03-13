@@ -20,7 +20,7 @@ class CallRoomScreen extends StatefulWidget {
 }
 
 class _CallRoomScreenState extends State<CallRoomScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin  {
   late Worker _callStatusWorker;
   late Worker _switchTypeWorker;
   final AudioPlayer _ringbackPlayer = AudioPlayer();

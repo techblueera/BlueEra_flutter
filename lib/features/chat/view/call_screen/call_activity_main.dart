@@ -323,9 +323,9 @@ class _CallActivityWrapperState extends State<_CallActivityWrapper> {
     return Obx(() {
       final status = controller.callStatus.value;
 
-      if (!widget.isCaller && status == CallStatus.ringing) {
-        return const IncomingCallScreen();
-      }
+      // if (!widget.isCaller && status == CallStatus.ringing) {
+      //   return const IncomingCallScreen();
+      // }
 
       if (status == CallStatus.outgoing ||
           status == CallStatus.ringing) {
