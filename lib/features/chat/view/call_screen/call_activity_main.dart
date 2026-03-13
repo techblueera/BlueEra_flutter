@@ -8,8 +8,7 @@ import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
-import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
-import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
+import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

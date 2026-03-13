@@ -490,43 +490,50 @@ class CallController extends GetxController {
     _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
 
     // Setup local media — signal when ready so offer handler can wait
-    _mediaReadyCompleter = Completer<void>();
-    await _setupLocalMedia();
-    if (!_mediaReadyCompleter!.isCompleted) {
-      _mediaReadyCompleter!.complete();
-    }
+    try {
+      _mediaReadyCompleter = Completer<void>();
+      await _setupLocalMedia();
+      if (!_mediaReadyCompleter!.isCompleted) {
+        _mediaReadyCompleter!.complete();
+      }
 
-    // If we received an SDP offer while ringing/accepting, process it now
-    final offerToProcess = _pendingOffer ?? savedPendingOffer;
-    if (offerToProcess != null && savedRemoteUserId != null) {
-      final pc = await _createPeerConnection(savedRemoteUserId);
-      final sdp = RTCSessionDescription(
-        offerToProcess['sdp'],
-        offerToProcess['type'],
-      );
-      await pc.setRemoteDescription(sdp);
-      await _flushPendingCandidates(savedRemoteUserId);
+      // If we received an SDP offer while ringing/accepting, process it now
+      final offerToProcess = _pendingOffer ?? savedPendingOffer;
+      if (offerToProcess != null && savedRemoteUserId != null) {
+        final pc = await _createPeerConnection(savedRemoteUserId);
+        final sdp = RTCSessionDescription(
+          offerToProcess['sdp'],
+          offerToProcess['type'],
+        );
+        await pc.setRemoteDescription(sdp);
+        await _flushPendingCandidates(savedRemoteUserId);
 
-      final answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      _socket.emitEvent('call:answer', {
-        'room_id': savedRoomId,
-        'target_user_id': savedRemoteUserId,
-        'sdp': {'sdp': answer.sdp, 'type': answer.type},
-      });
-      _pendingOffer = null;
-    } else if (savedRemoteUserId != null) {
-      // No pending offer — the caller's offer was missed.
-      // Create our own offer so the caller can respond with an answer.
-      final pc = await _createPeerConnection(savedRemoteUserId);
-      final offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+        final answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        _socket.emitEvent('call:answer', {
+          'room_id': savedRoomId,
+          'target_user_id': savedRemoteUserId,
+          'sdp': {'sdp': answer.sdp, 'type': answer.type},
+        });
+        _pendingOffer = null;
+      } else if (savedRemoteUserId != null) {
+        // No pending offer — the caller's offer was missed.
+        // Create our own offer so the caller can respond with an answer.
+        final pc = await _createPeerConnection(savedRemoteUserId);
+        final offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-      _socket.emitEvent('call:offer', {
-        'room_id': savedRoomId,
-        'target_user_id': savedRemoteUserId,
-        'sdp': {'sdp': offer.sdp, 'type': offer.type},
-      });
+        _socket.emitEvent('call:offer', {
+          'room_id': savedRoomId,
+          'target_user_id': savedRemoteUserId,
+          'sdp': {'sdp': offer.sdp, 'type': offer.type},
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('acceptCall WebRTC error: $e');
+      debugPrint(stack.toString());
+      _cleanup();
+      return false;
     }
 
     // Keep screen on
@@ -590,26 +597,33 @@ class CallController extends GetxController {
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
 
     // Setup local media
-    _mediaReadyCompleter = Completer<void>();
-    await _setupLocalMedia();
-    if (!_mediaReadyCompleter!.isCompleted) {
-      _mediaReadyCompleter!.complete();
-    }
+    try {
+      _mediaReadyCompleter = Completer<void>();
+      await _setupLocalMedia();
+      if (!_mediaReadyCompleter!.isCompleted) {
+        _mediaReadyCompleter!.complete();
+      }
 
-    // Create peer connection and send offer to the caller.
-    // The CallActivity engine boots after the caller already sent its offer
-    // (which was missed because this socket wasn't connected yet).
-    // So the receiver initiates the WebRTC handshake from its side.
-    if (remoteUserId.isNotEmpty) {
-      final pc = await _createPeerConnection(remoteUserId);
-      final offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      // Create peer connection and send offer to the caller.
+      // The CallActivity engine boots after the caller already sent its offer
+      // (which was missed because this socket wasn't connected yet).
+      // So the receiver initiates the WebRTC handshake from its side.
+      if (remoteUserId.isNotEmpty) {
+        final pc = await _createPeerConnection(remoteUserId);
+        final offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-      _socket.emitEvent('call:offer', {
-        'room_id': roomId.value,
-        'target_user_id': remoteUserId,
-        'sdp': {'sdp': offer.sdp, 'type': offer.type},
-      });
+        _socket.emitEvent('call:offer', {
+          'room_id': roomId.value,
+          'target_user_id': remoteUserId,
+          'sdp': {'sdp': offer.sdp, 'type': offer.type},
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('setupAcceptedCall WebRTC error: $e');
+      debugPrint(stack.toString());
+      _cleanup();
+      return false;
     }
 
     // Keep screen on
@@ -818,7 +832,12 @@ class CallController extends GetxController {
     // Wait for local media to be ready before creating peer connection
     // (offer can arrive while _setupLocalMedia is still running)
     if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
-      await _mediaReadyCompleter!.future;
+      try {
+        await _mediaReadyCompleter!.future;
+      } catch (e) {
+        debugPrint('Media setup failed, cannot handle offer: $e');
+        return;
+      }
     }
 
     final pc =
@@ -1148,19 +1167,38 @@ class CallController extends GetxController {
   // ==================== WEBRTC SETUP ====================
 
   Future<void> _setupLocalMedia() async {
-    localRenderer = RTCVideoRenderer();
-    await localRenderer!.initialize();
-
     final isVideo = callType.value == CallType.video;
-    localStream = await navigator.mediaDevices.getUserMedia({
-      'audio': true,
-      'video':
-          isVideo ? {'facingMode': 'user', 'width': 640, 'height': 480} : false,
-    });
 
-    localRenderer!.srcObject = localStream;
+    // Sync isCameraOn with actual media state (fixes video:true on audio calls)
+    isCameraOn.value = isVideo;
 
-    // For audio calls, default speaker off
+    try {
+      // Only create video renderer for video calls
+      if (isVideo) {
+        localRenderer = RTCVideoRenderer();
+        await localRenderer!.initialize();
+      }
+
+      localStream = await navigator.mediaDevices.getUserMedia({
+        'audio': true,
+        'video': isVideo
+            ? {'facingMode': 'user', 'width': 640, 'height': 480}
+            : false,
+      });
+
+      if (isVideo && localRenderer != null) {
+        localRenderer!.srcObject = localStream;
+      }
+    } catch (e, stack) {
+      debugPrint('_setupLocalMedia error: $e');
+      debugPrint(stack.toString());
+      if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
+        _mediaReadyCompleter!.completeError(e);
+      }
+      rethrow;
+    }
+
+    // Speaker defaults
     if (!isVideo) {
       isSpeakerOn.value = false;
       _setSpeakerphone(false);
