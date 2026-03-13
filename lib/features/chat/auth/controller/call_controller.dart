@@ -437,13 +437,11 @@ class CallController extends GetxController {
     final iceServersJson = data?['ice_servers'] ?? {};
 
     // Dismiss CallKit incoming call UI after API accept succeeds.
-    // Only for killed-state accepts — normal accepts already handle this
-    // via the CallKit listener's accept handler.
-    if (_coldStartCall) {
-      try {
-        await FlutterCallkitIncoming.endAllCalls();
-      } catch (_) {}
-    }
+    // This frees CallKit so it's ready to show the next incoming call
+    // while the current call is still active on CallRoomScreen.
+    try {
+      await FlutterCallkitIncoming.endAllCalls();
+    } catch (_) {}
 
     // --- Android main engine: launch CallActivity to handle WebRTC ---
     if (Platform.isAndroid && !isCallActivityEngine) {
@@ -541,6 +539,7 @@ class CallController extends GetxController {
   }
 
   Timer? _connectionTimer;
+  Timer? _peerDisconnectTimer;
 
   void _startConnectionTimeout() {
     _connectionTimer?.cancel();
@@ -775,7 +774,6 @@ class CallController extends GetxController {
 
   /// Safely navigate back from any call screen if currently on one
   void _navigateBackFromCallScreen() {
-    // Close this specific Flutter Activity
     // In CallActivity engine, the wrapper handles activity finish — skip Flutter navigation
     if (isCallActivityEngine) return;
 
@@ -787,11 +785,14 @@ class CallController extends GetxController {
       return;
     }
     final route = Get.currentRoute;
+    if (kDebugMode) print('_navigateBackFromCallScreen: currentRoute=$route');
     if (route == '/CallRoomScreen' ||
         route == '/ActiveCallScreen' ||
         route == '/OutgoingCallScreen' ||
         route == '/IncomingCallScreen') {
-      Get.back();
+      // Use offAllNamed to guarantee the call screen is removed from the stack,
+      // even if Get.offNamed was used to open it (which removes the previous route)
+      Get.offAllNamed('/BottomNavigationBarScreen');
     }
   }
 
@@ -1217,6 +1218,7 @@ class CallController extends GetxController {
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
           _connectionTimer?.cancel();
+          _peerDisconnectTimer?.cancel();
           callStatus.value = CallStatus.connected;
           _startCallTimer();
           break;
@@ -1224,8 +1226,21 @@ class CallController extends GetxController {
           endCall();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
-          // Temporary - may reconnect
-          if (kDebugMode) print('WebRTC: Peer disconnected (may reconnect)');
+          // Peer disconnected — give a short window to reconnect,
+          // then end the call if still disconnected (only 1 person left)
+          if (kDebugMode) print('WebRTC: Peer disconnected — waiting to reconnect');
+          _peerDisconnectTimer?.cancel();
+          _peerDisconnectTimer = Timer(const Duration(seconds: 3), () {
+            if (_disposed) return;
+            final currentPc = peerConnections[peerId];
+            if (currentPc == null) return;
+            final currentState = currentPc.connectionState;
+            if (currentState == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
+                currentState == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+              if (kDebugMode) print('WebRTC: Peer did not reconnect — ending call');
+              endCall();
+            }
+          });
           break;
         default:
           break;
@@ -1505,6 +1520,8 @@ class CallController extends GetxController {
     _ringTimer = null;
     _connectionTimer?.cancel();
     _connectionTimer = null;
+    _peerDisconnectTimer?.cancel();
+    _peerDisconnectTimer = null;
 
     // --- 2. Cancel all notifications & overlays ---
     _cancelOngoingNotification();
@@ -1653,10 +1670,16 @@ class CallController extends GetxController {
           // Don't end the actual call if:
           // 1. Already idle (cleanup already happened — prevents re-entrant loop)
           // 2. CallActivity is handling it
-          // 3. Cold-start accept in progress (endAllCalls after API accept triggers this)
+          // 3. Call is actively in progress (accepting/connecting/connected) —
+          //    endAllCalls() after accept fires this as a side-effect;
+          //    we must NOT terminate the live call.
+          final isCallInProgress =
+              callStatus.value == CallStatus.accepting ||
+              callStatus.value == CallStatus.connecting ||
+              callStatus.value == CallStatus.connected;
           if (callStatus.value != CallStatus.idle &&
               !isCallActivityActive &&
-              !_coldStartCall) {
+              !isCallInProgress) {
             endCall();
           }
           break;
@@ -1704,7 +1727,8 @@ class CallController extends GetxController {
   }
 }
 
-/// Show native incoming call notification (for Firebase push)
+/// Show native incoming call notification (for Firebase push).
+/// Skips if a call is already active so CallKit stays free for the current call.
 void showFlutterCallNotification({
   required String callSessionId,
   required String callerName,
@@ -1712,6 +1736,17 @@ void showFlutterCallNotification({
   String? callType,
   Map<String, dynamic>? extra,
 }) async {
+  // Don't show CallKit if a call is already in progress — keeps CallKit free
+  if (Get.isRegistered<CallController>()) {
+    final status = Get.find<CallController>().callStatus.value;
+    if (status == CallStatus.accepting ||
+        status == CallStatus.connecting ||
+        status == CallStatus.connected ||
+        status == CallStatus.outgoing) {
+      debugPrint('showFlutterCallNotification: skipped — call already active ($status)');
+      return;
+    }
+  }
   final isVideo = callType == 'video_call';
   final params = CallKitParams(
     id: callSessionId,
