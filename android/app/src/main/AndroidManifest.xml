@@ -60,6 +60,10 @@
             android:supportsPictureInPicture="true"
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
             <!--TODO: Add this filter if you want to handle shared text-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

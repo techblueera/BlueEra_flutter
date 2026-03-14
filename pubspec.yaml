@@ -96,13 +96,25 @@ dependencies:
   google_generative_ai: ^0.4.7
   envied: ^1.3.3
   qr_flutter: ^4.1.0
+  flutter_native_splash: ^2.4.7
   # smooth_page_indicator: ^2.0.1
 #  googleapis: ^16.0.0
 #  googleapis_auth:
 
+
 dependency_overrides:
   intl: ^0.19.0
 
+flutter_native_splash:
+  color: "#ffffff"              # Background color for older Android versions
+  image: assets/images/splash_img_new.png     # Your splash image (logo)
+
+  # Android 12+ Specific Settings (Crucial)
+  android_12:
+    image: assets/images/splash_img_new.png # Should be a 1152x1152px image
+    color: "#ffffff"                   # Background color
+    icon_background_color: "#ffffff"
+    # Optional: color behind the icon
 dev_dependencies:
   flutter_test:
     sdk: flutter

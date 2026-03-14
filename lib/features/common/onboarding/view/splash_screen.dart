@@ -88,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     }
 
-    Timer(const Duration(seconds: 2), () async {
+    Timer(const Duration(milliseconds: 200), () async {
       // If a call was accepted from CallKit (killed state), skip normal navigation —
       // CallController will navigate directly to ActiveCallScreen
       if (CallController.launchedForCall.value) {
