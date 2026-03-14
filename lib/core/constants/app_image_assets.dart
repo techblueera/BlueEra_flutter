@@ -8,6 +8,7 @@ class AppImageAssets {
   static const String tearDrop = '${imgPath}tear_drop.png';
   static const String chating_bg = 'assets/images/chatting_bg_light.png';
   static const String splashBgImage = "assets/images/bg_splash.png";
+  static const String splashBgImageNews = "assets/images/splash_img_new.png";
   static const String chatBgDark = '${imgPath}chat_bg_dark.png';
   static const String chatBgLight = '${imgPath}chatting_bg_light.png';
   static const String grocery_call_women = '${imgPath}grocery_call_women.png';

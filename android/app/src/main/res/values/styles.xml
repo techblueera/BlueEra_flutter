@@ -5,6 +5,10 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
@@ -18,24 +22,20 @@
         <!-- ask for black icons -->
         <item name="android:windowLightStatusBar">true</item>
     </style>
-
     <style name="UCropTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:fitsSystemWindows">true</item>
-
         <!-- Set your desired status bar color -->
-        <item name="android:statusBarColor">#2D93D7</item><!-- Same as your toolbarColor -->
+        <item name="android:statusBarColor">#2D93D7</item>
+        <!-- Same as your toolbarColor -->
         <item name="android:navigationBarColor">#2D93D7</item>
-
         <!-- Important: Set this to false to show white icons -->
-        <item name="android:windowLightStatusBar">true</item> <!-- true if using light status bar -->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- true if using light status bar -->
         <item name="android:windowLightNavigationBar">false</item>
-
     </style>
-
     <style name="CircularImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-
 </resources>
