@@ -219,11 +219,11 @@ class NutritionalInfo {
     fats = json['fats'];
     fiber = json['fiber'];
   }
-  int? calories;
-  int? protein;
-  int? carbs;
-  int? fats;
-  int? fiber;
+  num? calories;
+  num? protein;
+  num? carbs;
+  num? fats;
+  num? fiber;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

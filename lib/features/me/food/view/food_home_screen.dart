@@ -6,27 +6,30 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/view/food_contact_us_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
-import 'package:BlueEra/features/me/food/view/my_product_product_screen.dart';
+import 'package:BlueEra/features/me/food/view/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_home_profile_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-
 
 class RestaurantHomeScreen extends StatefulWidget {
   @override
@@ -42,7 +45,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   @override
   initState(){
     super.initState();
-    controller.fetchHomeData();
+    controller.fetchHomeData(businessId: businessId);
   }
 
   @override
@@ -59,7 +62,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
           return Center(child: CustomText(AppStrings.noDataFound.tr));
         return RefreshIndicator(
           onRefresh: () async {
-            controller.fetchHomeData();
+            controller.fetchHomeData(businessId: businessId);
           },
           child: SingleChildScrollView(
             child: Column(
@@ -70,8 +73,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   cardMargin: 10,
                   padding: 0,
                   child: FoodHomeProfileHeader(
-                    details: viewBusinessDetailsController
-                        .businessProfileDetails?.data,
+                    details: data.businessProfileDetails,
                     controller: viewBusinessDetailsController,
                   ),
                 ),
@@ -97,11 +99,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 if (controller.foodMenuNestedCategory.isNotEmpty)
                   _buildMenuCategories(controller.foodMenuNestedCategory),
 
+                /// Gallery
                 (data.gallery?.isNotEmpty ?? false)
-                    ?
-
-                    /// Gallery
-                    CommonCardWidget(
+                    ? CommonCardWidget(
                         // cardMargin: 0,
                         // padding: 10,
                         padding: 15,
@@ -130,7 +130,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
-                            top: 20.0, right: 20, left: 20),
+                            top: 20.0
+                        ),
                         child: PositiveCustomBtn(
                             onTap: () {
                               Get.to(FoodServicePhotosPhotoScreen());
@@ -138,31 +139,10 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                             title: AppStrings.addGalleryPhoto.tr),
                       ),
 
-                (data.contact == null)
-                    ? Padding(
-                        padding: const EdgeInsets.only(
-                            top: 20.0, right: 20, left: 20),
-                        child: PositiveCustomBtn(
-                            onTap: () {
-                              Get.to(FoodContactUsScreen());
-                            },
-                            title: AppStrings.addContactUs.tr),
-                      )
-                    : _buildContactCard(data.contact),
+                SizedBox(height: 10.0),
 
-                // Map Placeholder
-                if (data.contact != null)
-                  BusinessLocationWidget(
-                      locationText: data.contact?.location?.name ?? "",
-                      latitude: double.parse(
-                          data.contact?.location?.coordinates?[0].toString() ??
-                              "0.0"),
-                      longitude: double.parse(
-                          data.contact?.location?.coordinates?[1].toString() ??
-                              "0.0"),
-                      businessName: data.contact?.name ?? "",
-                      padding: 10,
-                      isTitleShow: true),
+                _buildContactNdMapCard(data.businessProfileDetails),
+
                 SizedBox(
                   height: 100,
                 ),
@@ -246,88 +226,156 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     );
   }
 
-  Widget _buildContactCard(FoodContact? profile) {
-    return CommonCardWidget(
-      padding: 15,
+  Widget _buildContactNdMapCard(BusinessProfileDetails? businessProfileDetails) {
+    final logoUrl = businessProfileDetails?.logo;
+
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(AppStrings.contactUs.tr,
-                  fontSize: 20, fontWeight: FontWeight.bold),
-              InkWell(
-                  onTap: () {
-                    Get.to(FoodContactUsScreen(
-                      profile: profile,
-                    ));
-                  },
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.editIcon,
-                    imgColor: AppColors.mainTextColor,
-                  )),
-            ],
-          ),
-          const SizedBox(height: 20),
+          CustomText(
+              AppStrings.contactUs.tr,
+              fontSize: SizeConfig.large,
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w600),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[200]!),
-              borderRadius: BorderRadius.circular(15),
+                color: AppColors.white,
+                border: Border.all(color: AppColors.greyE5),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [AppShadows.textFieldShadow]
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Logo and Hotel Name
-                if (viewBusinessDetailsController
-                        .businessProfileDetails?.data?.logo?.isNotEmpty ??
-                    false)
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      // color: Colors.white,
-                      shape: BoxShape.circle,
-                      // border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 10)
-                      ],
-                      image: DecorationImage(
-                          image: NetworkImage(viewBusinessDetailsController
-                                  .businessProfileDetails?.data?.logo ??
-                              ''),
-                          fit: BoxFit.cover),
+                Row(
+                  children: [
+                    Container(
+                      key: ValueKey(logoUrl),
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.white, // Background color for placeholder transparency
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black12, blurRadius: 10)
+                        ],
+                        image: DecorationImage(
+                          image: (logoUrl != null && logoUrl.isNotEmpty)
+                              ? NetworkImage(logoUrl) as ImageProvider
+                              : AssetImage(AppIconAssets.place_holder_image),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 10),
-                CustomText(profile?.name,
-                    fontSize: 20, fontWeight: FontWeight.bold),
-
-                const SizedBox(height: 5),
-                CustomText(
-                  viewBusinessDetailsController
-                      .businessProfileDetails?.data?.businessDescription,
-                  color: AppColors.secondaryTextColor,
-                  fontSize: 14,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                              businessProfileDetails?.businessName,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                          const SizedBox(height: 5),
+                          (businessProfileDetails?.businessDescription?.isNotEmpty ??false)
+                              ? ExpandableText(
+                            text: businessProfileDetails?.businessDescription??'',
+                            trimLines: 3,
+                            isReadMoreNewLine: false,
+                            expandMode: ExpandMode.dialog,
+                            style: TextStyle(
+                              color: AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: AppConstants.OpenSans,
+                            ),
+                          )
+                              : CustomText(
+                            AppStrings.na,
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: AppConstants.OpenSans,
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
-                const Divider(height: 30),
+
+                const Divider(
+                    color: AppColors.greyE5,
+                    height: 30),
 
                 // Contact List
-                _contactItem(AppIconAssets.website_click,
-                    profile?.pageLink ?? "", AppColors.primaryColor),
-                _contactItem(AppIconAssets.principal, profile?.department ?? "",
-                    AppColors.secondaryTextColor),
-                _contactItem(AppIconAssets.email, profile?.email ?? "",
-                    AppColors.secondaryTextColor),
-                _contactItem(AppIconAssets.phone_outline, profile?.phone ?? "",
-                    AppColors.secondaryTextColor),
-                _contactItem(
-                    AppIconAssets.location_new,
-                    profile?.location?.name ?? "",
-                    AppColors.secondaryTextColor),
+                if(businessProfileDetails?.websiteUrl?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.website_click,
+                      businessProfileDetails?.websiteUrl ?? "",
+                      AppColors.primaryColor),
+
+                if(businessProfileDetails?.subCategoryDetails?.name?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.principal,
+                      businessProfileDetails?.subCategoryDetails?.name ?? "",
+                      AppColors.secondaryTextColor),
+
+                if(businessProfileDetails?.ownerDetails?[0].email?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.email,
+                      businessProfileDetails?.ownerDetails?[0].email ?? "",
+                      AppColors.secondaryTextColor),
+
+                if(businessProfileDetails?.businessNumber?.officeMobNo?.number?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.phone_outline,
+                      businessProfileDetails?.businessNumber?.officeMobNo?.number ?? "",
+                      AppColors.secondaryTextColor),
+
+                if(businessProfileDetails?.address?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.location_new,
+                      businessProfileDetails?.address ?? "",
+                      AppColors.secondaryTextColor),
               ],
             ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          // SizedBox(
+          //   width: double.infinity,
+          //   height: 180,
+          //   child: Stack(
+          //     children: [
+          //       GoogleMap(
+          //         onMapCreated: _onMapCreated,
+          //         initialCameraPosition: CameraPosition(
+          //           target: LatLng(widget.latitude, widget.longitude),
+          //           zoom: 14.0,
+          //         ),
+          //         markers: _markers,
+          //         myLocationEnabled: false,
+          //         compassEnabled: false,
+          //         // Fix for iOS gesture conflicts
+          //         // gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+          //         //   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+          //         // },
+          //       ),
+          //       // ... rest of your UI (Send button)
+          //     ],
+          //   ),
+          // ),
+
+          BusinessLocationMapWidget(
+            latitude: businessProfileDetails?.businessLocation?.lat ?? 0.0,
+            longitude: businessProfileDetails?.businessLocation?.lon ?? 0.0,
+            businessName: businessProfileDetails?.businessName ?? "",
           ),
         ],
       ),

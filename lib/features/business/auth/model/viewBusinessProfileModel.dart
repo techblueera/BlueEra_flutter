@@ -67,7 +67,6 @@ class BusinessProfileDetails {
       this.referral_points,
       this.category_other,
       this.pincode,
-      this.rating,
       this.total_views,
       this.username,
       this.total_followers,
@@ -96,7 +95,6 @@ class BusinessProfileDetails {
     if (json['live_photos'] != null&&json['live_photos'].isNotEmpty) {
       livePhotos=json['live_photos'].cast<String>();
     }
-    rating=json['total_ratings'];
     total_views=json['total_views'];
     total_followers=json['total_followers'];
     is_following=json['is_following'];
@@ -128,7 +126,11 @@ class BusinessProfileDetails {
     pincode = json['pincode'];
     username = json['username'];
     avg_rating = json['avg_rating'];
-    total_ratings = json['total_ratings'];
+    if (json['total_ratings'] != null) {
+      total_ratings = num.tryParse(json['total_ratings'].toString()) ?? 0;
+    } else {
+      total_ratings = 0;
+    }
     specification = json['specification'];
     userContactNo = json['userContactNo'];
 
@@ -166,7 +168,6 @@ class BusinessProfileDetails {
   num? pincode;
   CategoryDetails? categoryDetails;
   SubCategoryDetails? subCategoryDetails;
-  int? rating;
   int? total_views;
   int? total_followers;
   BusinessNumber? businessNumber;
@@ -221,7 +222,6 @@ class BusinessProfileDetails {
     map['website_url'] = websiteUrl;
     map['opening_time'] = openTime;
     map['closing_time'] = closeTime;
-    map['rating']=rating;
     map['total_views']=total_views;
     map['total_followers']=total_followers;
     map['total_ratings']=total_ratings;

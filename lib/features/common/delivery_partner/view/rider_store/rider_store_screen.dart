@@ -1,11 +1,15 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -26,6 +30,13 @@ class RiderStoreScreen extends StatefulWidget {
 }
 
 class _RiderStoreScreenState extends State<RiderStoreScreen> {
+  final foodServiceController = getOrPut(() => FoodServiceController());
+
+  @override
+  void initState() {
+    foodServiceController.getFoodNestedCategoryApi();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,12 +120,63 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
 
                   SizedBox(height: SizeConfig.paddingXSL),
 
-                  _buildCategoryGrid(
-                    items: foodCategories,
-                    onTap: (item) {
+                  Obx(() {
+                    if (foodServiceController.getFoodCategoryResponse.value.status ==
+                         Status.COMPLETE) {
+                      if (foodServiceController.foodNestedCateList.isNotEmpty) {
+                        return MasonryGridView.count(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          itemCount: foodServiceController.foodNestedCateList.length,
+                          shrinkWrap: true,
+                          primary: false,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final item = foodServiceController.foodNestedCateList[index];
+                            return CommonServiceCard<FoodCategoryData>(
+                              service: item,
+                              getName: (item) => item.name??'',
+                              // getIcon: (item) =>  item.image??'',
+                              getIcon: (item) =>  "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
+                              iconHeight: SizeConfig.size60,
+                              boxShadow: [],
+                              onTap: (item) {
+                                foodServiceController.selectedFoodTypeID.value =
+                                    item.id ?? "";
 
-                    },
-                  ),
+                                // Action for item tap
+                                Get.toNamed(RouteHelper.getFoodCustomerListingScreenRoute(),
+                                    arguments: {
+                                      ApiKeys.argCategoryData: item
+                                    });
+                              },
+                            );
+
+                          },
+                        );
+                      } else {
+                        return Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10.0),
+                              child: CustomText(AppStrings.noDataFound),
+                            ));
+                      }
+                    } else if (foodServiceController.getFoodCategoryResponse.value ==
+                        Status.ERROR) {
+                      return Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10.0),
+                            child: CustomText(AppStrings.somethingWentWrong),
+                          ));
+                    }
+                    return Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          child: CircularProgressIndicator(),
+                        ));
+                  }),
 
                 ],
               ),

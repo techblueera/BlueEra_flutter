@@ -16,16 +16,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
-class ProductSelectionScreen extends StatefulWidget {
+class FoodProductSelectionScreen extends StatefulWidget {
   final FoodCategoryData foodCategoryData;
 
-  ProductSelectionScreen({super.key, required this.foodCategoryData});
+  FoodProductSelectionScreen({super.key, required this.foodCategoryData});
 
   @override
-  State<ProductSelectionScreen> createState() => _ProductSelectionScreenState();
+  State<FoodProductSelectionScreen> createState() => _FoodProductSelectionScreenState();
 }
 
-class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
+class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen> {
   final controller = getOrPut(() => FoodServiceController());
   final ScrollController scrollController = ScrollController();
 

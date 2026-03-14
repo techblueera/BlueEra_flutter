@@ -4068,21 +4068,21 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
      slugId: 'LUNCH_DINNER',
     icon: AppImageAssets.lunchDinner,
   ),
-  CollapsibleGridModel(
-     name: 'Tiffin',
-     slugId: 'TIFFIN',
-    icon: AppImageAssets.tiffin,
-  ),
-  CollapsibleGridModel(
-     name: 'Sweets',
-     slugId: 'SWEETS',
-     icon: AppImageAssets.sweets,
-  ),
-  CollapsibleGridModel(
-    name: 'Restaurant',
-    slugId: 'RESTAURANT',
-    icon: AppImageAssets.restaurant,
-  ),
+  // CollapsibleGridModel(
+  //    name: 'Tiffin',
+  //    slugId: 'TIFFIN',
+  //   icon: AppImageAssets.tiffin,
+  // ),
+  // CollapsibleGridModel(
+  //    name: 'Sweets',
+  //    slugId: 'SWEETS',
+  //    icon: AppImageAssets.sweets,
+  // ),
+  // CollapsibleGridModel(
+  //   name: 'Restaurant',
+  //   slugId: 'RESTAURANT',
+  //   icon: AppImageAssets.restaurant,
+  // ),
 ];
 
 final List<CollapsibleGridModel> transportItemsCategories = [

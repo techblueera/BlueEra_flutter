@@ -22,7 +22,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class UserGroceryController extends GetxController{
+class GroceryCustomerController extends GetxController{
   Rx<ApiResponse> groceryCategoryOfChildrenResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> userGroceryCategoryResponse =

@@ -662,10 +662,10 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                       businessProfileDetails?.ownerDetails?[0].email ?? "",
                       AppColors.secondaryTextColor),
 
-                if(businessProfileDetails?.userContactNo?.isNotEmpty ?? false)
+                if(businessProfileDetails?.businessNumber?.officeMobNo?.number?.isNotEmpty ?? false)
                   _contactItem(
                       AppIconAssets.phone_outline,
-                      businessProfileDetails?.userContactNo?? "",
+                      businessProfileDetails?.businessNumber?.officeMobNo?.number ?? "",
                       AppColors.secondaryTextColor),
 
                 if(businessProfileDetails?.address?.isNotEmpty ?? false)

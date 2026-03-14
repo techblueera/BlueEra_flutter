@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 FoodHomeResModel newFoodHomeResModelFromJson(String str) => FoodHomeResModel.fromJson(json.decode(str));
 String newFoodHomeResModelToJson(FoodHomeResModel data) => json.encode(data.toJson());
 class FoodHomeResModel {
@@ -31,13 +33,13 @@ class FoodData {
       this.foodMenu, 
       this.restaurantSpecials,
       this.businessProfile,
-    this.gallery,
+      this.gallery,
       this.contact,
 
   });
 
   FoodData.fromJson(dynamic json) {
-    businessProfile = json['businessProfile'] != null ? BusinessProfile.fromJson(json['businessProfile']) : null;
+    businessProfile = json['businessProfile'] != null ? BusinessProfileDetails.fromJson(json['businessProfile']) : null;
 
     if (json['foodMenu'] != null) {
       foodMenu = [];
@@ -64,7 +66,7 @@ class FoodData {
   List<Gallery>? gallery;
   Contact? contact;
 
-  BusinessProfile? businessProfile;
+  BusinessProfileDetails? businessProfile;
 
 
   Map<String, dynamic> toJson() {

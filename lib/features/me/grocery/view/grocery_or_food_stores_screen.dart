@@ -12,6 +12,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -24,32 +25,41 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_enum.dart';
 
-class GroceryStoresScreen extends StatefulWidget {
-  final OnboardingCategoryModel selectedGroceryCategory;
+class GroceryOrFoodStoresScreen extends StatefulWidget {
+  final OnboardingCategoryModel selectedGroceryOrFoodCategory;
+  final bool isGroceryStore;
 
-  const GroceryStoresScreen(
+  const GroceryOrFoodStoresScreen(
       { super.key,
-        required this.selectedGroceryCategory,
+        required this.selectedGroceryOrFoodCategory,
+        required this.isGroceryStore,
         });
 
   @override
-  State<GroceryStoresScreen> createState() =>
-      _GroceryStoresScreenState();
+  State<GroceryOrFoodStoresScreen> createState() =>
+      _GroceryOrFoodStoresScreenState();
 }
 
-class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
+class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
   final controller = getOrPut(() => NewStoreController());
   final groceryController = getOrPut(() => GroceryController());
+  final foodCustomerListingScreen = getOrPut(() => FoodCustomerController());
   final ScrollController storesScrollController = ScrollController();
 
   @override
   initState() {
     super.initState();
 
-    groceryController.selectedGroceryCategoryData.value =
-        widget.selectedGroceryCategory;
-    controller.typeOfBusiness = BusinessType.Grocery.name;
-    controller.businessCategoryId = groceryController.selectedGroceryCategoryData.value?.slugId;
+    if(widget.isGroceryStore){
+      controller.typeOfBusiness = BusinessType.Grocery.name;
+    }else{
+      controller.typeOfBusiness = BusinessType.Food.name;
+    }
+
+    controller.selectedGroceryOrFoodCategoryData.value =
+        widget.selectedGroceryOrFoodCategory;
+    controller.businessCategoryId = controller.selectedGroceryOrFoodCategoryData.value?.slugId;
+
     controller.getAllStoreNearBy();
 
     // Listener for Pagination
@@ -87,7 +97,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
   Widget leftCategoryList() {
     final allItem = OnboardingCategoryModel(
       name: 'All',
-      slugId: 'ALL_OPTION',
+      slugId: 'ALL',
       icon: AppImageAssets.all,
       individualType: IndividualProfileType.SELF_EMPLOYED,
       accountType: AppConstants.individual,
@@ -100,16 +110,16 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
       getLabel: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
       isSelected: (item) {
-        if (item.slugId == 'ALL_OPTION') {
-          return groceryController.selectedGroceryCategoryData.value == null;
+        if (item.slugId == 'ALL') {
+          return controller.selectedGroceryOrFoodCategoryData.value == null;
         }
-        return groceryController.selectedGroceryCategoryData.value?.slugId == item.slugId;
+        return controller.selectedGroceryOrFoodCategoryData.value?.slugId == item.slugId;
       },
       onTap: (item, index) {
-        if (item.slugId == 'ALL_OPTION') {
-          groceryController.selectedGroceryCategoryData.value = null;
+        if (item.slugId == 'ALL') {
+          controller.selectedGroceryOrFoodCategoryData.value = null;
         } else {
-          groceryController.selectedGroceryCategoryData.value = item;
+          controller.selectedGroceryOrFoodCategoryData.value = item;
           controller.businessCategoryId = item.slugId;
         }
 
@@ -161,13 +171,22 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen> {
   Widget groceryStoreCard(GetAllStoreResModel store) {
     return InkWell(
       onTap: (){
-        Get.toNamed(
-          RouteHelper.getOtherGroceryStoreScreenRoute(),
-          arguments: {
-            ApiKeys.userId: store.userId,
-            ApiKeys.businessId: store.id,
-          }
-        );
+        if(widget.isGroceryStore){
+          Get.toNamed(
+              RouteHelper.getOtherGroceryStoreScreenRoute(),
+              arguments: {
+                ApiKeys.userId: store.userId,
+                ApiKeys.businessId: store.id,
+              }
+          );
+        } else{
+          Get.toNamed(
+              RouteHelper.getOtherFoodStoreDetailsScreenRoute(),
+              arguments: {
+                ApiKeys.businessId: store.id,
+              }
+          );
+        }
       },
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),

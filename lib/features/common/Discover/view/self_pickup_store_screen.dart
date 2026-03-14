@@ -30,6 +30,19 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
     NON_VEG_RESTAURANT,
   ];
 
+   void navigateToGroceryStore({
+    required dynamic categoryData,
+    bool isGrocery = true,
+  }) {
+    Get.toNamed(
+      RouteHelper.getGroceryOrFoodStoresScreenRoute(),
+      arguments: {
+        ApiKeys.argCategoryData: categoryData,
+        ApiKeys.argIsGroceryStore: isGrocery,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -60,12 +73,9 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
                     getName: (categoryItem) => categoryItem.name,
                     getIcon: (categoryItem) => categoryItem.icon,
                     onTap: (categoryItem) {
-                      // getCategoriesByTag(item.slugId);
-                      Get.toNamed(
-                        RouteHelper.getGroceryStoresScreenRoute(),
-                        arguments: {
-                          ApiKeys.argCategoryData: categoryItem,
-                        },
+                      navigateToGroceryStore(
+                        categoryData: categoryItem,
+                        isGrocery: true
                       );
                     },
                   ),
@@ -94,13 +104,17 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
                   SizedBox(height: SizeConfig.paddingXSL),
 
                   _buildCategoryGrid(
-                    items: businessOnboardingFoodsCategories
-                        .where((item) => targetSlugs.contains(item.slugId))
-                        .toList(),
+                    // items: businessOnboardingFoodsCategories
+                    //     .where((item) => targetSlugs.contains(item.slugId))
+                    //     .toList(),
+                    items: businessOnboardingFoodsCategories,
                     getName: (item) => item.name,
                     getIcon: (item) => item.icon,
-                    onTap: (item) {
-
+                    onTap: (categoryItem) {
+                      navigateToGroceryStore(
+                          categoryData: categoryItem,
+                          isGrocery: false
+                      );
                     },
                   ),
 

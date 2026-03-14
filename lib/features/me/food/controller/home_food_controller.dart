@@ -24,7 +24,7 @@ class RestaurantController extends GetxController {
   //   super.onInit();
   // }
 
-  void fetchHomeData() async {
+  void fetchHomeData({required String businessId}) async {
     try {
       foodHomeDataResponse.value = ApiResponse.initial('Initial');
 
@@ -46,9 +46,9 @@ class RestaurantController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
+    } catch (e, s) {
       foodHomeDataResponse.value = ApiResponse.error('error');
-      log("ERROR===== $e");
+      log("Stack Trace===== $s");
     }
   }
 
@@ -130,7 +130,7 @@ class RestaurantController extends GetxController {
             message: response.response?.data['message'] ??
                 "Branch details added successfully");
         Get.back();
-        fetchHomeData();
+        fetchHomeData(businessId: businessId);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
