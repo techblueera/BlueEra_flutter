@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class FoodMainScreen extends StatefulWidget {
@@ -64,44 +65,51 @@ class _FoodMainScreenState extends State<FoodMainScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: AppColors.white,
-        body: SafeArea(
-            child:/* controller.hasSchool.value
-                ? */Column(
-              children: [
-                SizedBox(
-                  height: SizeConfig.size12,
-                ),
-                TabBar(
-                  controller: _tabController,
-                  labelColor: AppColors.mainTextColor,
-                  unselectedLabelColor: AppColors.secondaryTextColor,
-                  indicatorColor: AppColors.primaryColor,
-                  indicatorWeight: 4,
-                  tabAlignment: TabAlignment.fill,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontFamily: AppConstants.OpenSans),
-                  tabs: [
-                    Tab(text: AppStrings.home.tr),
-                    Tab(text: AppStrings.create.tr),
-                    Tab(text: AppStrings.statistics.tr),
-                  ],
-                ),
-                Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        RestaurantHomeScreen(),
-                        FoodCategoryMenuScreen(),
-                        ComingSoon(),
-                      ],
-                    ))
-              ],
-            )
-          /*  : SchoolNotCreateScreen(controller: controller),*/
-        ));
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark, // Android Black
+        statusBarBrightness: Brightness.light, // iOS Black
+      ),
+      child: Scaffold(
+          backgroundColor: AppColors.white,
+          body: SafeArea(
+              child:/* controller.hasSchool.value
+                  ? */Column(
+                children: [
+                  SizedBox(
+                    height: SizeConfig.size12,
+                  ),
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: AppColors.mainTextColor,
+                    unselectedLabelColor: AppColors.secondaryTextColor,
+                    indicatorColor: AppColors.primaryColor,
+                    indicatorWeight: 4,
+                    tabAlignment: TabAlignment.fill,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontFamily: AppConstants.OpenSans),
+                    tabs: [
+                      Tab(text: AppStrings.home.tr),
+                      Tab(text: AppStrings.create.tr),
+                      Tab(text: AppStrings.statistics.tr),
+                    ],
+                  ),
+                  Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          RestaurantHomeScreen(),
+                          FoodCategoryMenuScreen(),
+                          ComingSoon(),
+                        ],
+                      ))
+                ],
+              )
+            /*  : SchoolNotCreateScreen(controller: controller),*/
+          )),
+    );
   }
 }

@@ -323,7 +323,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildInfo(AppStrings.ratings.tr,
-                          "★ ${(widget.businessProfileDetails.rating ?? 0).toStringAsFixed(1)}"),
+                          "★ ${(widget.businessProfileDetails.avg_rating ?? 0).toStringAsFixed(1)}"),
                       SizedBox(
                         height: SizeConfig.size12,
                       ),

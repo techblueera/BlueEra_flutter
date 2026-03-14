@@ -1,20 +1,18 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductVariantBottomSheet extends StatelessWidget {
   final CategoryFoodProductData product;
@@ -89,18 +87,10 @@ class ProductVariantBottomSheet extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: CachedNetworkImage(
-            imageUrl: liveProduct.images?.firstOrNull ?? "",
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
-            errorWidget: (context, url, error) => Center(
-              child: LocalAssets(imagePath: AppIconAssets.foodIcon),
-            ),
-            placeholder: (context, url) => Container(color: Colors.grey[200]),
-          ),
+        ProductImageWidget(
+          imageUrl: liveProduct.images?.firstOrNull,
+          height: 60,
+          width: 60,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -113,34 +103,13 @@ class ProductVariantBottomSheet extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              ExpandableText(
-                text: liveProduct.description ?? AppStrings.na,
-                trimLines: 2,
-                isReadMoreNewLine: false,
-                expandMode: ExpandMode.dialog,
-                style: TextStyle(
-                  color: AppColors.secondaryTextColor,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: AppConstants.OpenSans,
-                ),
+              ProductDescriptionWidget(
+                description: liveProduct.description,
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  LocalAssets(
-                    imagePath: AppIconAssets.food_category,
-                    imgColor: liveProduct.dietaryType?.toLowerCase() == "veg"
-                        ? const Color(0xff008000)
-                        : AppColors.red00,
-                  ),
-                  const SizedBox(width: 5),
-                  Flexible(
-                    child: _tagWidget(
-                      (liveProduct.cookingMethod ?? []).join(', '),
-                    ),
-                  ),
-                ],
+              FoodDietaryAndTagRow(
+                dietaryType: product.dietaryType,
+                cookingMethods: product.cookingMethod,
               ),
             ],
           ),

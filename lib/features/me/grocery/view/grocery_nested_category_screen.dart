@@ -160,9 +160,9 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                   onTap: () {
                     final route = _isMyGrocery
                         ? RouteHelper
-                        .getGrocerySubCategoryScreenRoute()
+                        .getGroceryProductsSelectionScreenRoute()
                         : RouteHelper
-                        .getGroceryListingScreenRoute();
+                        .getGroceryCustomerListingScreenRoute();
 
                     Get.toNamed(
                       route,

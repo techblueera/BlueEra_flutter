@@ -2,20 +2,20 @@ import 'dart:convert';
 
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 
-MyFoodProductResponseModel myFoodProductResponseModelFromJson(String str) =>
-    MyFoodProductResponseModel.fromJson(json.decode(str));
+FoodProductResponseModel myFoodProductResponseModelFromJson(String str) =>
+    FoodProductResponseModel.fromJson(json.decode(str));
 
-String myFoodProductResponseModelToJson(MyFoodProductResponseModel data) =>
+String myFoodProductResponseModelToJson(FoodProductResponseModel data) =>
     json.encode(data.toJson());
 
-class MyFoodProductResponseModel {
+class FoodProductResponseModel {
   bool? success;
   List<MyFoodProductData>? data;
   Pagination? pagination;
 
-  MyFoodProductResponseModel({this.success, this.data, this.pagination});
+  FoodProductResponseModel({this.success, this.data, this.pagination});
 
-  MyFoodProductResponseModel.fromJson(Map<String, dynamic> json) {
+  FoodProductResponseModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     if (json['data'] != null) {
       data = <MyFoodProductData>[];

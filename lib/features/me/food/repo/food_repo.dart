@@ -171,5 +171,20 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  ///GET My FOOD Inventory With Product...
+  Future<ResponseModel> getUserFoodProductsCategoryIdRepo({
+    required Map<String, dynamic> queryParam,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      foodCustomerSearch,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
 }
 

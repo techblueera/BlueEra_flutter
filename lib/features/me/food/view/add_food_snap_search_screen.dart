@@ -45,7 +45,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: "Grocery Items",
+        title: "Food Items",
       ),
       bottomNavigationBar: _buildBottomPublishBar(),
       body: SafeArea(
@@ -183,6 +183,9 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
 
   Widget _buildProductList() {
     return Obx(() {
+
+      // if (controller.validSnapSearchImages.isEmpty) return SizedBox();
+
       final response = controller.foodSnapSearchResponse.value;
       final categoryList = controller.categoryFoodProductDataList;
       final searchData = controller.productSnapSearchData;

@@ -12,7 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
-import 'package:BlueEra/features/me/food/model/my_food_product_response_model.dart';
+import 'package:BlueEra/features/me/food/model/food_product_response_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
@@ -63,6 +63,9 @@ class FoodServiceController extends GetxController {
   RxMap<String, File?> foodSnapSearchImagesMap = <String, File?>{}.obs;
   int maxUploadImages = 2;
 
+  List<File> get validSnapSearchImages {
+    return foodSnapSearchImagesMap.values.whereType<File>().toList();
+  }
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected =
     await SelectProductImageDialog.showLogoDialog(Get.context!, title);
@@ -505,12 +508,8 @@ class FoodServiceController extends GetxController {
   }
 
   Future<void> fetchFoodSnapSearchApi() async {
-    final List<File> validImages = foodSnapSearchImagesMap.values
-        .where((file) => file != null)
-        .cast<File>()
-        .toList();
 
-    if (validImages.isEmpty) {
+    if (validSnapSearchImages.isEmpty) {
       commonSnackBar(message: "Please upload at least 1 photo");
       return;
     }
@@ -521,7 +520,7 @@ class FoodServiceController extends GetxController {
 
       List<dio.MultipartFile> imageByPart = [];
 
-      for (final file in validImages) {
+      for (final file in validSnapSearchImages) {
         final fileName = file.path.split('/').last;
         imageByPart.add(
           await dio.MultipartFile.fromFile(
@@ -697,7 +696,7 @@ class FoodServiceController extends GetxController {
           queryParam: queryParams,
           );
       if (response.isSuccess) {
-        var myFoodProductResponseModel = MyFoodProductResponseModel.fromJson(response.response?.data);
+        var myFoodProductResponseModel = FoodProductResponseModel.fromJson(response.response?.data);
 
         List<CategoryFoodProductData> newItems = (myFoodProductResponseModel.data ?? [])
             .where((item) => item.productDetails != null) // Filter out nulls for safety

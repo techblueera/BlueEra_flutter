@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -78,6 +79,7 @@ class NewStoreController extends GetxController{
   final ScrollController aiChatScrollController = ScrollController();
   RxBool chatBotReading = false.obs;
 
+  Rx<OnboardingCategoryModel?> selectedGroceryOrFoodCategoryData = Rx<OnboardingCategoryModel?>(null);
 
   // RxBool isBannerVisible = false.obs;
   RxBool isBannerVisible = true.obs;

@@ -81,8 +81,6 @@ class GroceryController extends GetxController {
 
   RxMap<String, List<VariantsData>> selectedProductVariants = <String, List<VariantsData>>{}.obs;
 
-  Rx<OnboardingCategoryModel?> selectedGroceryCategoryData = Rx<OnboardingCategoryModel?>(null);
-
   Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
   // RxList<FoundProducts> groceryFoundProducts = <FoundProducts>[].obs;
 

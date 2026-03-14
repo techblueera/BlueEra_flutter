@@ -6,6 +6,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/custom_add_button_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -37,19 +40,8 @@ class FoodProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Product Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: product.images?.firstOrNull ?? "",
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Center(
-                      child: LocalAssets(imagePath: AppIconAssets.foodIcon),
-                    ),
-                    placeholder: (context, url) =>
-                        Container(color: Colors.grey[200]),
-                  ),
+                ProductImageWidget(
+                  imageUrl: product.images?.firstOrNull,
                 ),
                 const SizedBox(width: 12),
 
@@ -64,35 +56,13 @@ class FoodProductCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      ExpandableText(
-                        text: product.description ?? AppStrings.na,
-                        trimLines: 2,
-                        isReadMoreNewLine: false,
-                        expandMode: ExpandMode.dialog,
-                        style: TextStyle(
-                          color: AppColors.secondaryTextColor,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppConstants.OpenSans,
-                        ),
+                      ProductDescriptionWidget(
+                        description: product.description,
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.food_category,
-                            imgColor: product.dietaryType?.toLowerCase() == "non-veg"
-                                ? AppColors.red00
-                                : const Color(0xff008000),
-                          ),
-                          const SizedBox(width: 5),
-                          // Flexible handles the joined list overflow
-                          Flexible(
-                            child: _tagWidget(
-                              (product.cookingMethod ?? []).join(', '),
-                            ),
-                          ),
-                        ],
+                      FoodDietaryAndTagRow(
+                        dietaryType: product.dietaryType,
+                        cookingMethods: product.cookingMethod,
                       ),
                     ],
                   ),

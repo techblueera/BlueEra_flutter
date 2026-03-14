@@ -7,6 +7,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -235,19 +238,8 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Product Image
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: product.images?.firstOrNull ?? "",
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => Center(
-                        child: LocalAssets(imagePath: AppIconAssets.foodIcon),
-                      ),
-                      placeholder: (context, url) =>
-                          Container(color: Colors.grey[200]),
-                    ),
+                  ProductImageWidget(
+                    imageUrl: product.images?.firstOrNull,
                   ),
                   const SizedBox(width: 12),
 
@@ -262,35 +254,13 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        ExpandableText(
-                          text: product.description ?? AppStrings.na,
-                          trimLines: 2,
-                          isReadMoreNewLine: false,
-                          expandMode: ExpandMode.dialog,
-                          style: TextStyle(
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
+                        ProductDescriptionWidget(
+                          description: product.description,
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            LocalAssets(
-                              imagePath: AppIconAssets.food_category,
-                              imgColor: product.dietaryType?.toLowerCase() == "non-veg"
-                                  ? AppColors.red00
-                                  : const Color(0xff008000),
-                            ),
-                            const SizedBox(width: 5),
-                            // Flexible handles the joined list overflow
-                            Flexible(
-                              child: _tagWidget(
-                                (product.cookingMethod ?? []).join(', '),
-                              ),
-                            ),
-                          ],
+                        FoodDietaryAndTagRow(
+                          dietaryType: product.dietaryType,
+                          cookingMethods: product.cookingMethod,
                         ),
                       ],
                     ),
@@ -300,32 +270,6 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
 
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tagWidget(String label) {
-    return FittedBox(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-            border: Border.all(color: AppColors.whiteE5),
-            borderRadius: BorderRadius.circular(4)),
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.boiled),
-            SizedBox(
-              width: 5,
-            ),
-            CustomText(
-              label,
-              color: AppColors.secondaryTextColor,
-              fontSize: 10,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
         ),
       ),
     );
@@ -370,19 +314,12 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: CachedNetworkImage(
-            imageUrl: liveProduct.images?.firstOrNull ?? "",
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
-            errorWidget: (context, url, error) => Center(
-              child: LocalAssets(imagePath: AppIconAssets.foodIcon),
-            ),
-            placeholder: (context, url) => Container(color: Colors.grey[200]),
-          ),
+        ProductImageWidget(
+          imageUrl: liveProduct.images?.firstOrNull,
+          width: 60,
+          height: 60,
         ),
+
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -394,34 +331,13 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              ExpandableText(
-                text: liveProduct.description ?? AppStrings.na,
-                trimLines: 2,
-                isReadMoreNewLine: false,
-                expandMode: ExpandMode.dialog,
-                style: TextStyle(
-                  color: AppColors.secondaryTextColor,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: AppConstants.OpenSans,
-                ),
+              ProductDescriptionWidget(
+                description: liveProduct.description,
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  LocalAssets(
-                    imagePath: AppIconAssets.food_category,
-                    imgColor: liveProduct.dietaryType?.toLowerCase() == "veg"
-                        ? const Color(0xff008000)
-                        : AppColors.red00,
-                  ),
-                  const SizedBox(width: 5),
-                  Flexible(
-                    child: _tagWidget(
-                      (liveProduct.cookingMethod ?? []).join(', '),
-                    ),
-                  ),
-                ],
+              FoodDietaryAndTagRow(
+                dietaryType: liveProduct.dietaryType,
+                cookingMethods: liveProduct.cookingMethod,
               ),
             ],
           ),

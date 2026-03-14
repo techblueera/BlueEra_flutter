@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:BlueEra/core/anim/auto_scroll_marquee.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -21,19 +20,19 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../../widgets/local_assets.dart';
 
-class GrocerySubCategoryScreen extends StatefulWidget {
+class GroceryProductsSelectionScreen extends StatefulWidget {
   final List<GroceryNestedCategoryModel> arrGroceries;
 
-   GrocerySubCategoryScreen({
+   GroceryProductsSelectionScreen({
      super.key,
      required this.arrGroceries,
    });
 
   @override
-  State<GrocerySubCategoryScreen> createState() => _GrocerySubCategoryScreenState();
+  State<GroceryProductsSelectionScreen> createState() => _GroceryProductsSelectionScreenState();
 }
 
-class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
+class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectionScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
 

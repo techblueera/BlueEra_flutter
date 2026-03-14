@@ -511,7 +511,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       buildInfo("${AppStrings.ratings.tr}",
-                                          "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+                                          "★ ${(details?.avg_rating ?? 0).toStringAsFixed(1)}"),
                                       SizedBox(height: SizeConfig.size12),
                                       buildInfo("${AppStrings.view.tr}",
                                           "${formatIndianNumber(details?.total_views ?? 0)}"),

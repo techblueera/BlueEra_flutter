@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_home_profile_header.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -15,7 +16,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/api/model/new_food_home_res_model.dart';
 
 class DiscoverFoodHomeScreen extends StatelessWidget {
@@ -39,8 +39,9 @@ class DiscoverFoodHomeScreen extends StatelessWidget {
             CommonCardWidget(
               cardMargin: SizeConfig.size10,
               padding: 0,
-              child: FoodHomeProfileHeaderReadOnly(
-                businessProfile: data.businessProfile,
+              child: FoodHomeProfileHeader(
+                details: data.businessProfile,
+                controller: Get.find<ViewBusinessDetailsController>(),
               ),
             ),
 

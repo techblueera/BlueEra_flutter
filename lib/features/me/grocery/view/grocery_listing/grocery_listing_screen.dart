@@ -10,7 +10,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:BlueEra/features/me/grocery/controller/user_grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -25,22 +25,22 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GroceryListingScreen extends StatefulWidget {
+class GroceryCustomerListingScreen extends StatefulWidget {
   final List<GroceryNestedCategoryModel> arrGroceries;
   // final GroceryNestedCategoryModel selectedGroceryData;
 
-  GroceryListingScreen(
+  GroceryCustomerListingScreen(
       {super.key,
       required this.arrGroceries,
       // required this.selectedGroceryData
       });
 
   @override
-  State<GroceryListingScreen> createState() => _GroceryListingScreenState();
+  State<GroceryCustomerListingScreen> createState() => _GroceryCustomerListingScreenState();
 }
 
-class _GroceryListingScreenState extends State<GroceryListingScreen> {
-  final controller = getOrPut(() => UserGroceryController());
+class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScreen> {
+  final controller = getOrPut(() => GroceryCustomerController());
   final ScrollController scrollController = ScrollController();
 
   @override
