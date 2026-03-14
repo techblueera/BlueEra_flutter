@@ -108,6 +108,27 @@ class CallActivityService {
     }
   }
 
+  /// Close CallActivity and remove from Recents
+  static Future<void> closeCallActivity() async {
+    if (!Platform.isAndroid) {
+      if (kDebugMode) {
+        print("CallActivityService: closeCallActivity only works on Android");
+      }
+      return;
+    }
+
+    try {
+      if (kDebugMode) {
+        print("CallActivityService: closing CallActivity");
+      }
+      await _bridgeChannel.invokeMethod('closeCallActivity');
+    } catch (e) {
+      if (kDebugMode) {
+        print("CallActivityService closeCallActivity error: $e");
+      }
+    }
+  }
+
   /// Close CallActivity when call ends
   static Future<void> finishCallActivity() async {
     try {

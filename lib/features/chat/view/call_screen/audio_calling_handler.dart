@@ -12,6 +12,12 @@ import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/service/call_pip_service.dart';
 
+// ══════════════════════════════════════════════════════════════════════════════
+// CallRoomScreen — Unified call screen for both incoming and outgoing calls.
+// Handles: ringing (outgoing/incoming), connecting, active audio, active video,
+// group call, and PiP mode.
+// ══════════════════════════════════════════════════════════════════════════════
+
 class CallRoomScreen extends StatefulWidget {
   const CallRoomScreen({super.key});
 
@@ -20,12 +26,12 @@ class CallRoomScreen extends StatefulWidget {
 }
 
 class _CallRoomScreenState extends State<CallRoomScreen>
-    with TickerProviderStateMixin  {
+    with TickerProviderStateMixin {
   late Worker _callStatusWorker;
   late Worker _switchTypeWorker;
   final AudioPlayer _ringbackPlayer = AudioPlayer();
 
-  // Ripple animation controllers (staggered)
+  // Ripple animation controllers (staggered — used for outgoing ringing view)
   late AnimationController _ripple1Controller;
   late AnimationController _ripple2Controller;
   late AnimationController _ripple3Controller;
@@ -36,6 +42,10 @@ class _CallRoomScreenState extends State<CallRoomScreen>
   late Animation<double> _ripple2Opacity;
   late Animation<double> _ripple3Scale;
   late Animation<double> _ripple3Opacity;
+
+  // Incoming-call specific animations
+  late AnimationController _pulseController;
+  late AnimationController _ringController;
 
   // Draggable local video position
   double _localVideoX = -1;
@@ -48,6 +58,9 @@ class _CallRoomScreenState extends State<CallRoomScreen>
   // Controls visibility (tap to toggle in video call)
   bool _showControls = true;
 
+  // Incoming call accepting state
+  bool _isAccepting = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +69,7 @@ class _CallRoomScreenState extends State<CallRoomScreen>
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
 
-    // --- Ripple animations (staggered by 600ms) ---
+    // --- Outgoing ripple animations (staggered by 600ms) ---
     _ripple1Controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -98,12 +111,28 @@ class _CallRoomScreenState extends State<CallRoomScreen>
       CurvedAnimation(parent: _ripple3Controller, curve: Curves.easeOut),
     );
 
+    // --- Incoming pulse/ring animations ---
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+
+    _ringController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+
     final controller = Get.find<CallController>();
 
-    // Play ringback for outgoing calls
-    if (controller.callStatus.value == CallStatus.outgoing ||
-        controller.callStatus.value == CallStatus.ringing) {
-      _playRingback();
+    // Play ringback/ringtone based on caller state
+    if (controller.isCaller.value) {
+      if (controller.callStatus.value == CallStatus.outgoing ||
+          controller.callStatus.value == CallStatus.ringing) {
+        _playRingback();
+      }
+    } else {
+      _playRingtone();
+      HapticFeedback.heavyImpact();
     }
 
     // Watch call status changes
@@ -119,6 +148,10 @@ class _CallRoomScreenState extends State<CallRoomScreen>
         _ripple1Controller.stop();
         _ripple2Controller.stop();
         _ripple3Controller.stop();
+      }
+      // For incoming: stop ringtone on idle/connected
+      if (status == CallStatus.idle || status == CallStatus.connected) {
+        _stopRingtone();
       }
     });
 
@@ -157,6 +190,17 @@ class _CallRoomScreenState extends State<CallRoomScreen>
     } catch (_) {}
   }
 
+  Future<void> _playRingtone() async {
+    try {
+      await _ringbackPlayer.setReleaseMode(ReleaseMode.loop);
+      await _ringbackPlayer.play(AssetSource('sound/iphone_tone.mp3'));
+    } catch (_) {}
+  }
+
+  void _stopRingtone() {
+    _ringbackPlayer.stop();
+  }
+
   @override
   void dispose() {
     _callStatusWorker.dispose();
@@ -164,6 +208,8 @@ class _CallRoomScreenState extends State<CallRoomScreen>
     _ripple1Controller.dispose();
     _ripple2Controller.dispose();
     _ripple3Controller.dispose();
+    _pulseController.dispose();
+    _ringController.dispose();
     _ringbackPlayer.stop();
     _ringbackPlayer.dispose();
     CallPipService.dispose();
@@ -196,13 +242,24 @@ class _CallRoomScreenState extends State<CallRoomScreen>
           final isConnected = status == CallStatus.connected;
           final isVideo = controller.callType.value == CallType.video;
           final isGroup = controller.isGroupCall.value;
+          final isCaller = controller.isCaller.value;
 
           // PiP mode
           if (_isInPipMode) {
             return _buildPipModeView(controller, isVideo);
           }
 
-          // Ringing/Outgoing state
+          // Incoming call ringing state — show incoming UI with accept/decline
+          if (!isCaller &&
+              !isConnected &&
+              status != CallStatus.connecting &&
+              status != CallStatus.accepting &&
+              status != CallStatus.ended &&
+              status != CallStatus.idle) {
+            return _buildIncomingCallView(controller);
+          }
+
+          // Outgoing ringing state
           if (!isConnected &&
               status != CallStatus.connecting &&
               status != CallStatus.accepting) {
@@ -239,6 +296,347 @@ class _CallRoomScreenState extends State<CallRoomScreen>
           // Active call — audio
           return _buildAudioCallView(controller);
         }),
+      ),
+    );
+  }
+
+  // ==================== INCOMING CALL VIEW ====================
+
+  Widget _buildIncomingCallView(CallController controller) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF1A2E35),
+            Color(0xFF0F1F27),
+            Color(0xFF0B141A),
+          ],
+          stops: [0.0, 0.5, 1.0],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            // Encryption label
+            _buildIncomingEncryptionLabel(),
+            const SizedBox(height: 16),
+            // Caller info
+            Obx(() => Text(
+                  controller.callerName.value.isNotEmpty
+                      ? controller.callerName.value
+                      : 'Unknown',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'OpenSans',
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                )),
+            const SizedBox(height: 6),
+            Obx(() => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      controller.callType.value == CallType.video
+                          ? Icons.videocam_rounded
+                          : Icons.phone_rounded,
+                      color: const Color(0xFF8696A0),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      controller.callType.value == CallType.video
+                          ? 'BlueEra Video Call'
+                          : 'BlueEra Voice Call',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF8696A0),
+                        fontFamily: 'OpenSans',
+                      ),
+                    ),
+                  ],
+                )),
+
+            // Avatar with ripple rings
+            Expanded(
+              child: Center(
+                child: Obx(() => _buildIncomingRippleAvatar(controller)),
+              ),
+            ),
+
+            // Bottom section: Decline + Accept buttons or Connecting...
+            _buildIncomingBottomActions(controller),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIncomingEncryptionLabel() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.lock_outline_rounded,
+            color: Colors.white.withValues(alpha: 0.35), size: 13),
+        const SizedBox(width: 4),
+        Text(
+          'End-to-end encrypted',
+          style: TextStyle(
+            fontSize: 11,
+            fontFamily: 'OpenSans',
+            color: Colors.white.withValues(alpha: 0.35),
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIncomingRippleAvatar(CallController controller) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return SizedBox(
+          width: 220,
+          height: 220,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer ripple rings
+              for (int i = 0; i < 3; i++) _buildIncomingRippleRing(i),
+              // Avatar
+              child!,
+            ],
+          ),
+        );
+      },
+      child: Container(
+        width: 120,
+        height: 120,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00A884).withValues(alpha: 0.2),
+              blurRadius: 30,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: CircleAvatar(
+          radius: 60,
+          backgroundColor: const Color(0xFF2A3942),
+          backgroundImage: controller.callerImage.value.isNotEmpty
+              ? CachedNetworkImageProvider(controller.callerImage.value)
+              : null,
+          child: controller.callerImage.value.isEmpty
+              ? const Icon(Icons.person_rounded,
+                  size: 60, color: Color(0xFF8696A0))
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIncomingRippleRing(int index) {
+    final delay = index * 0.33;
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, _) {
+        double progress = (_pulseController.value + delay) % 1.0;
+        double size = 120 + (progress * 100);
+        double opacity = (1.0 - progress) * 0.4;
+
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFF00A884).withValues(alpha: opacity),
+              width: 1.5,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildIncomingBottomActions(CallController controller) {
+    return Obx(() {
+      final isAccepting = controller.callStatus.value == CallStatus.accepting;
+
+      if (isAccepting || _isAccepting) {
+        return Column(
+          children: [
+            const SizedBox(
+              width: 48,
+              height: 48,
+              child: CircularProgressIndicator(
+                color: Color(0xFF00A884),
+                strokeWidth: 2.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Connecting...',
+              style: TextStyle(
+                color: Color(0xFF8696A0),
+                fontSize: 14,
+                fontFamily: 'OpenSans',
+              ),
+            ),
+          ],
+        );
+      }
+
+      return Column(
+        children: [
+          // Quick action row (Message)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 60),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSmallAction(
+                  icon: Icons.message_rounded,
+                  label: 'Message',
+                  onTap: () {
+                    _stopRingtone();
+                    controller.declineCall();
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 36),
+          // Accept / Decline buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Decline
+                _buildIncomingCallButton(
+                  icon: Icons.call_end_rounded,
+                  color: const Color(0xFFEA4335),
+                  label: 'Decline',
+                  onTap: () {
+                    _stopRingtone();
+                    controller.declineCall();
+                  },
+                ),
+                // Accept
+                _buildIncomingCallButton(
+                  icon: controller.callType.value == CallType.video
+                      ? Icons.videocam_rounded
+                      : Icons.call_rounded,
+                  color: const Color(0xFF00A884),
+                  label: 'Accept',
+                  onTap: () async {
+                    _stopRingtone();
+                    setState(() => _isAccepting = true);
+                    final accepted = await controller.acceptCall();
+                    if (!accepted) {
+                      setState(() => _isAccepting = false);
+                    }
+                  },
+                  isAccept: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildSmallAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.1),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 11,
+              fontFamily: 'OpenSans',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncomingCallButton({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required VoidCallback onTap,
+    bool isAccept = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          AnimatedBuilder(
+            animation: _ringController,
+            builder: (context, child) {
+              // Only animate the accept button with a gentle bounce
+              if (!isAccept) return child!;
+              final scale = 1.0 + (_ringController.value * 0.08);
+              return Transform.scale(scale: scale, child: child);
+            },
+            child: Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 32),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'OpenSans',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1762,4 +2160,16 @@ class _ContactItem {
     required this.name,
     required this.image,
   });
+}
+
+// ── Legacy aliases for backward compatibility ────────────────
+// IncomingCallScreen is now handled within CallRoomScreen.
+// This typedef ensures existing route references continue to work.
+class IncomingCallScreen extends StatelessWidget {
+  const IncomingCallScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const CallRoomScreen();
+  }
 }

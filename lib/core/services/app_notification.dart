@@ -492,7 +492,6 @@ class AppNotificationHandler {
 
     // Handle incoming call - show native call UI, don't show regular notification
     if (operation == 'incoming_call') {
-      _handleIncomingCallPush(message);
       return;
     }
 

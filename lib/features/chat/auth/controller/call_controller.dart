@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
@@ -29,7 +30,15 @@ import '../socket/chat_socket.dart';
 
 enum CallType { audio, video }
 
-enum CallStatus { idle, ringing, accepting, outgoing, connecting, connected, ended }
+enum CallStatus {
+  idle,
+  ringing,
+  accepting,
+  outgoing,
+  connecting,
+  connected,
+  ended
+}
 
 class CallController extends GetxController {
   final CallRepo _callRepo = CallRepo();
@@ -117,6 +126,22 @@ class CallController extends GetxController {
     _killedStateAcceptHandled = true;
   }
 
+  /// Mark this session as a cold-start call (app launched only to handle call).
+  /// Sets launchedForCall so MyApp shows CallRoomScreen immediately.
+  static void markColdStartCall() {
+    _coldStartCall = true;
+    launchedForCall.value = true;
+  }
+
+  /// Reset cold-start state when call accept fails (e.g. call expired / 404).
+  /// Prevents the app from staying stuck on CallRoomScreen.
+  static void _resetColdStartIfNeeded() {
+    if (_coldStartCall) {
+      _coldStartCall = false;
+      launchedForCall.value = false;
+    }
+  }
+
   bool _disposed = false;
 
   @override
@@ -125,7 +150,6 @@ class CallController extends GetxController {
     _socket = ChatSocketService();
     _setupCallSocketListeners();
     _setupCallKitListeners();
-
   }
 
   @override
@@ -135,7 +159,6 @@ class CallController extends GetxController {
     _cleanup();
     super.onClose();
   }
-
 
   // ==================== SOCKET EVENT LISTENERS ====================
 
@@ -271,7 +294,8 @@ class CallController extends GetxController {
         return false;
       }
     } catch (e) {
-      if (kDebugMode) print('Permission request error (may already be in progress): $e');
+      if (kDebugMode)
+        print('Permission request error (may already be in progress): $e');
     }
 
     final params = <String, dynamic>{
@@ -333,7 +357,6 @@ class CallController extends GetxController {
     // Keep screen on & enable PiP
     WakelockPlus.enable();
 
-
     return true;
   }
 
@@ -366,7 +389,7 @@ class CallController extends GetxController {
   /// Accept an incoming call.
   /// On Android (main engine): does API accept, then launches CallActivity for WebRTC.
   /// On CallActivity engine: does full accept (API + WebRTC).
-  Future<bool> acceptCall({String? callIdParams,String? roomIdParams}) async {
+  Future<bool> acceptCall({String? callIdParams, String? roomIdParams}) async {
     // Prevent double accept (multiple CallKit listeners may fire)
     if (callStatus.value == CallStatus.accepting ||
         callStatus.value == CallStatus.connecting ||
@@ -375,8 +398,8 @@ class CallController extends GetxController {
     }
     // Immediately transition to accepting so call:answered-elsewhere
     // won't reset our state while we're in the middle of accepting
-    final savedCallId = callIdParams==null?callId.value:callIdParams;
-    final savedRoomId = roomIdParams==null?roomId.value:roomIdParams;
+    final savedCallId = (callIdParams == null||callIdParams.isEmpty) ? callId.value : callIdParams;
+    final savedRoomId = (roomIdParams == null||roomIdParams.isEmpty) ? roomId.value : roomIdParams;
     final savedRemoteUserId = _remoteUserId;
     final savedPendingOffer = _pendingOffer;
     callStatus.value = CallStatus.accepting;
@@ -388,7 +411,8 @@ class CallController extends GetxController {
       if (callType.value == CallType.video) permissions.add(Permission.camera);
       await permissions.request();
     } catch (e) {
-      if (kDebugMode) print('Permission request error (may already be in progress): $e');
+      if (kDebugMode)
+        print('Permission request error (may already be in progress): $e');
     }
 
     ResponseModel response = await _callRepo.acceptCall({
@@ -399,16 +423,25 @@ class CallController extends GetxController {
     if (!response.isSuccess) {
       final statusCode = response.response?.statusCode;
       if (statusCode == 404) {
-        commonSnackBar(message: 'Call is no longer available');
+        commonSnackBar(message: 'Call is no longer available ${statusCode}');
       } else {
         commonSnackBar(message: response.message ?? 'Failed to accept call');
       }
       _cleanup();
+      // Reset cold-start state so the app doesn't stay stuck on CallRoomScreen
+      _resetColdStartIfNeeded();
       return false;
     }
 
     final data = response.response?.data;
     final iceServersJson = data?['ice_servers'] ?? {};
+
+    // Dismiss only the specific CallKit incoming call UI after API accept succeeds.
+    // Using endCall(callId) instead of endAllCalls() to avoid triggering
+    // actionCallEnded event which could prematurely terminate the call.
+    try {
+      await FlutterCallkitIncoming.endCall(savedCallId);
+    } catch (_) {}
 
     // --- Android main engine: launch CallActivity to handle WebRTC ---
     if (Platform.isAndroid && !isCallActivityEngine) {
@@ -443,9 +476,11 @@ class CallController extends GetxController {
     //   Get.offNamed('/CallRoomScreen');
     // }
 
-    // Ensure socket is connected (CallActivity engine has its own socket)
+    // Ensure socket is connected and wait for it (killed-state accept may
+    // start before socket is ready — without waiting, emitEvent is lost)
     if (!_socket.isConnected) {
       _socket.connectToSocket();
+      await _waitForSocketConnection();
     }
 
     // Show ongoing notification immediately to keep app in foreground
@@ -455,43 +490,50 @@ class CallController extends GetxController {
     _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
 
     // Setup local media — signal when ready so offer handler can wait
-    _mediaReadyCompleter = Completer<void>();
-    await _setupLocalMedia();
-    if (!_mediaReadyCompleter!.isCompleted) {
-      _mediaReadyCompleter!.complete();
-    }
+    try {
+      _mediaReadyCompleter = Completer<void>();
+      await _setupLocalMedia();
+      if (!_mediaReadyCompleter!.isCompleted) {
+        _mediaReadyCompleter!.complete();
+      }
 
-    // If we received an SDP offer while ringing/accepting, process it now
-    final offerToProcess = _pendingOffer ?? savedPendingOffer;
-    if (offerToProcess != null && savedRemoteUserId != null) {
-      final pc = await _createPeerConnection(savedRemoteUserId);
-      final sdp = RTCSessionDescription(
-        offerToProcess['sdp'],
-        offerToProcess['type'],
-      );
-      await pc.setRemoteDescription(sdp);
-      await _flushPendingCandidates(savedRemoteUserId);
+      // If we received an SDP offer while ringing/accepting, process it now
+      final offerToProcess = _pendingOffer ?? savedPendingOffer;
+      if (offerToProcess != null && savedRemoteUserId != null) {
+        final pc = await _createPeerConnection(savedRemoteUserId);
+        final sdp = RTCSessionDescription(
+          offerToProcess['sdp'],
+          offerToProcess['type'],
+        );
+        await pc.setRemoteDescription(sdp);
+        await _flushPendingCandidates(savedRemoteUserId);
 
-      final answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      _socket.emitEvent('call:answer', {
-        'room_id': savedRoomId,
-        'target_user_id': savedRemoteUserId,
-        'sdp': {'sdp': answer.sdp, 'type': answer.type},
-      });
-      _pendingOffer = null;
-    } else if (savedRemoteUserId != null) {
-      // No pending offer — the caller's offer was missed.
-      // Create our own offer so the caller can respond with an answer.
-      final pc = await _createPeerConnection(savedRemoteUserId);
-      final offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+        final answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        _socket.emitEvent('call:answer', {
+          'room_id': savedRoomId,
+          'target_user_id': savedRemoteUserId,
+          'sdp': {'sdp': answer.sdp, 'type': answer.type},
+        });
+        _pendingOffer = null;
+      } else if (savedRemoteUserId != null) {
+        // No pending offer — the caller's offer was missed.
+        // Create our own offer so the caller can respond with an answer.
+        final pc = await _createPeerConnection(savedRemoteUserId);
+        final offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-      _socket.emitEvent('call:offer', {
-        'room_id': savedRoomId,
-        'target_user_id': savedRemoteUserId,
-        'sdp': {'sdp': offer.sdp, 'type': offer.type},
-      });
+        _socket.emitEvent('call:offer', {
+          'room_id': savedRoomId,
+          'target_user_id': savedRemoteUserId,
+          'sdp': {'sdp': offer.sdp, 'type': offer.type},
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('acceptCall WebRTC error: $e');
+      debugPrint(stack.toString());
+      _cleanup();
+      return false;
     }
 
     // Keep screen on
@@ -504,6 +546,7 @@ class CallController extends GetxController {
   }
 
   Timer? _connectionTimer;
+  Timer? _peerDisconnectTimer;
 
   void _startConnectionTimeout() {
     _connectionTimer?.cancel();
@@ -554,26 +597,33 @@ class CallController extends GetxController {
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
 
     // Setup local media
-    _mediaReadyCompleter = Completer<void>();
-    await _setupLocalMedia();
-    if (!_mediaReadyCompleter!.isCompleted) {
-      _mediaReadyCompleter!.complete();
-    }
+    try {
+      _mediaReadyCompleter = Completer<void>();
+      await _setupLocalMedia();
+      if (!_mediaReadyCompleter!.isCompleted) {
+        _mediaReadyCompleter!.complete();
+      }
 
-    // Create peer connection and send offer to the caller.
-    // The CallActivity engine boots after the caller already sent its offer
-    // (which was missed because this socket wasn't connected yet).
-    // So the receiver initiates the WebRTC handshake from its side.
-    if (remoteUserId.isNotEmpty) {
-      final pc = await _createPeerConnection(remoteUserId);
-      final offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      // Create peer connection and send offer to the caller.
+      // The CallActivity engine boots after the caller already sent its offer
+      // (which was missed because this socket wasn't connected yet).
+      // So the receiver initiates the WebRTC handshake from its side.
+      if (remoteUserId.isNotEmpty) {
+        final pc = await _createPeerConnection(remoteUserId);
+        final offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-      _socket.emitEvent('call:offer', {
-        'room_id': roomId.value,
-        'target_user_id': remoteUserId,
-        'sdp': {'sdp': offer.sdp, 'type': offer.type},
-      });
+        _socket.emitEvent('call:offer', {
+          'room_id': roomId.value,
+          'target_user_id': remoteUserId,
+          'sdp': {'sdp': offer.sdp, 'type': offer.type},
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('setupAcceptedCall WebRTC error: $e');
+      debugPrint(stack.toString());
+      _cleanup();
+      return false;
     }
 
     // Keep screen on
@@ -597,39 +647,67 @@ class CallController extends GetxController {
   /// Decline an incoming call
   Future<void> declineCall() async {
     if (callStatus.value == CallStatus.idle) return;
-    await _callRepo.declineCall({
-      'call_id': callId.value,
-      'room_id': roomId.value,
-    });
+
+    final savedCallId = callId.value;
+    final savedRoomId = roomId.value;
+
+    // Notify server first, then cleanup
+    if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
+      await _callRepo.declineCall({
+        'call_id': savedCallId,
+        'room_id': savedRoomId,
+      });
+    }
+
     _cleanup();
     _navigateBackFromCallScreen();
   }
 
   /// Cancel an outgoing call (before anyone answers)
   Future<void> cancelCall() async {
-    _ringTimer?.cancel();
-    await _callRepo.cancelCall({
-      'call_id': callId.value,
-      'room_id': roomId.value,
-    });
-    _socket.emitEvent('call:leave-room', {
-      'room_id': roomId.value,
-      'call_id': callId.value,
-    });
+    if (callStatus.value == CallStatus.idle) return;
+
+    final savedCallId = callId.value;
+    final savedRoomId = roomId.value;
+
+    // Notify server first, then cleanup
+    if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
+      await _callRepo.cancelCall({
+        'call_id': savedCallId,
+        'room_id': savedRoomId,
+      });
+      _socket.emitEvent('call:leave-room', {
+        'room_id': savedRoomId,
+        'call_id': savedCallId,
+      });
+    }
+
     _cleanup();
     _navigateBackFromCallScreen();
   }
 
   /// End an active call
   Future<void> endCall() async {
-    await _callRepo.endCall({
-      'call_id': callId.value,
-      'room_id': roomId.value,
-    });
-    _socket.emitEvent('call:leave-room', {
-      'room_id': roomId.value,
-      'call_id': callId.value,
-    });
+    // Guard: skip if already idle (prevents re-entrant calls from CallKit events)
+    if (callStatus.value == CallStatus.idle) return;
+
+    // Capture IDs before cleanup clears them
+    final savedCallId = callId.value;
+    final savedRoomId = roomId.value;
+
+    // Notify server first so remote side gets proper signaling teardown
+    if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
+      await _callRepo.endCall({
+        'call_id': savedCallId,
+        'room_id': savedRoomId,
+      });
+      _socket.emitEvent('call:leave-room', {
+        'room_id': savedRoomId,
+        'call_id': savedCallId,
+      });
+    }
+
+    // Then cleanup local resources
     _cleanup();
     _navigateBackFromCallScreen();
   }
@@ -676,6 +754,7 @@ class CallController extends GetxController {
 
   void _handleCallCancelled(dynamic data) {
     if (isCallActivityActive && !isCallActivityEngine) return;
+    if (callStatus.value == CallStatus.idle) return;
     FlutterCallkitIncoming.endCall(callId.value);
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
@@ -683,6 +762,7 @@ class CallController extends GetxController {
 
   void _handleCallEnded(dynamic data) {
     if (isCallActivityActive && !isCallActivityEngine) return;
+    if (callStatus.value == CallStatus.idle) return;
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
@@ -690,7 +770,6 @@ class CallController extends GetxController {
   void _handleAnsweredElsewhere(dynamic data) {
     // Only dismiss if still ringing - do NOT reset if accepting or active
     if (callStatus.value != CallStatus.ringing) return;
-
     FlutterCallkitIncoming.endCall(callId.value);
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
@@ -720,6 +799,7 @@ class CallController extends GetxController {
       return;
     }
     final route = Get.currentRoute;
+    if (kDebugMode) print('_navigateBackFromCallScreen: currentRoute=$route');
     if (route == '/CallRoomScreen' ||
         route == '/ActiveCallScreen' ||
         route == '/OutgoingCallScreen' ||
@@ -750,21 +830,24 @@ class CallController extends GetxController {
     // Wait for local media to be ready before creating peer connection
     // (offer can arrive while _setupLocalMedia is still running)
     if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
-      await _mediaReadyCompleter!.future;
+      try {
+        await _mediaReadyCompleter!.future;
+      } catch (e) {
+        debugPrint('Media setup failed, cannot handle offer: $e');
+        return;
+      }
     }
 
-    final pc = peerConnections[fromUserId] ??
-        await _createPeerConnection(fromUserId);
+    final pc =
+        peerConnections[fromUserId] ?? await _createPeerConnection(fromUserId);
 
-    final sdp =
-        RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
+    final sdp = RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
 
     // Handle offer glare: if we already sent an offer (have-local-offer),
     // rollback our offer and accept the remote one instead.
     if (pc.signalingState ==
         RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-      await pc.setLocalDescription(
-          RTCSessionDescription(null, 'rollback'));
+      await pc.setLocalDescription(RTCSessionDescription(null, 'rollback'));
     }
 
     await pc.setRemoteDescription(sdp);
@@ -794,8 +877,7 @@ class CallController extends GetxController {
       return;
     }
 
-    final sdp =
-        RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
+    final sdp = RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
     await pc.setRemoteDescription(sdp);
 
     // Flush buffered ICE candidates
@@ -900,7 +982,8 @@ class CallController extends GetxController {
     final alreadyInCall = List<String>.from(data['already_in_call'] ?? []);
 
     if (busyUsers.isNotEmpty) {
-      commonSnackBar(message: '${busyUsers.length} user(s) are on another call');
+      commonSnackBar(
+          message: '${busyUsers.length} user(s) are on another call');
     }
     if (addedUsers.isNotEmpty) {
       commonSnackBar(message: '${addedUsers.length} user(s) added to call');
@@ -918,14 +1001,16 @@ class CallController extends GetxController {
   Future<void> switchCallType() async {
     if (callId.value.isEmpty || roomId.value.isEmpty) return;
 
-    final currentType = callType.value == CallType.video ? 'video_call' : 'audio_call';
+    final currentType =
+        callType.value == CallType.video ? 'video_call' : 'audio_call';
     final newType = currentType == 'audio_call' ? 'video_call' : 'audio_call';
 
     // If switching to video, request camera permission first
     if (newType == 'video_call') {
       final status = await Permission.camera.request();
       if (!status.isGranted) {
-        commonSnackBar(message: 'Camera permission required to switch to video');
+        commonSnackBar(
+            message: 'Camera permission required to switch to video');
         return;
       }
     }
@@ -1074,27 +1159,44 @@ class CallController extends GetxController {
     await _setupLocalMedia();
     WakelockPlus.enable();
 
-
     return true;
   }
 
   // ==================== WEBRTC SETUP ====================
 
   Future<void> _setupLocalMedia() async {
-    localRenderer = RTCVideoRenderer();
-    await localRenderer!.initialize();
-
     final isVideo = callType.value == CallType.video;
-    localStream = await navigator.mediaDevices.getUserMedia({
-      'audio': true,
-      'video': isVideo
-          ? {'facingMode': 'user', 'width': 640, 'height': 480}
-          : false,
-    });
 
-    localRenderer!.srcObject = localStream;
+    // Sync isCameraOn with actual media state (fixes video:true on audio calls)
+    isCameraOn.value = isVideo;
 
-    // For audio calls, default speaker off
+    try {
+      // Only create video renderer for video calls
+      if (isVideo) {
+        localRenderer = RTCVideoRenderer();
+        await localRenderer!.initialize();
+      }
+
+      localStream = await navigator.mediaDevices.getUserMedia({
+        'audio': true,
+        'video': isVideo
+            ? {'facingMode': 'user', 'width': 640, 'height': 480}
+            : false,
+      });
+
+      if (isVideo && localRenderer != null) {
+        localRenderer!.srcObject = localStream;
+      }
+    } catch (e, stack) {
+      debugPrint('_setupLocalMedia error: $e');
+      debugPrint(stack.toString());
+      if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
+        _mediaReadyCompleter!.completeError(e);
+      }
+      rethrow;
+    }
+
+    // Speaker defaults
     if (!isVideo) {
       isSpeakerOn.value = false;
       _setSpeakerphone(false);
@@ -1152,6 +1254,7 @@ class CallController extends GetxController {
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
           _connectionTimer?.cancel();
+          _peerDisconnectTimer?.cancel();
           callStatus.value = CallStatus.connected;
           _startCallTimer();
           break;
@@ -1159,7 +1262,6 @@ class CallController extends GetxController {
           endCall();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
-          // Temporary - may reconnect
           if (kDebugMode) print('WebRTC: Peer disconnected (may reconnect)');
           break;
         default:
@@ -1244,9 +1346,7 @@ class CallController extends GetxController {
     if (!response.isSuccess) return [];
     final data = response.response?.data;
     if (data == null || data['calls'] == null) return [];
-    return (data['calls'] as List)
-        .map((c) => CallModel.fromJson(c))
-        .toList();
+    return (data['calls'] as List).map((c) => CallModel.fromJson(c)).toList();
   }
 
   // ==================== UTILITY ====================
@@ -1331,7 +1431,9 @@ class CallController extends GetxController {
     try {
       final name = callerName.value.isNotEmpty
           ? callerName.value
-          : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Connecting');
+          : (remoteUserName.value.isNotEmpty
+              ? remoteUserName.value
+              : 'Connecting');
       final isVideo = callType.value == CallType.video;
 
       final androidDetails = AndroidNotificationDetails(
@@ -1382,7 +1484,9 @@ class CallController extends GetxController {
     try {
       final name = callerName.value.isNotEmpty
           ? callerName.value
-          : (remoteUserName.value.isNotEmpty ? remoteUserName.value : 'Unknown');
+          : (remoteUserName.value.isNotEmpty
+              ? remoteUserName.value
+              : 'Unknown');
       final duration = formattedCallDuration;
       final isVideo = callType.value == CallType.video;
 
@@ -1431,13 +1535,34 @@ class CallController extends GetxController {
   }
 
   void _cleanup() {
+    // --- 1. Cancel all timers immediately ---
     _callTimer?.cancel();
+    _callTimer = null;
     _ringTimer?.cancel();
+    _ringTimer = null;
     _connectionTimer?.cancel();
+    _connectionTimer = null;
+    _peerDisconnectTimer?.cancel();
+    _peerDisconnectTimer = null;
+
+    // --- 2. Cancel all notifications & overlays ---
     _cancelOngoingNotification();
     OverlayService.closeOverlay();
 
-    // Stop local tracks
+    // Cancel ALL local notifications (ongoing call, missed call, etc.)
+    try {
+      _notificationPlugin.cancelAll();
+    } catch (_) {}
+
+    // --- 3. End the specific CallKit call (avoid endAllCalls which triggers actionCallEnded) ---
+    try {
+      final cid = callId.value;
+      if (cid.isNotEmpty) {
+        FlutterCallkitIncoming.endCall(cid);
+      }
+    } catch (_) {}
+
+    // --- 4. Stop local media tracks ---
     if (localStream != null) {
       for (var track in localStream!.getTracks()) {
         try {
@@ -1447,14 +1572,14 @@ class CallController extends GetxController {
       localStream = null;
     }
 
-    // Dispose local renderer
+    // --- 5. Dispose local renderer ---
     try {
       localRenderer?.srcObject = null;
       localRenderer?.dispose();
     } catch (_) {}
     localRenderer = null;
 
-    // Close all peer connections
+    // --- 6. Close all peer connections ---
     for (final entry in peerConnections.entries) {
       try {
         entry.value.close();
@@ -1462,7 +1587,7 @@ class CallController extends GetxController {
     }
     peerConnections.clear();
 
-    // Dispose all remote renderers
+    // --- 7. Dispose all remote renderers & streams ---
     for (final entry in remoteRenderers.entries) {
       try {
         entry.value.srcObject = null;
@@ -1473,7 +1598,18 @@ class CallController extends GetxController {
     remoteStreams.clear();
     _pendingCandidates.clear();
 
+    // --- 8. Release wakelock ---
     WakelockPlus.disable();
+
+    // --- 9. Close CallActivity if running inside it ---
+    if (isCallActivityEngine) {
+      CallActivityService.closeCallActivity();
+    }
+
+    // --- 10. Reset static flags ---
+    isCallActivityActive = false;
+
+    // --- 11. Reset all observable state ---
     _resetState();
   }
 
@@ -1530,9 +1666,11 @@ class CallController extends GetxController {
 
   void _setupCallKitListeners() {
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+      print("CALL KILL event == ${event?.event}");
+      print("CALL KILL Body == ${event?.body}");
       if (event == null) return;
-      final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
-
+      final extra =
+          Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
 
       // Only handle incoming_call events — skip ride orders and other types
       final operation = (extra['operation'] ?? '').toString();
@@ -1546,24 +1684,35 @@ class CallController extends GetxController {
             break;
           }
           initStateFromCallKitExtra(extra);
-          acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId']);
+          acceptCall(
+              callIdParams: extra['callId'], roomIdParams: extra['roomId']);
           Future.delayed(Duration(seconds: 1), () {
-            FlutterCallkitIncoming.endAllCalls();
+            FlutterCallkitIncoming.endCall(event.body['id']);
           });
           break;
         case Event.actionCallDecline:
           initStateFromCallKitExtra(extra);
           declineCall();
-          Future.delayed(Duration(seconds: 1),(){
-            FlutterCallkitIncoming.endAllCalls();
+          Future.delayed(Duration(seconds: 1), () {
+            FlutterCallkitIncoming.endCall(event.body['id']);
           });
           break;
-        case Event.actionCallEnded:
-          // Don't end the actual call if CallActivity is handling it —
-          // endAllCalls() from accept flow triggers this event as a side effect
-          if (!isCallActivityActive) {
-            endCall();
-          }
+        // case Event.actionCallEnded:
+          // // Don't end the actual call if:
+          // // 1. Already idle (cleanup already happened — prevents re-entrant loop)
+          // // 2. CallActivity is handling it
+          // // 3. Call is actively in progress (accepting/connecting/connected) —
+          // //    endAllCalls() after accept fires this as a side-effect;
+          // //    we must NOT terminate the live call.
+          // final isCallInProgress =
+          //     callStatus.value == CallStatus.accepting ||
+          //     callStatus.value == CallStatus.connecting ||
+          //     callStatus.value == CallStatus.connected;
+          // if (callStatus.value != CallStatus.idle &&
+          //     !isCallActivityActive &&
+          //     !isCallInProgress) {
+          //   endCall();
+          // }
           break;
         default:
           break;
@@ -1582,7 +1731,8 @@ class CallController extends GetxController {
 
     if (senderId.isNotEmpty) {
       _remoteUserId = senderId;
-      callType.value = callTypeStr == 'video_call' ? CallType.video : CallType.audio;
+      callType.value =
+          callTypeStr == 'video_call' ? CallType.video : CallType.audio;
       conversationId.value = convId;
       isCaller.value = false;
       callStatus.value = CallStatus.ringing;
@@ -1608,7 +1758,8 @@ class CallController extends GetxController {
   }
 }
 
-/// Show native incoming call notification (for Firebase push)
+/// Show native incoming call notification (for Firebase push).
+/// Skips if a call is already active so CallKit stays free for the current call.
 void showFlutterCallNotification({
   required String callSessionId,
   required String callerName,
@@ -1616,6 +1767,17 @@ void showFlutterCallNotification({
   String? callType,
   Map<String, dynamic>? extra,
 }) async {
+  // Don't show CallKit if a call is already in progress — keeps CallKit free
+  if (Get.isRegistered<CallController>()) {
+    final status = Get.find<CallController>().callStatus.value;
+    if (status == CallStatus.accepting ||
+        status == CallStatus.connecting ||
+        status == CallStatus.connected ||
+        status == CallStatus.outgoing) {
+      debugPrint('showFlutterCallNotification: skipped — call already active ($status)');
+      return;
+    }
+  }
   final isVideo = callType == 'video_call';
   final params = CallKitParams(
     id: callSessionId,
@@ -1628,7 +1790,7 @@ void showFlutterCallNotification({
     textAccept: 'Accept',
     textDecline: 'Decline',
     missedCallNotification: NotificationParams(
-      showNotification: true,
+      showNotification: false,
       isShowCallback: true,
       subtitle: 'Missed ${isVideo ? 'video' : 'voice'} call',
       callbackText: 'Call Back',
