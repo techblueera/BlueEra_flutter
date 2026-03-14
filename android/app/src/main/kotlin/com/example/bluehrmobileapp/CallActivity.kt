@@ -106,7 +106,12 @@ class CallActivity : FlutterActivity() {
                 }
 
                 "finishCallActivity" -> {
-                    finish()
+                    closeCallScreen()
+                    result.success(null)
+                }
+
+                "closeCallActivity" -> {
+                    closeCallScreen()
                     result.success(null)
                 }
 
@@ -214,6 +219,14 @@ class CallActivity : FlutterActivity() {
             "onPipModeChanged",
             isInPictureInPictureMode
         )
+    }
+
+    private fun closeCallScreen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAndRemoveTask()
+        } else {
+            finish()
+        }
     }
 
     override fun onDestroy() {

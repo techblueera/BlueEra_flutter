@@ -220,9 +220,8 @@ Future<void> main() async {
   /// Check if app was launched by accepting an incoming call from killed state.
   /// Must run BEFORE runApp() so launchedForCall is true at first build.
   try {
-    // Future.delayed(Duration(seconds: 1), () {
-    //   FlutterCallkitIncoming.endAllCalls();
-    // });
+
+
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
 
     if (activeCalls is List && activeCalls.isNotEmpty) {
@@ -239,8 +238,13 @@ Future<void> main() async {
         // to home when call ends
         CallController.markColdStartCall();
         callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId']);
+       Future.delayed(Duration(seconds: 3),(){
+         FlutterCallkitIncoming.endAllCalls();
+       });
       }
+
     }
+
   } catch (_) {}
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;

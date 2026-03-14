@@ -398,8 +398,8 @@ class CallController extends GetxController {
     }
     // Immediately transition to accepting so call:answered-elsewhere
     // won't reset our state while we're in the middle of accepting
-    final savedCallId = callIdParams == null ? callId.value : callIdParams;
-    final savedRoomId = roomIdParams == null ? roomId.value : roomIdParams;
+    final savedCallId = (callIdParams == null||callIdParams.isEmpty) ? callId.value : callIdParams;
+    final savedRoomId = (roomIdParams == null||roomIdParams.isEmpty) ? roomId.value : roomIdParams;
     final savedRemoteUserId = _remoteUserId;
     final savedPendingOffer = _pendingOffer;
     callStatus.value = CallStatus.accepting;
@@ -436,11 +436,11 @@ class CallController extends GetxController {
     final data = response.response?.data;
     final iceServersJson = data?['ice_servers'] ?? {};
 
-    // Dismiss CallKit incoming call UI after API accept succeeds.
-    // This frees CallKit so it's ready to show the next incoming call
-    // while the current call is still active on CallRoomScreen.
+    // Dismiss only the specific CallKit incoming call UI after API accept succeeds.
+    // Using endCall(callId) instead of endAllCalls() to avoid triggering
+    // actionCallEnded event which could prematurely terminate the call.
     try {
-      await FlutterCallkitIncoming.endAllCalls();
+      await FlutterCallkitIncoming.endCall(savedCallId);
     } catch (_) {}
 
     // --- Android main engine: launch CallActivity to handle WebRTC ---
@@ -651,8 +651,7 @@ class CallController extends GetxController {
     final savedCallId = callId.value;
     final savedRoomId = roomId.value;
 
-    _cleanup();
-
+    // Notify server first, then cleanup
     if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
       await _callRepo.declineCall({
         'call_id': savedCallId,
@@ -660,6 +659,7 @@ class CallController extends GetxController {
       });
     }
 
+    _cleanup();
     _navigateBackFromCallScreen();
   }
 
@@ -670,8 +670,7 @@ class CallController extends GetxController {
     final savedCallId = callId.value;
     final savedRoomId = roomId.value;
 
-    _cleanup();
-
+    // Notify server first, then cleanup
     if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
       await _callRepo.cancelCall({
         'call_id': savedCallId,
@@ -683,6 +682,7 @@ class CallController extends GetxController {
       });
     }
 
+    _cleanup();
     _navigateBackFromCallScreen();
   }
 
@@ -695,11 +695,7 @@ class CallController extends GetxController {
     final savedCallId = callId.value;
     final savedRoomId = roomId.value;
 
-    // Cleanup first so any side-effects (CallKit endAllCalls → actionCallEnded)
-    // see idle state and don't re-enter endCall
-    _cleanup();
-
-    // Then notify server
+    // Notify server first so remote side gets proper signaling teardown
     if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
       await _callRepo.endCall({
         'call_id': savedCallId,
@@ -711,6 +707,8 @@ class CallController extends GetxController {
       });
     }
 
+    // Then cleanup local resources
+    _cleanup();
     _navigateBackFromCallScreen();
   }
 
@@ -757,6 +755,7 @@ class CallController extends GetxController {
   void _handleCallCancelled(dynamic data) {
     if (isCallActivityActive && !isCallActivityEngine) return;
     if (callStatus.value == CallStatus.idle) return;
+    FlutterCallkitIncoming.endCall(callId.value);
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
@@ -771,6 +770,7 @@ class CallController extends GetxController {
   void _handleAnsweredElsewhere(dynamic data) {
     // Only dismiss if still ringing - do NOT reset if accepting or active
     if (callStatus.value != CallStatus.ringing) return;
+    FlutterCallkitIncoming.endCall(callId.value);
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
@@ -804,9 +804,7 @@ class CallController extends GetxController {
         route == '/ActiveCallScreen' ||
         route == '/OutgoingCallScreen' ||
         route == '/IncomingCallScreen') {
-      // Use offAllNamed to guarantee the call screen is removed from the stack,
-      // even if Get.offNamed was used to open it (which removes the previous route)
-      Get.offAllNamed('/BottomNavigationBarScreen');
+      Get.back();
     }
   }
 
@@ -1264,21 +1262,7 @@ class CallController extends GetxController {
           endCall();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
-          // Peer disconnected — give a short window to reconnect,
-          // then end the call if still disconnected (only 1 person left)
-          if (kDebugMode) print('WebRTC: Peer disconnected — waiting to reconnect');
-          _peerDisconnectTimer?.cancel();
-          _peerDisconnectTimer = Timer(const Duration(seconds: 3), () {
-            if (_disposed) return;
-            final currentPc = peerConnections[peerId];
-            if (currentPc == null) return;
-            final currentState = currentPc.connectionState;
-            if (currentState == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
-                currentState == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-              if (kDebugMode) print('WebRTC: Peer did not reconnect — ending call');
-              endCall();
-            }
-          });
+          if (kDebugMode) print('WebRTC: Peer disconnected (may reconnect)');
           break;
         default:
           break;
@@ -1570,9 +1554,12 @@ class CallController extends GetxController {
       _notificationPlugin.cancelAll();
     } catch (_) {}
 
-    // --- 3. End all CallKit calls (clears system call UI & stale entries) ---
+    // --- 3. End the specific CallKit call (avoid endAllCalls which triggers actionCallEnded) ---
     try {
-      FlutterCallkitIncoming.endAllCalls();
+      final cid = callId.value;
+      if (cid.isNotEmpty) {
+        FlutterCallkitIncoming.endCall(cid);
+      }
     } catch (_) {}
 
     // --- 4. Stop local media tracks ---
@@ -1614,10 +1601,15 @@ class CallController extends GetxController {
     // --- 8. Release wakelock ---
     WakelockPlus.disable();
 
-    // --- 9. Reset static flags ---
+    // --- 9. Close CallActivity if running inside it ---
+    if (isCallActivityEngine) {
+      CallActivityService.closeCallActivity();
+    }
+
+    // --- 10. Reset static flags ---
     isCallActivityActive = false;
 
-    // --- 10. Reset all observable state ---
+    // --- 11. Reset all observable state ---
     _resetState();
   }
 
@@ -1704,22 +1696,22 @@ class CallController extends GetxController {
             FlutterCallkitIncoming.endAllCalls();
           });
           break;
-        case Event.actionCallEnded:
-          // Don't end the actual call if:
-          // 1. Already idle (cleanup already happened — prevents re-entrant loop)
-          // 2. CallActivity is handling it
-          // 3. Call is actively in progress (accepting/connecting/connected) —
-          //    endAllCalls() after accept fires this as a side-effect;
-          //    we must NOT terminate the live call.
-          final isCallInProgress =
-              callStatus.value == CallStatus.accepting ||
-              callStatus.value == CallStatus.connecting ||
-              callStatus.value == CallStatus.connected;
-          if (callStatus.value != CallStatus.idle &&
-              !isCallActivityActive &&
-              !isCallInProgress) {
-            endCall();
-          }
+        // case Event.actionCallEnded:
+          // // Don't end the actual call if:
+          // // 1. Already idle (cleanup already happened — prevents re-entrant loop)
+          // // 2. CallActivity is handling it
+          // // 3. Call is actively in progress (accepting/connecting/connected) —
+          // //    endAllCalls() after accept fires this as a side-effect;
+          // //    we must NOT terminate the live call.
+          // final isCallInProgress =
+          //     callStatus.value == CallStatus.accepting ||
+          //     callStatus.value == CallStatus.connecting ||
+          //     callStatus.value == CallStatus.connected;
+          // if (callStatus.value != CallStatus.idle &&
+          //     !isCallActivityActive &&
+          //     !isCallInProgress) {
+          //   endCall();
+          // }
           break;
         default:
           break;

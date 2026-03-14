@@ -491,10 +491,9 @@ class AppNotificationHandler {
     }
 
     // Handle incoming call - show native call UI, don't show regular notification
-    // if (operation == 'incoming_call') {
-    //   _handleIncomingCallPush(message);
-    //   return;
-    // }
+    if (operation == 'incoming_call') {
+      return;
+    }
 
     // Use the generic data-only renderer for all other notifications.
     // This reads channelId, channelName, channelImportance, style, imageUrl,
