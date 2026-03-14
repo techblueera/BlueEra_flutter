@@ -1667,6 +1667,7 @@ class CallController extends GetxController {
   void _setupCallKitListeners() {
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       print("CALL KILL event == ${event?.event}");
+      print("CALL KILL Body == ${event?.body}");
       if (event == null) return;
       final extra =
           Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
@@ -1686,14 +1687,14 @@ class CallController extends GetxController {
           acceptCall(
               callIdParams: extra['callId'], roomIdParams: extra['roomId']);
           Future.delayed(Duration(seconds: 1), () {
-            FlutterCallkitIncoming.endAllCalls();
+            FlutterCallkitIncoming.endCall(event.body['id']);
           });
           break;
         case Event.actionCallDecline:
           initStateFromCallKitExtra(extra);
           declineCall();
           Future.delayed(Duration(seconds: 1), () {
-            FlutterCallkitIncoming.endAllCalls();
+            FlutterCallkitIncoming.endCall(event.body['id']);
           });
           break;
         // case Event.actionCallEnded:

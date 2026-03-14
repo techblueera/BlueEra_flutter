@@ -57,7 +57,6 @@ SharedMedia? pendingSharedMedia;
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ///INIT FIREBASE NOTIFICATION...
   await firebaseInitializeApp();
-  log("jhsjhsbajhbdasjdhb  Back ${message.data}");
 
   final operation = (message.data['operation'] ?? '').toString().toLowerCase();
 
@@ -221,9 +220,7 @@ Future<void> main() async {
   /// Must run BEFORE runApp() so launchedForCall is true at first build.
   try {
 
-
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
-
     if (activeCalls is List && activeCalls.isNotEmpty) {
       final extra = Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
       final operation = (extra['operation'] ?? '').toString();
@@ -238,9 +235,7 @@ Future<void> main() async {
         // to home when call ends
         CallController.markColdStartCall();
         callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId']);
-       Future.delayed(Duration(seconds: 3),(){
-         FlutterCallkitIncoming.endAllCalls();
-       });
+         FlutterCallkitIncoming.endCall(activeCalls[0]['id']);
       }
 
     }
