@@ -66,13 +66,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final callerName = data['senderName'] ?? 'Unknown';
     final callerImage = data['senderProfileImage'] ?? '';
     Map<String, dynamic> payload = jsonDecode(data['payload']);
+    Map<String, dynamic> callerData = jsonDecode(data['callerData']);
     log("payload 71)  ${data}");
     final callType = payload['call_type'];
     showFlutterCallNotification(
-      desiginations: "",
+      desiginations: "${callerData['designation'].toString().isEmpty?"Incoming Call":callerData['designation'].toString().toLowerCase()}",
       callSessionId: payload["call_id"],
       callerName: callerName,
-      callerImage: callerImage.isNotEmpty ? callerImage : null,
+      callerImage: callerData['profile_image'].isNotEmpty ? callerData['profile_image'] : null,
       callType: callType,
       extra: {
         'senderId': data['senderId'] ?? '',

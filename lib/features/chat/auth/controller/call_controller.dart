@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1787,11 +1788,11 @@ void showFlutterCallNotification({
     }
   }
   final isVideo = callType == 'video_call';
+  log("skdjcskljdcsdc ${desiginations}");
   final params = CallKitParams(
     id: callSessionId,
-    nameCaller: callerName,
+    nameCaller: callerName.isNotEmpty?callerName:"N/A",
     appName: 'BlueEra',
-
     avatar: callerImage ?? '',
     handle: desiginations,
     type: isVideo ? 1 : 0,
@@ -1801,14 +1802,14 @@ void showFlutterCallNotification({
     missedCallNotification: NotificationParams(
       showNotification: false,
       isShowCallback: true,
-
       subtitle: 'Missed ${isVideo ? 'video' : 'voice'} call',
       callbackText: 'Call Back',
     ),
     extra: extra ?? {},
     android: AndroidParams(
+      isCustomSmallExNotification: true,
       isShowLogo: false, // hide logo
-      isShowCallID: false,
+      isShowCallID: true,
       isShowFullLockedScreen: true,
       isImportant: true,
       isCustomNotification: true,
@@ -1816,7 +1817,7 @@ void showFlutterCallNotification({
       backgroundColor: '#0955fa',
       actionColor: '#4CAF50',
       textColor: '#ffffff',
-      incomingCallNotificationChannelName: 'Incoming Calls',
+      incomingCallNotificationChannelName: desiginations,
       missedCallNotificationChannelName: 'Missed Calls',
     ),
     ios: const IOSParams(
