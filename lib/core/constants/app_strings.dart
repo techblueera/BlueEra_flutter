@@ -298,6 +298,8 @@ class AppStrings {
   static const createGroup = "createGroup";
   static const theme = "theme";
   static const wallpaper = "wallpaper";
+  static const fontStyle = "Font Style";
+  static const background = "Background";
   static const lockChat = "lockChat";
 
   static const pending = "pending";

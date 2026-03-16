@@ -152,12 +152,23 @@ class ChatThemeController extends GetxController {
   void saveTheme() => _saveThemeToStorage();
 
   /// Build a TextStyle using the theme's font settings
-  TextStyle chatTextStyle({double? fontSize, FontWeight? fontWeight, Color? color}) {
+  /// When [isMyMessage] is true and dark mode is on, text color becomes white
+  /// so sender messages are always readable on dark bubble backgrounds.
+  TextStyle chatTextStyle({double? fontSize, FontWeight? fontWeight, Color? color, bool isMyMessage = false}) {
+    final Color effectiveColor;
+    if (color != null) {
+      effectiveColor = color;
+    } else if (isDarkMode.value && isMyMessage) {
+      effectiveColor = const Color(0xFFE9EDEF);
+    } else {
+      effectiveColor = chatTextColor.value;
+    }
+
     return TextStyle(
       fontFamily: chatFontFamily.value == 'Default' ? null : chatFontFamily.value,
       fontSize: fontSize ?? chatFontSize.value,
       fontWeight: fontWeight ?? FontWeight.w500,
-      color: color ?? chatTextColor.value,
+      color: effectiveColor,
     );
   }
 

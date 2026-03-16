@@ -27,7 +27,7 @@ import '../../../business/visit_business_profile/view/visit_business_profile_new
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../chat_theme/chat_theme.dart';
+import '../chat_theme/chat_background_screen.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
@@ -1390,7 +1390,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                   child: existingFlag != null
                       ? Text(existingFlag.emoji, style: const TextStyle(fontSize: 20))
                       : Icon(Icons.flag_outlined,
-                          color: AppColors.chat_input_icon_color, size: 24),
+                          color: AppColors.chat_input_icon_color, size: 26),
                 ),
               );
             });
@@ -1409,11 +1409,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 0),
               child: SvgPicture.asset(
                 'assets/svg/audio_and_video_call.svg',
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 colorFilter: ColorFilter.mode(
                   AppColors.chat_input_icon_color,
                   BlendMode.srcIn,
@@ -1479,8 +1479,9 @@ AppBar getChatTitleAppBar(BuildContext context, {
       // const SizedBox(width: 12),
       if(isGroupAppBar == null)
         PopupMenuButton<String>(
-            icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
-            padding: EdgeInsets.zero,
+            icon: SvgPicture.asset(AppIconAssets.chat_info_pop,height: 20,width: 20,color: AppColors.black,),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            constraints: const BoxConstraints(),
             offset: const Offset(-6, 36),
             color: AppColors.white,
             elevation: 8,
@@ -1495,7 +1496,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               } else if(value == "media_files"){
                 // TODO: Navigate to media & files
               } else if(value == "chat_theme"){
-                Get.to(() => ChatThemeScreen());
+                Get.to(() => ChatBackgroundScreen());
               } else if(value == "add_shortcut"){
                 ChatShortcutService.createChatShortcut(
                   conversationId: conversationId ?? '',
@@ -1511,7 +1512,8 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isGroupAppBar != null)
         PopupMenuButton<String>(
             icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            constraints: const BoxConstraints(),
             offset: const Offset(-6, 36),
             color: AppColors.white,
             elevation: 8,

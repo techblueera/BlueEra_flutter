@@ -65,11 +65,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final data = message.data;
     final callerName = data['senderName'] ?? 'Unknown';
     final callerImage = data['senderProfileImage'] ?? '';
-    final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
     Map<String, dynamic> payload = jsonDecode(data['payload']);
-    print("payload 71 ${payload}");
+    log("payload 71)  ${data}");
+    final callType = payload['call_type'];
     showFlutterCallNotification(
-      callSessionId: data['notificationId'] ?? data['callId'] ?? '',
+      desiginations: "",
+      callSessionId: payload["call_id"],
       callerName: callerName,
       callerImage: callerImage.isNotEmpty ? callerImage : null,
       callType: callType,
@@ -234,8 +235,9 @@ Future<void> main() async {
         // Mark as cold-start call so UI shows CallRoomScreen and navigates
         // to home when call ends
         CallController.markColdStartCall();
-        callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId']);
-         FlutterCallkitIncoming.endCall(activeCalls[0]['id']);
+        bool isVideoCalling=extra['callType']=='video_call';
+        callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId'],isVideoCall: isVideoCalling);
+         // FlutterCallkitIncoming.endCall(activeCalls[0]['id']);
       }
 
     }

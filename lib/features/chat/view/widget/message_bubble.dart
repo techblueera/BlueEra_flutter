@@ -302,6 +302,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                                       : widget.message.substring(0, 100),
                                                   style: chatThemeController.chatTextStyle(
                                                     fontWeight: FontWeight.w500,
+                                                    isMyMessage: !widget.isReceiveMsg,
                                                   ),
                                                 ),
                                                 if (widget.message.length > 100)
@@ -330,7 +331,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               const SizedBox(width: 8,),
                               Align(
                                   alignment: Alignment.bottomRight,
-                                  child: timeAndReadInfoWidget(indicateColor: Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.black : Colors.black54,)
+                                  child: timeAndReadInfoWidget(indicateColor: chatThemeController.isDarkMode.value ? const Color(0xFFE9EDEF) : Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: chatThemeController.chatTimeColor.value,)
                               )
                             ],
                           ),

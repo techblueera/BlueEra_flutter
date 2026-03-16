@@ -544,9 +544,11 @@ class AppNotificationHandler {
     final data = message.data;
     final callerName = data['senderName'] ?? 'Unknown';
     final callerImage = data['senderProfileImage'] ?? '';
-    final callType = (data['message'] ?? '').toString().contains('video') ? 'video_call' : 'voice_call';
     Map<String, dynamic> payload = jsonDecode(data['payload']);
+    final callType = payload['call_type'];
+
     showFlutterCallNotification(
+      desiginations: "",
       callSessionId: data['notificationId'] ?? data['callId'] ?? '',
       callerName: callerName,
       callerImage: callerImage.isNotEmpty ? callerImage : null,
@@ -1038,6 +1040,7 @@ class AppNotificationHandler {
     Map<String, dynamic> data,
   ) async {
     // Parse sender_user if it's a JSON string
+    log("sldclsdkmcskldcmsdc ${data}");
     if (data['sender_user'] is String) {
       data['sender_user'] = jsonDecode(data['sender_user']);
     }

@@ -32,6 +32,7 @@ import '../auth/controller/chat_view_controller.dart';
 import 'add_symbol/add_symbol_screen.dart';
 import 'find_contacts_with_service/find_contact_with_service.dart';
 import 'widget/chat_flag_bottom_sheet.dart';
+import 'widget/chat_profile_bottom_sheet.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen({super.key,
@@ -472,13 +473,11 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
             children: [
               Padding(
                 padding: const EdgeInsets.only(right: 1.0, top: 3),
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  offset: const Offset(-6, 42),
-                  onSelected: (value) {},
-                  icon: Container(
+                child: InkWell(
+                  onTap: () => showChatProfileBottomSheet(context),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
                     padding: const EdgeInsets.all(2.4),
-                    // ⭐ ONLY THIS makes big outer circle
                     decoration: addSymbolController.mySymbols.isNotEmpty
                         ? const BoxDecoration(
                       shape: BoxShape.circle,
@@ -506,13 +505,12 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                             .find<AuthController>()
                             .imgPath
                             .value,
-                        size: SizeConfig.size36, // ⛔ unchanged
+                        size: SizeConfig.size36,
                         borderRadius: SizeConfig.size34 / 2,
                         showProfileOnFullScreen: false,
                       ),
                     ),
                   ),
-                  itemBuilder: (context) => popupMenuChatCardItems(),
                 ),
               ),
               Positioned(
