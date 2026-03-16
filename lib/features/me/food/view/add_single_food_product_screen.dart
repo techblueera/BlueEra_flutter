@@ -30,7 +30,6 @@ class AddSingleProductScreen extends StatefulWidget {
   State<AddSingleProductScreen> createState() => _AddSingleProductScreenState();
 }
 
-
 class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
   var vc = Get.find<FoodServiceController>();
   final RxList<FoodVariants> selectedVariants = <FoodVariants>[].obs;

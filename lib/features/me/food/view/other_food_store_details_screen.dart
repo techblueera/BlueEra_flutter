@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -95,8 +96,11 @@ class _OtherFoodStoreDetailsScreenState
                   ),
 
                 /// Food Menu Categories
-                if (data.foodMenu?.isNotEmpty??false)
-                  _buildMenuCategories(data.foodMenu??[]),
+
+                  _buildMenuCategories(
+                      menus: data.foodMenu??[],
+                      businessProfileDetails: data.businessProfileDetails
+                  ),
 
                 /// Gallery
                 if (data.gallery?.isNotEmpty ?? false)
@@ -362,7 +366,10 @@ class _OtherFoodStoreDetailsScreenState
     );
   }
 
-  Widget _buildMenuCategories(List<FoodMenu> menus) {
+  Widget _buildMenuCategories({
+    required List<FoodMenu> menus,
+    BusinessProfileDetails? businessProfileDetails
+  }) {
     return Column(
       children: [
         SizedBox(height: SizeConfig.paddingXSL),
@@ -371,12 +378,13 @@ class _OtherFoodStoreDetailsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Our Menu',
+              CustomText('Menu',
                   fontSize: SizeConfig.large,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w600),
               SizedBox(height: SizeConfig.paddingXSL),
-              MasonryGridView.count(
+              menus.isNotEmpty
+                  ? MasonryGridView.count(
                 crossAxisCount: 3,
                 crossAxisSpacing: 6,
                 mainAxisSpacing: 6,
@@ -397,6 +405,9 @@ class _OtherFoodStoreDetailsScreenState
                     },
                   );
                 },
+              )
+                  : EmptyStateWidget(
+                message: '${businessProfileDetails?.businessName} shop hasn\'t listed any products yet. There are no food items available at the moment',
               ),
               SizedBox(height: SizeConfig.paddingXSL),
             ],

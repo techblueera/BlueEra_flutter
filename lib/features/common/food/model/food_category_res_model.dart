@@ -39,7 +39,8 @@ class FoodCategoryData {
   FoodCategoryData({
       this.id, 
       this.name, 
-      this.key, 
+      this.image,
+      this.key,
       this.isActive, 
       this.parentId, 
       this.level, 
@@ -51,6 +52,7 @@ class FoodCategoryData {
   FoodCategoryData.fromJson(dynamic json) {
     id = json['_id'];
     name = json['name'];
+    image = json['image'];
     key = json['key'];
     isActive = json['isActive'];
     parentId = json['parentId'];
@@ -67,6 +69,7 @@ class FoodCategoryData {
   }
   String? id;
   String? name;
+  String? image;
   String? key;
   bool? isActive;
   dynamic parentId;
@@ -80,6 +83,7 @@ class FoodCategoryData {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
+    map['image'] = image;
     map['key'] = key;
     map['isActive'] = isActive;
     map['parentId'] = parentId;

@@ -95,7 +95,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                             width: SizeConfig.size100,
                             title: controller.isAddGroceryOrderLoading.value
                                 ? null
-                                : AppStrings.submit,
+                                : 'Buy Now',
                             bgColor: AppColors.primaryColor,
                             isLoading: controller.isAddGroceryOrderLoading.value,
                           )),

@@ -73,7 +73,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Bulk Upload Shop Product Photos", fontWeight: FontWeight.bold),
+          const CustomText("Upload Bulk Product", fontWeight: FontWeight.bold),
           const SizedBox(height: 14),
           MasonryGridView.count(
             shrinkWrap: true,
@@ -85,58 +85,65 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
             mainAxisSpacing: 10,
             padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
-              // Get the static data for this slot
-              var item = controller.foodSnapSearchPhotos[index];
-              String title = item['title']!;
-              String staticPath = item['image']!;
+              final config = controller.foodSnapSearchPhotos[index];
+              final String title = config['title']!;
+              final String placeholder = config['image']!;
 
               return Obx(() {
-                File? capturedFile = controller.foodSnapSearchImagesMap[title];
-                bool hasImage = capturedFile != null;
+                final File? capturedFile = controller.foodSnapSearchImagesMap[title];
+                final bool hasImage = capturedFile != null;
 
-                return InkWell(
-                  onTap: hasImage
-                      ? () => navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: title,
-                      imageUrls: [capturedFile.path],
-                      initialIndex: 0,
-                    ),
-                  )
-                      : () => controller.addImagesByTitle(title),
-                  child: Column(
-                    children: [
-                      Stack(
+                // Check if ANY image is selected in the entire map
+                final bool isAnyImageSelected = controller.foodSnapSearchImagesMap.values.any((v) => v != null);
+
+                // A slot is "Blocked" if something else is selected but NOT this specific slot
+                final bool isBlocked = isAnyImageSelected && !hasImage;
+
+                return Column(
+                  children: [
+                    InkWell(
+                      onTap: isBlocked
+                          ? null // Make unclickable if another slot is already filled
+                          : hasImage
+                          ? () => navigatePushTo(
+                        context,
+                        ImageViewScreen(
+                          appBarTitle: title,
+                          imageUrls: [capturedFile.path],
+                          initialIndex: 0,
+                        ),
+                      )
+                          : () => controller.addImagesBySlot(title),
+                      child: Stack(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10.0),
                             child: Container(
-                              height: SizeConfig.size180,
+                              height: 180,
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: hasImage ? AppColors.primaryColor : AppColors.greyE5,
-                                  width: hasImage ? 1.5 : 1,
+                                  width: hasImage ? 2 : 1,
                                 ),
                                 image: DecorationImage(
                                   image: (hasImage
                                       ? FileImage(capturedFile)
-                                      : AssetImage(staticPath)) as ImageProvider,
+                                      : AssetImage(placeholder)) as ImageProvider,
                                   fit: BoxFit.cover,
                                 ),
                               ),
                             ),
                           ),
-                          // Remove button shows only when an image is captured
+                          // Close button only appears on the active image
                           if (hasImage)
                             Positioned(
                               top: 8,
                               right: 8,
                               child: GestureDetector(
-                                onTap: () => controller.removeImageByTitle(title),
+                                onTap: () => controller.removeImageBySlot(title),
                                 child: CircleAvatar(
                                   radius: 12,
                                   backgroundColor: Colors.red.withValues(alpha: 0.8),
@@ -146,36 +153,48 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      CustomText(
-                        title,
-                        fontSize: SizeConfig.small,
-                        color: hasImage ? AppColors.primaryColor : AppColors.secondaryTextColor,
-                        fontWeight: hasImage ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    CustomText(
+                      title,
+                      fontSize: 12,
+                      color: hasImage
+                          ? AppColors.primaryColor
+                          : isBlocked
+                          ? AppColors.greyE5
+                          : AppColors.secondaryTextColor,
+                      fontWeight: hasImage ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ],
                 );
               });
             },
           ),
+          const SizedBox(height: 10),
+          const CustomText(
+            "Upload picture/menu containing up to 20 product at time",
+            fontWeight: FontWeight.w400,
+            color: AppColors.red,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: CustomBtn(
-              width: 70,
-              height: 30,
-              title: "Submit",
-              textColor: AppColors.primaryColor,
-              bgColor: AppColors.white,
-              borderColor: AppColors.primaryColor,
-              radius: 10.0,
-              onTap: () {
-                controller.fetchFoodSnapSearchApi();
-              },
 
-             ),
-          )
+          // Align(
+          //   alignment: Alignment.centerRight,
+          //   child: CustomBtn(
+          //     width: 70,
+          //     height: 30,
+          //     title: "Submit",
+          //     textColor: AppColors.primaryColor,
+          //     bgColor: AppColors.white,
+          //     borderColor: AppColors.primaryColor,
+          //     radius: 10.0,
+          //     onTap: () {
+          //       controller.fetchFoodSnapSearchApi();
+          //     },
+          //
+          //    ),
+          // )
         ],
       ),
     );
@@ -187,8 +206,8 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       // if (controller.validSnapSearchImages.isEmpty) return SizedBox();
 
       final response = controller.foodSnapSearchResponse.value;
-      final categoryList = controller.categoryFoodProductDataList;
-      final searchData = controller.productSnapSearchData;
+      final categoryList = controller.categoryFoundProductDataList;
+      // final searchData = controller.productSnapSearchData;
 
       // 1. Handle Loading States
       if (response.status == Status.LOADING) return _buildLoadingState();
@@ -202,7 +221,8 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       // 3. Render success state using the master list
       return Column(
         children: [
-          if (searchData != null) _buildSummaryHeader(searchData),
+          // if (searchData != null) _buildSummaryHeader(searchData),
+          _buildSummaryHeader(),
 
           ListView.builder(
             shrinkWrap: true,
@@ -268,19 +288,21 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
     );
   }
 
-  Widget _buildSummaryHeader(var data) {
+  Widget _buildSummaryHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomText(
-            "${data.foundCount ?? 0} Items Found",
+            // "${data.foundCount ?? 0} Items Found",
+            "${controller.categoryFoundProductDataList.length} Items Found",
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
           CustomText(
-            "${data.missingCount ?? 0} Items missing",
+            // "${data.missingCount ?? 0} Items missing",
+            "${controller.missingProducts.length} Items missing",
             color: Colors.red,
             fontWeight: FontWeight.w500,
           ),

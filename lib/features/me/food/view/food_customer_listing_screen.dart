@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -43,7 +44,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
       controller.subCategoryTabs.assignAll(firstLevel1.children ?? []);
       controller.selectedSubCategoryId.value = "all";
       callFoodProductBySubCatAPi(
-        categoryId: controller.selectedCategoryId.value
+          categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value}
       );
     } else {
       debugPrint("--- InitState Warning: No Level 1 Categories found ---");
@@ -52,23 +53,26 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
   }
 
   void _onScrollListener(){
-    String targetId = controller.selectedSubCategoryId.value == 'All'
-                       ? controller.selectedCategoryId.value
-                       : controller.selectedSubCategoryId.value;
+    var targetIdParams = (controller.selectedSubCategoryId.value == "all")
+        ? {ApiKeys.parentId: controller.selectedCategoryId.value}
+        : {ApiKeys.category : controller.selectedSubCategoryId.value};
+
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200 &&
         !controller.isFoodCatProductsWithInvLoadingMore.value &&
         controller.foodCatProductsWithInvHasMore) {
       callFoodProductBySubCatAPi(
-        categoryId: targetId,
+        categoryIdParams: targetIdParams,
         isLoadMore: true,
       );
     }
   }
 
-  void callFoodProductBySubCatAPi({required String categoryId, bool isLoadMore = false}){
+  void callFoodProductBySubCatAPi({
+    required Map<String, String> categoryIdParams,
+    bool isLoadMore = false}){
     controller.getCustomerFoodProductByCategoryIdApi(
-        categoryId: categoryId,
+        categoryIdParams: categoryIdParams,
         isLoadMore: isLoadMore
     );
   }
@@ -145,7 +149,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
         controller.selectedSubCategoryId.value = "all";
 
         callFoodProductBySubCatAPi(
-            categoryId: controller.selectedCategoryId.value
+            categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value},
         );
       },
     );
@@ -183,12 +187,12 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
 
                 controller.selectedSubCategoryId.value = itemId;
 
-                String targetId = (itemId == "all")
-                    ? controller.selectedCategoryId.value
-                    : itemId;
+                var targetIdParams = (itemId == "all")
+                    ? {ApiKeys.parentId: controller.selectedCategoryId.value}
+                    : {ApiKeys.category : itemId};
 
                     callFoodProductBySubCatAPi(
-                        categoryId: targetId
+                        categoryIdParams: targetIdParams
                   );
                 },
             );

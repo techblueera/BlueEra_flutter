@@ -351,52 +351,96 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
 
     return Column(
       children: displayVariants.map((item) {
-
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
+            // Adding a subtle shadow for depth
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
             border: Border.all(
-              color: AppColors.greyE5,
+              color: AppColors.greyE5.withValues(alpha: 0.5),
               width: 1,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                "${item.variantName} - ${item.quantityLabel}",
-                fontSize: 16,
-                color: AppColors.secondaryTextColor,
-              ),
-              const SizedBox(height: 8),
-              Row(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: IntrinsicHeight( // Ensures the blue line matches the content height
+              child: Row(
                 children: [
-                  Flexible(
-                    child: CustomText(
-                      "Selling-₹${item.baseSellingPrice}",
-                      fontSize: 14,
-                      color: AppColors.secondaryTextColor,
+                  // 1. Blue Vertical Accent Line
+                  Container(
+                    width: 4,
+                    color: AppColors.primaryColor,
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // 2. Variant Content
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            "${item.variantName} - ${item.quantityLabel}",
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600, // Semi-bold for title
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              // Selling Price Chip Look
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: CustomText(
+                                  "₹${item.baseSellingPrice}",
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              // MRP
+                              CustomText(
+                                "₹${item.mrp}",
+                                fontSize: 12,
+                                color: AppColors.secondaryTextColor.withValues(alpha: 0.7),
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // _buildPriceDivider(),
-                  const SizedBox(width: 8),
-                  CustomText(
-                    "₹${item.mrp}",
-                    fontSize: 14,
-                    color: AppColors.secondaryTextColor,
-                    decoration: TextDecoration.lineThrough,
-                  ),
+
+                  // Padding(
+                  //   padding: const EdgeInsets.only(right: 8.0),
+                  //   child: Icon(
+                  //     Icons.chevron_right,
+                  //     color: AppColors.greyE5,
+                  //     size: 20,
+                  //   ),
+                  // ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       }).toList(),
     );
   }
-
 }

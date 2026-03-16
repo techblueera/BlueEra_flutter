@@ -4,6 +4,8 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -18,7 +20,9 @@ import 'package:BlueEra/features/me/grocery/model/children_of_grocery_category_r
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/stream/rider_grocery_stream.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -283,38 +287,97 @@ class GroceryCustomerController extends GetxController{
     );
   }
 
-  void show({required String text}) {
+  void showLookingForRider({required String text}) {
+    // Use a Stream to handle the 3-minute countdown (180 seconds)
+    Stream<int> timerStream = Stream.periodic(const Duration(seconds: 1), (i) => 180 - i - 1).take(180);
+
     Get.dialog(
       Center(
         child: Material(
           color: Colors.transparent,
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 40),
+            margin: const EdgeInsets.symmetric(horizontal: 25),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(20),
               color: AppColors.white,
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min, // Wrap content
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.white,
-                  ),
-                  child: staggeredDotsWaveLoading(
-                    color: AppColors.primaryColor,
-                  ),
+                // 1. Delivery Illustration
+                LocalAssets(
+                  imagePath: AppIconAssets.riderIconColorful, // Replace with your asset path
+                  boxFix: BoxFit.contain,
+                  height: 100,
+                  width: 100,
                 ),
+
+                const SizedBox(height: 20),
+
+                // 2. Dynamic Text
                 CustomText(
-                    text,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primaryColor,
-                    textAlign: TextAlign.center,
-                  ),
+                  text,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primaryColor,
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 20),
+
+                // 3. Action Row (Cancel & Timer)
+                Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: CustomBtn(
+                        onTap: () => Get.back(),
+                        title: "Cancel",
+                        bgColor: AppColors.red,
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Timer Button (Blue)
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.history, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                            StreamBuilder<int>(
+                              stream: timerStream,
+                              initialData: 180,
+                              builder: (context, snapshot) {
+                                int seconds = snapshot.data ?? 0;
+                                int minutes = seconds ~/ 60;
+                                int remainingSeconds = seconds % 60;
+
+                                // Format as 03:00
+                                String timeText = "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
+
+                                return CustomText(
+                                  timeText,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -441,7 +504,7 @@ class GroceryCustomerController extends GetxController{
 
   Future<void> executeOrderProcess({required String orderId, required String riderId}) async {
 
-    show(text: "Waiting for rider response...");
+    showLookingForRider(text: 'Waiting for rider response...');
 
     // Quick Check: If BOTH steps are already done for this rider, just restart stream.
     if (assignedRiderIds.contains(riderId) &&
@@ -451,7 +514,6 @@ class GroceryCustomerController extends GetxController{
       await groceryRiderStreamApi();
       return;
     }
-
 
     try {
       // ---------------- STEP 1: Update Order Status ---------------- //

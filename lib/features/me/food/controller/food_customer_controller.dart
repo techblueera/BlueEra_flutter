@@ -42,7 +42,8 @@ class FoodCustomerController extends GetxController{
   bool foodCatProductsWithInvHasMore = true;
 
   Future<void> getCustomerFoodProductByCategoryIdApi(
-      { required String categoryId,
+      {
+        required Map<String, String> categoryIdParams,
         bool isLoadMore = false
       }) async {
     try {
@@ -58,12 +59,13 @@ class FoodCustomerController extends GetxController{
       String postalCode = LocationService.userCurrentAddress.value.postalCode;
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.categoryId: categoryId,
         ApiKeys.pincode: postalCode,
         ApiKeys.radius: kmRadius5000,
         ApiKeys.page: foodCatProductsWithInvPage,
         ApiKeys.limit: 20
       };
+
+      queryParams.addAll(categoryIdParams);
 
       ResponseModel response =
       await FoodRepo().getUserFoodProductsCategoryIdRepo(

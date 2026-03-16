@@ -652,7 +652,7 @@ abstract class BaseService {
   final String foodCategory = 'food-service/api/categories';
   final String foodProduct= 'food-service/api/foodProduct';
   final String generateAIDescription= 'ai-service/api/ai-description/generate-description';
-  final String foodServiceProduct= 'food-service/api/foodProduct?page=1&limit=10&';
+  final String foodServiceProduct= 'food-service/api/foodProduct';
   final String createAboutOrganisation = "other-service/about-organisation";
   final String management = "other-service/management";
   final String staff = "other-service/staff";

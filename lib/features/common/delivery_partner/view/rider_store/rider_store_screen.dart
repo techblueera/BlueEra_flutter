@@ -138,8 +138,8 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                             return CommonServiceCard<FoodCategoryData>(
                               service: item,
                               getName: (item) => item.name??'',
-                              // getIcon: (item) =>  item.image??'',
-                              getIcon: (item) =>  "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
+                              getIcon: (item) =>  item.image??'',
+                              // getIcon: (item) =>  "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
                               iconHeight: SizeConfig.size60,
                               boxShadow: [],
                               onTap: (item) {

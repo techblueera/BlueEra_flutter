@@ -63,7 +63,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                            'Bulk Upload Shop Product Photos',
+                            'Upload Bulk Products',
                             fontSize: SizeConfig.large,
                             color: AppColors.mainTextColor,
                             fontWeight: FontWeight.w600

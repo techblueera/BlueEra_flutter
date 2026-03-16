@@ -33,126 +33,119 @@ class _ChooseDeliveryOptionsScreenState extends State<ChooseDeliveryOptionsScree
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark, // Android Black
-        statusBarBrightness: Brightness.light,    // iOS Black
-      ),
-      child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
-        body: SafeArea(
-          child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverAppBar(
-                    pinned: false,
-                    floating: true,
-                    snap: true,
-                    automaticallyImplyLeading: false,
-                    forceElevated: innerBoxIsScrolled,
-                    leading: IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        icon: LocalAssets(
-                          imagePath: AppIconAssets.back_arrow,
-                          height: SizeConfig.paddingL,
-                          width: SizeConfig.paddingL,
-                          imgColor: Colors.black,
-                        )),
-                    centerTitle: false,
-                    title: Row(
-                      children: [
-                        LocalAssets(
-                          imagePath: AppIconAssets.currentLocationIcon,
-                          height: SizeConfig.size24,
-                          width: SizeConfig.size24,
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: CustomText(
-                            [
-                              LocationService.userCurrentAddress.value.subLocality,
-                              LocationService.userCurrentAddress.value.city,
-                            ].where((e) => e.isNotEmpty).join(', '),
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w600,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      Padding(
-                        padding: EdgeInsets.only(right: SizeConfig.size16),
-                        child: InkWell(
-                          onTap: () {
-                            // ... your existing tap logic ...
-                          },
-                          child: LocalAssets(
-                            imagePath: AppIconAssets.location_new,
-                          ),
-                        ),
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      body: SafeArea(
+        child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  pinned: false,
+                  floating: true,
+                  snap: true,
+                  automaticallyImplyLeading: false,
+                  forceElevated: innerBoxIsScrolled,
+                  leading: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      icon: LocalAssets(
+                        imagePath: AppIconAssets.back_arrow,
+                        height: SizeConfig.paddingL,
+                        width: SizeConfig.paddingL,
+                        imgColor: Colors.black,
+                      )),
+                  centerTitle: false,
+                  title: Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.currentLocationIcon,
+                        height: SizeConfig.size24,
+                        width: SizeConfig.size24,
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(right: SizeConfig.size16),
-                        child: InkWell(
-                          onTap: () {
-                              commonSnackBar(message: "Coming soon....");
-                            // ... your existing tap logic ...
-                          },
-                          child: LocalAssets(imagePath: AppIconAssets.cartIcon),
+                      SizedBox(width: SizeConfig.size10),
+                      Expanded(
+                        child: CustomText(
+                          [
+                            LocationService.userCurrentAddress.value.subLocality,
+                            LocationService.userCurrentAddress.value.city,
+                          ].where((e) => e.isNotEmpty).join(', '),
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: SliverHeaderDelegate(
-                      child: Container(
-                        color: AppColors.whiteF3,
-                        child: ListView.builder(
-                          itemCount: chooseDeliveryOptions.length,
-                          scrollDirection: Axis.horizontal,
-                          physics: BouncingScrollPhysics(),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size8,
-                              vertical: SizeConfig.size10,
-                          ),
-                          itemBuilder: (context, index){
-                            var option = chooseDeliveryOptions[index];
-
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 6.0),
-                              child: _buildDeliveryOption(
-                                id: option['id']!,
-                                icon: option['icon']!,
-                                title: option['title']!,
-                                subtitle: option['subtitle']!,
-                              ),
-                            );
-                          },
+                  actions: [
+                    Padding(
+                      padding: EdgeInsets.only(right: SizeConfig.size16),
+                      child: InkWell(
+                        onTap: () {
+                          // ... your existing tap logic ...
+                        },
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.location_new,
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: EdgeInsets.only(right: SizeConfig.size16),
+                      child: InkWell(
+                        onTap: () {
+                            commonSnackBar(message: "Coming soon....");
+                          // ... your existing tap logic ...
+                        },
+                        child: LocalAssets(imagePath: AppIconAssets.cartIcon),
+                      ),
+                    ),
+                  ],
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: SliverHeaderDelegate(
+                    child: Container(
+                      color: AppColors.whiteF3,
+                      child: ListView.builder(
+                        itemCount: chooseDeliveryOptions.length,
+                        scrollDirection: Axis.horizontal,
+                        physics: BouncingScrollPhysics(),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size8,
+                            vertical: SizeConfig.size10,
+                        ),
+                        itemBuilder: (context, index){
+                          var option = chooseDeliveryOptions[index];
+
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6.0),
+                            child: _buildDeliveryOption(
+                              id: option['id']!,
+                              icon: option['icon']!,
+                              title: option['title']!,
+                              subtitle: option['subtitle']!,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ];
-              },
-              body: (_selectedOptionId == 'SELF')
-                  ? SelfPickupStoreScreen()
-                  : (_selectedOptionId == 'RIDER')
-                  ? RiderStoreScreen()
-                  : FranchiseHome(
-                  onBackPressed: (){
-                    _selectedOptionId = 'RIDER';
-                    setState(() {});
-                  }
-              )
-          ),
+                ),
+              ];
+            },
+            body: (_selectedOptionId == 'SELF')
+                ? SelfPickupStoreScreen()
+                : (_selectedOptionId == 'RIDER')
+                ? RiderStoreScreen()
+                : FranchiseHome(
+                onBackPressed: (){
+                  _selectedOptionId = 'RIDER';
+                  setState(() {});
+                }
+            )
         ),
       ),
     );

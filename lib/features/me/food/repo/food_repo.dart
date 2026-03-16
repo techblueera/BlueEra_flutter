@@ -67,9 +67,10 @@ class FoodRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getFoodByCategoryIdRepo({required String catID}) async {
+  Future<ResponseModel> getFoodByCategoryIdRepo({required Map<String, dynamic> queryPatrams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${foodServiceProduct}category=$catID",
+      foodServiceProduct,
+      params: queryPatrams,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

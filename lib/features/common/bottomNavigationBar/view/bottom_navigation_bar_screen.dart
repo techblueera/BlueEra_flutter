@@ -539,7 +539,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         await showCommonDialog(
             context: context,
             header: "Sarthi AI",
-            text: "Start Chat with Sarthi",
+            text: "Chat With Sarthi",
             confirmCallback: () async {
               Navigator.of(context).pop();
             },

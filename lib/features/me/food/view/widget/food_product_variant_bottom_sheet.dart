@@ -45,7 +45,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
           final String pId = product.id ?? "";
           debugPrint("BottomSheet Obx Rebuilding for Product: $pId"); // ADD THIS LOG
 
-          final liveProduct = controller.categoryFoodProductDataList
+          final liveProduct = controller.categoryFoundProductDataList
               .firstWhereOrNull((p) => p.id == pId) ?? product;
 
           debugPrint("Live Product Price: ${liveProduct.variants?.firstOrNull?.baseSellingPrice}"); // LOG CHECK
@@ -60,7 +60,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
               _buildVariantList(liveProduct),
               _buildAddVariantButton(liveProduct),
               const SizedBox(height: 20),
-              _buildPostButton(liveProduct),
+              _buildAddVariantsIntoCartButton(liveProduct),
               const SizedBox(height: 20),
             ],
           );
@@ -214,6 +214,15 @@ class ProductVariantBottomSheet extends StatelessWidget {
                 newPrice,
                 newMrp,
               );
+
+              int localIndex = tempSelectedVariants.indexWhere((v) => v.id == item.id);
+              if (localIndex != -1) {
+                tempSelectedVariants[localIndex] = tempSelectedVariants[localIndex].copyWith(
+                  baseSellingPrice: newPrice,
+                  mrp: newMrp,
+                );
+              }
+              tempSelectedVariants.refresh();
             },
           );
         } else {
@@ -262,16 +271,26 @@ class ProductVariantBottomSheet extends StatelessWidget {
     }
   }
 
-  Widget _buildPostButton(CategoryFoodProductData liveProduct) {
+  Widget _buildAddVariantsIntoCartButton(CategoryFoodProductData liveProduct) {
     return PositiveCustomBtn(
       onTap: () {
-        // if (tempSelectedVariants.isEmpty) {
-        //   commonSnackBar(message: "Please select at least one variant.");
-        //   return;
-        // }
 
-        // 5. COMMIT: Save the temporary selection to the Global Controller Map
-        controller.selectedVariantsMap[liveProduct.id!] = List.from(tempSelectedVariants);
+        final String pId = liveProduct.id.toString().trim();
+
+        // --- DEBUG PRINTS START ---
+        debugPrint("📦 Committing Selection for Product: $pId");
+        debugPrint("Total Variants to Save: ${tempSelectedVariants.length}");
+
+        for (var variant in tempSelectedVariants) {
+          debugPrint("-------------------------------------------");
+          debugPrint("🔹 Variant: ${variant.variantName}");
+          debugPrint("💰 Base Selling Price: ₹${variant.baseSellingPrice}");
+          debugPrint("🏷️ MRP: ₹${variant.mrp}");
+        }
+        debugPrint("-------------------------------------------");
+        // --- DEBUG PRINTS END ---
+
+        controller.selectedVariantsMap[pId] = List.from(tempSelectedVariants);
         controller.selectedVariantsMap.refresh();
 
         Get.back();
@@ -285,15 +304,4 @@ class ProductVariantBottomSheet extends StatelessWidget {
     return Container(height: 15, width: 1.5, color: Colors.grey.shade300);
   }
 
-  Widget _tagWidget(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.whiteE5),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child:
-      CustomText(label, fontSize: 10, color: AppColors.secondaryTextColor),
-    );
-  }
 }

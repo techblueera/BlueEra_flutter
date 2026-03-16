@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_data.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -31,12 +32,14 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
   ];
 
    void navigateToGroceryStore({
-    required dynamic categoryData,
+    required List<OnboardingCategoryModel> categories,
+    required var categoryData,
     bool isGrocery = true,
   }) {
     Get.toNamed(
       RouteHelper.getGroceryOrFoodStoresScreenRoute(),
       arguments: {
+        ApiKeys.argCategories: categories,
         ApiKeys.argCategoryData: categoryData,
         ApiKeys.argIsGroceryStore: isGrocery,
       },
@@ -74,6 +77,7 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
                     getIcon: (categoryItem) => categoryItem.icon,
                     onTap: (categoryItem) {
                       navigateToGroceryStore(
+                        categories: groceriesCategories,
                         categoryData: categoryItem,
                         isGrocery: true
                       );
@@ -112,6 +116,7 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
                     getIcon: (item) => item.icon,
                     onTap: (categoryItem) {
                       navigateToGroceryStore(
+                          categories: businessOnboardingFoodsCategories,
                           categoryData: categoryItem,
                           isGrocery: false
                       );

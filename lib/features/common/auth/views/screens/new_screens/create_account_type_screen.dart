@@ -595,6 +595,8 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             ),
           ),
 
+          SizedBox(height: SizeConfig.paddingM),
+
           _otherOptionCreation()
         ],
       ),

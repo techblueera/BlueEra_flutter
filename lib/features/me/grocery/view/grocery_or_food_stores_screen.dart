@@ -26,11 +26,13 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_enum.dart';
 
 class GroceryOrFoodStoresScreen extends StatefulWidget {
+  final List<OnboardingCategoryModel> arrCategories;
   final OnboardingCategoryModel selectedGroceryOrFoodCategory;
   final bool isGroceryStore;
 
   const GroceryOrFoodStoresScreen(
       { super.key,
+        required this.arrCategories,
         required this.selectedGroceryOrFoodCategory,
         required this.isGroceryStore,
         });
@@ -45,6 +47,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
   final groceryController = getOrPut(() => GroceryController());
   final foodCustomerListingScreen = getOrPut(() => FoodCustomerController());
   final ScrollController storesScrollController = ScrollController();
+  late List<OnboardingCategoryModel> _arrCategories;
 
   @override
   initState() {
@@ -58,6 +61,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
 
     controller.selectedGroceryOrFoodCategoryData.value =
         widget.selectedGroceryOrFoodCategory;
+    _arrCategories = widget.arrCategories;
     controller.businessCategoryId = controller.selectedGroceryOrFoodCategoryData.value?.slugId;
 
     controller.getAllStoreNearBy();
@@ -103,7 +107,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
       accountType: AppConstants.individual,
     );
 
-    final fullList = [allItem, ...groceriesCategories];
+    final fullList = [allItem, ..._arrCategories];
 
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
@@ -118,6 +122,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
       onTap: (item, index) {
         if (item.slugId == 'ALL') {
           controller.selectedGroceryOrFoodCategoryData.value = null;
+          controller.businessCategoryId = null;
         } else {
           controller.selectedGroceryOrFoodCategoryData.value = item;
           controller.businessCategoryId = item.slugId;

@@ -376,50 +376,59 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     SizeConfig.init(context);
 
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: AppStrings.appName,
-      theme: AppThemes.light,
-      initialRoute: null,
-      onGenerateRoute: RouteHelper.generateRoute,
-      navigatorObservers: [RouteHelper.routeObserver],
-      translations: LocalizationService(),
-      locale: widget.initialLocale,
-      fallbackLocale: const Locale('en'),
-      builder: (context, child) {
-        return Stack(
-          children: [
-            // Safe null handling:
-            if (child != null) child,
-            const GlobalMessage(),
-            // WhatsApp-style ongoing call overlay — shown above app bar
-            const OngoingCallOverlay(),
-          ],
-        );
-      },
-      home: Obx(() {
-        print("CallController.launchedForCall.value ${CallController.launchedForCall.value}");
-        // Call accepted from killed state — show ONLY the call screen
-        if (CallController.launchedForCall.value) {
-          return const CallRoomScreen();
-        }
-
-        // Still loading (null or loading flag)
-        if (appController.isLoading.value ||
-            appController.isInMaintenance.value == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark, // Android Black
+        statusBarBrightness: Brightness.light, // iOS Black
+        systemNavigationBarColor: Colors.white,   // Bottom nav bar color
+        systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
+      ),
+      child: GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: AppStrings.appName,
+        theme: AppThemes.light,
+        initialRoute: null,
+        onGenerateRoute: RouteHelper.generateRoute,
+        navigatorObservers: [RouteHelper.routeObserver],
+        translations: LocalizationService(),
+        locale: widget.initialLocale,
+        fallbackLocale: const Locale('en'),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              // Safe null handling:
+              if (child != null) child,
+              const GlobalMessage(),
+              // WhatsApp-style ongoing call overlay — shown above app bar
+              const OngoingCallOverlay(),
+            ],
           );
-        }
+        },
+        home: Obx(() {
+          print("CallController.launchedForCall.value ${CallController.launchedForCall.value}");
+          // Call accepted from killed state — show ONLY the call screen
+          if (CallController.launchedForCall.value) {
+            return const CallRoomScreen();
+          }
 
-        // App under maintenance
-        if (appController.isInMaintenance.value == true) {
-          return const MaintenanceScreen();
-        }
+          // Still loading (null or loading flag)
+          if (appController.isLoading.value ||
+              appController.isInMaintenance.value == null) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-        // Normal operation → Go to your normal entry point
-        return const SplashScreen(); // or SplashScreen / whatever your entry route is
-      }),
+          // App under maintenance
+          if (appController.isInMaintenance.value == true) {
+            return const MaintenanceScreen();
+          }
+
+          // Normal operation → Go to your normal entry point
+          return const SplashScreen(); // or SplashScreen / whatever your entry route is
+        }),
+      ),
     );
   }
 }

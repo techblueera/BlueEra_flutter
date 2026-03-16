@@ -61,6 +61,10 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.businessProfileDetails?.data;
 
           return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 15.0,
+            ),
             child: Column(
               children: [
                 CustomFormCard(

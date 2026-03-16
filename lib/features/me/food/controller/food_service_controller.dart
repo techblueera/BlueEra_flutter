@@ -38,8 +38,10 @@ class FoodServiceController extends GetxController {
 
   RxList<FoodCategoryData> foodNestedCateList = <FoodCategoryData>[].obs;
 
-  RxList<CategoryFoodProductData> categoryFoodProductDataList =
+  RxList<CategoryFoodProductData> categoryFoundProductDataList =
       <CategoryFoodProductData>[].obs;
+  RxList<MissingFoodProducts> missingProducts = <MissingFoodProducts>[].obs;
+
   RxString selectedSubFoodTypeIDCat = "".obs;
   RxString selectedFoodTypeID = "".obs;
   var selectedCategoryId = '1'.obs;
@@ -47,7 +49,6 @@ class FoodServiceController extends GetxController {
   RxList<Children> subCategoryTabs = <Children>[].obs;
 
   Rxn<CategoryFoodProductData> singleFoodProductData = Rxn<CategoryFoodProductData>();
-  RxList<MissingFoodProducts> missingProducts = <MissingFoodProducts>[].obs;
 
   FoodProductSnapSearchData? productSnapSearchData;
   List<Map<String, String>> foodSnapSearchPhotos = [
@@ -56,7 +57,7 @@ class FoodServiceController extends GetxController {
       'image': AppImageAssets.groceryImageFirst
     },
     {
-      'title': 'Upload List',
+      'title': 'Upload Menu',
       'image': AppImageAssets.groceryImageSecond
     },
   ];
@@ -73,6 +74,27 @@ class FoodServiceController extends GetxController {
       return selected;
     }
     return null;
+  }
+
+  Future<void> addImagesBySlot(String title) async {
+    // 1. Prevent adding if something else is already there (Safety check)
+    if (foodSnapSearchImagesMap.values.any((v) => v != null)) {
+      commonSnackBar(message: "Please remove the current image before selecting another type.");
+      return;
+    }
+
+    final selectedImages = await pickImages(title);
+    if (selectedImages == null || selectedImages.isEmpty) return;
+
+    foodSnapSearchImagesMap[title] = File(selectedImages.first);
+
+    // Trigger the API call since an image was successfully added
+    fetchFoodSnapSearchApi();
+  }
+
+  void removeImageBySlot(String title) {
+    foodSnapSearchImagesMap[title] = null;
+    foodSnapSearchImagesMap.refresh();
   }
 
   /// Pick and replace image for a specific slot
@@ -106,14 +128,13 @@ class FoodServiceController extends GetxController {
       int newPrice,
       int newMrp,
       ) {
-    // 1. Update the Price in the Main Global List (Source of Truth)
-    int productIndex = categoryFoodProductDataList.indexWhere(
+    // Only update the Main Global List (Source of Truth)
+    int productIndex = categoryFoundProductDataList.indexWhere(
           (p) => p.id.toString().trim() == productId.toString().trim(),
     );
 
     if (productIndex != -1) {
-      final product = categoryFoodProductDataList[productIndex];
-      // Create a new list instance to ensure deep reactivity
+      final product = categoryFoundProductDataList[productIndex];
       List<FoodVariants> variants = List<FoodVariants>.from(product.variants ?? []);
 
       int vIndex = variants.indexWhere(
@@ -121,31 +142,15 @@ class FoodServiceController extends GetxController {
       );
 
       if (vIndex != -1) {
-        // Update specific variant and re-assign the list
         variants[vIndex] = variants[vIndex].copyWith(
           baseSellingPrice: newPrice,
           mrp: newMrp,
         );
 
-        categoryFoodProductDataList[productIndex] = product.copyWith(variants: variants);
-        categoryFoodProductDataList.refresh();
-      }
-    }
+        categoryFoundProductDataList[productIndex] = product.copyWith(variants: variants);
+        categoryFoundProductDataList.refresh();
 
-    // 2. Update the Price in the Selected Map (Payload for Posting)
-    if (selectedVariantsMap.containsKey(productId)) {
-      List<FoodVariants> selectedList = List.from(selectedVariantsMap[productId]!);
-      int sIndex = selectedList.indexWhere(
-            (v) => v.id.toString().trim() == variantId.toString().trim(),
-      );
-
-      if (sIndex != -1) {
-        selectedList[sIndex] = selectedList[sIndex].copyWith(
-          baseSellingPrice: newPrice,
-          mrp: newMrp,
-        );
-        selectedVariantsMap[productId] = selectedList;
-        selectedVariantsMap.refresh();
+        debugPrint("✅ Source of Truth Updated for Variant: $variantId");
       }
     }
   }
@@ -157,7 +162,7 @@ class FoodServiceController extends GetxController {
 
   void resetControllerFields() {
     // 1. Clear Lists & Maps
-    categoryFoodProductDataList.clear();
+    categoryFoundProductDataList.clear();
     subCategoryTabs.clear();
     foodSnapSearchImagesMap.clear();
     selectedVariantsMap.clear();
@@ -192,17 +197,27 @@ class FoodServiceController extends GetxController {
   }
 
   Future<void> getFoodByCategoryIDController(
-      {required String categoryId}) async {
-    categoryFoodProductDataList.clear();
+      {
+        required Map<String, String> categoryIdParams,
+      }) async {
+    categoryFoundProductDataList.clear();
     getFoodByCategoryIDResponse.value = ApiResponse.initial("Initial");
+
+    Map<String, dynamic> params = {
+      ApiKeys.page: 1,
+      ApiKeys.limit: 20,
+    };
+
+    params.addAll(categoryIdParams);
+
     ResponseModel response =
-        await FoodRepo().getFoodByCategoryIdRepo(catID: categoryId);
+        await FoodRepo().getFoodByCategoryIdRepo(queryPatrams: params);
     if (response.isSuccess) {
       List rawList = response.response?.data['data'];
-      categoryFoodProductDataList.value =
+      categoryFoundProductDataList.value =
           rawList.map((e) => CategoryFoodProductData.fromJson(e)).toList();
       getFoodByCategoryIDResponse.value =
-          ApiResponse.complete(categoryFoodProductDataList);
+          ApiResponse.complete(categoryFoundProductDataList);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       getFoodByCategoryIDResponse.value =
@@ -518,6 +533,9 @@ class FoodServiceController extends GetxController {
 
       foodSnapSearchResponse.value = ApiResponse.loading('Loading');
 
+      categoryFoundProductDataList.clear();
+      missingProducts.clear();
+
       List<dio.MultipartFile> imageByPart = [];
 
       for (final file in validSnapSearchImages) {
@@ -539,9 +557,9 @@ class FoodServiceController extends GetxController {
       if (responseModel.isSuccess) {
         foodSnapSearchResponse.value = ApiResponse.complete(responseModel);
         var grocerySnapSearchResponseModel = FoodSnapSearchResponseModel.fromJson(responseModel.response?.data);
-        productSnapSearchData = grocerySnapSearchResponseModel.data;
 
         final found = grocerySnapSearchResponseModel.data?.foundProducts ?? [];
+        final missing = grocerySnapSearchResponseModel.data?.missingProducts ?? [];
 
         // Extract only the productDetails and filter out nulls
         List<CategoryFoodProductData> extractedProducts = found
@@ -549,8 +567,10 @@ class FoodServiceController extends GetxController {
             .whereType<CategoryFoodProductData>()
             .toList();
 
-        categoryFoodProductDataList.assignAll(extractedProducts);
 
+
+        categoryFoundProductDataList.assignAll(extractedProducts);
+        missingProducts.assignAll(missing);
       } else {
         foodSnapSearchResponse.value = ApiResponse.error('error');
       }

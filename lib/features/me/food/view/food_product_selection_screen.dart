@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
@@ -55,15 +56,13 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
 
       // 4. API Call
       controller.getFoodByCategoryIDController(
-          categoryId: controller.selectedCategoryId.value
+          categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value}
       );
     } else {
       debugPrint("--- InitState Warning: No Level 1 Categories found ---");
     }
     // scrollController.addListener(_onScrollListener);
   }
-
-
 
   // void _onScrollListener(){
   //   if (scrollController.position.pixels >=
@@ -153,7 +152,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
         controller.selectedSubCategoryId.value = "All";
 
         controller.getFoodByCategoryIDController(
-            categoryId: cat.id ?? ""
+            categoryIdParams: {ApiKeys.parentId: cat.id ?? ""}
         );
       },
     );
@@ -191,11 +190,13 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
 
                 controller.selectedSubCategoryId.value = itemId;
 
-                String targetId = (itemId == "All")
-                    ? controller.selectedCategoryId.value
-                    : itemId;
+                var targetIdParams = (itemId == "All")
+                    ? {ApiKeys.parentId: controller.selectedCategoryId.value}
+                    : {ApiKeys.category : itemId};
 
-                controller.getFoodByCategoryIDController(categoryId: targetId);
+                controller.getFoodByCategoryIDController(
+                    categoryIdParams: targetIdParams
+                );
               },
             );
           }),
@@ -204,9 +205,9 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
           Obx(() => Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(8),
-              itemCount: controller.categoryFoodProductDataList.length,
+              itemCount: controller.categoryFoundProductDataList.length,
               itemBuilder: (context, index) {
-                final product = controller.categoryFoodProductDataList[index];
+                final product = controller.categoryFoundProductDataList[index];
                 return FoodProductCard(
                   product: product,
                   onShowVariants: (p) => _showVariantSheet(context, p),
@@ -214,6 +215,8 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
               },
             ),
           )),
+
+          SizedBox(height: SizeConfig.size40)
         ],
       ),
     );

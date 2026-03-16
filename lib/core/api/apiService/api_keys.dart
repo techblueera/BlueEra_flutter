@@ -520,6 +520,7 @@ class ApiKeys {
   static const political_party = 'political_party';
   static const business_location = 'business_location';
   static const notificationId = 'notificationId';
+  static const argCategories = 'argCategories';
   static const argCategoryData = 'argCategoryData';
   static const argSubCategory = 'argSubCategory';
   static const argBusinessType = 'argBusinessType';

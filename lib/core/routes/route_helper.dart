@@ -1699,10 +1699,12 @@ class RouteHelper {
 
        case RouteConstant.groceryOrFoodStoresScreen:
               final args = settings.arguments as Map<String, dynamic>;
+              final List<OnboardingCategoryModel> argCategories = args[ApiKeys.argCategories] as List<OnboardingCategoryModel>;
               final OnboardingCategoryModel selectedGroceryCategoryData = args[ApiKeys.argCategoryData] as OnboardingCategoryModel;
               final bool argIsGroceryStore = args[ApiKeys.argIsGroceryStore] as bool;
               return MaterialPageRoute(
                   builder: (_) => GroceryOrFoodStoresScreen(
+                      arrCategories: argCategories,
                       selectedGroceryOrFoodCategory: selectedGroceryCategoryData,
                       isGroceryStore: argIsGroceryStore,
                   ),
@@ -1764,7 +1766,6 @@ class RouteHelper {
             builder: (_) => AddFoodSnapSearchScreen(),
             settings: RouteSettings(name: getAddFoodSnapSearchScreenRoute())
         );
-
 
       case RouteConstant.addSingleProductScreen:
         final args = settings.arguments as Map<String, dynamic>;

@@ -90,7 +90,7 @@ class GroceryController extends GetxController {
       'image': AppImageAssets.groceryImageFirst,
     },
     {
-      'title': 'Upload List',
+      'title': 'Upload Menu',
       'image': AppImageAssets.groceryImageSecond,
     },
   ];
@@ -269,19 +269,25 @@ class GroceryController extends GetxController {
     );
   }
 
-  /// Pick and replace image for a specific slot
   Future<void> addImagesBySlot(String title) async {
+    // 1. Prevent adding if something else is already there (Safety check)
+    if (grocerySnapSearchImagesMap.values.any((v) => v != null)) {
+      commonSnackBar(message: "Please remove the current image before selecting another type.");
+      return;
+    }
+
     final selectedImages = await pickImages(title);
     if (selectedImages == null || selectedImages.isEmpty) return;
 
-    // Replace the specific slot with the first image picked
     grocerySnapSearchImagesMap[title] = File(selectedImages.first);
+
+    // Trigger the API call since an image was successfully added
+    fetchGrocerySnapSearchApi();
   }
 
-  /// Remove image for a specific slot
   void removeImageBySlot(String title) {
-    // Setting to null reverts the UI to the static placeholder
     grocerySnapSearchImagesMap[title] = null;
+    grocerySnapSearchImagesMap.refresh();
   }
 
   Future<List<String>?> pickImages(String title) async {
@@ -582,6 +588,8 @@ class GroceryController extends GetxController {
 
     try {
       grocerySnapSearchResponse.value = ApiResponse.loading('Loading');
+
+      productSnapSearchData.value = null;
 
       List<dio.MultipartFile> imageByPart = [];
 

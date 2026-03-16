@@ -1,10 +1,8 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -103,13 +101,12 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Bulk Upload Shop Product Photos", fontWeight: FontWeight.bold),
+          const CustomText("Upload Bulk Product", fontWeight: FontWeight.bold),
           const SizedBox(height: 14),
           MasonryGridView.count(
             shrinkWrap: true,
             primary: false,
             physics: const NeverScrollableScrollPhysics(),
-            // Use the config list length
             itemCount: controller.grocerySnapSearchConfig.length,
             crossAxisCount: 2,
             crossAxisSpacing: 10,
@@ -124,10 +121,18 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                 final File? capturedFile = controller.grocerySnapSearchImagesMap[title];
                 final bool hasImage = capturedFile != null;
 
+                // Check if ANY image is selected in the entire map
+                final bool isAnyImageSelected = controller.grocerySnapSearchImagesMap.values.any((v) => v != null);
+
+                // A slot is "Blocked" if something else is selected but NOT this specific slot
+                final bool isBlocked = isAnyImageSelected && !hasImage;
+
                 return Column(
                   children: [
                     InkWell(
-                      onTap: hasImage
+                      onTap: isBlocked
+                          ? null // Make unclickable if another slot is already filled
+                          : hasImage
                           ? () => navigatePushTo(
                         context,
                         ImageViewScreen(
@@ -137,51 +142,58 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                         ),
                       )
                           : () => controller.addImagesBySlot(title),
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10.0),
-                            child: Container(
-                              height: SizeConfig.size180,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: hasImage ? AppColors.primaryColor : AppColors.greyE5,
-                                  width: hasImage ? 1.5 : 1,
-                                ),
-                                image: DecorationImage(
-                                  // Swaps between static asset and captured file
-                                  image: (hasImage
-                                      ? FileImage(capturedFile)
-                                      : AssetImage(placeholder)) as ImageProvider,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (hasImage)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: () => controller.removeImageBySlot(title),
-                                child: CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.red.withOpacity(0.8),
-                                  child: const Icon(Icons.close, size: 14, color: Colors.white),
+                      child: Opacity(
+                        opacity: isBlocked ? 0.5 : 1.0, // Visually dim the unclickable one
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: Container(
+                                height: 180,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: hasImage ? AppColors.primaryColor : AppColors.greyE5,
+                                    width: hasImage ? 2 : 1,
+                                  ),
+                                  image: DecorationImage(
+                                    image: (hasImage
+                                        ? FileImage(capturedFile)
+                                        : AssetImage(placeholder)) as ImageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                             ),
-                        ],
+                            // Close button only appears on the active image
+                            if (hasImage)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: GestureDetector(
+                                  onTap: () => controller.removeImageBySlot(title),
+                                  child: CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: Colors.red.withValues(alpha: 0.8),
+                                    child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     CustomText(
                       title,
                       fontSize: 12,
-                      color: hasImage ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                      color: hasImage
+                          ? AppColors.primaryColor
+                          : isBlocked
+                          ? AppColors.greyE5
+                          : AppColors.secondaryTextColor,
                       fontWeight: hasImage ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ],
@@ -189,20 +201,28 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
               });
             },
           ),
-          const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.centerRight,
-            child: CustomBtn(
-              width: 80,
-              height: 35,
-              title: "Submit",
-              textColor: AppColors.primaryColor,
-              bgColor: AppColors.white,
-              borderColor: AppColors.primaryColor,
-              radius: 8.0,
-              onTap: () => controller.fetchGrocerySnapSearchApi(),
-            ),
-          )
+          const SizedBox(height: 10),
+          const CustomText(
+            "Upload picture/menu containing up to 20 product at time",
+            fontWeight: FontWeight.w400,
+            color: AppColors.red,
+            textAlign: TextAlign.center,
+          ),
+
+          // const SizedBox(height: 20),
+          // Align(
+          //   alignment: Alignment.centerRight,
+          //   child: CustomBtn(
+          //     width: 80,
+          //     height: 35,
+          //     title: "Submit",
+          //     textColor: AppColors.primaryColor,
+          //     bgColor: AppColors.white,
+          //     borderColor: AppColors.primaryColor,
+          //     radius: 8.0,
+          //     onTap: () => controller.fetchGrocerySnapSearchApi(),
+          //   ),
+          // )
         ],
       ),
     );

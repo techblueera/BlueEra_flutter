@@ -65,13 +65,18 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
             controller.fetchHomeData(businessId: businessId);
           },
           child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: 8,
+              right: 8,
+              bottom: 40,
+              top: 15,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ///FOOD HOTEL....
-                CommonCardWidget(
-                  cardMargin: 10,
-                  padding: 0,
+                CustomFormCard(
+                  padding: EdgeInsets.all(10),
                   child: FoodHomeProfileHeader(
                     details: data.businessProfileDetails,
                     controller: viewBusinessDetailsController,
@@ -82,6 +87,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 if (controller.allFoodItems.isNotEmpty)
                   CustomFormCard(
                     padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(top: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -96,16 +102,12 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   ),
 
                 ///FOOD MENU...
-                if (controller.foodMenuNestedCategory.isNotEmpty)
-                  _buildMenuCategories(controller.foodMenuNestedCategory),
+                _buildMenuCategories(controller.foodMenuNestedCategory),
 
                 /// Gallery
                 (data.gallery?.isNotEmpty ?? false)
-                    ? CommonCardWidget(
-                        // cardMargin: 0,
-                        // padding: 10,
-                        padding: 15,
-
+                    ? CustomFormCard(
+                       padding: EdgeInsets.all(10),
                         child: Column(
                           children: [
                             Row(
@@ -130,7 +132,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
-                            top: 20.0
+                            top: 10.0
                         ),
                         child: PositiveCustomBtn(
                             onTap: () {
@@ -411,26 +413,36 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
           return Container(
             width: 160,
             margin: const EdgeInsets.only(right: 12),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    item.product?.images?.firstOrNull ?? "",
-                    height: 120,
-                    width: 160,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: AppColors.secondaryTextColor)),
-                          height: 120,
-                          width: 160,
-                          child: const Icon(Icons.fastfood)),
+                Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: AppColors.greyE5,
+                          width: 0.5
+                      ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      item.product?.images?.firstOrNull ?? "",
+                      height: 120,
+                      width: 160,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: AppColors.secondaryTextColor)),
+                            height: 120,
+                            width: 160,
+                            child: const Icon(Icons.fastfood)),
+                      ),
                     ),
                   ),
                 ),
@@ -522,8 +534,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   );
                 },
               )
-                  :
-              EmptyStateWidget(
+                  : EmptyStateWidget(
                 message: 'You don\'t have inventory yet, Want to create one?',
               ),
 

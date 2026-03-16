@@ -117,7 +117,7 @@ class CategoryFoodProductData {
   String? createdAt;
   String? updatedAt;
   int? v;
-  int? displayPrice;
+  num? displayPrice;
   int? displayMrp;
   String? variantId;
   List<FoodVariants>? variants;

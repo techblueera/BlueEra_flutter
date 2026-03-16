@@ -39,7 +39,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -156,16 +155,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   Widget build(BuildContext context) {
     final bool isSmallScreen = View.of(context).physicalSize.width < 400;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark, // Android Black
-        statusBarBrightness: Brightness.light, // iOS Black
-      ),
-      child: Scaffold(
-          backgroundColor: AppColors.whiteF3,
-          body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen)))),
-    );
+    return Scaffold(
+        body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen))));
   }
 
   void chooseDeliveryOption() {
@@ -292,8 +283,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         _buildGap(),
 
         SliverToBoxAdapter(
-            child: DiscoverBannerSlider(
-          parentScrollController: _scrollController,
+            child: DiscoverBannerPage(
           targetKey: _qrWidgetKey,
         )),
         _buildGap(gap: SizeConfig.paddingM),
