@@ -1,6 +1,8 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../auth/controller/call_controller.dart';
 
 /// WhatsApp-style in-app overlay shown above the app bar when a call is active.
@@ -11,17 +13,13 @@ class OngoingCallOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Don't render anything if CallController isn't registered
-    if (!Get.isRegistered<CallController>()) {
-      return const SizedBox.shrink();
-    }
 
-    final controller = Get.find<CallController>();
+    final controller = getOrPut(() => CallController());
+
 
     return Obx(() {
       final status = controller.callStatus.value;
-      final isActive = status == CallStatus.connected ||
-          status == CallStatus.connecting;
+      final isActive = status == CallStatus.ringing||controller.isIncomingCall.value==true;
 
       // Don't show overlay when on call screens themselves
       final route = Get.currentRoute;
@@ -33,7 +31,6 @@ class OngoingCallOverlay extends StatelessWidget {
       if (!isActive || isOnCallScreen) {
         return const SizedBox.shrink();
       }
-
       final isConnected = status == CallStatus.connected;
       final name = controller.callerName.value.isNotEmpty
           ? controller.callerName.value
@@ -49,9 +46,14 @@ class OngoingCallOverlay extends StatelessWidget {
           bottom: false,
           child: GestureDetector(
             onTap: () {
-              if (Get.currentRoute != '/CallRoomScreen') {
-                Get.toNamed('/CallRoomScreen');
+              if(controller.isIncomingCall.value==true){
+                Get.toNamed('/IncomingCallScreen');
+              }else{
+                if (Get.currentRoute != '/CallRoomScreen') {
+                  Get.toNamed('/CallRoomScreen');
+                }
               }
+
             },
             child: Container(
               width: double.infinity,

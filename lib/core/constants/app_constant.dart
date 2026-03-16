@@ -33,9 +33,12 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
-import '../../features/chat/view/chat_theme/chat_theme.dart';
+import '../../features/chat/view/chat_theme/chat_background_screen.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
+import '../../features/chat/view/add_symbol/add_symbol_screen.dart';
+import '../../features/personal/personal_profile/view/manage_notification/notification.dart';
+import '../../features/chat/view/wallet_chat/wallet_chat_screen.dart';
 
 class AppConstants {
   static const String appName = 'BlueEra';
@@ -982,11 +985,16 @@ List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
 
 List<PopupMenuEntry<String>> popupMenuChatCardItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "VIEW_SYMBOL", 'title': "View Symbol"},
-    {"id": "CREATE_GROUP", 'title': AppStrings.createGroup},
-    {"id": "THEME", 'title': AppStrings.theme},
-    {"id": "WALLPAPER", 'title': AppStrings.wallpaper},
-    {"id": "LOCK_CHAT", 'title': AppStrings.lockChat},
+    {"id": "ADD_SYMBOL", 'title': "Add Symbol", 'icon': Icons.add_circle_outline},
+    {"id": "VIEW_SYMBOL", 'title': "View Symbol", 'icon': Icons.auto_awesome},
+    {"id": "CREATE_GROUP", 'title': AppStrings.createGroup, 'icon': Icons.group_add},
+    {"id": "BACKGROUND", 'title': AppStrings.background, 'icon': Icons.wallpaper},
+    {"id": "LOCK_CHAT", 'title': AppStrings.lockChat, 'icon': Icons.lock_outline},
+    {"id": "LINKED_DEVICE", 'title': "Linked Device", 'icon': Icons.devices},
+    {"id": "NOTIFICATION", 'title': "Notification", 'icon': Icons.notifications_outlined},
+    {"id": "INVITE_FRIEND", 'title': "Invite Friend", 'icon': Icons.person_add_alt_1_outlined},
+    {"id": "WALLET", 'title': "Wallet", 'icon': Icons.account_balance_wallet_outlined},
+    {"id": "PRIVATE_ROOM", 'title': "Private Room", 'icon': Icons.meeting_room_outlined},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -997,7 +1005,9 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
         height: SizeConfig.size35,
         value: items[i]['id'],
         onTap: () {
-          if (items[i]['id'] == "VIEW_SYMBOL") {
+          if (items[i]['id'] == "ADD_SYMBOL") {
+            Get.to(() => AddChatSymbolScreen());
+          } else if (items[i]['id'] == "VIEW_SYMBOL") {
             final addSymbolController =
                 Get.isRegistered<AddChatSymbolController>()
                     ? Get.find<AddChatSymbolController>()
@@ -1009,17 +1019,27 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
             Get.to(() => ContactsPage(
                   from: "group",
                 ));
-          } else if (items[i]['id'] == "THEME") {
-            Get.to(() => ChatThemeScreen());
-          } else if (items[i]['id'] == "WALLPAPER") {
-            commonSnackBar(message: "Coming soon....");
+          } else if (items[i]['id'] == "BACKGROUND") {
+            Get.to(() => ChatBackgroundScreen());
           } else if (items[i]['id'] == "LOCK_CHAT") {
+            commonSnackBar(message: "Coming soon....");
+          } else if (items[i]['id'] == "LINKED_DEVICE") {
+            commonSnackBar(message: "Coming soon....");
+          } else if (items[i]['id'] == "NOTIFICATION") {
+            Get.to(() => NotificationSettingScreen());
+          } else if (items[i]['id'] == "INVITE_FRIEND") {
+            commonSnackBar(message: "Coming soon....");
+          } else if (items[i]['id'] == "WALLET") {
+            Get.to(() => const WalletChatScreen());
+          } else if (items[i]['id'] == "PRIVATE_ROOM") {
             commonSnackBar(message: "Coming soon....");
           }
         },
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(items[i]['icon'], size: 18, color: AppColors.black30),
+            const SizedBox(width: 8),
             CustomText(
               items[i]['title'],
               fontSize: SizeConfig.medium,

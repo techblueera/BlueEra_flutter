@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +15,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart' hide navigator;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:flutter/services.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
@@ -46,6 +44,7 @@ class CallController extends GetxController {
 
   // --- Observable state ---
   var callType = CallType.audio.obs;
+  RxBool isIncomingCall=false.obs;
   var callStatus = CallStatus.idle.obs;
 
   var callerName = ''.obs;
@@ -389,8 +388,10 @@ class CallController extends GetxController {
   /// Accept an incoming call.
   /// On Android (main engine): does API accept, then launches CallActivity for WebRTC.
   /// On CallActivity engine: does full accept (API + WebRTC).
-  Future<bool> acceptCall({String? callIdParams, String? roomIdParams}) async {
+  Future<bool> acceptCall({String? callIdParams, String? roomIdParams,bool? isVideoCall}) async {
+
     // Prevent double accept (multiple CallKit listeners may fire)
+    isIncomingCall.value=false;
     if (callStatus.value == CallStatus.accepting ||
         callStatus.value == CallStatus.connecting ||
         callStatus.value == CallStatus.connected) {
@@ -406,6 +407,9 @@ class CallController extends GetxController {
 
     // Request permissions (wrapped in try-catch to avoid PlatformException
     // when another permission request is already in progress)
+    if(isVideoCall!=null){
+      callType.value=isVideoCall?CallType.video:CallType.audio;
+    }
     try {
       final permissions = [Permission.microphone];
       if (callType.value == CallType.video) permissions.add(Permission.camera);
@@ -646,6 +650,8 @@ class CallController extends GetxController {
 
   /// Decline an incoming call
   Future<void> declineCall() async {
+    isIncomingCall.value=false;
+
     if (callStatus.value == CallStatus.idle) return;
 
     final savedCallId = callId.value;
@@ -689,6 +695,7 @@ class CallController extends GetxController {
   /// End an active call
   Future<void> endCall() async {
     // Guard: skip if already idle (prevents re-entrant calls from CallKit events)
+    isIncomingCall.value=false;
     if (callStatus.value == CallStatus.idle) return;
 
     // Capture IDs before cleanup clears them
@@ -1763,6 +1770,7 @@ class CallController extends GetxController {
 void showFlutterCallNotification({
   required String callSessionId,
   required String callerName,
+  required String desiginations,
   String? callerImage,
   String? callType,
   Map<String, dynamic>? extra,
@@ -1783,8 +1791,9 @@ void showFlutterCallNotification({
     id: callSessionId,
     nameCaller: callerName,
     appName: 'BlueEra',
+
     avatar: callerImage ?? '',
-    handle: isVideo ? 'Incoming video call' : 'Incoming voice call',
+    handle: desiginations,
     type: isVideo ? 1 : 0,
     duration: 60000,
     textAccept: 'Accept',
@@ -1792,12 +1801,14 @@ void showFlutterCallNotification({
     missedCallNotification: NotificationParams(
       showNotification: false,
       isShowCallback: true,
+
       subtitle: 'Missed ${isVideo ? 'video' : 'voice'} call',
       callbackText: 'Call Back',
     ),
     extra: extra ?? {},
     android: AndroidParams(
-      isShowLogo: true,
+      isShowLogo: false, // hide logo
+      isShowCallID: false,
       isShowFullLockedScreen: true,
       isImportant: true,
       isCustomNotification: true,
@@ -1807,7 +1818,6 @@ void showFlutterCallNotification({
       textColor: '#ffffff',
       incomingCallNotificationChannelName: 'Incoming Calls',
       missedCallNotificationChannelName: 'Missed Calls',
-      isShowCallID: false,
     ),
     ios: const IOSParams(
       iconName: 'CallKitLogo',

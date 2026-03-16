@@ -90,22 +90,6 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
     });
   }
 
-  void _applyBgColorDraft(Color color) {
-    setState(() {
-      _isDarkMode = false;
-      _bgAsset = '';
-      _bgFilePath = '';
-      _bgColor = color;
-      _textColor = Colors.black;
-      _timeColor = AppColors.grayText;
-      _appBarColor = Colors.white;
-      _inputBgColor = Colors.white;
-      _scaffoldColor = Color(0xFFF1F1F3);
-      _myMsgBgColor = AppColors.chat_bubble_my_bg;
-      _receiveMsgBgColor = AppColors.chat_bubble_receive_bg;
-    });
-  }
-
   void _submitTheme() {
     ctrl.isDarkMode.value = _isDarkMode;
     ctrl.chatBgColor.value = _bgColor;
@@ -129,77 +113,32 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF6F6F8),
-      body: CustomScrollView(
-        slivers: [
-          // ── Collapsing AppBar with live preview ──
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: Colors.white,
-            leading: GestureDetector(
-              onTap: () => Get.back(),
-              child: Container(
-                margin: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 6),
-                  ],
-                ),
-                child: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 18),
-              ),
-            ),
-            title: CustomText(
-              'Chat Theme',
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-            centerTitle: true,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: EdgeInsets.zero,
-              collapseMode: CollapseMode.pin,
-              background: _buildLivePreview(),
-            ),
-          ),
+      body: Column(
+        children: [
+          // ── Fixed Live Preview at Top ──
+          _buildFixedPreviewSection(),
 
-          // ── Body ──
-          SliverToBoxAdapter(
-            child: Padding(
+          // ── Scrollable Settings Below ──
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.fromLTRB(16, 20, 16, 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Theme Mode ──
-                  _sectionHeader(icon: Icons.contrast_rounded, title: 'Appearance'),
+                  _sectionHeader(
+                      icon: Icons.contrast_rounded, title: 'Appearance'),
                   SizedBox(height: 10),
                   _buildThemeModeCard(),
                   SizedBox(height: 28),
 
-                  // ── Background Color ──
-                  _sectionHeader(icon: Icons.palette_outlined, title: 'Background Color'),
-                  SizedBox(height: 10),
-                  _buildColorGrid(),
-                  SizedBox(height: 28),
-
                   // ── Wallpaper ──
-                  _sectionHeader(icon: Icons.wallpaper_rounded, title: 'Wallpaper'),
+                  _sectionHeader(
+                      icon: Icons.wallpaper_rounded, title: 'Wallpaper'),
                   SizedBox(height: 10),
                   _buildWallpaperSection(),
                   SizedBox(height: 28),
-
-                  // ── Font Style ──
-                  _sectionHeader(icon: Icons.text_format_rounded, title: 'Font Style'),
-                  SizedBox(height: 10),
-                  _buildFontChips(),
-                  SizedBox(height: 28),
-
-                  // ── Font Size ──
-                  _sectionHeader(icon: Icons.format_size_rounded, title: 'Font Size'),
-                  SizedBox(height: 10),
-                  _buildFontSizeCard(),
-                  SizedBox(height: 32),
 
                   // ── Submit Button ──
                   SizedBox(
@@ -213,14 +152,19 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 3,
-                        shadowColor: AppColors.primaryColor.withValues(alpha: 0.3),
+                        shadowColor:
+                            AppColors.primaryColor.withValues(alpha: 0.3),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
+                          Icon(Icons.check_circle_outline_rounded,
+                              color: Colors.white, size: 20),
                           SizedBox(width: 8),
-                          CustomText('Apply Theme', fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                          CustomText('Apply Theme',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
                         ],
                       ),
                     ),
@@ -238,7 +182,8 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                         });
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(color: Colors.red.shade300),
@@ -246,9 +191,13 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.restart_alt_rounded, color: Colors.red.shade400, size: 18),
+                            Icon(Icons.restart_alt_rounded,
+                                color: Colors.red.shade400, size: 18),
                             SizedBox(width: 8),
-                            CustomText('Reset to Default', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.red.shade400),
+                            CustomText('Reset to Default',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red.shade400),
                           ],
                         ),
                       ),
@@ -265,13 +214,168 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────
+  // FIXED PREVIEW SECTION (always visible at top)
+  // ─────────────────────────────────────────────────────────
+  Widget _buildFixedPreviewSection() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+        child: Stack(
+          children: [
+            // ── Background (wallpaper / color) ──
+            Positioned.fill(child: _previewBackground()),
+
+            // ── Gradient overlay for readability ──
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 90,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      (_isDarkMode
+                              ? const Color(0xFF1F2C34)
+                              : Colors.white)
+                          .withValues(alpha: 0.85),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Content ──
+            SafeArea(
+              bottom: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // AppBar row
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 16, 0),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            margin: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                    color:
+                                        Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 8),
+                              ],
+                            ),
+                            child: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: Colors.black87,
+                                size: 17),
+                          ),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: CustomText(
+                              'Chat Theme',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: _isDarkMode
+                                  ? Colors.white
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 46),
+                      ],
+                    ),
+                  ),
+
+                  // Chat bubbles preview
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                    child: Column(
+                      children: [
+                        _previewBubble(
+                          text: 'Hey! How are you doing?',
+                          isMe: false,
+                        ),
+                        const SizedBox(height: 8),
+                        _previewBubble(
+                          text: "I'm great! Working on cool stuff",
+                          isMe: true,
+                        ),
+                        const SizedBox(height: 8),
+                        _previewBubble(
+                          text: 'This theme looks amazing!',
+                          isMe: false,
+                        ),
+                        const SizedBox(height: 8),
+                        // Preview badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.visibility_rounded,
+                                  size: 11, color: Colors.white70),
+                              SizedBox(width: 4),
+                              CustomText('LIVE PREVIEW',
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white70),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
   // SECTION HEADER
   // ─────────────────────────────────────────────────────────
   Widget _sectionHeader({required IconData icon, required String title}) {
     return Row(
       children: [
         Container(
-          width: 30, height: 30,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
             color: AppColors.primaryColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
@@ -279,81 +383,17 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
           child: Icon(icon, size: 16, color: AppColors.primaryColor),
         ),
         SizedBox(width: 10),
-        CustomText(title, fontSize: 15, fontWeight: FontWeight.w700, color: Colors.black87),
+        CustomText(title,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87),
       ],
     );
   }
 
   // ─────────────────────────────────────────────────────────
-  // LIVE PREVIEW (inside SliverAppBar)
+  // PREVIEW BACKGROUND
   // ─────────────────────────────────────────────────────────
-  Widget _buildLivePreview() {
-    return Stack(
-      children: [
-        // Background
-        Positioned.fill(child: _previewBackground()),
-        // Gradient fade at top for appbar readability
-        Positioned(
-          top: 0, left: 0, right: 0, height: 100,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.white.withValues(alpha: 0.7), Colors.transparent],
-              ),
-            ),
-          ),
-        ),
-        // Chat bubbles
-        Positioned.fill(
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 56, 16, 8),
-              child: Column(
-                children: [
-                  _previewBubble(
-                    text: 'Hey! How are you doing?',
-                    isMe: false,
-                  ),
-                  SizedBox(height: 10),
-                  _previewBubble(
-                    text: 'I\'m great, thanks! Working on some cool stuff',
-                    isMe: true,
-                  ),
-                  SizedBox(height: 10),
-                  _previewBubble(
-                    text: 'This theme looks amazing!',
-                    isMe: false,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        // "PREVIEW" badge
-        Positioned(
-          bottom: 8, right: 16,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.visibility_rounded, size: 12, color: Colors.white70),
-                SizedBox(width: 4),
-                CustomText('PREVIEW', fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white70),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _previewBackground() {
     if (_bgFilePath.isNotEmpty) {
       return Image.file(
@@ -365,15 +405,14 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
     if (_bgAsset.isNotEmpty) {
       return Image.asset(_bgAsset, fit: BoxFit.cover);
     }
-    // Default background image
-    return Image.asset(AppImageAssets.chatDefaultBg, fit: BoxFit.cover);
+    return Container(color: _bgColor);
   }
 
   Widget _previewBubble({required String text, required bool isMe}) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(maxWidth: 260),
+        constraints: BoxConstraints(maxWidth: 240),
         padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: isMe ? _myMsgBgColor : _receiveMsgBgColor,
@@ -385,7 +424,7 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -416,7 +455,8 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                 ),
                 if (isMe) ...[
                   SizedBox(width: 3),
-                  Icon(Icons.done_all_rounded, size: 14, color: Colors.blue.shade300),
+                  Icon(Icons.done_all_rounded,
+                      size: 14, color: Colors.blue.shade300),
                 ],
               ],
             ),
@@ -470,91 +510,31 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
           decoration: BoxDecoration(
             color: isSelected ? selectedColor : Color(0xFFF5F5F7),
             borderRadius: BorderRadius.circular(14),
-            border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+            border:
+                isSelected ? null : Border.all(color: Colors.grey.shade200),
             boxShadow: isSelected
-                ? [BoxShadow(color: selectedColor.withValues(alpha: 0.25), blurRadius: 10, offset: Offset(0, 4))]
+                ? [
+                    BoxShadow(
+                        color: selectedColor.withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        offset: Offset(0, 4))
+                  ]
                 : [],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 20, color: isSelected ? Colors.white : AppColors.grayText),
+              Icon(icon,
+                  size: 20,
+                  color: isSelected ? Colors.white : AppColors.grayText),
               SizedBox(width: 8),
-              CustomText(label, fontSize: 14, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : AppColors.grayText),
+              CustomText(label,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.grayText),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────
-  // COLOR GRID
-  // ─────────────────────────────────────────────────────────
-  Widget _buildColorGrid() {
-    final colors = [
-      [Colors.white, 'White'],
-      [Color(0xFFF5F0E8), 'Cream'],
-      [Color(0xFFE8F5E9), 'Mint'],
-      [Color(0xFFE3F2FD), 'Sky'],
-      [Color(0xFFFCE4EC), 'Rose'],
-      [Color(0xFFFFF8E1), 'Honey'],
-      [Color(0xFFF3E5F5), 'Lilac'],
-      [Color(0xFFECEFF1), 'Ash'],
-      [Color(0xFFE0F2F1), 'Teal'],
-      [Color(0xFFFBE9E7), 'Peach'],
-      [Color(0xFF0B141A), 'Night'],
-      [Color(0xFF1B2838), 'Navy'],
-    ];
-
-    return _card(
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 14,
-        children: colors.map((entry) {
-          final color = entry[0] as Color;
-          final name = entry[1] as String;
-          final isSelected = _bgColor == color
-              && _bgAsset.isEmpty
-              && _bgFilePath.isEmpty;
-
-          return GestureDetector(
-            onTap: () {
-              if (color == Color(0xFF0B141A)) {
-                _applyDarkDraft();
-              } else {
-                _applyBgColorDraft(color);
-              }
-            },
-            child: Column(
-              children: [
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 200),
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
-                      width: isSelected ? 2.5 : 1,
-                    ),
-                    boxShadow: isSelected
-                        ? [BoxShadow(color: AppColors.primaryColor.withValues(alpha: 0.3), blurRadius: 8, offset: Offset(0, 2))]
-                        : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)],
-                  ),
-                  child: isSelected
-                      ? Icon(Icons.check_rounded,
-                          color: color.computeLuminance() > 0.5 ? AppColors.primaryColor : Colors.white,
-                          size: 20)
-                      : null,
-                ),
-                SizedBox(height: 4),
-                CustomText(name, fontSize: 9, color: AppColors.grayText),
-              ],
-            ),
-          );
-        }).toList(),
       ),
     );
   }
@@ -595,15 +575,20 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 36, height: 36,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: Color(0xFFF0F0F0),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.block_rounded, color: AppColors.grayText, size: 20),
+                    child: Icon(Icons.block_rounded,
+                        color: AppColors.grayText, size: 20),
                   ),
                   SizedBox(height: 6),
-                  CustomText('None', fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.grayText),
+                  CustomText('None',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.grayText),
                 ],
               ),
             );
@@ -623,13 +608,16 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                       child: Image.file(
                         File(_bgFilePath),
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _galleryPlaceholder(),
+                        errorBuilder: (_, __, ___) =>
+                            _galleryPlaceholder(),
                       ),
                     )
                   else
                     _galleryPlaceholder(),
                   Positioned(
-                    bottom: 0, left: 0, right: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
@@ -641,10 +629,14 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                             Colors.transparent,
                           ],
                         ),
-                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
+                        borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(14)),
                       ),
                       child: Center(
-                        child: CustomText('Gallery', fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white),
+                        child: CustomText('Gallery',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
                       ),
                     ),
                   ),
@@ -672,29 +664,42 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
                   child: Image.asset(wp['asset']!, fit: BoxFit.cover),
                 ),
                 Positioned(
-                  bottom: 0, left: 0, right: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
-                        colors: [Colors.black.withValues(alpha: 0.5), Colors.transparent],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.transparent
+                        ],
                       ),
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
+                      borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(14)),
                     ),
                     child: Center(
-                      child: CustomText(wp['name']!, fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white),
+                      child: CustomText(wp['name']!,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
                     ),
                   ),
                 ),
                 if (isSelected)
                   Positioned(
-                    top: 6, right: 6,
+                    top: 6,
+                    right: 6,
                     child: Container(
                       padding: EdgeInsets.all(3),
-                      decoration: BoxDecoration(color: AppColors.primaryColor, shape: BoxShape.circle),
-                      child: Icon(Icons.check, color: Colors.white, size: 12),
+                      decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          shape: BoxShape.circle),
+                      child:
+                          Icon(Icons.check, color: Colors.white, size: 12),
                     ),
                   ),
               ],
@@ -722,21 +727,29 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: Color(0xFF7C4DFF).withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.add_photo_alternate_outlined, color: Color(0xFF7C4DFF), size: 20),
+            child: Icon(Icons.add_photo_alternate_outlined,
+                color: Color(0xFF7C4DFF), size: 20),
           ),
           SizedBox(height: 6),
-          CustomText('Choose', fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF7C4DFF)),
+          CustomText('Choose',
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF7C4DFF)),
         ],
       ),
     );
   }
 
-  Widget _wallpaperTile({required bool isSelected, required VoidCallback onTap, required Widget child}) {
+  Widget _wallpaperTile(
+      {required bool isSelected,
+      required VoidCallback onTap,
+      required Widget child}) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -750,8 +763,18 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
             width: isSelected ? 2.5 : 1,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: AppColors.primaryColor.withValues(alpha: 0.2), blurRadius: 8, offset: Offset(0, 3))]
-              : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)],
+              ? [
+                  BoxShadow(
+                      color:
+                          AppColors.primaryColor.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: Offset(0, 3))
+                ]
+              : [
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4)
+                ],
         ),
         child: child,
       ),
@@ -764,11 +787,13 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
     if (picked == null) return;
 
     final dir = await getApplicationDocumentsDirectory();
-    final savedPath = '${dir.path}/chat_wallpaper_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final savedPath =
+        '${dir.path}/chat_wallpaper_${DateTime.now().millisecondsSinceEpoch}.jpg';
     await File(picked.path).copy(savedPath);
 
     // Remove old draft custom wallpaper file if different from controller's
-    if (_bgFilePath.isNotEmpty && _bgFilePath != ctrl.chatBgFilePath.value) {
+    if (_bgFilePath.isNotEmpty &&
+        _bgFilePath != ctrl.chatBgFilePath.value) {
       try {
         final old = File(_bgFilePath);
         if (await old.exists()) await old.delete();
@@ -779,119 +804,6 @@ class _ChatThemeScreenState extends State<ChatThemeScreen> {
       _bgFilePath = savedPath;
       _bgAsset = '';
     });
-  }
-
-  // ─────────────────────────────────────────────────────────
-  // FONT CHIPS
-  // ─────────────────────────────────────────────────────────
-  Widget _buildFontChips() {
-    final fonts = ['Default', 'Roboto', 'Poppins', 'Lato', 'Montserrat', 'OpenSans'];
-
-    return _card(
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 10,
-        children: fonts.map((font) {
-          final isSelected = _fontFamily == font;
-          return GestureDetector(
-            onTap: () => setState(() => _fontFamily = font),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 200),
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
-                ),
-                boxShadow: isSelected
-                    ? [BoxShadow(color: AppColors.primaryColor.withValues(alpha: 0.2), blurRadius: 8, offset: Offset(0, 2))]
-                    : [],
-              ),
-              child: Text(
-                font,
-                style: TextStyle(
-                  fontFamily: font == 'Default' ? null : font,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: isSelected ? Colors.white : Colors.black87,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────
-  // FONT SIZE SLIDER
-  // ─────────────────────────────────────────────────────────
-  Widget _buildFontSizeCard() {
-    return _card(
-      child: Column(
-        children: [
-          Row(
-            children: [
-              CustomText('A', fontSize: 12, color: AppColors.grayText),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'The quick brown fox',
-                    style: TextStyle(
-                      fontFamily: _fontFamily == 'Default' ? null : _fontFamily,
-                      fontSize: _fontSize,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              CustomText('A', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.grayText),
-            ],
-          ),
-          SizedBox(height: 4),
-          SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 4,
-              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
-              overlayShape: RoundSliderOverlayShape(overlayRadius: 18),
-              activeTrackColor: AppColors.primaryColor,
-              inactiveTrackColor: AppColors.primaryColor.withValues(alpha: 0.12),
-              thumbColor: AppColors.primaryColor,
-              overlayColor: AppColors.primaryColor.withValues(alpha: 0.1),
-            ),
-            child: Slider(
-              value: _fontSize,
-              min: 12.0,
-              max: 24.0,
-              divisions: 6,
-              label: '${_fontSize.round()}',
-              onChanged: (val) => setState(() => _fontSize = val),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText('12', fontSize: 10, color: AppColors.grayText),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: CustomText(
-                  '${_fontSize.round()} px',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryColor,
-                ),
-              ),
-              CustomText('24', fontSize: 10, color: AppColors.grayText),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   // ─────────────────────────────────────────────────────────

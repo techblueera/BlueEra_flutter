@@ -204,10 +204,9 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                     text: (widget.message.length <= 100)
                                         ? widget.message
                                         : widget.message.substring(0, 100),
-                                    style: TextStyle(
+                                    style: chatThemeController.chatTextStyle(
                                       fontWeight: FontWeight.w500,
-                                      color: widget.isReceiveMsg ? Colors.black : AppColors.primaryColor,
-                                      fontSize: 15,
+                                      isMyMessage: !widget.isReceiveMsg,
                                     ),
                                   ),
                                   if (widget.message.length > 100)

@@ -80,79 +80,86 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   Widget build(BuildContext context) {
     final controller = Get.find<CallController>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B141A),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A2E35),
-              Color(0xFF0F1F27),
-              Color(0xFF0B141A),
-            ],
-            stops: [0.0, 0.5, 1.0],
+    return WillPopScope(
+
+      onWillPop: () async{
+        controller.isIncomingCall.value= true;
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B141A),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF1A2E35),
+                Color(0xFF0F1F27),
+                Color(0xFF0B141A),
+              ],
+              stops: [0.0, 0.5, 1.0],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              // Encryption label
-              _buildEncryptionLabel(),
-              const SizedBox(height: 16),
-              // Caller info
-              Obx(() => Text(
-                    controller.callerName.value.isNotEmpty
-                        ? controller.callerName.value
-                        : 'Unknown',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'OpenSans',
-                      color: Colors.white,
-                      letterSpacing: 0.3,
-                    ),
-                  )),
-              const SizedBox(height: 6),
-              Obx(() => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        controller.callType.value == CallType.video
-                            ? Icons.videocam_rounded
-                            : Icons.phone_rounded,
-                        color: const Color(0xFF8696A0),
-                        size: 16,
+          child: SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                // Encryption label
+                _buildEncryptionLabel(),
+                const SizedBox(height: 16),
+                // Caller info
+                Obx(() => Text(
+                      controller.callerName.value.isNotEmpty
+                          ? controller.callerName.value
+                          : 'Unknown',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'OpenSans',
+                        color: Colors.white,
+                        letterSpacing: 0.3,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        controller.callType.value == CallType.video
-                            ? 'BlueEra Video Call'
-                            : 'BlueEra Voice Call',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF8696A0),
-                          fontFamily: 'OpenSans',
+                    )),
+                const SizedBox(height: 6),
+                Obx(() => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          controller.callType.value == CallType.video
+                              ? Icons.videocam_rounded
+                              : Icons.phone_rounded,
+                          color: const Color(0xFF8696A0),
+                          size: 16,
                         ),
-                      ),
-                    ],
-                  )),
+                        const SizedBox(width: 6),
+                        Text(
+                          controller.callType.value == CallType.video
+                              ? 'BlueEra Video Call'
+                              : 'BlueEra Voice Call',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF8696A0),
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                      ],
+                    )),
 
-              // Avatar with ripple rings
-              Expanded(
-                child: Center(
-                  child: Obx(() => _buildRippleAvatar(controller)),
+                // Avatar with ripple rings
+                Expanded(
+                  child: Center(
+                    child: Obx(() => _buildRippleAvatar(controller)),
+                  ),
                 ),
-              ),
 
-              // Bottom section: Decline + Accept buttons or Slide to answer
-              _buildBottomActions(controller),
-              const SizedBox(height: 40),
-            ],
+                // Bottom section: Decline + Accept buttons or Slide to answer
+                _buildBottomActions(controller),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
