@@ -9,17 +9,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
-import 'package:BlueEra/features/me/grocery/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/features/me/grocery/model/my_grocery_products_reponse.dart';
+import 'package:BlueEra/features/me/grocery/model/my_grocery_products_response.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_varient_dialog.dart';
@@ -79,7 +76,7 @@ class GroceryController extends GetxController {
 
   bool get isMaxLimitHit => selectedGroceries.length == maxLimit;
 
-  RxMap<String, List<VariantsData>> selectedProductVariants = <String, List<VariantsData>>{}.obs;
+  RxMap<String, List<ProductVariants>> selectedProductVariants = <String, List<ProductVariants>>{}.obs;
 
   Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
   // RxList<FoundProducts> groceryFoundProducts = <FoundProducts>[].obs;
@@ -114,7 +111,7 @@ class GroceryController extends GetxController {
     }
   }
 
-  void toggleVariant(String productId, VariantsData variant) {
+  void toggleVariant(String productId, ProductVariants variant) {
     selectedProductVariants.putIfAbsent(productId, () => []);
     final selectedList = selectedProductVariants[productId]!;
 
@@ -218,7 +215,7 @@ class GroceryController extends GetxController {
   void openEditVariantDialog({
     required BuildContext context,
     required String title,
-    required VariantsData variant,
+    required ProductVariants variant,
   }) {
     showDialog(
       context: context,
@@ -258,12 +255,11 @@ class GroceryController extends GetxController {
             createNewGroceryProductNewVariant(
                 groceryItem: groceryItem,
                 productId: groceryItem.sId ?? '',
-                quantity: quantity,
-                unit: unit,
-                mrp: mrp,
-                sellingPrice: sellingPrice);
+                quantity: quantity.trim(),
+                unit: unit.trim(),
+                mrp: mrp.trim(),
+                sellingPrice: sellingPrice.trim());
           },
-          isAddGroceryProductNewVariantLoading: isCreateNewGroceryProductNewVariantLoading.value,
         );
       },
     );
@@ -419,8 +415,7 @@ class GroceryController extends GetxController {
       isCreateNewGroceryProductNewVariantLoading.value = true;
       Map<String, dynamic> data = {
         ApiKeys.variantData: jsonEncode({
-          ApiKeys.weight: int.parse(quantity),
-          ApiKeys.unit: unit,
+          ApiKeys.quantity: "$quantity $unit",
           ApiKeys.pricing: [
             {
               ApiKeys.mrp: int.tryParse(mrp),
@@ -446,11 +441,10 @@ class GroceryController extends GetxController {
       createNewGroceryProductNewVariantResponse.value = ApiResponse.complete(response);
       final jsonData = response.response?.data;
       log('id-- > ${jsonData['_id']}');
-      final newVariant = VariantsData(
-        quantity: quantity,
+      final newVariant = ProductVariants(
+        quantity: "$quantity $unit",
         sId: jsonData['_id'],
         product: productId,
-        unit: unit,
         variantName: "$quantity",
         pricing: [
           Pricing(
@@ -470,7 +464,8 @@ class GroceryController extends GetxController {
         groceryItem.variants!.length,
         newVariant,
       );
-      update();
+      selectedGroceries.refresh();
+      // update();
       Get.back();
     } catch (e) {
       createNewGroceryProductNewVariantResponse.value = ApiResponse.error('error');

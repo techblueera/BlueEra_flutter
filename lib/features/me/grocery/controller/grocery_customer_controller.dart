@@ -57,13 +57,13 @@ class GroceryCustomerController extends GetxController{
           ? (selectedGroceryData.value?.name ?? 'All Items')
           : (arrChildrenOfGroceryWithInventoryCategory[selectedTabIndex.value - 1].name ?? '');
 
-  RxList<VariantsData> selectedGroceriesVariants = <VariantsData>[].obs;
+  RxList<ProductVariants> selectedGroceriesVariants = <ProductVariants>[].obs;
 
   // Map to store quantity for each variant ID: { "variant_id": quantity }
   var cartQuantities = <String, int>{}.obs;
 
   // --- Actions ---
-  void addToCart(VariantsData variant) {
+  void addToCart(ProductVariants variant) {
     if (variant.sId == null) return;
 
     if (cartQuantities.containsKey(variant.sId)) {
@@ -74,7 +74,7 @@ class GroceryCustomerController extends GetxController{
     }
   }
 
-  void removeFromCart(VariantsData variant) {
+  void removeFromCart(ProductVariants variant) {
     if (variant.sId == null || !cartQuantities.containsKey(variant.sId)) return;
 
     int currentQty = cartQuantities[variant.sId]!;
@@ -141,6 +141,40 @@ class GroceryCustomerController extends GetxController{
 
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
+
+  // Inside GroceryCustomerController
+  void resetController() {
+    // Clear Cart & Selection
+    selectedGroceriesVariants.clear();
+    cartQuantities.clear();
+
+    // Reset Tab Selection
+    selectedTabIndex.value = 0;
+
+    // Clear Product Lists
+    arrChildrenOfGroceryWithInventoryCategory.clear();
+    arrUserGrocery.clear();
+
+    // Reset Pagination
+    userGroceryPage = 1;
+    userGroceryHasMore = true;
+
+    // Clear Rider & Order Info
+    arrRiders.clear();
+    assignedRiderIds.clear();
+    sentRiderIds.clear();
+
+    // Reset API Responses to Initial state
+    groceryCategoryOfChildrenResponse.value = ApiResponse.initial('Initial');
+    userGroceryCategoryResponse.value = ApiResponse.initial('Initial');
+    addGroceryOrderResponse.value = ApiResponse.initial('Initial');
+    updateGroceryOrderResponse.value = ApiResponse.initial('Initial');
+
+    // Close any active subscriptions
+    subscription?.cancel();
+
+    log("🚀 GroceryCustomerController Reset Successfully");
+  }
 
   Future<void> fetchBoth() async {
     try {

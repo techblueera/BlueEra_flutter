@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_profile_header_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -139,7 +140,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 itemCount: controller.groceryBusinessProductsList.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index){
-                  var productsData = controller.groceryBusinessProductsList[index];
+                  var groceryProductData = controller.groceryBusinessProductsList[index];
                   return Container(
                     width: SizeConfig.size150,
                     margin: EdgeInsets.only(right: 8.0),
@@ -156,9 +157,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                           child: SizedBox(
                             height: SizeConfig.size140,
                             width: double.infinity,
-                            child: (productsData.product?.images?.isNotEmpty ?? false)
+                            child: (groceryProductData.product?.images?.isNotEmpty ?? false)
                                 ? CachedNetworkImage(
-                              imageUrl: productsData.product?.images!.first.url??'',
+                              imageUrl: groceryProductData.product?.images!.first.url??'',
                               fit: BoxFit.fill,
                               placeholder: (context, url) => Container(
                                 color: Colors.grey.shade200,
@@ -186,7 +187,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                               SizedBox(
                                 height: SizeConfig.size30,
                                 child: CustomText(
-                                  "${productsData.product?.name}",
+                                  "${groceryProductData.product?.name}",
                                   fontSize: SizeConfig.small,
                                   maxLines: 2,
                                   color: AppColors.mainTextColor,
@@ -198,21 +199,10 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                               FittedBox(
                                 child: Row(
                                   children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                          border:
-                                          Border.all(color: AppColors.green00, width: 1),
-                                          borderRadius: BorderRadius.circular(2)),
-                                      padding: EdgeInsets.all(3.5),
-                                      child: Container(
-                                        height: 7,
-                                        width: 7,
-                                        decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(7),
-                                            color: AppColors.green00),
-                                      ),
-                                    ),
-                                    SizedBox(width: SizeConfig.size6),
+                                    if (groceryProductData.productVariant?.isVegetarian != null) ...[
+                                      FoodTypeIndicator(isVegetarian: groceryProductData.productVariant?.isVegetarian!??false),
+                                      SizedBox(width: SizeConfig.size6),
+                                    ],
                                     Container(
                                       decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(4),
@@ -221,7 +211,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                                       padding:
                                       EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                                       child: CustomText(
-                                        '${productsData.productVariant?.variantName}',
+                                        '${groceryProductData.productVariant?.variantName}',
                                         fontSize: 11,
                                         color: Colors.grey,
                                       ),
@@ -245,7 +235,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: CustomText(
-                                          "₹${productsData.minSellingPrice}",
+                                          "₹${groceryProductData.minSellingPrice}",
                                           fontSize: 10,
                                           color: AppColors.primaryColor,
                                           fontWeight: FontWeight.bold,
@@ -267,7 +257,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: CustomText(
-                                          "₹${productsData.minMrp}",
+                                          "₹${groceryProductData.minMrp}",
                                           fontSize: 10,
                                           color: AppColors.grayText,
                                         ),
@@ -289,7 +279,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: CustomText(
-                                          "${productsData.avgDiscount}% OFF",
+                                          "${groceryProductData.avgDiscount}% OFF",
                                           fontSize: 10,
                                           color: AppColors.green00,
                                           fontWeight: FontWeight.w600,

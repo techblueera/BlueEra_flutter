@@ -513,6 +513,7 @@ class AppIconAssets {
   static String takeFranchiseIcon = "${iconPath}franchise.svg";
   static String outlinedDocument = "${iconPath}outlined_document.svg";
   static String uploadOutlinedIcon = "${iconPath}upload_outlined_icon.svg";
+  static String discountTagIcon = "${iconPath}discount_tag.svg";
 
   /// Grocery Super Category svg
   static const groceryIconPath = AppConstants.baseGroceryAssetsPath;
@@ -678,6 +679,7 @@ class AppIconAssets {
   static const String blood_bank_icon = "${iconPath}blood_bank_icon.svg";
   static const String pm_yojna_icon = "${iconPath}pm_yojna_icon.png";
   static const String questionMarkIcon = "${iconPath}question_mark_icon.svg";
+  static const String productCartIcon = "${iconPath}product_cart_icon.svg";
   // static const String transporterIcon = "${iconPath}transporter_icon.svg";
   // static const String selfPickupIcon = "${iconPath}self_pickup_icon.svg";
 

@@ -19,6 +19,7 @@ import 'package:BlueEra/features/me/food/view/missing_food_itmes_screen.dart';
 import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
@@ -96,7 +97,7 @@ import 'package:BlueEra/features/me/grocery/view/add_grocery_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_cart_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_confirm_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_listing_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_customer_listing_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_or_food_stores_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_products_selection_screen.dart';
@@ -155,7 +156,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/common/auth/model/onboarding_category_model.dart';
-import '../../features/me/grocery/model/my_grocery_products_reponse.dart';
+import '../../features/me/grocery/model/my_grocery_products_response.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/me/medical/view/category/otc_items_page.dart';
@@ -453,8 +454,8 @@ class RouteHelper {
 
   static String getGroceryScreenRoute() => RouteConstant.groceryScreen;
 
-  static String getGroceryCategoryScreenRoute() =>
-      RouteConstant.groceryCategoryScreen;
+  static String getGroceryNestedCategoryScreenRoute() =>
+      RouteConstant.groceryNestedCategoryScreen;
 
   static String getGroceryProductsSelectionScreenRoute() =>
       RouteConstant.groceryProductsSelectionScreen;
@@ -1453,7 +1454,7 @@ class RouteHelper {
                 GroceryScreen(fromBottomNavBar: argFromBottomNavBar),
             settings: RouteSettings(name: getGroceryScreenRoute()));
 
-      case RouteConstant.groceryCategoryScreen:
+      case RouteConstant.groceryNestedCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
         final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
@@ -1466,7 +1467,7 @@ class RouteHelper {
                 argArrGroceryCatKey: argArrGroceryCatKey,
                 argArrGroceryCatName: argArrGroceryCatName,
                 isMyGrocery: argMyGrocery),
-            settings: RouteSettings(name: getGroceryCategoryScreenRoute()));
+            settings: RouteSettings(name: getGroceryNestedCategoryScreenRoute()));
 
       case RouteConstant.groceryNestedCategoryWithInventoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1518,12 +1519,16 @@ class RouteHelper {
             settings: RouteSettings(name: getGroceryProductsScreenRoute()));
       case RouteConstant.MyGroceryVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<Variants> variants =
-            args[ApiKeys.argVariants] as List<Variants>;
+        final List<ProductVariants> variants =
+            args[ApiKeys.argVariants] as List<ProductVariants>;
+        final bool argIsMyGroceryStore = args[ApiKeys.argIsMyGroceryStore] as bool;
         final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
         return MaterialPageRoute(
             builder: (_) => MyGroceryVariantScreen(
-                variants: variants, isShowInGrid: argIsShowInGrid),
+                variants: variants,
+                isMyGroceryStore: argIsMyGroceryStore,
+                isShowInGrid: argIsShowInGrid
+            ),
             settings: RouteSettings(name: getMyGroceryVariantScreenRoute()));
       case RouteConstant.groceryCustomerListingScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1548,8 +1553,12 @@ class RouteHelper {
                 ),
             settings: RouteSettings(name: getRiderServiceScreenRoute()));
       case RouteConstant.groceryCartScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final bool argIsDeliveredByRider = args[ApiKeys.argIsDeliveredByRider] as bool;
         return MaterialPageRoute(
-            builder: (_) => GroceryCartScreen(),
+            builder: (_) => GroceryCartScreen(
+                isDeliveredByRider: argIsDeliveredByRider
+            ),
             settings: RouteSettings(name: getGroceryCartScreenRoute()));
 
       //   case RouteConstant.RiderProfileStatusScreen:

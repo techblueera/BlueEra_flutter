@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/Discover/widget/generic_left_side_catego
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -410,6 +411,10 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                 SizedBox(height: SizeConfig.size6),
                 Row(
                   children: [
+                    if (groceryProductData.variants?[0].isVegetarian != null) ...[
+                      FoodTypeIndicator(isVegetarian: groceryProductData.variants?[0].isVegetarian!??false),
+                      SizedBox(width: SizeConfig.size6),
+                    ],
                     Container(
                       decoration: BoxDecoration(
                           border:

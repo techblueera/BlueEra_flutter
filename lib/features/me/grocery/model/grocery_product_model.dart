@@ -44,7 +44,7 @@ class GroceryProductData {
   String? createdAt;
   String? updatedAt;
   int? iV;
-  List<VariantsData>? variants;
+  List<ProductVariants>? variants;
 
   GroceryProductData(
       {this.sId,
@@ -82,9 +82,9 @@ class GroceryProductData {
     updatedAt = json['updatedAt'];
     iV = json['__v'];
     if (json['variants'] != null) {
-      variants = <VariantsData>[];
+      variants = <ProductVariants>[];
       json['variants'].forEach((v) {
-        variants!.add(new VariantsData.fromJson(v));
+        variants!.add(new ProductVariants.fromJson(v));
       });
     }
   }
@@ -126,7 +126,7 @@ class GroceryProductData {
     String? createdAt,
     String? updatedAt,
     int? iV,
-    List<VariantsData>? variants,
+    List<ProductVariants>? variants,
   }) {
     return GroceryProductData(
       sId: sId ?? this.sId,
@@ -148,21 +148,23 @@ class GroceryProductData {
 
 }
 
-class VariantsData {
+class ProductVariants {
   String? sId;
   String? product;
   String? variantName;
   String? unit;
   List<Pricing>? pricing;
-  List<ProductImage>? images;
+  List<Images>? images;
   String? quantity;
   String? createdAt;
   String? updatedAt;
   int? iV;
   String? sku;
   String? barcode;
+  // Inventory? inventory;
+  bool? isVegetarian;
 
-  VariantsData({
+  ProductVariants({
     this.sId,
     this.product,
     this.variantName,
@@ -175,9 +177,11 @@ class VariantsData {
     this.iV,
     this.sku,
     this.barcode,
+    // this.inventory,
+    this.isVegetarian
   });
 
-  VariantsData.fromJson(Map<String, dynamic> json) {
+  ProductVariants.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     product = json['product'];
     variantName = json['variantName'];
@@ -191,9 +195,9 @@ class VariantsData {
     }
 
     if (json['images'] != null) {
-      images = <ProductImage>[];
+      images = <Images>[];
       json['images'].forEach((v) {
-        images!.add(ProductImage.fromJson(v));
+        images!.add(Images.fromJson(v));
       });
     }
 
@@ -203,6 +207,11 @@ class VariantsData {
     iV = json['__v'];
     sku = json['sku'];
     barcode = json['barcode'];
+    // inventory = json['inventory'] != null
+    //     ? new Inventory.fromJson(json['inventory'])
+    //     : null;
+    isVegetarian = json['isVegetarian'];
+
   }
 
   Map<String, dynamic> toJson() {
@@ -219,17 +228,19 @@ class VariantsData {
       '__v': iV,
       'sku': sku,
       'barcode': barcode,
+      // if (this.inventory != null) 'inventory': this.inventory!.toJson(),
+      'isVegetarian': isVegetarian,
     };
   }
 
   /// New - Helpful for updating data
-  VariantsData copyWith({
+  ProductVariants copyWith({
     String? sId,
     String? product,
     String? variantName,
     String? unit,
     List<Pricing>? pricing,
-    List<ProductImage>? images,
+    List<Images>? images,
     String? quantity,
     String? createdAt,
     String? updatedAt,
@@ -237,7 +248,7 @@ class VariantsData {
     String? sku,
     String? barcode,
   }) {
-    return VariantsData(
+    return ProductVariants(
       sId: sId ?? this.sId,
       product: product ?? this.product,
       variantName: variantName ?? this.variantName,
@@ -310,23 +321,65 @@ class Pricing {
 
 }
 
-class ProductImage {
-  String? url;
-  String? id;
+class Inventory {
+  String? inventoryId;
+  String? pincode;
+  String? cityName;
+  List<Batches>? batches;
 
-  ProductImage({this.url, this.id});
+  Inventory({this.inventoryId, this.pincode, this.cityName, this.batches});
 
-  factory ProductImage.fromJson(Map<String, dynamic> json) {
-    return ProductImage(
-      url: json['url'],
-      id: json['_id'],
-    );
+  Inventory.fromJson(Map<String, dynamic> json) {
+    inventoryId = json['inventoryId'];
+    pincode = json['pincode'];
+    cityName = json['cityName'];
+    if (json['batches'] != null) {
+      batches = <Batches>[];
+      json['batches'].forEach((v) {
+        batches!.add(new Batches.fromJson(v));
+      });
+    }
   }
 
-  Map<String, dynamic> toJson() => {
-    'url': url,
-    '_id': id,
-  };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['inventoryId'] = this.inventoryId;
+    data['pincode'] = this.pincode;
+    data['cityName'] = this.cityName;
+    if (this.batches != null) {
+      data['batches'] = this.batches!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Batches {
+  String? batchNumber;
+  String? quantity;
+  num? mrp;
+  num? sellingPrice;
+  String? sId;
+
+  Batches(
+      {this.batchNumber, this.quantity, this.mrp, this.sellingPrice, this.sId});
+
+  Batches.fromJson(Map<String, dynamic> json) {
+    batchNumber = json['batchNumber'];
+    quantity = json['quantity'];
+    mrp = json['mrp'];
+    sellingPrice = json['sellingPrice'];
+    sId = json['_id'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['batchNumber'] = this.batchNumber;
+    data['quantity'] = this.quantity;
+    data['mrp'] = this.mrp;
+    data['sellingPrice'] = this.sellingPrice;
+    data['_id'] = this.sId;
+    return data;
+  }
 }
 
 class Pagination {

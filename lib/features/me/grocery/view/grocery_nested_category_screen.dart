@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -38,6 +39,7 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
     with SingleTickerProviderStateMixin {
   final TextEditingController searchController = TextEditingController();
   final _groceryController = getOrPut(() => GroceryController());
+  final groceryCustomerController = getOrPut(() => GroceryCustomerController());
   late bool _isMyGrocery;
   late String _argArrGroceryCatName;
   late String _argArrGroceryCatKey;
@@ -45,6 +47,7 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
 
   @override
   void initState() {
+    groceryCustomerController.resetController();
     _argArrGrocerySuperCat = widget.argArrGrocerySuperCat;
     _isMyGrocery = widget.isMyGrocery;
     _argArrGroceryCatName = widget.argArrGroceryCatName;

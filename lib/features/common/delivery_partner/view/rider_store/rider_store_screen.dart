@@ -77,7 +77,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                     onTap: (item) {
                       // getCategoriesByTag(item.slugId);
                       Get.toNamed(
-                        RouteHelper.getGroceryCategoryScreenRoute(),
+                        RouteHelper.getGroceryNestedCategoryScreenRoute(),
                         arguments: {
                           ApiKeys.argMyGrocery: false,
                           ApiKeys.argArrGrocerySuperCategory: GroceryData.grocerySuperCategories,

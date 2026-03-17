@@ -2,21 +2,27 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_variant_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
+import 'package:BlueEra/features/me/grocery/widget/go_to_cart_button.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get/get.dart';
 
-import '../../model/my_grocery_products_reponse.dart';
 
 class MyGroceryVariantScreen extends StatefulWidget {
-  final List<Variants> variants;
+  final List<ProductVariants> variants;
+  final bool isMyGroceryStore;
   final bool? isShowInGrid;
 
   const MyGroceryVariantScreen({
     super.key,
     required this.variants,
+    required this.isMyGroceryStore,
     this.isShowInGrid = true
   });
 
@@ -26,8 +32,9 @@ class MyGroceryVariantScreen extends StatefulWidget {
 
 class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
   final controller = getOrPut(() => GroceryController());
+  final grocerCustomerController = Get.find<GroceryCustomerController>();
   final ScrollController scrollController = ScrollController();
-  late List<Variants> _variants;
+  late List<ProductVariants> _variants;
 
   @override
   void initState() {
@@ -69,9 +76,14 @@ class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
+        buildCustomActionWidget: () => (widget.isMyGroceryStore)
+            ? SizedBox.shrink()
+            : const CommonCartIcon(
+            argIsDeliveredByRider: false
+        ),
 
       ),
-
+      bottomNavigationBar: widget.isMyGroceryStore ? null : const GoToCartButton(),
       body: SafeArea(
         child:
         Builder(
@@ -94,38 +106,24 @@ class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
                 horizontal: SizeConfig.size8,
                 vertical: SizeConfig.size8
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = 2;
-                final crossSpacing = 10.0;
-                final mainSpacing = 10.0;
+            child: MasonryGridView.count(
+              controller: scrollController,
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size8,
+                  vertical: SizeConfig.size10
+              ),
+              crossAxisCount: 2,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              itemCount: _variants.length +
+                  (controller.isGroceryDataLoadingMore.value ? 1 : 0),
+              itemBuilder: (context, index) {
+                final variantItem = _variants[index];
 
-                final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
-                final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
-
-                final approximateItemHeight = SizeConfig.size280;
-
-                final childAspectRatio = itemWidth / approximateItemHeight;
-
-                return MasonryGridView.count(
-                  controller: scrollController,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size8,
-                      vertical: SizeConfig.size10
-                  ),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                  itemCount: _variants.length +
-                      (controller.isGroceryDataLoadingMore.value ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    final variantItem = _variants[index];
-
-                    return MyGroceryVariantCard(
-                      variantItem: variantItem,
-                      isShowInGrid: true,
-                    );
-                  },
+                return MyGroceryVariantCard(
+                  variant: variantItem,
+                  isMyGroceryStore: widget.isMyGroceryStore,
+                  isShowInGrid: true,
                 );
               },
             ),
@@ -143,7 +141,8 @@ class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
               return Padding(
                 padding: EdgeInsets.only(bottom: dynamicSize(10)),
                 child: MyGroceryVariantCard(
-                  variantItem: variantItem,
+                  variant: variantItem,
+                  isMyGroceryStore: widget.isMyGroceryStore,
                   isShowInGrid: false,
                 ),
               );

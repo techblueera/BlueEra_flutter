@@ -29,7 +29,12 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(
+            top: 8,
+            left: 16,
+            right: 16,
+            bottom: 16,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -65,21 +70,22 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
               ),
             )).toList(),
 
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
+            //
+            // // Footer (Buttons)
+            // Align(
+            //   alignment: Alignment.centerRight,
+            //   child: CustomBtn(
+            //     onTap: _selectedOptionId.isNotEmpty
+            //         ? () => Get.off(()=> ChooseDeliveryOptionsScreen(optionId: _selectedOptionId))
+            //         : null,
+            //     title: AppStrings.next,
+            //     height: SizeConfig.size35,
+            //     width: SizeConfig.size80,
+            //     isValidate: _selectedOptionId.isNotEmpty,
+            //   ),
+            // )
 
-            // Footer (Buttons)
-            Align(
-              alignment: Alignment.centerRight,
-              child: CustomBtn(
-                onTap: _selectedOptionId.isNotEmpty
-                    ? () => Get.off(()=> ChooseDeliveryOptionsScreen(optionId: _selectedOptionId))
-                    : null,
-                title: AppStrings.next,
-                height: SizeConfig.size35,
-                width: SizeConfig.size80,
-                isValidate: _selectedOptionId.isNotEmpty,
-              ),
-            )
           ],
         ),
       ),
@@ -99,6 +105,7 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
         setState(() {
           _selectedOptionId = id;
         });
+        Get.off(()=> ChooseDeliveryOptionsScreen(optionId: _selectedOptionId));
       },
       borderRadius: BorderRadius.circular(10.0),
       child: AnimatedContainer(

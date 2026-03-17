@@ -158,7 +158,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                             // getCategoriesByTag(item.slugId);
 
                             Get.toNamed(
-                              RouteHelper.getGroceryCategoryScreenRoute(),
+                              RouteHelper.getGroceryNestedCategoryScreenRoute(),
                               arguments: {
                                 ApiKeys.argMyGrocery: true,
                                 ApiKeys.argArrGrocerySuperCategory: superCategories,

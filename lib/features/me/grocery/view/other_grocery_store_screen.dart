@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -11,7 +12,10 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -44,9 +48,11 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
+  final groceryCustomerController = getOrPut(() => GroceryCustomerController());
 
   @override
   void initState() {
+    groceryCustomerController.resetController();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllGroceryData(widget.userId, otherStore: true);
     super.initState();
@@ -61,7 +67,9 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
-
+            buildCustomActionWidget: () => const CommonCartIcon(
+                argIsDeliveredByRider: false
+            ),
         ),
         body: Obx((){
 
@@ -310,7 +318,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 itemCount: controller.groceryBusinessProductsList.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index){
-                  var productsData = controller.groceryBusinessProductsList[index];
+                  var groceryProductData = controller.groceryBusinessProductsList[index];
                   return Container(
                     width: SizeConfig.size150,
                     margin: EdgeInsets.only(right: 8.0),
@@ -322,32 +330,83 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: SizeConfig.size4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10.0),
-                          child: SizedBox(
-                            height: SizeConfig.size140,
-                            width: double.infinity,
-                            child: (productsData.product?.images?.isNotEmpty ?? false)
-                                ? CachedNetworkImage(
-                              imageUrl: productsData.product?.images!.first.url??'',
-                              fit: BoxFit.fill,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey.shade200,
-                                child: Center(
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+
+                        Stack(
+                          children: [
+                            Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: SizedBox(
+                                    height: SizeConfig.size140,
+                                    width: double.infinity,
+                                    child: (groceryProductData.product?.images?.isNotEmpty ?? false)
+                                        ? CachedNetworkImage(
+                                      imageUrl: groceryProductData.product?.images!.first.url??'',
+                                      fit: BoxFit.fill,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey.shade200,
+                                        child: Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => LocalAssets(
+                                        imagePath: AppIconAssets.place_holder_image,
+                                        boxFix: BoxFit.cover,
+                                      ),
+                                    )
+                                        : LocalAssets(
+                                      imagePath: AppIconAssets.place_holder_image,
+                                      boxFix: BoxFit.cover,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              errorWidget: (context, url, error) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.cover,
-                              ),
-                            )
-                                : LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
+                              ],
                             ),
-                          ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Obx(() {
+                                var productVariants = groceryProductData.productVariant;
+
+                                final bool isAdded = groceryCustomerController.selectedGroceriesVariants
+                                    .any((v) => v.sId == productVariants?.sId);
+
+                                return IconButton(
+                                  onPressed: () {
+                                    if (productVariants == null) {
+                                      commonSnackBar(message: 'No variants available');
+                                      return;
+                                    }
+
+                                    if(!isAdded){
+                                      groceryCustomerController.addToCart(productVariants);
+                                      commonSnackBar(message: 'Added into cart');
+                                    }else{
+                                      groceryCustomerController.removeFromCart(productVariants);
+                                      commonSnackBar(message: 'Remove from cart');
+                                    }
+                                  },
+                                  icon: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: isAdded
+                                          ? AppColors.greenShade
+                                          : AppColors.blackMite,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Icon(
+                                      !isAdded ? Icons.add : Icons.check,
+                                      size: SizeConfig.size16,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                );
+                              }),
+                            )
+                          ],
                         ),
+
                         Padding(
                           padding: EdgeInsets.symmetric(
                               horizontal: 9.0, vertical: SizeConfig.size6),
@@ -357,7 +416,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                               SizedBox(
                                 height: SizeConfig.size30,
                                 child: CustomText(
-                                  "${productsData.product?.name}",
+                                  "${groceryProductData.product?.name}",
                                   fontSize: SizeConfig.small,
                                   maxLines: 2,
                                   color: AppColors.mainTextColor,
@@ -369,21 +428,10 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                               FittedBox(
                                 child: Row(
                                   children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                          border:
-                                          Border.all(color: AppColors.green00, width: 1),
-                                          borderRadius: BorderRadius.circular(2)),
-                                      padding: EdgeInsets.all(3.5),
-                                      child: Container(
-                                        height: 7,
-                                        width: 7,
-                                        decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(7),
-                                            color: AppColors.green00),
-                                      ),
-                                    ),
-                                    SizedBox(width: SizeConfig.size6),
+                                    if (groceryProductData.productVariant?.isVegetarian != null) ...[
+                                      FoodTypeIndicator(isVegetarian: groceryProductData.productVariant?.isVegetarian!??false),
+                                      SizedBox(width: SizeConfig.size6),
+                                    ],
                                     Container(
                                       decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(4),
@@ -392,7 +440,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                       padding:
                                       EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                                       child: CustomText(
-                                        '${productsData.productVariant?.variantName}',
+                                        '${groceryProductData.productVariant?.variantName}',
                                         fontSize: 11,
                                         color: Colors.grey,
                                       ),
@@ -416,7 +464,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: CustomText(
-                                          "₹${productsData.minSellingPrice}",
+                                          "₹${groceryProductData.minSellingPrice}",
                                           fontSize: 10,
                                           color: AppColors.primaryColor,
                                           fontWeight: FontWeight.bold,
@@ -438,7 +486,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: CustomText(
-                                          "₹${productsData.minMrp}",
+                                          "₹${groceryProductData.minMrp}",
                                           fontSize: 10,
                                           color: AppColors.grayText,
                                         ),
@@ -460,7 +508,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: CustomText(
-                                          "${productsData.avgDiscount}% OFF",
+                                          "${groceryProductData.avgDiscount}% OFF",
                                           fontSize: 10,
                                           color: AppColors.green00,
                                           fontWeight: FontWeight.w600,
@@ -479,7 +527,9 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                   );
                 }
             ),
-          )
+          ),
+
+
 
         ],
       ),

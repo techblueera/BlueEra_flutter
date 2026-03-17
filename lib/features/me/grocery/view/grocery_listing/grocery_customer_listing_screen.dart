@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -13,6 +14,8 @@ import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/add_to_cart_button.dart';
+import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -76,41 +79,10 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
           appBar: CommonBackAppBar(
               title: controller.selectedGroceryData.value?.name,
               isShadowShow: false,
-              buildCustomActionWidget: () => Obx(()=> controller
-                  .selectedGroceriesVariants.isEmpty
-                  ? Padding(
-                padding: const EdgeInsets.only(right: 20.0),
-                child: Icon(Icons.search),
-              )
-                  : InkWell(
-                onTap: () =>
-                    Get.toNamed(RouteHelper.getGroceryCartScreenRoute()),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 20.0),
-                  child: Stack(
-                      clipBehavior: Clip.none,
-                    children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.cartIcon,
-                    ),
-                    Positioned(
-                        top: -5,
-                        right: -5,
-                        child: Container(
-                          height: SizeConfig.size16,
-                          width: SizeConfig.size16,
-                          decoration: BoxDecoration(
-                              color: AppColors.red,
-                              shape: BoxShape.circle),
-                          alignment: Alignment.center,
-                          child: CustomText(
-                            '${controller.selectedGroceriesVariants.length}',
-                            color: AppColors.white,
-                          ),
-                        ))
-                  ]),
-                ),
-              ))),
+              buildCustomActionWidget: () => const CommonCartIcon(
+                  argIsDeliveredByRider: true
+              ),
+          ),
           bottomNavigationBar: Obx(() {
             if (controller.selectedGroceriesVariants.isEmpty)
               return SizedBox();
@@ -141,7 +113,11 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                           SizedBox(width: SizeConfig.size10),
                           CustomBtn(
                             onTap: () {
-                              Get.toNamed(RouteHelper.getGroceryCartScreenRoute());
+                              Get.toNamed(RouteHelper.getGroceryCartScreenRoute(),
+                                  arguments: {
+                                    ApiKeys.argIsDeliveredByRider: true
+                                  }
+                              );
                             },
                             isValidate: true,
                             radius: SizeConfig.size10,
@@ -593,8 +569,8 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
   void showProductVariantsBottomSheet(
     BuildContext context, {
     required String productImage,
-    required List<VariantsData> allVariants,
-    required Function(VariantsData variant) onAdd,
+    required List<ProductVariants> allVariants,
+    required Function(ProductVariants variant) onAdd,
   }) {
     showModalBottomSheet(
       context: context,
@@ -651,7 +627,7 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
   }
 
   Widget _variantItem({
-    required VariantsData variant,
+    required ProductVariants variant,
     required String productImage,
     required VoidCallback onAdd,
   }) {
@@ -793,7 +769,19 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                 ),
               ),
             );
-          }),
+          })
+
+
+          // Obx(() {
+          //   final bool isAdded = controller.selectedGroceriesVariants
+          //       .any((v) => v.sId == variant.sId);
+          //
+          //   return AddToCartButton(
+          //     isAdded: isAdded,
+          //     onAdd: onAdd,
+          //   );
+          // })
+
         ],
       ),
     );

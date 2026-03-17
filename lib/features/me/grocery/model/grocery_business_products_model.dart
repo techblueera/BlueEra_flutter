@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
+
 class GroceryBusinessProductsModel {
   List<BusinessProductData>? data;
   GroceryBusinessProductsModel({this.data});
@@ -14,7 +16,7 @@ class GroceryBusinessProductsModel {
 
 class BusinessProductData {
   String? sId;
-  ProductVariant? productVariant;
+  ProductVariants? productVariant;
   String? cityName;
   List<Batches>? batches;
   Product? product;
@@ -40,7 +42,7 @@ class BusinessProductData {
   BusinessProductData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     productVariant = json['productVariant'] != null
-        ? ProductVariant.fromJson(json['productVariant'])
+        ? ProductVariants.fromJson(json['productVariant'])
         : null;
     cityName = json['cityName'];
     if (json['batches'] != null) {
@@ -74,26 +76,6 @@ class Product {
       images = <ProductImage>[];
       json['images'].forEach((v) => images!.add(ProductImage.fromJson(v)));
     }
-  }
-}
-
-class ProductVariant {
-  String? sId;
-  String? variantName;
-  String? unit;
-  String? sku;
-  String? value;
-  String? quantity;
-
-  ProductVariant({this.sId, this.variantName, this.unit, this.sku, this.value, this.quantity});
-
-  ProductVariant.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    variantName = json['variantName'];
-    unit = json['unit'];
-    sku = json['sku'];
-    value = json['value'];
-    quantity = json['quantity'];
   }
 }
 
