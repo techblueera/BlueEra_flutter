@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
@@ -18,7 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GroceryCartScreen extends StatefulWidget {
-  const GroceryCartScreen({super.key});
+  final bool isDeliveredByRider;
+  const GroceryCartScreen({super.key, required this.isDeliveredByRider});
 
   @override
   State<GroceryCartScreen> createState() => _GroceryCartScreenState();
@@ -26,6 +28,13 @@ class GroceryCartScreen extends StatefulWidget {
 
 class _GroceryCartScreenState extends State<GroceryCartScreen> {
   final controller = getOrPut(() => GroceryCustomerController());
+  late bool _isDeliveredByRiderFlow;
+
+  @override
+  initState(){
+    super.initState();
+    _isDeliveredByRiderFlow = widget.isDeliveredByRider;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +85,16 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           PositiveCustomBtn(
-                              onTap: ()=> Get.back(),
+                              onTap: () {
+                                if(_isDeliveredByRiderFlow){
+                                  Get.back();
+                                }else{
+                                  Get.until((route) =>
+                                  route.settings.name ==
+                                      RouteHelper.getOtherGroceryStoreScreenRoute());
+                                }
+
+                              },
                               height: SizeConfig.size30,
                               width: SizeConfig.size100,
                               title: AppStrings.addMoreItems,
@@ -89,7 +107,8 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                               borderColor: AppColors.secondaryTextColor,
                           ),
                           SizedBox(width: SizeConfig.paddingXSL),
-                          Obx(()=> CustomBtn(
+                          _isDeliveredByRiderFlow
+                              ? Obx(()=> CustomBtn(
                             onTap: ()=> controller.addGroceryOrderApi(),
                             height: SizeConfig.size30,
                             width: SizeConfig.size100,
@@ -98,7 +117,14 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                                 : 'Buy Now',
                             bgColor: AppColors.primaryColor,
                             isLoading: controller.isAddGroceryOrderLoading.value,
-                          )),
+                          ))
+                          : CustomBtn(
+                            onTap: (){},
+                            height: SizeConfig.size30,
+                            width: SizeConfig.size100,
+                            title: 'Buy Now',
+                            bgColor: AppColors.primaryColor,
+                          ),
                         ],
                       )
                     ],
@@ -122,7 +148,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
   }
 
   Widget _variantItem({
-    required VariantsData variant,
+    required ProductVariants variant,
   }) {
     // final price = groceryController.getPriceDetails(variant.pricing);
     final sellingPrice = variant.pricing?.first.sellingPrice ?? 0;
@@ -130,6 +156,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
 
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
+      margin: EdgeInsets.only(bottom: SizeConfig.size10),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
@@ -157,7 +184,6 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
             ),
           ),
 
-
           SizedBox(width: SizeConfig.paddingXSL),
 
           /// Details
@@ -171,9 +197,11 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                 ),
                 SizedBox(height: 4),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CustomText(
                           '${variant.quantity}',
+                          // '${variant.inventory?.batches?[0].quantity}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
@@ -196,7 +224,9 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                           '₹$mrp',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor
+                          color: AppColors.secondaryTextColor,
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: AppColors.secondaryTextColor,
                       ),
                     ]
                 )

@@ -2,11 +2,13 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -171,7 +173,12 @@ class _GroceryNestedCategoryWithInventoryScreenState
                 );
               }).toList();
             },
-          )),
+          ),
+          buildCustomActionWidget: () => (widget.userId == userId) ? SizedBox.shrink()
+              : const CommonCartIcon(
+              argIsDeliveredByRider: false
+          ),
+      ),
       body: SafeArea(
         child: Obx(() => _groceryController
             .groceryNestedCategoryWithInventoryLoading.value

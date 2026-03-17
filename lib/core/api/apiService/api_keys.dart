@@ -560,6 +560,7 @@ class ApiKeys {
   static const argSelectedGroceryData = 'argSelectedGroceryData';
   static const argCategoryId = 'argCategoryId';
   static const argIsShowInGrid = 'argIsShowInGrid';
+  static const argIsMyGroceryStore = 'argIsMyGroceryStore';
   static const argMyGrocery = 'argMyGrocery';
   static const caption = 'caption';
   static const duration_days = 'duration_days';
@@ -748,5 +749,6 @@ class ApiKeys {
   static const argFoodGenAiResModel = 'argFoodGenAiResModel';
   static const argCreateMissingProductIndex = 'argCreateMissingProductIndex';
   static const argIsGroceryStore = 'argIsGroceryStore';
+  static const argIsDeliveredByRider = 'argIsDeliveredByRider';
 
 }

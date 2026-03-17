@@ -96,7 +96,7 @@ class Products {
   String? description;
   String? brand;
   List<Images>? images;
-  List<Variants>? variants;
+  List<ProductVariants>? variants;
   String? lastInventoryAddedOrUpdated;
 
   Products(
@@ -120,9 +120,9 @@ class Products {
       });
     }
     if (json['variants'] != null) {
-      variants = <Variants>[];
+      variants = <ProductVariants>[];
       json['variants'].forEach((v) {
-        variants!.add(new Variants.fromJson(v));
+        variants!.add(new ProductVariants.fromJson(v));
       });
     }
     lastInventoryAddedOrUpdated = json['lastInventoryAddedOrUpdated'];
@@ -145,68 +145,68 @@ class Products {
   }
 }
 
-class Variants {
-  String? sId;
-  String? variantName;
-  String? unit;
-  String? sku;
-  List<Pricing>? pricing;
-  List<Images>? images;
-  String? quantity;
-  Inventory? inventory;
-
-  Variants(
-      {this.sId,
-        this.variantName,
-        this.unit,
-        this.sku,
-        this.pricing,
-        this.images,
-        this.quantity,
-        this.inventory});
-
-  Variants.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    variantName = json['variantName'];
-    unit = json['unit'];
-    sku = json['sku'];
-    if (json['pricing'] != null) {
-      pricing = <Pricing>[];
-      json['pricing'].forEach((v) {
-        pricing!.add(new Pricing.fromJson(v));
-      });
-    }
-    if (json['images'] != null) {
-      images = <Images>[];
-      json['images'].forEach((v) {
-        images!.add(new Images.fromJson(v));
-      });
-    }
-    quantity = json['quantity'];
-    inventory = json['inventory'] != null
-        ? new Inventory.fromJson(json['inventory'])
-        : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['variantName'] = this.variantName;
-    data['unit'] = this.unit;
-    data['sku'] = this.sku;
-    if (this.pricing != null) {
-      data['pricing'] = this.pricing!.map((v) => v.toJson()).toList();
-    }
-    if (this.images != null) {
-      data['images'] = this.images!.map((v) => v.toJson()).toList();
-    }
-    data['quantity'] = this.quantity;
-    if (this.inventory != null) {
-      data['inventory'] = this.inventory!.toJson();
-    }
-    return data;
-  }
-}
+// class Variants {
+//   String? sId;
+//   String? variantName;
+//   String? unit;
+//   String? sku;
+//   List<Pricing>? pricing;
+//   List<Images>? images;
+//   String? quantity;
+//   Inventory? inventory;
+//
+//   Variants(
+//       {this.sId,
+//         this.variantName,
+//         this.unit,
+//         this.sku,
+//         this.pricing,
+//         this.images,
+//         this.quantity,
+//         this.inventory});
+//
+//   Variants.fromJson(Map<String, dynamic> json) {
+//     sId = json['_id'];
+//     variantName = json['variantName'];
+//     unit = json['unit'];
+//     sku = json['sku'];
+//     if (json['pricing'] != null) {
+//       pricing = <Pricing>[];
+//       json['pricing'].forEach((v) {
+//         pricing!.add(new Pricing.fromJson(v));
+//       });
+//     }
+//     if (json['images'] != null) {
+//       images = <Images>[];
+//       json['images'].forEach((v) {
+//         images!.add(new Images.fromJson(v));
+//       });
+//     }
+//     quantity = json['quantity'];
+//     inventory = json['inventory'] != null
+//         ? new Inventory.fromJson(json['inventory'])
+//         : null;
+//   }
+//
+//   Map<String, dynamic> toJson() {
+//     final Map<String, dynamic> data = new Map<String, dynamic>();
+//     data['_id'] = this.sId;
+//     data['variantName'] = this.variantName;
+//     data['unit'] = this.unit;
+//     data['sku'] = this.sku;
+//     if (this.pricing != null) {
+//       data['pricing'] = this.pricing!.map((v) => v.toJson()).toList();
+//     }
+//     if (this.images != null) {
+//       data['images'] = this.images!.map((v) => v.toJson()).toList();
+//     }
+//     data['quantity'] = this.quantity;
+//     if (this.inventory != null) {
+//       data['inventory'] = this.inventory!.toJson();
+//     }
+//     return data;
+//   }
+// }
 
 class Inventory {
   String? inventoryId;

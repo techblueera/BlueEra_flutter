@@ -5,27 +5,35 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/add_to_cart_button.dart';
+import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/quantity_tab.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../model/my_grocery_products_reponse.dart';
 
 class MyGroceryVariantCard extends StatelessWidget {
-  final Variants variantItem;
+  final ProductVariants variant;
+  final bool isMyGroceryStore;
   final bool isShowInGrid;
 
   const MyGroceryVariantCard({
     Key? key,
-    required this.variantItem,
+    required this.variant,
+    required this.isMyGroceryStore,
     required this.isShowInGrid
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => GroceryController());
+    final groceryCustomerController = getOrPut(() => GroceryCustomerController());
 
-    final price = controller.getPriceDetails(variantItem.pricing);
+    final price = controller.getPriceDetails(variant.pricing);
     print("Selling Range: ${price.sellingRange}");
     print("MRP Range: ${price.mrpRange}");
     print("Discount Range: ${price.discountRange}");
@@ -51,13 +59,13 @@ class MyGroceryVariantCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child:
-                  (variantItem.images!=null  &&
-                      variantItem.images!.isNotEmpty)
+                  (variant.images!=null  &&
+                      variant.images!.isNotEmpty)
                       ? CustomImageSlideshow(
                     isLoading: false,
                     width: double.infinity,
                     height: SizeConfig.size150,
-                    imagePaths: variantItem.images!.map((i)=> i.url??'').toList(),
+                    imagePaths: variant.images!.map((i)=> i.url??'').toList(),
                     borderRadius: BorderRadius.zero,
                     boxFit: BoxFit.contain,
                   )
@@ -81,7 +89,7 @@ class MyGroceryVariantCard extends StatelessWidget {
                     SizedBox(
                       // height: SizeConfig.size28,
                       child: CustomText(
-                        variantItem.variantName,
+                        variant.variantName,
                         fontWeight: FontWeight.w600,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
@@ -89,117 +97,73 @@ class MyGroceryVariantCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(height: SizeConfig.paddingXSL),
+                    SizedBox(height: SizeConfig.size6),
 
                     Row(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              border:
-                              Border.all(color: AppColors.green00, width: 1),
-                              borderRadius: BorderRadius.circular(2)),
-                          padding: EdgeInsets.all(3.5),
-                          child: Container(
-                            height: 7,
-                            width: 7,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(7),
-                                color: AppColors.green00),
-                          ),
+                        if (variant.isVegetarian != null) ...[
+                          FoodTypeIndicator(isVegetarian: variant.isVegetarian!),
+                          SizedBox(width: SizeConfig.size2),
+                        ],
+
+                        QuantityTab(
+                            label: '${variant.quantity}'
                         ),
-                        SizedBox(width: SizeConfig.size6),
-                        Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              border:
-                              Border.all(width: 0.5, color: AppColors.greyE5)),
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
-                          child: CustomText(
-                            '${variantItem.inventory?.batches?[0].quantity}',
+
+                      ],
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        children: [
+                          CustomText(
+                            "${price.sellingRange}",
+                            fontSize: 13,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          SizedBox(width: 4.0),
+                          CustomText(
+                            "${price.mrpRange}",
                             fontSize: 11,
-                            color: Colors.grey,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400,
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: AppColors.secondaryTextColor,
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.price.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.sellingRange}",
-                                fontSize: 10,
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.mrp.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.mrpRange}",
-                                fontSize: 10,
-                                color: AppColors.grayText,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.discount.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.discountRange}",
-                                fontSize: 10,
-                                color: AppColors.green00,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          SizedBox(width: 6.0),
+                          DiscountBadge(discountText: "${price.discountRange}"),
+                        ],
+                      ),
                     ),
 
-                    SizedBox(height: SizeConfig.paddingXSmall),
+                    SizedBox(height: SizeConfig.paddingXS),
 
+
+                    /// Add Button
+                    if(!isMyGroceryStore)
+                    Obx(() {
+                      final bool isAdded = groceryCustomerController.selectedGroceriesVariants
+                          .any((v) => v.sId == variant.sId);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 2.0),
+                        child: AddToCartButton(
+                          isAdded: isAdded,
+                          width: double.maxFinite,
+                          onAdd: ()=> groceryCustomerController.addToCart(variant),
+                          onRemove: ()=> groceryCustomerController.removeFromCart(variant),
+                        ),
+                      );
+                    })
 
                   ],
                 ),
-              )
+              ),
+
+
 
             ],
           )
@@ -220,13 +184,13 @@ class MyGroceryVariantCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Product Image
-            (variantItem.images!=null  &&
-                variantItem.images!.isNotEmpty)
+            (variant.images!=null  &&
+                variant.images!.isNotEmpty)
                 ? CustomImageSlideshow(
               isLoading: false,
               width: double.infinity,
               height: SizeConfig.size150,
-              imagePaths: variantItem.images!.map((i)=> i.url??'').toList(),
+              imagePaths: variant.images!.map((i)=> i.url??'').toList(),
               borderRadius: BorderRadius.zero,
             )
                 : LocalAssets(
@@ -248,7 +212,7 @@ class MyGroceryVariantCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            variantItem.variantName,
+                            variant.variantName,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w600,
                             overflow: TextOverflow.ellipsis,
@@ -289,7 +253,7 @@ class MyGroceryVariantCard extends StatelessWidget {
                           padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                           child: CustomText(
-                            '${variantItem.quantity}',
+                            '${variant.quantity}',
                             fontSize: 11,
                             color: Colors.grey,
                           ),

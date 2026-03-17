@@ -28,6 +28,7 @@ class GetAllStoreResModel {
   SubCategoryOfBusiness? subCategoryOfBusiness;
   int? totalProductCount;
   int? totalCategoryCount;
+  String? quirkyMessage;
 
   GetAllStoreResModel({
     this.livePhotos,
@@ -51,6 +52,7 @@ class GetAllStoreResModel {
     this.subCategoryOfBusiness,
     this.totalProductCount,
     this.totalCategoryCount,
+    this.quirkyMessage,
   });
 
   factory GetAllStoreResModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +88,7 @@ class GetAllStoreResModel {
           : null,
       totalProductCount: json['total_product_count'],
       totalCategoryCount: json['total_category_count'],
+      quirkyMessage: json['quirky_message'],
 
     );
   }
@@ -113,6 +116,7 @@ class GetAllStoreResModel {
     map['sub_category_of_business'] = subCategoryOfBusiness?.toJson();
     map['total_product_count'] = totalProductCount;
     map['total_category_count'] = totalCategoryCount;
+    map['quirky_message'] = quirkyMessage;
     return map;
   }
 
@@ -144,7 +148,8 @@ class GetAllStoreResModel {
     CategoryOfBusiness? categoryOfBusiness,
     SubCategoryOfBusiness? subCategoryOfBusiness,
     int? totalProductCount,
-    int? totalCategoryCount
+    int? totalCategoryCount,
+    String? quirkyMessage
   }) {
     return GetAllStoreResModel(
       livePhotos: livePhotos ?? this.livePhotos,
@@ -168,6 +173,7 @@ class GetAllStoreResModel {
       subCategoryOfBusiness: subCategoryOfBusiness ?? this.subCategoryOfBusiness,
       totalProductCount: totalProductCount ?? this.totalProductCount,
       totalCategoryCount: totalCategoryCount ?? this.totalCategoryCount,
+      quirkyMessage: quirkyMessage ?? this.quirkyMessage,
     );
   }
 }

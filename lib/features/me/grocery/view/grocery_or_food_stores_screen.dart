@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
@@ -16,7 +15,6 @@ import 'package:BlueEra/features/me/food/controller/food_customer_controller.dar
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -48,6 +46,11 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
   final foodCustomerListingScreen = getOrPut(() => FoodCustomerController());
   final ScrollController storesScrollController = ScrollController();
   late List<OnboardingCategoryModel> _arrCategories;
+  final List<Color> cardColors = [
+    const Color(0xFFFFFEF7), // Soft Cream
+    const Color(0xFFFFF9F3), // Pale Peach
+    const Color(0xFFFFF5F5), // Light Rose
+  ];
 
   @override
   initState() {
@@ -80,7 +83,11 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(
+        title: widget.isGroceryStore
+            ? 'Grocery & Stationary'
+            : 'Restaurant & Food',
+      ),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,11 +107,10 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
 
   Widget leftCategoryList() {
     final allItem = OnboardingCategoryModel(
-      name: 'All',
-      slugId: 'ALL',
+      name: 'Recently Visited',
+      slugId: 'RECENTLY_VISITED',
       icon: AppImageAssets.all,
-      individualType: IndividualProfileType.SELF_EMPLOYED,
-      accountType: AppConstants.individual,
+      accountType: AppConstants.business,
     );
 
     final fullList = [allItem, ..._arrCategories];
@@ -114,19 +120,18 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
       getLabel: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
       isSelected: (item) {
-        if (item.slugId == 'ALL') {
+        if (item.slugId == 'RECENTLY_VISITED') {
           return controller.selectedGroceryOrFoodCategoryData.value == null;
         }
         return controller.selectedGroceryOrFoodCategoryData.value?.slugId == item.slugId;
       },
       onTap: (item, index) {
-        if (item.slugId == 'ALL') {
+        if (item.slugId == 'RECENTLY_VISITED') {
           controller.selectedGroceryOrFoodCategoryData.value = null;
-          controller.businessCategoryId = null;
         } else {
           controller.selectedGroceryOrFoodCategoryData.value = item;
-          controller.businessCategoryId = item.slugId;
         }
+        controller.businessCategoryId = item.slugId;
 
         // Single API Call (Clean & Shared)
         controller.getAllStoreNearBy();
@@ -143,7 +148,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
 
       if (controller.allStore.isEmpty) {
         return Center(
-            child: EmptyStateWidget(message: "No store found"));
+            child: EmptyStateWidget(message: "No ${controller.businessCategoryId} found"));
       }
 
       return ListView.builder(
@@ -157,6 +162,8 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
             right: SizeConfig.paddingXS,
           ),
           itemBuilder: (context, index) {
+            final Color bgColor = cardColors[index % cardColors.length];
+
             if (index == controller.allStore.length) {
               return const Center(
                 child: Padding(
@@ -168,12 +175,15 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
 
             var store = controller.allStore[index];
 
-            return groceryStoreCard(store);
+            return groceryStoreCard(
+                store,
+                bgColor
+            );
           });
     });
   }
 
-  Widget groceryStoreCard(GetAllStoreResModel store) {
+  Widget groceryStoreCard(GetAllStoreResModel store, Color bgColor) {
     return InkWell(
       onTap: (){
         if(widget.isGroceryStore){
@@ -193,132 +203,240 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
           );
         }
       },
-      child: CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          margin: EdgeInsets.only(bottom: SizeConfig.size10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      child: Container(
+        padding: EdgeInsets.zero,
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: bgColor,
+          border: Border.all(
+              color: AppColors.greyE5,
+              width: 0.5
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      // Navigate to details
-                    },
-                    child: CachedAvatarWidget(
-                      imageUrl: store.logo ?? '',
-                      size: SizeConfig.size40,
-                      borderColor: Colors.white,
-                      borderRadius: SizeConfig.size20,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CachedAvatarWidget(
+                        imageUrl: store.logo ?? '',
+                        size: SizeConfig.size40,
+                        borderColor: Colors.white,
+                        borderRadius: SizeConfig.size20,
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              store.businessName ?? 'Unknown Business',
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            SizedBox(height: SizeConfig.size6),
+                            Row(
+                              children: [
+                                _buildRatingBadge(store.avgRating.toString()),
+                                const SizedBox(width: 6), // Added spacing
+                                _buildCategoryBadge(store.subCategoryOfBusiness?.name ?? AppStrings.na),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: SizeConfig.paddingXSL),
+
+                  // Address & Distance
+                  Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      border: Border.all(color: AppColors.greyE5, width: 0.5),
+                      color: AppColors.white,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildIconContainer(AppIconAssets.location_outline),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                              '${calculateDistanceKm(
+                                  LocationService.lat,
+                                  LocationService.lng,
+                                  store.businessLocation?.lat?.toDouble() ?? 0.0,
+                                  store.businessLocation?.lon?.toDouble() ?? 0.0,
+                                ).toStringAsFixed(2)} Km Away',
+                                fontSize: 13.0,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              SizedBox(height: SizeConfig.size4),
+                              CustomText(
+                                store.address ?? AppStrings.na,
+                                fontSize: 11.0,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                              store.businessName ?? 'Unknown Business',
-                              fontSize: SizeConfig.small,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w600),
-                          SizedBox(height: SizeConfig.size6),
-                          CustomText(
-                              store.subCategoryOfBusiness?.name ?? AppStrings.na,
-                              fontSize: SizeConfig.extraSmall,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w400),
-                          SizedBox(height: SizeConfig.size6),
-                          CommonRatingRow(
-                            rating: double.tryParse(store.avgRating.toString()) ?? 0.0,
-                            reviews: int.tryParse(store.totalRatings.toString()) ?? 0,
-                            distance: '${calculateDistanceKm(
-                              LocationService.lat,
-                              LocationService.lng,
-                              store.businessLocation?.lat?.toDouble() ?? 0.0,
-                              store.businessLocation?.lon?.toDouble() ?? 0.0,
-                            ).toStringAsFixed(2)} Km Away',
-                          )
-                        ],
-                      )),
+
+                  SizedBox(height: SizeConfig.size6),
+
+                  // Category & Product Stats
+                  Row(
+                    children: [
+                      _buildStatBox(
+                        icon: AppIconAssets.staggeredIcon,
+                        count: '${store.totalCategoryCount}',
+                        label: 'Category',
+                        iconColor: const Color(0xFF9964F4),
+                        bgColor: AppColors.purpleFD,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      _buildStatBox(
+                        icon: AppIconAssets.productCartIcon,
+                        count: '${store.totalProductCount}',
+                        label: 'Product',
+                        iconColor: const Color(0xFF6179CD),
+                        bgColor: AppColors.purpleFF,
+                      ),
+                    ],
+                  )
                 ],
               ),
+            ),
 
-              SizedBox(
-                height: SizeConfig.paddingS
-              ),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   LocalAssets(
-                       imagePath: AppIconAssets.location_outline,
-                       imgColor: AppColors.secondaryTextColor,
-                   ),
-                   SizedBox(width: SizeConfig.size5),
-                   Expanded(
-                     child: CustomText(
-                         store.address ?? AppStrings.na,
-                         fontSize: SizeConfig.small,
-                         color: AppColors.secondaryTextColor,
-                         fontWeight: FontWeight.w400),
-                   ),
-                 ],
-              ),
-
-              SizedBox(
-                  height: SizeConfig.paddingXSL
-              ),
-
-              FittedBox(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size20,
-                        vertical: SizeConfig.size10
-                      ),
-                      decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                          color: AppColors.greyE5
-                        )
-                      ),
-                      child: CustomText(
-                          '${store.totalCategoryCount} Category',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(
-                        width: SizeConfig.paddingXS
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size20,
-                          vertical: SizeConfig.size10
-                      ),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(
-                              color: AppColors.greyE5
-                          )
-                      ),
-                      child: CustomText(
-                          '${store.totalProductCount} Product',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
+            // Last Visit Footer
+            if(store.quirkyMessage!=null)...[
+              const Divider(height: 0.5, color: AppColors.greyE5),
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: CustomText(
+                    store.quirkyMessage,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               )
+            ]
 
+          ],
+        ),
+      ),
+    );
+  }
 
-            ],
-          )),
+  Widget _buildRatingBadge(String rating) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        color: AppColors.lightYellowShade,
+        border: Border.all(color: AppColors.lightYellowShade, width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(imagePath: AppIconAssets.star, height: 12, width: 12),
+          const SizedBox(width: 4),
+          CustomText(rating, fontSize: 10, color: AppColors.blue2D, fontWeight: FontWeight.w600),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        color: AppColors.greenCB,
+        border: Border.all(color: AppColors.greenCB, width: 0.5),
+      ),
+      child: CustomText(text, fontSize: 10, color: AppColors.green2C, fontWeight: FontWeight.w400),
+    );
+  }
+
+  Widget _buildStatBox({
+    required String icon,
+    required String count,
+    required String label,
+    required Color iconColor,
+    required Color bgColor,
+  }) {
+    return Expanded(
+      child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(color: AppColors.greyE5, width: 0.5),
+            color: AppColors.white,
+          ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6.0),
+              decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(6.0)),
+              child: LocalAssets(
+                  imagePath: icon,
+                  imgColor: iconColor, height: 18, width: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(count, fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w600),
+                  CustomText(label, fontSize: SizeConfig.extraSmall, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w400),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconContainer(String iconPath) {
+    return Container(
+      padding: const EdgeInsets.all(6.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6.0),
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(color: AppColors.black.withValues(alpha: 0.08), offset: const Offset(0, 1), blurRadius: 2.0)
+        ],
+      ),
+      child: LocalAssets(
+          imagePath: iconPath,
+          imgColor: AppColors.secondaryTextColor,
+          height: 24,
+          width: 20,
+      ),
     );
   }
 

@@ -1,11 +1,13 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_product_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -101,28 +103,30 @@ class _GroceryProductsScreenState extends State<GroceryProductsScreen> {
             ),
           );
         }),
-        buildCustomActionWidget: ()=> Obx(() {
+        buildCustomActionWidget: () => (widget.userId == userId) ? Obx(() {
           final bool isOpen = controller.isSearchOpen.value;
 
-            // The Toggle Button is now part of the Title Widget
-            return InkWell(
-                onTap: () {
-                  controller.isSearchOpen.value = !isOpen;
-                  if (!controller.isSearchOpen.value) {
-                    searchController.clear();
-                    // controller.fetchGroceryProducts();
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Icon(
-                    isOpen ? Icons.search_off_outlined : Icons.search_outlined,
-                    color: AppColors.black,
-                    size: 24,
-                  ),
-                ),
-              );
-          }),
+          // The Toggle Button is now part of the Title Widget
+          return InkWell(
+            onTap: () {
+              controller.isSearchOpen.value = !isOpen;
+              if (!controller.isSearchOpen.value) {
+                searchController.clear();
+                // controller.fetchGroceryProducts();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10),
+              child: Icon(
+                isOpen ? Icons.search_off_outlined : Icons.search_outlined,
+                color: AppColors.black,
+                size: 24,
+              ),
+            ),
+          );
+        }) : const CommonCartIcon(
+            argIsDeliveredByRider: false
+        ),
       ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,12 +193,13 @@ class _GroceryProductsScreenState extends State<GroceryProductsScreen> {
 
             return  GroceryProductCard(
                 groceryProducts: groceryProducts,
+                isMyGroceryStore: widget.userId == userId
             );
           },
         )
 
 
-    //   MasonryGridView.count(
+          //   MasonryGridView.count(
     //   controller: scrollController,
     //   itemCount: controller.groceryProductsList.length +
     //       (controller.isGroceryDataLoadingMore.value ? 1 : 0),

@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 
-import 'package:BlueEra/features/me/grocery/model/my_grocery_products_reponse.dart';
+import 'package:BlueEra/features/me/grocery/model/my_grocery_products_response.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +16,12 @@ import '../../../../../core/api/model/images.dart';
 
 class GroceryProductCard extends StatelessWidget {
   final Products groceryProducts;
+  final bool isMyGroceryStore;
 
   const GroceryProductCard({
     Key? key,
     required this.groceryProducts,
+    required this.isMyGroceryStore,
   }) : super(key: key);
 
   @override
@@ -48,6 +50,7 @@ class GroceryProductCard extends StatelessWidget {
         Get.toNamed(RouteHelper.getMyGroceryVariantScreenRoute(),
           arguments: {
             ApiKeys.argVariants: variants,
+            ApiKeys.argIsMyGroceryStore: isMyGroceryStore,
             ApiKeys.argIsShowInGrid: true
           },
         );
@@ -150,6 +153,7 @@ class GroceryProductCard extends StatelessWidget {
                               maxLines: 2
                           ),
                         ),
+                        if(isMyGroceryStore)
                         Icon(
                           Icons.more_vert,
                           size: 20,
@@ -169,7 +173,7 @@ class GroceryProductCard extends StatelessWidget {
                           color: AppColors.secondaryTextColor
                       ),
                     ),
-                    SizedBox(height: SizeConfig.size2),
+                    SizedBox(height: SizeConfig.size4),
 
                     FittedBox(
                       fit: BoxFit.scaleDown,
