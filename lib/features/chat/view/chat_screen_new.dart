@@ -32,7 +32,11 @@ import '../auth/controller/chat_view_controller.dart';
 import 'add_symbol/add_symbol_screen.dart';
 import 'find_contacts_with_service/find_contact_with_service.dart';
 import 'widget/chat_flag_bottom_sheet.dart';
-import 'widget/chat_profile_bottom_sheet.dart';
+import 'chat_theme/chat_background_screen.dart';
+import 'contacts/view/contact_list_page.dart';
+import 'symbol_view/symbol_view_images.dart';
+import 'wallet_chat/wallet_chat_screen.dart';
+import '../../../features/personal/personal_profile/view/manage_notification/notification.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen({super.key,
@@ -83,8 +87,6 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     }
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
-    } else {
-      chatViewController.socketConnected.value = false;
     }
     chatViewController.chatMainTabController = TabController(
       length:4,
@@ -474,7 +476,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
               Padding(
                 padding: const EdgeInsets.only(right: 1.0, top: 3),
                 child: InkWell(
-                  onTap: () => showChatProfileBottomSheet(context),
+                  onTap: () => _openProfileDrawer(context),
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(2.4),
@@ -599,6 +601,285 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         //   ),
         // if (!_isFromForward()) SizedBox(width: 18),
       ],
+    );
+  }
+
+  void _openProfileDrawer(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final authController = Get.find<AuthController>();
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Close drawer',
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: screenWidth * 0.5,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    // Profile header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2.5),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: SweepGradient(
+                                colors: [
+                                  AppColors.symbolBorderRed,
+                                  AppColors.symbolBorderBlue,
+                                  AppColors.symbolBorderYellow,
+                                  AppColors.symbolBorderGreen,
+                                  AppColors.symbolBorderRed,
+                                ],
+                              ),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: CachedAvatarWidget(
+                                imageUrl: authController.imgPath.value,
+                                size: 52,
+                                borderRadius: 26,
+                                showProfileOnFullScreen: false,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          CustomText(
+                            userNameGlobal.isNotEmpty
+                                ? userNameGlobal
+                                : 'User',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.green0B,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              CustomText(
+                                'Online',
+                                fontSize: 12,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 8),
+                    // Menu items
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _drawerMenuItem(
+                              icon: Icons.add_circle_outline_rounded,
+                              label: 'Add Symbol',
+                              iconColor: const Color(0xFF0086FF),
+                              bgColor: const Color(0xFFE8F3FF),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Get.to(() => AddChatSymbolScreen());
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.auto_awesome_rounded,
+                              label: 'View Symbol',
+                              iconColor: const Color(0xFFE88D1A),
+                              bgColor: const Color(0xFFFFF3E0),
+                              onTap: () {
+                                Navigator.pop(context);
+                                final ctrl =
+                                    Get.isRegistered<AddChatSymbolController>()
+                                        ? Get.find<AddChatSymbolController>()
+                                        : Get.put(AddChatSymbolController());
+                                Get.to(() =>
+                                    SymbolViewImages(mySymbols: ctrl.mySymbols));
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.group_add_rounded,
+                              label: 'Create Group',
+                              iconColor: const Color(0xFF2BB67F),
+                              bgColor: const Color(0xFFE6F9F1),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Get.to(() => ContactsPage(from: "group"));
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.palette_rounded,
+                              label: 'Background',
+                              iconColor: const Color(0xFF9C27B0),
+                              bgColor: const Color(0xFFF3E5F5),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Get.to(() => ChatBackgroundScreen());
+                              },
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 4),
+                              child: Divider(height: 1),
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.account_balance_wallet_rounded,
+                              label: 'Wallet',
+                              iconColor: const Color(0xFF0086FF),
+                              bgColor: const Color(0xFFE8F3FF),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Get.to(() => const WalletChatScreen());
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.shield_rounded,
+                              label: 'Private Room',
+                              iconColor: const Color(0xFFD94A42),
+                              bgColor: const Color(0xFFFFEBEE),
+                              onTap: () {
+                                Navigator.pop(context);
+                                commonSnackBar(message: "Coming soon....");
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.devices_rounded,
+                              label: 'Linked Device',
+                              iconColor: const Color(0xFF505050),
+                              bgColor: const Color(0xFFF0F0F0),
+                              onTap: () {
+                                Navigator.pop(context);
+                                commonSnackBar(message: "Coming soon....");
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.lock_rounded,
+                              label: 'Lock Chat',
+                              iconColor: const Color(0xFFE88D1A),
+                              bgColor: const Color(0xFFFFF3E0),
+                              onTap: () {
+                                Navigator.pop(context);
+                                commonSnackBar(message: "Coming soon....");
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.notifications_rounded,
+                              label: 'Notification',
+                              iconColor: const Color(0xFF2BB67F),
+                              bgColor: const Color(0xFFE6F9F1),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Get.to(() => NotificationSettingScreen());
+                              },
+                            ),
+                            _drawerMenuItem(
+                              icon: Icons.person_add_alt_rounded,
+                              label: 'Invite Friend',
+                              iconColor: const Color(0xFF9C27B0),
+                              bgColor: const Color(0xFFF3E5F5),
+                              onTap: () {
+                                Navigator.pop(context);
+                                commonSnackBar(message: "Coming soon....");
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          )),
+          child: child,
+        );
+      },
+    );
+  }
+
+  Widget _drawerMenuItem({
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: CustomText(
+                label,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

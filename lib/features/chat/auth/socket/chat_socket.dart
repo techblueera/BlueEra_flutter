@@ -97,6 +97,13 @@ class ChatSocketService {
   }
 
   void listenEvent(String event, Function(dynamic) callback) {
+    // Remove any existing listener for this event to prevent duplicates
+    _registeredListeners.removeWhere((entry) => entry.key == event);
+    _pendingListeners.removeWhere((entry) => entry.key == event);
+
+    // Also remove from the live socket before re-registering
+    _socket?.off(event);
+
     // Track all listeners so they survive socket reconnections
     _registeredListeners.add(MapEntry(event, callback));
 

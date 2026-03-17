@@ -745,8 +745,10 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> connectSocket() async {
+    // Always ensure socket is connected
+    await chatSocket.connectToSocket();
+
     if (socketConnected.value == false) {
-      await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
         final parsedData = GetChatListModel.fromJson(data);
@@ -812,12 +814,19 @@ class ChatViewController extends GetxController {
           message?.myMessage = currentUserId == senderId;
         }
 
-        if (message?.conversation?.type == AppConstants.personal_Chat_Type) {
+        final msgType = message?.conversation?.type;
+        if (msgType == AppConstants.business_Chat_Type) {
           emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.personal_Chat_Type}, );
+              {ApiKeys.type: AppConstants.business_Chat_Type});
+        } else if (msgType == AppConstants.group_Chat_Type) {
+          emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.group_Chat_Type});
+        } else if (msgType == AppConstants.order_Chat_Type) {
+          emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.order_Chat_Type});
         } else {
           emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.business_Chat_Type}, );
+              {ApiKeys.type: AppConstants.personal_Chat_Type});
         }
         String chekedConversationId = userOpenConversationId.value;
         if (chekedConversationId == message?.conversationId) {
@@ -962,14 +971,14 @@ class ChatViewController extends GetxController {
 
   Future<void> saveSingleMessageToLocal(String conversationId, Messages msg,
       [Map<String, dynamic>? params]) async {
-    final connectivityResult = await NetworkUtils.isConnected();
-
-    if (connectivityResult) {
+    if (params != null) {
+      // Outgoing message with send params — mark as pending for offline retry
       msg.sendPendingMsgParams = params;
       localStorageHelper.saveSingleMessageToConversationId(
           conversationId, msg,
           sendStatus: "pending");
     } else {
+      // Received message or already-sent message — save without pending status
       localStorageHelper.saveSingleMessageToConversationId(
           conversationId, msg);
     }

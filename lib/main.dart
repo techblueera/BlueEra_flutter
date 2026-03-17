@@ -70,7 +70,22 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     log("payload 71)  ${data}");
     final callType = payload['call_type'];
     showFlutterCallNotification(
-      desiginations: "${callerData['designation'].toString().isEmpty?"Incoming Call":callerData['designation'].toString().toLowerCase()}",
+      desiginations: () {
+        final accountType = callerData['account_type']?.toString() ?? '';
+        if (accountType == 'BUSINESS') {
+          var biz = callerData['businessData'];
+          if (biz is String) biz = jsonDecode(biz);
+          if (biz is Map) {
+            final cat = biz['category_of_business'];
+            if (cat != null && cat.toString().isNotEmpty) return cat.toString();
+            final subCat = biz['sub_category_of_business'];
+            if (subCat != null && subCat.toString().isNotEmpty) return subCat.toString();
+          }
+          return 'Incoming Call';
+        }
+        final designation = callerData['designation']?.toString() ?? '';
+        return designation.isEmpty ? 'Incoming Call' : designation.toLowerCase();
+      }(),
       callSessionId: payload["call_id"],
       callerName: callerName,
       callerImage: callerData['profile_image'].isNotEmpty ? callerData['profile_image'] : null,

@@ -18,6 +18,7 @@ import 'component_widgets.dart';
 import 'group_chat_message_bubble.dart';
 import 'group_document_message_view.dart';
 import 'group_video_and_image_card_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GroupMessageCard extends StatefulWidget {
   const GroupMessageCard({super.key, required this.message,
@@ -472,161 +473,262 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     );
   }
 
-  Widget _buildContactMessage(Messages? message,String name, String number, String time,
-      bool isReceiveMsg) {
+  Widget _buildContactMessage(Messages? message, String name, String number,
+      String time, bool isReceiveMsg) {
     final theme = Theme.of(context);
+    final displayName = name.trim().isEmpty ? 'Unknown' : name;
+    final displayNumber = number.trim().isEmpty ? 'No number' : number;
+    final String? profileImage = message?.sharedContactProfileImage;
+    final bool hasProfileImage =
+        profileImage != null && profileImage.isNotEmpty;
+
     return GestureDetector(
-      onLongPress: (){
+      onLongPress: () {
         chatThemeController.activateSelection(message);
       },
       onTap: () {
         FocusScope.of(context).unfocus();
-        if(chatThemeController.isMessageSelectionActive.value){
+        if (chatThemeController.isMessageSelectionActive.value) {
           chatThemeController.selectMoreMessage(message);
-        }else{
-
         }
       },
       child: Row(
-          mainAxisAlignment: (!isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        (!isReceiveMsg)?SizedBox():Container(
-          margin: EdgeInsets.only(right: 6),
-          height: 26,
-          width: 26,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
-              color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown",0.1)
-          ),
-          child: Center(child: CustomText("${widget.message.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown"),)),
-        ),
-          Align(
-            alignment: (isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
-            child: IntrinsicWidth(
-              child: Container(
-                width: 256,
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isReceiveMsg
-                      ?chatThemeController.getColorForSender(widget.message.senderId ?? "unknown")
-                      : chatThemeController.myMessageBgColor.value,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
-                    bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
+        mainAxisAlignment:
+            (!isReceiveMsg) ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          (!isReceiveMsg)
+              ? SizedBox()
+              : Container(
+                  margin: EdgeInsets.only(right: 6),
+                  height: 26,
+                  width: 26,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(26),
+                    color: chatThemeController.getDarkColorForSender(
+                        widget.message.senderId ?? "unknown", 0.1),
+                  ),
+                  child: Center(
+                    child: CustomText(
+                      "${widget.message.sender?.name?.split('')[0]}",
+                      fontSize: 13.2,
+                      color: chatThemeController.getDarkColorForSender(
+                          widget.message.senderId ?? "unknown"),
+                    ),
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    (isReceiveMsg)?CustomText(
-
+          Container(
+            width: 270,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: isReceiveMsg
+                  ? chatThemeController.getColorForSender(
+                      widget.message.senderId ?? "unknown")
+                  : chatThemeController.myMessageBgColor.value,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
+                bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Sender name in group
+                if (isReceiveMsg)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, top: 6),
+                    child: CustomText(
                       "${message?.sender?.name}",
                       fontWeight: FontWeight.w400,
-                      color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown"),
+                      color: chatThemeController.getDarkColorForSender(
+                          widget.message.senderId ?? "unknown"),
                       fontFamily: "Rounded Mplus 1c",
                       fontSize: 13.3,
-                    ):SizedBox(),
-                    (isReceiveMsg)?SizedBox(
-                      height: 4,
-                    ):SizedBox(),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
-                          radius: 18,
-                          child: Center(
-                            child: Icon(
-                              Icons.person,
-                              color: theme.colorScheme.inverseSurface,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 12,
-                        ),
-                        Column(
+                    ),
+                  ),
+                // Contact info section
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 12, right: 12, top: 8, bottom: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor:
+                            theme.colorScheme.surface.withValues(alpha: 0.8),
+                        radius: 22,
+                        backgroundImage:
+                            hasProfileImage ? NetworkImage(profileImage) : null,
+                        child: hasProfileImage
+                            ? null
+                            : Icon(
+                                Icons.person,
+                                size: 24,
+                                color: theme.colorScheme.inverseSurface,
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(
-                              width: 180,
-                              child: CustomText(
-                                name,
-                                fontWeight: FontWeight.w500,
-                                color: (isReceiveMsg) ? Colors.black87 : Colors.white,
-                                fontSize: 16,
-                              ),
+                            CustomText(
+                              displayName,
+                              fontWeight: FontWeight.w600,
+                              color: (isReceiveMsg)
+                                  ? Colors.black87
+                                  : Colors.white,
+                              fontSize: 15,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(
-                              width: 8,
+                            const SizedBox(height: 2),
+                            CustomText(
+                              displayNumber,
+                              color: (isReceiveMsg)
+                                  ? Colors.black54
+                                  : Colors.white70,
+                              fontSize: 12.5,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: CustomText(
-                                number,
-                                color:
-                                (!isReceiveMsg) ? Colors.white : Colors.black54,
-                                fontSize: 12,
-                              ),
-                            )
                           ],
-                        )
-                      ],
-                    ),
-                    (isReceiveMsg)
-                        ? const SizedBox(
-                      height: 10,
-                    )
-                        : SizedBox(),
-                    (isReceiveMsg)
-                        ? InkWell(
-                      onTap: () async {
-                        saveContactWithEditor(name, number);
-                      },
-                      child: Container(
-                        height: 32,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: (isReceiveMsg)
-                                ? theme.colorScheme.secondary
-                                : theme.colorScheme.secondary.withValues(alpha: 0.6)),
-                        child: Center(
-                          child: CustomText(
-                            "Save",
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Time row
+                Padding(
+                  padding: const EdgeInsets.only(right: 10, bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      timeAndReadInfoWidget(
+                        message: message!,
+                        isMyMessage: message.myMessage ?? false,
+                        time: time,
+                        timeColor:
+                            (!isReceiveMsg) ? Colors.white70 : Colors.black45,
+                        indicateColor: message.messageRead == 1
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                    ],
+                  ),
+                ),
+                // Divider
+                Divider(
+                  height: 1,
+                  thickness: 0.5,
+                  color: isReceiveMsg
+                      ? Colors.grey.shade300
+                      : Colors.white.withValues(alpha: 0.3),
+                ),
+                // Action buttons row
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    children: [
+                      // Message button
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            if (displayNumber != 'No number') {
+                              _launchSms(displayNumber);
+                            }
+                          },
+                          child: Center(
+                            child: CustomText(
+                              "Message",
+                              color: isReceiveMsg
+                                  ? theme.colorScheme.primary
+                                  : Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.5,
+                            ),
                           ),
                         ),
                       ),
-                    )
-                        : SizedBox(),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const SizedBox(
-                          height: 10,
+                      // Vertical divider
+                      Container(
+                        width: 0.5,
+                        height: 24,
+                        color: isReceiveMsg
+                            ? Colors.grey.shade300
+                            : Colors.white.withValues(alpha: 0.3),
+                      ),
+                      // Call button
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            if (displayNumber != 'No number') {
+                              _launchCall(displayNumber);
+                            }
+                          },
+                          child: Center(
+                            child: CustomText(
+                              "Call",
+                              color: isReceiveMsg
+                                  ? theme.colorScheme.primary
+                                  : Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.5,
+                            ),
+                          ),
                         ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child:  timeAndReadInfoWidget(message: message!,isMyMessage: message.myMessage??false,time: time,timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,indicateColor:message.messageRead==1?Colors.blue:Colors.grey),
-                        )
-                      ],
-                    ),
-                  ],
+                      ),
+                      // Vertical divider
+                      Container(
+                        width: 0.5,
+                        height: 24,
+                        color: isReceiveMsg
+                            ? Colors.grey.shade300
+                            : Colors.white.withValues(alpha: 0.3),
+                      ),
+                      // Save button
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            saveContactWithEditor(displayName, displayNumber);
+                          },
+                          child: Center(
+                            child: CustomText(
+                              "Save",
+                              color: isReceiveMsg
+                                  ? theme.colorScheme.primary
+                                  : Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _launchSms(String number) async {
+    final uri = Uri(scheme: 'sms', path: number);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _launchCall(String number) async {
+    final uri = Uri(scheme: 'tel', path: number);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 
   String formatChatHistoryTime(String isoDateString) {
