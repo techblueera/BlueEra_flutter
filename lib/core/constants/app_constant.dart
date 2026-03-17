@@ -1847,6 +1847,7 @@ const String INSTRUMENTS_PHARMACY = "INSTRUMENTS_PHARMACY";
 const String DIAGNOSTIC_SECTOR = "DIAGNOSTIC_SECTOR";
 const String CLINIC_DOCTORS = "CLINIC_DOCTORS";
 const String ALTERNATIVE_WELLNESS = "ALTERNATIVE_WELLNESS";
+const String SURGICAL = "SURGICAL";
 const String SUPPORT_SERVICES = "SUPPORT_SERVICES";
 
 // Hotel
@@ -3755,37 +3756,37 @@ final List<OnboardingCategoryModel> individualOnboardingConsultationList = [
 
 final List<OnboardingCategoryModel> healthCareList = [
   OnboardingCategoryModel(
-    name: 'Hospital',
+    name: 'Hospitals',
     slugId: HOSPITAL,
-    icon:"assets/icons/helth_hospital.png",
+    icon: "assets/category/medical/health_hospitals.png",
+    individualType: IndividualProfileType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnboardingCategoryModel(
+    name: 'Doctors',
+    slugId: CLINIC_DOCTORS,
+    icon: "assets/category/medical/health_doctors.png",
+    individualType: IndividualProfileType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnboardingCategoryModel(
+    name: 'Labs',
+    slugId: LABTEST,
+    icon: "assets/category/medical/health_labs.png",
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: 'Pharmacy',
     slugId: PHARMACY,
-    icon:"assets/icons/helth_medical.png",
+    icon: "assets/category/medical/health_pharmacy.png",
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
-    name: 'Lab Test',
-    slugId: LABTEST,
-    icon: "assets/icons/helth_diagonals.png",
-    individualType: IndividualProfileType.PROFESSIONAL,
-    accountType: AppConstants.individual,
-  ),
-  OnboardingCategoryModel(
-    name: 'Doctor',
-    slugId: CLINIC_DOCTORS,
-    icon:"assets/icons/helth_dr.png",
-    individualType: IndividualProfileType.PROFESSIONAL,
-    accountType: AppConstants.individual,
-  ),
-  OnboardingCategoryModel(
-    name: 'Wellness',
-    slugId: ALTERNATIVE_WELLNESS,
-    icon: "assets/icons/helth_alternative_icon.png",
+    name: 'Surgical',
+    slugId: SURGICAL,
+    icon: "assets/category/medical/health_surgical.png",
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),

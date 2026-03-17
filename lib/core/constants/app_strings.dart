@@ -2338,9 +2338,9 @@ class AppStrings {
   static const headerPrintingGifts = "headerPrintingGifts";
 
   // Grocery Super Categories
-  static const labelGroceryCooking = "Grocery / Cooking";
+  static const labelGroceryCooking = "Grocery & Cooking";
   static const labelDairyBeverages = "Dairy & Beverages";
-  static const labelVegetablesFruit = "Vegetables & Fruit";
+  static const labelVegetablesFruit = "Vegetables & Fruits";
   static const labelPersonalBabyCare = "Personal & Baby Care";
   static const labelKitchenDining = "Kitchen & Dining";
   static const labelCleaningMaintenance = "Cleaning & Maintenance";

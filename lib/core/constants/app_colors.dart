@@ -145,4 +145,5 @@ class AppColors {
   static const green2C = Color(0xFF2C3F25);
   static const purpleFD = Color(0xFFF0E7FD);
   static const purpleFF = Color(0xFFE0E7FF);
+  static const whiteFC = Color(0xffF5F7FC);
 }
