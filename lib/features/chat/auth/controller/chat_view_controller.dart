@@ -799,9 +799,7 @@ class ChatViewController extends GetxController {
         }
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) {
-
         Messages? message;
-
         if (data['message'] != null) {
           message = Messages.fromJson(data['message']);
         } else {
@@ -1306,6 +1304,7 @@ class ChatViewController extends GetxController {
   }
 
   void disposeSocket() {
+    socketConnected.value = false;
     socketConnectedCalled.value = false;
     chatSocket.disposeSocket();
   }

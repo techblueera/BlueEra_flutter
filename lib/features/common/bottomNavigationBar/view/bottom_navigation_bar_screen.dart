@@ -187,7 +187,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // Get.put(LocationServiceProviderController());
     }
 
-    Get.put(ChatThemeController());
+    getOrPut(() => ChatThemeController());
   }
 
   Future<void> _initializeUserData() async {

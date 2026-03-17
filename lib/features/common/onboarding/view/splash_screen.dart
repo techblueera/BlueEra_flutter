@@ -71,7 +71,10 @@ class _SplashScreenState extends State<SplashScreen> {
     // If shared media is pending and user is logged in, skip splash delay
     if (isLoginStatus == "true" && pendingSharedMedia != null && !isGuestUser()) {
       final media = pendingSharedMedia!;
-      pendingSharedMedia = null; // consume it
+      pendingSharedMedia = null; // consume it so it's never handled again
+      // Also reset the platform-level initial media so _getSharedMedia()
+      // won't pick it up a second time.
+      try { ShareHandlerPlatform.instance.resetInitialSharedMedia(); } catch (_) {}
       final sharedText = media.content;
       final attachments = media.attachments ?? [];
       if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
@@ -81,9 +84,9 @@ class _SplashScreenState extends State<SplashScreen> {
           (Route<dynamic> route) => false,
         );
         if (sharedText != null && sharedText.isNotEmpty) {
-          Get.to(ChatForwardScreen(sharedText: sharedText));
+          Get.to(() => ChatForwardScreen(sharedText: sharedText));
         } else {
-          Get.to(ChatForwardScreen(sharedFiles: attachments));
+          Get.to(() => ChatForwardScreen(sharedFiles: attachments));
         }
         return;
       }

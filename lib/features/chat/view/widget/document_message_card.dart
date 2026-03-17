@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -7,11 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../../core/services/chat_media_storage_service.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import 'component_widgets.dart';
 
-class PdfPreviewCard extends StatelessWidget {
+class PdfPreviewCard extends StatefulWidget {
   final String pdfUrl;
   final String fileName;
   final String time;
@@ -30,62 +32,149 @@ class PdfPreviewCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    Theme.of(context);
-    return GestureDetector(
-      onTap: () {
-        if(!(message.sendStatus=="pending")){
-          FocusScope.of(context).unfocus();
-          if(chatThemeController.isMessageSelectionActive.value){
-            chatThemeController.selectMoreMessage(message);
-          }else{
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PdfViewerPage(pdfUrl: pdfUrl,pdfName: fileName,),
-              ),
-            );
-          }
-        }
+  State<PdfPreviewCard> createState() => _PdfPreviewCardState();
+}
 
-      },
-      child: Align(
-        alignment: !isMyMessage? Alignment.centerRight : Alignment.centerLeft,
+enum _DocDlState { idle, downloading, ready }
+
+class _PdfPreviewCardState extends State<PdfPreviewCard> {
+  _DocDlState _dlState = _DocDlState.idle;
+  double _dlProgress = 0;
+  String? _localPath;
+
+  bool get _isReceived => widget.isMyMessage; // isMyMessage is inverted in the original code
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isReceived && widget.message.myMessage != true) {
+      _checkLocalFile();
+    } else {
+      _dlState = _DocDlState.ready;
+    }
+  }
+
+  Future<void> _checkLocalFile() async {
+    if (widget.pdfUrl.isEmpty) return;
+    final existing = await ChatMediaStorageService.findExistingFile(
+      url: widget.pdfUrl, messageType: 'document', fileName: widget.fileName,
+    );
+    if (existing != null && mounted) {
+      setState(() { _dlState = _DocDlState.ready; _localPath = existing.path; });
+    }
+  }
+
+  Future<void> _download() async {
+    if (widget.pdfUrl.isEmpty) return;
+    setState(() { _dlState = _DocDlState.downloading; _dlProgress = 0; });
+    final file = await ChatMediaStorageService.downloadAndSave(
+      url: widget.pdfUrl, messageType: 'document', fileName: widget.fileName,
+      onProgress: (r, t) { if (t > 0 && mounted) setState(() => _dlProgress = r / t); },
+    );
+    if (!mounted) return;
+    if (file != null) {
+      setState(() { _dlState = _DocDlState.ready; _localPath = file.path; });
+    } else {
+      setState(() => _dlState = _DocDlState.idle);
+    }
+  }
+
+  void _openPdf(BuildContext context) {
+    if (widget.message.sendStatus == "pending") return;
+    FocusScope.of(context).unfocus();
+    if (widget.chatThemeController.isMessageSelectionActive.value) {
+      widget.chatThemeController.selectMoreMessage(widget.message);
+    } else {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) => PdfViewerPage(
+          pdfUrl: _localPath ?? widget.pdfUrl,
+          pdfName: widget.fileName,
+        ),
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = widget.isMyMessage
+        ? widget.chatThemeController.receiveMessageBgColor.value
+        : widget.chatThemeController.myMessageBgColor.value;
+    final textColor = widget.isMyMessage ? Colors.black : Colors.white;
+
+    // If needs download and not ready, show download overlay
+    if (_dlState != _DocDlState.ready && widget.message.myMessage != true) {
+      return Align(
+        alignment: !widget.isMyMessage ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          margin: EdgeInsets.only(bottom: 1,),
-          decoration: BoxDecoration(
-            color:isMyMessage?chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value,
-            borderRadius: BorderRadius.circular(10),
-          ),
+          margin: const EdgeInsets.only(bottom: 1),
+          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-               Icon(Icons.picture_as_pdf, color:(isMyMessage)?Colors.black: Colors.white),
+              // Blurred PDF icon
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                  child: Icon(Icons.picture_as_pdf, color: textColor.withValues(alpha: 0.4), size: 28),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 170,
+                      child: CustomText(widget.fileName, maxLines: 1, overflow: TextOverflow.ellipsis, color: textColor),
+                    ),
+                    const SizedBox(height: 6),
+                    _dlState == _DocDlState.downloading
+                        ? _buildInlineProgress(textColor)
+                        : _buildInlineDownloadBtn(textColor),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Ready state — normal PDF card
+    return GestureDetector(
+      onTap: () => _openPdf(context),
+      child: Align(
+        alignment: !widget.isMyMessage ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 1),
+          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.picture_as_pdf, color: textColor),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: 197,
-                    child: CustomText(
-                      fileName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      color:(isMyMessage)?Colors.black: Colors.white,
-                    ),
+                    child: CustomText(widget.fileName, maxLines: 1, overflow: TextOverflow.ellipsis, color: textColor),
                   ),
                   const SizedBox(height: 2),
-                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                       CustomText(
-                        "Tap to view full PDF",
-                        fontSize: 12,
-                        color: (isMyMessage)?Colors.black:Colors.white,),
-                       const SizedBox(width: 22,),
-                       timeAndReadInfoWidget(message: message,isMyMessage: message.myMessage??false,time: time,timeColor: (message.myMessage??false) ? Colors.white : Colors.black54,indicateColor:message.messageRead==1?Colors.blue:Colors.grey)
-                     ],
-                   ),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    CustomText("Tap to view full PDF", fontSize: 12, color: textColor),
+                    const SizedBox(width: 22),
+                    timeAndReadInfoWidget(
+                      message: widget.message,
+                      isMyMessage: widget.message.myMessage ?? false,
+                      time: widget.time,
+                      timeColor: (widget.message.myMessage ?? false) ? Colors.white : Colors.black54,
+                      indicateColor: widget.message.messageRead == 1 ? Colors.blue : Colors.grey,
+                    ),
+                  ]),
                 ],
               ),
             ],
@@ -93,6 +182,38 @@ class PdfPreviewCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildInlineDownloadBtn(Color textColor) {
+    return GestureDetector(
+      onTap: _download,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.download_rounded, color: Colors.white, size: 16),
+          const SizedBox(width: 4),
+          Text('Download', style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.w600)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildInlineProgress(Color textColor) {
+    final pct = (_dlProgress * 100).toInt();
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      SizedBox(width: 100, child: LinearProgressIndicator(
+        value: _dlProgress > 0 ? _dlProgress : null,
+        backgroundColor: Colors.white24,
+        valueColor: const AlwaysStoppedAnimation(Colors.white),
+        minHeight: 3,
+      )),
+      const SizedBox(width: 8),
+      Text('$pct%', style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.bold)),
+    ]);
   }
 }
 class PdfViewerPage extends StatefulWidget {

@@ -67,6 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late PageController _pageController;
 
+  /// Single global subscription so the share-handler stream is never listened
+  /// to more than once (HomeScreen is re-created on every tab switch).
+  static StreamSubscription? _shareSubscription;
+  /// Guard to prevent the forward screen from being pushed while one is
+  /// already being opened (e.g. rapid share intents).
+  static bool _isHandlingShare = false;
+
   @override
   void initState() {
     super.initState();
@@ -92,15 +99,20 @@ class _HomeScreenState extends State<HomeScreen> {
   ///DO NOT DELETE THIS CODE.....
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
+    // Only subscribe once — subsequent HomeScreen rebuilds reuse the same
+    // subscription so the forward screen doesn't open multiple times.
+    if (_shareSubscription != null) return;
+
     final handler = ShareHandlerPlatform.instance;
 
     // App running, receiving new share while app is open
-    handler.sharedMediaStream.listen((SharedMedia media) {
+    _shareSubscription = handler.sharedMediaStream.listen((SharedMedia media) {
       _openChatScreen(media);
     });
   }
 
   void _openChatScreen(SharedMedia media) {
+    if (_isHandlingShare) return; // prevent duplicate opens
     if (isGuestUser()) {
       createProfileScreen();
       return;
@@ -109,9 +121,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final attachments = media.attachments ?? [];
 
     if (sharedText != null && sharedText.isNotEmpty) {
-      Get.to(() => ChatForwardScreen(sharedText: sharedText));
+      _isHandlingShare = true;
+      Get.to(() => ChatForwardScreen(sharedText: sharedText))
+          ?.then((_) => _isHandlingShare = false);
     } else if (attachments.isNotEmpty) {
-      Get.to(() => ChatForwardScreen(sharedFiles: attachments));
+      _isHandlingShare = true;
+      Get.to(() => ChatForwardScreen(sharedFiles: attachments))
+          ?.then((_) => _isHandlingShare = false);
     }
   }
 

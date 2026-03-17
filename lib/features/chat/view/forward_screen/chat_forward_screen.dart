@@ -37,6 +37,7 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
   final chatViewController = getOrPut(() => ChatViewController());
   final chatThemeController = getOrPut(() => ChatThemeController());
  bool symbolSelected=false;
+ bool _isSending = false;
   final bottomBarController = getOrPut(() => BottomBarController());
 
   @override
@@ -198,6 +199,8 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
           // ),
           InkWell(
             onTap: ()async{
+              if (_isSending) return; // prevent double-tap
+              _isSending = true;
               // Forward to selected contacts first (if any)
               if(chatViewController.selectedUserIds.isNotEmpty){
                 if(widget.sharedFiles!=null||widget.sharedText!=null){
@@ -292,14 +295,22 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
                 if(widget.stopChatNav!=true){
                   bottomBarController.onChangeIndex(3);
                 }
+                // For share-intent flows (sharedFiles/sharedText), only pop
+                // once since there's no underlying chat screen to return to.
+                // For normal message forwarding, pop the forward screen first,
+                // then pop the message-selection screen.
                 Get.back();
                 if(widget.sharedFiles==null && widget.sharedText==null){
-                  Get.back();
+                  // Small delay to let the first pop finish so we don't
+                  // accidentally pop an unrelated screen.
+                  await Future.delayed(const Duration(milliseconds: 100));
+                  if(Navigator.of(context).canPop()) {
+                    Get.back();
+                  }
                 }
               }
 
-
-
+              _isSending = false;
             },
             child: Container(
               padding: EdgeInsets.all(14),

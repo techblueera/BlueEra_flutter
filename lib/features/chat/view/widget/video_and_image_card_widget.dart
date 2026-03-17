@@ -11,6 +11,7 @@ import '../../auth/model/messageMediaUrl.dart';
 import '../orders_chat/order_chat_screen.dart';
 import 'component_widgets.dart';
 import 'custom_video_player.dart';
+import 'media_download_overlay.dart';
 import 'media_message_full_view.dart';
 class VideoAndImageCardWidget extends StatefulWidget {
   const VideoAndImageCardWidget({super.key, required this.name,required this.conversationId,required this.userId, this.profileImage, required this.isInitialMessage, this.contactNo, required this.message, required this.time, required this.isReceive, required this.theme,});
@@ -190,8 +191,16 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
       ThemeData theme, Messages message)
   {
     final isVideo = path.url?.toLowerCase().endsWith('.mp4');
-    return (isVideo ?? false)
-        ? ChatVideoMessage(message: message,
+    if (isVideo ?? false) {
+      // Video: wrap with download overlay for received messages
+      return MediaDownloadOverlay(
+        url: path.url ?? '',
+        messageType: 'video',
+        fileName: path.name,
+        isReceived: isReceiveMsg,
+        openOnTap: false,
+        child: ChatVideoMessage(
+          message: message,
           userId: widget.userId.toString(),
           conversation: widget.conversationId.toString(),
           videoUrl: path,
@@ -200,72 +209,84 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
           likes: 0,
           comments: 0,
           isReceiveMsg: isReceiveMsg,
-        )
-        :  Container(
-      child: Align(
-        alignment:
-        isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-        child: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+        ),
+      );
+    }
+
+    // Image
+    final imageWidget = (path.url!.contains('http'))
+        ? Image.network(path.url ?? '',
+            height: 250, width: 252, fit: BoxFit.cover)
+        : Image.file(File(path.url ?? ''),
+            height: 250, width: 252, fit: BoxFit.cover);
+
+    return Align(
+      alignment:
+          isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: isReceiveMsg
+                        ? chatThemeController.receiveMessageBgColor.value
+                        : chatThemeController.myMessageBgColor.value,
+                    width: 2)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: MediaDownloadOverlay(
+                url: path.url ?? '',
+                messageType: 'image',
+                fileName: path.name,
+                width: 252,
+                height: 250,
+                isReceived: isReceiveMsg,
+                openOnTap: false,
+                child: imageWidget,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 2,
+            left: !isReceiveMsg ? 2 : null,
+            right: isReceiveMsg ? 2 : null,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                (message.message != null && message.message != '')
+                    ? Container(
+                  decoration: BoxDecoration(
                       color: isReceiveMsg
                           ? chatThemeController.receiveMessageBgColor.value
                           : chatThemeController.myMessageBgColor.value,
-                      width: 2)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: (path.url!.contains('http'))?
-                Image.network(path.url ?? '',
-                    height: 250, width: 252, fit: BoxFit.cover):
-                Image.file(File(path.url ?? ''),
-                    height: 250, width: 252, fit: BoxFit.cover),
-              ),
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(10),
+                      )
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  child: CustomText("${message.message}",
+                    fontWeight: FontWeight.w500,
+                    color: isReceiveMsg ? Colors.black87 : Colors.white,
+                    fontSize: 14,
+                  ),
+                )
+                    : const SizedBox(),
+                ReactionInfoWidget(message: message,
+                  time: time,
+                  userId: widget.userId.toString(),
+                  conversation: widget.conversationId.toString(),),
+              ],
             ),
-            Positioned(
-              bottom: 2,
-              left: !isReceiveMsg ? 2 : null,
-              right: isReceiveMsg ? 2 : null,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  (message.message != null && message.message != '')
-                      ? Container(
-                    decoration: BoxDecoration(
-                        color: isReceiveMsg
-                            ? chatThemeController.receiveMessageBgColor.value
-                            : chatThemeController.myMessageBgColor.value,
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(10),
-                        )
-                    ),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
-                    child: CustomText("${message.message}",
-                      fontWeight: FontWeight.w500,
-                      color: isReceiveMsg ? Colors.black87 : Colors.white,
-                      fontSize: 14,
-                    ),
-                  )
-                      : SizedBox(),
-                  ReactionInfoWidget(message: message,
-
-                    time: time,
-                    userId: widget.userId.toString(),
-                    conversation: widget.conversationId.toString(),),
-                ],
-              ),
-            ),
-            Positioned(
-              bottom: 26,
-              right: !isReceiveMsg ? 12 : null,
-              left: isReceiveMsg ? 12 : null,
-              child: Text(time,
-                  style: TextStyle(color: Colors.white, fontSize: 10)),
-            )
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 26,
+            right: !isReceiveMsg ? 12 : null,
+            left: isReceiveMsg ? 12 : null,
+            child: Text(time,
+                style: const TextStyle(color: Colors.white, fontSize: 10)),
+          )
+        ],
       ),
     );
   }

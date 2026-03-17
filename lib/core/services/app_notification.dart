@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/main.dart';
@@ -97,7 +98,7 @@ Future<void> _handleBackgroundNotificationResponse(NotificationResponse response
   if (actionId.startsWith('view_chat_') || actionId.startsWith('view_conversation_')) {
     final senderId = data['senderId'] ?? '';
     if (senderId.isNotEmpty) {
-      final chatViewController = Get.put(ChatViewController());
+      final chatViewController = getOrPut(() => ChatViewController());
       chatViewController.connectSocket();
       Future.delayed(const Duration(milliseconds: 500), () {
         chatViewController.checkChatConnectionAndOpenChat(userId: senderId);
@@ -1156,7 +1157,7 @@ class AppNotificationHandler {
   /// Helper to open chat with a user by their ID
   static void _openChatWithUser(String userId) {
     if (userId.isEmpty) return;
-    final chatViewController = Get.put(ChatViewController());
+    final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.connectSocket();
     Future.delayed(const Duration(milliseconds: 500), () {
       chatViewController.checkChatConnectionAndOpenChat(userId: userId);

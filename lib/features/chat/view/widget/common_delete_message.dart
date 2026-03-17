@@ -4,6 +4,7 @@ class CommonDeleteDialog extends StatelessWidget {
   final VoidCallback onDeleteForMe;
   final VoidCallback? onDeleteForEveryone;
   final bool showDeleteForEveryone;
+  final bool showDeleteFromDevice;
   final String title;
 
   const CommonDeleteDialog({
@@ -11,6 +12,7 @@ class CommonDeleteDialog extends StatelessWidget {
     required this.onDeleteForMe,
     this.onDeleteForEveryone,
     this.showDeleteForEveryone = false,
+    this.showDeleteFromDevice = false,
     this.title = "Are you sure you want to delete?",
   });
 
@@ -22,7 +24,7 @@ class CommonDeleteDialog extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black, fontSize: 16),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -36,9 +38,11 @@ class CommonDeleteDialog extends StatelessWidget {
           if (showDeleteForEveryone && onDeleteForEveryone != null) ...[
             const SizedBox(height: 10),
 
-            /// Delete for everyone
+            /// Delete for everyone (also removes from device if media)
             _deleteButton(
-              text: "Delete for everyone",
+              text: showDeleteFromDevice
+                  ? "Delete for everyone & device"
+                  : "Delete for everyone",
               onTap: onDeleteForEveryone!,
             ),
           ],

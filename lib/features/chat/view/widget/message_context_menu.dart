@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/services/chat_media_storage_service.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
@@ -227,6 +228,14 @@ class _ContextMenuCard extends StatelessWidget {
     this.profileImage,
   });
 
+  /// Whether this message has downloadable media (image, video, audio, document).
+  bool get _isMediaMessage {
+    final type = message.messageType?.toLowerCase() ?? '';
+    return ['image', 'video', 'audio', 'document'].contains(type) &&
+        message.url != null &&
+        message.url!.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     final chatViewController = Get.find<ChatViewController>();
@@ -282,6 +291,20 @@ class _ContextMenuCard extends StatelessWidget {
                 Get.to(() => ChatForwardScreen());
               },
             ),
+
+            // Download option — only for media messages
+            if (_isMediaMessage) ...[
+              _divider(),
+              _menuItem(
+                icon: Icons.download_rounded,
+                label: "Download",
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _downloadMedia(context, message);
+                },
+              ),
+            ],
+
             _divider(),
             _menuItem(
               icon: Icons.alarm_rounded,
@@ -322,6 +345,7 @@ class _ContextMenuCard extends StatelessWidget {
                   context: context,
                   builder: (_) => CommonDeleteDialog(
                     showDeleteForEveryone: message.myMessage == true,
+                    showDeleteFromDevice: _isMediaMessage,
                     onDeleteForMe: () async {
                       Map<String, dynamic> data = {
                         ApiKeys.conversation_id: "$conversationId",
@@ -336,6 +360,7 @@ class _ContextMenuCard extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     onDeleteForEveryone: () async {
+                      // Delete from server
                       Map<String, dynamic> data = {
                         ApiKeys.conversation_id: "$conversationId",
                         ApiKeys.delete_from_every_one: true,
@@ -344,6 +369,10 @@ class _ContextMenuCard extends StatelessWidget {
                       };
                       await chatViewController.deleteChatMessage(
                           data, userId ?? '');
+
+                      // Also delete from device storage
+                      _deleteMediaFromDevice(message);
+
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
                       Navigator.pop(context);
@@ -356,6 +385,63 @@ class _ContextMenuCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Downloads all media files from the message to BlueEra folder.
+  static void _downloadMedia(BuildContext context, Messages message) async {
+    final type = message.messageType ?? 'image';
+    final urls = message.url ?? [];
+    if (urls.isEmpty) return;
+
+    Get.snackbar(
+      "Downloading",
+      "Saving to BlueEra/${type == 'document' ? 'Documents' : '${type[0].toUpperCase()}${type.substring(1)}'}...",
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+      icon: const Icon(Icons.download_rounded, color: Colors.white),
+      backgroundColor: Colors.black87,
+      colorText: Colors.white,
+    );
+
+    int saved = 0;
+    for (final media in urls) {
+      if (media.url == null || media.url!.isEmpty) continue;
+      final file = await ChatMediaStorageService.downloadAndSave(
+        url: media.url!,
+        messageType: type,
+        fileName: media.name,
+      );
+      if (file != null) saved++;
+    }
+
+    Get.snackbar(
+      saved > 0 ? "Saved" : "Failed",
+      saved > 0
+          ? "$saved file${saved > 1 ? 's' : ''} saved to BlueEra folder"
+          : "Could not save files. Check permissions.",
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+      icon: Icon(
+        saved > 0 ? Icons.check_circle_rounded : Icons.error_outline,
+        color: Colors.white,
+      ),
+      backgroundColor: saved > 0 ? Colors.green.shade700 : Colors.red.shade700,
+      colorText: Colors.white,
+    );
+  }
+
+  /// Deletes saved media files from the device when "Delete for everyone" is used.
+  static void _deleteMediaFromDevice(Messages message) {
+    final type = message.messageType ?? 'image';
+    final urls = message.url ?? [];
+    if (urls.isEmpty) return;
+
+    final urlStrings = urls
+        .where((m) => m.url != null && m.url!.isNotEmpty)
+        .map((m) => m.url!)
+        .toList();
+
+    ChatMediaStorageService.deleteMediaFiles(urlStrings, messageType: type);
   }
 
   Widget _menuItem({

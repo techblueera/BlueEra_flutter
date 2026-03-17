@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../../../core/api/apiService/api_keys.dart';
@@ -25,6 +26,7 @@ class ChatSocketService {
   final List<MapEntry<String, Function(dynamic)>> _registeredListeners = [];
 
   Future<void> connectToSocket() async {
+
     // If already connected, don't create a new socket
     if (_isConnected && _socket != null && _socket!.connected) {
       return;
@@ -50,13 +52,17 @@ class ChatSocketService {
         _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
         _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
 
-        // Re-register ALL known listeners on the new socket
+        // Re-register ALL known listeners on the new socket.
+        // First off() each event to avoid duplicates — listenEvent() may have
+        // already called _socket!.on() between connect() and onConnect().
         for (final entry in _registeredListeners) {
+          _socket!.off(entry.key);
           _socket!.on(entry.key, entry.value);
         }
 
         // Replay any listeners that were registered before socket was ready
         for (final entry in _pendingListeners) {
+          _socket!.off(entry.key);
           _socket!.on(entry.key, entry.value);
           _registeredListeners.add(entry);
         }
@@ -120,7 +126,11 @@ class ChatSocketService {
   }
 
   void disposeSocket() {
+    _isConnected = false;
+    _registeredListeners.clear();
+    _pendingListeners.clear();
     _socket?.dispose();
+    _socket = null;
   }
 
   bool get isConnected => _isConnected;

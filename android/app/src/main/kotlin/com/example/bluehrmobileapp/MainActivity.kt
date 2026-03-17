@@ -37,6 +37,7 @@ class MainActivity: FlutterActivity() {
     private val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
     private val SHORTCUT_CHANNEL = "com.bluehr.shortcut/channel"
     private val CALL_LAUNCHER_CHANNEL = "com.bluehr.call/launcher"
+    private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
 
     private var ringtone: Ringtone? = null
 
@@ -46,6 +47,31 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        // ------------------------------
+        // MEDIA SCANNER CHANNEL — makes files show in Gallery
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, MEDIA_SCANNER_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "scanFile" -> {
+                        val path = call.argument<String>("path") ?: ""
+                        if (path.isNotEmpty()) {
+                            android.media.MediaScannerConnection.scanFile(
+                                applicationContext,
+                                arrayOf(path),
+                                null
+                            ) { _, uri ->
+                                // Scan complete — file now visible in Gallery
+                            }
+                            result.success(true)
+                        } else {
+                            result.error("INVALID", "Path is empty", null)
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
 
         // ------------------------------
         // SCREENSHOT CHANNEL

@@ -66,25 +66,11 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
 
     super.initState();
     addSymbolController.getSymbolsForPartUser(userId);
-    if (Get.isRegistered<ChatViewController>()) {
-      chatViewController = Get.find<ChatViewController>();
-    } else {
-      chatViewController = Get.put(ChatViewController());
-    }
-    if (!Get.isRegistered<ChatFlagController>()) {
-      Get.put(ChatFlagController());
-    }
-    if (!Get.isRegistered<ChatPinArchiveController>()) {
-      Get.put(ChatPinArchiveController());
-    }
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController());
-    }
-    if (Get.isRegistered<ChatThemeController>()) {
-      chatThemeController = Get.find<ChatThemeController>();
-    } else {
-      chatThemeController = Get.put(ChatThemeController());
-    }
+    chatViewController = getOrPut(() => ChatViewController());
+    getOrPut(() => ChatFlagController());
+    getOrPut(() => ChatPinArchiveController());
+    getOrPut(() => CallController());
+    chatThemeController = getOrPut(() => ChatThemeController());
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }
