@@ -72,17 +72,34 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     showFlutterCallNotification(
       desiginations: () {
         final accountType = callerData['account_type']?.toString() ?? '';
+
         if (accountType == 'BUSINESS') {
           var biz = callerData['businessData'];
-          if (biz is String) biz = jsonDecode(biz);
-          if (biz is Map) {
-            final cat = biz['category_of_business'];
-            if (cat != null && cat.toString().isNotEmpty) return cat.toString();
-            final subCat = biz['sub_category_of_business'];
-            if (subCat != null && subCat.toString().isNotEmpty) return subCat.toString();
+
+          if (biz is String) {
+            biz = jsonDecode(biz);
           }
+
+          if (biz is Map<String, dynamic>) {
+            // First try category_of_business
+            final cat = biz['category_of_business'];
+            if (cat != null && cat.toString().isNotEmpty) {
+              return cat.toString();
+            }
+
+            // Then try sub_category_of_business.name
+            final subCat = biz['sub_category_of_business'];
+            if (subCat is Map<String, dynamic>) {
+              final name = subCat['name'];
+              if (name != null && name.toString().isNotEmpty) {
+                return name.toString(); // ✅ ONLY NAME
+              }
+            }
+          }
+
           return 'Incoming Call';
         }
+
         final designation = callerData['designation']?.toString() ?? '';
         return designation.isEmpty ? 'Incoming Call' : designation.toLowerCase();
       }(),

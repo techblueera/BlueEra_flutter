@@ -1705,22 +1705,18 @@ class CallController extends GetxController {
             FlutterCallkitIncoming.endCall(event.body['id']);
           });
           break;
-        // case Event.actionCallEnded:
-          // // Don't end the actual call if:
-          // // 1. Already idle (cleanup already happened — prevents re-entrant loop)
-          // // 2. CallActivity is handling it
-          // // 3. Call is actively in progress (accepting/connecting/connected) —
-          // //    endAllCalls() after accept fires this as a side-effect;
-          // //    we must NOT terminate the live call.
-          // final isCallInProgress =
-          //     callStatus.value == CallStatus.accepting ||
-          //     callStatus.value == CallStatus.connecting ||
-          //     callStatus.value == CallStatus.connected;
-          // if (callStatus.value != CallStatus.idle &&
-          //     !isCallActivityActive &&
-          //     !isCallInProgress) {
-          //   endCall();
-          // }
+        case Event.actionCallEnded:
+          // iOS: user ended the call from native CallKit UI (lock screen, phone app).
+          // Only act if the call is actively connected and we're on iOS.
+          // On Android, CallActivity handles its own lifecycle — skip here.
+          if (Platform.isIOS &&
+              callStatus.value != CallStatus.idle &&
+              (callStatus.value == CallStatus.connected ||
+               callStatus.value == CallStatus.connecting ||
+               callStatus.value == CallStatus.outgoing ||
+               callStatus.value == CallStatus.ringing)) {
+            endCall();
+          }
           break;
         default:
           break;

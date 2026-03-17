@@ -97,6 +97,7 @@ dependencies:
   envied: ^1.3.3
   qr_flutter: ^4.1.0
   flutter_native_splash: ^2.4.7
+  gal: ^2.3.2
   # smooth_page_indicator: ^2.0.1
 #  googleapis: ^16.0.0
 #  googleapis_auth:

@@ -1179,12 +1179,16 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   Future<void> submitRecordedAudio(String filePath) async {
     try {
       if (filePath.isNotEmpty) {
-        String fileName = filePath
+        // Compress recorded audio before sending
+        File audioFile = File(filePath);
+        File compressedAudio = (await ChatMediaCompressionService.compressAudio(audioFile)) ?? audioFile;
+
+        String fileName = compressedAudio.path
             .split('/')
             .last;
 
         dio.MultipartFile audioPart = await dio.MultipartFile.fromFile(
-          filePath,
+          compressedAudio.path,
           filename: fileName,
         );
 
@@ -1403,15 +1407,20 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   Future<void> _pickAudioFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg'],
+      allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'wma', 'flac'],
     );
 
     if (result != null && result.files.isNotEmpty) {
       String? filePath = result.files.first.path;
-      String fileName = filePath?.split('/').last ?? '';
+
+      // Compress audio before sending
+      File audioFile = File(filePath!);
+      File compressedAudio = (await ChatMediaCompressionService.compressAudio(audioFile)) ?? audioFile;
+
+      String fileName = compressedAudio.path.split('/').last;
 
       dio.MultipartFile audioPart = await dio.MultipartFile.fromFile(
-        filePath!,
+        compressedAudio.path,
         filename: fileName,
       );
 

@@ -491,8 +491,9 @@ class AppNotificationHandler {
       return;
     }
 
-    // Handle incoming call - show native call UI, don't show regular notification
+    // Handle incoming call - show native call UI via CallKit
     if (operation == 'incoming_call') {
+      _handleIncomingCallPush(message);
       return;
     }
 
@@ -540,31 +541,75 @@ class AppNotificationHandler {
   //   }
   // }
 
-  /// Handle incoming call push notification using operation-based payload (background/killed)
+  /// Handle incoming call push notification — works in foreground, background, and killed state.
   void _handleIncomingCallPush(RemoteMessage message) {
-    final data = message.data;
-    final callerName = data['senderName'] ?? 'Unknown';
-    final callerImage = data['senderProfileImage'] ?? '';
-    Map<String, dynamic> payload = jsonDecode(data['payload']);
-    final callType = payload['call_type'];
+    try {
+      final data = message.data;
+      final callerName = data['senderName'] ?? 'Unknown';
+      final callerImage = data['senderProfileImage'] ?? '';
 
-    showFlutterCallNotification(
-      desiginations: "",
-      callSessionId: data['notificationId'] ?? data['callId'] ?? '',
-      callerName: callerName,
-      callerImage: callerImage.isNotEmpty ? callerImage : null,
-      callType: callType,
-      extra: {
-        'senderId': data['senderId'] ?? '',
-        'conversationId': data['conversationId'] ?? '',
-        'callType': callType,
-        'callerName': callerName,
-        'callerImage': callerImage,
-        'callId':payload["call_id"],
-        'roomId':payload["room_id"],
-        'operation': 'incoming_call',
-      },
-    );
+      // Parse payload — may be a JSON string or already decoded
+      Map<String, dynamic> payload = {};
+      try {
+        final rawPayload = data['payload'];
+        if (rawPayload is String && rawPayload.isNotEmpty) {
+          payload = jsonDecode(rawPayload);
+        } else if (rawPayload is Map) {
+          payload = Map<String, dynamic>.from(rawPayload);
+        }
+      } catch (e) {
+        log('_handleIncomingCallPush: payload parse error: $e');
+      }
+
+      final callType = payload['call_type'] ?? data['callType'] ?? 'audio_call';
+      final callId = payload['call_id'] ?? data['callId'] ?? data['notificationId'] ?? '';
+      final roomId = payload['room_id'] ?? data['roomId'] ?? '';
+
+      // Parse caller data for designation (if available)
+      String designation = '';
+      try {
+        final rawCallerData = data['callerData'];
+        if (rawCallerData != null) {
+          Map<String, dynamic> callerData = rawCallerData is String
+              ? jsonDecode(rawCallerData)
+              : Map<String, dynamic>.from(rawCallerData);
+
+          final accountType = callerData['account_type']?.toString() ?? '';
+          if (accountType == 'BUSINESS') {
+            var biz = callerData['businessData'];
+            if (biz is String) biz = jsonDecode(biz);
+            if (biz is Map) {
+              designation = (biz['category_of_business'] ?? biz['sub_category_of_business'] ?? '').toString();
+            }
+          } else {
+            designation = (callerData['designation'] ?? '').toString();
+          }
+        }
+      } catch (_) {}
+
+      log('_handleIncomingCallPush: callId=$callId, roomId=$roomId, type=$callType, caller=$callerName');
+
+      showFlutterCallNotification(
+        desiginations: designation.isNotEmpty ? designation : 'Incoming Call',
+        callSessionId: callId,
+        callerName: callerName,
+        callerImage: callerImage.isNotEmpty ? callerImage : null,
+        callType: callType,
+        extra: {
+          'senderId': data['senderId'] ?? '',
+          'conversationId': data['conversationId'] ?? '',
+          'callType': callType,
+          'callerName': callerName,
+          'callerImage': callerImage,
+          'callId': callId,
+          'roomId': roomId,
+          'operation': 'incoming_call',
+        },
+      );
+    } catch (e, stack) {
+      log('_handleIncomingCallPush ERROR: $e');
+      log('Stack: $stack');
+    }
   }
   Future<void> showFullCallScreen(NotificationData rideNotification )async{
     String? pickupLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.deliveryLat.toString()),lng:double.parse(rideNotification.deliveryLong.toString()));
@@ -999,11 +1044,12 @@ class AppNotificationHandler {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final operation = (message.data['operation'] ?? '').toString().toLowerCase();
       log("jhsjhsbajhbdasjdhb  For ${message.data}");
-      // Incoming call in foreground: open in-app WhatsApp-style call screen directly
-      // if (operation == 'incoming_call') {
-      //   _handleIncomingCallForeground(message);
-      //   return;
-      // }
+
+      // Incoming call in foreground: show native CallKit UI immediately
+      if (operation == 'incoming_call') {
+        _handleIncomingCallPush(message);
+        return;
+      }
 
       // Play custom sound for foreground notifications
       playCustomSound(message);

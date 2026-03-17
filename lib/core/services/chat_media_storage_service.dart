@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -137,9 +138,11 @@ class ChatMediaStorageService {
         ),
       );
 
-      // Trigger MediaStore scan so the file appears in Gallery immediately
+      // Make file visible in device gallery
       if (Platform.isAndroid) {
         _scanFile(target.path);
+      } else if (Platform.isIOS) {
+        await _saveToiOSPhotos(target, messageType);
       }
 
       debugPrint('ChatMediaStorageService: saved to ${target.path}');
@@ -229,6 +232,24 @@ class ChatMediaStorageService {
       counter++;
     } while (await candidate.exists());
     return candidate;
+  }
+
+  /// Save image/video to iOS Photos library so it appears in the Camera Roll.
+  /// Audio and documents are skipped (not supported by Photos).
+  static Future<void> _saveToiOSPhotos(File file, String messageType) async {
+    try {
+      final type = messageType.toLowerCase();
+      if (type == 'image') {
+        await Gal.putImage(file.path, album: 'BlueEra');
+        debugPrint('ChatMediaStorageService: saved image to iOS Photos');
+      } else if (type == 'video') {
+        await Gal.putVideo(file.path, album: 'BlueEra');
+        debugPrint('ChatMediaStorageService: saved video to iOS Photos');
+      }
+      // audio & document — no-op, not gallery media
+    } catch (e) {
+      debugPrint('ChatMediaStorageService: iOS Photos save error: $e');
+    }
   }
 
   /// Trigger Android MediaStore scan so files appear in Gallery immediately.

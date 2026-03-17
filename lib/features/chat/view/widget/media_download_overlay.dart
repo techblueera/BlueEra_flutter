@@ -148,7 +148,7 @@ class _MediaDownloadOverlayState extends State<MediaDownloadOverlay> {
       width: widget.width,
       height: widget.height,
       child: Stack(
-        fit: StackFit.passthrough,
+        fit: StackFit.expand,
         children: [
           // Blurred child underneath
           ClipRRect(

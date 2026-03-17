@@ -197,6 +197,8 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
         url: path.url ?? '',
         messageType: 'video',
         fileName: path.name,
+        width: 256,
+        height: 280,
         isReceived: isReceiveMsg,
         openOnTap: false,
         child: ChatVideoMessage(

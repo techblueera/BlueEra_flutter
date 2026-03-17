@@ -43,8 +43,6 @@
 		</array>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
-		<key>NSAppTransportSecurity</key>
-		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UIBackgroundModes</key>
@@ -68,18 +66,14 @@
 		<array>
 			<string>arm64</string>
 		</array>
-		<key>UIBackgroundModes</key>
-		<array>
-			<string>voip</string>
-			<string>remote-notification</string>
-			<string>processing</string>
-		</array>
 		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>Blue Era needs access to your camera to allow you to take photos for profile pictures, service documentation, or uploading images.</string>
+		<string>Blue Era needs access to your photo library to save and share photos, videos, and media from chats.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Blue Era needs access to your camera to allow you to take photos for profile pictures, service documentation, or uploading images.</string>
+		<string>Blue Era needs access to your photo library to select and upload photos for profile pictures, chat messages, and service documentation.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>Blue Era needs access to your camera to allow you to take photos for profile pictures, scan QR codes,service documentation, or uploading images.</string>
+		<string>Blue Era needs access to your camera to take photos, make video calls, scan QR codes, and upload images.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Blue Era needs access to your microphone to make voice and video calls, record audio messages, and use speech-to-text.</string>
 		<key>NSDocumentsFolderUsageDescription</key>
 		<string>Blue Era needs access to your Documents folder to open, edit, and save files you choose to work with.</string>
 		<key>NSAppleMusicUsageDescription</key>
@@ -94,16 +88,15 @@
 		<string>Blue Era needs access to your contacts to help you connect with friends, share services, or autofill contact details.</string>
 		<key>NSFaceIDUsageDescription</key>
 		<string>Blue Era uses Face ID to quickly and securely authenticate you when logging in or accessing sensitive information.</string>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>Blue Era uses access to your microphone to record audio.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Blue Era uses speech recognition to convert your voice to text.</string>
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-4151367085462604~5043177104</string>
 		<key>FirebaseAppDelegateProxyEnabled</key>
 		<false/>
 		<key>FirebaseMessagingAutoInitEnabled</key>
 		<true/>
-		<!-- Add for share_handler start -->
-		<!-- The 'NSUserActivityTypes' key is only needed if you plan to use the recordSentMessage API allowing for conversations to show up as direct share suggestions -->
+		<!-- share_handler -->
 		<key>NSUserActivityTypes</key>
 		<array>
 			<string>INSendMessageIntent</string>
@@ -119,10 +112,6 @@
 				</array>
 			</dict>
 		</array>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>This example listens for speech on the device microphone on your request.</string>
-		<key>NSSpeechRecognitionUsageDescription</key>
-		<string>This example recognizes words as you speak them and displays them.</string>
 		<key>GoogleMapsApiKey</key>
 		<string>AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU</string>
 		<key>NSAppTransportSecurity</key>

@@ -654,36 +654,36 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          CustomText(
-                            userNameGlobal.isNotEmpty
-                                ? userNameGlobal
-                                : 'User',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Container(
-                                width: 7,
-                                height: 7,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.green0B,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              CustomText(
-                                'Online',
-                                fontSize: 12,
-                                color: AppColors.secondaryTextColor,
-                              ),
-                            ],
-                          ),
+                          // const SizedBox(height: 10),
+                          // CustomText(
+                          //   userNameGlobal.isNotEmpty
+                          //       ? userNameGlobal
+                          //       : 'User',
+                          //   fontSize: 16,
+                          //   fontWeight: FontWeight.w700,
+                          //   color: Colors.black,
+                          //   maxLines: 1,
+                          //   overflow: TextOverflow.ellipsis,
+                          // ),
+                          // const SizedBox(height: 2),
+                          // Row(
+                          //   children: [
+                          //     Container(
+                          //       width: 7,
+                          //       height: 7,
+                          //       decoration: const BoxDecoration(
+                          //         shape: BoxShape.circle,
+                          //         color: AppColors.green0B,
+                          //       ),
+                          //     ),
+                          //     const SizedBox(width: 5),
+                          //     CustomText(
+                          //       'Online',
+                          //       fontSize: 12,
+                          //       color: AppColors.secondaryTextColor,
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                       ),
                     ),
