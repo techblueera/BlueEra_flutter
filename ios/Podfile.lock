@@ -148,6 +148,9 @@ PODS:
   - flutter_webrtc (1.2.0):
     - Flutter
     - WebRTC-SDK (= 137.7151.12)
+  - gal (1.0.0):
+    - Flutter
+    - FlutterMacOS
   - geocoding_ios (1.0.5):
     - Flutter
   - geolocator_apple (1.2.0):
@@ -311,6 +314,7 @@ DEPENDENCIES:
   - flutter_sound (from `.symlinks/plugins/flutter_sound/ios`)
   - flutter_upgrade_version (from `.symlinks/plugins/flutter_upgrade_version/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
+  - gal (from `.symlinks/plugins/gal/darwin`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - get_thumbnail_video (from `.symlinks/plugins/get_thumbnail_video/ios`)
@@ -424,6 +428,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_upgrade_version/ios"
   flutter_webrtc:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
+  gal:
+    :path: ".symlinks/plugins/gal/darwin"
   geocoding_ios:
     :path: ".symlinks/plugins/geocoding_ios/ios"
   geolocator_apple:
@@ -519,6 +525,7 @@ SPEC CHECKSUMS:
   flutter_sound_core: 427465f72d07ab8c3edbe8ffdde709ddacd3763c
   flutter_upgrade_version: 911009e80a0b058173939342c66acb352c8858c1
   flutter_webrtc: 7de9a15705f7deede4413924a2f1409d39796ab5
+  gal: baecd024ebfd13c441269ca7404792a7152fde89
   geocoding_ios: 33776c9ebb98d037b5e025bb0e7537f6dd19646e
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   get_thumbnail_video: 1a754d46b860dffefcc57b7290a43089cd5d7e58
@@ -561,6 +568,6 @@ SPEC CHECKSUMS:
   WebRTC-SDK: 1762e2de812354d27a8407d1b2c532064ec39fce
   webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
 
-PODFILE CHECKSUM: 87bd70e8d58c3c49a32d68dd6f4384a3f98fe18b
+PODFILE CHECKSUM: 0f077b572c9274ad278a48a6406ba5ec544ad288
 
 COCOAPODS: 1.16.2
