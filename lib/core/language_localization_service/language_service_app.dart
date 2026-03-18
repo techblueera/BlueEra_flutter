@@ -35,11 +35,14 @@ class LocalizationService extends Translations {
     }
   }
 
-  /// Loads translations from Hive if present, otherwise fetches from API
+  /// Loads translations — returns cached data instantly, fetches API in background.
+  /// This avoids blocking the UI on network calls during language switch.
   Future<Map<String, String>> loadTranslations(String languageCode) async {
     try {
-      // Step 1: load from memory first
+      // Step 1: return from memory instantly
       if (_translations.containsKey(languageCode)) {
+        // Still refresh from API in background for next time
+        _refreshFromApiInBackground(languageCode);
         return _translations[languageCode]!;
       }
 
@@ -53,7 +56,16 @@ class LocalizationService extends Translations {
         localData = Map<String, String>.from(stored);
       }
 
-      // Step 4: call API to get latest
+      // Step 4: If we have local data (asset + hive), use it immediately
+      //         and fetch API in background for freshness
+      final localMerged = {...assetData, ...localData};
+      if (localMerged.isNotEmpty) {
+        _translations[languageCode] = localMerged;
+        _refreshFromApiInBackground(languageCode);
+        return localMerged;
+      }
+
+      // Step 5: No local data at all — must fetch from API (first-time only)
       final response = await LanguageRepo().downloadLanguage(languageCode);
       if (response.statusCode == 200) {
         final raw = response.response?.data;
@@ -62,26 +74,40 @@ class LocalizationService extends Translations {
         final Map<String, String> formatted =
         jsonData.map((k, v) => MapEntry(k, v.toString()));
 
-        // Step 5: Merge: asset (base) < hive (cached) < API (latest)
-        final merged = {...assetData, ...localData, ...formatted};
-
+        final merged = {...assetData, ...formatted};
         _translations[languageCode] = merged;
-
-        // Step 6: Save back to Hive
         await box.put(languageCode, merged);
         return merged;
       }
 
-      // If API fails, merge asset + hive
-      final merged = {...assetData, ...localData};
-      if (merged.isNotEmpty) {
-        _translations[languageCode] = merged;
-      }
-      return merged;
+      return assetData;
     } catch (e, st) {
       print('⚠️ Error loading translations for $languageCode: $e\n$st');
       return {};
     }
+  }
+
+  /// Fetches latest translations from API in the background and updates cache.
+  void _refreshFromApiInBackground(String languageCode) {
+    Future(() async {
+      try {
+        final response = await LanguageRepo().downloadLanguage(languageCode);
+        if (response.statusCode == 200) {
+          final raw = response.response?.data;
+          final Map<String, dynamic> jsonData =
+          raw is String ? jsonDecode(raw) : (raw is Map ? raw : {});
+          final Map<String, String> formatted =
+          jsonData.map((k, v) => MapEntry(k, v.toString()));
+
+          final existing = _translations[languageCode] ?? {};
+          final merged = {...existing, ...formatted};
+          _translations[languageCode] = merged;
+          await box.put(languageCode, merged);
+        }
+      } catch (_) {
+        // Silent — background refresh, don't block UI
+      }
+    });
   }
 
   Future<Map<String, String>> loadTranslations_(String languageCode) async {

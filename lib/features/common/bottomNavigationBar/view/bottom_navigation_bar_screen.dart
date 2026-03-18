@@ -40,12 +40,10 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_ne
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
-import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/call_controller.dart';
@@ -300,7 +298,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void dispose() {
     bottomBarVisibleNotifier.dispose(); // 🧼 Clean up
-    chatViewController.disposeSocket();
+    // Only fully dispose socket if no active call — otherwise the socket
+    // gets killed when the widget tree rebuilds after returning from CallActivity
+    // and can never reconnect (listeners are cleared permanently).
+    final hasActiveCall = Get.isRegistered<CallController>() &&
+        Get.find<CallController>().callStatus.value != CallStatus.idle;
+    if (!hasActiveCall) {
+      chatViewController.disposeSocket();
+    }
     super.dispose();
   }
   final callController = getOrPut(() => CallController());

@@ -72,11 +72,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        // Clear conversation context so socket events don't keep adding to this screen
+        chatViewController.userOpenConversationId.value = '';
+        // Refresh chat list only — do NOT emit newMessageReceived, it causes
+        // the socket listener to re-add messages and create duplicates
         chatViewController.emitEvent(
-
             ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
-        chatViewController.emitEvent(
-            ChatEmitEvents.newMessageReceived, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
         return true;
       },
       child: Obx(() {
@@ -102,19 +103,31 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
-              List<Messages> messages =
+              final rawMessages =
                   chatViewController.getListOfMessageData ?? [];
-              messages.sort((a, b) {
+
+              // Deduplicate by message ID before rendering
+              final seen = <String>{};
+              final deduped = <Messages>[];
+              for (final m in rawMessages) {
+                final key = m.id ?? '';
+                if (key.isEmpty || seen.add(key)) {
+                  deduped.add(m);
+                }
+              }
+
+              // Sort once (not on every frame)
+              deduped.sort((a, b) {
                 final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
                     ? DateTime.parse(a.createdAt!).toLocal()
                     : DateTime.fromMillisecondsSinceEpoch(0);
-
                 final dateB = (b.createdAt != null && b.createdAt!.isNotEmpty)
                     ? DateTime.parse(b.createdAt!).toLocal()
                     : DateTime.fromMillisecondsSinceEpoch(0);
-
-                return dateA.compareTo(dateB); // descending
+                return dateA.compareTo(dateB);
               });
+
+              final messages = deduped;
               return SafeArea(
                 child: Stack(
                   fit: StackFit.expand,
@@ -177,6 +190,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                         ? messages[index]
                                         : messages[messages.length - 1 - index];
                                     return MessageCard(
+                                      key: ValueKey(message.id ?? index),
                                       message: message,
                                       isInitialMessage: false,
                                       conversationId: message.conversationId,

@@ -13,19 +13,19 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/service/call_pip_service.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CallRoomScreen — Unified call screen for both incoming and outgoing calls.
+// CallActivityRoomScreen — Unified call screen for both incoming and outgoing calls.
 // Handles: ringing (outgoing/incoming), connecting, active audio, active video,
 // group call, and PiP mode.
 // ══════════════════════════════════════════════════════════════════════════════
 
-class CallRoomScreen extends StatefulWidget {
-  const CallRoomScreen({super.key});
+class CallActivityRoomScreen extends StatefulWidget {
+  const CallActivityRoomScreen({super.key});
 
   @override
-  State<CallRoomScreen> createState() => _CallRoomScreenState();
+  State<CallActivityRoomScreen> createState() => _CallActivityRoomScreenState();
 }
 
-class _CallRoomScreenState extends State<CallRoomScreen>
+class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     with TickerProviderStateMixin {
   late Worker _callStatusWorker;
   late Worker _switchTypeWorker;
@@ -2163,13 +2163,13 @@ class _ContactItem {
 }
 
 // ── Legacy aliases for backward compatibility ────────────────
-// IncomingCallScreen is now handled within CallRoomScreen.
+// IncomingCallScreen is now handled within CallActivityRoomScreen.
 // This typedef ensures existing route references continue to work.
 class IncomingCallScreen extends StatelessWidget {
   const IncomingCallScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const CallRoomScreen();
+    return const CallActivityRoomScreen();
   }
 }

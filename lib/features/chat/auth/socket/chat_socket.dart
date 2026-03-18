@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../../../core/api/apiService/api_keys.dart';
@@ -18,6 +19,11 @@ class ChatSocketService {
   static IO.Socket? _socket;
 
   bool _isConnected = false;
+
+  // Exponential backoff for reconnection
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 5;
+  Timer? _reconnectTimer;
 
   // Buffered listeners registered before socket was connected
   final List<MapEntry<String, Function(dynamic)>> _pendingListeners = [];
@@ -48,6 +54,8 @@ class ChatSocketService {
       _socket!.connect();
       _socket!.onConnect((_) {
         _isConnected = true;
+        _reconnectAttempts = 0; // Reset backoff on successful connection
+        _reconnectTimer?.cancel();
         _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
         _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
         _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
@@ -70,16 +78,17 @@ class ChatSocketService {
       });
 
       _socket!.onConnectError((err) {
-        print('Chat Socket Connect error: $err');
+        if (kDebugMode) print('Chat Socket Connect error: $err');
       });
 
       _socket!.onDisconnect((_) {
         _isConnected = false;
-        print('Disconnected');
+        if (kDebugMode) print('Chat socket disconnected');
+        _scheduleReconnect();
       });
 
     } catch (e) {
-      print("Socket connection failed: $e");
+      if (kDebugMode) print("Socket connection failed: $e");
       rethrow;
     }
   }
@@ -90,7 +99,7 @@ class ChatSocketService {
     } else {
       await connectToSocket();
       _socket?.emit(event, data);
-      print("⚠ Cannot emit, socket not connected");
+      if (kDebugMode) print("⚠ Cannot emit, socket not connected");
     }
   }
 
@@ -98,7 +107,7 @@ class ChatSocketService {
     if (_isConnected && _socket != null) {
       _socket!.emit(event, data);
     } else {
-      print("⚠ Cannot emit, socket not connected");
+      if (kDebugMode) print("⚠ Cannot emit, socket not connected");
     }
   }
 
@@ -121,12 +130,48 @@ class ChatSocketService {
     }
   }
 
+  /// Exponential backoff reconnect: 2s, 4s, 8s, 16s, 32s then stops.
+  /// Works on both iOS and Android. On iOS, timers pause when backgrounded
+  /// but fire immediately on resume — AppLifecycleHandler also triggers
+  /// reconnect on resume as a safety net.
+  void _scheduleReconnect() {
+    if (_socket == null) return; // Intentionally disposed — don't reconnect
+    if (_isConnected) return;
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      if (kDebugMode) print('Chat socket max reconnect attempts reached');
+      return;
+    }
+
+    _reconnectTimer?.cancel();
+    final delay = Duration(seconds: 2 << _reconnectAttempts); // 2, 4, 8, 16, 32
+    _reconnectAttempts++;
+
+    if (kDebugMode) print('Chat socket reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts)');
+    _reconnectTimer = Timer(delay, () {
+      if (_socket != null && !_isConnected) {
+        connectToSocket();
+      }
+    });
+  }
+
+  /// Force an immediate reconnect — called from AppLifecycleHandler on resume.
+  /// Resets backoff so the connection is re-established quickly after iOS
+  /// returns from background (where timers were paused).
+  void reconnectNow() {
+    if (_isConnected) return;
+    _reconnectAttempts = 0;
+    _reconnectTimer?.cancel();
+    connectToSocket();
+  }
+
   void disconnectSocket() {
     _socket?.disconnect();
   }
 
   void disposeSocket() {
     _isConnected = false;
+    _reconnectAttempts = 0;
+    _reconnectTimer?.cancel();
     _registeredListeners.clear();
     _pendingListeners.clear();
     _socket?.dispose();

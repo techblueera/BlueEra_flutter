@@ -492,10 +492,10 @@ class AppNotificationHandler {
     }
 
     // Handle incoming call - show native call UI via CallKit
-    if (operation == 'incoming_call') {
-      _handleIncomingCallPush(message);
-      return;
-    }
+    // if (operation == 'incoming_call') {
+    //   _handleIncomingCallPush(message);
+    //   return;
+    // }
 
     // Use the generic data-only renderer for all other notifications.
     // This reads channelId, channelName, channelImportance, style, imageUrl,
@@ -1046,10 +1046,10 @@ class AppNotificationHandler {
       log("jhsjhsbajhbdasjdhb  For ${message.data}");
 
       // Incoming call in foreground: show native CallKit UI immediately
-      if (operation == 'incoming_call') {
-        _handleIncomingCallPush(message);
-        return;
-      }
+      // if (operation == 'incoming_call') {
+      //   _handleIncomingCallPush(message);
+      //   return;
+      // }
 
       // Play custom sound for foreground notifications
       playCustomSound(message);
