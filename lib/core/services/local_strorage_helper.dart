@@ -7,8 +7,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:video_compress/video_compress.dart';
-
 import '../../features/chat/auth/model/GetChatListModel.dart';
 import '../../features/chat/auth/model/GetListOfMessageData.dart';
 
@@ -20,8 +18,6 @@ class LocalStorageHelper {
   LocalStorageHelper._internal();
 
   // ── Cached box references (avoid repeated openBox calls) ──
-  Box<String>? _messagesBox;
-  Box<String>? _chatListBox;
   Box<String>? _conversationBox;
   Box<String>? _userImagesBox;
 
@@ -31,22 +27,6 @@ class LocalStorageHelper {
   Future<Directory> get _appDocDirectory async {
     _appDocDir ??= await getApplicationDocumentsDirectory();
     return _appDocDir!;
-  }
-
-  Future<Box<String>> get _messagesBoxRef async {
-    if (_messagesBox != null && _messagesBox!.isOpen) return _messagesBox!;
-    _messagesBox = Hive.isBoxOpen('messagesBox')
-        ? Hive.box<String>('messagesBox')
-        : await Hive.openBox<String>('messagesBox');
-    return _messagesBox!;
-  }
-
-  Future<Box<String>> get _chatListBoxRef async {
-    if (_chatListBox != null && _chatListBox!.isOpen) return _chatListBox!;
-    _chatListBox = Hive.isBoxOpen('chatListJsonBox')
-        ? Hive.box<String>('chatListJsonBox')
-        : await Hive.openBox<String>('chatListJsonBox');
-    return _chatListBox!;
   }
 
   Future<Box<String>> get _conversationBoxRef async {
@@ -147,113 +127,8 @@ class LocalStorageHelper {
   }
 
 
-  Future<String> _downloadAndSaveMediaFile(String url, String uniqueId, String mediaType) async {
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final dir = await _appDocDirectory;
-
-        final fileName =
-            "$uniqueId-${DateTime.now().millisecondsSinceEpoch}.$mediaType";
-
-        final filePath = '${dir.path}/$fileName';
-
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
-
-        final lowerType = mediaType.toLowerCase();
-
-        if (lowerType == "jpg" || lowerType == "jpeg" || lowerType == "png") {
-          return await _compressImageFile(filePath, uniqueId);
-        }
-
-        if (lowerType == "mp4" || lowerType == "mov" || lowerType == "mkv") {
-          return await _compressVideoFile(filePath, uniqueId);
-        }
-
-        return filePath;
-      }
-    } catch (e) {
-      debugPrint("Download error: $e");
-    }
-    return '';
-  }
-
-  Future<String> _compressImageFile(String filePath, String uniqueId) async {
-    try {
-      final dir = await _appDocDirectory;
-      final outPath = '${dir.path}/$uniqueId-img-compressed.jpg';
-
-      final compressedBytes = await FlutterImageCompress.compressWithFile(
-        filePath,
-        quality: 60,
-        minWidth: 300,
-        minHeight: 300,
-        format: CompressFormat.jpeg,
-      );
-
-      if (compressedBytes != null) {
-        final file = File(outPath);
-        await file.writeAsBytes(compressedBytes);
-
-        File(filePath).delete();
-
-        return outPath;
-      }
-    } catch (e) {
-      debugPrint("Image compression error: $e");
-    }
-
-    return filePath;
-  }
-  Future<String> _compressVideoFile(String filePath, String uniqueId) async {
-    try {
-      final dir = await _appDocDirectory;
-      final outPath = '${dir.path}/$uniqueId-video-compressed.mp4';
-
-      final compressedVideo = await VideoCompress.compressVideo(
-        filePath,
-        quality: VideoQuality.MediumQuality,
-        deleteOrigin: false,
-      );
-
-      if (compressedVideo != null && compressedVideo.file != null) {
-        final compressedFile = compressedVideo.file!;
-        await compressedFile.copy(outPath);
-
-        File(filePath).delete();
-
-        return outPath;
-      }
-    } catch (e) {
-      debugPrint("Video compression error: $e");
-    }
-
-    return filePath;
-  }
-
   Future<void> saveChatList(List<ChatList?> chats, String type) async {
-    final box = await _chatListBoxRef;
-    final userBox = await _userImagesBoxRef;
-
-    List<Map<String, dynamic>> modifiedChats = [];
-
-    for (var chat in chats) {
-      final sender = chat?.sender;
-
-      if (sender != null && sender.profileImage != null && sender.id != null) {
-        final localPath = await _getOrDownloadUserImageWithBox(
-          sender.profileImage!,
-          sender.id!,
-          userBox,
-        );
-        sender.profileImage = localPath;
-      }
-
-      modifiedChats.add(chat?.toJson() ?? {});
-    }
-
-    await box.put('${type}_chat_list', jsonEncode(modifiedChats));
+    return;
   }
 
   Future<String> getOrDownloadUserImage(String url, String userId) async {
@@ -281,72 +156,16 @@ class LocalStorageHelper {
   }
 
   Future<List<ChatList>> getChatListFromLocal(String type) async {
-    final box = await _chatListBoxRef;
-    final jsonString = box.get('${type}_chat_list');
-
-    if (jsonString == null || jsonString.isEmpty) return [];
-    final decoded = jsonDecode(jsonString) as List<dynamic>;
-
-    return decoded.map((e) => ChatList.fromJson(e)).toList();
+    return [];
   }
 
-  /// Load all 3 chat types in parallel (single box open)
   Future<Map<String, List<ChatList>>> getAllChatListsFromLocal() async {
-    final box = await _chatListBoxRef;
-
-    final results = <String, List<ChatList>>{};
-    for (final type in [
-      AppConstants.personal_Chat_Type,
-      AppConstants.business_Chat_Type,
-      AppConstants.group_Chat_Type,
-    ]) {
-      final jsonString = box.get('${type}_chat_list');
-      if (jsonString != null && jsonString.isNotEmpty) {
-        final decoded = jsonDecode(jsonString) as List<dynamic>;
-        results[type] = decoded.map((e) => ChatList.fromJson(e)).toList();
-      } else {
-        results[type] = [];
-      }
-    }
-    return results;
+    return {};
   }
 
 
   Future<void> saveMessagesByConversationId(String conversationId, List<Messages> messages) async {
-    final box = await _messagesBoxRef;
-    final modifiedMessages = <Map<String, dynamic>>[];
-
-    for (var message in messages) {
-      final mediaList = message.url ?? [];
-      final localUrls = <Map<String, dynamic>>[];
-
-      for (var media in mediaList) {
-        if (media.url != null && media.url!.startsWith("http")) {
-          final filePath = await _downloadAndSaveMediaFile(
-            media.url!,
-            message.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-              media.name?.split(".")[1]??''
-          );
-
-          if (filePath.isNotEmpty) {
-            localUrls.add({
-              "url": filePath,
-              "type": media.type,
-              "name": media.name,
-              "size": media.size,
-              "mimetype": media.mimetype,
-              "_id": media.id
-            });
-          }
-        }
-      }
-
-      final messageMap = message.toJson();
-      messageMap['url'] = localUrls;
-      modifiedMessages.add(messageMap);
-    }
-
-    await box.put(conversationId, jsonEncode(modifiedMessages));
+    return;
   }
 
   Future<void> saveSingleMessageToConversationId(
@@ -354,130 +173,23 @@ class LocalStorageHelper {
       Messages newMessage, {
         String sendStatus = "",
       }) async {
-    final box = await _messagesBoxRef;
-
-    // 1. Get existing messages
-    final jsonString = box.get(conversationId);
-    List<Map<String, dynamic>> existingMessages = [];
-
-    if (jsonString != null && jsonString.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(jsonString) as List<dynamic>;
-        existingMessages = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-      } catch (e) {
-        debugPrint("Error decoding existing messages: $e");
-      }
-    }
-
-    // 2. Download & replace media URLs with local file paths
-    final mediaList = newMessage.url ?? [];
-    final localUrls = <Map<String, dynamic>>[];
-
-    for (var media in mediaList) {
-      if (media.url != null && media.url!.startsWith("http")) {
-        final filePath = await _downloadAndSaveMediaFile(
-          media.url!,
-          newMessage.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-          media.name?.split(".").last ?? '',
-        );
-
-        if (filePath.isNotEmpty) {
-          localUrls.add({
-            "url": filePath,
-            "type": media.type,
-            "name": media.name,
-            "size": media.size,
-            "mimetype": media.mimetype,
-            "_id": media.id,
-          });
-        }
-      }else{
-        localUrls.add({
-          "url": media.url,
-          "type": media.type,
-          "name": media.name,
-          "size": media.size,
-          "mimetype": media.mimetype,
-          "_id": media.id,
-        });
-      }
-    }
-
-    // 3. Convert to map & add send status
-    final newMessageMap = newMessage.toJson();
-    newMessageMap['url'] = localUrls;
-    newMessageMap['sendStatus'] = sendStatus;
-
-    // 4. Append and save
-    existingMessages.add(newMessageMap);
-    await box.put(conversationId, jsonEncode(existingMessages));
+    return;
   }
 
   Future<List<Map<String, dynamic>>> getUnsentMessages(String conversationId) async {
-    final box = await _messagesBoxRef;
-    final jsonString = box.get(conversationId);
-
-    if (jsonString == null || jsonString.isEmpty) return [];
-
-    final List<dynamic> decoded = jsonDecode(jsonString);
-    final messages = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-
-    return messages.where((msg) => msg['sendStatus'] == 'pending').toList();
+    return [];
   }
 
   Future<void> markMessageAsSent(String conversationId, String messageId) async {
-    final box = await _messagesBoxRef;
-    final jsonString = box.get(conversationId);
-
-    if (jsonString == null || jsonString.isEmpty) return;
-
-    final List<dynamic> decoded = jsonDecode(jsonString);
-    final messages = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-
-    for (var msg in messages) {
-      if (msg['_id'] == messageId) {
-        msg['sendStatus'] = 'sent';
-        break;
-      }
-    }
-
-    await box.put(conversationId, jsonEncode(messages));
+    return;
   }
 
   Future<List<Messages>> getMessagesByConversationId(String conversationId) async {
-    final box = await _messagesBoxRef;
-    final jsonString = box.get(conversationId);
-
-    if (jsonString == null || jsonString.isEmpty) {
-      return [];
-    }
-
-    final List<dynamic> jsonList = jsonDecode(jsonString);
-
-    return jsonList.map((item) => Messages.fromJson(item)).toList();
+    return [];
   }
 
   Future<List<Messages>> getMediaMessagesByConversationId(String conversationId) async {
-    final box = await _messagesBoxRef;
-    final jsonString = box.get(conversationId);
-
-    if (jsonString == null || jsonString.isEmpty) {
-      return [];
-    }
-
-    final List<dynamic> jsonList = jsonDecode(jsonString);
-
-    // Parse and filter in one pass
-    final List<Messages> filtered = [];
-    for (final item in jsonList) {
-      final map = item as Map<String, dynamic>;
-      final type = map['message_type'] as String?;
-      if (type == 'image' || type == 'video' || type == 'document') {
-        filtered.add(Messages.fromJson(map));
-      }
-    }
-
-    return filtered;
+    return [];
   }
 
 }

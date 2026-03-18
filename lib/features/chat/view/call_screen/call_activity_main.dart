@@ -212,7 +212,6 @@ class _CallActivityWrapperState extends State<_CallActivityWrapper> {
       if (_callInitiated) return;
 
       _callInitiated = true;
-      log("kdjcksjcnscsdc ${widget.params}");
       if (widget.isCaller) {
         _initiateOutgoingCall();
       } else {
@@ -328,13 +327,13 @@ class _CallActivityWrapperState extends State<_CallActivityWrapper> {
 
       if (status == CallStatus.outgoing ||
           status == CallStatus.ringing) {
-        return const CallRoomScreen();
+        return const CallActivityRoomScreen();
       }
 
       if (status == CallStatus.connecting ||
           status == CallStatus.connected ||
           status == CallStatus.accepting) {
-        return const CallRoomScreen();
+        return const CallActivityRoomScreen();
       }
 
       return const Scaffold(

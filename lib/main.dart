@@ -444,7 +444,7 @@ class _MyAppState extends State<MyApp> {
           print("CallController.launchedForCall.value ${CallController.launchedForCall.value}");
           // Call accepted from killed state — show ONLY the call screen
           if (CallController.launchedForCall.value) {
-            return const CallRoomScreen();
+            return const CallActivityRoomScreen();
           }
 
           // Still loading (null or loading flag)

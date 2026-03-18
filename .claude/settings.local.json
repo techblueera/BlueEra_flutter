@@ -10,7 +10,18 @@
       "Bash(flutter test:*)",
       "Bash(gh api:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(xargs basename:*)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/digistatsolutions/Documents/GitHub/BlueEra_flutter/**)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(__NEW_LINE_efb54a20c3fe38cd__ echo:*)",
+      "Bash(__NEW_LINE_acb1305ab55bb60b__ echo:*)",
+      "Bash(__NEW_LINE_d1293e8748862f1d__ echo:*)",
+      "Bash(__NEW_LINE_e00954adcfa97958__ echo:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

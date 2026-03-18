@@ -772,8 +772,7 @@ class ChatViewController extends GetxController {
         if (parsedData.messages != null) {
           for (var message in parsedData.messages!) {
             if (message.myMessage == null) {
-              final currentUserId =
-                  userId; // Global variable from shared_preference_utils.dart
+              final currentUserId = userId;
               final senderId = message.senderId;
               message.myMessage = currentUserId == senderId;
             }
@@ -784,11 +783,21 @@ class ChatViewController extends GetxController {
           final conversationId =
               parsedData.messages?.first.conversationId ?? '';
           if (parsedData.messages != null && conversationId.isNotEmpty) {
-            getListOfMessageResponse.value =
-                ApiResponse.complete(parsedData.messages);
+            // Deduplicate server messages by ID before setting
+            final seen = <String>{};
+            final deduped = <Messages>[];
+            for (final m in parsedData.messages!) {
+              final id = m.id ?? '';
+              if (id.isEmpty || seen.add(id)) {
+                deduped.add(m);
+              }
+            }
+            getListOfMessageResponse.value = ApiResponse.complete(deduped);
             scrollDown();
+            // saveMessagesByConversationId REPLACES the full list — this is
+            // the authoritative server data, so it cleans up any local duplicates
             localStorageHelper.saveMessagesByConversationId(
-                userOpenConversationId.value, parsedData.messages!);
+                userOpenConversationId.value, deduped);
           } else {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
@@ -805,14 +814,16 @@ class ChatViewController extends GetxController {
         } else {
           message = null;
         }
-        if (message?.myMessage == null) {
-          final currentUserId =
-              userId; // Global variable from shared_preference_utils.dart
-          final senderId = message?.senderId;
-          message?.myMessage = currentUserId == senderId;
+        if (message == null) return;
+
+        if (message.myMessage == null) {
+          final currentUserId = userId;
+          final senderId = message.senderId;
+          message.myMessage = currentUserId == senderId;
         }
 
-        final msgType = message?.conversation?.type;
+        // Always refresh the relevant chat list tab
+        final msgType = message.conversation?.type;
         if (msgType == AppConstants.business_Chat_Type) {
           emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.business_Chat_Type});
@@ -826,15 +837,30 @@ class ChatViewController extends GetxController {
           emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.personal_Chat_Type});
         }
-        String chekedConversationId = userOpenConversationId.value;
-        if (chekedConversationId == message?.conversationId) {
-          getListOfMessageData?.add(message ?? Messages()); // Add message to UI
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
-          saveSingleMessageToLocal(
-              message?.conversationId ?? '', message ?? Messages());
-          scrollDown();
+
+        // Only add to currently open conversation
+        String checkedConversationId = userOpenConversationId.value;
+        if (checkedConversationId.isEmpty ||
+            checkedConversationId != message.conversationId) {
+          return;
         }
+
+        // Deduplicate: skip if message with same ID already exists
+        // This prevents doubles when sendMessage() already added it via API response
+        final existingIds = getListOfMessageData
+            ?.map((m) => m.id)
+            .where((id) => id != null)
+            .toSet() ?? {};
+        if (message.id != null && existingIds.contains(message.id)) {
+          return;
+        }
+
+        getListOfMessageData?.add(message);
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
+        saveSingleMessageToLocal(
+            message.conversationId ?? '', message);
+        scrollDown();
       });
       // chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
       //   if (userOpenUserId.value == data['user_id']) {
@@ -1088,9 +1114,19 @@ class ChatViewController extends GetxController {
   Future<List<Messages>> loadOfflineMessages(String conversationId) async {
     final localMessages =
         await localStorageHelper.getMessagesByConversationId(conversationId);
-    getListOfMessageResponse.value = ApiResponse.complete(localMessages);
+    // Deduplicate by message ID from local storage (may contain duplicates
+    // from previous sessions where send + socket both saved the same message)
+    final seen = <String>{};
+    final deduped = <Messages>[];
+    for (final m in localMessages) {
+      final id = m.id ?? '';
+      if (id.isEmpty || seen.add(id)) {
+        deduped.add(m);
+      }
+    }
+    getListOfMessageResponse.value = ApiResponse.complete(deduped);
     scrollDown();
-    return localMessages;
+    return deduped;
   }
 
   Future<bool?> sendProductMessages(Map<String, dynamic> params) async {
@@ -1103,7 +1139,11 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-          getListOfMessageData?.add(message);
+          final alreadyExists = message.id != null &&
+              (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+          if (!alreadyExists) {
+            getListOfMessageData?.add(message);
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           scrollDown();
@@ -1218,10 +1258,9 @@ class ChatViewController extends GetxController {
 
   Future<void> getLocalConversation(String conversationId, userId,
       [String? otherUserId, String? name]) async {
-    // final connectivityResult = await NetworkUtils.isConnected();
-    // getListOfMessageResponse.value = ApiResponse.initial('Initial');
-    // if (connectivityResult) {
-    // List<Messages> chatList =
+    // Clear previous conversation data to prevent stale messages from mixing in
+    getListOfMessageResponse.value = ApiResponse.initial('Initial');
+    // Load cached messages first for instant UI
     loadOfflineMessages(conversationId);
     // }
     // else if (openedConversation.contains(conversationId)) {
@@ -1603,8 +1642,12 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-
-          getListOfMessageData?.add(message);
+          // Deduplicate: newMessageReceived socket event may have already added this
+          final alreadyExists = message.id != null &&
+              (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+          if (!alreadyExists) {
+            getListOfMessageData?.add(message);
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
@@ -2312,7 +2355,11 @@ class ChatViewController extends GetxController {
             await localStorageHelper.markMessageAsSent(
                 params[ApiKeys.conversation_id], messageId ?? "");
           } else {
-            getListOfMessageData?.add(message);
+            final alreadyExists = message.id != null &&
+                (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+            if (!alreadyExists) {
+              getListOfMessageData?.add(message);
+            }
             getListOfMessageResponse.value =
                 ApiResponse.complete(getListOfMessageData);
             scrollDown();
