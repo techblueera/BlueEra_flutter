@@ -304,11 +304,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           SliverToBoxAdapter(child: ResponsiveSearchBar()),
           _buildGap(),
 
-          // SliverToBoxAdapter(
-          //     child: DiscoverBannerSlider(
-          //   parentScrollController: _scrollController,
-          //   targetKey: _qrWidgetKey,
-          // )),
+          SliverToBoxAdapter(
+              child: DiscoverBannerSlider(
+            parentScrollController: _scrollController,
+            targetKey: _qrWidgetKey,
+          )),
           _buildGap(gap: SizeConfig.paddingM),
 
           ///Grocery & Food....
