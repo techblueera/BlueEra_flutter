@@ -196,6 +196,8 @@ class AppImageAssets {
   static String car = "${imgPath}car.png";
   static String passengerCar = "${imgPath}passenger_car.png";
   static String goodsMiniBus = "${imgPath}goods_mini_bus.png";
+  static String car_rental = "${imgPath}car_rental.png";
+  static String logistics = "${imgPath}logistics.png";
 
   // Automotive
   static String vehicleShowroom = "${imgPath}vehicle_showroom.png";

@@ -2359,7 +2359,7 @@ final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
-      name: 'Service Centre\n& Essential Utility',
+      name: 'Service Centre\n& Utility',
       slugId: SERVICE_CENTRE_ESSENTIAL_UTILITY,
       icon: OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
       // flagIcon: AppImageAssets.serviceCenter,
@@ -2373,7 +2373,7 @@ final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
-      name: 'Real Estate &\nProperty Services',
+      name: 'Real Estate &\nProperty',
       slugId: REAL_ESTATE_PROPERTY_SERVICES,
       icon: OnboardingBusinessAssets.realEstateProperty,
       // flagIcon: AppImageAssets.tourTravel,
@@ -2467,60 +2467,80 @@ final List<OnboardingCategoryModel> businessOnboardingFoodsCategories = [
       slugId: MULTI_CUISINE_RESTAURANTS,
       icon: OnboardingBusinessAssets.multicuisineRestaurant,
       accountType: AppConstants.business,
+      colorCode: Color(0xffFFF8EC),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Pure Veg\nRestaurant',
       slugId: PURE_VEG_RESTAURANT,
       icon: OnboardingBusinessAssets.pureVegRestaurant,
       accountType: AppConstants.business,
+      colorCode: Color(0xffF0FFF4),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Coffee / Beverages\nShop',
       slugId: COFFEE_BEVERAGES_SHOP,
       icon: OnboardingBusinessAssets.coffeeBeveragesShop,
       accountType: AppConstants.business,
+      colorCode: Color(0xffFFF2EF),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Economy\nDhaba',
       slugId: ECONOMY_DHABA,
       icon: OnboardingBusinessAssets.economyDhaba,
       accountType: AppConstants.business,
+      colorCode: Color(0xffFFF2E3),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Sweet & Namkeen\nShop',
       slugId: SWEET_NAMKEEN_SHOP,
       icon: OnboardingBusinessAssets.sweetNamkeenShop,
       accountType: AppConstants.business,
+      colorCode: Color(0xffF0F6FF),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Breakfast/\nFast-food',
       slugId: BREAKFAST_FAST_FOOD,
       icon: OnboardingBusinessAssets.breakfastFastFood,
       accountType: AppConstants.business,
+      colorCode: Color(0xffFFF8EC),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Garden/Buffet\nRestaurant',
       slugId: GARDEN_BUFFET_RESTAURANT,
       icon: OnboardingBusinessAssets.gardenBuffetRestaurant,
       accountType: AppConstants.business,
+      colorCode: Color(0xffF0FFF4),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Cloud Kitchen,\nMess',
       slugId: CLOUD_KITCHEN,
       icon: OnboardingBusinessAssets.cloudKitchenMess,
       accountType: AppConstants.business,
+      colorCode: Color(0xffFFF2EF),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Non-Veg\nRestaurant',
       slugId: NON_VEG_RESTAURANT,
       icon: OnboardingBusinessAssets.nonVegRestaurant,
       accountType: AppConstants.business,
+      colorCode: Color(0xffFFF2E3),
+
       businessType: BusinessType.Food),
   OnboardingCategoryModel(
       name: 'Ice Cream\nCorner',
       slugId: ICE_CREAM_CORNER,
       icon: OnboardingBusinessAssets.iceCreamCorner,
       accountType: AppConstants.business,
+      colorCode: Color(0xffF0F6FF),
+
       businessType: BusinessType.Food),
 ];
 
@@ -2537,6 +2557,7 @@ businessOnboardingEducationTrainingCategories = [
       slugId: COLLEGE_UNIVERSITY,
       icon: OnboardingBusinessAssets.EduUniversity,
       accountType: AppConstants.business,
+
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Coaching/\nInstitute',
@@ -3983,10 +4004,10 @@ final List<OnboardingCategoryModel> homeMadeProductCategories = [
 ];
 
 final List<CollapsibleGridModel> homeMadeItemsCategories = [
-  CollapsibleGridModel(
-      name: 'Home Made\nFood',
-      slugId: FOOD,
-      icon: AppImageAssets.homeMadeFoodBanner),
+  // CollapsibleGridModel(
+  //     name: 'Home Made\nFood',
+  //     slugId: FOOD,
+  //     icon: AppImageAssets.homeMadeFoodBanner),
   CollapsibleGridModel(
       name: 'Home Made\nProducts',
       slugId: PRODUCT,
@@ -4023,35 +4044,46 @@ final List<OnboardingCategoryModel> stayHomeItemsCategories = [
 
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
-      name: 'Hotel & Resort',
+      name: 'Hotel Stay',
       slugId: HOTELS_RESORT,
       icon: AppImageAssets.hotelStay,
+      colorCode: Color(0xFFEBF5FF),
+      subtitle: "Premium Rooms",
       accountType: AppConstants.business),
   OnboardingCategoryModel(
-      name: 'Economy Stay',
+      name: 'Home Stay',
       slugId: ECONOMIC_STAYS,
       icon: AppImageAssets.economyStay,
+      colorCode: Color(0xFFE6FAF3),
+      subtitle: "Cozy & local",
+
       accountType: AppConstants.business),
   OnboardingCategoryModel(
-      name: 'Hostels and Paying Guest',
+      name: 'Hostels & PG',
       slugId: HOSTELS_PAYING_GUEST,
       icon: AppImageAssets.hostelsAndPG,
+      colorCode: Color(0xFFFFE8E8),
+      subtitle: "Long term stay",
+
       accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Functions & Vacation',
       slugId: FUNCTIONS_VACATION,
       icon: AppImageAssets.functionsVacation,
+      colorCode: Color(0xFFFFF2E3),
+      subtitle: "Function Hall",
+
       accountType: AppConstants.business),
-  OnboardingCategoryModel(
-      name: 'Alternative Stays',
-      slugId: ALTERNATIVE_STAYS,
-      icon: AppImageAssets.alternative_stays,
-      accountType: AppConstants.business),
-  OnboardingCategoryModel(
-      name: 'Celebration\n& Event',
-      slugId: CELEBRATION_EVENT_SERVICES,
-      icon: AppImageAssets.hotel_event,
-      accountType: AppConstants.business),
+  // OnboardingCategoryModel(
+  //     name: 'Alternative Stays',
+  //     slugId: ALTERNATIVE_STAYS,
+  //     icon: AppImageAssets.alternative_stays,
+  //     accountType: AppConstants.business),
+  // OnboardingCategoryModel(
+  //     name: 'Celebration\n& Event',
+  //     slugId: CELEBRATION_EVENT_SERVICES,
+  //     icon: AppImageAssets.hotel_event,
+  //     accountType: AppConstants.business),
   /*  OnboardingCategoryModel(
       name: 'Home Stay',
       slugId: AppConstants.property,
@@ -4119,6 +4151,10 @@ final List<CollapsibleGridModel> transportItemsCategories = [
       name: 'Goods', slugId: 'GOODS', icon: AppImageAssets.goodsMiniBus),
   CollapsibleGridModel(
       name: 'Out Station', slugId: 'OUR_STATION', icon: AppImageAssets.car),
+  CollapsibleGridModel(
+      name: 'Rental', slugId: 'RENTAL', icon: AppImageAssets.car_rental),
+  CollapsibleGridModel(
+      name: 'Logistics', slugId: 'LOGISTICS', icon: AppImageAssets.logistics),
 ];
 
 final List<CollapsibleGridModel> financeCategories = [

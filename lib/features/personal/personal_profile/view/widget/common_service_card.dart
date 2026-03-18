@@ -18,6 +18,8 @@ class CommonServiceCard<T> extends StatelessWidget {
   final double? spacing;
   final double? borderWidth;
   final int? textMaxLine;
+  final int? flex;
+  final Color? color;
   final List<BoxShadow>? boxShadow;
   final EdgeInsetsGeometry? margin;
 
@@ -31,6 +33,8 @@ class CommonServiceCard<T> extends StatelessWidget {
     this.iconHeight,
     this.spacing,
     this.borderWidth,
+    this.flex,
+    this.color,
     this.textMaxLine,
     this.boxShadow,
     this.margin,
@@ -50,11 +54,12 @@ class CommonServiceCard<T> extends StatelessWidget {
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: margin,
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color:color?? AppColors.white,
+            // color:color?? AppColors.white,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: boxShadow ?? [AppShadows.textFieldShadow],
+            // boxShadow: boxShadow ?? [AppShadows.textFieldShadow],
             border: Border.all(
-                color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                color: isSelected ? AppColors.primaryColor : Color(0xffDDE2EE),
                 width: borderWidth ?? 1.0
             ),
           ),
@@ -80,7 +85,7 @@ class CommonServiceCard<T> extends StatelessWidget {
 
               // 2. Text Container (Flexible height)
               Expanded(
-                flex: 2,
+                flex: flex??2,
                 child: Center(
                   child: CustomText(
                     getName(service),
@@ -95,20 +100,7 @@ class CommonServiceCard<T> extends StatelessWidget {
                   ),
                 ),
               ),
-              /*   _buildImage(isUrl, iconPath),
-              SizedBox(height: spacing ?? SizeConfig.paddingXSL),
-              Container(
-                height: SizeConfig.size30,
-                alignment: Alignment.center,
-                child: CustomText(
-                  getName(service),
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  textAlign: TextAlign.center,
-                  maxLines: textMaxLine ?? 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),*/
+
             ],
           ),
         ),
