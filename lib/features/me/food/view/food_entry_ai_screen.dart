@@ -247,13 +247,13 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                         return;
                       }
 
-                      vc.selectedSubFoodTypeIDCat.value = lastCategory.id ?? '';
+                      vc.selectedSubFoodTypeIDCat.value = lastCategory.sId ?? '';
 
                       Map<String, dynamic> reqParams = {
                         "name": controller.foodNameController.text,
                         "foodType": controller.selectedFoodType.value,
                         "cookingMethod": controller.selectedCookingMethods,
-                        "category": lastCategory.id
+                        "category": lastCategory.sId
                       };
 
                       controller.onGenerate(

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,10 +25,10 @@ class FoodEntryController extends GetxController {
   RxList<File?> foodSearchImages = <File?>[null].obs;
   RxList<String> selectedCookingMethods = <String>[].obs;
 
-  var foodCateList = <FoodCategoryData>[].obs;
-  var selectedLevel0 = Rxn<FoodCategoryData>(); // Base Category
-  var selectedLevel1 = Rxn<Children>(); // Sub Category
-  var selectedLevel2 = Rxn<Children>(); // Deepest Category
+  var foodCateList = <GroceryNestedCategoryModel>[].obs;
+  var selectedLevel0 = Rxn<GroceryNestedCategoryModel>(); // Base Category
+  var selectedLevel1 = Rxn<GroceryNestedCategoryModel>(); // Sub Category
+  var selectedLevel2 = Rxn<GroceryNestedCategoryModel>(); // Deepest Category
 
   @override
   void onInit() {

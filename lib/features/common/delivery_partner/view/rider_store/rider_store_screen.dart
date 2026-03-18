@@ -9,7 +9,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
+import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -31,9 +33,11 @@ class RiderStoreScreen extends StatefulWidget {
 
 class _RiderStoreScreenState extends State<RiderStoreScreen> {
   final foodServiceController = getOrPut(() => FoodServiceController());
+  final foodCustomerController = getOrPut(() => FoodCustomerController());
 
   @override
   void initState() {
+    foodCustomerController.clearControllerFields();
     foodServiceController.getFoodNestedCategoryApi();
     super.initState();
   }
@@ -128,14 +132,14 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                           crossAxisCount: 3,
                           crossAxisSpacing: 6,
                           mainAxisSpacing: 6,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           itemCount: foodServiceController.foodNestedCateList.length,
                           shrinkWrap: true,
                           primary: false,
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (context, index) {
                             final item = foodServiceController.foodNestedCateList[index];
-                            return CommonServiceCard<FoodCategoryData>(
+                            return CommonServiceCard<GroceryNestedCategoryModel>(
                               service: item,
                               getName: (item) => item.name??'',
                               getIcon: (item) =>  item.image??'',
@@ -144,12 +148,12 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                               boxShadow: [],
                               onTap: (item) {
                                 foodServiceController.selectedFoodTypeID.value =
-                                    item.id ?? "";
+                                    item.sId ?? "";
 
                                 // Action for item tap
                                 Get.toNamed(RouteHelper.getFoodCustomerListingScreenRoute(),
                                     arguments: {
-                                      ApiKeys.argCategoryData: item
+                                      ApiKeys.argCategoryData: item,
                                     });
                               },
                             );

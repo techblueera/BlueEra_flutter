@@ -4,10 +4,10 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_product_response_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,7 +21,7 @@ class SelectedFoodItem {
 class FoodCustomerController extends GetxController{
   var selectedCategoryId = ''.obs;
   var selectedSubCategoryId = ''.obs;
-  RxList<Children> subCategoryTabs = <Children>[].obs;
+  RxList<GroceryNestedCategoryModel> subCategoryTabs = <GroceryNestedCategoryModel>[].obs;
 
   // Variant related var and methods
   RxMap<String, SelectedFoodItem> selectedVariantsMap = <String, SelectedFoodItem>{}.obs;
@@ -34,6 +34,27 @@ class FoodCustomerController extends GetxController{
     return selectedVariantsMap[pId]?.selectedVariants.any((v) => v.id == variantId) ?? false;
   }
 
+  void clearControllerFields() {
+    // 1. Reset Category Selection
+    selectedCategoryId.value = '';
+    selectedSubCategoryId.value = '';
+    subCategoryTabs.clear();
+
+    // 2. Clear Cart / Selected Variants
+    selectedVariantsMap.clear();
+
+    // 3. Reset Pagination & Product Lists
+    categoryCustomerFoodProductDataList.clear();
+    foodCatProductsWithInvPage = 1;
+    foodCatProductsWithInvHasMore = true;
+
+    // 4. Reset Loading States (Safety)
+    isFoodCatProductsWithInvLoading.value = false;
+    isFoodCatProductsWithInvLoadingMore.value = false;
+
+    debugPrint("FoodCustomerController Data Cleared");
+  }
+
   /// Customer Products By Category
   RxList<CategoryFoodProductData> categoryCustomerFoodProductDataList = <CategoryFoodProductData>[].obs;
   RxBool isFoodCatProductsWithInvLoading = false.obs;
@@ -44,6 +65,7 @@ class FoodCustomerController extends GetxController{
   Future<void> getCustomerFoodProductByCategoryIdApi(
       {
         required Map<String, String> categoryIdParams,
+        String? visitBusinessId,
         bool isLoadMore = false
       }) async {
     try {
@@ -59,12 +81,15 @@ class FoodCustomerController extends GetxController{
       String postalCode = LocationService.userCurrentAddress.value.postalCode;
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.pincode: postalCode,
-        ApiKeys.radius: kmRadius5000,
         ApiKeys.page: foodCatProductsWithInvPage,
         ApiKeys.limit: 20
       };
-
+      if(visitBusinessId==null) {
+        queryParams[ApiKeys.pincode] = postalCode;
+        queryParams[ApiKeys.radius] = kmRadius5000;
+      }else{
+        queryParams[ApiKeys.businessId] = visitBusinessId;
+      }
       queryParams.addAll(categoryIdParams);
 
       ResponseModel response =
@@ -72,9 +97,9 @@ class FoodCustomerController extends GetxController{
         queryParam: queryParams,
       );
       if (response.isSuccess) {
-        var myFoodProductResponseModel = FoodProductResponseModel.fromJson(response.response?.data);
+        var foodProductResponseModel = FoodProductResponseModel.fromJson(response.response?.data);
 
-        List<CategoryFoodProductData> newItems = (myFoodProductResponseModel.data ?? [])
+        List<CategoryFoodProductData> newItems = (foodProductResponseModel.data ?? [])
             .where((item) => item.productDetails != null) // Filter out nulls for safety
             .map((item) => item.productDetails!)         // Extract the internal productDetails
             .toList();
@@ -105,5 +130,8 @@ class FoodCustomerController extends GetxController{
       }
     }
   }
+
+
+
 
 }

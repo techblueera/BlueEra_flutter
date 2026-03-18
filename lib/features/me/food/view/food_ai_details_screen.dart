@@ -40,11 +40,14 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
 
   @override
   void initState() {
-    product = widget.foodData.data ?? FoodGenAiData();
-    vc.variantList.clear();
-    vc.variantList.addAll(product.variants??[]);
-    syncImagesToUploadList();
     super.initState();
+    product = widget.foodData.data ?? FoodGenAiData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      vc.variantList.clear();
+      vc.variantList.addAll(product.variants ?? []);
+      syncImagesToUploadList();
+    });
+
   }
 
   void syncImagesToUploadList() {

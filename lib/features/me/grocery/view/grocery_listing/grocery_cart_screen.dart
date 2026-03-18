@@ -61,7 +61,8 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedGroceriesVariants.length} Products',                        fontSize: SizeConfig.large,
+                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedGroceriesVariants.length} Products',
+                        fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryTextColor,
                       ),
@@ -87,7 +88,9 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                           PositiveCustomBtn(
                               onTap: () {
                                 if(_isDeliveredByRiderFlow){
-                                  Get.back();
+                                  Get.until((route) =>
+                                  route.settings.name ==
+                                      RouteHelper.getGroceryNestedCategoryScreenRoute());
                                 }else{
                                   Get.until((route) =>
                                   route.settings.name ==

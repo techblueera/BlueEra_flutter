@@ -750,5 +750,6 @@ class ApiKeys {
   static const argCreateMissingProductIndex = 'argCreateMissingProductIndex';
   static const argIsGroceryStore = 'argIsGroceryStore';
   static const argIsDeliveredByRider = 'argIsDeliveredByRider';
+  static const argBusinessId = 'argBusinessId';
 
 }

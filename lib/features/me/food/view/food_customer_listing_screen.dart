@@ -1,50 +1,53 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_cart_icon.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodCustomerListingScreen extends StatefulWidget {
-  final FoodCategoryData foodCategoryData;
+  final GroceryNestedCategoryModel foodCategoryData;
+  final String? visitBusinessId;
 
-  FoodCustomerListingScreen({super.key, required this.foodCategoryData});
+  FoodCustomerListingScreen({super.key, required this.foodCategoryData, this.visitBusinessId});
 
   @override
   State<FoodCustomerListingScreen> createState() => _FoodCustomerListingScreenState();
 }
 
 class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
-  final controller = getOrPut(() => FoodCustomerController());
+  final controller = Get.find<FoodCustomerController>();
+  // final controller = getOrPut(() => FoodCustomerController());
   final ScrollController scrollController = ScrollController();
+  String? _visitBusinessId;
 
   @override
   void initState() {
     super.initState();
-
+    _visitBusinessId = widget.visitBusinessId;
+    debugPrint("visit business id -- ${widget.visitBusinessId}");
     final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
 
     if (firstLevel1 != null) {
-      controller.selectedCategoryId.value = firstLevel1.id ?? "";
+      controller.selectedCategoryId.value = firstLevel1.sId ?? "";
       controller.subCategoryTabs.assignAll(firstLevel1.children ?? []);
       controller.selectedSubCategoryId.value = "all";
       callFoodProductBySubCatAPi(
-          categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value}
+          categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value},
+          visitBusinessId: _visitBusinessId
       );
     } else {
       debugPrint("--- InitState Warning: No Level 1 Categories found ---");
@@ -63,6 +66,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
         controller.foodCatProductsWithInvHasMore) {
       callFoodProductBySubCatAPi(
         categoryIdParams: targetIdParams,
+        visitBusinessId: _visitBusinessId,
         isLoadMore: true,
       );
     }
@@ -70,9 +74,11 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
 
   void callFoodProductBySubCatAPi({
     required Map<String, String> categoryIdParams,
+    String? visitBusinessId,
     bool isLoadMore = false}){
     controller.getCustomerFoodProductByCategoryIdApi(
         categoryIdParams: categoryIdParams,
+        visitBusinessId: visitBusinessId,
         isLoadMore: isLoadMore
     );
   }
@@ -88,40 +94,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
     return Scaffold(
       bottomNavigationBar: _buildBottomAddToCart(),
       appBar: CommonBackAppBar(
-          buildCustomActionWidget: () => Obx(()=> controller
-              .selectedVariantsMap.isEmpty
-              ? Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: Icon(Icons.search),
-          )
-              : InkWell(
-            onTap: () => Get.toNamed(RouteHelper.getFoodReviewSelectionScreenRoute()),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20.0),
-              child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.cartIcon,
-                    ),
-                    Positioned(
-                        top: -5,
-                        right: -5,
-                        child: Container(
-                          height: SizeConfig.size16,
-                          width: SizeConfig.size16,
-                          decoration: BoxDecoration(
-                              color: AppColors.red,
-                              shape: BoxShape.circle),
-                          alignment: Alignment.center,
-                          child: CustomText(
-                            '${controller.totalVariantsCount}',
-                            color: AppColors.white,
-                          ),
-                        ))
-                  ]),
-            ),
-          )),
+          buildCustomActionWidget: () => FoodCartIconButton(),
       ),
       body: Row(
         children: [
@@ -135,21 +108,22 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
 
   // 1. LEFT SIDE WIDGET
   Widget _buildLeftSidebar() {
-    return CommonGenericLeftSideCategoryList<Children>(
+    return CommonGenericLeftSideCategoryList<GroceryNestedCategoryModel>(
       items: widget.foodCategoryData.children ?? [],
       getIcon: (cat) => cat.image ?? '',
       getLabel: (cat) => cat.name ?? '',
-      isSelected: (cat) => controller.selectedCategoryId.value == cat.id,
+      isSelected: (cat) => controller.selectedCategoryId.value == cat.sId,
       onTap: (cat, index) {
         // Print sub-categories in log
         debugPrint("Sub-categories for ${cat.name}: ${cat.children?.map((e) => e.name).toList()}");
 
-        controller.selectedCategoryId.value = cat.id ?? "";
+        controller.selectedCategoryId.value = cat.sId ?? "";
         controller.subCategoryTabs.assignAll(cat.children ?? []);
         controller.selectedSubCategoryId.value = "all";
 
         callFoodProductBySubCatAPi(
             categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value},
+            visitBusinessId: _visitBusinessId
         );
       },
     );
@@ -166,7 +140,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
 
             // This ensures the common widget knows which tab to highlight.
             int currentIndex = tabData.indexWhere((item) {
-              final String id = (item is String) ? "all" : (item.id ?? "");
+              final String id = (item is String) ? "all" : (item.sId ?? "");
               return id == controller.selectedSubCategoryId.value;
             });
 
@@ -183,16 +157,17 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
               unSelectedBorderColor: AppColors.greyE5,
               onTabSelected: (index, label) {
                 var selectedItem = tabData[index];
-                final String itemId = (selectedItem is String) ? "all" : (selectedItem.id ?? "");
+                final String itemId = (selectedItem is String) ? "all" : (selectedItem.sId ?? "");
 
                 controller.selectedSubCategoryId.value = itemId;
 
                 var targetIdParams = (itemId == "all")
                     ? {ApiKeys.parentId: controller.selectedCategoryId.value}
-                    : {ApiKeys.category : itemId};
+                    : {ApiKeys.categoryId: itemId};
 
                     callFoodProductBySubCatAPi(
-                        categoryIdParams: targetIdParams
+                        categoryIdParams: targetIdParams,
+                        visitBusinessId: _visitBusinessId
                   );
                 },
             );

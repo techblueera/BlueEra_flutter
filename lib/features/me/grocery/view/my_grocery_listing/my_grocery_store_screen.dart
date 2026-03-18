@@ -61,41 +61,46 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
 
           BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.businessProfileDetails?.data;
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: 8.0,
-              vertical: 15.0,
-            ),
-            child: Column(
-              children: [
-                CustomFormCard(
-                  padding: EdgeInsets.zero,
-                  child: GroceryProfileHeader(
-                    details: businessProfileDetails,
-                    controller: viewBusinessDetailsController,
-                  )
-                ),
-            
-                if(controller.groceryBusinessProductsList.isNotEmpty)
-                _topSellingProduct(),
+          return RefreshIndicator(
+            onRefresh: () async {
+              controller.fetchAllGroceryData(userId, otherStore: false);
+            },
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 15.0,
+              ),
+              child: Column(
+                children: [
+                  CustomFormCard(
+                    padding: EdgeInsets.zero,
+                    child: GroceryProfileHeader(
+                      details: businessProfileDetails,
+                      controller: viewBusinessDetailsController,
+                    )
+                  ),
 
-                SizedBox(
-                  height: SizeConfig.paddingM,
-                ),
-            
-                _categoryWithInventoryWidget(),
-            
-                SizedBox(
-                  height: SizeConfig.paddingM,
-                ),
-            
-                _buildContactNdMapCard(businessProfileDetails),
+                  if(controller.groceryBusinessProductsList.isNotEmpty)
+                  _topSellingProduct(),
 
-                SizedBox(
-                  height: SizeConfig.size100,
-                ),
-            
-              ],
+                  SizedBox(
+                    height: SizeConfig.paddingM,
+                  ),
+
+                  _categoryWithInventoryWidget(),
+
+                  SizedBox(
+                    height: SizeConfig.paddingM,
+                  ),
+
+                  _buildContactNdMapCard(businessProfileDetails),
+
+                  SizedBox(
+                    height: SizeConfig.size100,
+                  ),
+
+                ],
+              ),
             ),
           );
         }

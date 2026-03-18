@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_photo_controller.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/upload_food_service_photos_screen.dart';
@@ -17,12 +18,17 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
       appBar: CommonBackAppBar(
         title: "Food Service Photos",
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
+      bottomNavigationBar: Container(
+         padding: const EdgeInsets.only(
+             left: 20,
+             right: 20,
+             bottom: 20,
+             top: 10),
+        color: AppColors.white,
+        child: SafeArea(
           child: PositiveCustomBtn(
               onTap: () {
-                Get.to(UploadFoodServicePhotosScreen());
+                Get.to(()=> UploadFoodServicePhotosScreen());
               },
               title: "Upload Other Service Photo"),
         ),
@@ -32,7 +38,10 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
 
         return ListView.builder(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.symmetric(
+              vertical: 15,
+              horizontal: 8,
+          ),
           itemCount: controller.propertyPhotosList.length,
           itemBuilder: (context, index) {
             var item = controller.propertyPhotosList[index];
@@ -41,16 +50,16 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
 
             return InkWell(
               onTap: () {
-                Get.to(FoodServiceCategoryDetailsScreen(
+                Get.to(()=> FoodServiceCategoryDetailsScreen(
                   categoryData: item,
                 ));
               },
               child: Card(
-                margin: EdgeInsets.only(bottom: 16),
+                margin: EdgeInsets.only(bottom: 10),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(10)),
                 child: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: Row(
                     children: [
                       // Thumbnail with Image Count Overlay
@@ -78,7 +87,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6),
+                                color: Colors.black.withValues(alpha: 0.6),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
@@ -106,8 +115,8 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
                               ],
                             ),
                             SizedBox(height: 4),
-                            CustomText("Last Update: ${formatIsoDate(item.updatedAt??"")}",
-
+                            CustomText(
+                                   "Last Update: ${formatIsoDate(item.updatedAt??"")}",
                                     color: Colors.grey, fontSize: 12),
 
                           ],

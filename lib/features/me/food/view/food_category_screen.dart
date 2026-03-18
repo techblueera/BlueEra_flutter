@@ -9,15 +9,14 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import '../../../common/food/model/food_category_res_model.dart'; // Ensure you add this to pubspec.yaml
 
 class FoodCategoryMenuScreen extends StatefulWidget {
   const FoodCategoryMenuScreen({super.key});
@@ -125,7 +124,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         final item = foodServiceController.foodNestedCateList[index];
-                        return CommonServiceCard<FoodCategoryData>(
+                        return CommonServiceCard<GroceryNestedCategoryModel>(
                           service: item,
                           getName: (item) => item.name??'',
                             getIcon: (item) =>  item.image??'',
@@ -134,7 +133,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                           boxShadow: [],
                           onTap: (item) {
                             foodServiceController.selectedFoodTypeID.value =
-                                item.id ?? "";
+                                item.sId ?? "";
 
                             // Action for item tap
                             Get.toNamed(RouteHelper.getProductSelectionScreenRoute(),
@@ -219,7 +218,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         LocalAssets(
-                                            imagePath: "${AppConstants.baseFoodAssetsPath}RESTAURANT_SPECIAL.svg",
+                                            imagePath: "${AppConstants.baseFoodAssetsPath}restaurant_special.svg",
                                             height: SizeConfig.size22,
                                             width: SizeConfig.size22,
                                         ),

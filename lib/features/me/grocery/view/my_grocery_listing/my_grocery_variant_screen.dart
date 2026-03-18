@@ -6,13 +6,12 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controll
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_variant_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
-import 'package:BlueEra/features/me/grocery/widget/go_to_cart_button.dart';
+import 'package:BlueEra/features/me/grocery/widget/view_cart_footer.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-
 
 class MyGroceryVariantScreen extends StatefulWidget {
   final List<ProductVariants> variants;
@@ -83,7 +82,7 @@ class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
         ),
 
       ),
-      bottomNavigationBar: widget.isMyGroceryStore ? null : const GoToCartButton(),
+      bottomNavigationBar: widget.isMyGroceryStore ? null :  const ViewCartFooter(),
       body: SafeArea(
         child:
         Builder(

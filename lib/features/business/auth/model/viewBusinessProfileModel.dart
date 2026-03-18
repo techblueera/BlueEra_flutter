@@ -80,7 +80,7 @@ class BusinessProfileDetails {
     dateOfIncorporation = json['date_of_incorporation'] != null ? DateOfIncorporation.fromJson(json['date_of_incorporation']) : null;
     gst = json['gst'] != null ? Gst.fromJson(json['gst']) : null;
     businessLocation = json['business_location'] != null ? BusinessLocation.fromJson(json['business_location']) : null;
-    id = json['_id'];
+    id = json['_id'] ?? json['id'];
     businessName = json['business_name'];
     referral_code = json['referral_code'];
     referral_points = json['referral_points'].toString();

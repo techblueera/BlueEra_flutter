@@ -21,7 +21,6 @@ class FoodReviewSelectionScreen extends GetView<FoodCustomerController> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: "Review Selection",
-        // Optional: Add a Clear All button for better UX
         buildCustomActionWidget: () => IconButton(
           onPressed: () => _showClearAllDialog(),
           icon: const Icon(Icons.delete_sweep, color: AppColors.red),
@@ -61,6 +60,7 @@ class FoodReviewSelectionScreen extends GetView<FoodCustomerController> {
   Widget _buildProductGroupCard(CategoryFoodProductData product, List<FoodVariants> variants) {
     return CustomFormCard(
       padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 10.0, bottom: 0.0),
+      margin: const EdgeInsets.only(bottom: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -162,10 +162,8 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                 return InkWell(
                   onTap: () {
                     final route = _isMyGrocery
-                        ? RouteHelper
-                        .getGroceryProductsSelectionScreenRoute()
-                        : RouteHelper
-                        .getGroceryCustomerListingScreenRoute();
+                        ? RouteHelper.getGroceryProductsSelectionScreenRoute()
+                        : RouteHelper.getGroceryCustomerListingScreenRoute();
 
                     Get.toNamed(
                       route,

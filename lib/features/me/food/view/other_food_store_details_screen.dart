@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -8,11 +9,18 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
+import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
+import 'package:BlueEra/features/me/food/view/my_food_product_screen.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_cart_icon.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -25,6 +33,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -43,18 +52,21 @@ class OtherFoodStoreDetailsScreen extends StatefulWidget {
 class _OtherFoodStoreDetailsScreenState
     extends State<OtherFoodStoreDetailsScreen> {
   final controller = getOrPut(() => RestaurantController());
+  final foodCustomerController = getOrPut(() => FoodCustomerController());
 
   @override
   void initState() {
     super.initState();
+    foodCustomerController.clearControllerFields();
     controller.fetchHomeData(businessId: widget.visitBusinessId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
-      backgroundColor: AppColors.appBackgroundColor,
+      appBar: CommonBackAppBar(
+        buildCustomActionWidget: () => FoodCartIconButton(),
+      ),
       body: Obx(() {
         if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
           return const Center(child: CircularProgressIndicator());
@@ -104,8 +116,9 @@ class _OtherFoodStoreDetailsScreenState
 
                 /// Gallery
                 if (data.gallery?.isNotEmpty ?? false)
-                  CommonCardWidget(
-                    padding: 15,
+                  CustomFormCard(
+                    padding: EdgeInsets.all(10.0),
+                    margin: EdgeInsets.only(top: 10.0),
                     child: Column(
                       children: [
                         Row(
@@ -300,74 +313,187 @@ class _OtherFoodStoreDetailsScreenState
   }
 
   Widget _buildHorizontalFoodList() {
-    return SizedBox(
-      height: 180,
+    return Obx(() => SizedBox(
+      height: 210,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: controller.allFoodItems.length,
+        padding: EdgeInsets.all(10),
         itemBuilder: (context, index) {
           final item = controller.allFoodItems[index];
+
+          // Variant Logic
+          final bool hasVariants = item.variants != null && item.variants!.isNotEmpty;
+          final int variantCount = item.variants?.length ?? 0;
+          final bool isMultiVariant = variantCount > 1;
+
+          // Use the first variant for price, or fallback to the top-level item price
+          final displayPrice = hasVariants
+              ? item.variants![0].price?.sellingPrice.toString()
+              : item.price?.sellingPrice.toString() ?? "0";
+
           return Container(
             width: 160,
             margin: const EdgeInsets.only(right: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    item.product?.images?.firstOrNull ?? "",
-                    height: 120,
-                    width: 160,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: AppColors.secondaryTextColor),
-                        ),
-                        height: 120,
-                        width: 160,
-                        child: const Icon(Icons.fastfood),
-                      ),
+                // --- 1. Product Image with Border ---
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: item.product?.images?.firstOrNull ?? "",
+                      height: 110,
+                      width: 160,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: Colors.grey.shade100),
+                      errorWidget: (_, __, ___) => _buildImagePlaceholder(),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 8),
+
+                // --- 2. Item Name ---
                 CustomText(
-                  item.product?.name ?? "",
+                  item.product?.name ?? "Unknown Item",
                   fontWeight: FontWeight.bold,
                   maxLines: 1,
+                  fontSize: 14,
                   overflow: TextOverflow.ellipsis,
                 ),
+
+                const SizedBox(height: 4),
+
+                // --- 3. Price & Dietary Info ---
                 Row(
                   children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.food_category,
-                      imgColor:
-                          item.product?.dietaryType?.toLowerCase() == "non-veg"
-                              ? AppColors.red00
-                              : const Color(0xff008000),
+                    FoodTypeIndicator(
+                      isVegetarian: item.product?.dietaryType?.toLowerCase() == "veg",
+                      size: 6,
                     ),
                     const SizedBox(width: 5),
                     CustomText(
-                      "₹${item.price?.sellingPrice ?? ''}",
-                      fontWeight: FontWeight.w500,
+                      "₹$displayPrice",
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ],
                 ),
+
+                // --- 4. Multiple Variants Indicator ---
+                if (isMultiVariant)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: CustomText(
+                        "+${variantCount - 1} more options",
+                        fontSize: 10,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
         },
       ),
+    ));
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 110,
+      width: 160,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: const Icon(Icons.fastfood, color: Colors.grey),
     );
   }
 
+  // Widget _buildHorizontalFoodList() {
+  //   return SizedBox(
+  //     height: 180,
+  //     child: ListView.builder(
+  //       scrollDirection: Axis.horizontal,
+  //       itemCount: controller.allFoodItems.length,
+  //       itemBuilder: (context, index) {
+  //         final item = controller.allFoodItems[index];
+  //         return Container(
+  //           width: 160,
+  //           margin: const EdgeInsets.only(right: 12),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               ClipRRect(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 child: Image.network(
+  //                   item.product?.images?.firstOrNull ?? "",
+  //                   height: 120,
+  //                   width: 160,
+  //                   fit: BoxFit.cover,
+  //                   errorBuilder: (_, __, ___) => ClipRRect(
+  //                     borderRadius: BorderRadius.circular(12),
+  //                     child: Container(
+  //                       decoration: BoxDecoration(
+  //                         borderRadius: BorderRadius.circular(12),
+  //                         border: Border.all(
+  //                             color: AppColors.secondaryTextColor),
+  //                       ),
+  //                       height: 120,
+  //                       width: 160,
+  //                       child: const Icon(Icons.fastfood),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 8),
+  //               CustomText(
+  //                 item.product?.name ?? "",
+  //                 fontWeight: FontWeight.bold,
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //               Row(
+  //                 children: [
+  //                   LocalAssets(
+  //                     imagePath: AppIconAssets.food_category,
+  //                     imgColor:
+  //                         item.product?.dietaryType?.toLowerCase() == "non-veg"
+  //                             ? AppColors.red00
+  //                             : const Color(0xff008000),
+  //                   ),
+  //                   const SizedBox(width: 5),
+  //                   CustomText(
+  //                     "₹${item.variants?[0].price?.sellingPrice ?? ''}",
+  //                     fontWeight: FontWeight.w500,
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
+
   Widget _buildMenuCategories({
-    required List<FoodMenu> menus,
+    required List<GroceryNestedCategoryModel> menus,
     BusinessProfileDetails? businessProfileDetails
   }) {
     return Column(
@@ -400,8 +526,14 @@ class _OtherFoodStoreDetailsScreenState
                     getIcon: (_categoryItem) => _categoryItem.image ?? '',
                     iconHeight: SizeConfig.size60,
                     boxShadow: [],
-                    onTap: (_categoryItem) {
-                      // TODO: Navigate to customer food product listing
+                    onTap: (GroceryNestedCategoryModel _categoryItem) {
+                      debugPrint(" business id -- ${businessProfileDetails?.id}");
+                      Get.toNamed(RouteHelper.getFoodCustomerListingScreenRoute(),
+                          arguments: {
+                            ApiKeys.argCategoryData: _categoryItem,
+                            ApiKeys.argBusinessId: businessProfileDetails?.id
+                          });
+
                     },
                   );
                 },

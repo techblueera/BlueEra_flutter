@@ -16,6 +16,7 @@ import 'package:BlueEra/features/me/food/model/food_product_response_model.dart'
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
@@ -36,7 +37,7 @@ class FoodServiceController extends GetxController {
   Rx<ApiResponse> getFoodCategoryWithInventoryResponse =
       ApiResponse.initial('Initial').obs;
 
-  RxList<FoodCategoryData> foodNestedCateList = <FoodCategoryData>[].obs;
+  RxList<GroceryNestedCategoryModel> foodNestedCateList = <GroceryNestedCategoryModel>[].obs;
 
   RxList<CategoryFoodProductData> categoryFoundProductDataList =
       <CategoryFoodProductData>[].obs;
@@ -46,7 +47,7 @@ class FoodServiceController extends GetxController {
   RxString selectedFoodTypeID = "".obs;
   var selectedCategoryId = '1'.obs;
   RxString selectedSubCategoryId = "".obs;
-  RxList<Children> subCategoryTabs = <Children>[].obs;
+  RxList<GroceryNestedCategoryModel> subCategoryTabs = <GroceryNestedCategoryModel>[].obs;
 
   Rxn<CategoryFoodProductData> singleFoodProductData = Rxn<CategoryFoodProductData>();
 
@@ -187,7 +188,7 @@ class FoodServiceController extends GetxController {
     if (response.isSuccess) {
       List rawList = response.response?.data['data'];
       foodNestedCateList.value =
-          rawList.map((e) => FoodCategoryData.fromJson(e)).toList();
+          rawList.map((e) => GroceryNestedCategoryModel.fromJson(e)).toList();
       getFoodCategoryResponse.value = ApiResponse.complete(foodNestedCateList);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -582,7 +583,7 @@ class FoodServiceController extends GetxController {
 
   Future<void> getSingleFoodProductApi({required String FoodId}) async {
     try {
-      getSingleFoodProductResponse.value = ApiResponse.loading("Initial");
+      getSingleFoodProductResponse.value = ApiResponse.initial("Initial");
       ResponseModel response =
       await FoodRepo().fetchSingleFoodProductDetailsRepo(foodID: FoodId);
       if (response.isSuccess) {
@@ -688,7 +689,7 @@ class FoodServiceController extends GetxController {
   RxBool isFoodCatProductsWithInvLoadingMore = false.obs;
   int foodCatProductsWithInvPage = 1;
   bool foodCatProductsWithInvHasMore = true;
-  RxList<SubSubCategories> subSubFoodCat = <SubSubCategories>[].obs;
+  RxList<GroceryNestedCategoryModel> subSubFoodCat = <GroceryNestedCategoryModel>[].obs;
 
   Future<void> getMyFoodProductByCategoryIdApi(
       { required String categoryId,

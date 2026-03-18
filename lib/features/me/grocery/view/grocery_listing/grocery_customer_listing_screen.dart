@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,14 +7,14 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/add_to_cart_button.dart';
 import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
+import 'package:BlueEra/features/me/grocery/widget/view_cart_footer.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -26,16 +25,15 @@ import 'package:BlueEra/widgets/inner_shadow.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class GroceryCustomerListingScreen extends StatefulWidget {
   final List<GroceryNestedCategoryModel> arrGroceries;
-  // final GroceryNestedCategoryModel selectedGroceryData;
 
   GroceryCustomerListingScreen(
       {super.key,
       required this.arrGroceries,
-      // required this.selectedGroceryData
       });
 
   @override
@@ -83,60 +81,14 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                   argIsDeliveredByRider: true
               ),
           ),
-          bottomNavigationBar: Obx(() {
-            if (controller.selectedGroceriesVariants.isEmpty)
-              return SizedBox();
-            else
-              return Material(
-                elevation: 8.0,
-                child: Container(
-                  color: AppColors.white,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size15,
-                        vertical: SizeConfig.size15),
-                    child: SafeArea(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CustomBtn(
-                              onTap: null,
-                              isValidate: false,
-                              radius: SizeConfig.size10,
-                              title: '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedGroceriesVariants.length} Products',
-                              // isLoading: authController.isAddBusinessUserLoading.value
-                              borderColor: AppColors.primaryColor,
-                              textColor: AppColors.primaryColor,
-                              bgColor: AppColors.white,
-                            ),
-                          ),
-                          SizedBox(width: SizeConfig.size10),
-                          CustomBtn(
-                            onTap: () {
-                              Get.toNamed(RouteHelper.getGroceryCartScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.argIsDeliveredByRider: true
-                                  }
-                              );
-                            },
-                            isValidate: true,
-                            radius: SizeConfig.size10,
-                            title: 'View Cart',
-                            width: SizeConfig.size100,
-                            // isLoading: authController.isAddBusinessUserLoading.value
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-          }),
+          bottomNavigationBar: ViewCartFooter(),
           body: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               leftCategoryList(),
-              Expanded(child: rightContent()),
+              Expanded(
+                  child: rightContent()
+              ),
             ],
           ),
         ));
@@ -210,6 +162,7 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                     //   ),
 
                     // TABS
+
                     if(controller.arrChildrenOfGroceryWithInventoryCategory.isNotEmpty)
                     ...[
                       SizedBox(
@@ -280,48 +233,35 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                                 ),
                               )
                             : controller.arrUserGrocery.isNotEmpty
-                                ? Builder(
-                                  builder: (context) {
-                                    double screenWidth = Get.width;
-                                    double totalHorizontalPadding = 8.0;
-                                    double crossAxisSpacing = 10.0;
-                                    double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
-                                    double desiredItemHeight = 350.0;
+                                ? MasonryGridView.count(
+                          controller: scrollController,
+                          itemCount:
+                          controller.arrUserGrocery.length +
+                              (controller.isUserGroceryLoadingMore
+                                  .value
+                                  ? 1
+                                  : 0),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                          padding: EdgeInsets.only(
+                              bottom: SizeConfig.size30),
+                          itemBuilder: (_, i) {
+                            if (i ==
+                                controller.arrUserGrocery.length) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2),
+                                ),
+                              );
+                            }
 
-                                    return GridView.builder(
-                                        controller: scrollController,
-                                        itemCount:
-                                            controller.arrUserGrocery.length +
-                                                (controller.isUserGroceryLoadingMore
-                                                        .value
-                                                    ? 1
-                                                    : 0),
-                                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 2,
-                                              crossAxisSpacing: 10,
-                                              mainAxisSpacing: 10,
-                                              childAspectRatio: gridItemWidth / desiredItemHeight,
-                                        ),
-                                        padding: EdgeInsets.only(
-                                            bottom: SizeConfig.size30),
-                                        itemBuilder: (_, i) {
-                                          if (i ==
-                                              controller.arrUserGrocery.length) {
-                                            return const Center(
-                                              child: Padding(
-                                                padding: EdgeInsets.all(8.0),
-                                                child: CircularProgressIndicator(
-                                                    strokeWidth: 2),
-                                              ),
-                                            );
-                                          }
-
-                                          return groceryCard(
-                                              controller.arrUserGrocery[i]);
-                                        },
-                                      );
-                                  }
-                                )
+                            return groceryCard(
+                                controller.arrUserGrocery[i]);
+                          },
+                        )
                                 : Padding(
                                     padding: EdgeInsets.all(SizeConfig.size20),
                                     child: EmptyStateWidget(
@@ -448,13 +388,16 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  "${groceryProductData.name}",
-                  fontSize: SizeConfig.small,
-                  maxLines: 2,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
+                SizedBox(
+                  height: SizeConfig.size28,
+                  child: CustomText(
+                    "${groceryProductData.name}",
+                    fontSize: SizeConfig.small,
+                    maxLines: 2,
+                    color: AppColors.mainTextColor,
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 SizedBox(height: SizeConfig.size6),
                 Row(
@@ -490,73 +433,10 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                   ],
                 ),
                 SizedBox(height: SizeConfig.size6),
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.price.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            sellingPrice,
-                            fontSize: 10,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.mrp.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            mrp,
-                            fontSize: 10,
-                            color: AppColors.grayText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.discount.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            discount,
-                            fontSize: 10,
-                            color: AppColors.green00,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                PriceRow(
+                  sellingPrice: sellingPrice,
+                  mrp: mrp,
+                  discount: discount,
                 )
               ],
             ),

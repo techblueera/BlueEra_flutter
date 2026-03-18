@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -11,11 +12,14 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,6 +54,8 @@ class DeliveryPartnerController extends GetxController {
   Rx<ApiResponse> ridersOnboardingStatusResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> vehicleDataResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> nearByRidersResponse =
       ApiResponse.initial('Initial').obs;
 
   final stepStatus = <RiderProfileStep, bool>{}.obs;
@@ -1092,6 +1098,47 @@ class DeliveryPartnerController extends GetxController {
       //     RouteHelper.getBottomNavigationBarScreenRoute());
     } else {
       Get.back();
+    }
+  }
+
+  RxBool isNearByRidersLoading = false.obs;
+  RxList<Riders> arrRiders = <Riders>[].obs;
+  Future<void> fetchNearByRidersApi() async {
+    try {
+      isNearByRidersLoading.value = true;
+
+      double lat = LocationService.lat;
+      double lng = LocationService.lng;
+
+      Map<String, dynamic> queryParams = {
+        ApiKeys.latitude: lat,
+        ApiKeys.longitude: lng,
+        ApiKeys.range_in_km: 10000,
+      };
+
+      final response = await GroceryRepo().fetchNearByRidersRepo(queryParams: queryParams);
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      nearByRidersResponse.value = ApiResponse.complete(response);
+
+      final data = response.response?.data;
+
+      GetBlueeraPiolotModel getBlueeraPiolotModel = GetBlueeraPiolotModel.fromJson(data);
+      arrRiders.value = getBlueeraPiolotModel.users ?? [];
+
+      log('arrRiders length-- ${arrRiders.length}');
+      update();
+    } catch (e, s) {
+      nearByRidersResponse.value = ApiResponse.error('error');
+      log('stack trace-- $s');
+    } finally {
+      isNearByRidersLoading.value = false;
     }
   }
 

@@ -445,15 +445,16 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                   ApiKeys.specification:
                                       specializationCtrl.text.trim(),
                                   ApiKeys.category_Of_Business:
-                                      (viewBusinessDetailsController
-                                                  .selectedBusinessType
-                                                  ?.value
-                                                  .name
-                                                  .toLowerCase() ==
-                                              "both")
-                                          ? '68a80b766fdb4e82b42b77c0'
-                                          : viewBusinessDetailsController
-                                              .selectedCategory.value?.id,
+                                      // (viewBusinessDetailsController
+                                      //             .selectedBusinessType
+                                      //             ?.value
+                                      //             .name
+                                      //             .toLowerCase() ==
+                                      //         "both")
+                                      //     ? '68a80b766fdb4e82b42b77c0'
+                                      //     :
+                                      viewBusinessDetailsController
+                                              .selectedCategory.value?.tagId,
                                   ApiKeys.Nature_of_Business:
                                       selectedBusiness ==
                                           selectedBusiness?.displayName,

@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/food/controller/food_service_controller.dart
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -18,7 +19,7 @@ import 'package:get/get.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodProductSelectionScreen extends StatefulWidget {
-  final FoodCategoryData foodCategoryData;
+  final GroceryNestedCategoryModel foodCategoryData;
 
   FoodProductSelectionScreen({super.key, required this.foodCategoryData});
 
@@ -39,7 +40,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
 
     if (firstLevel1 != null) {
       // 1. Assign Level 1 Data
-      controller.selectedCategoryId.value = firstLevel1.id ?? "";
+      controller.selectedCategoryId.value = firstLevel1.sId ?? "";
 
       // 2. Sync Sub-category Tabs list
       controller.subCategoryTabs.assignAll(firstLevel1.children ?? []);
@@ -138,21 +139,21 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
 
   // 1. LEFT SIDE WIDGET
   Widget _buildLeftSidebar() {
-    return CommonGenericLeftSideCategoryList<Children>(
+    return CommonGenericLeftSideCategoryList<GroceryNestedCategoryModel>(
       items: widget.foodCategoryData.children ?? [],
       getIcon: (cat) => cat.image ?? '',
       getLabel: (cat) => cat.name ?? '',
-      isSelected: (cat) => controller.selectedCategoryId.value == cat.id,
+      isSelected: (cat) => controller.selectedCategoryId.value == cat.sId,
       onTap: (cat, index) {
         // Print sub-categories in log
         debugPrint("Sub-categories for ${cat.name}: ${cat.children?.map((e) => e.name).toList()}");
 
-        controller.selectedCategoryId.value = cat.id ?? "";
+        controller.selectedCategoryId.value = cat.sId ?? "";
         controller.subCategoryTabs.assignAll(cat.children ?? []);
         controller.selectedSubCategoryId.value = "All";
 
         controller.getFoodByCategoryIDController(
-            categoryIdParams: {ApiKeys.parentId: cat.id ?? ""}
+            categoryIdParams: {ApiKeys.parentId: cat.sId ?? ""}
         );
       },
     );
@@ -169,7 +170,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
 
             // This ensures the common widget knows which tab to highlight.
             int currentIndex = tabData.indexWhere((item) {
-              final String id = (item is String) ? "All" : (item.id ?? "");
+              final String id = (item is String) ? "All" : (item.sId ?? "");
               return id == controller.selectedSubCategoryId.value;
             });
 
@@ -186,7 +187,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
               unSelectedBorderColor: AppColors.greyE5,
               onTabSelected: (index, label) {
                 var selectedItem = tabData[index];
-                final String itemId = (selectedItem is String) ? "All" : (selectedItem.id ?? "");
+                final String itemId = (selectedItem is String) ? "All" : (selectedItem.sId ?? "");
 
                 controller.selectedSubCategoryId.value = itemId;
 

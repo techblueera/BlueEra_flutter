@@ -124,7 +124,7 @@ class FoodRepo extends BaseService {
   // DELETE: Remove a specific photo
   Future<ResponseModel> deleteFoodServicePhotosRepo({required String imgID,required Map<String,dynamic> reqBody}) async {
     final response = await ApiBaseHelper().deleteHTTP(
-      "$homeFoodGallery/$imgID/images",
+      "$homeFoodGallery/$imgID",
       params: reqBody,
       onError: (error) {},
       onSuccess: (data) {},

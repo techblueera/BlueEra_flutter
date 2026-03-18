@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/add_to_cart_button.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/grocery/widget/quantity_tab.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -114,33 +115,13 @@ class MyGroceryVariantCard extends StatelessWidget {
                     ),
                     SizedBox(height: SizeConfig.size8),
 
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        children: [
-                          CustomText(
-                            "${price.sellingRange}",
-                            fontSize: 13,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          SizedBox(width: 4.0),
-                          CustomText(
-                            "${price.mrpRange}",
-                            fontSize: 11,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: AppColors.secondaryTextColor,
-                          ),
-                          SizedBox(width: 6.0),
-                          DiscountBadge(discountText: "${price.discountRange}"),
-                        ],
-                      ),
+                    PriceRow(
+                      sellingPrice: "${price.sellingRange}",
+                      mrp: "${price.mrpRange}",
+                      discount: "${price.discountRange}",
                     ),
 
                     SizedBox(height: SizeConfig.paddingXS),
-
 
                     /// Add Button
                     if(!isMyGroceryStore)

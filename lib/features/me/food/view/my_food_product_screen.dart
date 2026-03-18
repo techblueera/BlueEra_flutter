@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -23,9 +24,12 @@ import '../../../common/food/model/food_category_res_model.dart';
 import '../model/food_home_res_model.dart';
 
 class MyFoodProductScreen extends StatefulWidget {
-  final FoodMenu foodMenu;
+  final GroceryNestedCategoryModel foodMenu;
 
-  MyFoodProductScreen({super.key, required this.foodMenu});
+  MyFoodProductScreen({
+    super.key,
+    required this.foodMenu,
+  });
 
   @override
   State<MyFoodProductScreen> createState() => _MyFoodProductScreenState();
@@ -40,15 +44,15 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
     super.initState();
     controller.resetControllerFields();
 
-    final firstLevel1 = widget.foodMenu.subCategories?.firstOrNull;
+    final firstLevel1 = widget.foodMenu.children?.firstOrNull;
 
     if (firstLevel1 != null) {
-      controller.selectedCategoryId.value = firstLevel1.id ?? "";
+      controller.selectedCategoryId.value = firstLevel1.sId ?? "";
 
       // 2. Sync Sub-category Tabs list
-      controller.subSubFoodCat.assignAll(firstLevel1.subSubCategories ?? []);
+      controller.subSubFoodCat.assignAll(firstLevel1.children ?? []);
 
-      controller.selectedSubCategoryId.value = firstLevel1.subSubCategories?.first.id ?? '';
+      controller.selectedSubCategoryId.value = firstLevel1.children?.first.sId ?? '';
 
       // 4. API Call
       callFoodProductBySubSubCatAPi();
@@ -116,24 +120,24 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
 
   // 1. LEFT SIDE WIDGET
   Widget _buildLeftSidebar() {
-    return CommonGenericLeftSideCategoryList<SubCategories>(
-      items: widget.foodMenu.subCategories?? [],
+    return CommonGenericLeftSideCategoryList<GroceryNestedCategoryModel>(
+      items: widget.foodMenu.children?? [],
       getIcon: (cat) => cat.image ?? '',
       getLabel: (cat) => cat.name ?? '',
-      isSelected: (cat) => controller.selectedCategoryId.value == cat.id,
+      isSelected: (cat) => controller.selectedCategoryId.value == cat.sId,
       onTap: (cat, index) {
         // Print sub-categories in log
-        debugPrint("Sub-categories for ${cat.name}: ${cat.subSubCategories?.map((e) => e.name).toList()}");
+        debugPrint("Sub-categories for ${cat.name}: ${cat.children?.map((e) => e.name).toList()}");
 
-        controller.selectedCategoryId.value = cat.id ?? "";
-        if (cat.subSubCategories != null) {
+        controller.selectedCategoryId.value = cat.sId ?? "";
+        if (cat.children != null) {
           controller.subSubFoodCat.assignAll(
-              cat.subSubCategories!.map((item) => item).toList()
+              cat.children!.map((item) => item).toList()
           );
         } else {
           controller.subSubFoodCat.clear();
         }
-        controller.selectedSubCategoryId.value = cat.subSubCategories?.first.id ?? '';
+        controller.selectedSubCategoryId.value = cat.children?.first.sId ?? '';
 
         callFoodProductBySubSubCatAPi();
 
@@ -148,13 +152,13 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Obx(() {
-            final List<SubSubCategories> tabData = controller.subSubFoodCat;
+            final List<GroceryNestedCategoryModel> tabData = controller.subSubFoodCat;
 
             int tabIndex = controller.subSubFoodCat.indexWhere((element) {
-              return element.id == controller.selectedSubCategoryId.value;
+              return element.sId == controller.selectedSubCategoryId.value;
             });
 
-            return HorizontalTabSelector<SubSubCategories>(
+            return HorizontalTabSelector<GroceryNestedCategoryModel>(
               tabs: tabData,
               selectedIndex: tabIndex,
               labelBuilder: (item) => (item.name ?? ""),
@@ -165,7 +169,7 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
               unSelectedBorderColor: AppColors.greyE5,
               onTabSelected: (index, label) {
                 var selectedItem = tabData[index];
-                controller.selectedSubCategoryId.value = selectedItem.id ?? "";
+                controller.selectedSubCategoryId.value = selectedItem.sId ?? "";
                 callFoodProductBySubSubCatAPi();
               },
             );

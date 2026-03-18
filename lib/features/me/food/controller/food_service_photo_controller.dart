@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -46,21 +45,26 @@ class FoodServicePhotoPhotoController extends GetxController {
 
   // Categories from your image
   final List<String> categories = [
-    "External View & Parking",
+    "Food & Signature Dishes",
+    "Starters & Appetizers",
+    "Main Course (Veg)",
+    "Main Course (Non-Veg)",
+    "Desserts & Sweets",
+    "Beverages & Mocktails",
+    "Bar & Cocktails",
+    "Main Dining Area",
     "Lobby & Reception",
-    "Garden & Outdoor Areas",
-    "Rooms",
-    "Bathrooms",
-    "Restaurant & Bar",
-    "Breakfast Service",
-    "Gym & Fitness Center",
-    "Swimming Pool",
-    "Spa & Wellness",
-    "Kids Play Area",
-    "Conference & Meeting Rooms",
+    "Rooftop & Outdoor Seating",
+    "Garden & Patio Dining",
+    "Private Dining Rooms",
+    "Kitchen & Food Preparation",
+    "Menu Cards",
+    "Buffet & Breakfast Service",
+    "Staff & Customer Service",
+    "Events & Celebrations",
+    "Exterior & Parking",
     "Cleanliness & Hygiene",
-    "Safety & Security",
-    "Staff & Customer Service"
+    "Washrooms & Restrooms"
   ];
 
   @override
@@ -99,10 +103,10 @@ class FoodServicePhotoPhotoController extends GetxController {
   }
 
   // Logic to build the JSON request body
-  List<String> urlList = [];
 
   Future buildRequestBody() async {
     try {
+      List<String> urlList = [];
       for (var filePath in selectedImages) {
         UploadResult? result = await S3UploadService.uploadFile(File(filePath));
         if (result.isSuccess) {

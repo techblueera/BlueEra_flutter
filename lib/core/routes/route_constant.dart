@@ -157,6 +157,7 @@ class RouteConstant {
   static const String foodAiDetailScreen = "/FoodAiDetailScreen";
   static const String foodCustomerListingScreen = "/FoodCustomerListingScreen";
   static const String foodReviewSelectionScreen = "/FoodReviewSelectionScreen";
+  static const String nearByRidersScreen = "/NearByRidersScreen";
 
   /// Medical
   static const String medicalScreen = "/MedicalScreen";

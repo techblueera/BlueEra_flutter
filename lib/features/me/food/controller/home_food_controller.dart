@@ -4,8 +4,10 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:get/get.dart';
 
 class RestaurantController extends GetxController {
@@ -15,14 +17,8 @@ class RestaurantController extends GetxController {
   // Observables
   var isLoading = true.obs;
   var restaurantData = Rxn<FoodData>();
-  var foodMenuNestedCategory = <FoodMenu>[].obs;
+  var foodMenuNestedCategory = <GroceryNestedCategoryModel>[].obs;
   var allFoodItems = <Items>[].obs;
-
-  // @override
-  // void onInit() {
-  //   fetchHomeData();
-  //   super.onInit();
-  // }
 
   void fetchHomeData({required String businessId}) async {
     try {
@@ -53,17 +49,30 @@ class RestaurantController extends GetxController {
   }
 
   void _flattenItems() {
-    if (restaurantData.value?.foodMenu != null) {
-      var items = <Items>[];
-      for (var menu in restaurantData.value!.foodMenu!) {
-        for (var sub in menu.subCategories ?? []) {
-           for(var subSub in sub.subSubCategories ?? []){
-             if (subSub.items != null) items.addAll(subSub.items!);
-           }
+    final menuData = restaurantData.value?.foodMenu;
+    if (menuData == null) return;
+
+    var items = <Items>[];
+
+    for (var menu in menuData) {
+      // Level 1: Main Menu Children
+      for (var sub in (menu.children ?? [])) {
+
+        // Level 2: Sub-category Children (e.g., "Bakery Combos")
+        for (var subSub in (sub.children ?? [])) {
+
+          // Level 3: Final Category (e.g., "Breakfast Bakery Combo")
+          if (subSub != null && subSub.items != null) {
+            items.addAll(subSub.items!);
+          }
         }
+
+        // OPTIONAL: If items can also exist at Level 2, add this:
+        if (sub.items != null) items.addAll(sub.items!);
       }
-      allFoodItems.value = items;
     }
+
+    allFoodItems.value = items;
   }
 
   // Validation state

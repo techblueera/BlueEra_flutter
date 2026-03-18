@@ -1,9 +1,10 @@
 import 'dart:math';
-
+import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -14,19 +15,19 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
-import 'package:BlueEra/features/me/food/view/food_contact_us_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
 import 'package:BlueEra/features/me/food/view/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_home_profile_header.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -86,13 +87,16 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 ///Food Selection (Horizontal List)
                 if (controller.allFoodItems.isNotEmpty)
                   CustomFormCard(
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.zero,
                     margin: EdgeInsets.only(top: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomText(AppStrings.foodSelection.tr,
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        Padding(
+                          padding: EdgeInsets.all(10),
+                          child: CustomText(AppStrings.foodSelection.tr,
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                         SizedBox(
                           height: 10,
                         ),
@@ -105,9 +109,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 _buildMenuCategories(controller.foodMenuNestedCategory),
 
                 /// Gallery
-                (data.gallery?.isNotEmpty ?? false)
-                    ? CustomFormCard(
+               CustomFormCard(
                        padding: EdgeInsets.all(10),
+                        margin: EdgeInsets.only(top: 10.0),
                         child: Column(
                           children: [
                             Row(
@@ -115,31 +119,109 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                               children: [
                                 CustomText(AppStrings.gallery.tr,
                                     fontSize: 20, fontWeight: FontWeight.bold),
-                                InkWell(
+                                (data.gallery?.isNotEmpty ?? false)
+                                    ? InkWell(
                                     onTap: () {
-                                      Get.to(FoodServicePhotosPhotoScreen());
+                                      Get.to(()=> FoodServicePhotosPhotoScreen());
                                     },
                                     child: LocalAssets(
                                       imagePath: AppIconAssets.editIcon,
                                       imgColor: AppColors.mainTextColor,
-                                    )),
+                                    ))
+                                   : SizedBox(),
                               ],
                             ),
                             const SizedBox(height: 10),
-                            _buildGallery(data.gallery ?? [], context),
+                            (data.gallery?.isNotEmpty ?? false)
+                                ? _buildGallery(data.gallery ?? [], context)
+                            : InkWell(
+                              onTap: () {
+                                Get.to(()=> FoodServicePhotosPhotoScreen());
+                              },
+                              child: Container(
+                                height: SizeConfig.size200,
+                                width: SizeConfig.screenWidth,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    image: DecorationImage(
+                                      image: AssetImage(
+                                          AppImageAssets.homeMadeFoodBanner
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                ),
+                                child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+
+                                      Positioned.fill(
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10.0),
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                  color: AppColors.black.withValues(alpha: 0.5)
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          LocalAssets(
+                                            imagePath: AppImageAssets.noMeContent,
+                                            height: SizeConfig.size80,
+                                            width: SizeConfig.size80,
+                                          ),
+                                          SizedBox(height: 6.0),
+                                          CustomText(
+                                            'You Have Not Post Any Photo',
+                                            fontSize:  SizeConfig.small,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.white,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          SizedBox(height: 10.0),
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(6.0),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 10.0,
+                                                    vertical: 6.0
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                  color: AppColors.white.withValues(alpha: 0.1),
+                                                  border: Border.all(
+                                                    color: AppColors.white.withValues(alpha: 0.16),
+                                                  ),
+                                                ),
+                                                child:  CustomText(
+                                                  'Add Photo',
+                                                  fontSize:  SizeConfig.small,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ]
+
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.only(
-                            top: 10.0
-                        ),
-                        child: PositiveCustomBtn(
-                            onTap: () {
-                              Get.to(FoodServicePhotosPhotoScreen());
-                            },
-                            title: AppStrings.addGalleryPhoto.tr),
                       ),
+
 
                 SizedBox(height: 10.0),
 
@@ -402,81 +484,192 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     );
   }
 
+  // Widget _buildHorizontalFoodList() {
+  //   return SizedBox(
+  //     height: 180,
+  //     child: ListView.builder(
+  //       scrollDirection: Axis.horizontal,
+  //       itemCount: controller.allFoodItems.length,
+  //       itemBuilder: (context, index) {
+  //         final item = controller.allFoodItems[index];
+  //         return Container(
+  //           width: 160,
+  //           margin: const EdgeInsets.only(right: 12),
+  //
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Container(
+  //                 decoration: BoxDecoration(
+  //                     border: Border.all(
+  //                         color: AppColors.greyE5,
+  //                         width: 0.5
+  //                     ),
+  //                   borderRadius: BorderRadius.circular(10),
+  //                 ),
+  //                 child: ClipRRect(
+  //                   borderRadius: BorderRadius.circular(10),
+  //                   child: Image.network(
+  //                     item.product?.images?.firstOrNull ?? "",
+  //                     height: 120,
+  //                     width: 160,
+  //                     fit: BoxFit.cover,
+  //                     errorBuilder: (_, __, ___) => ClipRRect(
+  //                       borderRadius: BorderRadius.circular(12),
+  //                       child: Container(
+  //                           decoration: BoxDecoration(
+  //                               borderRadius: BorderRadius.circular(12),
+  //                               border: Border.all(
+  //                                   color: AppColors.secondaryTextColor)),
+  //                           height: 120,
+  //                           width: 160,
+  //                           child: const Icon(Icons.fastfood)),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 8),
+  //               CustomText(
+  //                 item.product?.name ?? "",
+  //                 fontWeight: FontWeight.bold,
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //
+  //               Row(
+  //                 children: [
+  //                   FoodTypeIndicator(
+  //                     isVegetarian: item.product?.dietaryType?.toLowerCase() == "veg",
+  //                     size: 6,
+  //                   ),
+  //                   const SizedBox(width: 5),
+  //                   CustomText(
+  //                       "₹${item.variants?[0].price?.sellingPrice}",
+  //                       fontWeight: FontWeight.w500),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
+
   Widget _buildHorizontalFoodList() {
-    return SizedBox(
-      height: 180,
+    return Obx(() => SizedBox(
+      height: 210,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: controller.allFoodItems.length,
+        padding: EdgeInsets.all(10),
         itemBuilder: (context, index) {
           final item = controller.allFoodItems[index];
+
+          // Variant Logic
+          final bool hasVariants = item.variants != null && item.variants!.isNotEmpty;
+          final int variantCount = item.variants?.length ?? 0;
+          final bool isMultiVariant = variantCount > 1;
+
+          // Use the first variant for price, or fallback to the top-level item price
+          final displayPrice = hasVariants
+              ? item.variants![0].price?.sellingPrice.toString()
+              : item.price?.sellingPrice.toString() ?? "0";
+
           return Container(
             width: 160,
             margin: const EdgeInsets.only(right: 12),
-
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // --- 1. Product Image with Border ---
                 Container(
                   decoration: BoxDecoration(
-                      border: Border.all(
-                          color: AppColors.greyE5,
-                          width: 0.5
-                      ),
+                    border: Border.all(color: AppColors.greyE5, width: 0.5),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      item.product?.images?.firstOrNull ?? "",
-                      height: 120,
+                    child: CachedNetworkImage(
+                      imageUrl: item.product?.images?.firstOrNull ?? "",
+                      height: 110,
                       width: 160,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: AppColors.secondaryTextColor)),
-                            height: 120,
-                            width: 160,
-                            child: const Icon(Icons.fastfood)),
-                      ),
+                      placeholder: (context, url) => Container(color: Colors.grey.shade100),
+                      errorWidget: (_, __, ___) => _buildImagePlaceholder(),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 8),
+
+                // --- 2. Item Name ---
                 CustomText(
-                  item.product?.name ?? "",
+                  item.product?.name ?? "Unknown Item",
                   fontWeight: FontWeight.bold,
                   maxLines: 1,
+                  fontSize: 14,
                   overflow: TextOverflow.ellipsis,
                 ),
 
+                const SizedBox(height: 4),
+
+                // --- 3. Price & Dietary Info ---
                 Row(
                   children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.food_category,
-                      imgColor: item.product?.dietaryType?.toLowerCase() == "non-veg"
-                          ? AppColors.red00
-                          : const Color(0xff008000),
+                    FoodTypeIndicator(
+                      isVegetarian: item.product?.dietaryType?.toLowerCase() == "veg",
+                      size: 6,
                     ),
                     const SizedBox(width: 5),
                     CustomText(
-                        "₹${item.variants?[0].price?.sellingPrice}",
-                        fontWeight: FontWeight.w500),
+                      "₹$displayPrice",
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
                   ],
                 ),
+
+                // --- 4. Multiple Variants Indicator ---
+                if (isMultiVariant)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: CustomText(
+                        "+${variantCount - 1} more options",
+                        fontSize: 10,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
         },
       ),
+    ));
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 110,
+      width: 160,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: const Icon(Icons.fastfood, color: Colors.grey),
     );
   }
 
-  Widget _buildMenuCategories(List<FoodMenu> menus) {
+  Widget _buildMenuCategories(List<GroceryNestedCategoryModel> menus) {
 
     return Column(
       children: [
@@ -517,8 +710,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
                       return Get.to(
                               ()=> MyFoodProductScreen(
-                                foodMenu: _categoryItem,
-
+                                  foodMenu: _categoryItem,
                       ));
 
                       // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),

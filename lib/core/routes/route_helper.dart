@@ -4,6 +4,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
@@ -589,6 +590,9 @@ class RouteHelper {
 
   static String getFoodReviewSelectionScreenRoute() =>
       RouteConstant.foodReviewSelectionScreen;
+
+  static String getNearByRidersScreenRoute() =>
+      RouteConstant.nearByRidersScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1791,7 +1795,7 @@ class RouteHelper {
 
       case RouteConstant.productSelectionScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final FoodCategoryData foodCategoryData = args[ApiKeys.argCategoryData] as FoodCategoryData;
+        final GroceryNestedCategoryModel foodCategoryData = args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => FoodProductSelectionScreen(
                 foodCategoryData: foodCategoryData
@@ -1822,10 +1826,12 @@ class RouteHelper {
         );
       case RouteConstant.foodCustomerListingScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final FoodCategoryData foodCategoryData = args[ApiKeys.argCategoryData] as FoodCategoryData;
+        final GroceryNestedCategoryModel foodCategoryData = args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
+        final String? visitBusinessId = args[ApiKeys.argBusinessId] as String?;
         return MaterialPageRoute(
             builder: (_) => FoodCustomerListingScreen(
-                foodCategoryData: foodCategoryData
+                foodCategoryData: foodCategoryData,
+              visitBusinessId: visitBusinessId,
             ),
             settings: RouteSettings(name: getFoodCustomerListingScreenRoute())
         );
@@ -1834,6 +1840,12 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => FoodReviewSelectionScreen(),
             settings: RouteSettings(name: getFoodReviewSelectionScreenRoute())
+        );
+
+      case RouteConstant.nearByRidersScreen:
+        return MaterialPageRoute(
+            builder: (_) => NearByRidersScreen(),
+            settings: RouteSettings(name: getNearByRidersScreenRoute())
         );
 
 

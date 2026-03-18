@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_store_screen.dart';
@@ -133,7 +134,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
           ),
           child: InkWell(
             onTap:() {
-
+              Get.toNamed(RouteHelper.getNearByRidersScreenRoute());
             },
             child: Stack(
               clipBehavior: Clip.none,

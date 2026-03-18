@@ -30,7 +30,7 @@ class UploadFoodServicePhotosScreen extends StatelessWidget {
             // Dropdown using the String list
             Obx(() => CommonDropdownDialog<String>(
                   title: "Select Category",
-                  hintText: "E.g. Rooms",
+                  hintText: "E.g. Desserts & Sweets",
                   items: controller.categories,
                   selectedValue: controller.selectedCategory.value.isEmpty
                       ? null

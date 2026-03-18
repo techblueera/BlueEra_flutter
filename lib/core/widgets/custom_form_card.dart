@@ -35,6 +35,7 @@ class CustomFormCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? AppColors.white,
         borderRadius: borderRadius ?? BorderRadius.circular(10.0),
+        border: border,
         boxShadow: (isBorderAvailable??false)?[
           BoxShadow(
           color: Colors.black.withValues(alpha: 0.1),
