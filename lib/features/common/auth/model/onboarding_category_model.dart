@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_enum.dart';
 
 class OnboardingCategoryModel {
@@ -6,6 +8,8 @@ class OnboardingCategoryModel {
   final String slugId;
   final String accountType;
   final String? icon;
+  final String? subtitle;
+  final Color? colorCode;
   final BusinessType? businessType;
   final IndividualProfileType? individualType;
 
@@ -17,6 +21,8 @@ class OnboardingCategoryModel {
     required this.accountType,
     this.icon,
     this.businessType,
+    this.subtitle,
+    this.colorCode,
     this.individualType,
   });
 }

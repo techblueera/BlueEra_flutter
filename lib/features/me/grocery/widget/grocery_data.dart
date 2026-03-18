@@ -18,6 +18,11 @@ class GroceryData {
         icon: AppImageAssets.dairyFrozenItemsColorful,
     ),
     CollapsibleGridModel(
+        name: AppStrings.homeMadeFoodItems,
+        slugId: "HOME_MADE_FOOD",
+        icon: AppImageAssets.homeMadeFoodBanner,
+    ),
+    CollapsibleGridModel(
         name: AppStrings.labelVegetablesFruit,
         slugId: GroceryConstant.VEGETABLES_FRUIT,
         icon: AppImageAssets.vegetablesColorful,
