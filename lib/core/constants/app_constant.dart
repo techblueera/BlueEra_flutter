@@ -2072,6 +2072,8 @@ class ChatEmitEvents {
   static const isOnLine = "isOnLine";
   static const messageStatusUpdate = "messageStatusUpdate";
   static const update_data = "update_data";
+  static const newSelfPickupOrderReceived = "newSelfPickupOrderReceived";
+  static const selfPickupOrderReady = "selfPickupOrderReady";
 }
 
 class LiveTrackEmitEvents {

@@ -1,3 +1,4 @@
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -67,8 +68,8 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
-            buildCustomActionWidget: () => const CommonCartIcon(
-                argIsDeliveredByRider: false
+            buildCustomActionWidget: () =>  CommonCartIcon(
+                argIsDeliveredByRider: false,
             ),
         ),
         body: Obx((){
@@ -319,6 +320,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index){
                   var groceryProductData = controller.groceryBusinessProductsList[index];
+
                   return Container(
                     width: SizeConfig.size150,
                     margin: EdgeInsets.only(right: 8.0),
@@ -369,6 +371,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                               child: Obx(() {
                                 var productVariants = groceryProductData.productVariant;
 
+
                                 final bool isAdded = groceryCustomerController.selectedGroceriesVariants
                                     .any((v) => v.sId == productVariants?.sId);
 
@@ -380,7 +383,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                     }
 
                                     if(!isAdded){
-                                      groceryCustomerController.addToCart(productVariants);
+                                      groceryCustomerController.addToCart(productVariants,inventoryId:  groceryProductData.sId, productId: productVariants.sId);
                                       commonSnackBar(message: 'Added into cart');
                                     }else{
                                       groceryCustomerController.removeFromCart(productVariants);

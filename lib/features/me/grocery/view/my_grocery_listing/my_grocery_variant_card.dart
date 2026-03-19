@@ -8,7 +8,6 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/add_to_cart_button.dart';
-import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/grocery/widget/quantity_tab.dart';
@@ -134,7 +133,7 @@ class MyGroceryVariantCard extends StatelessWidget {
                         child: AddToCartButton(
                           isAdded: isAdded,
                           width: double.maxFinite,
-                          onAdd: ()=> groceryCustomerController.addToCart(variant),
+                          onAdd: ()=> groceryCustomerController.addToCart(variant, productId: variant.sId),
                           onRemove: ()=> groceryCustomerController.removeFromCart(variant),
                         ),
                       );
