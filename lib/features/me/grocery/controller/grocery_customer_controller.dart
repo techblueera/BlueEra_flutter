@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -62,8 +61,14 @@ class GroceryCustomerController extends GetxController{
   // Map to store quantity for each variant ID: { "variant_id": quantity }
   var cartQuantities = <String, int>{}.obs;
 
+  // Map to store product ID for each variant ID: { "variant_id": "product_id" }
+  var cartProductIds = <String, String>{}.obs;
+
+  // Map to store inventory ID for each variant ID: { "variant_id": "inventory_id" }
+  var cartInventoryIds = <String, String>{}.obs;
+
   // --- Actions ---
-  void addToCart(ProductVariants variant) {
+  void addToCart(ProductVariants variant, {String? productId, String? inventoryId}) {
     if (variant.sId == null) return;
 
     if (cartQuantities.containsKey(variant.sId)) {
@@ -71,6 +76,12 @@ class GroceryCustomerController extends GetxController{
     } else {
       selectedGroceriesVariants.add(variant);
       cartQuantities[variant.sId!] = 1;
+      if (productId != null) {
+        cartProductIds[variant.sId!] = productId;
+      }
+      if (inventoryId != null) {
+        cartInventoryIds[variant.sId!] = inventoryId;
+      }
     }
   }
 
@@ -84,8 +95,15 @@ class GroceryCustomerController extends GetxController{
     } else {
       // Quantity is 1, so remove completely
       cartQuantities.remove(variant.sId);
+      cartProductIds.remove(variant.sId);
+      cartInventoryIds.remove(variant.sId);
       selectedGroceriesVariants.removeWhere((v) => v.sId == variant.sId);
     }
+  }
+
+  String? getProductId(String? variantId) {
+    if (variantId == null) return null;
+    return cartProductIds[variantId];
   }
 
   int getQuantity(String? variantId) {
@@ -145,8 +163,8 @@ class GroceryCustomerController extends GetxController{
   // Inside GroceryCustomerController
   void resetController() {
     // Clear Cart & Selection
-    selectedGroceriesVariants.clear();
-    cartQuantities.clear();
+    // selectedGroceriesVariants.clear();
+    // cartQuantities.clear();
 
     // Reset Tab Selection
     selectedTabIndex.value = 0;
@@ -437,6 +455,7 @@ class GroceryCustomerController extends GetxController{
       if (qty > 0) {
         items.add({
           "productVariant": variant.sId ?? "",
+          "product": cartProductIds[variant.sId] ?? variant.product ?? "",
           "quantity": qty,
           "mrp": totalMRP.toStringAsFixed(2),
           "sellingPrice": totalSellingPrice.toStringAsFixed(2)
@@ -490,6 +509,83 @@ class GroceryCustomerController extends GetxController{
       addGroceryOrderResponse.value = ApiResponse.error('error');
     } finally {
       isAddGroceryOrderLoading.value = false;
+    }
+  }
+
+  List<Map<String, dynamic>> buildBulkOrderItems() {
+    List<Map<String, dynamic>> items = [];
+
+    for (var variant in selectedGroceriesVariants) {
+      int qty = cartQuantities[variant.sId] ?? 0;
+
+      if (qty > 0) {
+        double mrp = double.tryParse(variant.pricing?.first.mrp.toString() ?? '0') ?? 0;
+        double sp = double.tryParse(variant.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
+
+        items.add({
+          "inventory": cartInventoryIds[variant.sId] ?? "",
+          "productVariant": variant.sId ?? "",
+          "quantity": qty,
+          "mrp": mrp,
+          "sellingPrice": sp,
+        });
+      }
+    }
+
+    return items;
+  }
+
+  RxBool isPlaceBulkGroceryOrderLoading = false.obs;
+  Rx<ApiResponse> placeBulkGroceryOrderResponse =
+      ApiResponse.initial('Initial').obs;
+
+  Future<void> placeBulkGroceryOrderApi() async {
+    try {
+      isPlaceBulkGroceryOrderLoading.value = true;
+      showCircularLoader();
+
+      final itemsList = buildBulkOrderItems();
+
+      final Map<String, dynamic> requestBody = {
+        "items": itemsList,
+        "deliveryType": "self-pickup",
+        "discount": totalSavings,
+      };
+
+      final response = await GroceryRepo()
+          .placeBulkGroceryOrderApi(params: requestBody);
+
+      if (!response.isSuccess) {
+        hide();
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
+      hide();
+      Future.delayed(Duration(seconds: 2),(){
+        Get.offAllNamed(
+          RouteHelper.getBottomNavigationBarScreenRoute(),
+          arguments: {ApiKeys.initialIndex: 3},
+        );
+      });
+
+      //
+      // final addGroceryOrderResponseModel =
+      //     AddGroceryOrderResponseModel.fromJson(response.response?.data);
+      // String orderId = addGroceryOrderResponseModel.id ?? '';
+      //
+      // Get.toNamed(
+      //   RouteHelper.getGroceryConfirmScreenRoute(),
+      //   arguments: {ApiKeys.argOrderId: orderId},
+      // );
+    } catch (e) {
+      hide();
+      placeBulkGroceryOrderResponse.value = ApiResponse.error('error');
+    } finally {
+      isPlaceBulkGroceryOrderLoading.value = false;
     }
   }
 

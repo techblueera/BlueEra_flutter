@@ -122,7 +122,9 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                             isLoading: controller.isAddGroceryOrderLoading.value,
                           ))
                           : CustomBtn(
-                            onTap: (){},
+                            onTap: (){
+                             controller.placeBulkGroceryOrderApi();
+                            },
                             height: SizeConfig.size30,
                             width: SizeConfig.size100,
                             title: 'Buy Now',

@@ -585,6 +585,7 @@ abstract class BaseService {
   final String initDocumentServiceUpload = "document-service/s3/presigned-url";
   final String groceryOrder = "grocery-service/api/orders";
   String updateGroceryOrder(String orderId) => "grocery-service/api/orders/$orderId";
+  String selfPickupOrderReady(String orderId) => "grocery-service/api/orders/$orderId/ready";
   static final String groceryRiderOrderStream = "riders/orders/stream/grocery/$userId";
   final String aiInstitutionFetchDetails = 'ai-service/api/ai-institution/fetch-details';
   final String aiCreateSchool = 'education-service/ai/create-school';
@@ -850,6 +851,7 @@ abstract class BaseService {
   final String setReminder = 'chat-service/reminders/set-reminder';
   //gst
   final String getGst = 'chat-service/reminders/set-reminder';
+  final String placeBulkGroceryOrder = 'grocery-service/api/orders';
 
 
 }

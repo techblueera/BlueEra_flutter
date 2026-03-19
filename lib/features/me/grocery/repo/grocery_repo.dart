@@ -334,5 +334,28 @@ class GroceryRepo extends BaseService {
     );
     return response;
   }
+  /// Mark Self-Pickup Order as Ready
+  Future<ResponseModel> markSelfPickupOrderReadyRepo(
+      {required String orderId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      selfPickupOrderReady(orderId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> placeBulkGroceryOrderApi(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      placeBulkGroceryOrder,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

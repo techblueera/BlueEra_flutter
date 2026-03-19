@@ -358,7 +358,7 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                             : '',
                         allVariants: groceryProductData.variants!,
                         onAdd: (variant) {
-                          controller.addToCart(variant);
+                          controller.addToCart(variant, productId: variant.sId,inventoryId:  groceryProductData.sId,);
                         },
                       );
                     },

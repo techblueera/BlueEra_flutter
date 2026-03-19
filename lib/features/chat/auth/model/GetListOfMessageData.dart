@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
+import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 
 import 'Conversation.dart';
 import 'messageMediaUrl.dart';
@@ -396,6 +397,9 @@ class MessageMetadata {
 
   Rider? rider;
 
+  String? selfpickupOrderId;
+  SelfPickupOrderModel? selfPickupOrder;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -415,7 +419,9 @@ class MessageMetadata {
     this.variant,
     this.mrp,
     this.order,
-    this.rider, // ✅ added
+    this.rider,
+    this.selfpickupOrderId,
+    this.selfPickupOrder,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -443,6 +449,10 @@ class MessageMetadata {
       rider: json['rider'] != null
           ? Rider.fromJson(json['rider'])
           : null,
+      selfpickupOrderId: json['selfpickupOrderId']?.toString(),
+      selfPickupOrder: (json['order'] != null && json['selfpickupOrderId'] != null)
+          ? SelfPickupOrderModel.fromJson(json['order'])
+          : null,
     );
   }
 
@@ -467,6 +477,7 @@ class MessageMetadata {
       'mrp': mrp,
       'order': order?.toJson(),
       'rider': rider?.toJson(),
+      'selfpickupOrderId': selfpickupOrderId,
     };
   }
 }

@@ -1191,6 +1191,14 @@ class AppNotificationHandler {
         // Navigate to notifications screen
         break;
 
+      // Self-pickup order operations
+      case 'selfpickup_order':
+      case 'selfpickup_order_ready':
+        if (data['senderId'] != null) {
+          _openChatWithUser(data['senderId']!);
+        }
+        break;
+
       default:
         // Default: open notifications screen or home
         break;
@@ -1227,7 +1235,9 @@ class AppNotificationHandler {
         playNotificationSound = chatNotificationSound;
       } else if (operation == 'ride_order_received' ||
           operation == 'ride_order_accepted' ||
-          operation == 'ride_order_created') {
+          operation == 'ride_order_created' ||
+          operation == 'selfpickup_order' ||
+          operation == 'selfpickup_order_ready') {
         playNotificationSound = hello_delivery;
       } else {
         playNotificationSound = notificationSound;

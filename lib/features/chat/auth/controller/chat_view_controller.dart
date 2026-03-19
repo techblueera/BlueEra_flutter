@@ -897,6 +897,46 @@ class ChatViewController extends GetxController {
           ApiKeys.per_page_message: 30,
         });
       });
+
+      // Self-Pickup: New order received (business side)
+      chatSocket.listenEvent(ChatEmitEvents.newSelfPickupOrderReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
+            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          // Refresh chat list
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Self-Pickup: Order marked as ready
+      chatSocket.listenEvent(ChatEmitEvents.selfPickupOrderReady, (data) {
+        log("selfPickupOrderReady: $data");
+        final messageId = data['messageId']?.toString() ?? '';
+        if (messageId.isNotEmpty) {
+          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.orderStatus = true;
+              msg.metadata?.selfPickupOrder?.isReady = true;
+              break;
+            }
+          }
+          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+        }
+      });
+
       socketConnectedCalled.value = true;
     }
     openedConversation.value = await localStorageHelper.getConversation();
