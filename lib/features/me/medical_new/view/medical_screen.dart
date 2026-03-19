@@ -2,11 +2,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/controller/user_medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_create_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_home_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_super_category_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_orders/my_medical_orders.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -92,7 +94,8 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
             body: TabBarView(
               controller: _tabController,
               children: [
-                MyMedicalOrders(),
+                // MyMedicalOrders(),
+                MedicalHomeScreen(businessId: businessId,),
                 // MyMedicalSuperCategoryScreen(),
                 MedicalCreateScreen(),
                 Center(child: CustomText(AppStrings.comingSoon))

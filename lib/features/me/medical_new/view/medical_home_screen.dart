@@ -1,20 +1,47 @@
+import 'dart:io';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/me/medical_new/model/medical_profile_fd_model.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
+import 'package:BlueEra/features/me/medical_new/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical_new/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_gallery/medical_gallery_list_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_inventory_category_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:croppy/croppy.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get/get.dart';
+
+/// Static 6 categories for "Update Your Medical Products"
+const List<Map<String, String>> _staticCategories = [
+  {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
+  {'title': 'Home &\nPatient Care', 'key': 'HOME___PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
+  {'title': 'Medical\nDevices', 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
+  {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
+  {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
+  {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
+];
 
 class MedicalHomeScreen extends StatefulWidget {
   final String businessId;
@@ -26,22 +53,25 @@ class MedicalHomeScreen extends StatefulWidget {
 }
 
 class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
-  MedicalProfileFdModel? _data;
+  MedicalHomeResponseModel? _data;
   bool _isLoading = true;
+  late final MedicalGalleryController _galleryController;
+  final _businessController = getOrPut(() => ViewBusinessDetailsController());
 
   @override
   void initState() {
     super.initState();
+    _galleryController = Get.put(MedicalGalleryController());
     _fetchData();
   }
 
   Future<void> _fetchData() async {
     try {
       final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
-      if (res.isSuccess) {
-        final data = res.response?.data['data'];
-        if (data != null) {
-          setState(() => _data = MedicalProfileFdModel.fromJson(data));
+      if (res.isSuccess && res.response?.data != null) {
+        final data = res.response?.data['data'] ?? res.response?.data;
+        if (data != null && data is Map<String, dynamic>) {
+          setState(() => _data = MedicalHomeResponseModel.fromJson(data));
         }
       }
     } catch (e) {
@@ -61,37 +91,44 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         body: Center(child: CustomText('No data found', color: AppColors.greyA5)),
       );
     }
-    final profile = _data!.profile;
-    final contact = _data!.contactInfo;
-    final galleries = _data!.galleries ?? [];
-    final products = _data!.popularProducts ?? [];
+
+    final profile = _data!.businessProfile;
+    final inventory = _data!.inventorySummary;
+    final popularProducts = inventory?.popularProducts ?? [];
+    final categoriesWithProducts = inventory?.categoriesWithProducts ?? [];
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(SizeConfig.size12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(profile),
-            SizedBox(height: SizeConfig.size12),
-            _buildUploadPrescription(),
-            if (products.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size12),
-              _buildPopularProducts(products),
+      backgroundColor: AppColors.whiteF3,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(profile),
+              // SizedBox(height: SizeConfig.size10),
+              // _buildUploadPrescription(),
+              if (popularProducts.isNotEmpty) ...[
+                SizedBox(height: SizeConfig.size10),
+                _buildPopularProducts(popularProducts),
+              ],
+              SizedBox(height: SizeConfig.size10),
+              _buildUpdateMedicalProducts(categoriesWithProducts),
+              SizedBox(height: SizeConfig.size10),
+              _buildGallerySection(),
+              SizedBox(height: SizeConfig.size10),
+              _buildContactSection(profile),
+              SizedBox(height: kBottomNavigationBarHeight + 30),
             ],
-            SizedBox(height: SizeConfig.size12),
-            _buildGallery(galleries),
-            SizedBox(height: SizeConfig.size12),
-            _buildContact(contact, profile),
-            SizedBox(height: kBottomNavigationBarHeight + 30),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(MedicalProfile? profile) {
-    final size = MediaQuery.of(context).size;
+  // ─────────────────────────────────────────────
+  // HEADER (ss6) — Editable logo & cover
+  // ─────────────────────────────────────────────
+  Widget _buildHeader(BusinessProfile? profile) {
     return CommonCardWidget(
       padding: 0,
       cardMargin: 0,
@@ -99,67 +136,128 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: size.height * 0.21,
+            height: 180,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                if (profile?.coverUrl?.isNotEmpty ?? false)
-                  Container(
+                // Cover image
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                  ),
+                  child: SizedBox(
+                    height: 130,
                     width: double.infinity,
-                    height: size.height * 0.17,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[100],
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        topRight: Radius.circular(10),
-                      ),
-                      image: DecorationImage(
-                        image: NetworkImage(profile!.coverUrl!),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    child: Obx(() {
+                      final cover = _businessController.coverImage?.value ?? '';
+                      final logo = _businessController.imagePath?.value ?? '';
+                      final url = cover.isNotEmpty
+                          ? cover
+                          : logo.isNotEmpty
+                              ? logo
+                              : (profile?.logo ?? '');
+                      return url.isNotEmpty
+                          ? Image.network(url, fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(color: Colors.blueGrey[100]))
+                          : Container(color: Colors.blueGrey[100]);
+                    }),
                   ),
+                ),
+
+                // Edit cover button (top-right)
                 Positioned(
-                  bottom: 0,
-                  left: 20,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
-                      image: (profile?.logoUrl?.isNotEmpty ?? false)
-                          ? DecorationImage(
-                              image: NetworkImage(profile!.logoUrl!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                  right: 10,
+                  top: 8,
+                  child: InkWell(
+                    onTap: () => _onEditCover(profile),
+                    child: CircleAvatar(
+                      backgroundColor: AppColors.black.withValues(alpha: 0.3),
+                      child: LocalAssets(imagePath: 'assets/images/camera.png'),
                     ),
                   ),
+                ),
+
+                // Share & Bookmark
+                Positioned(
+                  top: 10,
+                  right: 55,
+                  child: Row(
+                    children: [
+                      _circleIconButton(Icons.share_outlined),
+                      SizedBox(width: 8),
+                      _circleIconButton(Icons.bookmark_border),
+                    ],
+                  ),
+                ),
+
+                // Editable logo (circular)
+                Positioned(
+                  left: 20,
+                  top: 90,
+                  child: Obx(() {
+                    return CommonProfileImage(
+                      imagePath: _businessController.imagePath?.value ??
+                          profile?.logo ??
+                          '',
+                      onImageUpdate: (imagePath) => _onEditLogo(imagePath),
+                      dialogTitle: AppStrings.uploadBusinessLogo.tr,
+                      showProfileBorder: true,
+                    );
+                  }),
                 ),
               ],
             ),
           ),
+
+          // Name + Rating + Description
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
+                SizedBox(height: 8),
                 CustomText(
-                  profile?.name,
-                  fontSize: 18,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  profile?.businessName ?? '',
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  maxLines: 2,
                 ),
-                if (profile?.description?.isNotEmpty ?? false) ...[
-                  const SizedBox(height: 8),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    SizedBox(width: 4),
+                    CustomText(
+                      '${profile?.avgRating ?? 0}',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    CustomText(
+                      '(${profile?.totalRatings ?? '0'} reviews)',
+                      fontSize: 12,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    SizedBox(width: 10),
+                    Icon(Icons.location_on_outlined,
+                        color: AppColors.secondaryTextColor, size: 14),
+                    Flexible(
+                      child: CustomText(
+                        profile?.cityStatePincode ?? '',
+                        fontSize: 12,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                if (profile?.businessDescription != null &&
+                    profile!.businessDescription!.isNotEmpty) ...[
+                  SizedBox(height: 8),
                   ExpandableText(
-                    text: profile!.description!,
-                    trimLines: 4,
+                    text: profile.businessDescription!,
+                    trimLines: 3,
                     isReadMoreNewLine: false,
                     expandMode: ExpandMode.dialog,
                     style: TextStyle(
@@ -170,7 +268,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
+                SizedBox(height: 14),
               ],
             ),
           ),
@@ -179,77 +277,163 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     );
   }
 
+  /// Upload new logo via business profile API
+  Future<void> _onEditLogo(String imagePath) async {
+    try {
+      _businessController.imagePath?.value = imagePath;
+      dio.MultipartFile? imageByPart;
+      if (imagePath.isNotEmpty) {
+        final fileName = imagePath.split('/').last;
+        imageByPart = await dio.MultipartFile.fromFile(imagePath, filename: fileName);
+      }
+      final reqData = {
+        ApiKeys.businessId: businessId,
+        ApiKeys.logo_image: imageByPart,
+      };
+      await _businessController.updateBusinessDetails(reqData);
+    } catch (e) {
+      commonSnackBar(message: AppStrings.updatePictureFailed);
+    }
+  }
+
+  /// Upload new cover via business profile API
+  Future<void> _onEditCover(BusinessProfile? profile) async {
+    try {
+      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+        context,
+        AppStrings.editCoverPicture,
+        cropAspectRatio: CropAspectRatio(width: 3, height: 1),
+      );
+
+      if (newPath == null || newPath.isEmpty) return;
+
+      _businessController.coverImage?.value = newPath;
+
+      final file = File(newPath);
+      final compressed = await FlutterImageCompress.compressAndGetFile(
+        file.absolute.path,
+        "${file.path}_compressed.jpg",
+        quality: 75,
+      );
+
+      final dataImage = await multiPartImage(
+        imagePath: compressed?.path ?? newPath,
+      );
+
+      if (dataImage == null) {
+        commonSnackBar(message: AppStrings.imageProcessingFailed);
+        return;
+      }
+
+      final reqProfile = {
+        ApiKeys.businessId: businessId,
+        ApiKeys.business_name: profile?.businessName,
+        "coverPicture": dataImage,
+      };
+      await _businessController.updateBusinessProfileDetails(reqProfile);
+    } catch (e) {
+      commonSnackBar(message: AppStrings.updatePictureFailed);
+    }
+  }
+
+  Widget _circleIconButton(IconData icon) {
+    return Container(
+      padding: EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 18, color: AppColors.mainTextColor),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // UPLOAD PRESCRIPTION
+  // ─────────────────────────────────────────────
   Widget _buildUploadPrescription() {
-    return CommonCardWidget(
-      cardMargin: 0,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Row(
+          children: [
+            Icon(Icons.upload_file, color: AppColors.primaryColor, size: 28),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.upload_file, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
                   CustomText(
                     'Upload Prescription',
-                    color: Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: 15,
+                    color: AppColors.primaryColor,
+                  ),
+                  CustomText(
+                    'Schedule Your Visit Early',
+                    fontSize: 11,
+                    color: AppColors.secondaryTextColor,
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.phone, color: AppColors.primaryColor, size: 20),
             ),
-            child: Icon(Icons.phone, color: AppColors.primaryColor, size: 22),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPopularProducts(List<MedicalPopularProduct> products) {
-    return CommonCardWidget(
-      padding: 10,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ServiceHomeTitleWidget(title: 'Our Popular Medical Products'),
-          SizedBox(height: SizeConfig.size8),
-          SizedBox(
-            height: 180,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: products.length.clamp(0, 10),
-              separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-              itemBuilder: (_, i) => _productCard(products[i]),
+  // ─────────────────────────────────────────────
+  // POPULAR PRODUCTS (ss7)
+  // ─────────────────────────────────────────────
+  Widget _buildPopularProducts(List<PopularProduct> products) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        padding: 10,
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ServiceHomeTitleWidget(title: 'Our Popular Medical Products'),
+            SizedBox(height: SizeConfig.size10),
+            SizedBox(
+              height: 230,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: products.length.clamp(0, 10),
+                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+                itemBuilder: (_, i) => _popularProductCard(products[i]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _productCard(MedicalPopularProduct product) {
-    final imageUrl = product.images?.firstOrNull?.url;
-    final variant = product.variants?.firstOrNull;
-    final pricing = variant?.pricing;
+  Widget _popularProductCard(PopularProduct item) {
+    final productName = item.product?.name ?? item.variant?.variantName ?? '';
+    final description = item.product?.description ?? '';
+    final imageUrl = item.product?.images?.firstOrNull?.url ??
+        item.variant?.images?.firstOrNull?.url;
+    final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
+    final sellingPrice = item.batches?.sellingPrice ??
+        item.variant?.pricing?.firstOrNull?.sellingPrice;
+    final discount = (mrp != null && sellingPrice != null && mrp > 0)
+        ? (((mrp - sellingPrice) / mrp) * 100).toInt()
+        : 0;
 
     return Container(
-      width: 140,
+      width: 150,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -259,8 +443,9 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Product Image
           SizedBox(
-            height: 90,
+            height: 100,
             width: double.infinity,
             child: imageUrl != null
                 ? CachedNetworkImage(
@@ -269,14 +454,15 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     placeholder: (_, __) => Container(color: Colors.grey.shade100),
                     errorWidget: (_, __, ___) => Container(
                       color: Colors.grey.shade100,
-                      child: const Icon(Icons.image_outlined, color: Colors.grey),
+                      child: Icon(Icons.image_outlined, color: Colors.grey),
                     ),
                   )
                 : Container(
                     color: Colors.grey.shade100,
-                    child: const Icon(Icons.image_outlined, color: Colors.grey),
+                    child: Icon(Icons.image_outlined, color: Colors.grey),
                   ),
           ),
+          // Info
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8),
@@ -284,39 +470,52 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    product.name ?? '',
+                    productName,
                     fontSize: 12,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 4),
-                  if (variant != null)
+                  SizedBox(height: 2),
+                  if (description.isNotEmpty)
                     CustomText(
-                      '${variant.weight?.toInt() ?? ''} ${variant.unit ?? ''}',
+                      description,
                       fontSize: 10,
-                      color: Colors.grey,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      color: AppColors.secondaryTextColor,
                     ),
-                  const Spacer(),
-                  if (pricing != null)
-                    Row(
-                      children: [
-                        CustomText(
-                          '₹${pricing.sellingPrice ?? pricing.mrp ?? ''}',
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryColor,
-                        ),
-                        if (pricing.mrp != null && pricing.sellingPrice != null && pricing.mrp != pricing.sellingPrice) ...[
-                          const SizedBox(width: 4),
-                          CustomText(
-                            '₹${pricing.mrp}',
+                  Spacer(),
+                  // Price row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      CustomText(
+                        '₹${sellingPrice ?? mrp ?? ''}',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.mainTextColor,
+                      ),
+                      if (mrp != null && sellingPrice != null && mrp != sellingPrice) ...[
+                        SizedBox(width: 4),
+                        Text(
+                          '₹$mrp',
+                          style: TextStyle(
                             fontSize: 10,
                             color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
                           ),
-                        ],
+                        ),
+                        SizedBox(width: 4),
+                        CustomText(
+                          '$discount% Off',
+                          fontSize: 10,
+                          color: AppColors.green00,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ],
-                    ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -326,155 +525,303 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     );
   }
 
-  Widget _buildGallery(List<MedicalGallery> galleries) {
-    final List<String> allImages = galleries
-        .expand((g) => g.imageUrls ?? <String>[])
-        .toList();
-    if (allImages.isEmpty) return const SizedBox.shrink();
+  // ─────────────────────────────────────────────
+  // UPDATE YOUR MEDICAL PRODUCTS (ss8) - Static 6 categories
+  // ─────────────────────────────────────────────
+  Widget _buildUpdateMedicalProducts(List<CategoryWithProducts> apiCategories) {
+    // Build a set of API category keys that have products
+    final activeKeys = <String>{};
+    for (final cat in apiCategories) {
+      if (cat.key != null && cat.hasProducts) activeKeys.add(cat.key!);
+    }
 
-    return CommonCardWidget(
-      padding: 10,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ServiceHomeTitleWidget(title: AppStrings.gallery),
-          const SizedBox(height: 12),
-          StaggeredGrid.count(
-            crossAxisCount: 4,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            children: List.generate(
-              allImages.length > 10 ? 10 : allImages.length,
-              (index) {
-                int crossAxisCellCount = 2;
-                num mainAxisCellCount = 2;
-
-                if (index % 6 == 0 || index % 6 == 5) {
-                  crossAxisCellCount = 2;
-                  mainAxisCellCount = 3;
-                } else if (index % 6 == 3) {
-                  crossAxisCellCount = 4;
-                  mainAxisCellCount = 2;
-                } else {
-                  crossAxisCellCount = 2;
-                  mainAxisCellCount = 1.5;
-                }
-
-                return StaggeredGridTile.count(
-                  crossAxisCellCount: crossAxisCellCount,
-                  mainAxisCellCount: mainAxisCellCount,
-                  child: InkWell(
-                    onTap: () => navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: AppStrings.imageViewer,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: allImages,
-                        initialIndex: index,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        allImages[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        padding: 12,
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ServiceHomeTitleWidget(title: 'Update Your Medical Products'),
+            SizedBox(height: SizeConfig.size12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _staticCategories.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: SizeConfig.size10,
+                mainAxisSpacing: SizeConfig.size10,
+                childAspectRatio: 0.85,
+              ),
+              itemBuilder: (context, index) {
+                final cat = _staticCategories[index];
+                final hasProducts = activeKeys.contains(cat['key']);
+                return _staticCategoryCard(cat, hasProducts, apiCategories);
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildContact(MedicalContactInfo? contact, MedicalProfile? profile) {
-    if (contact == null) return const SizedBox.shrink();
-    final loc = contact.location;
+  Widget _staticCategoryCard(
+    Map<String, String> category,
+    bool hasProducts,
+    List<CategoryWithProducts> apiCategories,
+  ) {
+    return InkWell(
+      onTap: () {
+        // Find the matching API category by key
+        final apiCat = apiCategories.cast<CategoryWithProducts?>().firstWhere(
+              (c) => c?.key == category['key'],
+              orElse: () => null,
+            );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonCardWidget(
-          padding: 5,
+        if (apiCat == null || apiCat.children == null || apiCat.children!.isEmpty) {
+          commonSnackBar(message: 'No data found');
+          return;
+        }
+
+        Get.to(() => MedicalInventoryCategoryScreen(
+              title: apiCat.name ?? category['title'] ?? '',
+              children: apiCat.children!,
+            ));
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: AppColors.whiteF3,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              category['image']!,
+              width: 50,
+              height: 50,
+              fit: BoxFit.contain,
+            ),
+            SizedBox(height: 6),
+            CustomText(
+              category['title'],
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              color: Colors.blueGrey.shade700,
+            ),
+            if (hasProducts)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(Icons.check_circle, color: AppColors.green00, size: 14),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // GALLERY (ss9) - Grid with Add More → full gallery screen
+  // ─────────────────────────────────────────────
+  Widget _buildGallerySection() {
+    return Obx(() {
+      // Collect all images from gallery controller
+      final allImages = <String>[];
+      for (final entry in _galleryController.galleryList) {
+        allImages.addAll(entry.imageUrls ?? []);
+      }
+
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: CommonCardWidget(
+          padding: 10,
           cardMargin: 0,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 6),
-                child: ServiceHomeTitleWidget(title: AppStrings.contactUs),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ServiceHomeTitleWidget(title: AppStrings.gallery),
+                  InkWell(
+                    onTap: () => Get.to(() => MedicalGalleryListScreen()),
+                    child: CustomText(
+                      'Add More',
+                      fontSize: 13,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[200]!),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (profile?.logoUrl?.isNotEmpty ?? false)
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
-                          image: DecorationImage(
-                            image: NetworkImage(profile!.logoUrl!),
+              SizedBox(height: 12),
+              if (allImages.isNotEmpty)
+                StaggeredGrid.count(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 6,
+                  crossAxisSpacing: 6,
+                  children: List.generate(
+                    allImages.length > 9 ? 9 : allImages.length,
+                    (index) => StaggeredGridTile.count(
+                      crossAxisCellCount: index == 0 ? 2 : 1,
+                      mainAxisCellCount: index == 0 ? 2 : 1,
+                      child: InkWell(
+                        onTap: () => navigatePushTo(
+                          context,
+                          ImageViewScreen(
+                            subTitle: AppStrings.imageViewer,
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: allImages,
+                            initialIndex: index,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            allImages[index],
                             fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: Colors.grey[200],
+                              child: Icon(Icons.broken_image, color: Colors.grey),
+                            ),
                           ),
                         ),
                       ),
-                    const SizedBox(height: 10),
-                    CustomText(profile?.name, fontSize: 16, fontWeight: FontWeight.bold),
-                    if (profile?.description?.isNotEmpty ?? false) ...[
-                      const SizedBox(height: 5),
-                      CustomText(
-                        profile!.description!,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+              else
+                // Empty: 6-slot placeholder grid
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: 6,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 6,
+                  ),
+                  itemBuilder: (_, i) => InkWell(
+                    onTap: () => Get.to(() => MedicalGalleryListScreen()),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
-                    ],
-                    const Divider(height: 20),
-                    if (contact.websiteUrl?.isNotEmpty ?? false)
-                      _contactItem(AppIconAssets.website_click, contact.websiteUrl!, AppColors.primaryColor),
-                    if (contact.name?.isNotEmpty ?? false)
-                      _contactItem(AppIconAssets.principal, contact.name!, Colors.grey[700]!),
-                    if (contact.email?.isNotEmpty ?? false)
-                      _contactItem(AppIconAssets.email, contact.email!, AppColors.secondaryTextColor),
-                    if (contact.phoneNo?.isNotEmpty ?? false)
-                      _contactItem(AppIconAssets.phone_outline, contact.phoneNo!, AppColors.secondaryTextColor),
-                    if (loc?.name?.isNotEmpty ?? false)
-                      _contactItem(AppIconAssets.location_new, loc!.name!, Colors.grey[700]!),
-                  ],
+                      child: Icon(Icons.add_photo_alternate_outlined,
+                          color: Colors.grey.shade400, size: 30),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
-        if (loc?.coordinates != null && loc!.coordinates!.length >= 2) ...[
-          SizedBox(height: SizeConfig.size16),
-          BusinessLocationWidget(
-            locationText: "",
-            latitude: loc.coordinates![1],
-            longitude: loc.coordinates![0],
-            businessName: loc.name ?? "",
-            padding: 0,
-            isTitleShow: true,
+      );
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // CONTACT US (ss10) + Google Map
+  // ─────────────────────────────────────────────
+  Widget _buildContactSection(BusinessProfile? profile) {
+    if (profile == null) return const SizedBox.shrink();
+    final loc = profile.businessLocation;
+    final phone = profile.businessNumber?.formattedMobile;
+    final owner = profile.ownerDetails?.firstOrNull;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        children: [
+          CommonCardWidget(
+            padding: 5,
+            cardMargin: 0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 6),
+                  child: ServiceHomeTitleWidget(title: AppStrings.contactUs),
+                ),
+                SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[200]!),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Logo + Name
+                      if (profile.logo != null && profile.logo!.isNotEmpty)
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                            image: DecorationImage(
+                              image: NetworkImage(profile.logo!),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 10),
+                      CustomText(
+                        profile.businessName,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      if (profile.businessDescription?.isNotEmpty ?? false) ...[
+                        SizedBox(height: 5),
+                        CustomText(
+                          profile.businessDescription!,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          fontSize: 13,
+                        ),
+                      ],
+                      Divider(height: 20),
+                      // Contact items
+                      if (profile.websiteUrl?.isNotEmpty ?? false)
+                        _contactItem(AppIconAssets.website_click, profile.websiteUrl!, AppColors.primaryColor),
+                      if (owner?.name?.isNotEmpty ?? false)
+                        _contactItem(AppIconAssets.principal, owner!.name!, Colors.grey[700]!),
+                      if (owner?.email?.isNotEmpty ?? false)
+                        _contactItem(AppIconAssets.email, owner!.email!, AppColors.secondaryTextColor),
+                      if (phone != null)
+                        _contactItem(AppIconAssets.phone_outline, phone, AppColors.secondaryTextColor),
+                      if (profile.address?.isNotEmpty ?? false)
+                        _contactItem(AppIconAssets.location_new, profile.address!, Colors.grey[700]!),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          // Google Map
+          if (loc?.lat != null && loc?.lon != null) ...[
+            SizedBox(height: SizeConfig.size16),
+            BusinessLocationWidget(
+              locationText: "",
+              latitude: loc!.lat!,
+              longitude: loc.lon!,
+              businessName: profile.businessName ?? "",
+              padding: 0,
+              isTitleShow: true,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -482,10 +829,19 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LocalAssets(imagePath: icon, imgColor: iconColor, height: 20, width: 20),
-          const SizedBox(width: 12),
-          Expanded(child: CustomText(label, color: AppColors.mainTextColor)),
+          LocalAssets(imagePath: icon, imgColor: iconColor, height: 18, width: 18),
+          SizedBox(width: 12),
+          Expanded(
+            child: CustomText(
+              label,
+              color: AppColors.mainTextColor,
+              fontSize: 13,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

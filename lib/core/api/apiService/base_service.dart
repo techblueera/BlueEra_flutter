@@ -570,13 +570,13 @@ abstract class BaseService {
   final String missingGroceryProductRequests = 'grocery-service/api/missing-product-requests/bulk';
   final String groceryNestedCategory = 'grocery-service/api/categories/nested';
   final String groceryNestedCategoryWithInventory = 'grocery-service/api/categories/nested/with-inventory';
-  final String getMedicalCategoryApi = "health-service/api/ms/categories";
-  String getMedicalAdminProduct(String orderId) => "health-service/api/ms/products";
-  String postMedicalAddProduct = "health-service/api/ms/products";
+  final String getMedicalCategoryApi = "medical-service/categories";
+  String getMedicalAdminProduct(String orderId) => "medical-service/products";
+  String postMedicalAddProduct = "medical-service/products";
 
-  String getProductVarient(String productId) => "ms/product-variants/product/$productId";
-  String addProductVarient = "health-service/api/ms/product-variants";
-  String putProductVarient(String varientId) => "health-service/api/ms/product-variants/$varientId";
+  String getProductVarient(String productId) => "medical-service/product-variants/product/$productId";
+  String addProductVarient = "medical-service/product-variants";
+  String putProductVarient(String varientId) => "medical-service/product-variants/$varientId";
 
 
   final String updateLiveLocation = 'map-service/api/provider/location';
@@ -702,23 +702,62 @@ abstract class BaseService {
   final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
   final String makeTransportBookOrder = 'rider-service/fare/orders';
 
-  final String searchMedicalCategory = 'health-service/api/ms/products/admin/all';
-  // final String searchMedicalCategory = 'health-service/api/ms/products/search';
-  final String userSearchMedicalCategory = 'health-service/api/ms/products/user/search';
-  String createNewMedicalProductVariant(String productId) => 'health-service/api/ms/products/$productId/variants';
-  final String myMedicalProducts = 'health-service/api/ms/inventory/my-products';
-  final String addMedicalProductVariant = 'health-service/api/ms/inventory';
-  final String medicalCategoryWithVariant = 'health-service/api/ms/categories/with-inventory';
-  final String medicalOrder = "health-service/api/ms/orders";
-  String updateMedicalOrder(String orderId) => "health-service/api/ms/orders/$orderId";
-  String medicalServiceOrder(String orderId) =>  'health-service/api/ms/orders/$orderId/alternatives';
-  final String medicalNestedCategory = 'health-service/api/ms/categories/nested';
-  String medicalProfileFd(String businessId) => 'health-service/api/ms/medical-profile/$businessId';
+  final String searchMedicalCategory = 'medical-service/products/search';
+  final String userSearchMedicalCategory = 'medical-service/products/user/search';
+  String createNewMedicalProductVariant(String productId) => 'medical-service/products/$productId/variants';
+  final String myMedicalProducts = 'medical-service/inventory/my-products';
+  final String addMedicalProductVariant = 'medical-service/inventory';
+  final String medicalCategoryWithVariant = 'medical-service/categories/with-inventory';
+  final String medicalOrder = "medical-service/orders";
+  String updateMedicalOrder(String orderId) => "medical-service/orders/$orderId";
+  String medicalServiceOrder(String orderId) => 'medical-service/orders/$orderId/alternatives';
+  final String medicalNestedCategory = 'medical-service/categories/nested';
+  String medicalProfileFd(String businessId) => 'medical-service/profile/home/$businessId';
   final String medicalOrderUpdatePaymentStatus = 'rider-service/medical/orders/payment-status';
   final String medicalOrderAvailableItem = 'rider-service/medical/orders/available-items';
   final String myMedicalOrders = 'rider-service/medical/orders/business';
   final String ridersMedicalOrders = 'rider-service/riders/orders/medical/';
   static final String medicalRiderOrderStream = "riders/orders/stream/medical/$userId";
+
+  /// Medical - Inventory CRUD
+  String updateMedicalInventory(String inventoryId) => 'medical-service/inventory/$inventoryId';
+  String deleteMedicalInventory(String inventoryId) => 'medical-service/inventory/$inventoryId';
+
+  /// Medical - Variant Update/Delete
+  String updateMedicalVariant(String variantId) => 'medical-service/products/variants/$variantId';
+  String deleteMedicalVariant(String variantId) => 'medical-service/products/variants/$variantId';
+
+  /// Medical - Change Requests
+  final String medicalChangeRequests = 'medical-service/products/variants/change-requests';
+  String approveMedicalChangeRequest(String requestId) => 'medical-service/products/variants/change-requests/$requestId/approve';
+  String rejectMedicalChangeRequest(String requestId) => 'medical-service/products/variants/change-requests/$requestId/reject';
+
+  /// Medical - Missing Product Requests
+  final String medicalMissingProductRequests = 'medical-service/missing-product-requests';
+  final String medicalMissingProductRequestsBulk = 'medical-service/missing-product-requests/bulk';
+  final String medicalMissingProductRequestsMy = 'medical-service/missing-product-requests/my';
+
+  /// Medical - Smart Cart
+  final String medicalSnapSearch = 'medical-service/smart-cart/snap-search';
+
+  /// Medical - Profile
+  final String medicalProfileAboutUs = 'medical-service/profile/about-us';
+  final String medicalProfileContact = 'medical-service/profile/contact';
+  final String medicalProfileTestimonials = 'medical-service/profile/testimonials';
+  String medicalProfileTestimonialById(String id) => 'medical-service/profile/testimonials/$id';
+  String medicalProfileTestimonialToggle(String id) => 'medical-service/profile/testimonials/$id/toggle-status';
+  final String medicalProfileGallery = 'medical-service/profile/gallery';
+  String medicalProfileGalleryById(String id) => 'medical-service/profile/gallery/$id';
+  String medicalProfileGalleryDeleteImage(String id) => 'medical-service/profile/gallery/$id/images';
+  final String medicalProfileNearest = 'medical-service/profile/nearest';
+
+  /// Medical - Upload
+  final String medicalUploadInit = 'medical-service/upload/init';
+
+  /// Medical - Orders (Business)
+  final String medicalOrdersStatusMe = 'medical-service/orders/status/me';
+  final String medicalOrdersMe = 'medical-service/orders/me';
+
   final String aiLabsService = 'ai-service/api/ai-labs/generate-lab';
   final String  labServiceGallery= 'lab-service/gallery';
   final String  labServiceContactUs= 'lab-service/contact-us';

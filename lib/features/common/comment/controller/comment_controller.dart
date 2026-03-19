@@ -303,7 +303,6 @@ class CommentController extends GetxController {
       Map<String, dynamic> reqParm = {
         ApiKeys.postId: postID,
         ApiKeys.language: selectedLanguage.value,
-        ApiKeys.emotion: selectedEmotion.value,
         ApiKeys.commentType: selectedCommentType.value,
       };
       ResponseModel responseModel =
@@ -322,7 +321,6 @@ class CommentController extends GetxController {
       Map<String, dynamic> reqParm = {
         ApiKeys.commentId: commentID,
         ApiKeys.language: selectedLanguage.value,
-        ApiKeys.emotion: selectedEmotion.value,
         ApiKeys.commentType: selectedCommentType.value,
       };
       ResponseModel responseModel =
@@ -361,16 +359,14 @@ class CommentController extends GetxController {
 
   bool get isFormValid =>
       selectedLanguage.value.isNotEmpty &&
-      selectedEmotion.value.isNotEmpty &&
-          selectedCommentType.value.isNotEmpty &&
+      selectedCommentType.value.isNotEmpty &&
       !isGenerated.value;
 
   void clearAiContent() {
     selectedLanguage.value = "";
-    selectedEmotion.value = "";
     selectedCommentType.value = "";
     selectedSuggestion.value = "";
-    isGenerated.value=false;
+    isGenerated.value = false;
     suggestions.clear();
   }
 }

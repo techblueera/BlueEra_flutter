@@ -110,6 +110,7 @@ import 'package:BlueEra/features/me/medical_new/model/my_medical_products_respon
 import 'package:BlueEra/features/me/medical_new/view/add_medical_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_variant_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_category_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_home_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_cart_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_confirm_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_listing_screen.dart';
@@ -543,6 +544,9 @@ class RouteHelper {
 
   static String getMedicalConfirmScreenRoute() =>
       RouteConstant.medicalConfirmScreen;
+
+  static String getMedicalHomeScreenRoute() =>
+      RouteConstant.medicalHomeScreen;
 
   static String getHospitalDepartmentsScreenRoute() =>
       RouteConstant.hospitalDepartmentsScreen;
@@ -1709,6 +1713,14 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => MedicalConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getMedicalConfirmScreenRoute())
+        );
+
+      case RouteConstant.medicalHomeScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String argBusinessId = args[ApiKeys.argBusinessId] as String;
+        return MaterialPageRoute(
+            builder: (_) => MedicalHomeScreen(businessId: argBusinessId),
+            settings: RouteSettings(name: getMedicalHomeScreenRoute())
         );
 
        case RouteConstant.groceryOrFoodStoresScreen:

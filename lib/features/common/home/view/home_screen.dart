@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> iconTab = [
     AppIconAssets.message_post,
     AppIconAssets.community_tab,
-    AppIconAssets.ott_tab,
+    // AppIconAssets.ott_tab,
     // AppIconAssets.save_tab,
   ];
   final List<String> postTab = [
@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppStrings.lekha,
     // AppStrings.channel,
     "Community",
-    AppStrings.tab_ott,
+    // AppStrings.tab_ott,
     // AppStrings.tab_saved,
   ];
   int selectedIndex = 0;
@@ -267,10 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         headerHeight: _headerHeight,
                         onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                       ),
-                      OttScreen(
-                        headerHeight: _headerHeight,
-                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                      ),
+                      // OttScreen(
+                      //   headerHeight: _headerHeight,
+                      //   onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                      // ),
                     ],
                   ),
                 ),
@@ -311,13 +311,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.start,
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Row(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                                CrossAxisAlignment.center,
                                             mainAxisAlignment:
-                                                MainAxisAlignment.start,
+                                                MainAxisAlignment.center,
                                             children: [
                                               LocalAssets(
                                                 imagePath: iconTab[index],

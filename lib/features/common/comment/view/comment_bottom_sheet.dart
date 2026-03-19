@@ -512,7 +512,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                 ),
               ),
 
-            // 🟩 AI Generate icon (visible when input is empty)
+        /*    // 🟩 AI Generate icon (visible when input is empty)
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
               child: isAiVisible
@@ -564,76 +564,75 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       ),
                     )
                   : const SizedBox.shrink(),
-            ),
+            ),*/
 
-            // 🟨 Text field + send button row
+            // 🟨 Text field + send button row (ss13 style)
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.greyE5),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0, left: 5),
-                          child: LocalAssets(
-                            imagePath: AppIconAssets.chat_box_smile,
-                            imgColor: AppColors.coloGreyText,
-                          ),
+                  child: TextField(
+                    focusNode: commentController.replyFocusNode,
+                    controller: commentController.sendMessageController,
+                    style: const TextStyle(color: Colors.black, fontSize: 14),
+                    onChanged: (value) => setState(() {}),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 3,
+                    minLines: 1,
+                    decoration: InputDecoration(
+                      hintText: AppStrings.writeComment.tr.isNotEmpty
+                          ? AppStrings.writeComment.tr
+                          : 'Post your reply',
+                      hintStyle: TextStyle(
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: AppColors.primaryColor),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      isDense: true,
+                      suffixIcon: IconButton(
+                        onPressed: () async {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+                            return;
+                          }
+                          final replyingTo = commentController.replyingToUser.value;
+                          try {
+                            await Get.to(() => PostAiCommentScreen(
+                                  dataId: replyingTo != null
+                                      ? (commentController.parentCommentId ?? widget.id)
+                                      : widget.id,
+                                  commentType: replyingTo != null
+                                      ? "comment_reply"
+                                      : "comment",
+                                ));
+                            setState(() {});
+                          } catch (e) {
+                            logs("ERROR $e");
+                          }
+                        },
+                        icon: LocalAssets(
+                          imagePath: AppIconAssets.ai_generative,
+                          width: 22,
+                          height: 22,
                         ),
-                        Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 120),
-                            child: Scrollbar(
-                              child: TextFormField(
-                                focusNode: commentController.replyFocusNode,
-                                controller:
-                                    commentController.sendMessageController,
-                                style: const TextStyle(color: Colors.black),
-                                onChanged: (value) {
-                                  setState(() {}); // rebuild UI when typing
-                                },
-                                keyboardType: TextInputType.multiline,
-                                maxLines: null,
-                                minLines: 1,
-                                decoration: InputDecoration(
-                                  hintText: AppStrings.writeComment.tr,
-                                  fillColor: Colors.transparent,
-                                  filled: true,
-                                  isDense: true,
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  disabledBorder: InputBorder.none,
-                                  hintStyle: TextStyle(
-                                    color: AppColors.greyBf,
-                                    fontSize: SizeConfig.size14,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 5,
-                                    horizontal: 5,
-                                  ),
-                                  // fillColor: Colors.transparent,
-                                  // filled: true,
-                                  // border: InputBorder.none,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(width: SizeConfig.size10),
+                SizedBox(width: SizeConfig.size8),
                 InkWell(
                   onTap: commentController.sendMessageController.text
                           .trim()
@@ -641,7 +640,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       ? () {
                           if (commentController.isSendCommentLoading.isTrue)
                             return;
-
                           if (widget.commentType == CommentType.video) {
                             addVideoCommentToPost();
                           } else {
@@ -651,14 +649,14 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         }
                       : null,
                   child: Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: commentController.sendMessageController.text
                               .trim()
                               .isNotEmpty
                           ? AppColors.primaryColor
-                          : AppColors.greyB3,
-                      borderRadius: BorderRadius.circular(18),
+                          : Colors.grey.shade300,
+                      shape: BoxShape.circle,
                     ),
                     child: commentController.isSendCommentLoading.isTrue
                         ? const SizedBox(
@@ -669,12 +667,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               color: Colors.white,
                             ),
                           )
-                        : LocalAssets(
-                            height: 21,
-                            width: 21,
-                            imagePath: AppIconAssets.send_message_chat,
-                            imgColor: Colors.white,
-                          ),
+                        : const Icon(Icons.send, color: Colors.white, size: 18),
                   ),
                 ),
               ],

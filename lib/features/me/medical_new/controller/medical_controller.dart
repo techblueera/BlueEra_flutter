@@ -13,8 +13,12 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/my_medical_super_category_model.dart';
+import 'package:BlueEra/features/me/medical_new/model/medical_change_request_model.dart';
+import 'package:BlueEra/features/me/medical_new/model/missing_product_request_model.dart';
+import 'package:BlueEra/features/me/medical_new/model/snap_search_result_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/edit_medical_varient_dialog.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_varient_dialog.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/my_medical_products_response.dart';
@@ -239,12 +243,14 @@ class MedicalController extends GetxController {
         medicalCategoryProductsHasMore = true;
       }
 
-      // log('current tab key-- $currentTabKey');
+      final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+      String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
+
       Map<String, dynamic> queryParams = {
         ApiKeys.page: medicalCategoryProductsPage,
         ApiKeys.limit: pageLimit,
-     "search": selectedMedicalData.value?.key,
-        "categoryStatus":"all"
+        ApiKeys.searchTerm: selectedMedicalData.value?.key,
+        if (postalCode.isNotEmpty) ApiKeys.pincode: postalCode,
       };
 
       final response = await MedicalRepo()
@@ -538,12 +544,12 @@ class MedicalController extends GetxController {
       medicalNestedCategoryLoading.value = true;
       medicalNestedCategoryList.clear();
 
-      final cachedData = await HiveServices().getMedicalNestedCategories();
-      if (cachedData != null && cachedData.isNotEmpty) {
-        medicalNestedCategoryLoading.value = false;
-        medicalNestedCategoryList.assignAll(cachedData);
-        return;
-      }
+      // final cachedData = await HiveServices().getMedicalNestedCategories();
+      // if (cachedData != null && cachedData.isNotEmpty) {
+      //   medicalNestedCategoryLoading.value = false;
+      //   medicalNestedCategoryList.assignAll(cachedData);
+      //   return;
+      // }
 
       ResponseModel responseModel = await MedicalRepo().fetchGroceryNestedCategoryRepo();
       if (responseModel.isSuccess) {
@@ -566,5 +572,441 @@ class MedicalController extends GetxController {
     }
   }
 
+  // ─────────────────────────────────────────────
+  // INVENTORY UPDATE / DELETE
+  // ─────────────────────────────────────────────
+
+  RxBool isUpdateInventoryLoading = false.obs;
+  Future<void> updateInventory({
+    required String inventoryId,
+    required List<Map<String, dynamic>> batches,
+    int? reorderPoint,
+  }) async {
+    try {
+      isUpdateInventoryLoading.value = true;
+      Map<String, dynamic> body = {
+        ApiKeys.batches: batches,
+      };
+      if (reorderPoint != null) body['reorderPoint'] = reorderPoint;
+
+      ResponseModel response = await MedicalRepo().updateMedicalInventoryRepo(
+        inventoryId: inventoryId,
+        params: body,
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        return;
+      }
+
+      commonSnackBar(message: response.message ?? 'Inventory updated successfully');
+      update();
+    } catch (e, s) {
+      log('updateInventory error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isUpdateInventoryLoading.value = false;
+    }
+  }
+
+  RxBool isDeleteInventoryLoading = false.obs;
+  Future<void> deleteInventory({
+    required String inventoryId,
+    String? categoryId,
+  }) async {
+    try {
+      isDeleteInventoryLoading.value = true;
+
+      ResponseModel response = await MedicalRepo().deleteMedicalInventoryRepo(
+        inventoryId: inventoryId,
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        return;
+      }
+
+      commonSnackBar(message: response.message ?? 'Inventory deleted');
+      if (categoryId != null) {
+        fetchMyGroceryProducts(categoryId: categoryId);
+      }
+    } catch (e, s) {
+      log('deleteInventory error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isDeleteInventoryLoading.value = false;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // VARIANT UPDATE / DELETE
+  // ─────────────────────────────────────────────
+
+  RxBool isUpdateVariantLoading = false.obs;
+  Future<void> updateVariant({
+    required String variantId,
+    String? variantName,
+    List<Map<String, dynamic>>? pricing,
+  }) async {
+    try {
+      isUpdateVariantLoading.value = true;
+      Map<String, dynamic> body = {};
+      if (variantName != null) body['variantName'] = variantName;
+      if (pricing != null) body[ApiKeys.pricing] = pricing;
+
+      ResponseModel response = await MedicalRepo().updateMedicalVariantRepo(
+        variantId: variantId,
+        params: body,
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        return;
+      }
+
+      /// 200 = direct update (admin), 202 = change request submitted (business)
+      final statusCode = response.response?.statusCode;
+      if (statusCode == 202) {
+        commonSnackBar(message: 'Update request submitted for approval');
+      } else {
+        commonSnackBar(message: response.message ?? 'Variant updated');
+      }
+      update();
+    } catch (e, s) {
+      log('updateVariant error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isUpdateVariantLoading.value = false;
+    }
+  }
+
+  RxBool isDeleteVariantLoading = false.obs;
+  Future<void> deleteVariant({required String variantId}) async {
+    try {
+      isDeleteVariantLoading.value = true;
+
+      ResponseModel response = await MedicalRepo().deleteMedicalVariantRepo(
+        variantId: variantId,
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        return;
+      }
+
+      commonSnackBar(message: response.message ?? 'Variant deleted');
+      update();
+    } catch (e, s) {
+      log('deleteVariant error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isDeleteVariantLoading.value = false;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // CHANGE REQUESTS
+  // ─────────────────────────────────────────────
+
+  Rx<ApiResponse> changeRequestsResponse = ApiResponse.initial('Initial').obs;
+  RxList<MedicalChangeRequest> changeRequestsList = <MedicalChangeRequest>[].obs;
+
+  RxBool isChangeRequestsLoading = false.obs;
+  Future<void> fetchChangeRequests({
+    String status = 'pending',
+    int page = 1,
+    int limit = 20,
+  }) async {
+    try {
+      isChangeRequestsLoading.value = true;
+
+      ResponseModel response = await MedicalRepo().fetchMedicalChangeRequestsRepo(
+        queryParams: {
+          ApiKeys.status: status,
+          ApiKeys.page: page,
+          ApiKeys.limit: limit,
+        },
+      );
+
+      if (response.isSuccess) {
+        changeRequestsResponse.value = ApiResponse.complete(response);
+        final parsed = MedicalChangeRequestsResponse.fromJson(response.response?.data);
+        changeRequestsList.assignAll(parsed.data ?? []);
+      } else {
+        changeRequestsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      changeRequestsResponse.value = ApiResponse.error('error');
+      log('fetchChangeRequests error: $s');
+    } finally {
+      isChangeRequestsLoading.value = false;
+    }
+  }
+
+  Future<void> approveChangeRequest({required String requestId}) async {
+    try {
+      ResponseModel response = await MedicalRepo().approveMedicalChangeRequestRepo(
+        requestId: requestId,
+      );
+
+      if (response.isSuccess) {
+        changeRequestsList.removeWhere((r) => r.sId == requestId);
+        commonSnackBar(message: response.message ?? 'Change request approved');
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('approveChangeRequest error: $s');
+    }
+  }
+
+  Future<void> rejectChangeRequest({
+    required String requestId,
+    String? rejectionReason,
+  }) async {
+    try {
+      ResponseModel response = await MedicalRepo().rejectMedicalChangeRequestRepo(
+        requestId: requestId,
+        params: rejectionReason != null ? {'rejectionReason': rejectionReason} : null,
+      );
+
+      if (response.isSuccess) {
+        changeRequestsList.removeWhere((r) => r.sId == requestId);
+        commonSnackBar(message: response.message ?? 'Change request rejected');
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('rejectChangeRequest error: $s');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // MISSING PRODUCT REQUESTS
+  // ─────────────────────────────────────────────
+
+  Rx<ApiResponse> missingProductsResponse = ApiResponse.initial('Initial').obs;
+  RxList<MissingProductRequestData> myMissingProductRequests = <MissingProductRequestData>[].obs;
+
+  RxBool isMissingProductsLoading = false.obs;
+  Future<void> fetchMyMissingProductRequests({
+    String? status,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    try {
+      isMissingProductsLoading.value = true;
+      Map<String, dynamic> params = {
+        ApiKeys.page: page,
+        ApiKeys.limit: limit,
+      };
+      if (status != null) params[ApiKeys.status] = status;
+
+      ResponseModel response = await MedicalRepo().fetchMyMissingProductRequestsRepo(
+        queryParams: params,
+      );
+
+      if (response.isSuccess) {
+        missingProductsResponse.value = ApiResponse.complete(response);
+        final parsed = MyMissingProductRequestsResponse.fromJson(response.response?.data);
+        myMissingProductRequests.assignAll(parsed.data ?? []);
+      } else {
+        missingProductsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      missingProductsResponse.value = ApiResponse.error('error');
+      log('fetchMyMissingProductRequests error: $s');
+    } finally {
+      isMissingProductsLoading.value = false;
+    }
+  }
+
+  RxBool isCreateMissingProductLoading = false.obs;
+  Future<void> createMissingProductRequest({
+    required String name,
+    required String brand,
+    required String searchKeywords,
+    required String unit,
+    required num approxPrice,
+    required String cityName,
+    required String pincode,
+    String? productImagePath,
+  }) async {
+    try {
+      isCreateMissingProductLoading.value = true;
+      Map<String, dynamic> body = {
+        ApiKeys.name: name,
+        ApiKeys.brand: brand,
+        'searchKeywords': searchKeywords,
+        ApiKeys.unit: unit,
+        'approxPrice': approxPrice,
+        ApiKeys.cityName: cityName,
+        ApiKeys.pincode: pincode,
+      };
+
+      bool isMultipart = false;
+      if (productImagePath != null && productImagePath.isNotEmpty) {
+        final fileName = productImagePath.split('/').last;
+        body['productImage'] = await dio.MultipartFile.fromFile(
+          productImagePath,
+          filename: fileName,
+        );
+        isMultipart = true;
+      }
+
+      ResponseModel response = await MedicalRepo().createMissingProductRequestRepo(
+        params: body,
+        isMultipart: isMultipart,
+      );
+
+      if (response.isSuccess) {
+        commonSnackBar(message: response.message ?? 'Missing product request raised');
+        Get.back();
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('createMissingProductRequest error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isCreateMissingProductLoading.value = false;
+    }
+  }
+
+  RxBool isBulkMissingProductLoading = false.obs;
+  Future<void> createBulkMissingProductRequests({
+    required String cityName,
+    required String pincode,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    try {
+      isBulkMissingProductLoading.value = true;
+      Map<String, dynamic> body = {
+        ApiKeys.cityName: cityName,
+        ApiKeys.pincode: pincode,
+        'items': items,
+      };
+
+      ResponseModel response = await MedicalRepo().createBulkMissingProductRequestsRepo(
+        params: body,
+      );
+
+      if (response.isSuccess) {
+        commonSnackBar(message: response.message ?? 'Missing product requests raised');
+        Get.back();
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('createBulkMissingProductRequests error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isBulkMissingProductLoading.value = false;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // SMART CART (Snap & Search)
+  // ─────────────────────────────────────────────
+
+  Rx<ApiResponse> snapSearchResponse = ApiResponse.initial('Initial').obs;
+  final snapSearchResult = Rxn<SnapSearchData>();
+
+  RxBool isSnapSearchLoading = false.obs;
+  Future<void> snapSearch({required List<String> imagePaths}) async {
+    try {
+      isSnapSearchLoading.value = true;
+      snapSearchResult.value = null;
+
+      List<dio.MultipartFile> imageFiles = [];
+      for (final path in imagePaths) {
+        final fileName = path.split('/').last;
+        imageFiles.add(
+          await dio.MultipartFile.fromFile(path, filename: fileName),
+        );
+      }
+
+      Map<String, dynamic> params = {
+        ApiKeys.images: imageFiles,
+      };
+
+      ResponseModel response = await MedicalRepo().snapSearchRepo(params: params);
+
+      if (response.isSuccess) {
+        snapSearchResponse.value = ApiResponse.complete(response);
+        final parsed = SnapSearchResultModel.fromJson(response.response?.data);
+        snapSearchResult.value = parsed.data;
+      } else {
+        snapSearchResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      snapSearchResponse.value = ApiResponse.error('error');
+      log('snapSearch error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isSnapSearchLoading.value = false;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // BUSINESS ORDERS (status/me, orders/me)
+  // ─────────────────────────────────────────────
+
+  Rx<ApiResponse> orderStatusMeResponse = ApiResponse.initial('Initial').obs;
+
+  RxBool isOrderStatusMeLoading = false.obs;
+  Future<void> fetchOrderStatusMe() async {
+    try {
+      isOrderStatusMeLoading.value = true;
+      ResponseModel response = await MedicalRepo().fetchMedicalOrderStatusMeRepo();
+      if (response.isSuccess) {
+        orderStatusMeResponse.value = ApiResponse.complete(response);
+      } else {
+        orderStatusMeResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      orderStatusMeResponse.value = ApiResponse.error('error');
+      log('fetchOrderStatusMe error: $s');
+    } finally {
+      isOrderStatusMeLoading.value = false;
+    }
+  }
+
+  Rx<ApiResponse> ordersMeResponse = ApiResponse.initial('Initial').obs;
+
+  RxBool isOrdersMeLoading = false.obs;
+  Future<void> fetchOrdersMe({
+    int page = 1,
+    int limit = 10,
+    String? orderStatus,
+    String sortBy = 'createdAt',
+    String sortOrder = 'desc',
+  }) async {
+    try {
+      isOrdersMeLoading.value = true;
+      Map<String, dynamic> params = {
+        ApiKeys.page: page,
+        ApiKeys.limit: limit,
+        ApiKeys.sortBy: sortBy,
+        'sortOrder': sortOrder,
+      };
+      if (orderStatus != null) params['orderStatus'] = orderStatus;
+
+      ResponseModel response = await MedicalRepo().fetchMedicalOrdersMeRepo(
+        queryParams: params,
+      );
+      if (response.isSuccess) {
+        ordersMeResponse.value = ApiResponse.complete(response);
+      } else {
+        ordersMeResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      ordersMeResponse.value = ApiResponse.error('error');
+      log('fetchOrdersMe error: $s');
+    } finally {
+      isOrdersMeLoading.value = false;
+    }
+  }
 
 }

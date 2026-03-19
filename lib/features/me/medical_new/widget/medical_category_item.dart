@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -68,14 +69,24 @@ class MedicalCategoryItem extends StatelessWidget {
         width: SizeConfig.size30,
         height: SizeConfig.size30,
         fit: BoxFit.contain,
+        placeholderBuilder: (BuildContext context) => const CircularProgressIndicator(),
+        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+          return const Icon(
+            Icons.error_outline,
+            color: Colors.red,
+            size: 40,
+          );
+        },
       );
     } else {
       // Local asset (svg or png/jpg)
       return LocalAssets(
-        imagePath: path,
+        imagePath: AppIconAssets.place_holder_image,
+        // imagePath: path??AppIconAssets.place_holder_image,
         width: SizeConfig.size30,
         height: SizeConfig.size30,
         boxFix: BoxFit.contain,
+
       );
     }
   }
