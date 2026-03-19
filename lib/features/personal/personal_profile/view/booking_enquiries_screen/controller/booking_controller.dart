@@ -208,7 +208,7 @@ class BookingController extends GetxController {
           ApiKeys.longitude: longitude,
           ApiKeys.address: currentAddress.value,
         },
-        ApiKeys.instructions: instructionController.text,
+        if(instructionController.text.trim().isNotEmpty) ApiKeys.instructions: instructionController.text.trim(),
         ApiKeys.minFee: minFeeController.text.trim(),
         ApiKeys.maxFee: maxFeeController.text.trim(),
         ApiKeys.feeType: feeTypeController.text.trim(),
@@ -225,9 +225,12 @@ class BookingController extends GetxController {
 
         if (response.isSuccess) {
           addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
+          log("Can go back: ${Get.key.currentState?.canPop()}");
           Get.back(result: true);
           getBookingAvailability(id: id);
-          commonSnackBar(message: "Availability added");
+          Future.delayed(const Duration(milliseconds: 100), () {
+            commonSnackBar(message: "Availability added");
+          });
         } else {
           addUpdateAvailabilityResponse.value = ApiResponse.error('error');
           commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

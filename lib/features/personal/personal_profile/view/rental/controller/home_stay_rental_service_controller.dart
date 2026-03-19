@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
@@ -331,7 +330,7 @@ class HomeStayRentalServiceController extends GetxController{
         rentalId = response.response?.data['data']['_id'];
         print('rental id-- $rentalId');
 
-        await setEarnServiceOptData(true);
+        // await setEarnServiceOptData(true);
         nextStep();
       } else {
         addHomeStayRentalServiceResponse.value = ApiResponse.error('error');
@@ -403,7 +402,7 @@ class HomeStayRentalServiceController extends GetxController{
 
       if (response.isSuccess) {
         addHomeStayRentalServiceResponse.value = ApiResponse.complete(response);
-        await setEarnServiceOptData(true);
+        // await setEarnServiceOptData(true);
         nextStep();
       } else {
         addHomeStayRentalServiceResponse.value = ApiResponse.error('error');

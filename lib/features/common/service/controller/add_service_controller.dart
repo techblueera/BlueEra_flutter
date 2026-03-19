@@ -337,9 +337,9 @@ class AddServiceController extends GetxController {
         UploadProgressDialog.close();
         commonSnackBar(message: AppStrings.serviceAddedSuccess.tr);
 
-        if(providerType == ProviderType.user){
-          await setEarnServiceOptData(true);
-        }
+        // if(providerType == ProviderType.user){
+        //   await setEarnServiceOptData(true);
+        // }
         Get.close(2);
       } else {
         createServiceResponse.value = ApiResponse.error('error');

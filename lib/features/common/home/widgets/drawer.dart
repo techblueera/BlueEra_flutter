@@ -323,8 +323,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                 ),
               );
             } else {
-              Get.toNamed(
-                  RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+              if (userProfessionGlobal == DELIVERY_RIDER) {
+                Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+              } else {
+                Get.toNamed(
+                    RouteHelper.getEarnServiceScreenRoute());
+              }
             }
           },
         ),

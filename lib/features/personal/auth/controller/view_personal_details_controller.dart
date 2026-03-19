@@ -190,7 +190,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxDouble myProfileCompletionPercent = 0.0.obs;
 
   RxBool isRiderServiceUser = false.obs;
-  RxBool isEarnServiceUser = false.obs;
+  RxString isEarnServiceOpt = ''.obs;
   RxString userProfileType = userProfileTypeGlobal.obs;
 
   Future<void> viewPersonalProfile() async {
@@ -207,7 +207,6 @@ class ViewPersonalDetailsController extends GetxController {
       // ResponseModel response = await UserRepo().getUserById(userId: userId);
 
       if (responseModel.isSuccess) {
-        log('jbfsdjbfdskljbfkldsj');
         final data = responseModel.response?.data;
 
         personalProfileDetails.value =
@@ -299,10 +298,10 @@ class ViewPersonalDetailsController extends GetxController {
         /// Check Earn services
         isRiderServiceUser.value =
             personalProfileDetails.value.isRiderServiceUser ?? false;
-        isEarnServiceUser.value =
-            personalProfileDetails.value.isEarnServiceUser ?? false;
+        isEarnServiceOpt.value =
+            personalProfileDetails.value.isEarnServiceUser.toString();
         await setRiderServiceOptData(isRiderServiceUser.value);
-        await setEarnServiceOptData(isEarnServiceUser.value);
+        // await setEarnServiceOptData(isEarnServiceUser.value);
         // await getRiderServiceOptData();
         // await getEarnServiceOptData();
 
@@ -501,15 +500,13 @@ class ViewPersonalDetailsController extends GetxController {
       Navigator.push(Get.context!,
           MaterialPageRoute(builder: (context) => CreateProfileScreen()));
     } else {
-      Get.toNamed(
-          RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
-      );
 
-      // if (userProfessionGlobal == DELIVERY_RIDER) {
-      //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      // } else {
-      //   Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
-      // }
+      if (userProfessionGlobal == DELIVERY_RIDER) {
+        Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+      } else {
+        Get.toNamed(
+            RouteHelper.getEarnServiceScreenRoute());
+      }
 
       // Get.toNamed(
       //   RouteHelper.getAddServicesScreenRoute(),

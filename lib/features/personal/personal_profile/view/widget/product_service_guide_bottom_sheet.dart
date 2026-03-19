@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -62,14 +63,28 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             height: SizeConfig.size40,
             title: AppStrings.startListingNow,
             onTap: () {
-              Get.offNamedUntil(
-                RouteHelper.getAddProductScreenRoute(),
-                ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()),
-                arguments: {
-                  ApiKeys.id: userId,
-                  ApiKeys.providerType: ProviderType.user,
-                },
-              );
+              if (userProfessionGlobal == DELIVERY_RIDER) {
+                Get.offNamedUntil(
+                  RouteHelper.getAddProductScreenRoute(),
+                  ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()),
+                  arguments: {
+                    ApiKeys.id: userId,
+                    ApiKeys.providerType: ProviderType.user,
+                  },
+                );
+              } else {
+                Get.offNamedUntil(
+                  RouteHelper.getAddProductScreenRoute(),
+                  ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()),
+                  arguments: {
+                    ApiKeys.id: userId,
+                    ApiKeys.providerType: ProviderType.user,
+                  },
+                );
+
+              }
+
+
             },
             bgColor: AppColors.primaryColor,
             textColor: AppColors.white,

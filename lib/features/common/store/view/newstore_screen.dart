@@ -197,9 +197,12 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
                     false) {
                   Get.to(() => CreateProfileScreen());
                 } else {
-                  Get.toNamed(
-                      RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
-                  );
+                  if (userProfessionGlobal == DELIVERY_RIDER) {
+                    Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+                  } else {
+                    Get.toNamed(
+                        RouteHelper.getEarnServiceScreenRoute());
+                  }
                   // if(userProfessionGlobal == DELIVERY_RIDER){
                   //   Get.toNamed(RouteHelper
                   //       .getRiderServiceScreenRoute());

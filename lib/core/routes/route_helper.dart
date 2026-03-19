@@ -5,7 +5,6 @@ import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
-import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
@@ -157,7 +156,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/common/auth/model/onboarding_category_model.dart';
-import '../../features/me/grocery/model/my_grocery_products_response.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/me/medical/view/category/otc_items_page.dart';
@@ -1607,12 +1605,15 @@ class RouteHelper {
 
       case RouteConstant.addSelfServiceScreen:
         final args = settings.arguments as Map<String, dynamic>;
+        final bool argFromBottomNavBar = args[ApiKeys.argFromBottomNavBar] as bool;
         final EarnServiceTypes serviceSubType =
             args[ApiKeys.serviceSubType] as EarnServiceTypes;
         final String designation = args[ApiKeys.designation] as String;
         return MaterialPageRoute(
             builder: (_) => AddSelfServiceScreen(
-                designation: designation, serviceSubType: serviceSubType),
+               fromBottomNavBar: argFromBottomNavBar,
+                designation: designation,
+                serviceSubType: serviceSubType),
             settings: RouteSettings(name: getAddSelfServiceRoute()));
       case RouteConstant.createAccountTypeScreen:
         return MaterialPageRoute(

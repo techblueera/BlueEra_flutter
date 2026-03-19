@@ -35,8 +35,6 @@ class EarnServiceController extends GetxController{
   int ownProductDataPage = 1;
   bool ownProductDataHasMore = true;
 
-  /// Earn Service Opt flag
-  RxString isEarnServiceOpt = ''.obs;
   final List<EarnServiceOrdersStatus> earnServiceOrdersTabs = EarnServiceOrdersStatus.values;
   RxInt selectedEarnServiceOrderIndex = 0.obs;
 

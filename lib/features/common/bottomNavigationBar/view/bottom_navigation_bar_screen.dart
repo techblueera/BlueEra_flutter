@@ -34,6 +34,7 @@ import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/social/view/social_main.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
@@ -514,28 +515,27 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
-    String currentType = userProfileTypeGlobal;
+    final String currentType = userProfileTypeGlobal;
     log("userProfileTypeGlobal: $currentType");
 
-    return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
-        ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
-        : currentType == SOCIAL_PROFILE
-            ? SocialMainScreen()
-            : (currentType == PROFESSIONAL)
-                ? ProfessionalsMainScreen()
-                : PersonalProfileSetupNewScreen();
+    // Using a Switch statement makes it cleaner and easier to add new types
+    switch (currentType) {
+      case SELF_EMPLOYED:
+        return const EarnServiceScreen(fromBottomNavBar: true);
 
-    // return Obx(() {
-    //   String currentType = viewPersonalDetailsController.userProfileType.value;
-    //   log("userProfileTypeGlobal inside Obx: $currentType");
-    //   return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
-    //       ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
-    //       : currentType == SOCIAL_PROFILE
-    //           ? SocialMainScreen()
-    //           : (currentType == PROFESSIONAL)
-    //               ? ProfessionalsMainScreen()
-    //               : PersonalProfileSetupNewScreen();
-    // });
+      case GIG_WORKER:
+        return const EarnServiceAvailableOptionsScreen(fromBottomNavBar: true);
+
+      case SOCIAL_PROFILE:
+        return const SocialMainScreen();
+
+      case PROFESSIONAL:
+        return const ProfessionalsMainScreen();
+
+      default:
+      // This acts as your fallback (PersonalProfileSetupNewScreen)
+        return const PersonalProfileSetupNewScreen();
+    }
   }
 
   void _checkAndShowDialog() async {

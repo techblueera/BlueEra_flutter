@@ -594,7 +594,8 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
         maxLength: 300,
         maxLine: 4,
         isCounterVisible: true,
-        validator: ValidationMethod().instructionValidation
+        isValidate: false,
+        // validator: ValidationMethod().instructionValidation
     );
   }
 }

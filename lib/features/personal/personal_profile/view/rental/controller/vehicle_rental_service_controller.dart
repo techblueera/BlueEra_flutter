@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
@@ -373,7 +372,7 @@ class VehicleRentalServiceController extends GetxController {
         rentalId = response.response?.data['data']['_id'];
         print('rental id-- $rentalId');
 
-        await setEarnServiceOptData(true);
+        // await setEarnServiceOptData(true);
         nextStep();
       } else {
         addVehicleRentalServiceResponse.value = ApiResponse.error('error');
@@ -441,7 +440,7 @@ class VehicleRentalServiceController extends GetxController {
 
       if (response.isSuccess) {
         addVehicleRentalServiceResponse.value = ApiResponse.complete(response);
-        await setEarnServiceOptData(true);
+        // await setEarnServiceOptData(true);
         nextStep();
       } else {
         addVehicleRentalServiceResponse.value = ApiResponse.error('error');

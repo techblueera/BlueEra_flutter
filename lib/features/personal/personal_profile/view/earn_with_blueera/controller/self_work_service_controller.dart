@@ -14,6 +14,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/predefined_category_model.dart';
@@ -214,10 +215,10 @@ class SelfWorkServiceController extends GetxController{
     required EarnServiceTypes serviceSubType
   }) async {
 
-// 1. Validate Form Fields (TextInputs)
+    // 1. Validate Form Fields (TextInputs)
     if (!formKey.currentState!.validate()) return;
 
-// 2. Validate Dropdowns & Single Selections
+    // 2. Validate Dropdowns & Single Selections
     if (selectedExperienceYear.value == null) {
       commonSnackBar(message: 'Please select experience (Years)');
       return;
@@ -233,8 +234,7 @@ class SelfWorkServiceController extends GetxController{
       return;
     }
 
-// 3. Validate Multi-Selection Lists
-// Note: Using .isEmpty is safer for RxList than checking == null
+   // 3. Validate Multi-Selection Lists
     if (selectedServices.isEmpty) {
       commonSnackBar(message: 'Please select at least one Service Offered');
       return;
@@ -329,23 +329,32 @@ class SelfWorkServiceController extends GetxController{
 
         isCreateServiceLoading.value = false;
 
-        Get.offNamedUntil(
+        // Get.offNamedUntil(
+        //   RouteHelper.getAvailabilityScreenRoute(),
+        //   arguments: {
+        //     ApiKeys.argId: userId
+        //   }, // 1. The new page to push
+        //   (route) => route.settings.name == RouteHelper.getEarnServiceScreenRoute(),
+        // );
+
+        final controller = getOrPut(() => ViewPersonalDetailsController());
+        await controller.viewPersonalProfile();
+
+        Get.toNamed(
           RouteHelper.getAvailabilityScreenRoute(),
           arguments: {
             ApiKeys.argId: userId
-          }, // 1. The new page to push
-          ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()), // 2. Stop removing when you hit this page
+          },
         );
 
-        final controller = getOrPut(() => PersonalCreateProfileController());
 
-        controller.updateUserProfileDetails(params: {
-          ApiKeys.profession: SELF_EMPLOYED,
-          ApiKeys.designation: designation,
-        },
-          isFromProfileOnly: true,
-          showProgress: false
-        );
+        // controller.updateUserProfileDetails(params: {
+        //   ApiKeys.profession: SELF_EMPLOYED,
+        //   ApiKeys.designation: designation,
+        // },
+        //   isFromProfileOnly: true,
+        //   showProgress: false
+        // );
 
       } else {
         isCreateServiceLoading.value = false;

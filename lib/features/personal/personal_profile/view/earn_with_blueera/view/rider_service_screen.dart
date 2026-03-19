@@ -37,8 +37,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
 
-  final controller = getOrPut(() => EarnServiceController());
-  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final controller = getOrPut(() => DeliveryPartnerController());
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   bool allCompleted = false;
@@ -46,8 +45,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   @override
   void initState() {
+    _checkRiderServiceStatus();
     _checkRiderStatus();
-    // _checkRiderServiceStatus();
     _tabController = TabController(length: 3, vsync: this);
     super.initState();
   }
@@ -63,14 +62,20 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   @override
   void didPopNext() {
+    _checkRiderServiceStatus();
     _checkRiderStatus();
-    // _checkRiderServiceStatus();
   }
+
+  Future<void> _checkRiderServiceStatus() async {
+    await getRiderServiceOptData();
+    controller.isRiderServiceOpt.value = isRiderServiceOpt;
+    print('isRiderServiceUser -- ${controller.isRiderServiceOpt.value}');
+  }
+
 
   @override
   void dispose() {
     print('disposed');
-    deleteIfRegistered<EarnServiceController>();
     deleteIfRegistered<DeliveryPartnerController>();
     _tabController.dispose();
     RouteHelper.routeObserver.unsubscribe(this);
@@ -79,22 +84,27 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   void _checkRiderStatus() {
     /// check riding status
-    deliveryPartnerController.ridersOnboardingStatusRepoApi();
+    controller.ridersOnboardingStatusRepoApi();
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (deliveryPartnerController
+      final riderValue = controller.isRiderServiceOpt.value;
+      if(riderValue.isEmpty){
+        return _buildLoading();
+      }
+
+      if (controller
           .ridersOnboardingStatusResponse.value.status ==
           Status.COMPLETE) {
-        final stepStatus = deliveryPartnerController.stepStatus;
+        final stepStatus = controller.stepStatus;
         // Check if all completed
-        allCompleted = deliveryPartnerController
+        allCompleted = controller
             .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
         allStepsCompleted = stepStatus.values.every((status) => status == true);
-        final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
+        final riderOpt = controller.isRiderServiceOpt.value;
         if (riderOpt.isEmpty) {
           return _buildLoading();
         }
@@ -118,7 +128,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
 
   Widget _buildRiderEnabled(BuildContext context) {
-    final stepStatus = deliveryPartnerController.stepStatus;
+    final stepStatus = controller.stepStatus;
 
     // Check if all completed
     // Find first incomplete step
@@ -160,7 +170,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                           ? VehicleInformationRidingScreen(
                               screeName: 'from_tab_view',
                             )
-                          : deliveryPartnerController.riderOnboardingStatusData
+                          : controller.riderOnboardingStatusData
                                   .value?.verificationStatus == "approved"
                               ? DeliveryPartnerOrders()
                               : RiderProfileStatusScreen(

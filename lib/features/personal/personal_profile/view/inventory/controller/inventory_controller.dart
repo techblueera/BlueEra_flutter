@@ -524,12 +524,22 @@ class InventoryController extends GetxController {
         if((providerType==ProviderType.business)){
           navigateToInventory();
         }else{
-          await setEarnServiceOptData(true);
-          Get.until(
-                (route) =>
-            route.settings.name ==
-                RouteHelper.getEarnServiceAvailableOptionsScreenRoute(),
-          );
+          // await setEarnServiceOptData(true);
+          await setRiderServiceOptData(true);
+          if (userProfessionGlobal == DELIVERY_RIDER) {
+            Get.until(
+                  (route) =>
+              route.settings.name ==
+                  RouteHelper.getEarnServiceAvailableOptionsScreenRoute(),
+            );
+          } else {
+            Get.until(
+                  (route) =>
+              route.settings.name ==
+                  RouteHelper.getEarnServiceScreenRoute(),
+            );
+          }
+
         }
 
       } else {

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -187,15 +188,12 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
                       false) {
                     Get.to(() => CreateProfileScreen());
                   } else {
-                    Get.toNamed(
-                        RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
-                    );
-                    // if (userProfessionGlobal == DELIVERY_RIDER) {
-                    //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-                    // } else {
-                    //   Get.toNamed(
-                    //       RouteHelper.getEarnServiceScreenRoute());
-                    // }
+                    if (userProfessionGlobal == DELIVERY_RIDER) {
+                      Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+                    } else {
+                      Get.toNamed(
+                          RouteHelper.getEarnServiceScreenRoute());
+                    }
                   }
                 }
               },

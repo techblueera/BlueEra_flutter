@@ -2302,19 +2302,13 @@ class _PersonalProfileSetupNewScreenState
                       builder: (context) => CreateProfileScreen()));
             } else {
 
-              Get.toNamed(
-                  RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
-              );
 
-              // log('user work type-- $userProfessionGlobal');
-              // if (userProfessionGlobal == DELIVERY_RIDER
-              //     // || userWorkTypeGlobal == 'Delivery Partner'
-              //     ) {
-              //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-              // } else {
-              //
-              //   Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
-              // }
+              if (userProfessionGlobal == DELIVERY_RIDER) {
+                Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+              } else {
+                Get.toNamed(
+                    RouteHelper.getEarnServiceScreenRoute());
+              }
 
             }
           },

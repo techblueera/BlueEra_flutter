@@ -102,7 +102,7 @@ class SharedPreferenceUtils {
   static const businessType = 'businessType';
   static const notificationDeviceToken = 'notificationDeviceToken';
   static const isRiderServiceUser = 'isRiderServiceUser';
-  static const isEarnServiceUser = 'isEarnServiceUser';
+  // static const isEarnServiceUser = 'isEarnServiceUser';
   static const schoolIDKey = 'schoolIDKey';
   static const hotelIDKey = 'hotelIDKey';
   static const labIDKey = 'labIDKey';
@@ -478,10 +478,10 @@ setRiderServiceOptData(bool isRiderServiceUser) {
       SharedPreferenceUtils.isRiderServiceUser, isRiderServiceUser.toString());
 }
 
-setEarnServiceOptData(bool isEarnServiceUser) {
-  SharedPreferenceUtils.setSecureValue(
-      SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
-}
+// setEarnServiceOptData(bool isEarnServiceUser) {
+//   SharedPreferenceUtils.setSecureValue(
+//       SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
+// }
 
 getRiderServiceOptData() async {
   isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
@@ -489,12 +489,12 @@ getRiderServiceOptData() async {
       'false';
 }
 
-getEarnServiceOptData() async {
-  isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.isEarnServiceUser) ??
-      'false';
-  log('$isEarnServiceOpt');
-}
+// getEarnServiceOptData() async {
+//   isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
+//           SharedPreferenceUtils.isEarnServiceUser) ??
+//       'false';
+//   log('$isEarnServiceOpt');
+// }
 
 ///SET SCHOOL ID....
 setSchoolID(String schoolIDValue) {

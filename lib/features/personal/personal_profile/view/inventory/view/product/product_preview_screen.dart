@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -215,7 +217,11 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             // Get.toNamed(RouteHelper.getInventoryScreenRoute());
           }
         }else if(widget.providerType == ProviderType.user){
-          Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+          if (userProfessionGlobal == DELIVERY_RIDER) {
+            Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+          } else {
+            Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
+          }
         }else if(widget.providerType == ProviderType.channel){
           Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
         }

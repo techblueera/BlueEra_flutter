@@ -27,11 +27,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddSelfServiceScreen extends StatefulWidget {
+  final bool fromBottomNavBar;
   final String designation;
   final EarnServiceTypes serviceSubType;
 
   const AddSelfServiceScreen({
     super.key,
+    this.fromBottomNavBar = false,
     required this.designation,
     required this.serviceSubType});
 
@@ -66,6 +68,7 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: controller.designation,
+        isLeading: !widget.fromBottomNavBar
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -385,7 +388,7 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
                   ),
 
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 40 + kBottomNavigationBarHeight),
                 ],
               ),
             ),

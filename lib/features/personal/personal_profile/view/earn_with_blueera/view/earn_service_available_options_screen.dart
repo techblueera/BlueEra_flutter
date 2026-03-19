@@ -42,8 +42,6 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
   void initState() {
     log('user profession global -- $userProfessionGlobal');
     log('user designation global -- $userDesignationGlobal');
-    _checkEarnServiceStatus();
-    _checkRiderServiceStatus();
     super.initState();
   }
 
@@ -58,47 +56,22 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
 
   @override
   void didPopNext() {
-    _checkEarnServiceStatus();
-    _checkRiderServiceStatus();
   }
 
 
   @override
   void dispose() {
     RouteHelper.routeObserver.unsubscribe(this);
-    deleteIfRegistered<EarnServiceController>();
     super.dispose();
-  }
-
-  Future<void> _checkEarnServiceStatus() async {
-    await getEarnServiceOptData();
-    controller.isEarnServiceOpt.value = isEarnServiceOpt;
-    print('isEarnServiceOpt already opt -- ${controller.isEarnServiceOpt.value}');
-  }
-
-  Future<void> _checkRiderServiceStatus() async {
-    await getRiderServiceOptData();
-    deliveryPartnerController.isRiderServiceOpt.value = isRiderServiceOpt;
-    print('isRiderServiceUser -- ${deliveryPartnerController.isRiderServiceOpt.value}');
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final earnValue = controller.isEarnServiceOpt.value;
-      final riderValue = deliveryPartnerController.isRiderServiceOpt.value;
-
-      if (userProfileTypeGlobal == SELF_EMPLOYED && earnValue.isEmpty) {
-        return _buildLoadingScaffold();
-      }else if(userProfileTypeGlobal == GIG_WORKER && riderValue.isEmpty){
-        return _buildLoadingScaffold();
-      }
-
-      if (userProfileTypeGlobal == SELF_EMPLOYED && earnValue.toLowerCase() == 'true') {
-        return EarnServiceScreen(
-            fromBottomNavBar: widget.fromBottomNavBar
-        );
-      } else if(userProfileTypeGlobal == GIG_WORKER && riderValue.toLowerCase() == 'true'){
+      if(userProfessionGlobal == DELIVERY_RIDER ||
+         userProfessionGlobal == GOODS_TAXI ||
+         userProfessionGlobal == AUTO_TAXI
+      ){
         return RiderServiceScreen(
             fromBottomNavBar: widget.fromBottomNavBar
         );

@@ -256,7 +256,8 @@ class AddFlatRentalServiceController extends GetxController {
           rentalId = response.response?.data['data']['_id'];
           print('rental id-- $rentalId');
 
-          await setEarnServiceOptData(true);
+          // await setEarnServiceOptData(true);
+
           // Move to next step
           if (currentStep.value < totalSteps - 1) {
             currentStep.value++;
