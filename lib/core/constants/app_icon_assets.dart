@@ -682,5 +682,8 @@ class AppIconAssets {
   static const String productCartIcon = "${iconPath}product_cart_icon.svg";
   // static const String transporterIcon = "${iconPath}transporter_icon.svg";
   // static const String selfPickupIcon = "${iconPath}self_pickup_icon.svg";
+  static const String morningBreakfastIcon = "${iconPath}morning_breakfast_icon.svg";
+  static const String morningLunchIcon = "${iconPath}morning_lunch_icon.svg";
+  static const String nightDinnerIcon = "${iconPath}night_dinner_icon.svg";
 
 }

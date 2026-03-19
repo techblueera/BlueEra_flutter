@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -502,6 +503,37 @@ class ValidationMethod {
 
     return null; // Valid
   }
+
+  static String? validateStartTime(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Start time is required'.tr;
+    }
+    return null;
+  }
+
+  static String? validateEndTime(String? startTime, String? endTime) {
+    if (endTime == null || endTime.isEmpty) {
+      return 'End time is required'.tr;
+    }
+
+    if (startTime == null || startTime.isEmpty) {
+      return null;
+    }
+
+    final start = parseTime(startTime);
+    final end = parseTime(endTime);
+
+    if (start == null || end == null) {
+      return 'Invalid time format'.tr;
+    }
+
+    if (end.isBefore(start) || end.isAtSameMomentAs(start)) {
+      return 'End time must be after start time'.tr;
+    }
+
+    return null;
+  }
+
 
 }
 

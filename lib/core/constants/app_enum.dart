@@ -1200,3 +1200,10 @@ enum Qualification {
 
   const Qualification(this.value, this.displayName);
 }
+
+// meal_type.dart
+enum MealType {
+  morningTiffin,
+  breakfast,
+  eveningDinner,
+}

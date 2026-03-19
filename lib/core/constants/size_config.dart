@@ -7,7 +7,6 @@ import 'getx_utils.dart';
 class SizeConfig {
   static late bool isTablet;
   static late double screenWidth;
-  static late LanguageListController langController;
   static late double screenHeight;
 
   static void init(BuildContext context) {
@@ -15,8 +14,8 @@ class SizeConfig {
     screenWidth = mediaQuery.size.width;
     screenHeight = mediaQuery.size.height;
     isTablet = screenWidth >= 600;
-    langController=  getOrPut(()=> LanguageListController());
   }
+
   static void init_Call(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     screenWidth = mediaQuery.size.width;

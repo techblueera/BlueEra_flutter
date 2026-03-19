@@ -112,6 +112,8 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
               ),
             ),
 
+            SizedBox(height: SizeConfig.size16),
+
             CustomBtn(
               height: SizeConfig.size40,
               title: AppStrings.startListingNow,
