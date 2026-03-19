@@ -77,14 +77,13 @@ import flutter_callkit_incoming
         callKitData.appName = "BlueEra"
         callKitData.avatar = callerImage
         callKitData.duration = 60000
-        callKitData.extra = extra
-        callKitData.ios = flutter_callkit_incoming.IOSParams()
-        callKitData.ios.iconName = "CallKitLogo"
-        callKitData.ios.handleType = "generic"
-        callKitData.ios.supportsVideo = true
-        callKitData.ios.audioSessionMode = "default"
-        callKitData.ios.audioSessionActive = true
-        callKitData.ios.ringtonePath = "system_ringtone_default"
+        callKitData.extra = extra as NSDictionary
+        callKitData.iconName = "CallKitLogo"
+        callKitData.handleType = "generic"
+        callKitData.supportsVideo = true
+        callKitData.audioSessionMode = "default"
+        callKitData.audioSessionActive = true
+        callKitData.ringtonePath = "system_ringtone_default"
 
         SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(
             callKitData,
