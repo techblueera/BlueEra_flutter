@@ -401,8 +401,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx( (){
-
+      body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -414,38 +413,36 @@ class TiffinMenuManagementScreen extends StatelessWidget {
               _buildHeaderInput(),
               const SizedBox(height: 16),
               _buildMealCategoryCard(
-                context:  context,
+                context: context,
                 mealType: MealType.morningTiffin,
                 title: "Morning Tiffin / Lunch",
                 subtitle: "Served 7AM - 2PM",
-                bgColor:  const Color(0xFFFCFFD7),
-                image:    AppIconAssets.morningBreakfastIcon,
+                bgColor: const Color(0xFFFCFFD7),
+                image: AppIconAssets.morningBreakfastIcon,
               ),
               const SizedBox(height: 10),
               _buildMealCategoryCard(
-                context:  context,
+                context: context,
                 mealType: MealType.breakfast,
-                title:    "Break-Fast",
+                title: "Break-Fast",
                 subtitle: "Served 6AM - 10AM",
-                bgColor:  const Color(0xFFFFF5EE),
-                image:    AppIconAssets.morningLunchIcon,
+                bgColor: const Color(0xFFFFF5EE),
+                image: AppIconAssets.morningLunchIcon,
               ),
               const SizedBox(height: 10),
               _buildMealCategoryCard(
-                context:  context,
+                context: context,
                 mealType: MealType.eveningDinner,
-                title:    "Evening Tiffin / Dinner",
+                title: "Evening Tiffin / Dinner",
                 subtitle: "Served 5PM - 10PM",
-                bgColor:  const Color(0xFFF0F8FF),
-                image:    AppIconAssets.nightDinnerIcon,
+                bgColor: const Color(0xFFF0F8FF),
+                image: AppIconAssets.nightDinnerIcon,
               ),
               const SizedBox(height: 40 + kBottomNavigationBarHeight),
             ],
           ),
         );
-       }
-
-      ),
+      }),
     );
   }
 
@@ -458,26 +455,35 @@ class TiffinMenuManagementScreen extends StatelessWidget {
     required String image,
   }) {
     return Obx(() {
-      final meal= controller.mealData[mealType]?.value;
+      final meal = controller.mealData[mealType]?.value;
 
       return CustomFormCard(
         padding: const EdgeInsets.all(10.0),
-        color:   bgColor,
-        border:  Border.all(color: AppColors.greyE5),
+        color: bgColor,
+        border: Border.all(color: AppColors.greyE5),
         child: Column(
           children: [
             // Header row
             Row(
               children: [
-                LocalAssets(imagePath: image, height: SizeConfig.size40, width: SizeConfig.size40),
+                LocalAssets(
+                    imagePath: image,
+                    height: SizeConfig.size40,
+                    width: SizeConfig.size40),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(title, fontWeight: FontWeight.w600, fontSize: SizeConfig.large, color: AppColors.mainTextColor),
+                      CustomText(title,
+                          fontWeight: FontWeight.w600,
+                          fontSize: SizeConfig.large,
+                          color: AppColors.mainTextColor),
                       const SizedBox(height: 2.0),
-                      CustomText(subtitle, fontWeight: FontWeight.w400, fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
+                      CustomText(subtitle,
+                          fontWeight: FontWeight.w400,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.secondaryTextColor),
                     ],
                   ),
                 ),
@@ -488,10 +494,14 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                     border: Border.all(color: AppColors.greyE5),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 10.0),
                   child: Row(
                     children: [
-                      const CustomText("Go Live", fontWeight: FontWeight.w600, fontSize: 12.0, color: AppColors.secondaryTextColor),
+                      const CustomText("Go Live",
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.0,
+                          color: AppColors.secondaryTextColor),
                       const SizedBox(width: 4.0),
                       CustomSwitch(
                         value: meal?.isLive ?? false,
@@ -501,8 +511,8 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           }
                         },
                         containerHeight: SizeConfig.size24,
-                        containerWidth:  SizeConfig.size50,
-                        circleSize:      SizeConfig.size18,
+                        containerWidth: SizeConfig.size50,
+                        circleSize: SizeConfig.size18,
                       ),
                     ],
                   ),
@@ -511,7 +521,6 @@ class TiffinMenuManagementScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 10),
-
 
             // ✅ No data — show dummy card with Create button
             if (meal == null || !meal.hasData)
@@ -543,14 +552,17 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                 children: [
                   LocalAssets(
                     imagePath: AppImageAssets.homeMadeFoodBanner,
-                    height: 120, width: 100, boxFix: BoxFit.cover,
+                    height: 120,
+                    width: 100,
+                    boxFix: BoxFit.cover,
                   ),
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                        child: Container(color: AppColors.black.withValues(alpha: 0.1)),
+                        child: Container(
+                            color: AppColors.black.withValues(alpha: 0.1)),
                       ),
                     ),
                   ),
@@ -588,18 +600,26 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           children: [
                             const Row(
                               children: [
-                                CustomText("₹159", fontWeight: FontWeight.w700, fontSize: 14.0, color: AppColors.secondaryTextColor),
+                                CustomText("₹159",
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14.0,
+                                    color: AppColors.secondaryTextColor),
                                 SizedBox(width: 4),
-                                CustomText("₹200", fontWeight: FontWeight.w400, fontSize: 12.0, color: AppColors.secondaryTextColor),
+                                CustomText("₹200",
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 12.0,
+                                    color: AppColors.secondaryTextColor),
                               ],
                             ),
                             const SizedBox(height: 4),
                             DiscountBadge(
                               discountText: "20% Off",
-                              borderColor:     AppColors.secondaryTextColor.withValues(alpha: 0.2),
-                              backgroundColor: AppColors.secondaryTextColor.withValues(alpha: 0.1),
-                              iconColor:  AppColors.secondaryTextColor,
-                              textColor:  AppColors.secondaryTextColor,
+                              borderColor: AppColors.secondaryTextColor
+                                  .withValues(alpha: 0.2),
+                              backgroundColor: AppColors.secondaryTextColor
+                                  .withValues(alpha: 0.1),
+                              iconColor: AppColors.secondaryTextColor,
+                              textColor: AppColors.secondaryTextColor,
                             ),
                           ],
                         ),
@@ -612,7 +632,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           controller.openCreateSheet(mealType);
                           TiffinBottomSheet.show(context);
                         },
-                        icon:  Icons.add,
+                        icon: Icons.add,
                         label: 'Create',
                       ),
                     ],
@@ -642,14 +662,23 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                 children: [
                   // ✅ Network image from API or placeholder
                   meal.imageUrl != null
-                      ? CachedNetworkImage(imageUrl: meal.imageUrl!, height: 120, width: 100, fit: BoxFit.cover)
-                      : LocalAssets(imagePath: AppImageAssets.homeMadeFoodBanner, height: 120, width: 100, boxFix: BoxFit.cover),
+                      ? CachedNetworkImage(
+                          imageUrl: meal.imageUrl!,
+                          height: 120,
+                          width: 100,
+                          fit: BoxFit.cover)
+                      : LocalAssets(
+                          imagePath: AppImageAssets.homeMadeFoodBanner,
+                          height: 120,
+                          width: 100,
+                          boxFix: BoxFit.cover),
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                        child: Container(color: AppColors.black.withValues(alpha: 0.1)),
+                        child: Container(
+                            color: AppColors.black.withValues(alpha: 0.1)),
                       ),
                     ),
                   ),
@@ -673,7 +702,8 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      if (meal.selectedCookingMethod.isNotEmpty) _buildTag(meal.selectedCookingMethod),
+                      if (meal.selectedCookingMethod.isNotEmpty)
+                        _buildTag(meal.selectedCookingMethod),
                       if (meal.selectedFoodType.isNotEmpty) ...[
                         const SizedBox(width: 6),
                         _buildTag(meal.selectedFoodType),
@@ -689,18 +719,27 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                CustomText('₹${meal.sellingPrice}', fontWeight: FontWeight.w700, fontSize: 14.0, color: AppColors.secondaryTextColor),
+                                CustomText('₹${meal.sellingPrice}',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14.0,
+                                    color: AppColors.secondaryTextColor),
                                 const SizedBox(width: 4),
-                                CustomText('₹${meal.mrpPrice}', fontWeight: FontWeight.w400, fontSize: 12.0, color: AppColors.secondaryTextColor),
+                                CustomText('₹${meal.mrpPrice}',
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 12.0,
+                                    color: AppColors.secondaryTextColor),
                               ],
                             ),
                             const SizedBox(height: 4),
                             DiscountBadge(
-                              discountText:    _calculateDiscount(meal.mrpPrice, meal.sellingPrice),
-                              borderColor:     AppColors.secondaryTextColor.withValues(alpha: 0.2),
-                              backgroundColor: AppColors.secondaryTextColor.withValues(alpha: 0.1),
-                              iconColor:  AppColors.secondaryTextColor,
-                              textColor:  AppColors.secondaryTextColor,
+                              discountText: _calculateDiscount(
+                                  meal.mrpPrice, meal.sellingPrice),
+                              borderColor: AppColors.secondaryTextColor
+                                  .withValues(alpha: 0.2),
+                              backgroundColor: AppColors.secondaryTextColor
+                                  .withValues(alpha: 0.1),
+                              iconColor: AppColors.secondaryTextColor,
+                              textColor: AppColors.secondaryTextColor,
                             ),
                           ],
                         ),
@@ -713,7 +752,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           controller.openEditSheet(meal);
                           TiffinBottomSheet.show(context);
                         },
-                        icon:  Icons.edit,
+                        icon: Icons.edit,
                         label: 'Edit',
                       ),
                     ],
@@ -730,9 +769,11 @@ class TiffinMenuManagementScreen extends StatelessWidget {
   // ✅ Veg indicator dot
   Widget _buildVegIndicator() {
     return Positioned(
-      left: 6.0, top: 6.0,
+      left: 6.0,
+      top: 6.0,
       child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(6.0), color: AppColors.white),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6.0), color: AppColors.white),
         padding: const EdgeInsets.all(2.0),
         child: Container(
           decoration: BoxDecoration(
@@ -741,8 +782,10 @@ class TiffinMenuManagementScreen extends StatelessWidget {
           ),
           padding: const EdgeInsets.all(2.0),
           child: Container(
-            height: 8.0, width: 8.0,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.greenE0),
+            height: 8.0,
+            width: 8.0,
+            decoration:
+                BoxDecoration(shape: BoxShape.circle, color: AppColors.greenE0),
           ),
         ),
       ),
@@ -750,7 +793,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
   }
 
   String _calculateDiscount(String mrp, String selling) {
-    final mrpVal     = double.tryParse(mrp)     ?? 0;
+    final mrpVal = double.tryParse(mrp) ?? 0;
     final sellingVal = double.tryParse(selling) ?? 0;
     if (mrpVal == 0) return '0% Off';
     final discount = ((mrpVal - sellingVal) / mrpVal * 100).toStringAsFixed(0);
@@ -764,7 +807,8 @@ class TiffinMenuManagementScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: AppColors.greyE5),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+      child:
+          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
     );
   }
 
@@ -793,7 +837,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                 width: SizeConfig.size90,
                 height: SizeConfig.size40,
                 title: 'Submit',
-                onTap: (){},
+                onTap: () {},
                 bgColor: AppColors.primaryColor,
                 radius: 10,
               ),
