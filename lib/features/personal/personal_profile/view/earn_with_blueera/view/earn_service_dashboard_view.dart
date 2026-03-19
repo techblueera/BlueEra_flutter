@@ -13,6 +13,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/account_setting_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/tiffin_menu_management_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/self_profession_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_service_bottom_sheet.dart';
@@ -183,7 +184,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
 
     switch (index) {
       case 0: // Tiffin
-
+       // EarnTiffinScreen();
         break;
 
       case 1: // Product
@@ -205,11 +206,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
 
       switch (selectedTab) {
         case 0:
-          tabContent = Center(
-            child: CustomText(
-                AppStrings.comingSoon
-            ),
-          );
+          tabContent = TiffinMenuManagementScreen();
           break;
 
       // case 1:

@@ -28,3 +28,25 @@ String formatISO8601Date(String tzString) {
   }
 }
 
+List<String> generateFullDayTimeList() {
+  final List<String> times = [];
+  for (int hour = 0; hour < 24; hour++) {
+    for (int min in [0, 30]) {
+      final period = hour < 12 ? 'AM' : 'PM';
+      final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+      final displayMin = min.toString().padLeft(2, '0');
+      times.add('$displayHour:$displayMin $period');
+    }
+  }
+  return times;
+}
+
+DateTime? parseTime(String time) {
+  try {
+    final format = DateFormat('h:mm a'); // e.g. 7:00 AM
+    return format.parse(time.trim());
+  } catch (_) {
+    return null;
+  }
+}
+
