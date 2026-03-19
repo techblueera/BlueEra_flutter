@@ -110,7 +110,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
 
   Widget _buildSlide(BuildContext context, Map<String, String> data) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0), // Adds space between cards
+      padding: const EdgeInsets.symmetric(horizontal: 0), // Adds space between cards
       child: InkWell(
         onTap: () => _handleOnTap(data['slugId']!),
         child: ClipRRect(

@@ -1982,22 +1982,22 @@ final List<CommentTypeModel> emotionList = [
       AppIconAssets.emotionStorytelling),
   CommentTypeModel("Sadness / Sympathy", AppStrings.sadnessSympathy,
       AppIconAssets.emotionSympathy),
-  CommentTypeModel("Motivation / Hope", AppStrings.motivationHope,
-      AppIconAssets.emotionHope),
+  // CommentTypeModel("Motivation / Hope", AppStrings.motivationHope,
+  //     AppIconAssets.emotionHope),
   CommentTypeModel("Protest / Rebellion", AppStrings.protestRebellion,
       AppIconAssets.emotionRebellion),
-  CommentTypeModel("Empathy / Humanity", AppStrings.empathyHumanity,
-      AppIconAssets.emotionHumanity),
+  // CommentTypeModel("Empathy / Humanity", AppStrings.empathyHumanity,
+  //     AppIconAssets.emotionHumanity),
   CommentTypeModel(
       "Humor / Sarcasm", AppStrings.humorSarcasm, AppIconAssets.emotionSarcasm),
   CommentTypeModel("Poetic / Storytelling", AppStrings.poeticStorytelling,
       AppIconAssets.emotionStorytelling),
-  CommentTypeModel(
-      "Latest / Update", AppStrings.latestUpdate, AppIconAssets.emotionUpdate),
+  // CommentTypeModel(
+  //     "Latest / Update", AppStrings.latestUpdate, AppIconAssets.emotionUpdate),
   CommentTypeModel("Informative / Educational",
       AppStrings.informativeEducational, AppIconAssets.emotionEducational),
-  CommentTypeModel("Trending / Current Events",
-      AppStrings.trendingCurrentEvents, AppIconAssets.emotionInformative),
+  // CommentTypeModel("Trending / Current Events",
+  //     AppStrings.trendingCurrentEvents, AppIconAssets.emotionInformative),
   CommentTypeModel("Political / Opinionated", AppStrings.politicalOpinionated,
       AppIconAssets.emotionOpinionated),
 ];
@@ -2011,7 +2011,7 @@ class CommentTypeModel {
 }
 
 final List<CommentTypeModel> commentTypes = [
-  CommentTypeModel("Agree", AppStrings.agree, AppIconAssets.commentAgree),
+  // CommentTypeModel("Agree", AppStrings.agree, AppIconAssets.commentAgree),
   CommentTypeModel(
       "Disagree", AppStrings.disagree, AppIconAssets.commentDisagree),
   CommentTypeModel(
@@ -2022,16 +2022,18 @@ final List<CommentTypeModel> commentTypes = [
       "Question", AppStrings.question, AppIconAssets.commentQuestion),
   CommentTypeModel("Support", AppStrings.support, AppIconAssets.commentSupport),
   CommentTypeModel("Funny", AppStrings.funny, AppIconAssets.commentFunny),
-  CommentTypeModel("Shock", AppStrings.shock, AppIconAssets.commentCapa),
+  // CommentTypeModel("Shock", AppStrings.shock, AppIconAssets.commentCapa),
   CommentTypeModel(
       "Inspired", AppStrings.inspired, AppIconAssets.commentInspired),
   CommentTypeModel("Angry", AppStrings.angry, AppIconAssets.commentAngry),
-  CommentTypeModel("Curious", AppStrings.curious, AppIconAssets.commentCurious),
+  // CommentTypeModel("Curious", AppStrings.curious, AppIconAssets.commentCurious),
   CommentTypeModel("Suggest", AppStrings.suggest, AppIconAssets.commentSuggest),
-  CommentTypeModel("Empathy", AppStrings.empathy, AppIconAssets.commentEmpathy),
-  CommentTypeModel(
-      "Celebrate", AppStrings.celebrate, AppIconAssets.commentCelebrate),
-  CommentTypeModel("Warn", AppStrings.warn, AppIconAssets.commentWarn),
+  CommentTypeModel("Poetic / Storytelling", AppStrings.poeticStorytelling,
+      AppIconAssets.emotionStorytelling),
+  // CommentTypeModel("Empathy", AppStrings.empathy, AppIconAssets.commentEmpathy),
+  // CommentTypeModel(
+  //     "Celebrate", AppStrings.celebrate, AppIconAssets.commentCelebrate),
+  // CommentTypeModel("Warn", AppStrings.warn, AppIconAssets.commentWarn),
 ];
 
 bool isImageUrl(String? url) {

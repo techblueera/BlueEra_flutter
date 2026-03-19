@@ -138,6 +138,8 @@ class _FeedCardState extends State<FeedCard> {
                 post: _post,
                 isRepost: widget.isRepost,
                 isShowOnlyDetails: widget.isFromDetailsScreen,
+                postType: widget.postFilteredType,
+                sortBy: widget.sortBy,
                 authorSection: () => IgnorePointer(
                   ignoring: widget.isRepost == true ? true : false,
                   child: PostAuthorHeader(

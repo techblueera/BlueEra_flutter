@@ -17,7 +17,6 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/feed/view/all_message_post_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
@@ -34,6 +33,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/feed_tag_people_bottom_sheet.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/common/feed/view/twitter_post_detail_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -57,6 +57,8 @@ class MessagePostWidget extends StatefulWidget {
   final double? bottomPadding;
   final bool? isRepost;
   final bool? isShowOnlyDetails;
+  final PostType? postType;
+  final SortBy? sortBy;
 
   MessagePostWidget({
     super.key,
@@ -70,6 +72,8 @@ class MessagePostWidget extends StatefulWidget {
     this.isRepost = false,
     this.isShowOnlyDetails = false,
     required this.onShareButtonPressed,
+    this.postType,
+    this.sortBy,
   });
 
   @override
@@ -123,13 +127,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
       ignoring: widget.isRepost == true ? true : false,
       child: InkWell(
         onTap: () {
-          if (_post.type?.toUpperCase() == "MESSAGE_POST" &&
-              (_post.media_types?.any((e) => e.startsWith("image")) ?? false)) {
-            Get.to(AllMessagePostScreen(
-              postID: _post.id,
-              postType: _post.type ?? "",
-            ));
-          }
+          // Open Twitter-style detail screen with inline comments
+          Get.to(() => TwitterPostDetailScreen(
+                post: _post,
+                postType: widget.postType ?? PostType.all,
+                sortBy: widget.sortBy,
+              ));
         },
         child: Container(
           color: AppColors.lightBlueE9,
