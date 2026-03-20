@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:developer';
 
@@ -17,7 +16,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/received_enquiry_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/video_booking_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/video_enquiry_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../core/api/apiService/api_keys.dart';
@@ -38,9 +39,20 @@ enum BookingType {
   String get title => name[0].toUpperCase() + name.substring(1);
 }
 
+AvailabilityData? parseAvailabilityJson(String savedData) {
+  try {
+    final decoded = jsonDecode(savedData);
+    final model   = AvailabilityResponse.fromJson(decoded);
+    return model.data;
+  } catch (e) {
+    return null;
+  }
+}
+
 class BookingController extends GetxController {
   ApiResponse getAvailabilityResponse = ApiResponse.initial('Initial');
-  Rx<ApiResponse> addUpdateAvailabilityResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> addUpdateAvailabilityResponse =
+      ApiResponse.initial('Initial').obs;
   var isLoading = false.obs;
   final formKey = GlobalKey<FormState>();
   TextEditingController locationController = TextEditingController();
@@ -52,15 +64,16 @@ class BookingController extends GetxController {
   RxInt selectedIndex = 0.obs;
   RxInt selectedIndex2 = 0.obs;
   var selectedType = BookingType.offline.obs;
+
   // RxString selectedTimeSlot = '30 Min'.obs;
   var bookings = <Booking>[].obs;
   var receivedbookingList = <ReceivedBookingData>[].obs;
   var receivedenquiryList = <ReceivedEnquiryData>[].obs;
   var receivedbookings = <ReceivedBooking>[].obs;
-   var receivedenquiry = <ReceivedEnquiry>[].obs;
+  var receivedenquiry = <ReceivedEnquiry>[].obs;
   var enquiry = <Enquiry>[].obs;
   ApiResponse addAppointment = ApiResponse.initial('Initial');
-  
+
   // Calendar data
   var calendarData = Rxn<CalendarResponse>();
   var availableDates = <DateTime>[].obs;
@@ -86,47 +99,48 @@ class BookingController extends GetxController {
     // getMyEnquiry();
   }
 
-  Future<void> addBooingAppointment({required Map<String, dynamic> params}) async {
+  Future<void> addBooingAppointment(
+      {required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().postAppointment(bodyRequest: params);
       if (response.isSuccess) {
         addAppointment = ApiResponse.complete(response);
         commonSnackBar(message: response.message ?? AppStrings.success);
-        
-    Get.offAllNamed(
+
+        Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           arguments: {ApiKeys.initialIndex: 0},
         );
       } else {
         addAppointment = ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      addAppointment =  ApiResponse.error('error');
+      addAppointment = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
     }
   }
 
-   Future<void> addEnquiry({required Map<String, dynamic> params}) async {
+  Future<void> addEnquiry({required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().postEnquiry(bodyRequest: params);
       if (response.isSuccess) {
         addAppointment = ApiResponse.complete(response);
         commonSnackBar(message: response.message ?? AppStrings.success);
-           Get.offAllNamed(
+        Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           arguments: {ApiKeys.initialIndex: 0},
         );
-
-
       } else {
         addAppointment = ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      addAppointment =  ApiResponse.error('error');
+      addAppointment = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
@@ -137,41 +151,60 @@ class BookingController extends GetxController {
     _userChangedBookingType = true;
     selectedType.value = type;
   }
-  final List<String> filters = ['All', 'Open', 'Booked', 'Rescheduled', 'Rejected'];
+
+  final List<String> filters = [
+    'All',
+    'Open',
+    'Booked',
+    'Rescheduled',
+    'Rejected'
+  ];
   final List<String> filters2 = ['All', 'Open', 'Accepted', 'Rejected'];
 
   RxList<Enquiry> enquiries = <Enquiry>[
-    Enquiry(title: "Videography Tutorial", date: "07-Feb-2025", message: "Hi, is this still available?", status: "Open"),
-    Enquiry(title: "Videography Tutorial", date: "07-Feb-2025", message: "Hi, is this still available?", status: "Closed"),
-    Enquiry(title: "Videography Tutorial", date: "07-Feb-2025", message: "Hi, is this still available?", status: "Pending"),
-    Enquiry(title: "Videography Tutorial", date: "07-Feb-2025", message: "Hi, is this still available?", status: "Open"),
+    Enquiry(
+        title: "Videography Tutorial",
+        date: "07-Feb-2025",
+        message: "Hi, is this still available?",
+        status: "Open"),
+    Enquiry(
+        title: "Videography Tutorial",
+        date: "07-Feb-2025",
+        message: "Hi, is this still available?",
+        status: "Closed"),
+    Enquiry(
+        title: "Videography Tutorial",
+        date: "07-Feb-2025",
+        message: "Hi, is this still available?",
+        status: "Pending"),
+    Enquiry(
+        title: "Videography Tutorial",
+        date: "07-Feb-2025",
+        message: "Hi, is this still available?",
+        status: "Open"),
   ].obs;
   var selectedTab = 'All'.obs;
+
   void updateTab(int index) {
     selectedIndex.value = index;
     selectedTab.value = filters[index];
   }
+
   void updateTab2(int index) {
     selectedIndex2.value = index;
   }
 
-
   String get selectedTab2 => filters2[selectedIndex2.value];
 
-
   RxBool isAddBookingAvailability = false.obs;
-  Future<void> addBookingAvailability({required String id}) async {
-   
-    if (formKey.currentState?.validate() ?? false) {
 
+  Future<void> addBookingAvailability({required String id}) async {
+    if (formKey.currentState?.validate() ?? false) {
       log('currentAddress--> ${currentAddress.value}');
-      if(selectedType.value != BookingType.online){
-        if(currentAddress.isEmpty){
-          Get.snackbar(
-              "Location required",
-              "Please add your business location",
-              snackPosition: SnackPosition.TOP
-          );
+      if (selectedType.value != BookingType.online) {
+        if (currentAddress.isEmpty) {
+          Get.snackbar("Location required", "Please add your business location",
+              snackPosition: SnackPosition.TOP);
           return;
         }
 
@@ -191,7 +224,6 @@ class BookingController extends GetxController {
         //   );
         //   return;
         // }
-
       }
 
       isAddBookingAvailability.value = true;
@@ -208,20 +240,18 @@ class BookingController extends GetxController {
           ApiKeys.longitude: longitude,
           ApiKeys.address: currentAddress.value,
         },
-        if(instructionController.text.trim().isNotEmpty) ApiKeys.instructions: instructionController.text.trim(),
+        if (instructionController.text.trim().isNotEmpty)
+          ApiKeys.instructions: instructionController.text.trim(),
         ApiKeys.minFee: minFeeController.text.trim(),
         ApiKeys.maxFee: maxFeeController.text.trim(),
         ApiKeys.feeType: feeTypeController.text.trim(),
         // ApiKeys.durationInMinutes: selectedTimeSlot.value.replaceAll(' Min', ''),
-        if(visitingHoursData.isNotEmpty) ApiKeys.schedule: visitingHoursData,
+        if (visitingHoursData.isNotEmpty) ApiKeys.schedule: visitingHoursData,
       };
 
       try {
-
-        ResponseModel? response = await BookingRepo().addUpdateBookingAvailability(
-            id: id,
-            params: params
-        );
+        ResponseModel? response = await BookingRepo()
+            .addUpdateBookingAvailability(id: id, params: params);
 
         if (response.isSuccess) {
           addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
@@ -233,19 +263,21 @@ class BookingController extends GetxController {
           });
         } else {
           addUpdateAvailabilityResponse.value = ApiResponse.error('error');
-          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
         addUpdateAvailabilityResponse.value = ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally{
+      } finally {
         isAddBookingAvailability.value = false;
       }
     }
   }
 
   List<Map<String, dynamic>> payloadForVisitingHours() {
-    final visitingHoursSelectorController = Get.find<VisitingHoursSelectorController>();
+    final visitingHoursSelectorController =
+        Get.find<VisitingHoursSelectorController>();
 
     // Format visiting hours data for API in the required JSON format
     List<Map<String, dynamic>> visitingHoursData = [];
@@ -256,7 +288,6 @@ class BookingController extends GetxController {
         // Safety check: Ensure times exist before formatting
         if (visitingHoursSelectorController.startTimes[day] != null &&
             visitingHoursSelectorController.endTimes[day] != null) {
-
           final startTime = visitingHoursSelectorController
               .formatTime(visitingHoursSelectorController.startTimes[day]!);
           final endTime = visitingHoursSelectorController
@@ -267,10 +298,7 @@ class BookingController extends GetxController {
             "day": day,
             "isOpen": true,
             "timeSlots": [
-              {
-                "startTime": startTime,
-                "endTime": endTime
-              }
+              {"startTime": startTime, "endTime": endTime}
             ],
           });
         }
@@ -282,80 +310,76 @@ class BookingController extends GetxController {
     return visitingHoursData; // 🟢 Now returning the list
   }
 
-  Future<void> updateBookingAvailability({required String id, required Map<String, dynamic> params}) async {
+  Future<void> updateBookingAvailability(
+      {required String id, required Map<String, dynamic> params}) async {
+    try {
+      addUpdateAvailabilityResponse.value = ApiResponse.initial();
 
-      try {
+      ResponseModel? response = await BookingRepo()
+          .addUpdateBookingAvailability(id: id, params: params);
 
-        addUpdateAvailabilityResponse.value = ApiResponse.initial();
-
-        ResponseModel? response = await BookingRepo().addUpdateBookingAvailability(
-            id: id,
-            params: params
-        );
-
-        if (response.isSuccess) {
-          addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
-          Get.back(result: true);
-          getBookingAvailability(id: id);
-          commonSnackBar(message: "Availability updated");
-        } else {
-          addUpdateAvailabilityResponse.value = ApiResponse.error('error');
-          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      } catch (e) {
+      if (response.isSuccess) {
+        addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
+        Get.back(result: true);
+        getBookingAvailability(id: id);
+        commonSnackBar(message: "Availability updated");
+      } else {
         addUpdateAvailabilityResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
-  }
-
-
-  RxBool isGetBookingAvailabilityLoading = false.obs;
-  Future<void> checkAndGetAvailabilityBookingData(String id) async {
-    isGetBookingAvailabilityLoading.value = true;
-    final cached = await getCachedAvailability();
-
-    if (cached != null) {
-      logs('Loaded availability from cache');
-      isGetBookingAvailabilityLoading.value = false;
-      availabilityDetails.value = cached;
-      setAvailabilityData(availabilityDetails.value);
-    } else {
-      // No cache found, fetch from API
-      getBookingAvailability(id: id);
+    } catch (e) {
+      addUpdateAvailabilityResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
-  Future<AvailabilityData?> getCachedAvailability() async {
-    try {
-      final savedData = await SharedPreferenceUtils.getBookingAvailabilityDetail();
-      if (savedData == null) return null;
+  RxBool isGetBookingAvailabilityLoading = false.obs;
 
-      final decoded = jsonDecode(savedData);
-      final model = AvailabilityResponse.fromJson(decoded);
-      return model.data;
+  Future<void> checkAndGetAvailabilityBookingData(String id) async {
+    isGetBookingAvailabilityLoading.value = true;
+
+    try {
+      // ✅ Step 1: Read from SharedPreferences on MAIN thread
+      final savedData = await SharedPreferenceUtils.getBookingAvailabilityDetail();
+
+      if (savedData != null) {
+        // ✅ Step 2: Parse JSON on BACKGROUND isolate — only pass the String
+        final cached = await compute(parseAvailabilityJson, savedData);
+
+        if (cached != null) {
+          logs('Loaded availability from cache');
+          availabilityDetails.value = cached;
+          setAvailabilityData(availabilityDetails.value);
+          isGetBookingAvailabilityLoading.value = false;
+          return;
+        }
+      }
+
+      // ✅ No cache — fetch from API
+      await getBookingAvailability(id: id);
+
     } catch (e) {
-      logs('⚠️ Error decoding cached availability: $e');
-      return null;
+      logs('checkAndGetAvailabilityBookingData error: $e');
+      isGetBookingAvailabilityLoading.value = false;
     }
   }
 
   Future<AvailabilityData?> getBookingAvailability({required String id}) async {
-
     try {
-      final availabilityRes = await BookingRepo().getUserAvailability(
-          id: id,
-          queryParams: {
-            ApiKeys.type: 'user'
-          }
-      );
+      final availabilityRes = await BookingRepo()
+          .getUserAvailability(id: id, queryParams: {ApiKeys.type: 'user'});
 
       logs('datass:$availabilityRes');
-      logs('initAvailabilityForEdit status: ${availabilityRes.statusCode}, success: ${availabilityRes.isSuccess}');
-      logs('initAvailabilityForEdit raw data: ${availabilityRes.response?.data}');
+      logs(
+          'initAvailabilityForEdit status: ${availabilityRes.statusCode}, success: ${availabilityRes.isSuccess}');
+      logs(
+          'initAvailabilityForEdit raw data: ${availabilityRes.response?.data}');
 
       if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
         getAvailabilityResponse = ApiResponse.complete(availabilityRes);
-        final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
+        final availability =
+            AvailabilityResponse.fromJson(availabilityRes.response!.data);
         availabilityDetails.value = availability.data;
         await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.availabilityDetails,
@@ -375,12 +399,12 @@ class BookingController extends GetxController {
       logs('stack trace error: $s');
       clearValues();
       return null;
-    }finally{
+    } finally {
       isGetBookingAvailabilityLoading.value = false;
     }
   }
 
-  void setAvailabilityData(AvailabilityData? availabilityData){
+  void setAvailabilityData(AvailabilityData? availabilityData) {
     // Prefill booking type only if user hasn't changed it yet
     if (availabilityData?.bookingType != null && !_userChangedBookingType) {
       final bt = availabilityData?.bookingType!.toLowerCase();
@@ -401,14 +425,19 @@ class BookingController extends GetxController {
     //   locationController.text = availabilityData?.location?.address ?? '';
     // }
 
-    latitude = double.tryParse(availabilityData?.location?.latitude ?? '0.0') ?? 0.0;
-    longitude = double.tryParse(availabilityData?.location?.longitude ?? '0.0') ?? 0.0;
+    latitude =
+        double.tryParse(availabilityData?.location?.latitude ?? '0.0') ?? 0.0;
+    longitude =
+        double.tryParse(availabilityData?.location?.longitude ?? '0.0') ?? 0.0;
     currentAddress.value = availabilityData?.location?.address ?? '';
     landmarkController.text = availabilityData?.location?.landmark ?? '';
     instructionController.text = availabilityData?.instructions ?? '';
-    minFeeController.text = availabilityData?.feeDetails?.minFee?.toString() ?? '';
-    maxFeeController.text = availabilityData?.feeDetails?.maxFee?.toString() ?? '';
-    feeTypeController.text = availabilityData?.feeDetails?.feeType?.toString() ?? '';
+    minFeeController.text =
+        availabilityData?.feeDetails?.minFee?.toString() ?? '';
+    maxFeeController.text =
+        availabilityData?.feeDetails?.maxFee?.toString() ?? '';
+    feeTypeController.text =
+        availabilityData?.feeDetails?.feeType?.toString() ?? '';
 
     // if ((availabilityData?.durationInMinutes ?? '0').toString().isNotEmpty) {
     //   final candidate = '${availabilityData?.durationInMinutes} Min';
@@ -417,57 +446,64 @@ class BookingController extends GetxController {
     // }
 
     // Prefill visiting hours
-    syncScheduleToController(availabilityData);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      syncScheduleToController(availabilityData);
+    });
   }
 
+  final RxMap<String, bool>      visitingHours = <String, bool>{}.obs;
+  final RxMap<String, TimeOfDay> startTimes    = <String, TimeOfDay>{}.obs;
+  final RxMap<String, TimeOfDay> endTimes      = <String, TimeOfDay>{}.obs;
+
   void syncScheduleToController(AvailabilityData? availabilityData) {
-    // 1. Safety Check
     if (availabilityData == null) return;
 
-    // 2. Get the Controller
-    // We use Get.put to ensure it exists if not already created
     final controller = getOrPut(() => VisitingHoursSelectorController());
 
-    // 3. Prepare Batch Data (Processing in pure memory first)
-    final Map<String, bool> newVisitingHours = {};
-    final Map<String, TimeOfDay> newStartTimes = {};
-    final Map<String, TimeOfDay> newEndTimes = {};
+    final Map<String, bool>      newVisitingHours = {};
+    final Map<String, TimeOfDay> newStartTimes    = {};
+    final Map<String, TimeOfDay> newEndTimes      = {};
 
-    // Initialize all days to 'Closed' first to clear old states
     for (final day in controller.visitingHours.keys) {
       newVisitingHours[day] = false;
     }
 
-    // 4. Process API Data
-    final schedule = availabilityData.schedule ?? [];
-
-    for (final sch in schedule) {
-      final apiDay = (sch.day ?? '').toLowerCase();
-
-      // Ensure you have this helper method available in this class
-      final uiDay = mapApiDayToUiDay(apiDay);
-
+    for (final sch in availabilityData.schedule ?? []) {
+      final uiDay = mapApiDayToUiDay((sch.day ?? '').toLowerCase());
       if (uiDay == null) continue;
 
-      // Set Status
       newVisitingHours[uiDay] = sch.isOpen ?? false;
 
-      // Set Times
-      final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
+      final firstSlot = sch.timeSlots?.isNotEmpty == true ? sch.timeSlots!.first : null;
       if (firstSlot != null) {
-        // Ensure you have this helper method available
         final start = parseTimeOfDay(firstSlot.startTime);
-        final end = parseTimeOfDay(firstSlot.endTime);
-
+        final end   = parseTimeOfDay(firstSlot.endTime);
         if (start != null) newStartTimes[uiDay] = start;
-        if (end != null) newEndTimes[uiDay] = end;
+        if (end   != null) newEndTimes[uiDay]   = end;
       }
     }
 
-    // 5. Apply Updates Once (Triggers UI Rebuild only 1-3 times)
-    controller.visitingHours.assignAll(newVisitingHours);
-    controller.startTimes.addAll(newStartTimes);
-    controller.endTimes.addAll(newEndTimes);
+    // ✅ Single call — 1 rebuild
+    syncAll(
+      visitingHours: newVisitingHours,
+      startTimes:    newStartTimes,
+      endTimes:      newEndTimes,
+    );
+  }
+
+  // ✅ Single method to batch all updates — 1 rebuild only
+  void syncAll({
+    required Map<String, bool>      visitingHours,
+    required Map<String, TimeOfDay> startTimes,
+    required Map<String, TimeOfDay> endTimes,
+  }) {
+    this.visitingHours.assignAll(visitingHours);
+    this.startTimes
+      ..clear()
+      ..addAll(startTimes);
+    this.endTimes
+      ..clear()
+      ..addAll(endTimes);
   }
 
   Future<void> getMyBookingList() async {
@@ -475,7 +511,8 @@ class BookingController extends GetxController {
       isLoading.value = true;
       final response = await BookingRepo().getMyBooking();
       if (response.statusCode == 200) {
-        final bookingResponse = BookingResponse.fromJson(response.response!.data);
+        final bookingResponse =
+            BookingResponse.fromJson(response.response!.data);
         bookings.value = bookingResponse.data;
       } else {
         print("API failed with status: ${response.statusCode}");
@@ -491,9 +528,10 @@ class BookingController extends GetxController {
     try {
       isLoading.value = true;
       final response = await BookingRepo().getMyInquiries();
-     
+
       if (response.statusCode == 200) {
-        final bookingResponse = EnquiryResponse.fromJson(response.response!.data);
+        final bookingResponse =
+            EnquiryResponse.fromJson(response.response!.data);
         enquiry.value = bookingResponse.data;
       } else {
         print("API failed with status: ${response.statusCode}");
@@ -505,7 +543,8 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> bookingUpdate({required String bookingId,  required Map<String, dynamic> params}) async {
+  Future<void> bookingUpdate(
+      {required String bookingId, required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().bookingStatusUpdate(
         id: bookingId,
@@ -526,10 +565,11 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> enquirybookingUpdate({required String bookingId,  required Map<String, dynamic> params}) async {
+  Future<void> enquirybookingUpdate(
+      {required String bookingId, required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().bookingStatusUpdate(
-       id: bookingId,
+        id: bookingId,
         params: params,
       );
       if (response.isSuccess) {
@@ -547,12 +587,15 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> getReceivedBookingList({String?channelId,String?videoId}) async {
+  Future<void> getReceivedBookingList(
+      {String? channelId, String? videoId}) async {
     try {
       isLoading.value = true;
-      final response = await BookingRepo().getReceivedBooking(channelId: channelId,videoId: videoId);
+      final response = await BookingRepo()
+          .getReceivedBooking(channelId: channelId, videoId: videoId);
       if (response.statusCode == 200) {
-        final bookingResponse = ReceivedBookingList.fromJson(response.response!.data);
+        final bookingResponse =
+            ReceivedBookingList.fromJson(response.response!.data);
         receivedbookingList.value = bookingResponse.data;
       } else {
         print("API failed with status: ${response.statusCode}");
@@ -566,12 +609,15 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> getReceivedEnquiryList({String?channelId,String?videoId}) async {
+  Future<void> getReceivedEnquiryList(
+      {String? channelId, String? videoId}) async {
     try {
       isLoading.value = true;
-      final response = await BookingRepo().getReceivedInquiries(channelId: channelId);
+      final response =
+          await BookingRepo().getReceivedInquiries(channelId: channelId);
       if (response.statusCode == 200) {
-        final bookingResponse = ReceivedEnquiryList.fromJson(response.response!.data);
+        final bookingResponse =
+            ReceivedEnquiryList.fromJson(response.response!.data);
         receivedenquiryList.value = bookingResponse.data;
       } else {
         print("API failed with status: ${response.statusCode}");
@@ -584,25 +630,24 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> getReceivedvideoBookingList({String?channelId,String?videoId}) async {
+  Future<void> getReceivedvideoBookingList(
+      {String? channelId, String? videoId}) async {
     try {
       isLoading.value = true;
 
       if (channelId == null || videoId == null) {
-        
         receivedbookings.clear();
         return;
-      } 
-      final response = await BookingRepo().getVideoBookings(channelId: channelId, videoId: videoId);
+      }
+      final response = await BookingRepo()
+          .getVideoBookings(channelId: channelId, videoId: videoId);
 
       if (response.statusCode == 200 && response.response?.data != null) {
-     
         try {
-          final bookingResponse = ReceivedBookingResponse.fromJson(response.response!.data);
+          final bookingResponse =
+              ReceivedBookingResponse.fromJson(response.response!.data);
           receivedbookings.value = bookingResponse.data;
-         
         } catch (parseError) {
-          
           log("Response data: ${response.response!.data}");
           receivedbookings.clear();
         }
@@ -618,25 +663,24 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> getReceivedvideoEnquiryList({String?channelId,String?videoId}) async {
+  Future<void> getReceivedvideoEnquiryList(
+      {String? channelId, String? videoId}) async {
     try {
       isLoading.value = true;
 
       if (channelId == null || videoId == null) {
-        
         receivedbookings.clear();
         return;
-      } 
-      final response = await BookingRepo().getVideoEnquiry(channelId: channelId, videoId: videoId);
+      }
+      final response = await BookingRepo()
+          .getVideoEnquiry(channelId: channelId, videoId: videoId);
 
       if (response.statusCode == 200 && response.response?.data != null) {
-     
         try {
-          final bookingResponse = ReceivedEnquiryResponse.fromJson(response.response!.data);
+          final bookingResponse =
+              ReceivedEnquiryResponse.fromJson(response.response!.data);
           receivedenquiry.value = bookingResponse.data;
-         
         } catch (parseError) {
-          
           log("Response data: ${response.response!.data}");
           receivedbookings.clear();
         }
@@ -680,32 +724,33 @@ class BookingController extends GetxController {
   Future<void> getAvailabilityData({required String channelId}) async {
     try {
       isLoadingCalendar.value = true;
-      
-             final response = await BookingRepo().getavailableCalender(
-         channelId: channelId,
-         params: {},
-       );
-      
+
+      final response = await BookingRepo().getavailableCalender(
+        channelId: channelId,
+        params: {},
+      );
+
       print("Calendar API Response Status: ${response.statusCode}");
       print("Calendar API Response Success: ${response.isSuccess}");
       print("Calendar API Response Data: ${response.response?.data}");
-      
+
       if (response.isSuccess && response.response?.data != null) {
         try {
-          print("Calendar API Response Type: ${response.response!.data.runtimeType}");
+          print(
+              "Calendar API Response Type: ${response.response!.data.runtimeType}");
           print("Calendar API Response: ${response.response!.data}");
-          
-                     final calendarResponse = CalendarResponse.fromJson(response.response!.data);
-           calendarData.value = calendarResponse;
-           
-           // Extract charges/fees
-           if (calendarResponse.fee != null) {
-             charges.value = calendarResponse.fee!;
-           }
-           
-           // Generate available dates from calendar
-           _generateAvailableDatesFromCalendar(calendarResponse.data);
-          
+
+          final calendarResponse =
+              CalendarResponse.fromJson(response.response!.data);
+          calendarData.value = calendarResponse;
+
+          // Extract charges/fees
+          if (calendarResponse.fee != null) {
+            charges.value = calendarResponse.fee!;
+          }
+
+          // Generate available dates from calendar
+          _generateAvailableDatesFromCalendar(calendarResponse.data);
         } catch (e) {
           print("Error parsing calendar response: $e");
           print("Response data type: ${response.response!.data.runtimeType}");
@@ -719,14 +764,12 @@ class BookingController extends GetxController {
       // Fetch availability details to ensure fee/charges and schedule are populated
       try {
         final availabilityRes = await BookingRepo().getUserAvailability(
-          id: channelId,
-            queryParams: {
-              ApiKeys.type: 'channel'
-            }
-        );
-        if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
+            id: channelId, queryParams: {ApiKeys.type: 'channel'});
+        if (availabilityRes.isSuccess &&
+            availabilityRes.response?.data != null) {
           try {
-            final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
+            final availability =
+                AvailabilityResponse.fromJson(availabilityRes.response!.data);
             final fee = availability.data?.fee?.toString() ?? '';
             if (fee.isNotEmpty) {
               charges.value = fee;
@@ -736,7 +779,8 @@ class BookingController extends GetxController {
             print("Error parsing availability response: $e");
           }
         } else {
-          print("Availability fetch failed or empty: ${availabilityRes.message}");
+          print(
+              "Availability fetch failed or empty: ${availabilityRes.message}");
         }
       } catch (e) {
         print("Error fetching availability details: $e");
@@ -748,33 +792,29 @@ class BookingController extends GetxController {
     }
   }
 
- Future<void> getavailablitydata({required String channelId})async{
-       try {
-        final availabilityRes = await BookingRepo().getUserAvailability(
-          id: channelId,
-          queryParams: {
-              ApiKeys.type: 'channel'
+  Future<void> getavailablitydata({required String channelId}) async {
+    try {
+      final availabilityRes = await BookingRepo().getUserAvailability(
+          id: channelId, queryParams: {ApiKeys.type: 'channel'});
+      if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
+        try {
+          final availability =
+              AvailabilityResponse.fromJson(availabilityRes.response!.data);
+          final fee = availability.data?.fee?.toString() ?? '';
+          if (fee.isNotEmpty) {
+            charges.value = fee;
           }
-        );
-        if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
-          try {
-            final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
-            final fee = availability.data?.fee?.toString() ?? '';
-            if (fee.isNotEmpty) {
-              charges.value = fee;
-
-            }
-            availabilityDetails.value = availability.data;
-          } catch (e) {
-            print("Error parsing availability response: $e");
-          }
-        } else {
-          print("Availability fetch failed or empty: ${availabilityRes.message}");
+          availabilityDetails.value = availability.data;
+        } catch (e) {
+          print("Error parsing availability response: $e");
         }
-      } catch (e) {
-        print("Error fetching availability details: $e");
+      } else {
+        print("Availability fetch failed or empty: ${availabilityRes.message}");
       }
- }
+    } catch (e) {
+      print("Error fetching availability details: $e");
+    }
+  }
 
   String? mapApiDayToUiDay(String apiDayLower) {
     switch (apiDayLower) {
@@ -836,9 +876,9 @@ class BookingController extends GetxController {
       print("Calendar data is null");
       return;
     }
-    
+
     availableDates.clear();
-    
+
     // Process calendar data to get available dates
     for (var dateString in calendarData) {
       try {
@@ -850,16 +890,16 @@ class BookingController extends GetxController {
         print("Error parsing date: $dateString - $e");
       }
     }
-    
+
     print("Total available dates: ${availableDates.length}");
   }
-
-  
 
   // Get available time slots for a specific date from API availability (schedule + duration)
   List<String> getAvailableTimeSlotsForDate(DateTime date) {
     final details = availabilityDetails.value;
-    if (details == null || details.schedule == null || details.schedule!.isEmpty) {
+    if (details == null ||
+        details.schedule == null ||
+        details.schedule!.isEmpty) {
       return [];
     }
 
@@ -892,7 +932,8 @@ class BookingController extends GetxController {
     }
 
     final scheduleForDay = details.schedule!
-        .where((s) => (s.day?.toLowerCase() ?? '') == dayName && (s.isOpen ?? false))
+        .where((s) =>
+            (s.day?.toLowerCase() ?? '') == dayName && (s.isOpen ?? false))
         .toList();
     if (scheduleForDay.isEmpty) {
       return [];
@@ -954,9 +995,9 @@ class BookingController extends GetxController {
 
   // Check if availability is set for the channel
   bool get isAvailabilitySet {
-    return calendarData.value != null && 
-           calendarData.value!.data != null && 
-           calendarData.value!.data!.isNotEmpty;
+    return calendarData.value != null &&
+        calendarData.value!.data != null &&
+        calendarData.value!.data!.isNotEmpty;
   }
 
   // Fetch predictions from your API
@@ -986,6 +1027,4 @@ class BookingController extends GetxController {
       isSearchPlaceLoading.value = false;
     }
   }
-
-
 }
