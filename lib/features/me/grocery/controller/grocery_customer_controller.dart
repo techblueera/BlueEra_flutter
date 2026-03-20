@@ -565,11 +565,12 @@ class GroceryCustomerController extends GetxController{
 
       placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
       hide();
-      Future.delayed(Duration(seconds: 2),(){
-        Get.offAllNamed(
-          RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 3},
-        );
+      selectedGroceriesVariants.clear();
+      cartQuantities.clear();
+      Future.delayed(Duration(milliseconds: 500),(){
+      Get.back();
+      Get.back();
+      Get.back();
       });
 
       //

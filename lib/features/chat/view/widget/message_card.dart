@@ -44,7 +44,7 @@ import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
 import 'live_location_message_card.dart';
-import 'media_message_full_view.dart';
+
 import 'message_bubble.dart';
 import 'message_context_menu.dart';
 
@@ -282,7 +282,7 @@ class _MessageCardState extends State<MessageCard>
       case"rider_map":
         messageWidget = RiderLiveLocationMsgCard(message: widget.message, time: time,);
       case "selfpickup":
-        messageWidget = SelfPickupMsgCard(message: widget.message, time: time);
+        messageWidget = SelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
 
       default:
 

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdfx/pdfx.dart' as pdfx;
 
 import '../../../../core/services/chat_media_storage_service.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -41,6 +42,8 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
   _DocDlState _dlState = _DocDlState.idle;
   double _dlProgress = 0;
   String? _localPath;
+  Uint8List? _thumbnailBytes;
+  bool _thumbnailLoaded = false;
 
   bool get _isReceived => widget.isMyMessage; // isMyMessage is inverted in the original code
 
@@ -51,6 +54,47 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
       _checkLocalFile();
     } else {
       _dlState = _DocDlState.ready;
+      _loadThumbnail();
+    }
+  }
+
+  Future<void> _loadThumbnail() async {
+    try {
+      final path = _localPath ?? widget.pdfUrl;
+      if (path.isEmpty) return;
+
+      pdfx.PdfDocument? doc;
+      if (path.startsWith('http')) {
+        // Download first for thumbnail
+        final existing = await ChatMediaStorageService.findExistingFile(
+          url: path, messageType: 'document', fileName: widget.fileName,
+        );
+        if (existing != null) {
+          doc = await pdfx.PdfDocument.openFile(existing.path);
+        }
+      } else {
+        doc = await pdfx.PdfDocument.openFile(path);
+      }
+
+      if (doc != null) {
+        final page = await doc.getPage(1);
+        final pageImage = await page.render(
+          width: page.width * 2,
+          height: page.height * 2,
+          format: pdfx.PdfPageImageFormat.png,
+        );
+        await page.close();
+        await doc.close();
+
+        if (mounted && pageImage?.bytes != null) {
+          setState(() {
+            _thumbnailBytes = pageImage!.bytes;
+            _thumbnailLoaded = true;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading PDF thumbnail: $e');
     }
   }
 
@@ -61,6 +105,7 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
     );
     if (existing != null && mounted) {
       setState(() { _dlState = _DocDlState.ready; _localPath = existing.path; });
+      _loadThumbnail();
     }
   }
 
@@ -74,6 +119,7 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
     if (!mounted) return;
     if (file != null) {
       setState(() { _dlState = _DocDlState.ready; _localPath = file.path; });
+      _loadThumbnail();
     } else {
       setState(() => _dlState = _DocDlState.idle);
     }
@@ -142,40 +188,69 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
       );
     }
 
-    // Ready state — normal PDF card
+    // Ready state — PDF card with thumbnail preview
     return GestureDetector(
       onTap: () => _openPdf(context),
       child: Align(
         alignment: !widget.isMyMessage ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
           margin: const EdgeInsets.only(bottom: 1),
+          width: 240,
           decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.picture_as_pdf, color: textColor),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 197,
-                    child: CustomText(widget.fileName, maxLines: 1, overflow: TextOverflow.ellipsis, color: textColor),
+              // Thumbnail preview
+              if (_thumbnailLoaded && _thumbnailBytes != null)
+                Container(
+                  width: double.infinity,
+                  height: 180,
+                  color: Colors.grey.shade100,
+                  child: Image.memory(
+                    _thumbnailBytes!,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                   ),
-                  const SizedBox(height: 2),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    CustomText("Tap to view full PDF", fontSize: 12, color: textColor),
-                    const SizedBox(width: 22),
-                    timeAndReadInfoWidget(
-                      message: widget.message,
-                      isMyMessage: widget.message.myMessage ?? false,
-                      time: widget.time,
-                      timeColor: (widget.message.myMessage ?? false) ? Colors.white : Colors.black54,
-                      indicateColor: widget.message.messageRead == 1 ? Colors.blue : Colors.grey,
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  color: Colors.grey.shade100,
+                  child: Center(
+                    child: Icon(Icons.picture_as_pdf, color: Colors.red.shade300, size: 48),
+                  ),
+                ),
+
+              // File info
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.picture_as_pdf, color: textColor, size: 18),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: CustomText(widget.fileName, maxLines: 1, overflow: TextOverflow.ellipsis, color: textColor, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ]),
-                ],
+                    const SizedBox(height: 4),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      CustomText("Tap to view", fontSize: 11, color: textColor.withValues(alpha: 0.7)),
+                      timeAndReadInfoWidget(
+                        message: widget.message,
+                        isMyMessage: widget.message.myMessage ?? false,
+                        time: widget.time,
+                        timeColor: (widget.message.myMessage ?? false) ? Colors.white : Colors.black54,
+                        indicateColor: widget.message.messageRead == 1 ? Colors.blue : Colors.grey,
+                      ),
+                    ]),
+                  ],
+                ),
               ),
             ],
           ),
