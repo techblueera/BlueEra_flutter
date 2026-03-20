@@ -235,6 +235,10 @@ class CommonTextField extends StatelessWidget {
                       ),
                     )
                   : sIcon,
+              suffixIconConstraints: sIcon != null ? BoxConstraints(
+                  maxWidth: 40,
+                  maxHeight: 20
+              ) : null,
               hintStyle: hintStyle ?? theme.inputDecorationTheme.hintStyle,
               errorMaxLines: 2,
             ),

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/home_made_food_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/tiffin_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
@@ -40,6 +41,7 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   final controller = Get.find<ViewPersonalDetailsController>();
   final tiffinController = getOrPut(() => TiffinController());
+  final homeMadeFoodController = getOrPut(() => HomeMadeFoodController());
 
   @override
   Widget build(BuildContext context) {

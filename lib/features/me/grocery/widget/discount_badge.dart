@@ -9,7 +9,7 @@ class DiscountBadge extends StatelessWidget {
   final Color? backgroundColor;
   final Color? borderColor;
   final Color? textColor;
-  final Color? iconColor;
+  final String? icon;
 
   const DiscountBadge({
     super.key,
@@ -17,7 +17,7 @@ class DiscountBadge extends StatelessWidget {
     this.backgroundColor,
     this.borderColor,
     this.textColor,
-    this.iconColor,
+    this.icon,
   });
 
   @override
@@ -28,7 +28,7 @@ class DiscountBadge extends StatelessWidget {
     final finalBgColor = backgroundColor ?? AppColors.greenShade.withValues(alpha: 0.1);
     final finalBorderColor = borderColor ?? AppColors.greenShade.withValues(alpha: 0.2);
     final finalTextColor = textColor ?? AppColors.green00;
-    final finalIconColor = iconColor ?? AppColors.green00;
+    // final finalIconColor = iconColor ?? AppColors.green00;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
@@ -45,10 +45,10 @@ class DiscountBadge extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           LocalAssets(
-            imagePath: AppIconAssets.discountTagIcon,
+            imagePath: icon ?? AppIconAssets.discountTagIcon,
             height: 12,
             width: 12,
-            imgColor: finalIconColor,
+            // imgColor: finalIconColor,
           ),
           const SizedBox(width: 4),
           CustomText(

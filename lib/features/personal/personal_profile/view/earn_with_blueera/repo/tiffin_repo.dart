@@ -5,10 +5,10 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 class TiffinRepo extends BaseService{
 
   Future<ResponseModel> fetchAllMeals() async {
+    print('call3');
     final response = await ApiBaseHelper().getHTTP(
-      addAccountApi,
+      tiffinsByUserId,
       showProgress: false,
-      params: {},
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -17,7 +17,7 @@ class TiffinRepo extends BaseService{
 
   Future<ResponseModel> createMeal({required Map<String, dynamic> data}) async {
     final response = await ApiBaseHelper().postHTTP(
-      addAccountApi,
+      tiffins,
       showProgress: false,
       params: data,
       onError: (error) {},
@@ -27,8 +27,8 @@ class TiffinRepo extends BaseService{
   }
 
   Future<ResponseModel> updateMeal({required String id, required Map<String, dynamic> data}) async {
-    final response = await ApiBaseHelper().putHTTP(
-      '$addAccountApi/$id',
+    final response = await ApiBaseHelper().patchHTTP(
+      '$tiffins/$id',
       showProgress: false,
       params: data,
       onError: (error) {},
@@ -37,11 +37,33 @@ class TiffinRepo extends BaseService{
     return response;
   }
 
-  Future<ResponseModel> toggleGoLive({required String id, required bool isLive}) async {
+  Future<ResponseModel> toggleGoLive({required String id, required Map<String, dynamic> data}) async {
     final response = await ApiBaseHelper().patchHTTP(
-      '$addAccountApi/$id',
+      '$tiffins/$id',
       showProgress: false,
-      params: {'is_live': isLive},
+      params: data,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> addCenterName({required Map<String, dynamic> data}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      tiffinsCenters,
+      showProgress: false,
+      params: data,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> updateCenterName({required Map<String, dynamic> data}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      tiffinsCenters,
+      showProgress: false,
+      params: data,
       onError: (error) {},
       onSuccess: (data) {},
     );

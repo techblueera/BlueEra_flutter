@@ -80,7 +80,7 @@ class FoodRepo extends BaseService {
 
   Future<ResponseModel> getHomeFoodByIdRepo({required String businessProfile}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${homeFood}$businessProfile",
+      "${home}$businessProfile",
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -180,6 +180,38 @@ class FoodRepo extends BaseService {
       foodCustomerSearch,
       params: queryParam,
       showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> fetchAllHomeMadeFoodItems() async {
+    final response = await ApiBaseHelper().getHTTP(
+      homeFoodByUserId,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> createHomeMadeFood({required Map<String, dynamic> data}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      homeFood,
+      showProgress: false,
+      params: data,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> updateHomeMadeFood({required String id, required Map<String, dynamic> data}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      '$homeFood/$id',
+      showProgress: false,
+      params: data,
       onError: (error) {},
       onSuccess: (data) {},
     );

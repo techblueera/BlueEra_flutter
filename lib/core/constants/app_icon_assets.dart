@@ -514,6 +514,7 @@ class AppIconAssets {
   static String outlinedDocument = "${iconPath}outlined_document.svg";
   static String uploadOutlinedIcon = "${iconPath}upload_outlined_icon.svg";
   static String discountTagIcon = "${iconPath}discount_tag.svg";
+  static String discountTagGreyIcon = "${iconPath}discount_tag_grey.svg";
 
   /// Grocery Super Category svg
   static const groceryIconPath = AppConstants.baseGroceryAssetsPath;

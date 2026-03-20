@@ -22,7 +22,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -35,7 +34,8 @@ class AddSelfServiceScreen extends StatefulWidget {
     super.key,
     this.fromBottomNavBar = false,
     required this.designation,
-    required this.serviceSubType});
+    required this.serviceSubType,
+  });
 
   @override
   State<AddSelfServiceScreen> createState() => _AddSelfServiceScreenState();
@@ -45,19 +45,18 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
 
   @override
-  initState(){
+  void initState() {
     super.initState();
     controller.designation = widget.designation;
-    if(controller.designation==null) return;
-
+    if (controller.designation == null) return;
     controller.fetchPredefinedCategoryServiceType(
-        designation: controller.designation!,
-        selectedServiceKey: SelfWorkServiceController.keyServiceTypes
+      designation: controller.designation!,
+      selectedServiceKey: SelfWorkServiceController.keyServiceTypes,
     );
   }
 
   @override
-  dispose(){
+  void dispose() {
     super.dispose();
     deleteIfRegistered<SelfWorkServiceController>();
   }
@@ -68,481 +67,664 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: controller.designation,
-        isLeading: !widget.fromBottomNavBar
+        isLeading: !widget.fromBottomNavBar,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8
-          ),
-          child: Obx(()=> AbsorbPointer(
-            absorbing: controller.isCreateServiceLoading.value,
-            child: Form(
-              key: controller.formKey,
-              child: Column(
-                children: [
+        child: Obx(() => AbsorbPointer(
+          absorbing: controller.isCreateServiceLoading.value,
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              children: [
 
-                  // --- TOP CARD: Uploads & Dropdowns ---
-                  CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.paddingM),
+                // ─── Progress Bar ───
+                _buildProgressBar(),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      vertical: SizeConfig.size15,
+                      horizontal: SizeConfig.size12,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
 
-                        /// service work photo
-                        _sectionTitle("Upload Your Work Photo"),
+                        _buildSectionLabel('📸  Work Photos'),
                         SizedBox(height: SizeConfig.size8),
-                        Row(
-                          children: [
-                            ...List.generate(controller.selectedImages.length, (index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: InkWell(
-                                  onTap: () async {
-                                    navigatePushTo(
-                                      context,
-                                      ImageViewScreen(
-                                        subTitle: '',
-                                        appBarTitle: AppStrings.imageViewer,
-                                        imageUrls: controller.selectedImages,
-                                        initialIndex: index,
-                                      ),
-                                    );
-                                  },
-                                  child: Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.file(
-                                            File(controller.selectedImages[index]),
-                                            width: SizeConfig.size80,
-                                            height: SizeConfig.size80,
-                                            fit: BoxFit.cover),
-                                      ),
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: GestureDetector(
-                                          onTap: () async {
-                                            controller.selectedImages.removeAt(index);
-                                          },
-                                          child: CircleAvatar(
-                                            radius: 10,
-                                            backgroundColor: AppColors.blackMite,
-                                            child: Icon(Icons.close, size: 12, color: AppColors.white),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-                            if (controller.selectedImages.length < 2)
-                              InkWell(
-                                onTap: () async {
-                                  final imgStr = await SelectProfilePictureDialog
-                                      .showLogoDialog(
-                                      context,
-                                      AppStrings.gallery,
-                                      cropAspectRatio: CropAspectRatio(width: 3, height: 4)
-                                  );
-                                  if (imgStr != null) {
-                                    controller.selectedImages.add(imgStr);
-                                  }
-                                },
-                                child: Container(
-                                  width: SizeConfig.size80,
-                                  height: SizeConfig.size80,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.greyE5),
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: LocalAssets(
-                                      imagePath: AppIconAssets.chat_input_gallery,
-                                      imgColor: AppColors.greyAF,
-                                      height: SizeConfig.size20,
-                                      width: SizeConfig.size20
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        SizedBox(height: SizeConfig.size15),
+                        _buildPhotoUploader(),
 
-                        /// Experience
-                        _sectionTitle("Your Experience"),
+                        SizedBox(height: SizeConfig.size20),
+
+                        _buildSectionLabel('🏅  Experience'),
                         SizedBox(height: SizeConfig.size8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                      AppStrings.years,
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.mainTextColor
-                                  ),
-                                  SizedBox(height: SizeConfig.size8),
-                                  CommonDropdown<String>(
-                                    items: controller.experienceYears,
-                                    selectedValue: controller.selectedExperienceYear.value,
-                                    hintText: "E.g 1 Year..",
-                                    onChanged: (val) {
-                                      controller.selectedExperienceYear.value = val;
-                                    },
-                                    displayValue: (val) => val,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(width: SizeConfig.paddingM),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                      'Months',
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.mainTextColor
-                                  ),
-                                  SizedBox(height: SizeConfig.size8),
-                                  CommonDropdown<String>(
-                                    items: controller.experienceMonths,
-                                    selectedValue: controller.selectedExperienceMonth.value,
-                                    hintText: "E.g 3 Months..",
-                                    onChanged: (val)=> controller.selectedExperienceMonth.value = val,
-                                    displayValue: (val) => val,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: SizeConfig.size15),
+                        _buildExperienceRow(),
 
-                        /// Service Type
-                        _sectionTitle("Service Type"),
+                        SizedBox(height: SizeConfig.size20),
+
+                        _buildSectionLabel('🔧  Service Types'),
                         SizedBox(height: SizeConfig.size8),
-                        controller.isPredefinedCategoryServiceTypeLoading.value
-                        ?  Center(
-                          child: CircularProgressIndicator(),
-                        )
-                            : Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size4,
-                              vertical: SizeConfig.size8
-                          ),
-                          decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(10.0),
-                              border: Border.all(color: AppColors.greyE5),
-                              boxShadow: [AppShadows.textFieldShadow]
-                          ),
-                              child: Column(
-                              children: controller.serviceTypes.map((item) {
-                              return Theme(
-                                data: ThemeData(unselectedWidgetColor: Colors.grey.shade300),
-                                child: CheckboxListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  visualDensity: const VisualDensity(horizontal: -4, vertical: -3),
-                                  dense: true,
-                                  activeColor: AppColors.primaryColor,
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                  title: CustomText(
-                                    item,
-                                    fontSize: SizeConfig.medium,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                  value: controller.selectedServiceTypes.contains(item),
-                                  onChanged: (val) {
-                                    if (val == true) {
-                                      controller.selectedServiceTypes.add(item);
-                                    } else {
-                                      controller.selectedServiceTypes.remove(item);
-                                    }
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        )
+                        _buildServiceTypeChips(),
 
-                      ],
-                    ),
-                  ),
+                        SizedBox(height: SizeConfig.size20),
 
-                  SizedBox(height: SizeConfig.paddingM),
-
-                  // --- EXPANSION CARDS ---
-                  CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.paddingM),
-                    child: Column(
-                      children: controller.selectedCategoryMap.entries.map((item) {
-                        return Obx(() {
-                          final selectedKey = item.key;
-                          final selectedItems = item.value;
-
-                          // 1. Get Display Title
-                          final displayTitle = controller.categoryTitleMap[selectedKey] ?? selectedKey;
-
-                          Widget content;
-
-                          if (selectedItems.isNotEmpty) {
-                            // CASE 1: Data exists -> Show Expansion Tile
-                            content = _buildDynamicExpansionTile(
-                              title: displayTitle,
-                              selectedItems: selectedItems.toList(),
-                              onAddTap: () => _navigateToSelection(selectedKey, displayTitle),
-                            );
-                          } else {
-                            // CASE 2: No Data -> Show Normal Container
-                            content = _buildNormalContainer(
-                              title: displayTitle,
-                              onTap: () => _navigateToSelection(selectedKey, displayTitle),
-                            );
-                          }
-
-                          // 2. Check if this is the last item to remove bottom padding
-                          final isLastItem = controller.selectedCategoryMap.keys.last == selectedKey;
-
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: isLastItem ? 0 : SizeConfig.size15),
-                            child: content,
-                          );
-                        });
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // --- ABOUT SECTION ---
-                  CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.paddingM),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _sectionTitle("About"),
-                            Obx(()=> !controller.isGenerateDescLoading.value
-                                ? InkWell(
-                                onTap: () {
-                                  if(controller.selectedExperienceYear.value == null ||
-                                      controller.selectedExperienceMonth.value == null){
-                                    commonSnackBar(
-                                        message: "Cannot generate description without Experience Year and Month"
-                                    );
-                                    return;
-                                  }
-
-                                  controller
-                                      .generateDescriptions(bodyRequest: {
-                                    ApiKeys.category: controller.designation,
-                                    ApiKeys.expYears: controller.selectedExperienceYear.value,
-                                    ApiKeys.expMonths: controller.selectedExperienceMonth.value,
-                                  });
-                                },
-                                child: LocalAssets(
-                                  height: 25,
-                                  width: 25,
-                                  imgColor: AppColors.primaryColor,
-                                  imagePath: AppIconAssets.ai_generative,
-                                )) : SizedBox(
-                                height: 25,
-                                width: 25,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.0,
-                                )))
-                          ],
-                        ),
+                        _buildSectionLabel('📂  Service Categories'),
                         SizedBox(height: SizeConfig.size8),
-                        CommonTextField(
-                          textEditController: controller.aboutController,
-                          maxLine: 4,
-                          hintText: "Horem ipsum dolor sit amet, consectetur adipiscing...",
-                          maxLength: 250,
-                          isCounterVisible: true,
-                          isValidate: true,
-                          validator: ValidationMethod().professionDescValidation
-                        ),
+                        _buildCategoryList(),
 
-                        SizedBox(height: SizeConfig.paddingL),
+                        SizedBox(height: SizeConfig.size20),
 
-                        // NEXT BUTTON
-                        CustomBtn(
-                          title: controller.isCreateServiceLoading.value ? null : 'Next',
-                          onTap: ()=> controller.createEarnServiceApi(serviceSubType: widget.serviceSubType),
+                        _buildSectionLabel('📝  About You'),
+                        SizedBox(height: SizeConfig.size8),
+                        _buildAboutSection(),
+
+                        SizedBox(height: SizeConfig.size24),
+
+                        // ─── Next Button ───
+                        Obx(() => CustomBtn(
+                          title: controller.isCreateServiceLoading.value ? null : 'Submit & Continue',
+                          onTap: () => controller.createEarnServiceApi(serviceSubType: widget.serviceSubType),
                           bgColor: AppColors.primaryColor,
                           isLoading: controller.isCreateServiceLoading.value,
-                        ),
+                        )),
 
+                        const SizedBox(height: 40 + kBottomNavigationBarHeight),
                       ],
                     ),
                   ),
-
-
-                  const SizedBox(height: 40 + kBottomNavigationBarHeight),
-                ],
-              ),
+                ),
+              ],
             ),
-          )),
-        ),
+          ),
+        )),
       ),
     );
   }
 
-  Widget _sectionTitle(String title) => CustomText(
-      title,
-      fontSize: SizeConfig.small,
-      fontWeight: FontWeight.w400,
-      color: AppColors.mainTextColor
-  );
+  // ─── Progress Bar ───
+  Widget _buildProgressBar() {
+    return Obx(() {
+      int completed = 0;
+      if (controller.selectedImages.isNotEmpty) completed++;
+      if (controller.selectedExperienceYear.value != null) completed++;
+      if (controller.selectedServiceTypes.isNotEmpty) completed++;
+      if (controller.selectedCategoryMap.values.any((v) => v.isNotEmpty)) completed++;
+      if (controller.aboutController.text.isNotEmpty) completed++;
 
-  // --- Widget 1: Normal Container (When list is empty) ---
-  Widget _buildNormalContainer({
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(SizeConfig.size14),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.greyE5),
-          boxShadow: [AppShadows.textFieldShadow]
+      final progress = completed / 5;
+
+      return Container(
+        color: AppColors.white,
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  'Profile Completion',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.mainTextColor,
+                ),
+                CustomText(
+                  '$completed/5 Steps',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: AppColors.greyE5,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              ),
+            ),
+          ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      );
+    });
+  }
+
+  // ─── Section Label ───
+  Widget _buildSectionLabel(String label) {
+    return CustomText(
+      label,
+      fontSize: SizeConfig.medium,
+      fontWeight: FontWeight.w600,
+      color: AppColors.mainTextColor,
+    );
+  }
+
+  // ─── Photo Uploader ───
+  Widget _buildPhotoUploader() {
+    return Obx(() => CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Uploaded images
+              ...List.generate(controller.selectedImages.length, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size10),
+                  child: InkWell(
+                    onTap: () => navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: '',
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: controller.selectedImages,
+                        initialIndex: index,
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            File(controller.selectedImages[index]),
+                            width: SizeConfig.size80,
+                            height: SizeConfig.size80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        // Remove button
+                        Positioned(
+                          top: 4, right: 4,
+                          child: GestureDetector(
+                            onTap: () => controller.selectedImages.removeAt(index),
+                            child: Container(
+                              width: 20, height: 20,
+                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                              child: const Icon(Icons.close, size: 12, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        // Badge
+                        Positioned(
+                          bottom: 4, left: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4)),
+                            child: CustomText('${index + 1}/2', fontSize: 9, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+
+              // Add photo slot
+              if (controller.selectedImages.length < 2)
+                GestureDetector(
+                  onTap: () async {
+                    final imgStr = await SelectProfilePictureDialog.showLogoDialog(
+                      context, AppStrings.gallery,
+                      cropAspectRatio: CropAspectRatio(width: 3, height: 4),
+                    );
+                    if (imgStr != null) controller.selectedImages.add(imgStr);
+                  },
+                  child: Container(
+                    width: SizeConfig.size80,
+                    height: SizeConfig.size80,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.05),
+                      border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.35), width: 1.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_a_photo_outlined, color: AppColors.primaryColor, size: 24),
+                        SizedBox(height: SizeConfig.size4),
+                        CustomText('Add Photo', fontSize: 9, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Hint text when empty
+              if (controller.selectedImages.isEmpty) ...[
+                SizedBox(width: SizeConfig.size12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText('Show your work!', fontSize: SizeConfig.medium, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+                      SizedBox(height: SizeConfig.size4),
+                      CustomText('Upload up to 2 photos that showcase your skills', fontSize: SizeConfig.small, fontWeight: FontWeight.w400, color: AppColors.secondaryTextColor),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+
+          // ─── Tips row ───
+          if (controller.selectedImages.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size10),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 14, color: AppColors.primaryColor),
+                  SizedBox(width: SizeConfig.size6),
+                  CustomText(
+                    'Good photos increase your chances by 3x',
+                    fontSize: SizeConfig.small,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    ));
+  }
+
+  // ─── Experience Row ───
+  Widget _buildExperienceRow() {
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _fieldLabel('Years'),
+                SizedBox(height: SizeConfig.size6),
+                CommonDropdown<String>(
+                  items: controller.experienceYears,
+                  selectedValue: controller.selectedExperienceYear.value,
+                  hintText: 'Select Year',
+                  onChanged: (val) => controller.selectedExperienceYear.value = val,
+                  displayValue: (val) => val,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _fieldLabel('Months'),
+                SizedBox(height: SizeConfig.size6),
+                CommonDropdown<String>(
+                  items: controller.experienceMonths,
+                  selectedValue: controller.selectedExperienceMonth.value,
+                  hintText: 'Select Month',
+                  onChanged: (val) => controller.selectedExperienceMonth.value = val,
+                  displayValue: (val) => val,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Service Types as Chips ─── (replaces checkboxes — much more modern)
+  Widget _buildServiceTypeChips() {
+    return Obx(() {
+      if (controller.isPredefinedCategoryServiceTypeLoading.value) {
+        return CustomFormCard(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          child: const Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      return CustomFormCard(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              title,
-              fontSize: SizeConfig.large,
+              'Tap to select services you offer',
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
               fontWeight: FontWeight.w400,
-              color: AppColors.mainTextColor,
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: AppColors.mainTextColor,
+            SizedBox(height: SizeConfig.size10),
+            Wrap(
+              spacing: SizeConfig.size8,
+              runSpacing: SizeConfig.size8,
+              children: controller.serviceTypes.map((item) {
+                final isSelected = controller.selectedServiceTypes.contains(item);
+                return GestureDetector(
+                  onTap: () {
+                    if (isSelected) {
+                      controller.selectedServiceTypes.remove(item);
+                    } else {
+                      controller.selectedServiceTypes.add(item);
+                    }
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size12,
+                      vertical: SizeConfig.size8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : AppColors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                        width: isSelected ? 0 : 1,
+                      ),
+                      boxShadow: isSelected ? [] : [AppShadows.textFieldShadow],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isSelected) ...[
+                          const Icon(Icons.check, size: 14, color: Colors.white),
+                          SizedBox(width: SizeConfig.size4),
+                        ],
+                        CustomText(
+                          item,
+                          fontSize: SizeConfig.small,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? AppColors.white : AppColors.secondaryTextColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
+
+            // Selection count
+            if (controller.selectedServiceTypes.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size10),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                    SizedBox(width: SizeConfig.size4),
+                    CustomText(
+                      '${controller.selectedServiceTypes.length} service${controller.selectedServiceTypes.length > 1 ? 's' : ''} selected',
+                      fontSize: SizeConfig.small,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+
+  // ─── Category List ───
+  Widget _buildCategoryList() {
+    return Column(
+      children: controller.selectedCategoryMap.entries.map((item) {
+        return Obx(() {
+          final selectedKey   = item.key;
+          final selectedItems = item.value;
+          final displayTitle  = controller.categoryTitleMap[selectedKey] ?? selectedKey;
+          final isLastItem    = controller.selectedCategoryMap.keys.last == selectedKey;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLastItem ? 0 : SizeConfig.size10),
+            child: selectedItems.isNotEmpty
+                ? _buildExpansionTile(
+              title: displayTitle,
+              selectedItems: selectedItems.toList(),
+              onAddTap: () => _navigateToSelection(selectedKey, displayTitle),
+            )
+                : _buildEmptyCategoryRow(
+              title: displayTitle,
+              onTap: () => _navigateToSelection(selectedKey, displayTitle),
+            ),
+          );
+        });
+      }).toList(),
+    );
+  }
+
+  // ─── Empty Category Row ───
+  Widget _buildEmptyCategoryRow({required String title, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: CustomFormCard(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
+        child: Row(
+          children: [
+            Container(
+              width: 36, height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.add, color: AppColors.primaryColor, size: 20),
+            ),
+            SizedBox(width: SizeConfig.size12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(title, fontSize: SizeConfig.medium, fontWeight: FontWeight.w500, color: AppColors.mainTextColor),
+                  SizedBox(height: SizeConfig.size2),
+                  CustomText('Tap to add details', fontSize: SizeConfig.small, fontWeight: FontWeight.w400, color: AppColors.secondaryTextColor),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: AppColors.primaryColor, size: 22),
           ],
         ),
       ),
     );
   }
 
-// --- Widget 2: Expansion Tile (When list has data) ---
-  Widget _buildDynamicExpansionTile({
+  // ─── Expansion Tile ───
+  Widget _buildExpansionTile({
     required String title,
     required List<String> selectedItems,
     required VoidCallback onAddTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.greyE5),
-          boxShadow: [AppShadows.textFieldShadow]
-      ),
+    return CustomFormCard(
+      padding: EdgeInsets.zero,
       child: Theme(
-        // Remove divider colors from the ExpansionTile itself
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-
         child: ExpansionTile(
           initiallyExpanded: true,
-          dense: true,
-          visualDensity: const VisualDensity(vertical: 0), // Reduces height to minimum
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          dense: false,
+          tilePadding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size4),
           childrenPadding: EdgeInsets.zero,
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-              fontSize: 15,
-            ),
+          title: Row(
+            children: [
+              Container(
+                width: 36, height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.check, color: Colors.green, size: 18),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(title, fontSize: SizeConfig.medium, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+                    CustomText('${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''} added', fontSize: SizeConfig.small, color: Colors.green, fontWeight: FontWeight.w400),
+                  ],
+                ),
+              ),
+            ],
           ),
+          trailing: Icon(Icons.keyboard_arrow_down, color: AppColors.secondaryTextColor),
           children: [
+            Divider(color: AppColors.greyE5, height: 1),
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+              padding: EdgeInsets.all(SizeConfig.size12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // List Selected Items
                   ...selectedItems.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.only(bottom: SizeConfig.size8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: EdgeInsets.only(top: 6),
-                          child: Icon(Icons.circle, size: 6, color: AppColors.secondaryTextColor),
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Icon(Icons.circle, size: 5, color: AppColors.primaryColor),
                         ),
-                        SizedBox(width: SizeConfig.size6),
+                        SizedBox(width: SizeConfig.size8),
                         Expanded(
-                          child: CustomText(
-                            item,
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
-                          ),
+                          child: CustomText(item, color: AppColors.secondaryTextColor, fontSize: SizeConfig.medium, fontWeight: FontWeight.w400),
                         ),
                       ],
                     ),
                   )),
 
-                  SizedBox(height: SizeConfig.size10),
+                  SizedBox(height: SizeConfig.size4),
+                  Divider(color: AppColors.greyE5, height: 1),
+                  SizedBox(height: SizeConfig.size8),
 
-                  // "Add More" Button inside the tile
+                  // Add More
                   GestureDetector(
                     onTap: onAddTap,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(
-                            CupertinoIcons.add,
-                            size: 16,
-                            color: AppColors.primaryColor
-                        ),
-                        SizedBox(width: 4),
-                        CustomText(
-                          "Add More",
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: SizeConfig.medium,
-                        ),
-                      ],
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, size: 16, color: AppColors.primaryColor),
+                          SizedBox(width: SizeConfig.size4),
+                          CustomText('Add More', color: AppColors.primaryColor, fontWeight: FontWeight.w600, fontSize: SizeConfig.medium),
+                        ],
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
+  // ─── About Section ───
+  Widget _buildAboutSection() {
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // AI generate button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText('Tell clients about yourself', fontSize: SizeConfig.small, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w400),
+              Obx(() => !controller.isGenerateDescLoading.value
+                  ? GestureDetector(
+                onTap: () {
+                  if (controller.selectedExperienceYear.value == null ||
+                      controller.selectedExperienceMonth.value == null) {
+                    commonSnackBar(message: "Please select experience year and month first");
+                    return;
+                  }
+                  controller.generateDescriptions(bodyRequest: {
+                    ApiKeys.category:  controller.designation,
+                    ApiKeys.expYears:  controller.selectedExperienceYear.value,
+                    ApiKeys.expMonths: controller.selectedExperienceMonth.value,
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.25)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      LocalAssets(height: 14, width: 14, imgColor: AppColors.primaryColor, imagePath: AppIconAssets.ai_generative),
+                      SizedBox(width: SizeConfig.size4),
+                      CustomText('AI Write', fontSize: SizeConfig.small, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                    ],
+                  ),
+                ),
+              )
+                  : SizedBox(
+                height: 20, width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.0, color: AppColors.primaryColor),
+              )),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size10),
+          CommonTextField(
+            textEditController: controller.aboutController,
+            maxLine: 5,
+            hintText: "E.g. I have 5 years of experience in electrical work, specialising in home wiring and repairs...",
+            maxLength: 250,
+            isCounterVisible: true,
+            isValidate: true,
+            validator: ValidationMethod().professionDescValidation,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Field Label ───
+  Widget _fieldLabel(String label) => CustomText(
+    label,
+    fontSize: SizeConfig.small,
+    fontWeight: FontWeight.w500,
+    color: AppColors.mainTextColor,
+  );
+
   void _navigateToSelection(String key, String title) {
     final selectedItems = controller.selectedCategoryMap[key] ?? <String>[].obs;
-
     Get.to(() => ServiceSelectionScreen(
       controller: controller,
       designation: controller.designation ?? ELECTRICIAN,
       selectedCategoryKey: key,
       pageTitle: title,
       preSelectedOptions: selectedItems,
-      isDataUpdate: false
+      isDataUpdate: false,
     ));
   }
-
 }

@@ -23,8 +23,8 @@ class EarnServiceController extends GetxController{
   RxInt selectedProductsServicesTabIndex = 0.obs;
   final List<String> productsServicesTab = [
     AppStrings.tiffin,
+    AppStrings.homeMadeFoodItems,
     AppStrings.homeMadeProducts,
-    AppStrings.homeMadeFoodItems
   ];
   RxBool showGoLiveEnabled = false.obs;
 

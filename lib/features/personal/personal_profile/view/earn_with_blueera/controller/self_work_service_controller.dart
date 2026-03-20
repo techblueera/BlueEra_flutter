@@ -39,7 +39,7 @@ class SelfWorkServiceController extends GetxController{
 
   String? designation;
 
-  final GlobalKey<FormState> formKey  = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   // --- Service images ---
   final RxList<String> selectedImages = <String>[].obs;
