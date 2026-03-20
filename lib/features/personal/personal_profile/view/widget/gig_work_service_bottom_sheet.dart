@@ -148,7 +148,10 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
                         _handleDeliveryPartner();
 
                         break;
+                      case BIKE_RIDER:
+                        _handleDeliveryPartner();
 
+                        break;
                       case CAR_TAXI:
                       // ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
                       //   context: context,

@@ -526,7 +526,7 @@ class InventoryController extends GetxController {
         }else{
           // await setEarnServiceOptData(true);
           await setRiderServiceOptData(true);
-          if (userProfessionGlobal == DELIVERY_RIDER) {
+          if (userProfessionGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
             Get.until(
                   (route) =>
               route.settings.name ==

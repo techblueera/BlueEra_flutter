@@ -63,7 +63,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             height: SizeConfig.size40,
             title: AppStrings.startListingNow,
             onTap: () {
-              if (userProfessionGlobal == DELIVERY_RIDER) {
+              if (userProfessionGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
                 Get.offNamedUntil(
                   RouteHelper.getAddProductScreenRoute(),
                   ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()),

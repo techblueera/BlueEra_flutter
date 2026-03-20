@@ -24,6 +24,9 @@ import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../business/visiting_card/view/business_own_profile_screen.dart';
+import '../../profile_setup_new_screen.dart';
+
 class RiderServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
 
@@ -341,10 +344,23 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             ),
           ),
 
-        SizedBox(width: SizeConfig.size15),
-
-        CommonProfileAvatar(),
-        SizedBox(width: SizeConfig.size15),
+        // SizedBox(width: SizeConfig.size15),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: InkWell(
+              onTap: (){
+                if (isGuestUser()) {
+                  createProfileScreen();
+                } else if (isIndividualUser()) {
+                  navigatePushTo(context, PersonalProfileSetupNewScreen());
+                } else if (isBusinessUser()) {
+                  navigatePushTo(context, BusinessOwnProfileScreen());
+                }
+              },
+              child: CustomText("${userNameGlobal}",fontSize: 15,fontWeight: FontWeight.w600,)),
+        ),
+        // CommonProfileAvatar(),
+        // SizedBox(width: SizeConfig.size15),
 
         // 2. trailing – Go-Live switch (always at the end)
         Builder(builder: (_) {

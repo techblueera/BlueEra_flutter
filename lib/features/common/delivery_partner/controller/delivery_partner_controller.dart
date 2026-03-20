@@ -53,10 +53,8 @@ class DeliveryPartnerController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> ridersOnboardingStatusResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> vehicleDataResponse =
-      ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> nearByRidersResponse =
-      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> vehicleDataResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> nearByRidersResponse = ApiResponse.initial('Initial').obs;
 
   final stepStatus = <RiderProfileStep, bool>{}.obs;
   String? riderVerificationStatus;
@@ -134,7 +132,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         uploadInitResponse.value = ApiResponse.complete(response);
         final imageUploadResponseModel =
-        ImageUploadResponseModel.fromJson(response.response?.data);
+            ImageUploadResponseModel.fromJson(response.response?.data);
         return imageUploadResponseModel;
       }
     } catch (e) {
@@ -195,7 +193,6 @@ class DeliveryPartnerController extends GetxController {
           RiderProfileStep.vehicleInfo:
               riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
         });*/
-
       } else {
         ridersOnboardingStatusResponse.value = ApiResponse.error('error');
         commonSnackBar(
@@ -438,7 +435,7 @@ class DeliveryPartnerController extends GetxController {
         };
 
         ResponseModel response =
-        await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
+            await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
           params: params,
         );
 
@@ -447,20 +444,19 @@ class DeliveryPartnerController extends GetxController {
               ApiResponse.complete(response);
 
           // if(screenName == 'from_tab_view'){
-            await setRiderServiceOptData(true);
-            await getRiderServiceOptData();
+          await setRiderServiceOptData(true);
+          await getRiderServiceOptData();
 
-            await ridersOnboardingStatusRepoApi();
+          await ridersOnboardingStatusRepoApi();
 
-            Get.until((route) =>
-            route.settings.name ==
-                RouteHelper.getBottomNavigationBarScreenRoute());
+          Get.until((route) =>
+              route.settings.name ==
+              RouteHelper.getBottomNavigationBarScreenRoute());
           // }
 
           // else {
           //   Get.back();
           // }
-
         } else {
           ridersOnboardingVehicleInformationResponse.value =
               ApiResponse.error('error');
@@ -669,7 +665,8 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-      checkStatusManageRoute();    } catch (e, s) {
+      checkStatusManageRoute();
+    } catch (e, s) {
       debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
       ridersOnboardingPersonalIdentificationResponse.value =
           ApiResponse.error('error');
@@ -731,7 +728,8 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-      checkStatusManageRoute();    } catch (e, s) {
+      checkStatusManageRoute();
+    } catch (e, s) {
       debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
       ridersOnboardingDrivingVerificationResponse.value =
           ApiResponse.error('error');
@@ -788,7 +786,8 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-      checkStatusManageRoute();    } catch (e, s) {
+      checkStatusManageRoute();
+    } catch (e, s) {
       debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
       ridersOnboardingDrivingVerificationResponse.value =
           ApiResponse.error('error');
@@ -1001,8 +1000,6 @@ class DeliveryPartnerController extends GetxController {
 
   RxBool isRiderVehicleInformationLoading = false.obs;
 
-
-
   Future<void> addLivePhoto() async {
     final selectedPath = await SelectProfilePictureDialog.pickFromCamera(
         Get.context!,
@@ -1040,7 +1037,8 @@ class DeliveryPartnerController extends GetxController {
 
       if (response.isSuccess) {
         vehicleDataResponse.value = ApiResponse.complete(response);
-        vehicleEnumResponse = VehicleEnumResponse.fromJson(response.response?.data);
+        vehicleEnumResponse =
+            VehicleEnumResponse.fromJson(response.response?.data);
       } else {
         vehicleDataResponse.value = ApiResponse.error('error');
       }
@@ -1058,6 +1056,9 @@ class DeliveryPartnerController extends GetxController {
       case DELIVERY_RIDER:
         allowedTypes = ["twoWheelerRider"];
         break;
+      case BIKE_RIDER:
+        allowedTypes = ["twoWheelerRider"];
+        break;
 
       case AUTO_TAXI:
         allowedTypes = ["autoTempo", "eRickshaw"];
@@ -1072,7 +1073,7 @@ class DeliveryPartnerController extends GetxController {
         break;
 
       default:
-      // Return everything if no role matches, or empty list
+        // Return everything if no role matches, or empty list
         return allVehicles;
     }
 
@@ -1082,16 +1083,13 @@ class DeliveryPartnerController extends GetxController {
         .toList();
   }
 
-
-  checkStatusManageRoute()
-  async {
+  checkStatusManageRoute() async {
     await ridersOnboardingStatusRepoApi();
-    final allCompleted =
-    stepStatus.values.every((status) => status == true);
+    final allCompleted = stepStatus.values.every((status) => status == true);
     if (allCompleted) {
       Get.offNamedUntil(
         RouteHelper.getBottomNavigationBarScreenRoute(),
-            (route) => false,
+        (route) => false,
       );
       // Get.until((route) =>
       // route.settings.name ==
@@ -1103,6 +1101,7 @@ class DeliveryPartnerController extends GetxController {
 
   RxBool isNearByRidersLoading = false.obs;
   RxList<Riders> arrRiders = <Riders>[].obs;
+
   Future<void> fetchNearByRidersApi() async {
     try {
       isNearByRidersLoading.value = true;
@@ -1116,7 +1115,8 @@ class DeliveryPartnerController extends GetxController {
         ApiKeys.range_in_km: 10000,
       };
 
-      final response = await GroceryRepo().fetchNearByRidersRepo(queryParams: queryParams);
+      final response =
+          await GroceryRepo().fetchNearByRidersRepo(queryParams: queryParams);
 
       if (!response.isSuccess) {
         commonSnackBar(
@@ -1129,7 +1129,8 @@ class DeliveryPartnerController extends GetxController {
 
       final data = response.response?.data;
 
-      GetBlueeraPiolotModel getBlueeraPiolotModel = GetBlueeraPiolotModel.fromJson(data);
+      GetBlueeraPiolotModel getBlueeraPiolotModel =
+          GetBlueeraPiolotModel.fromJson(data);
       arrRiders.value = getBlueeraPiolotModel.users ?? [];
 
       log('arrRiders length-- ${arrRiders.length}');
@@ -1141,6 +1142,4 @@ class DeliveryPartnerController extends GetxController {
       isNearByRidersLoading.value = false;
     }
   }
-
-
 }

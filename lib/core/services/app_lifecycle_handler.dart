@@ -17,7 +17,7 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     log("Lifecycle state changed → $state");
-    if (userDesignationGlobal == DELIVERY_RIDER) {
+    if (userDesignationGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
       if(state == AppLifecycleState.inactive){
         final controller = getOrPut(() => DeliverPartnerOrdersController());
         if(controller.onGoingOrders.isNotEmpty){

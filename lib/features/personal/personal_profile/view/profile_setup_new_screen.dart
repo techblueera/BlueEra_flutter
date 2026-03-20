@@ -522,16 +522,16 @@ class _PersonalProfileSetupNewScreenState
                       height: SizeConfig.size8,
                     ),
                     SizedBox(
-                      width: SizeConfig.size60,
-                      height: SizeConfig.size60,
+                      width: SizeConfig.size80,
+                      height: SizeConfig.size80,
                       child: CustomPaint(
                         painter: CircleProgressPainter(viewProfileController
                             .myProfileCompletionPercent.value),
                         child: Center(
                           child: CustomText(
                             "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
-                            fontWeight: FontWeight.w600,
-                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w700,
+                            fontSize: SizeConfig.medium,
                             color: AppColors.mainTextColor,
                           ),
                         ),
@@ -578,17 +578,17 @@ class _PersonalProfileSetupNewScreenState
                                         ? Icons.check_circle
                                         : Icons.error,
                                     color: item.isCompleted
-                                        ? Colors.blue
+                                        ? const Color(0xFF4CAF50)
                                         : Colors.red,
-                                    size: 16,
+                                    size: 18,
                                   ),
-                                  SizedBox(width: 2),
+                                  SizedBox(width: SizeConfig.size6),
                                   Expanded(
                                     child: CustomText(
                                       item.title,
-                                      fontSize: 11,
+                                      fontSize: SizeConfig.small,
                                       color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
@@ -1864,52 +1864,64 @@ class _PersonalProfileSetupNewScreenState
               ),
             ),
 
-            const SizedBox(height: 12),
+            SizedBox(height: SizeConfig.size16),
 
             // === Stats Row ===
             Obx(() {
               return Padding(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    StatBlock(
-                      callback: () {
-                        _tabController?.animateTo(1);
-                      },
-                      count: viewProfileController.postsCount.value.toString(),
-                      label: AppStrings.post,
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    StatBlock(
-                      count:
-                          viewProfileController.followingCount.value.toString(),
-                      label: AppStrings.following,
-                      callback: () {
-                        Get.to(() => FollowersFollowingPage(
-                            tabIndex: 0, userID: userId));
-                      },
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    StatBlock(
-                      count:
-                          viewProfileController.followersCount.value.toString(),
-                      label: AppStrings.followers,
-                      callback: () {
-                        Get.to(() => FollowersFollowingPage(
-                            tabIndex: 1, userID: userId));
-                      },
-                    ),
-                  ],
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                  decoration: BoxDecoration(
+                    color: AppColors.whiteF3,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      StatBlock(
+                        callback: () {
+                          _tabController?.animateTo(1);
+                        },
+                        count:
+                            viewProfileController.postsCount.value.toString(),
+                        label: AppStrings.post,
+                      ),
+                      Container(
+                        height: 30,
+                        width: 1,
+                        color: AppColors.whiteE5,
+                      ),
+                      StatBlock(
+                        count: viewProfileController.followingCount.value
+                            .toString(),
+                        label: AppStrings.following,
+                        callback: () {
+                          Get.to(() => FollowersFollowingPage(
+                              tabIndex: 0, userID: userId));
+                        },
+                      ),
+                      Container(
+                        height: 30,
+                        width: 1,
+                        color: AppColors.whiteE5,
+                      ),
+                      StatBlock(
+                        count: viewProfileController.followersCount.value
+                            .toString(),
+                        label: AppStrings.followers,
+                        callback: () {
+                          Get.to(() => FollowersFollowingPage(
+                              tabIndex: 1, userID: userId));
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               );
             }),
 
-            const SizedBox(height: 4),
+            SizedBox(height: SizeConfig.size12),
 
             // === Bio Section ===
             // if (_shouldShowBioSection())
@@ -1942,7 +1954,7 @@ class _PersonalProfileSetupNewScreenState
             //
             //
             //
-            const SizedBox(height: 12),
+            SizedBox(height: SizeConfig.size16),
 
             // === Buttons Row ===
             Padding(
@@ -2105,33 +2117,32 @@ class _PersonalProfileSetupNewScreenState
               // );
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: SizedBox(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _tabController?.animateTo(index);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      foregroundColor: isSelected
-                          ? AppColors.white
-                          : AppColors.secondaryTextColor,
-                      backgroundColor:
-                          isSelected ? AppColors.primaryColor : Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.primaryColor
-                              : AppColors.secondaryTextColor,
-                        ),
+                child: InkWell(
+                  onTap: () {
+                    _tabController?.animateTo(index);
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primaryColor
+                            : AppColors.secondaryTextColor,
                       ),
-                      padding: EdgeInsets.only(left: 8, right: 8),
-                      // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
-                      // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                     ),
                     child: CustomText(
                       '${PostTabs.postTab[index].nameKey}',
-                      color: isSelected ? AppColors.white : AppColors.black,
+                      color:
+                          isSelected ? AppColors.white : AppColors.black,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -2165,7 +2176,7 @@ class _PersonalProfileSetupNewScreenState
       text,
       fontSize: SizeConfig.medium,
       fontWeight: FontWeight.w600,
-      color: AppColors.secondaryTextColor,
+      color: AppColors.mainTextColor,
     );
   }
 
@@ -2303,7 +2314,7 @@ class _PersonalProfileSetupNewScreenState
             } else {
 
 
-              if (userProfessionGlobal == DELIVERY_RIDER) {
+              if (userProfessionGlobal == DELIVERY_RIDER||userProfessionGlobal == BIKE_RIDER) {
                 Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
               } else {
                 Get.toNamed(

@@ -501,7 +501,7 @@ class ViewPersonalDetailsController extends GetxController {
           MaterialPageRoute(builder: (context) => CreateProfileScreen()));
     } else {
 
-      if (userProfessionGlobal == DELIVERY_RIDER) {
+      if (userProfessionGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
         Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
       } else {
         Get.toNamed(
