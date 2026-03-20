@@ -4,6 +4,15 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class SymbolRepo extends BaseService {
+  Future<ResponseModel> fetchSymbolFeed({Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        symbolFeedApi,
+        params: params,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
   Future<ResponseModel> createSymbol(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         createSymbolApi,

@@ -21,7 +21,8 @@
       "Bash(__NEW_LINE_acb1305ab55bb60b__ echo:*)",
       "Bash(__NEW_LINE_d1293e8748862f1d__ echo:*)",
       "Bash(__NEW_LINE_e00954adcfa97958__ echo:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
