@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -18,6 +19,7 @@ import 'package:BlueEra/features/me/medical_new/model/missing_product_request_mo
 import 'package:BlueEra/features/me/medical_new/model/snap_search_result_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/edit_medical_varient_dialog.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_varient_dialog.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -59,6 +61,225 @@ class MedicalController extends GetxController {
   bool get isMaxLimitHit => selectedMedicalProducts.length == maxLimit;
 
   Map<String, List<VariantsData>> selectedProductVariants = {};
+
+  // ─────────────────────────────────────────────
+  // SNAP SEARCH IMAGE SLOT SYSTEM
+  // ─────────────────────────────────────────────
+
+  final List<Map<String, String>> medicalSnapSearchConfig = [
+    {
+      'title': 'Upload Photo',
+      'image': 'assets/category/medical/medical_upload_photo_med.png',
+    },
+    {
+      'title': 'Upload List',
+      'image': 'assets/category/medical/medical_upload_photo.png',
+    },
+  ];
+
+  final RxMap<String, File?> medicalSnapSearchImagesMap = <String, File?>{}.obs;
+  int maxUploadImages = 2;
+
+  RxMap<String, List<VariantsData>> selectedSnapSearchProductVariants = <String, List<VariantsData>>{}.obs;
+  Rxn<SnapSearchData> productSnapSearchData = Rxn<SnapSearchData>();
+
+  void toggleSnapSearchVariant(String productId, VariantsData variant) {
+    selectedSnapSearchProductVariants.putIfAbsent(productId, () => []);
+    final selectedList = selectedSnapSearchProductVariants[productId]!;
+
+    if (selectedList.any((v) => v.sId == variant.sId)) {
+      selectedList.removeWhere((v) => v.sId == variant.sId);
+      if (selectedList.isEmpty) {
+        selectedSnapSearchProductVariants.remove(productId);
+      }
+    } else {
+      selectedList.add(variant);
+    }
+
+    selectedSnapSearchProductVariants.refresh();
+  }
+
+  bool isSnapSearchVariantSelected(String productId, String variantId) {
+    return selectedSnapSearchProductVariants[productId]?.any((v) => v.sId == variantId) ?? false;
+  }
+
+  bool get canSubmitSnapSearchProducts {
+    bool hasAtLeastOneVariant = selectedSnapSearchProductVariants.values.any((variants) => variants.isNotEmpty);
+    return hasAtLeastOneVariant;
+  }
+
+  Future<void> addImagesBySlot(String title) async {
+    if (medicalSnapSearchImagesMap.values.any((v) => v != null)) {
+      commonSnackBar(message: "Please remove the current image before selecting another type.");
+      return;
+    }
+
+    final selectedImages = await pickSnapSearchImages(title);
+    if (selectedImages == null || selectedImages.isEmpty) return;
+
+    medicalSnapSearchImagesMap[title] = File(selectedImages.first);
+
+    fetchMedicalSnapSearchApi();
+  }
+
+  void removeImageBySlot(String title) {
+    medicalSnapSearchImagesMap[title] = null;
+    medicalSnapSearchImagesMap.refresh();
+  }
+
+  Future<List<String>?> pickSnapSearchImages(String title) async {
+    final List<String>? selected =
+        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+    return (selected != null && selected.isNotEmpty) ? selected : null;
+  }
+
+  Rx<ApiResponse> medicalSnapSearchResponse = ApiResponse.initial('Initial').obs;
+
+  Future<void> fetchMedicalSnapSearchApi() async {
+    final List<File> activeImages = medicalSnapSearchImagesMap.values
+        .where((file) => file != null)
+        .cast<File>()
+        .toList();
+
+    if (activeImages.isEmpty) {
+      commonSnackBar(message: "Please upload at least 1 photo");
+      return;
+    }
+
+    try {
+      medicalSnapSearchResponse.value = ApiResponse.loading('Loading');
+      productSnapSearchData.value = null;
+
+      List<dio.MultipartFile> imageByPart = [];
+
+      for (final image in activeImages) {
+        final fileName = image.path.split('/').last;
+        imageByPart.add(
+          await dio.MultipartFile.fromFile(
+            image.path,
+            filename: fileName,
+          ),
+        );
+      }
+
+      Map<String, dynamic> params = {
+        ApiKeys.images: imageByPart,
+      };
+
+      ResponseModel responseModel = await MedicalRepo().snapSearchRepo(
+        params: params,
+      );
+
+      if (responseModel.isSuccess) {
+        medicalSnapSearchResponse.value = ApiResponse.complete(responseModel);
+        var snapSearchResultModel =
+            SnapSearchResultModel.fromJson(responseModel.response?.data);
+        productSnapSearchData.value = snapSearchResultModel.data;
+      } else {
+        medicalSnapSearchResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      medicalSnapSearchResponse.value = ApiResponse.error('error');
+      log("Stack Trace===== $s");
+    }
+  }
+
+  RxBool isAddMedicalSnapSearchProductsLoading = false.obs;
+  Future<void> addMedicalSnapSearchProductNewVariant({bool isSnapSearch = false}) async {
+    try {
+      isAddMedicalSnapSearchProductsLoading.value = true;
+
+      final payload = buildSnapSearchInventoryPayload();
+      if (payload.isEmpty) return;
+
+      print(jsonEncode(payload));
+
+      final response = await MedicalRepo().addGroceryProductVariantRepo(
+        params: payload,
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      Get.until((route) =>
+          route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+      commonSnackBar(
+        message: response.message ?? 'Products added successfully',
+      );
+      log('success-- ${response.isSuccess}');
+    } catch (e) {
+      log('addMedicalSnapSearchProductNewVariant error: $e');
+    } finally {
+      isAddMedicalSnapSearchProductsLoading.value = false;
+    }
+  }
+
+  List<Map<String, dynamic>> buildSnapSearchInventoryPayload() {
+    List<Map<String, dynamic>> payload = [];
+    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+    final businessData = viewBusinessDetailsController.businessProfileDetails?.data;
+
+    String city = (businessData?.cityStatePincode != null && businessData!.cityStatePincode!.isNotEmpty)
+        ? businessData.cityStatePincode!
+        : LocationService.userCurrentAddress.value.city;
+    String postalCode;
+    if (businessData?.pincode == null || businessData?.pincode == 0) {
+      postalCode = LocationService.userCurrentAddress.value.postalCode;
+    } else {
+      postalCode = businessData!.pincode.toString();
+    }
+
+    if (postalCode.isEmpty || postalCode == "0") {
+      commonSnackBar(message: 'Please enable GPS or update business pincode');
+      return [];
+    }
+
+    selectedSnapSearchProductVariants.forEach((productId, variants) {
+      for (final variant in variants) {
+        payload.add({
+          "productVariant": variant.sId ?? "",
+          "pincode": postalCode,
+          "cityName": city,
+          "batches": [
+            {
+              "quantity": variant.weight,
+              "mrp": variant.pricing?[0].mrp,
+              "sellingPrice": variant.pricing?[0].sellingPrice,
+            }
+          ],
+        });
+      }
+    });
+
+    return payload;
+  }
+
+  void openSnapSearchEditVariantDialog({
+    required BuildContext context,
+    required String title,
+    required VariantsData variant,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) {
+        return EditMedicalVarientDialog(
+          title: title,
+          mrp: variant.pricing?[0].mrp?.toString() ?? "",
+          selling: variant.pricing?[0].sellingPrice?.toString() ?? "",
+          onSubmit: (mrp, sellingPrice) {
+            variant.pricing?[0].mrp = int.tryParse(mrp);
+            variant.pricing?[0].sellingPrice = int.tryParse(sellingPrice);
+            selectedSnapSearchProductVariants.refresh();
+            Get.back();
+          },
+        );
+      },
+    );
+  }
 
   void toggleSelection(MedicalProductData p) {
     if (selectedMedicalProducts.contains(p)) {
@@ -936,6 +1157,10 @@ class MedicalController extends GetxController {
         snapSearchResponse.value = ApiResponse.complete(response);
         final parsed = SnapSearchResultModel.fromJson(response.response?.data);
         snapSearchResult.value = parsed.data;
+        productSnapSearchData.value = parsed.data;
+        medicalSnapSearchResponse.value = ApiResponse.complete(response);
+
+        Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
       } else {
         snapSearchResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

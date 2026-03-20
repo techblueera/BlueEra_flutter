@@ -22,6 +22,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventor
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/other_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_with_inventory_screen.dart';
@@ -556,6 +557,9 @@ class RouteHelper {
 
   static String getAddGrocerySnapSearchScreenRoute() =>
       RouteConstant.addGrocerySnapSearchScreen;
+
+  static String getAddMedicalSnapSearchScreenRoute() =>
+      RouteConstant.addMedicalSnapSearchScreen;
 
  static String getMissingGroceryItemsScreenRoute() =>
       RouteConstant.missingGroceryItemsScreen;
@@ -1741,6 +1745,12 @@ class RouteHelper {
                 return MaterialPageRoute(
                   builder: (_) => AddGrocerySnapSearchScreen(),
                   settings: RouteSettings(name: getAddGrocerySnapSearchScreenRoute())
+              );
+
+      case RouteConstant.addMedicalSnapSearchScreen:
+                return MaterialPageRoute(
+                  builder: (_) => AddMedicalSnapSearchScreen(),
+                  settings: RouteSettings(name: getAddMedicalSnapSearchScreenRoute())
               );
 
       case RouteConstant.missingGroceryItemsScreen:

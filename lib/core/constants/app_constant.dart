@@ -2589,6 +2589,44 @@ businessOnboardingEducationTrainingCategories = [
       businessType: BusinessType.Siksha),
 ];
 
+
+
+final List<OnboardingCategoryModel>
+jobCategories = [
+  OnboardingCategoryModel(
+      name: 'Full Time',
+      slugId: '',
+      icon: AppImageAssets.job_full_time,
+      accountType: AppConstants.business,
+     ),
+  OnboardingCategoryModel(
+      name: 'Part Time',
+      slugId: '',
+      icon: AppImageAssets.job_part_time,
+      accountType: AppConstants.business,
+
+      ),
+  OnboardingCategoryModel(
+      name: 'Remote',
+      slugId: '',
+      icon: AppImageAssets.job_remote,
+      accountType: AppConstants.business,
+     ),
+  OnboardingCategoryModel(
+      name: 'Onsite',
+      slugId: '',
+      icon: AppImageAssets.job_onsite,
+      accountType: AppConstants.business,
+),
+  OnboardingCategoryModel(
+      name: 'Near By',
+      slugId: '',
+      icon: AppImageAssets.job_near_by,
+      accountType: AppConstants.business,
+      ),
+
+];
+
 // final List<OnboardingCategoryModel> businessOnboardingProductsCategories = [
 //   OnboardingCategoryModel(
 //       name: 'Fashion, Footwear\n& Lifestyle',

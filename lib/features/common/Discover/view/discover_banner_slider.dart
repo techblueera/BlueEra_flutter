@@ -46,7 +46,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   @override
   void initState() {
     super.initState();
-    _controller = PageController(viewportFraction: 0.9);
+    _controller = PageController(viewportFraction: 0.8);
   }
 
   @override
@@ -58,27 +58,32 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   @override
   Widget build(BuildContext context) {
     // 1. Controller without auto-scroll logic
-    final PageController _controller = PageController(viewportFraction: 0.9);
+    final PageController _controller = PageController(viewportFraction: 1);
 
     return CustomFormCard(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(vertical: 10.0,horizontal: 0),
+      borderRadius: BorderRadius.circular(0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           /// SLIDER
-          AspectRatio(
-            aspectRatio: 16 / 7, // Adjust this ratio to match your image design
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: sliderData.length,
-              physics: const BouncingScrollPhysics(),
-              onPageChanged: (index) {
-                setState(() {
-                  currentPage = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return _buildSlide(context, sliderData[index]);
-              },
+          SizedBox(
+            child: AspectRatio(
+              aspectRatio: 16 / 7, // Adjust this ratio to match your image design
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: sliderData.length,
+                physics: const BouncingScrollPhysics(),
+                onPageChanged: (index) {
+                  setState(() {
+                    currentPage = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return _buildSlide(context, sliderData[index]);
+                },
+              ),
             ),
           ),
 
@@ -109,17 +114,15 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   }
 
   Widget _buildSlide(BuildContext context, Map<String, String> data) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0), // Adds space between cards
-      child: InkWell(
-        onTap: () => _handleOnTap(data['slugId']!),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.0),
-          child: LocalAssets(
-            imagePath: data["image"]!,
-            width: double.infinity,
-            boxFix: BoxFit.cover,
-          ),
+    return InkWell(
+      onTap: () => _handleOnTap(data['slugId']!),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12.0),
+        child: LocalAssets(
+          imagePath: data["image"]!,
+          // width: double.infinity,
+
+          boxFix: BoxFit.fitWidth,
         ),
       ),
     );

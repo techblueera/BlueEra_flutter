@@ -95,7 +95,8 @@ class MedicalRepo extends BaseService {
     required Map<String, dynamic> params,
   }) async {
     final response = await ApiBaseHelper().postHTTP(
-      'health-service/api/ms/nearest',
+      'medical-service/profile/nearest',
+      // 'health-service/api/ms/nearest',
       params: params,
       showProgress: false,
       onError: (error) {},

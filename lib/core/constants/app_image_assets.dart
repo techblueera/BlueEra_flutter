@@ -246,6 +246,11 @@ class AppImageAssets {
   static String dairyBakeryStore = "${imgPath}dairy_bakery_store.png";
   static String homeEssentialsStore = "${imgPath}home_essentials_store.png";
   static String stationaryStore = "${imgPath}stationary_store.png";
+  static String job_full_time = "${imgPath}job_full_time.png";
+  static String job_near_by = "${imgPath}job_near_by.png";
+  static String job_onsite = "${imgPath}job_onsite.png";
+  static String job_part_time = "${imgPath}job_part_time.png";
+  static String job_remote = "${imgPath}job_remote.png";
 
 }
 
@@ -325,6 +330,7 @@ static String EduCoaching = "${imgPath}EduCoaching.png";
 static String EduSports= "${imgPath}EduSports.png";
 static String EduProfessional = "${imgPath}EduProfessional.png";
 static String EduSkill = "${imgPath}EduSkill.png";
+
 
 }
 
