@@ -1663,6 +1663,7 @@ const String MAID_FEMALE = "MAID_FEMALE";
 const String CLEANER = "CLEANER";
 const String CARPENTER = "CARPENTER";
 const String DELIVERY_RIDER = "DELIVERY_RIDER";
+const String BIKE_RIDER = "BIKE_RIDER";
 const String CAR_TAXI = "CAR_DRIVER_TAXI";
 const String GOODS_TAXI = "GOODS_TAXI";
 const String AUTO_TAXI = "AUTO_TAXI";

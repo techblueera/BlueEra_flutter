@@ -253,8 +253,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   padding: EdgeInsets.only(right: SizeConfig.size16),
                   child: InkWell(
                     onTap: () {
-                      commonSnackBar(message: "Coming soon....");
-                      // ... your existing tap logic ...
+                      chooseDeliveryOption();
                     },
                     child: LocalAssets(imagePath: AppIconAssets.cartIcon),
                   ),

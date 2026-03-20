@@ -67,117 +67,22 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if(userProfessionGlobal == DELIVERY_RIDER ||
+      if(userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == DELIVERY_RIDER ||
          userProfessionGlobal == GOODS_TAXI ||
          userProfessionGlobal == AUTO_TAXI
       ){
         return RiderServiceScreen(
             fromBottomNavBar: widget.fromBottomNavBar
         );
-     }  else if(userProfileTypeGlobal == GIG_WORKER && userProfessionGlobal==CAR_TAXI){
+     }  else {
         return CabAndTransportPartner(
             fromBottomNavBar: widget.fromBottomNavBar
         );
       }
 
-      return _buildEarnDisabledScaffold(context);
-    });
+      // return _buildEarnDisabledScaffold(context);
+
   }
 
-  Widget _buildLoadingScaffold() {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isLeading: !widget.fromBottomNavBar,
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-  Widget _buildEarnDisabledScaffold(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isLeading: !widget.fromBottomNavBar,
-       // title: userProfessionGlobal,
-        //isProfile: true
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8,
-          ),
-          child: CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildEarnHeader(),
-                SizedBox(height: SizeConfig.size10),
-                const HorizontalVideoPlayer(),
-                SizedBox(height: SizeConfig.size20),
-                _buildServiceGrid(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEarnHeader() {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size6),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
-            border: Border.all(color: AppColors.primaryColor, width: 0.5),
-          ),
-          child: LocalAssets(
-            width: SizeConfig.size22,
-            height: SizeConfig.size22,
-            imagePath: AppIconAssets.earnWithBlueEra,
-            imgColor: AppColors.primaryColor,
-          ),
-        ),
-        SizedBox(width: SizeConfig.size6),
-        Expanded(
-          child: CustomText(
-            AppStrings.earnWithBlueEra,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServiceGrid(BuildContext context) {
-    return MasonryGridView.count(
-      crossAxisCount: 3,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      primary: false,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: earnWithBlueEraServiceList.length,
-      itemBuilder: (_, i) => CommonServiceCard(
-        service: earnWithBlueEraServiceList[i],
-        getName: (item) => item.name,
-        getIcon: (item) => item.icon??'',
-        spacing: 8.0,
-        onTap: (item) => controller.handleServiceTap(
-          context,
-          item,
-        ),
-      ),
-    );
-  }
 
 }

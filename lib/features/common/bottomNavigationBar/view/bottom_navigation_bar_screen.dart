@@ -263,7 +263,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      if (userDesignationGlobal == DELIVERY_RIDER) {
+      if (userDesignationGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
         bottomBarController.currentIndex.value = 2;
       } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 0;

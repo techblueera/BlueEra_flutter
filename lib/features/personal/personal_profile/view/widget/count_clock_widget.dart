@@ -15,25 +15,26 @@ class StatBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: (){
-        if(callback!=null) callback!();
+      onTap: () {
+        if (callback != null) callback!();
       },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      borderRadius: BorderRadius.circular(8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           CustomText(
             count,
             color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w600,
-            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w700,
+            fontSize: SizeConfig.large,
             fontFamily: AppConstants.OpenSans,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(height: 2),
           CustomText(
             label,
             color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w400,
-            fontSize: SizeConfig.medium,
+            fontSize: SizeConfig.small,
             fontFamily: AppConstants.OpenSans,
           ),
         ],
