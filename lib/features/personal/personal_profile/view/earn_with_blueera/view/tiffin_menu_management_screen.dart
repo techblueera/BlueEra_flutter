@@ -3,6 +3,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
@@ -393,10 +395,23 @@ import 'package:get/get.dart';
 //
 // }
 
-class TiffinMenuManagementScreen extends StatelessWidget {
+class TiffinMenuManagementScreen extends StatefulWidget {
   TiffinMenuManagementScreen({super.key});
 
+  @override
+  State<TiffinMenuManagementScreen> createState() =>
+      _TiffinMenuManagementScreenState();
+}
+
+class _TiffinMenuManagementScreenState
+    extends State<TiffinMenuManagementScreen> {
   final TiffinController controller = Get.find<TiffinController>();
+
+  @override
+  initState() {
+    super.initState();
+    controller.fetchAllMeals();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -416,7 +431,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                 context: context,
                 mealType: MealType.morningTiffin,
                 title: "Morning Tiffin / Lunch",
-                subtitle: "Served 7AM - 2PM",
+                timing: "Served 7AM - 2PM",
                 bgColor: const Color(0xFFFCFFD7),
                 image: AppIconAssets.morningBreakfastIcon,
               ),
@@ -425,7 +440,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                 context: context,
                 mealType: MealType.breakfast,
                 title: "Break-Fast",
-                subtitle: "Served 6AM - 10AM",
+                timing: "Served 6AM - 10AM",
                 bgColor: const Color(0xFFFFF5EE),
                 image: AppIconAssets.morningLunchIcon,
               ),
@@ -434,7 +449,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                 context: context,
                 mealType: MealType.eveningDinner,
                 title: "Evening Tiffin / Dinner",
-                subtitle: "Served 5PM - 10PM",
+                timing: "Served 5PM - 10PM",
                 bgColor: const Color(0xFFF0F8FF),
                 image: AppIconAssets.nightDinnerIcon,
               ),
@@ -450,13 +465,19 @@ class TiffinMenuManagementScreen extends StatelessWidget {
     required BuildContext context,
     required MealType mealType,
     required String title,
-    required String subtitle,
+    required String timing,
     required Color bgColor,
     required String image,
   }) {
     return Obx(() {
       final meal = controller.mealData[mealType]?.value;
 
+      final displayTiming = (meal != null &&
+              meal.hasData &&
+              meal.selectedStartTime.isNotEmpty &&
+              meal.selectedEndTime.isNotEmpty)
+          ? 'Served ${meal.selectedStartTime} - ${meal.selectedEndTime}'
+          : timing;
       return CustomFormCard(
         padding: const EdgeInsets.all(10.0),
         color: bgColor,
@@ -480,7 +501,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           fontSize: SizeConfig.large,
                           color: AppColors.mainTextColor),
                       const SizedBox(height: 2.0),
-                      CustomText(subtitle,
+                      CustomText(displayTiming,
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.small,
                           color: AppColors.secondaryTextColor),
@@ -502,7 +523,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           fontSize: 12.0,
                           color: AppColors.secondaryTextColor),
-                      const SizedBox(width: 4.0),
+                      const SizedBox(width: 5.0),
                       CustomSwitch(
                         value: meal?.isLive ?? false,
                         onChanged: (val) {
@@ -510,8 +531,8 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                             controller.toggleGoLive(mealType, val);
                           }
                         },
-                        containerHeight: SizeConfig.size24,
-                        containerWidth: SizeConfig.size50,
+                        containerHeight: SizeConfig.size22,
+                        containerWidth: SizeConfig.size40,
                         circleSize: SizeConfig.size18,
                       ),
                     ],
@@ -522,11 +543,8 @@ class TiffinMenuManagementScreen extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // ✅ No data — show dummy card with Create button
             if (meal == null || !meal.hasData)
               _buildDummyCard(context, mealType)
-
-            // ✅ Has data — show real card with Edit button
             else
               _buildProductItemCard(context, meal),
           ],
@@ -535,7 +553,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
     });
   }
 
-  // ✅ Dummy card — shown before any meal is created
+  // Dummy card — shown before any meal is created
   Widget _buildDummyCard(BuildContext context, MealType mealType) {
     return CustomFormCard(
       padding: const EdgeInsets.all(10),
@@ -566,7 +584,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _buildVegIndicator(),
+                  _buildDietryIndicator(isMealCreated: false),
                 ],
               ),
             ),
@@ -586,9 +604,9 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildTag("Boiled"),
+                      _buildTag("Boiled", true),
                       const SizedBox(width: 6),
-                      _buildTag("Tiffin/Lunch"),
+                      _buildTag("Tiffin/Lunch", false),
                     ],
                   ),
                   const Spacer(),
@@ -605,20 +623,25 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                                     fontSize: 14.0,
                                     color: AppColors.secondaryTextColor),
                                 SizedBox(width: 4),
-                                CustomText("₹200",
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 12.0,
-                                    color: AppColors.secondaryTextColor),
+                                CustomText(
+                                  "₹200",
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 12.0,
+                                  color: AppColors.secondaryTextColor,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: AppColors.secondaryTextColor,
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             DiscountBadge(
                               discountText: "20% Off",
+                              icon: AppIconAssets.discountTagGreyIcon,
                               borderColor: AppColors.secondaryTextColor
                                   .withValues(alpha: 0.2),
                               backgroundColor: AppColors.secondaryTextColor
                                   .withValues(alpha: 0.1),
-                              iconColor: AppColors.secondaryTextColor,
+                              // iconColor: AppColors.secondaryTextColor,
                               textColor: AppColors.secondaryTextColor,
                             ),
                           ],
@@ -626,13 +649,13 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
 
-                      // ✅ Create button
+                      //  Create button
                       PrimaryOutlineButton(
                         onPressed: () {
                           controller.openCreateSheet(mealType);
-                          TiffinBottomSheet.show(context);
+                          TiffinBottomSheet.show(context, false);
                         },
-                        icon: Icons.add,
+                        icon: AppIconAssets.add,
                         label: 'Create',
                       ),
                     ],
@@ -646,7 +669,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
     );
   }
 
-  // ✅ Real card — shown after meal is created/fetched from API
+  // Real card — shown after meal is created/fetched from API
   Widget _buildProductItemCard(BuildContext context, TiffinMealModel meal) {
     return CustomFormCard(
       padding: const EdgeInsets.all(10),
@@ -660,7 +683,6 @@ class TiffinMenuManagementScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: Stack(
                 children: [
-                  // ✅ Network image from API or placeholder
                   meal.imageUrl != null
                       ? CachedNetworkImage(
                           imageUrl: meal.imageUrl!,
@@ -672,17 +694,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                           height: 120,
                           width: 100,
                           boxFix: BoxFit.cover),
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                        child: Container(
-                            color: AppColors.black.withValues(alpha: 0.1)),
-                      ),
-                    ),
-                  ),
-                  _buildVegIndicator(),
+                  _buildDietryIndicator(isMealCreated: true),
                 ],
               ),
             ),
@@ -695,7 +707,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                     meal.tiffinName,
                     fontWeight: FontWeight.w600,
                     fontSize: 16.0,
-                    color: AppColors.secondaryTextColor,
+                    color: AppColors.mainTextColor,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -703,10 +715,10 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                   Row(
                     children: [
                       if (meal.selectedCookingMethod.isNotEmpty)
-                        _buildTag(meal.selectedCookingMethod),
+                        _buildTag(meal.selectedCookingMethod, true),
                       if (meal.selectedFoodType.isNotEmpty) ...[
                         const SizedBox(width: 6),
-                        _buildTag(meal.selectedFoodType),
+                        _buildTag(meal.selectedFoodType, false),
                       ],
                     ],
                   ),
@@ -722,37 +734,34 @@ class TiffinMenuManagementScreen extends StatelessWidget {
                                 CustomText('₹${meal.sellingPrice}',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14.0,
-                                    color: AppColors.secondaryTextColor),
+                                    color: AppColors.mainTextColor),
                                 const SizedBox(width: 4),
                                 CustomText('₹${meal.mrpPrice}',
                                     fontWeight: FontWeight.w400,
                                     fontSize: 12.0,
-                                    color: AppColors.secondaryTextColor),
+                                    color: AppColors.secondaryTextColor,
+                                    decoration: TextDecoration.lineThrough,
+                                    decorationColor:
+                                        AppColors.secondaryTextColor),
                               ],
                             ),
                             const SizedBox(height: 4),
                             DiscountBadge(
-                              discountText: _calculateDiscount(
-                                  meal.mrpPrice, meal.sellingPrice),
-                              borderColor: AppColors.secondaryTextColor
-                                  .withValues(alpha: 0.2),
-                              backgroundColor: AppColors.secondaryTextColor
-                                  .withValues(alpha: 0.1),
-                              iconColor: AppColors.secondaryTextColor,
-                              textColor: AppColors.secondaryTextColor,
+                              discountText:
+                                  "${calculateDiscount(meal.sellingPrice, meal.mrpPrice)}% ${AppStrings.off.tr}",
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 6),
 
-                      // ✅ Edit button — prefill form with real data
+                      //  Edit button — prefill form with real data
                       PrimaryOutlineButton(
                         onPressed: () {
                           controller.openEditSheet(meal);
-                          TiffinBottomSheet.show(context);
+                          TiffinBottomSheet.show(context, true);
                         },
-                        icon: Icons.edit,
+                        icon: AppIconAssets.pen_line,
                         label: 'Edit',
                       ),
                     ],
@@ -766,8 +775,7 @@ class TiffinMenuManagementScreen extends StatelessWidget {
     );
   }
 
-  // ✅ Veg indicator dot
-  Widget _buildVegIndicator() {
+  Widget _buildDietryIndicator({required bool isMealCreated}) {
     return Positioned(
       left: 6.0,
       top: 6.0,
@@ -778,37 +786,43 @@ class TiffinMenuManagementScreen extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2.0),
-            border: Border.all(color: AppColors.greenE0, width: 1.0),
+            border: Border.all(
+                color: isMealCreated ? AppColors.green00 : AppColors.greenE0,
+                width: 1.0),
           ),
           padding: const EdgeInsets.all(2.0),
           child: Container(
             height: 8.0,
             width: 8.0,
-            decoration:
-                BoxDecoration(shape: BoxShape.circle, color: AppColors.greenE0),
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isMealCreated ? AppColors.green00 : AppColors.greenE0),
           ),
         ),
       ),
     );
   }
 
-  String _calculateDiscount(String mrp, String selling) {
-    final mrpVal = double.tryParse(mrp) ?? 0;
-    final sellingVal = double.tryParse(selling) ?? 0;
-    if (mrpVal == 0) return '0% Off';
-    final discount = ((mrpVal - sellingVal) / mrpVal * 100).toStringAsFixed(0);
-    return '$discount% Off';
-  }
-
-  Widget _buildTag(String label) {
+  Widget _buildTag(String label, bool showIcon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: AppColors.greyE5),
       ),
-      child:
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        if (showIcon) ...[
+          LocalAssets(
+            imagePath: AppIconAssets.boiled,
+            imgColor: AppColors.secondaryTextColor,
+          ),
+          SizedBox(width: 4.0),
+        ],
+        CustomText(label,
+            fontWeight: FontWeight.w400,
+            color: AppColors.secondaryTextColor,
+            fontSize: SizeConfig.extraSmall),
+      ]),
     );
   }
 
@@ -827,22 +841,92 @@ class TiffinMenuManagementScreen extends StatelessWidget {
           SizedBox(height: 8.0),
           Row(
             children: [
-              const Expanded(
-                child: CommonTextField(
-                  hintText: "E.g. Gupta Food Centre",
-                ),
+              Expanded(
+                child: Obx(() {
+                  final isSaved   = controller.isCenterNameAvailable.value;
+                  final isEditing = controller.isCenterNameEditing.value;
+
+                  return CommonTextField(
+                    hintText: "E.g. Gupta Food Centre",
+                    textEditController: controller.foodCenterController,
+                    //  read only when saved and not editing
+                    readOnly: isSaved && !isEditing,
+                    sIcon: isSaved && !isEditing
+                    //  Edit icon — tap to enable editing
+                        ? InkWell(
+                      onTap: controller.enableCenterNameEdit,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.pen_line,
+                          imgColor: AppColors.primaryColor,
+                        ),
+                      ),
+                    )
+                        : isSaved && isEditing
+                    //  green tick when saved and not editing
+                        ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: LocalAssets(
+                       imagePath: AppIconAssets.green_tick_rounded,
+                      ),
+                    )
+                        : null,
+                  );
+                }),
               ),
               const SizedBox(width: 10),
-              CustomBtn(
-                width: SizeConfig.size90,
-                height: SizeConfig.size40,
-                title: 'Submit',
-                onTap: () {},
-                bgColor: AppColors.primaryColor,
-                radius: 10,
-              ),
+
+              Obx(() {
+                final isSaved   = controller.isCenterNameAvailable.value;
+                final isEditing = controller.isCenterNameEditing.value;
+
+                //  hide button when saved and not editing
+                if (isSaved && !isEditing) return const SizedBox.shrink();
+
+                return CustomBtn(
+                  width:     SizeConfig.size90,
+                  height:    SizeConfig.size40,
+                  title:     controller.isCenterLoading.value
+                      ? null
+                      : isEditing ? 'Update' : 'Submit',
+                  onTap:     controller.submitCenterName,
+                  bgColor: AppColors.primaryColor,
+                  radius:    10,
+                  isLoading: controller.isCenterLoading.value,
+                );
+              }),
             ],
           ),
+
+          //  status label
+          Obx(() {
+            final isSaved   = controller.isCenterNameAvailable.value;
+            final isEditing = controller.isCenterNameEditing.value;
+
+            if (!isSaved) return const SizedBox.shrink();
+
+            return Padding(
+              padding: EdgeInsets.only(top: SizeConfig.size6),
+              child: Row(
+                children: [
+                  Icon(
+                    isEditing ? Icons.edit_outlined : Icons.check_circle,
+                    size: 13,
+                    color: isEditing ? AppColors.primaryColor : Colors.green,
+                  ),
+                  SizedBox(width: SizeConfig.size4),
+                  CustomText(
+                    isEditing ? 'Editing centre name...' : 'Food centre name saved',
+                    fontSize: SizeConfig.small,
+                    color: isEditing ? AppColors.primaryColor : Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

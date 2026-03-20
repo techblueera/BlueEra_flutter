@@ -1,11 +1,33 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 
+class TiffinResponseModel {
+  final bool success;
+  final List<TiffinMealModel> data;
+  final String centerName;
+
+  const TiffinResponseModel({
+    this.success = false,
+    this.data = const [],
+    this.centerName = '',
+  });
+
+  factory TiffinResponseModel.fromJson(Map<String, dynamic> json) {
+    return TiffinResponseModel(
+      success: json['success'] ?? false,
+      data: (json['data'] as List? ?? [])
+          .map((item) => TiffinMealModel.fromJson(item))
+          .toList(),
+      centerName: json['centerName'] ?? '',
+    );
+  }
+}
+
 class TiffinMealModel {
   final String? id;
   final MealType mealType;
   final String tiffinName;
   final String? imagePath;
-  final String? imageUrl;
+  final List<String> images;
   final String mrpPrice;
   final String sellingPrice;
   final String selectedFoodType;
@@ -19,7 +41,7 @@ class TiffinMealModel {
     required this.mealType,
     this.tiffinName = '',
     this.imagePath,
-    this.imageUrl,
+    this.images = const [],
     this.mrpPrice = '',
     this.sellingPrice = '',
     this.selectedFoodType = '',
@@ -29,42 +51,48 @@ class TiffinMealModel {
     this.isLive = false,
   });
 
-  bool get hasData => id != null; // ✅ only true after API create/fetch
+  bool get hasData => id != null;
 
-  factory TiffinMealModel.fromJson(Map<String, dynamic> json, MealType type) {
+  String? get imageUrl =>
+      images.isNotEmpty ? images.first : null; // ✅ first image for display
+
+  // ✅ fromJson mapped to API response
+  factory TiffinMealModel.fromJson(Map<String, dynamic> json) {
     return TiffinMealModel(
-      id: json['id'],
-      mealType: type,
-      tiffinName: json['tiffin_name'] ?? '',
-      imageUrl: json['image_url'],
-      mrpPrice: json['mrp_price'] ?? '',
-      sellingPrice: json['selling_price'] ?? '',
-      selectedFoodType: json['food_type'] ?? '',
-      selectedCookingMethod: json['cooking_method'] ?? '',
-      selectedStartTime: json['start_time'] ?? '',
-      selectedEndTime: json['end_time'] ?? '',
-      isLive: json['is_live'] ?? false,
+      id: json['_id'],
+      mealType: MealType.fromKey(json['tiffinKey']),
+      tiffinName: json['tiffinName'] ?? '',
+      images: List<String>.from(json['images'] ?? []),
+      mrpPrice: json['mrp'] ?? '',
+      sellingPrice: json['sellingPrice'] ?? '',
+      selectedFoodType: json['foodType'] ?? '',
+      selectedCookingMethod: json['cookingMethod'] ?? '',
+      selectedStartTime: json['tiffinTiming']?['start'] ?? '',
+      selectedEndTime: json['tiffinTiming']?['end'] ?? '',
+      isLive: json['isActive'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'tiffin_name': tiffinName,
-        'mrp_price': mrpPrice,
-        'selling_price': sellingPrice,
-        'food_type': selectedFoodType,
-        'cooking_method': selectedCookingMethod,
-        'start_time': selectedStartTime,
-        'end_time': selectedEndTime,
-        'is_live': isLive,
-        'meal_type': mealType.name,
+        if (id != null) '_id': id,
+        'tiffinName': tiffinName,
+        'mrp': mrpPrice,
+        'sellingPrice': sellingPrice,
+        'foodType': selectedFoodType,
+        'cookingMethod': selectedCookingMethod,
+        'tiffinTiming': {
+          'start': selectedStartTime,
+          'end': selectedEndTime,
+        },
+        'isActive': isLive,
+        'tiffinKey': mealType.name,
       };
 
   TiffinMealModel copyWith({
     String? id,
     String? tiffinName,
     String? imagePath,
-    String? imageUrl,
+    List<String>? images,
     String? mrpPrice,
     String? sellingPrice,
     String? selectedFoodType,
@@ -78,7 +106,7 @@ class TiffinMealModel {
       mealType: mealType,
       tiffinName: tiffinName ?? this.tiffinName,
       imagePath: imagePath ?? this.imagePath,
-      imageUrl: imageUrl ?? this.imageUrl,
+      images: images ?? this.images,
       mrpPrice: mrpPrice ?? this.mrpPrice,
       sellingPrice: sellingPrice ?? this.sellingPrice,
       selectedFoodType: selectedFoodType ?? this.selectedFoodType,

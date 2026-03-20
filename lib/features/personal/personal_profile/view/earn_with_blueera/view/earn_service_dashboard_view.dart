@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -12,7 +11,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_orders.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/food_menu_management_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/tiffin_menu_management_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/self_profession_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
@@ -25,7 +24,6 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:BlueEra/widgets/user_profile_widget.dart';
-import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 
 class EarnServiceDashboardView extends StatefulWidget {
@@ -39,9 +37,13 @@ class EarnServiceDashboardView extends StatefulWidget {
 class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     with SingleTickerProviderStateMixin {
 
-  late TabController _tabController;
   final controller = getOrPut(() => EarnServiceController());
   final viewPersonalDetailsController = Get.find<ViewPersonalDetailsController>();
+  late TabController _tabController;
+
+  final RxBool _isFabVisible = true.obs;
+  final ScrollController _nestedScrollController = ScrollController();
+  double _lastScrollOffset = 0;
 
   @override
   void initState() {
@@ -49,15 +51,31 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     // Initialize exactly 3 tabs here
     _tabController = TabController(length: 3, vsync: this);
     controller.fetchOwnProducts();
+    _nestedScrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_)=> syncShopStatus());
-
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _nestedScrollController.dispose();
     super.dispose();
   }
+
+  void _onScroll() {
+    final currentOffset = _nestedScrollController.offset;
+
+    if (currentOffset > _lastScrollOffset && currentOffset > 60) {
+      // Scrolling DOWN — hide FAB
+      if (_isFabVisible.value) _isFabVisible.value = false;
+    } else if (currentOffset < _lastScrollOffset) {
+      // Scrolling UP — show FAB
+      if (!_isFabVisible.value) _isFabVisible.value = true;
+    }
+
+    _lastScrollOffset = currentOffset;
+  }
+
 
   void _openEarnWithBlueEraSheet(){
     showModalBottomSheet(
@@ -77,9 +95,10 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: _buildFAB(context), // Move your FAB method here
+      floatingActionButton: _buildFAB(), // Move your FAB method here
       body: SafeArea(
         child: NestedScrollView(
+          controller: _nestedScrollController,
           headerSliverBuilder: (_, __) => [
             _buildFloatingHeader(context),
             _buildPinnedTabBar(),
@@ -97,23 +116,74 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     );
   }
 
-  Widget _buildFAB(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: widget.fromBottomNavBar
-            ? kBottomNavigationBarHeight + SizeConfig.size20
-            : 0,
-      ),
-      child: FloatingActionButton(
-        onPressed: _openEarnWithBlueEraSheet,
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+  Widget _buildFAB() {
+    return Obx(() => AnimatedSlide(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      offset: _isFabVisible.value ? Offset.zero : const Offset(0, 2.5),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: _isFabVisible.value ? 1.0 : 0.0,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: widget.fromBottomNavBar
+                ? kBottomNavigationBarHeight + SizeConfig.size20
+                : 0,
+          ),
+          child: GestureDetector(
+            onTap: _openEarnWithBlueEraSheet,
+            child: Container(
+              height: SizeConfig.size50,
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size20,
+                vertical: SizeConfig.size12,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryColor,
+                    AppColors.primaryColor.withValues(alpha: 0.75),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryColor.withValues(alpha: 0.4),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 24, height: 24,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  const CustomText(
+                    'Add Service',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-        child: Icon(Icons.add, size: SizeConfig.size36),
       ),
-    );
+    ));
   }
 
   Widget _buildFloatingHeader(BuildContext context) {
@@ -158,7 +228,11 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.all(SizeConfig.size15),
+          padding: EdgeInsets.only(
+              left: SizeConfig.size8,
+              right: SizeConfig.size8,
+              top: SizeConfig.size15,
+          ),
           child: HorizontalTabSelector(
             tabs: controller.productsServicesTab,
             selectedIndex: controller.selectedProductsServicesTabIndex.value,
@@ -170,7 +244,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
             unSelectedBackgroundColor: AppColors.white,
           ),
         ),
-        // SizedBox(height: SizeConfig.size8),
         Expanded(
             child: _buildMyProductsTab()
         )
@@ -187,13 +260,13 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
        // EarnTiffinScreen();
         break;
 
-      case 1: // Product
+      case 1: // Food
+        break;
+
+      case 2: // Product
       // if (earnWithBlueEraController.ownProductDataList.isEmpty) {
         await controller.fetchOwnProducts();
         // }
-        break;
-
-      case 2: // Food
         break;
     }
   }
@@ -217,7 +290,18 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
       //   );
       //   break;
 
+
+
         case 1:
+          tabContent = FoodMenuManagementScreen();
+
+          // tabContent = FoodAndGroceryScreen(
+          //   providerType: ProviderType.user,
+          //   serviceSubType: EarnServiceTypes.homeMadeFood,
+          // );
+          break;
+
+        case 2:
           final productList = controller.ownProductDataList;
 
           if (controller.isOwnProductDataFirstLoading.value) {
@@ -316,13 +400,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
           );
           break;
 
-
-        case 2:
-          tabContent = FoodAndGroceryScreen(
-            providerType: ProviderType.user,
-            serviceSubType: EarnServiceTypes.homeMadeFood,
-          );
-          break;
 
       // case 4:
       //   tabContent = ViewServiceList(

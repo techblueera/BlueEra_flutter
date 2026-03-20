@@ -1205,5 +1205,31 @@ enum Qualification {
 enum MealType {
   morningTiffin,
   breakfast,
-  eveningDinner,
+  eveningDinner;
+
+  static MealType fromKey(String? key) {
+    switch (key) {
+      case 'morningTiffin': return MealType.morningTiffin;
+      case 'breakfast':     return MealType.breakfast;
+      case 'eveningDinner': return MealType.eveningDinner;
+      default:              return MealType.morningTiffin;
+    }
+  }
+}
+
+enum FoodCategoryType {
+  bakery,
+  namkeens,
+  sweets,
+  pickles;
+
+  static FoodCategoryType fromKey(String? key) {
+    switch (key) {
+      case 'bakery':   return FoodCategoryType.bakery;
+      case 'namkeens': return FoodCategoryType.namkeens;
+      case 'sweets':   return FoodCategoryType.sweets;
+      case 'pickles':  return FoodCategoryType.pickles;
+      default:         return FoodCategoryType.bakery;
+    }
+  }
 }

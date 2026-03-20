@@ -1,16 +1,18 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
 class PrimaryOutlineButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String label;
-  final IconData icon;
+  final String icon;
 
   const PrimaryOutlineButton({
     super.key,
     this.onPressed,
     this.label = 'Create',
-    this.icon = Icons.add,
+    this.icon = AppIconAssets.add,
   });
 
   @override
@@ -38,10 +40,11 @@ class PrimaryOutlineButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: AppColors.primaryColor,
-              size: 22,
+            LocalAssets(
+              imagePath: icon,
+              height: 14,
+              width: 14,
+              imgColor: AppColors.primaryColor,
             ),
             const SizedBox(width: 8),
             Text(

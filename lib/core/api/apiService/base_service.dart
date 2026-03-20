@@ -670,7 +670,7 @@ abstract class BaseService {
   final String otherContactUsService = 'other-service/contact';
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
   final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';
-  final String homeFood = 'food-service/api/home/';
+  final String home = 'food-service/api/home/';
   String nestedCategoryWithInventory(String userId) => 'food-service/api/home/$userId';
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';
@@ -852,6 +852,14 @@ abstract class BaseService {
   //gst
   final String getGst = 'chat-service/reminders/set-reminder';
   final String placeBulkGroceryOrder = 'grocery-service/api/orders';
+
+
+  /// Tiffin
+  final String tiffins = "earn-service/tiffins";
+  final String tiffinsByUserId = "earn-service/tiffins/user/$userId";
+  final String tiffinsCenters = "earn-service/tiffins/centers";
+  final String homeFood = "earn-service/homeFood";
+  final String homeFoodByUserId = "earn-service/homeFood/user/$userId";
 
 
 }
