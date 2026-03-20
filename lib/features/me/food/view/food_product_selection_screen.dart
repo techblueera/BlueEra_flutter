@@ -16,7 +16,6 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodProductSelectionScreen extends StatefulWidget {
   final GroceryNestedCategoryModel foodCategoryData;
@@ -116,7 +115,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
                     width: 5,
                   ),
                   CustomText(
-                    "Add Own Food Items ",
+                    "Add Own Food Items",
                     color: AppColors.white,
                   )
                 ],

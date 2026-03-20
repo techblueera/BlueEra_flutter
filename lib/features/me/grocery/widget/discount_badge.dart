@@ -6,41 +6,55 @@ import 'package:flutter/material.dart';
 
 class DiscountBadge extends StatelessWidget {
   final String discountText;
+  final Color? backgroundColor;
+  final Color? borderColor;
+  final Color? textColor;
+  final Color? iconColor;
 
   const DiscountBadge({
     super.key,
     required this.discountText,
+    this.backgroundColor,
+    this.borderColor,
+    this.textColor,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    // If the string is empty or null, don't show the badge at all
     if (discountText.isEmpty) return const SizedBox.shrink();
+
+    // Default Fallbacks
+    final finalBgColor = backgroundColor ?? AppColors.greenShade.withValues(alpha: 0.1);
+    final finalBorderColor = borderColor ?? AppColors.greenShade.withValues(alpha: 0.2);
+    final finalTextColor = textColor ?? AppColors.green00;
+    final finalIconColor = iconColor ?? AppColors.green00;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.0),
-        color: AppColors.greenShade.withValues(alpha: 0.1),
+        color: finalBgColor,
         border: Border.all(
-          color: AppColors.greenShade.withValues(alpha: 0.2),
+          color: finalBorderColor,
           width: 0.5,
         ),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min, // Prevents badge from taking full width
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           LocalAssets(
             imagePath: AppIconAssets.discountTagIcon,
             height: 12,
             width: 12,
+            imgColor: finalIconColor,
           ),
           const SizedBox(width: 4),
           CustomText(
             discountText,
             fontSize: 10,
-            color: AppColors.green00,
+            color: finalTextColor,
             fontWeight: FontWeight.w600,
           ),
         ],
