@@ -145,6 +145,7 @@ class RouteConstant {
   static const String earnServiceAvailableOptionsScreen = "/EarnServiceAvailableOptionsScreen";
   static const String groceryOrFoodStoresScreen = "/GroceryOrFoodStoresScreen";
   static const String addGrocerySnapSearchScreen = "/AddGrocerySnapSearchScreen";
+  static const String addMedicalSnapSearchScreen = "/AddMedicalSnapSearchScreen";
   static const String missingGroceryItemsScreen = "/MissingGroceryItemsScreen";
   static const String otherGroceryStoreScreen = "/OtherGroceryStoreScreen";
   static const String otherFoodStoreDetailsScreen = "/OtherFoodStoreDetailsScreen";

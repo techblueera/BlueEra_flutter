@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
+import 'package:BlueEra/features/common/home/view/widget/symbol_story_row.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -188,19 +189,24 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           );
         }
         final blocks = _buildBlocks(posts);
+        final bool showStories = widget.postFilterType == PostType.all;
         // 🔹 Build listView once
         final listView = ListView.builder(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding:
               EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
-          itemCount: blocks.length,
+          itemCount: blocks.length + (showStories ? 1 : 0),
           shrinkWrap: widget.isInParentScroll,
           physics: widget.isInParentScroll
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
-            int index = indexFeed;
+            // First item: story row (scrolls with feed)
+            if (showStories && indexFeed == 0) {
+              return const SymbolStoryRow();
+            }
+            int index = showStories ? indexFeed - 1 : indexFeed;
             final block = blocks[index];
             final item = block.items.first;
             if (item.type?.toLowerCase() == "message_post" ||

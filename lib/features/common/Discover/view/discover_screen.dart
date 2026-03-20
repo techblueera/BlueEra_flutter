@@ -35,6 +35,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/grocery_food_card_w
 import 'package:BlueEra/features/common/Discover/view/widget/health_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/job_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/restaurant_near_me_card_widget.dart';
@@ -393,45 +394,14 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
           _buildGap(),
 
-          /// Near By Jobs
+      /// JOB Service
           SliverToBoxAdapter(
-            child: InkWell(
-              onTap: () {
-                Widget dest =
-                    isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
-
-                Get.to(() => dest);
-              },
-              child: CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _title(AppStrings.findDreamJob),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.jobBanner,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 10,
-                            child: _buildHorizontalJobTabs([
-                              'Full-Time',
-                              'Part-Time',
-                              'Online',
-                              'Offline',
-                              'Near By'
-                            ]))
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            child:JobServiceCardWidget()
           ),
+
+          _buildGap(),
+
+
 
           // _buildGap(),
 
