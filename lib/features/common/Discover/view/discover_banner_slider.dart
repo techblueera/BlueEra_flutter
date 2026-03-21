@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +25,17 @@ class DiscoverBannerSlider extends StatefulWidget {
 class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   int currentPage = 0;
 
-  final List<Map<String, String>> sliderData = const [
-    {"slugId": "FRANCHISE", "image": "https://img.freepik.com/premium-photo/modern-technology-digital-marketing-colorful-abstract-background-with-icons-lines_1355276-4857.jpg?semt=ais_hybrid&w=740&q=80"},
-    {"slugId": "FRANCHISE", "image": "https://img.freepik.com/free-photo/corporate-management-strategy-solution-branding-concept_53876-167088.jpg?semt=ais_hybrid&w=740&q=80"},
-  ];
+  // final List<Map<String, String>> sliderData = const [
+  //   {"slugId": "FRANCHISE", "image": "https://img.freepik.com/premium-photo/modern-technology-digital-marketing-colorful-abstract-background-with-icons-lines_1355276-4857.jpg?semt=ais_hybrid&w=740&q=80"},
+  //   {"slugId": "FRANCHISE", "image": "https://img.freepik.com/free-photo/corporate-management-strategy-solution-branding-concept_53876-167088.jpg?semt=ais_hybrid&w=740&q=80"},
+  // ];
 
+  final List<Map<String, String>> sliderData = [
+    {"slugId": "FRANCHISE", "image": "assets/images/ban3.jpeg"},
+    {"slugId": "BDM", "image": "assets/images/ban2.jpeg"},
+    {"slugId": "QR", "image":"assets/images/ban1.jpeg"},
+  ];
+  // "assets/images/ban1.jpeg"
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -39,6 +47,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
             aspectRatio: 4 / 3,
             viewportFraction: 1.0,
             autoPlay: true,
+
             autoPlayInterval: const Duration(seconds: 5),
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
             autoPlayCurve: Curves.easeInOutCubic,
@@ -56,6 +65,15 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
             final data = sliderData[index];
             return InkWell(
               onTap: () => _handleOnTap(data['slugId']!),
+              child: LocalAssets(
+                imagePath:data["image"]!,
+                // imagePath:"assets/images/ban1.jpeg",
+                boxFix: BoxFit.contain,
+              ),
+            );
+
+            return InkWell(
+              onTap: () => _handleOnTap(data['slugId']!),
               child: NetWorkOcToAssets(
                 imgUrl: data["image"]!,
                 boxFit: BoxFit.cover,
@@ -64,7 +82,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
           },
         ),
 
-        /// DOT INDICATOR overlaid at bottom of banner
+       /* /// DOT INDICATOR overlaid at bottom of banner
         if (sliderData.length > 1)
           Positioned(
             bottom: 10,
@@ -88,7 +106,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
                 ),
               ),
             ),
-          ),
+          ),*/
       ],
     );
   }

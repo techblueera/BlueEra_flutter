@@ -267,25 +267,12 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                 ),
               ),
 
-              /// Bottom: caption + link
+              /// Center: caption + link preview
               if ((symbol.caption != null && symbol.caption!.isNotEmpty) ||
                   symbol.type == 'embeddedUrl')
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(16, 30, 16, 40),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.6),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -312,7 +299,6 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                               }
                             },
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),

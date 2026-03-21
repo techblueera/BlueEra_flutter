@@ -12,13 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class NearestPharmaciesListScreen extends StatefulWidget {
-  final String pincode;
-  final int radius;
+  final String category;
+  final String? subCategory;
 
   const NearestPharmaciesListScreen({
     super.key,
-    required this.pincode,
-    required this.radius,
+    required this.category,
+    this.subCategory,
   });
 
   @override
@@ -34,7 +34,7 @@ class _NearestPharmaciesListScreenState
   void initState() {
     super.initState();
     controller = getOrPut(() => NearestPharmaciesController());
-    controller.fetchNearest(pincode: widget.pincode, radius: widget.radius);
+    controller.fetchNearest(category: widget.category, subCategory: widget.subCategory);
   }
 
   @override
@@ -69,7 +69,7 @@ class _NearestPharmaciesListScreenState
         return RefreshIndicator(
           color: AppColors.primaryColor,
           onRefresh: () => controller.fetchNearest(
-              pincode: widget.pincode, radius: widget.radius),
+              category: widget.category, subCategory: widget.subCategory),
           child: ListView.separated(
             itemCount: controller.pharmacies.length,
             separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size12),

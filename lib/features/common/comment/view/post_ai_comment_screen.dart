@@ -386,82 +386,102 @@ class _PostAiCommentScreenState extends State<PostAiCommentScreen> {
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: TextField(
-                controller: ctrl.sendMessageController,
-                maxLines: 3,
-                minLines: 1,
-                style: TextStyle(
+            // Generate Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: ctrl.isFormValid
+                    ? () async {
+                        if (widget.commentType == "comment") {
+                          await ctrl.generateAiPostCommentController(
+                              postID: widget.dataId);
+                        } else if (widget.commentType == "comment_reply") {
+                          await ctrl.generateAiPostCommentReplyController(
+                              commentID: widget.dataId);
+                        }
+                      }
+                    : null,
+                icon: Icon(Icons.auto_awesome, size: 20),
+                label: CustomText(
+                  hasSuggestions ? 'Regenerate' : 'Generate',
                   fontSize: 14,
-                  fontFamily: AppConstants.OpenSans,
+                  fontWeight: FontWeight.w600,
+                  color: ctrl.isFormValid ? Colors.white : AppColors.secondaryTextColor,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Post your reply',
-                  hintStyle: TextStyle(
-                    color: AppColors.secondaryTextColor,
-                    fontSize: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: AppColors.primaryColor),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  isDense: true,
-                  suffixIcon: IconButton(
-                    onPressed: ctrl.isFormValid
-                        ? () async {
-                            if (widget.commentType == "comment") {
-                              await ctrl.generateAiPostCommentController(
-                                  postID: widget.dataId);
-                            } else if (widget.commentType == "comment_reply") {
-                              await ctrl.generateAiPostCommentReplyController(
-                                  commentID: widget.dataId);
-                            }
-                          }
-                        : null,
-                    icon: Icon(
-                      Icons.auto_awesome,
-                      size: 22,
-                      color: ctrl.isFormValid
-                          ? AppColors.primaryColor
-                          : AppColors.secondaryTextColor,
-                    ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  disabledBackgroundColor: Colors.grey.shade200,
+                  foregroundColor: Colors.white,
+                  disabledForegroundColor: AppColors.secondaryTextColor,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 8),
-            InkWell(
-              onTap: () {
-                final text = ctrl.sendMessageController.text.trim();
-                if (text.isNotEmpty) {
-                  // User typed or selected a suggestion — send it back
-                  ctrl.sendMessageController.selection =
-                      TextSelection.fromPosition(
-                    TextPosition(offset: text.length),
-                  );
-                  Get.back();
-                }
-              },
-              child: Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  shape: BoxShape.circle,
+            SizedBox(height: 8),
+            // Reply input + send
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: ctrl.sendMessageController,
+                    maxLines: 3,
+                    minLines: 1,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontFamily: AppConstants.OpenSans,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Post your reply',
+                      hintStyle: TextStyle(
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: AppColors.primaryColor),
+                      ),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      isDense: true,
+                    ),
+                  ),
                 ),
-                child: Icon(Icons.send, color: Colors.white, size: 18),
-              ),
+                SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    final text = ctrl.sendMessageController.text.trim();
+                    if (text.isNotEmpty) {
+                      ctrl.sendMessageController.selection =
+                          TextSelection.fromPosition(
+                        TextPosition(offset: text.length),
+                      );
+                      Get.back();
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.send, color: Colors.white, size: 18),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

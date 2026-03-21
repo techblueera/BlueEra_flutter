@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -7,13 +9,22 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
+import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
+import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
+import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
+import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -187,8 +198,26 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
               ),
             ),
           // Media
-          if (_post.media?.isNotEmpty ?? false)
-            if (_post.media_types?.firstOrNull?.startsWith("image/") ??
+          if (_post.media?.isNotEmpty ?? false) ...[
+            // Video
+            if ((_post.media_types?.firstOrNull?.startsWith("video/") ??
+                    false) ||
+                isVideoUrl(_post.media?.firstOrNull))
+              Padding(
+                padding: EdgeInsets.only(top: SizeConfig.size10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: PostFeedAutoPlayVideoCard(
+                    videoItem: getVideoData(_post),
+                    globalMuteNotifier: ValueNotifier(false),
+                    videoType: VideoType.videoFeed,
+                    onTapOption: () {},
+                  ),
+                ),
+              ),
+            // Image
+            if ((_post.media_types?.firstOrNull?.startsWith("image/") ??
+                    false) ||
                 isImageUrl(_post.media?.firstOrNull))
               Padding(
                 padding: EdgeInsets.only(top: SizeConfig.size10),
@@ -201,6 +230,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                   ),
                 ),
               ),
+          ],
         ],
       ),
     );
@@ -260,23 +290,260 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
   Widget _buildActionBar() {
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size30, vertical: SizeConfig.size6),
+          horizontal: SizeConfig.size16, vertical: SizeConfig.size6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _actionIcon(AppIconAssets.comment_new,
-              onTap: () => _replyFocus.requestFocus()),
-          _actionIcon(AppIconAssets.repost_new),
-          _actionIcon(AppIconAssets.like_new,
-              color: (_post.isLiked ?? false)
-                  ? AppColors.primaryColor
-                  : AppColors.secondaryTextColor),
-          _actionIcon(AppIconAssets.unsaved),
+          // Comment
+          _actionIconWithCount(
+            iconPath: AppIconAssets.comment_new,
+            count: formatNumberLikePost(_post.commentsCount ?? 0),
+            onTap: () => _replyFocus.requestFocus(),
+          ),
+          // Repost
+          _actionIconWithCount(
+            iconPath: AppIconAssets.repost_new,
+            count: formatNumberLikePost(_post.repostCount ?? 0),
+            onTap: () {
+              if (isGuestUser()) {
+                createProfileScreen();
+                return;
+              }
+              _showRepostDialog();
+            },
+          ),
+          // Like
+          _actionIconWithCount(
+            iconPath: AppIconAssets.like_new,
+            count: formatNumberLikePost(_post.likesCount ?? 0),
+            color: (_post.isLiked ?? false)
+                ? AppColors.primaryColor
+                : AppColors.secondaryTextColor,
+            onTap: () {
+              if (isGuestUser()) {
+                createProfileScreen();
+                return;
+              }
+              _onLikePressed();
+            },
+          ),
+          // Share
           _actionIcon(AppIconAssets.share_bold, onTap: () {
             final url = postDeepLink(postId: _post.id.toString());
             showShareOptionsDialog(url);
           }),
         ],
+      ),
+    );
+  }
+
+  void _onLikePressed() {
+    feedController.postLikeDislike(
+      postId: _post.id ?? '',
+      type: widget.postType,
+      sortBy: widget.sortBy,
+    );
+    // Optimistic update for local state
+    setState(() {
+      final wasLiked = _post.isLiked ?? false;
+      _post = _post.copyWith(
+        isLiked: !wasLiked,
+        likesCount: (_post.likesCount ?? 0) + (wasLiked ? -1 : 1),
+      );
+    });
+  }
+
+  void _showRepostDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+          backgroundColor: AppColors.white,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: SizeConfig.size20),
+                    // Direct Repost
+                    InkWell(
+                      onTap: () async {
+                        Get.put(MessagePostController());
+                        Get.back();
+                        ResponseModel responseModel =
+                            await PostRepo().addRePostNewRepo(
+                          reqDataData: {
+                            ApiKeys.type: AppConstants.MESSAGE_POST,
+                            ApiKeys.repostId: _post.id ?? "",
+                          },
+                        );
+                        if (responseModel.isSuccess) {
+                          commonSnackBar(
+                              message: AppStrings.repostedSuccessfully);
+                          Get.find<NavigationHelperController>()
+                              .shouldRefreshBottomBar
+                              .value = true;
+                          Get.until((route) =>
+                              route.settings.name ==
+                              RouteHelper
+                                  .getBottomNavigationBarScreenRoute());
+                        } else {
+                          commonSnackBar(
+                              message: AppStrings.alreadyReposted);
+                        }
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: SizeConfig.size30,
+                            height: SizeConfig.size30,
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.repost_new,
+                              width: SizeConfig.size30,
+                              height: SizeConfig.size30,
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size10),
+                                  child: CustomText(
+                                    AppStrings.Repost,
+                                    textAlign: TextAlign.left,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: SizeConfig.size16,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size10),
+                                  child: CustomText(
+                                    AppStrings.sharePostWithFollowers,
+                                    textAlign: TextAlign.left,
+                                    color:
+                                        AppColors.secondaryTextColor,
+                                    fontSize: SizeConfig.size13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          top: SizeConfig.size10,
+                          bottom: SizeConfig.size10),
+                      child: Divider(
+                          color: AppColors.secondaryTextColor),
+                    ),
+                    // Quote Repost
+                    InkWell(
+                      onTap: () {
+                        Get.back();
+                        Get.to(CreateMessagePostScreenRepost(
+                          isEdit: false,
+                          post: _post,
+                        ));
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: SizeConfig.size30,
+                            height: SizeConfig.size30,
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.pencilIcon,
+                              width: SizeConfig.size20,
+                              height: SizeConfig.size20,
+                            ),
+                          ),
+                          Flexible(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size10),
+                                  child: CustomText(
+                                    AppStrings.addYourThings,
+                                    textAlign: TextAlign.left,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: SizeConfig.size16,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size10),
+                                  child: CustomText(
+                                    AppStrings.addCommentBeforeShare,
+                                    textAlign: TextAlign.left,
+                                    color:
+                                        AppColors.secondaryTextColor,
+                                    fontSize: SizeConfig.size13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _actionIconWithCount({
+    required String iconPath,
+    required String count,
+    Color? color,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: iconPath,
+              width: 22,
+              height: 22,
+              imgColor: color ?? AppColors.secondaryTextColor,
+            ),
+            SizedBox(width: 4),
+            CustomText(
+              count,
+              fontSize: SizeConfig.size12,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
       ),
     );
   }

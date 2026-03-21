@@ -160,47 +160,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 ),
               ),
 
-              /// Search Bar - below the banner on white bg
-              SliverToBoxAdapter(
-                child: Container(
-                  color: AppColors.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size16,
-                    vertical: SizeConfig.size12,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.fillColor,
-                      border: Border.all(width: 1,color: AppColors.secondaryTextColor),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search,
-                            color: AppColors.secondaryTextColor, size: 22),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: CustomText(
-                            AppStrings.searchAnything,
-                            fontSize: 14,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                        LocalAssets(
-                          imagePath: AppIconAssets.mic,
-                          width: 20,
-                          height: 20,
-                          imgColor: AppColors.secondaryTextColor,
-                        ),
-                        const SizedBox(width: 12),
-                        LocalAssets(
-                          imagePath: AppIconAssets.camera_black,
-                        ),
-                      ],
-                    ),
-                  ),
+              /// Search Bar - sticky on scroll
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _StickySearchBarDelegate(
+                  topPadding: MediaQuery.of(context).padding.top,
                 ),
               ),
 
@@ -354,4 +318,66 @@ Widget titleWidget(String title) {
       fontSize: SizeConfig.large,
       color: AppColors.mainTextColor,
       fontWeight: FontWeight.w600);
+}
+
+class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
+  final double topPadding;
+
+  _StickySearchBarDelegate({required this.topPadding});
+
+  @override
+  double get minExtent => 56;
+
+  @override
+  double get maxExtent => 56;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppColors.white,
+      padding: EdgeInsets.only(
+        top: SizeConfig.size8,
+        left: SizeConfig.size16,
+        right: SizeConfig.size16,
+        bottom: SizeConfig.size8,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.fillColor,
+          border: Border.all(width: 1, color: AppColors.secondaryTextColor),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search,
+                color: AppColors.secondaryTextColor, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: CustomText(
+                AppStrings.searchAnything,
+                fontSize: 14,
+                color: AppColors.secondaryTextColor,
+              ),
+            ),
+            LocalAssets(
+              imagePath: AppIconAssets.mic,
+              width: 20,
+              height: 20,
+              imgColor: AppColors.secondaryTextColor,
+            ),
+            const SizedBox(width: 12),
+            LocalAssets(
+              imagePath: AppIconAssets.camera_black,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _StickySearchBarDelegate oldDelegate) =>
+      topPadding != oldDelegate.topPadding;
 }

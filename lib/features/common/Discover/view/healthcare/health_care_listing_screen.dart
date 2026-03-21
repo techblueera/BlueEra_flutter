@@ -160,8 +160,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
       if (controller.selectedProfessionalConsultantData.value?.slugId ==
           PHARMACY) {
         return NearestPharmaciesListScreen(
-          pincode: '',
-          radius: 0,
+          category: INSTRUMENTS_PHARMACY,
         );
       } else if (controller.selectedProfessionalConsultantData.value?.slugId ==
           LABTEST) {

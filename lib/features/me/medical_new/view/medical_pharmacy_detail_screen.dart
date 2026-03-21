@@ -12,9 +12,12 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_inventory_category_screen.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get/get.dart';
 
 /// View-only pharmacy detail screen — same UI as MedicalHomeScreen
 /// but without edit capabilities (no logo/cover edit, no inventory management).
@@ -96,7 +99,7 @@ class _MedicalPharmacyDetailScreenState
               ],
               if (categoriesWithProducts.isNotEmpty) ...[
                 SizedBox(height: SizeConfig.size10),
-                _buildCategoryProducts(categoriesWithProducts),
+                _buildMedicalProductCategories(categoriesWithProducts),
               ],
               SizedBox(height: SizeConfig.size10),
               _buildGallerySection(),
@@ -408,14 +411,22 @@ class _MedicalPharmacyDetailScreenState
   }
 
   // ─────────────────────────────────────────────
-  // CATEGORY PRODUCTS (View Only)
+  // MEDICAL PRODUCT CATEGORIES (Grid — same as MedicalHomeScreen)
   // ─────────────────────────────────────────────
-  Widget _buildCategoryProducts(
-      List<CategoryWithProducts> categories) {
-    // Flatten visible categories that have products
-    final visibleCategories =
-        categories.where((c) => c.hasProducts).toList();
-    if (visibleCategories.isEmpty) return const SizedBox.shrink();
+  static const List<Map<String, String>> _staticCategories = [
+    {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
+    {'title': 'Home &\nPatient Care', 'key': 'HOME___PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
+    {'title': 'Medical\nDevices', 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
+    {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
+    {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
+    {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
+  ];
+
+  Widget _buildMedicalProductCategories(List<CategoryWithProducts> apiCategories) {
+    final activeKeys = <String>{};
+    for (final cat in apiCategories) {
+      if (cat.key != null && cat.hasProducts) activeKeys.add(cat.key!);
+    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -427,96 +438,82 @@ class _MedicalPharmacyDetailScreenState
           children: [
             ServiceHomeTitleWidget(title: 'Medical Products'),
             SizedBox(height: SizeConfig.size12),
-            ...visibleCategories.map((cat) => _buildCategorySection(cat)),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _staticCategories.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: SizeConfig.size10,
+                mainAxisSpacing: SizeConfig.size10,
+                childAspectRatio: 0.85,
+              ),
+              itemBuilder: (context, index) {
+                final cat = _staticCategories[index];
+                final hasProducts = activeKeys.contains(cat['key']);
+                return _staticCategoryCard(cat, hasProducts, apiCategories);
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCategorySection(CategoryWithProducts category) {
-    final allProducts = category.getAllProducts();
-    if (allProducts.isEmpty) return const SizedBox.shrink();
+  Widget _staticCategoryCard(
+    Map<String, String> category,
+    bool hasProducts,
+    List<CategoryWithProducts> apiCategories,
+  ) {
+    return InkWell(
+      onTap: () {
+        final apiCat = apiCategories.cast<CategoryWithProducts?>().firstWhere(
+              (c) => c?.key == category['key'],
+              orElse: () => null,
+            );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
-          child: CustomText(
-            category.name ?? '',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
-          ),
+        if (apiCat == null || apiCat.children == null || apiCat.children!.isEmpty) {
+          commonSnackBar(message: 'No data found');
+          return;
+        }
+
+        Get.to(() => MedicalInventoryCategoryScreen(
+              title: apiCat.name ?? category['title'] ?? '',
+              children: apiCat.children!,
+            ));
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: AppColors.whiteF3,
+          borderRadius: BorderRadius.circular(10),
         ),
-        ...allProducts.take(5).map((p) => _categoryProductTile(p)),
-        SizedBox(height: SizeConfig.size10),
-      ],
-    );
-  }
-
-  Widget _categoryProductTile(CategoryProduct product) {
-    final imageUrl = product.images?.firstOrNull?.url;
-    final variant = product.variants?.firstOrNull;
-    final mrp = variant?.pricing?.firstOrNull?.mrp;
-    final sellingPrice = variant?.pricing?.firstOrNull?.sellingPrice;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              category['image']!,
               width: 50,
               height: 50,
-              child: imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(
-                        color: Colors.grey[200],
-                        child: Icon(Icons.medication,
-                            color: Colors.grey, size: 24),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: Icon(Icons.medication,
-                          color: Colors.grey, size: 24),
-                    ),
+              fit: BoxFit.contain,
             ),
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  product.name ?? '',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (variant?.variantName != null)
-                  CustomText(
-                    variant!.variantName!,
-                    fontSize: 11,
-                    color: AppColors.secondaryTextColor,
-                  ),
-              ],
-            ),
-          ),
-          if (sellingPrice != null || mrp != null)
+            SizedBox(height: 6),
             CustomText(
-              '₹${sellingPrice ?? mrp}',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
+              category['title'],
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              color: Colors.blueGrey.shade700,
             ),
-        ],
+            if (hasProducts)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(Icons.check_circle, color: AppColors.green00, size: 14),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -295,6 +295,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                           // ▶️ Play/Pause button overlay
                           if (_isInitialized)
                             AnimatedOpacity(
+
+
+
+
                               opacity: _isPlaying ? 0.0 : 0.8,
                               duration: const Duration(milliseconds: 300),
                               child: Container(
@@ -479,27 +483,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                 // ... Your Title/Caption code ...
                                 // 📄 Title or Caption (bottom left)
                                 if (widget.video.subTitle.isNotEmpty)
-                                  SafeArea(
-                                    child: Container(
-                                      margin: EdgeInsets.only(top: 5),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8, horizontal: 8),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondaryTextColor
-                                            .withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: ExpandableText(
-                                        text: widget.video.subTitle,
-                                        trimLines: 2,
-                                        isReadMoreNewLine: true,
-                                        expandMode: ExpandMode.dialog,
-                                        style: TextStyle(
-                                          color: AppColors.white,
-                                          fontSize: SizeConfig.large,
-                                          fontWeight: FontWeight.w400,
-                                          fontFamily: AppConstants.OpenSans,
-                                        ),
+                                  Container(
+                                    margin: EdgeInsets.only(top: 5),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 6, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondaryTextColor
+                                          .withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: ExpandableTextVideo(
+                                      text: widget.video.subTitle!="null"?widget.video.subTitle:"N/A",
+                                      trimLines: 2,
+                                      isReadMoreNewLine: false,
+                                      expandMode: ExpandMode.dialog,
+                                      style: TextStyle(
+                                        color: AppColors.white,
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w400,
+                                        fontFamily: AppConstants.OpenSans,
                                       ),
                                     ),
                                   ),

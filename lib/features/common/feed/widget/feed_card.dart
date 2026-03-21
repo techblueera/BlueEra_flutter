@@ -145,7 +145,7 @@ class _FeedCardState extends State<FeedCard> {
                   child: PostAuthorHeader(
                     post: _post,
                     isRepost: widget.isRepost,
-                    authorId: _post?.user?.id ?? '0',
+                    authorId: _post?.user?.id ?? '0',postedAgo: _post?.createdAt.toString(),
                     postType: widget.postFilteredType,
                     onTapAvatar: _shouldShowProfileNavigation()
                         ? () =>
