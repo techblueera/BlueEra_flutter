@@ -225,6 +225,7 @@ class _CreateBusinessAccountNewStepThreeState
                       title: AppStrings.yourNameHint,
                       hintText: AppConstants.name,
                       isValidate: false,
+                      autoFillType: AutoFillType.name,
                     ),
                     SizedBox(
                       height: SizeConfig.size20,
@@ -251,6 +252,7 @@ class _CreateBusinessAccountNewStepThreeState
                       hintText: AppStrings.emailHint,
                       isValidate: true,
                       validationType: ValidationTypeEnum.email,
+                      autoFillType: AutoFillType.email,
                     ),
                     SizedBox(
                       height: SizeConfig.size28,

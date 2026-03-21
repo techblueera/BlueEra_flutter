@@ -40,7 +40,9 @@ class Riders {
       this.user, 
       this.riderData, 
       this.distance, 
-      this.totalOrders,});
+      this.totalOrders,
+      this.associationStatus,
+  });
 
   Riders.fromJson(dynamic json) {
     userId = json['user_id'];
@@ -50,6 +52,7 @@ class Riders {
     riderData = json['riderData'] != null ? RiderData.fromJson(json['riderData']) : null;
     distance = json['distance'];
     totalOrders = json['totalOrders'];
+    associationStatus = json['associationStatus'];
   }
   String? userId;
   Location? location;
@@ -58,6 +61,7 @@ class Riders {
   RiderData? riderData;
   String? distance;
   num? totalOrders;
+  String? associationStatus;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -74,6 +78,7 @@ class Riders {
     }
     map['distance'] = distance;
     map['totalOrders'] = totalOrders;
+    map['associationStatus'] = associationStatus;
     return map;
   }
 

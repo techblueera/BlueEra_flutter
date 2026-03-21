@@ -1234,6 +1234,9 @@ enum FoodCategoryType {
   }
 }
 
+// // ✅ only needed when saving credentials (password fields)
+// TextInput.finishAutofillContext();
+
 enum AutoFillType {
   email,
   username,

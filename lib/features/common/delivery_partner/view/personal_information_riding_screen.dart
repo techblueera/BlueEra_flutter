@@ -110,6 +110,7 @@ class _PersonalInformationRidingScreenState
                         textEditController: controller.fullNameController,
                         validationType: ValidationTypeEnum.name,
                         inputLength: AppConstants.inputCharterLimit30,
+                        autoFillType: AutoFillType.name,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return AppStrings.pleaseEnterYourName.tr;
@@ -228,6 +229,7 @@ class _PersonalInformationRidingScreenState
                                   RegularExpressionUtils.digitsPattern,
                               validationType: ValidationTypeEnum.pNumber,
                               hintText: AppStrings.enterMobileNumberHint,
+                              autoFillType: AutoFillType.phone,
                               hintStyle: TextStyle(
                                 fontSize:
                                     langController.selectedCode.value == 'ta'
@@ -251,6 +253,7 @@ class _PersonalInformationRidingScreenState
                         hintText: AppStrings.enterYourEmail,
                         textEditController: controller.emailController,
                         validationType: ValidationTypeEnum.email,
+                        autoFillType: AutoFillType.email,
                         onChange: (val) {
                           // filedValidation();
                         },

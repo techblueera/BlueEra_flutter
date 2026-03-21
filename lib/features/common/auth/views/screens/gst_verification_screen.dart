@@ -134,6 +134,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                               hintText: 'Enter Email linked to GST',
                               title: 'Enter Email',
                               readOnly: isGstVerified,
+                              autoFillType: AutoFillType.email,
                               isValidate: false,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               validator: (value) {

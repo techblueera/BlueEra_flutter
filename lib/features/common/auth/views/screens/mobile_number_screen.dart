@@ -114,6 +114,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
                           hintText: langController.tr('Enter your mobile number'),
+                          autoFillType: AutoFillType.phone,
                           hintStyle: TextStyle(
                             fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
                           ),                          onTapOutsideTrue: false,

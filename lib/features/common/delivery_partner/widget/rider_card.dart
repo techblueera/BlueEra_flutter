@@ -14,6 +14,33 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 
+// ─── Status enum ───
+enum AssociationStatus {
+  pending,
+  accepted,
+  rejected,
+  expired,
+  dissociated,
+  none; // null = no association
+
+  static AssociationStatus fromString(String? value) {
+    switch (value?.toLowerCase()) {
+      case 'pending':
+        return AssociationStatus.pending;
+      case 'accepted':
+        return AssociationStatus.accepted;
+      case 'rejected':
+        return AssociationStatus.rejected;
+      case 'expired':
+        return AssociationStatus.expired;
+      case 'dissociated':
+        return AssociationStatus.dissociated;
+      default:
+        return AssociationStatus.none;
+    }
+  }
+}
+
 class RiderCard extends StatelessWidget {
   final Riders rider;
 
@@ -22,9 +49,11 @@ class RiderCard extends StatelessWidget {
     required this.rider,
   });
 
+  AssociationStatus get _status =>
+      AssociationStatus.fromString(rider.associationStatus);
+
   @override
   Widget build(BuildContext context) {
-
     return CustomFormCard(
       padding: EdgeInsets.all(10.0),
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -75,7 +104,8 @@ class RiderCard extends StatelessWidget {
                         children: [
                           _buildBadge(
                             icon: Icons.star,
-                            text: "${rider.riderData?.ratings?.average ?? '0.0'}",
+                            text:
+                                "${rider.riderData?.ratings?.average ?? '0.0'}",
                             bgColor: const Color(0xFFFDF6E3),
                             iconColor: AppColors.rating,
                             textColor: AppColors.blue2D,
@@ -109,13 +139,12 @@ class RiderCard extends StatelessWidget {
                         ),
                       ),
 
-
                       const SizedBox(height: 10),
 
                       // Address Gray Box
                       _buildAddressBox(
-                          rider.riderData?.address?.streetAddress ?? "Address not available"
-                      ),
+                          rider.riderData?.address?.streetAddress ??
+                              "Address not available"),
                     ],
                   ),
 
@@ -123,7 +152,6 @@ class RiderCard extends StatelessWidget {
 
                   // --- 3. Footer Actions ---
                   _buildFooter(context),
-
                 ],
               ),
             ),
@@ -145,13 +173,9 @@ class RiderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
           color: bgColor,
-          width: 0.5
-        )
-      ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: bgColor, width: 0.5)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -172,9 +196,7 @@ class RiderCard extends StatelessWidget {
     return CustomFormCard(
       padding: const EdgeInsets.all(8.0),
       color: const Color(0xFFFAFBFC),
-      border: Border.all(
-        color: AppColors.greyE5
-      ),
+      border: Border.all(color: AppColors.greyE5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -207,11 +229,11 @@ class RiderCard extends StatelessWidget {
         // View Profile Link
         InkWell(
           onTap: () {
-            if(rider.userId==null) return;
+            if (rider.userId == null) return;
             Get.to(() => NewVisitProfileScreen(
-              authorId: rider.userId??'',
-              screenFromName: RouteConstant.nearByRidersScreen,
-            ));
+                  authorId: rider.userId ?? '',
+                  screenFromName: RouteConstant.nearByRidersScreen,
+                ));
           },
           child: Row(
             children: [
@@ -222,23 +244,128 @@ class RiderCard extends StatelessWidget {
                 fontSize: 12,
               ),
               const SizedBox(width: 4),
-              const Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.primaryColor),
+              const Icon(Icons.arrow_forward_ios,
+                  size: 10, color: AppColors.primaryColor),
             ],
           ),
         ),
 
-        // Action Button
-        CustomBtn(
+        _buildStatusButton(context),
+      ],
+    );
+  }
+
+  Widget _buildStatusButton(BuildContext context) {
+    switch (_status) {
+      // ✅ No association — show Request button
+      case AssociationStatus.none:
+        return CustomBtn(
           height: 30,
-          width: 100,
+          width: 110,
           onTap: () {
-            // Chat
+            // send request
           },
           title: "Request To Link",
           bgColor: AppColors.primaryColor,
           radius: 6.0,
+        );
+
+      // ⏳ Pending — show waiting state
+      case AssociationStatus.pending:
+        return _buildStatusChip(
+          label: 'Pending',
+          icon: Icons.hourglass_top_rounded,
+          bgColor: const Color(0xFFFFF8E1),
+          textColor: const Color(0xFFE65100),
+          iconColor: const Color(0xFFE65100),
+          onTap: null, // non-tappable
+        );
+
+      // ✅ Accepted — show linked state
+      case AssociationStatus.accepted:
+        return _buildStatusChip(
+          label: 'Linked',
+          icon: Icons.check_circle_outline_rounded,
+          bgColor: const Color(0xFFE8F5E9),
+          textColor: AppColors.greenShade,
+          iconColor: AppColors.greenShade,
+          onTap: null,
+        );
+
+      // ❌ Rejected — allow re-request
+      case AssociationStatus.rejected:
+        return CustomBtn(
+          height: 30,
+          width: 110,
+          onTap: () {
+            // re-send request
+          },
+          title: "Re-Request",
+          bgColor: AppColors.redB4,
+          radius: 6.0,
+        );
+
+      // 🔁 Expired — allow re-request
+      case AssociationStatus.expired:
+        return CustomBtn(
+          height: 30,
+          width: 110,
+          onTap: () {
+            // re-send request
+          },
+          title: "Re-Request",
+          bgColor: const Color(0xFF9E9E9E),
+          radius: 6.0,
+        );
+
+      // 🔗 Dissociated — allow re-link
+      case AssociationStatus.dissociated:
+        return CustomBtn(
+          height: 30,
+          width: 110,
+          onTap: () {
+            // re-link
+          },
+          title: "Re-Link",
+          bgColor: AppColors.primaryColor,
+          radius: 6.0,
+        );
+    }
+  }
+
+  // ✅ non-tappable status chip
+  Widget _buildStatusChip({
+    required String label,
+    required IconData icon,
+    required Color bgColor,
+    required Color textColor,
+    required Color iconColor,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: textColor.withValues(alpha: 0.3)),
         ),
-      ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: iconColor),
+            const SizedBox(width: 4),
+            CustomText(
+              label,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

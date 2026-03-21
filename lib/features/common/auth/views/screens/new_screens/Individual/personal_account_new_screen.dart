@@ -306,6 +306,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       title: 'Your Name',
                       titleColor: Colors.black,
                       hintText: AppConstants.name,
+                      autoFillType: AutoFillType.name,
                       autovalidateMode: _autoValidate,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -332,6 +333,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       hintText: AppStrings.emailHint,
                       isValidate: true,
                       validationType: ValidationTypeEnum.email,
+                      autoFillType: AutoFillType.email,
                     ),
 
                     SizedBox(
