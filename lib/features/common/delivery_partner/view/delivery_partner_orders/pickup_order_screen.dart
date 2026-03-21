@@ -138,6 +138,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           right: SizeConfig.size15,
         ),
         itemCount: orderForKeys.length,
+        physics: NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
           final orderFor = orderForKeys[index];
           final orders = groupedOrders[orderFor]!;
@@ -166,6 +167,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
         },
       );
   }
+
   Map<String, List<RiderOrdersDetailsModel>> groupOrdersByOrderFor(
       List<RiderOrdersDetailsModel> orders) {
     final Map<String, List<RiderOrdersDetailsModel>> grouped = {};

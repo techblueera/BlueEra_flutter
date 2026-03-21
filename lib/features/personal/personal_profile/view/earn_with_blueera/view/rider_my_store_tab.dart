@@ -31,6 +31,7 @@ class _RiderMyStoreTabState extends State<RiderMyStoreTab> {
   static const List<_FilterOption> _filters = [
     _FilterOption(label: 'All Stores', icon: Icons.storefront_outlined, value: 'all'),
     _FilterOption(label: 'Grocery', icon: Icons.shopping_basket_outlined, value: 'grocery'),
+    _FilterOption(label: 'Health Care', icon: Icons.local_hospital_outlined, value: 'healthcare'),
   ];
 
   static const List<Color> _cardColors = [

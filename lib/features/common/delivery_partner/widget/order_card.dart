@@ -299,7 +299,7 @@ class _OrderCardState extends State<OrderCard> {
                 SizedBox()
               else
               _buildPickupLocation(),
-              _buildDivider(),
+
               _buildDropLocation(),
             ],
           ),
@@ -326,26 +326,31 @@ class _OrderCardState extends State<OrderCard> {
 
   Widget _buildPickupLocation() {
     if(widget.order.pickupLocation?.location?.coordinates?.isNotEmpty??false){
-      return Padding(
-        padding: EdgeInsets.all(SizeConfig.size10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      return Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _buildPickupLocationInfo()),
-                if (widget.selectedPickUp == PickUpTab.onGoing)
-                  _buildCallButton(widget.order.receiverUser?.contactNo),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _buildPickupLocationInfo()),
+                    if (widget.selectedPickUp == PickUpTab.onGoing)
+                      _buildCallButton(widget.order.receiverUser?.contactNo),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size6),
+                _buildLocationText(
+                  latitude: widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+                  longitude: widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+                ),
               ],
             ),
-            SizedBox(height: SizeConfig.size6),
-            _buildLocationText(
-              latitude: widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-              longitude: widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
-            ),
-          ],
-        ),
+          ),
+          _buildDivider(),
+        ],
       );
     }else{
       return SizedBox();
@@ -713,22 +718,45 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   Widget _buildDropLocationDetails() {
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _buildLocationText(
-            latitude: widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-            longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
-          ),
+        _buildLocationText(
+          latitude:  widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+          longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
         ),
-        if (_shouldShowContactNumber())
-          CustomText(
-            '  +91 ${widget.order.user?.contactNo}',
-            fontSize: SizeConfig.small11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
+        // if (_shouldShowContactNumber()) ...[
+        //   SizedBox(height: SizeConfig.size4),
+        //   Row(
+        //     children: [
+        //       Icon(Icons.phone_outlined, size: 12, color: AppColors.secondaryTextColor),
+        //       SizedBox(width: SizeConfig.size4),
+        //       CustomText(
+        //         '+91 ${widget.order.user?.contactNo}',
+        //         fontSize: SizeConfig.small11,
+        //         fontWeight: FontWeight.w600,
+        //         color: AppColors.secondaryTextColor,
+        //       ),
+        //     ],
+        //   ),
+        // ],
+        SizedBox(height: SizeConfig.size6),
+        Row(
+          children: [
+            Icon(Icons.location_on_outlined, size: 12, color: AppColors.secondaryTextColor),
+            SizedBox(width: SizeConfig.size4),
+            CustomText(
+              '${
+                calculateDistance(
+                    widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+                    widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0)?.toStringAsFixed(2)
+              } KM Away',
+              fontSize: SizeConfig.small11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -796,9 +824,6 @@ class _OrderCardState extends State<OrderCard> {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () {
-
-
-
             if(widget.order.orderFor==AppConstants.InCity
                 ||widget.order.orderFor==AppConstants.OutStation
                 ||widget.order.orderFor==AppConstants.HourlyRental
