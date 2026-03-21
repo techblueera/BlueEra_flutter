@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/Discover/view/your_cart_screen.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
@@ -600,6 +601,9 @@ class RouteHelper {
   static String getNearByRidersScreenRoute() =>
       RouteConstant.nearByRidersScreen;
 
+
+  static String getYourCartScreenRoute() =>
+      RouteConstant.yourCartScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1896,6 +1900,11 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => const CallRoomScreen(),
           settings: const RouteSettings(name: '/CallRoomScreen'),
+        );
+      case RouteConstant.yourCartScreen:
+        return MaterialPageRoute(
+          builder: (_) => const YourCartScreen(),
+          settings: RouteSettings(name: RouteHelper.getYourCartScreenRoute()),
         );
       default:
         return MaterialPageRoute(
