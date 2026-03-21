@@ -183,7 +183,7 @@
 //       }, showProgress: false);
 //     }
 //
-//     if (designation == DELIVERY_RIDER) {
+//     if (designation == BIKE_RIDER) {
 //       _handleDeliveryPartner();
 //     } else {
 //       await _navigateToAddServices(

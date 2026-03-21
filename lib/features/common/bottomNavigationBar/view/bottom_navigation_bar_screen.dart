@@ -263,7 +263,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      if (userDesignationGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
+      if (userProfessionGlobal == BIKE_RIDER) {
         bottomBarController.currentIndex.value = 2;
       } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
@@ -516,7 +516,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveIndividualScreen() {
     final String currentType = userProfileTypeGlobal;
-    log("userProfileTypeGlobal: $currentType");
+    log("User Profile Type: $currentType");
+    log("User Profession: $userProfessionGlobal");
 
     // Using a Switch statement makes it cleaner and easier to add new types
     switch (currentType) {

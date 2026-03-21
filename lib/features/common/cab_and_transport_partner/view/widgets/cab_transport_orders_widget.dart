@@ -82,7 +82,7 @@ class _CabsAndTransportPartnerOrdersState extends State<CabsAndTransportPartnerO
           ],
         )
 
-        // (userProfessionGlobal == DELIVERY_RIDER)
+        // (userProfessionGlobal == BIKE_RIDER)
         //     ? Obx(() => deliveryPartnerController.isRiderStatusLoading.value
         //     ? Center(
         //   child: CircularProgressIndicator(),

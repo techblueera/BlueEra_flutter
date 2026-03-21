@@ -67,7 +67,7 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
 
   @override
   Widget build(BuildContext context) {
-      if(userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == DELIVERY_RIDER ||
+      if(userProfessionGlobal == BIKE_RIDER ||
          userProfessionGlobal == GOODS_TAXI ||
          userProfessionGlobal == AUTO_TAXI
       ){

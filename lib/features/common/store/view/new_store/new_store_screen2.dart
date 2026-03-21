@@ -616,7 +616,7 @@
 //                                         false) {
 //                                       Get.to(() => CreateProfileScreen());
 //                                     } else {
-//                                       if(userWorkTypeGlobal == DELIVERY_RIDER){
+//                                       if(userWorkTypeGlobal == BIKE_RIDER){
 //                                         Get.toNamed(RouteHelper
 //                                             .getRiderServiceScreenRoute());
 //                                       }else{

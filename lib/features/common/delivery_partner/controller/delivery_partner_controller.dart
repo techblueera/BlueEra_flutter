@@ -1053,9 +1053,6 @@ class DeliveryPartnerController extends GetxController {
     List<String> allowedTypes = [];
 
     switch (userRole) {
-      case DELIVERY_RIDER:
-        allowedTypes = ["twoWheelerRider"];
-        break;
       case BIKE_RIDER:
         allowedTypes = ["twoWheelerRider"];
         break;

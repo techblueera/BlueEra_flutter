@@ -754,7 +754,7 @@ class ProductController extends GetxController{
   Future<void> navigateToEarnWithBlueEraSectionAfterAddProduct() async {
     // await setEarnServiceOptData(true);
     await setRiderServiceOptData(true);
-    if (userProfessionGlobal == DELIVERY_RIDER||userDesignationGlobal == BIKE_RIDER) {
+    if (userProfessionGlobal == BIKE_RIDER) {
       Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
     } else {
       Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());

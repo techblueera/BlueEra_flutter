@@ -1662,7 +1662,6 @@ const String TECHNICIAN = "TECHNICIAN";
 const String MAID_FEMALE = "MAID_FEMALE";
 const String CLEANER = "CLEANER";
 const String CARPENTER = "CARPENTER";
-const String DELIVERY_RIDER = "DELIVERY_RIDER";
 const String BIKE_RIDER = "BIKE_RIDER";
 const String CAR_TAXI = "CAR_DRIVER_TAXI";
 const String GOODS_TAXI = "GOODS_TAXI";
@@ -3591,7 +3590,7 @@ final List<OnboardingCategoryModel> individualOnboardingSocialProfileList = [
 final List<OnboardingCategoryModel> individualOnboardingGigWorkList = [
   OnboardingCategoryModel(
     name: 'Bike Rider',
-    slugId: DELIVERY_RIDER,
+    slugId: BIKE_RIDER,
     icon: OnboardingIndividualAssets.bikeRider,
     individualType: IndividualProfileType.GIG_WORKER,
     accountType: AppConstants.individual,
@@ -3910,7 +3909,7 @@ final List<CollapsibleGridModel> earnWithBlueEraServiceList = [
 final List<CollapsibleGridModel> gigWorkServiceList = [
   CollapsibleGridModel(
       name: 'Bike Rider',
-      slugId: DELIVERY_RIDER,
+      slugId: BIKE_RIDER,
       icon: AppImageAssets.deliveryPartner),
   CollapsibleGridModel(
       name: 'Car Driver', slugId: CAR_TAXI, icon: AppImageAssets.taxiDriver),
@@ -4468,7 +4467,7 @@ final List<CollapsibleGridModel> cloudKitchenHomeMadeFood = [
 // final List<IndividualProfileCategory> individualSelfEmployedList = [
 //   IndividualProfileCategory(
 //     name: AppStrings.rider,
-//     slugId: DELIVERY_RIDER,
+//     slugId: BIKE_RIDER,
 //     icon: AppIconAssets.riderIcon,
 //   ),
 //   IndividualProfileCategory(

@@ -2314,7 +2314,7 @@ class _PersonalProfileSetupNewScreenState
             } else {
 
 
-              if (userProfessionGlobal == DELIVERY_RIDER||userProfessionGlobal == BIKE_RIDER) {
+              if (userProfessionGlobal == BIKE_RIDER) {
                 Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
               } else {
                 Get.toNamed(
