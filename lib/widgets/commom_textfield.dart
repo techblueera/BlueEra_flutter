@@ -66,7 +66,7 @@ class CommonTextField extends StatelessWidget {
   final String? prefixText;
   final TextInputAction? textInputAction;
   final bool autoFocus;
-
+  final AutoFillType? autoFillType;
 
   const CommonTextField({
     super.key,
@@ -118,6 +118,7 @@ class CommonTextField extends StatelessWidget {
     this.prefixText,
     this.textInputAction,
     this.autoFocus = false,
+    this.autoFillType,
   });
 
   /// PLEASE IMPORT GET X PACKAGE
@@ -157,6 +158,7 @@ class CommonTextField extends StatelessWidget {
             autovalidateMode:
                 autovalidateMode ?? AutovalidateMode.onUserInteraction,
             autofocus: autoFocus,
+            autofillHints: autoFillType?.hints,
             style: TextStyle(color: Colors.black, fontSize: SizeConfig.large),
             controller: textEditController,
             maxLength: maxLength ?? AppConstants.inputCharterLimit,

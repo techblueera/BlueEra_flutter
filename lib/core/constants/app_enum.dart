@@ -1233,3 +1233,39 @@ enum FoodCategoryType {
     }
   }
 }
+
+enum AutoFillType {
+  email,
+  username,
+  password,
+  newPassword,
+  phone,
+  name,
+  firstName,
+  lastName,
+  address,
+  postalCode,
+  creditCard,
+  oneTimeCode,
+  none,
+}
+
+extension AutoFillTypeExtension on AutoFillType {
+  Iterable<String>? get hints {
+    switch (this) {
+      case AutoFillType.email:       return [AutofillHints.email];
+      case AutoFillType.username:    return [AutofillHints.username];
+      case AutoFillType.password:    return [AutofillHints.password];
+      case AutoFillType.newPassword: return [AutofillHints.newPassword];
+      case AutoFillType.phone:       return [AutofillHints.telephoneNumber];
+      case AutoFillType.name:        return [AutofillHints.name];
+      case AutoFillType.firstName:   return [AutofillHints.givenName];
+      case AutoFillType.lastName:    return [AutofillHints.familyName];
+      case AutoFillType.address:     return [AutofillHints.fullStreetAddress];
+      case AutoFillType.postalCode:  return [AutofillHints.postalCode];
+      case AutoFillType.creditCard:  return [AutofillHints.creditCardNumber];
+      case AutoFillType.oneTimeCode: return [AutofillHints.oneTimeCode];
+      case AutoFillType.none:        return null;
+    }
+  }
+}
