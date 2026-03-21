@@ -170,6 +170,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     hintText: isEmailVerified == true
                         ? email
                         : 'Enter your email address',
+                    autoFillType: AutoFillType.email,
                     keyBoardType: TextInputType.emailAddress,
                     onChange: (value) {
                       setState(() {
