@@ -366,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               }),
                             ),
                           ),
-                          if (selectedIndex == 0) _buildSubFilterRow(),
+                          // if (selectedIndex == 0) _buildSubFilterRow(),
 
                           if (selectedIndex == 1) _buildCommunitySubFilterRow(),
                         ],
