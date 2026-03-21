@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:any_link_preview/any_link_preview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -309,28 +312,77 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 10),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.4)),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.link,
-                                      color: Colors.white, size: 16),
-                                  const SizedBox(width: 6),
-                                  CustomText(
-                                    "View Post",
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ],
+                              clipBehavior: Clip.antiAlias,
+                              child: AnyLinkPreview.builder(
+                                link: symbol.content!,
+                                cache: const Duration(days: 7),
+                                placeholderWidget: _buildLinkPlaceholder(symbol.content!),
+                                errorWidget: _buildLinkFallback(symbol.content!),
+                                itemBuilder: (context, metadata, imageProvider, svgImage) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (imageProvider != null)
+                                        SizedBox(
+                                          height: 120,
+                                          width: double.infinity,
+                                          child: Image(image: imageProvider, fit: BoxFit.cover),
+                                        )
+                                      else if (svgImage != null)
+                                        SizedBox(height: 80, width: double.infinity, child: svgImage),
+                                      Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (metadata.title != null && metadata.title!.isNotEmpty)
+                                              CustomText(
+                                                metadata.title!,
+                                                fontSize: SizeConfig.small,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.mainTextColor,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            if (metadata.desc != null && metadata.desc!.isNotEmpty) ...[
+                                              const SizedBox(height: 3),
+                                              CustomText(
+                                                metadata.desc!,
+                                                fontSize: SizeConfig.extraSmall,
+                                                color: AppColors.secondaryTextColor,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.link, size: 13, color: AppColors.secondaryTextColor),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: CustomText(
+                                                    Uri.tryParse(symbol.content!)?.host ?? symbol.content!,
+                                                    fontSize: SizeConfig.extraSmall,
+                                                    color: AppColors.primaryColor,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                           ),
@@ -380,6 +432,55 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
               maxLines: 10,
             )
           : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildLinkPlaceholder(String link) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.primaryColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: CustomText(
+              Uri.tryParse(link)?.host ?? link,
+              fontSize: SizeConfig.extraSmall,
+              color: AppColors.secondaryTextColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkFallback(String link) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Icon(Icons.link_rounded, color: AppColors.primaryColor, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: CustomText(
+              Uri.tryParse(link)?.host ?? link,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Icon(Icons.open_in_new, size: 16, color: AppColors.secondaryTextColor),
+        ],
+      ),
     );
   }
 

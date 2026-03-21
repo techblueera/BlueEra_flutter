@@ -1,33 +1,14 @@
-import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
-import 'package:BlueEra/features/chat/view/find_contacts_with_service/find_contact_with_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/all_education_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/all_food_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/all_professional_consultant_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
-import 'package:BlueEra/features/common/Discover/view/healthcare/health_care_listing_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_product_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/choose_deliivery_option_dialog.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/financial_sectors.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/find_service_card_widget.dart';
@@ -39,90 +20,15 @@ import 'package:BlueEra/features/common/Discover/view/widget/job_service_card_wi
 import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/restaurant_near_me_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
-import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../../me/grocery/widget/grocery_data.dart';
-import 'book_your_transport/book_transport_main.dart';
-
-class ResponsiveSearchBar extends StatelessWidget {
-  const ResponsiveSearchBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double width = constraints.maxWidth;
-
-        return Container(
-          width: Get.width,
-          padding: EdgeInsets.only(bottom: 10, top: 10),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [
-                Color(0xff0085FE).withValues(alpha: 0.20), // Bottom color
-                Color(0xff0085FE).withValues(alpha: 0), // Bottom color
-              ],
-            ),
-          ),
-          child: Center(
-            child: Container(
-              width: width > 600 ? 600 : width * 0.9,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primaryColor, width: 0.5),
-              ),
-              child: Row(
-                children: [
-                  LocalAssets(imagePath: AppIconAssets.search),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: CustomText(
-                      AppStrings.searchAnything,
-                      fontSize: 16,
-                    ),
-                  ),
-                  LocalAssets(
-                    imagePath: AppIconAssets.mic,
-                    width: 20,
-                    height: 20,
-                    imgColor: AppColors.secondaryTextColor,
-                  ),
-                  const SizedBox(width: 10),
-                  LocalAssets(
-                    imagePath: AppIconAssets.camera_black,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
@@ -137,19 +43,11 @@ class DiscoverScreen extends StatefulWidget {
   State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen>
-    with SingleTickerProviderStateMixin {
+class _DiscoverScreenState extends State<DiscoverScreen> {
   final controller = getOrPut(() => DiscoverController());
-  TabController? _tabController;
 
-  // late MapplsMapController mapController;
-  late GoogleMapController mapController;
-  Set<Marker> _markers = {};
   late final double userLat;
   late final double userLng;
-
-  // bool isMapLoading = true;
-  // BitmapDescriptor? _customIcon;
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _qrWidgetKey = GlobalKey();
@@ -158,736 +56,269 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   void initState() {
     userLat = LocationService.lat;
     userLng = LocationService.lng;
-    _tabController = TabController(length: 3, vsync: this);
-    // _loadMarkerAsset();
     super.initState();
   }
 
   @override
   void dispose() {
-    _tabController?.dispose();
-    // mapController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isSmallScreen = View.of(context).physicalSize.width < 400;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark, // Android Black
-        statusBarBrightness: Brightness.light, // iOS Black
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-          backgroundColor: AppColors.lightBlueE9,
-          body: SafeArea(child: _buildMainBody(isSmallScreen))),
-      // body: SafeArea(child: Obx(() => _buildMainBody(isSmallScreen)))),
-    );
-  }
-
-  void chooseDeliveryOption() {
-    Get.dialog(
-      ChooseDeliveryOptionDialog(),
-      barrierDismissible: false,
-    );
-  }
-
-  Widget _buildMainBody(bool isSmallScreen) {
-    return NotificationListener<UserScrollNotification>(
-      onNotification: (notification) {
-        if (notification.direction == ScrollDirection.reverse) {
-          widget.onHeaderVisibilityChanged?.call(false);
-        } else if (notification.direction == ScrollDirection.forward) {
-          widget.onHeaderVisibilityChanged?.call(true);
-        }
-        return true; // Stop the notification from bubbling further
-      },
-      child: NestedScrollView(
-        controller: controller.scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              pinned: false,
-              floating: true,
-              snap: true,
-              forceElevated: innerBoxIsScrolled,
-              // Adds shadow when content slides under
-              title: Row(
-                children: [
-                  LocalAssets(
-                    imagePath: AppIconAssets.currentLocationIcon,
-                    height: SizeConfig.size24,
-                    width: SizeConfig.size24,
-                  ),
-                  SizedBox(width: SizeConfig.size10),
-                  Expanded(
-                    child: CustomText(
-                      [
-                        LocationService.userCurrentAddress.value.subLocality,
-                        LocationService.userCurrentAddress.value.city,
-                      ].where((e) => e.isNotEmpty).join(', '),
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+        backgroundColor: AppColors.appBackgroundColor,
+        body: NotificationListener<UserScrollNotification>(
+          onNotification: (notification) {
+            if (notification.direction == ScrollDirection.reverse) {
+              widget.onHeaderVisibilityChanged?.call(false);
+            } else if (notification.direction == ScrollDirection.forward) {
+              widget.onHeaderVisibilityChanged?.call(true);
+            }
+            return true;
+          },
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              /// Banner covering full top: status bar + notch + icons overlay
+              SliverToBoxAdapter(
+                child: Stack(
+                  children: [
+                    /// Banner image — full width, covers status bar & notch
+                    DiscoverBannerSlider(
+                      parentScrollController: _scrollController,
+                      targetKey: _qrWidgetKey,
                     ),
-                  ),
-                ],
-              ),
-              actions: [
-                Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size16),
-                  child: InkWell(
-                    onTap: () {
-                      // ... your existing tap logic ...
-                    },
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.location_new,
+
+                    /// Overlay: location + cart on top of banner
+                    Positioned(
+                      top: statusBarHeight,
+                      left: SizeConfig.size12,
+                      right: SizeConfig.size12,
+                      child: Row(
+                        children: [
+                          /// Location with rounded bg
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.black.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.location_on_outlined,
+                                      color: AppColors.white, size: 20),
+                                  SizedBox(width: SizeConfig.size6),
+                                  Flexible(
+                                    child: CustomText(
+                                      [
+                                        LocationService.userCurrentAddress
+                                            .value.subLocality,
+                                        LocationService
+                                            .userCurrentAddress.value.city,
+                                      ]
+                                          .where((e) => e.isNotEmpty)
+                                          .join(', '),
+                                      fontSize: SizeConfig.medium,
+                                      color: AppColors.white,
+                                      fontWeight: FontWeight.w700,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Icon(Icons.keyboard_arrow_down,
+                                      color: AppColors.white, size: 18),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(width: SizeConfig.size8),
+
+                          /// Cart with rounded bg
+                          _appBarAction(
+                            icon: AppIconAssets.cartIcon,
+                            onTap: () => commonSnackBar(
+                                message: "Coming soon...."),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size16),
-                  child: InkWell(
-                    onTap: () {
-                      commonSnackBar(message: "Coming soon....");
-                      // ... your existing tap logic ...
-                    },
-                    child: LocalAssets(imagePath: AppIconAssets.cartIcon),
-                  ),
-                ),
-              ],
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: TabBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: isSmallScreen,
-                  tabAlignment:
-                      isSmallScreen ? TabAlignment.start : TabAlignment.fill,
-                  labelColor: AppColors.primaryColor,
-                  unselectedLabelColor: AppColors.secondaryTextColor,
-                  indicatorColor: AppColors.primaryColor,
-                  indicatorWeight: 3.0,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                  tabs: [
-                    Tab(text: AppStrings.overview.tr),
-                    Tab(text: AppStrings.contact.tr),
-                    Tab(text: AppStrings.bestDeal.tr),
                   ],
                 ),
               ),
-            ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _discoverWidget(),
-            FindContactWithService(fromBottomNav: true),
-            // FavouriteCategoryListScreen(),
-            SizedBox(),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _discoverWidget() {
-    return CustomScrollView(
-        controller: _scrollController, // Attach the controller here
-        slivers: [
-          SliverToBoxAdapter(child: ResponsiveSearchBar()),
-          _buildGap(),
-
-          SliverToBoxAdapter(
-              child: DiscoverBannerSlider(
-            parentScrollController: _scrollController,
-            targetKey: _qrWidgetKey,
-          )),
-          _buildGap(gap: SizeConfig.paddingM),
-
-          ///Grocery & Food....
-          SliverToBoxAdapter(
-            child: GroceryFoodCardWidget(),
-          ),
-          _buildGap(),
-
-          /// Medical / Healthcare Services
-          SliverToBoxAdapter(child: HealthServiceCardWidget()),
-          _buildGap(),
-
-          /// Shopping....
-          SliverToBoxAdapter(child: ShoppingCardWidget()),
-          _buildGap(),
-
-          /// Self work
-          SliverToBoxAdapter(child: BookHomeServiceWidget()),
-
-          _buildGap(),
-
-          /// Home made food, product, service
-          SliverToBoxAdapter(child: HomeMadeProductWidget()),
-
-          _buildGap(),
-
-          /// Stay Service
-          SliverToBoxAdapter(
-            child: HotelStayServiceCard(),
-          ),
-
-          _buildGap(),
-
-          /// Consultation Service
-          SliverToBoxAdapter(
-            child: ProfessionalsCardWidget(),
-          ),
-
-          _buildGap(),
-
-          /// Transport
-          SliverToBoxAdapter(
-            child: TransportServiceWidget(),
-          ),
-          _buildGap(),
-
-          /// Rental Service
-
-          SliverToBoxAdapter(
-            child: ResponsiveRentalCard(),
-          ),
-          _buildGap(),
-
-          /// Service
-          SliverToBoxAdapter(child: FindServiceCardWidget()),
-
-          _buildGap(),
-
-          /// Financial Sectors
-          SliverToBoxAdapter(
-            child: FinancialSectors(),
-          ),
-
-          _buildGap(),
-
-          /// Automotive Service
-          SliverToBoxAdapter(child: AutomotiveServiceCardWidget()),
-
-          _buildGap(),
-
-          /// Restorent
-          SliverToBoxAdapter(
-            child: RestaurantNearMeCardWidget(),
-          ),
-
-          _buildGap(),
-
-          /// Education Service
-          SliverToBoxAdapter(
-            child:EducationServiceCardWidget()
-          ),
-
-          _buildGap(),
-
-      /// JOB Service
-          SliverToBoxAdapter(
-            child:JobServiceCardWidget()
-          ),
-
-          _buildGap(),
-
-
-
-          // _buildGap(),
-
-          // SliverToBoxAdapter(child: searchProductsViaAiWidget()),
-
-          _buildGap(),
-
-          SliverPadding(
-            padding: EdgeInsets.only(bottom: 100),
-            sliver: SliverToBoxAdapter(
-              child: Builder(
-                  key: _qrWidgetKey,
-                  builder: (_) {
-                    getOrPut(() => EmergencyProfileController());
-                    return EmergencyQrWidget(key: ValueKey('emergency_qr'));
-                  }),
-            ),
-          ),
-        ]);
-  }
-
-  Widget _title(String title) {
-    return CustomText(title,
-        fontSize: SizeConfig.large,
-        color: AppColors.mainTextColor,
-        fontWeight: FontWeight.w600);
-  }
-
-  Widget _viewAll([VoidCallback? onTap]) {
-    return InkWell(
-      onTap: onTap,
-      child: CustomText(AppStrings.viewAll,
-          fontSize: SizeConfig.medium,
-          color: AppColors.primaryColor,
-          fontWeight: FontWeight.w600),
-    );
-  }
-
-  Widget _buildGap({double? gap}) {
-    return SliverToBoxAdapter(
-        child: SizedBox(height: gap ?? SizeConfig.paddingXSL));
-  }
-
-  Widget _bannerWidget(
-      {required String bannerImage, required double bannerHeight}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: SizedBox(
-        // Using SizedBox is more lightweight than Container
-        height: bannerHeight,
-        width: SizeConfig.screenWidth,
-        child: LocalAssets(
-          imagePath: bannerImage,
-          boxFix: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  Widget genericSquareRow<T>({
-    required List<T> items,
-    required String Function(T item) labelBuilder,
-    required String Function(T item) iconBuilder,
-    required Function(T item) onTap,
-    int itemsPerRow = 5,
-    double spacing = 6.0,
-  }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double totalSpacing = spacing * (itemsPerRow - 1);
-        final double itemSize =
-            (constraints.maxWidth - totalSpacing) / itemsPerRow;
-
-        return SizedBox(
-          height: itemSize,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: items
-                .asMap()
-                .entries
-                .map((entry) {
-                  final int index = entry.key;
-                  final T item = entry.value;
-
-                  return Row(
-                    children: [
-                      _buildContainer(
-                        size: itemSize,
-                        text: labelBuilder(item),
-                        icon: iconBuilder(item),
-                        onTap: () => onTap(item),
-                      ),
-                      if (index != items.take(itemsPerRow).length - 1)
-                        SizedBox(width: spacing),
-                    ],
-                  );
-                })
-                .take(itemsPerRow)
-                .toList(),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildContainer({
-    required double size,
-    required String text,
-    required String icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10.0),
-      child: Container(
-        width: size,
-        // Calculated Width
-        height: size,
-        // Same as Width = Square
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.greyE5, width: 0.5),
-          // boxShadow: [AppShadows.textFieldShadow]
-        ),
-        padding: EdgeInsets.all(6.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LocalAssets(
-              imagePath: icon,
-              height: size * 0.3,
-              width: size * 0.3,
-            ),
-            SizedBox(height: SizeConfig.size3),
-            CustomText(
-              text,
-              fontSize: SizeConfig.extraSmall,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w600,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHorizontalJobTabs(List<String> arrTabs) {
-    final displayTabs = arrTabs.length > 5 ? arrTabs.sublist(0, 5) : arrTabs;
-
-    return SizedBox(
-      height: SizeConfig.size30,
-      width: SizeConfig.screenWidth,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: displayTabs.asMap().entries.map((entry) {
-            int index = entry.key;
-            String title = entry.value;
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: index == displayTabs.length - 1 ? 0 : SizeConfig.size6,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6.0),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 2.0),
-                      decoration: BoxDecoration(
-                        color: AppColors.black.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6.0),
-                        border: Border.all(
-                          color: AppColors.white.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: CustomText(
-                          title,
-                          fontSize: SizeConfig.extraSmall,
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w400,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
+              /// Search Bar - below the banner on white bg
+              SliverToBoxAdapter(
+                child: Container(
+                  color: AppColors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16,
+                    vertical: SizeConfig.size12,
                   ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRestaurantNearServiceMasonryGrid() {
-    return MasonryGridView.count(
-      crossAxisCount: 3,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      primary: false,
-      shrinkWrap: true,
-      itemCount: businessOnboardingFoodsCategories.take(6).length,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        var categoryItem = businessOnboardingFoodsCategories[index];
-        return CommonServiceCard(
-          service: categoryItem,
-          getName: (item) => item.name,
-          getIcon: (item) => item.icon ?? '',
-          iconHeight: SizeConfig.size80,
-          onTap: (item) {
-            Get.to(AllFoodServiceScreen(
-              professionalConsultantCategories:
-                  businessOnboardingFoodsCategories,
-              selectedProfessionConsultantData: categoryItem,
-            ));
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildFindServiceMasonryGrid() {
-    return MasonryGridView.count(
-      crossAxisCount: 3,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      primary: false,
-      shrinkWrap: true,
-      itemCount: businessOnboardingServicesCategories.take(6).length,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        var categoryItem = businessOnboardingServicesCategories[index];
-        return CommonServiceCard(
-          service: categoryItem,
-          getName: (item) => item.name,
-          getIcon: (item) => item.icon ?? '',
-          iconHeight: SizeConfig.size80,
-          onTap: (item) {
-            Get.to(() => ServicesNearMeScreen(
-                  businessServicesCategories:
-                      businessOnboardingServicesCategories,
-                ));
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildProfConsultantServiceMasonryGrid() {
-    return MasonryGridView.count(
-      crossAxisCount: 3,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      primary: false,
-      shrinkWrap: true,
-      itemCount: individualOnboardingConsultationList.take(6).length,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        var categoryItem = individualOnboardingConsultationList[index];
-        return CommonServiceCard(
-          service: categoryItem,
-          getName: (item) => item.name,
-          getIcon: (item) => item.icon ?? '',
-          iconHeight: SizeConfig.size80,
-          onTap: (item) {
-            var categoryItem = individualOnboardingConsultationList[index];
-
-            Get.to(() => AllProfessionConsultantScreen(
-                professionalConsultantCategories:
-                    individualOnboardingConsultationList,
-                selectedProfessionConsultantData: categoryItem));
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildMasonryGridWithIcons<T>(
-      {required List<T> items,
-      required Function(T) getName,
-      required Function(T) getIcon,
-      required Function(T) onTap,
-      required int crossAxisCount}) {
-    // Logic: If screen is wide (like a tablet), use 3 columns; otherwise 2.
-    return MasonryGridView.count(
-      crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      padding: EdgeInsets.zero,
-      primary: false,
-      shrinkWrap: true,
-      itemCount: items.length,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        var item = items[index];
-
-        return CommonServiceCard(
-          service: item,
-          flex: 1,
-          getName: (item) => getName(item),
-          getIcon: (item) => getIcon(item),
-          iconHeight: SizeConfig.size60,
-          onTap: (item) => onTap(item),
-        );
-      },
-    );
-  }
-
-  Widget searchProductsViaAiWidget() {
-    return InkWell(
-      onTap: () {
-        final chat = ChatViewController.inventoryAiChatListSearchModule;
-        Get.to(() => AskChatScreen(
-              // profileImage: AppImageAssets.sampleGirlImage,
-              profileImage: chat?.sender?.profileImage,
-              name: chat?.sender?.name,
-              contactNo: chat?.sender?.contactNo,
-              conversationId: '',
-              userId: '',
-              businessId: '',
-              type: chat?.sender?.accountType,
-              isInitialMessage: false,
-            ));
-      },
-      child: Container(
-        padding: EdgeInsets.only(
-          left: SizeConfig.size14,
-          right: SizeConfig.size14,
-          top: SizeConfig.size14,
-        ),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            border:
-                Border.all(color: AppColors.blueShade.withValues(alpha: 0.1)),
-            gradient: LinearGradient(colors: [
-              AppColors.blueShade.withValues(alpha: 0.02),
-              AppColors.blueShade.withValues(alpha: 0.3)
-            ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-        child: Row(
-          children: [
-            LocalAssets(
-                imagePath: AppImageAssets.sampleGirlImage,
-                width: SizeConfig.size90,
-                boxFix: BoxFit.cover),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: CustomText(AppStrings.hi,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.mainTextColor,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size5,
-                  ),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w400),
-                        children: [
-                          TextSpan(text: AppStrings.mayI.tr),
-                          TextSpan(
-                            text: AppStrings.helpYou.tr,
-                            style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: SizeConfig.medium,
-                            ),
-                          ),
-                          TextSpan(text: AppStrings.toFindOut.tr),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size5,
-                  ),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w400),
-                        children: [
-                          TextSpan(text: AppStrings.yourProductFrom.tr),
-                          TextSpan(
-                            text: AppStrings.localMarket.tr,
-                            style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: SizeConfig.medium,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size12),
-                  Container(
-                    height: SizeConfig.size32,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
+                      color: AppColors.fillColor,
+                      border: Border.all(width: 1,color: AppColors.secondaryTextColor),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    alignment: Alignment.center,
-                    child: TextFormField(
-                      enabled: false,
-                      autofocus: false,
-                      controller: TextEditingController(),
-                      style: TextStyle(
-                          color: AppColors.mainTextColor,
-                          fontSize: SizeConfig.medium),
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: InputDecoration(
-                        hintText: AppStrings.searchProductPlaceholder.tr,
-                        hintStyle: TextStyle(
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.secondaryTextColor),
-                        isDense: true,
-                        filled: false,
-                        contentPadding: EdgeInsets.zero,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        prefixIcon: Padding(
-                          padding: EdgeInsets.only(
-                            top: SizeConfig.size5,
-                            bottom: SizeConfig.size5,
-                          ),
-                          child: Icon(Icons.search,
-                              color: AppColors.secondaryTextColor,
-                              size: SizeConfig.paddingXL),
-                        ),
-                        suffixIcon: Padding(
-                          padding: EdgeInsets.only(
-                              left: SizeConfig.size8,
-                              right: SizeConfig.size16,
-                              top: SizeConfig.size5,
-                              bottom: SizeConfig.size5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.mic_none_outlined,
-                                  color: AppColors.secondaryTextColor,
-                                  size: SizeConfig.paddingXL),
-                              SizedBox(width: SizeConfig.size10),
-                              Icon(Icons.camera_alt_outlined,
-                                  color: AppColors.secondaryTextColor,
-                                  size: SizeConfig.paddingXL),
-                            ],
+                    child: Row(
+                      children: [
+                        Icon(Icons.search,
+                            color: AppColors.secondaryTextColor, size: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: CustomText(
+                            AppStrings.searchAnything,
+                            fontSize: 14,
+                            color: AppColors.secondaryTextColor,
                           ),
                         ),
-                      ),
+                        LocalAssets(
+                          imagePath: AppIconAssets.mic,
+                          width: 20,
+                          height: 20,
+                          imgColor: AppColors.secondaryTextColor,
+                        ),
+                        const SizedBox(width: 12),
+                        LocalAssets(
+                          imagePath: AppIconAssets.camera_black,
+                        ),
+                      ],
                     ),
-                  )
-                ],
+                  ),
+                ),
               ),
-            )
-          ],
+
+              _sliverGap(SizeConfig.size8),
+
+              /// Grocery & Food
+              _sliverCard(child: GroceryFoodCardWidget()),
+              _sliverGap(),
+
+              /// Medical / Healthcare Services
+              _sliverCard(child: HealthServiceCardWidget()),
+              _sliverGap(),
+
+              /// Shopping
+              _sliverCard(child: ShoppingCardWidget()),
+              _sliverGap(),
+
+              /// Home Services
+              _sliverCard(child: BookHomeServiceWidget()),
+              _sliverGap(),
+
+              /// Home made food, product, service
+              _sliverCard(child: HomeMadeProductWidget()),
+              _sliverGap(),
+
+              /// Stay Service
+              _sliverCard(child: HotelStayServiceCard()),
+              _sliverGap(),
+
+              /// Consultation Service
+              _sliverCard(child: ProfessionalsCardWidget()),
+              _sliverGap(),
+
+              /// Transport
+              _sliverCard(child: TransportServiceWidget()),
+              _sliverGap(),
+
+              /// Rental Service
+              _sliverCard(child: ResponsiveRentalCard()),
+              _sliverGap(),
+
+              /// Services
+              _sliverCard(child: FindServiceCardWidget()),
+              _sliverGap(),
+
+              /// Financial Sectors
+              _sliverCard(child: FinancialSectors()),
+              _sliverGap(),
+
+              /// Automotive Service
+              _sliverCard(child: AutomotiveServiceCardWidget()),
+              _sliverGap(),
+
+              /// Restaurant
+              _sliverCard(child: RestaurantNearMeCardWidget()),
+              _sliverGap(),
+
+              /// Education Service
+              _sliverCard(child: EducationServiceCardWidget()),
+              _sliverGap(),
+
+              /// Job Service
+              _sliverCard(child: JobServiceCardWidget()),
+              _sliverGap(),
+
+              /// Emergency QR
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: 100),
+                sliver: SliverToBoxAdapter(
+                  child: Builder(
+                    key: _qrWidgetKey,
+                    builder: (_) {
+                      getOrPut(() => EmergencyProfileController());
+                      return EmergencyQrWidget(
+                          key: ValueKey('emergency_qr'));
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _appBarAction({required String icon, required VoidCallback onTap}) {
+    return Padding(
+      padding: EdgeInsets.only(right: SizeConfig.size6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.black.withValues(alpha: 0.3),
+            shape: BoxShape.circle,
+          ),
+          child: LocalAssets(imagePath: icon, imgColor: AppColors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _sliverCard({required Widget child}) {
+    return SliverToBoxAdapter(
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _sliverGap([double? gap]) {
+    return SliverToBoxAdapter(
+      child: SizedBox(height: gap ?? SizeConfig.size8),
     );
   }
 }
