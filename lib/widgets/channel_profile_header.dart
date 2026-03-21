@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -139,7 +140,9 @@ class ChannelProfileHeader extends StatelessWidget {
                     if (postedAgo?.isNotEmpty ?? false) ...[
                       SizedBox(width: SizeConfig.size8),
                       PostMetaInfo(
-                        timeAgoText: postedAgo!,
+                        timeAgoText:  timeAgo(postedAgo != null
+                            ? DateTime.parse(postedAgo??"")
+                            : DateTime.now()),
                         fontSize: SizeConfig.extraSmall,
                       ),
                     ]

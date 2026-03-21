@@ -104,4 +104,23 @@ class MedicalRepo extends BaseService {
     );
     return response;
   }
+
+  Future<ResponseModel> fetchFilteredBusinessRepo({
+    required String category,
+    String? subCategory,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    String url = 'user-service/business/filter?category=$category&page=$page&limit=$limit';
+    if (subCategory != null && subCategory.isNotEmpty) {
+      url += '&subCategory=$subCategory';
+    }
+    final response = await ApiBaseHelper().getHTTP(
+      url,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

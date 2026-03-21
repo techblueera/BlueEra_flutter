@@ -59,17 +59,17 @@ class SymbolStoryRow extends StatelessWidget {
             ),
           ),
 
-          /// Link preview cards for embeddedUrl stories
-          if (linkStories.isNotEmpty)
-            Container(
-              margin: EdgeInsets.only(top: 8, right: 10, left: 10),
-              child: Column(
-                children: linkStories
-                    .take(3)
-                    .map((story) => _SymbolLinkPreviewCard(symbol: story))
-                    .toList(),
-              ),
-            ),
+          // /// Link preview cards for embeddedUrl stories
+          // if (linkStories.isNotEmpty)
+          //   Container(
+          //     margin: EdgeInsets.only(top: 8, right: 10, left: 10),
+          //     child: Column(
+          //       children: linkStories
+          //           .take(3)
+          //           .map((story) => _SymbolLinkPreviewCard(symbol: story))
+          //           .toList(),
+          //     ),
+          //   ),
         ],
       );
     });

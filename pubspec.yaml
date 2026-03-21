@@ -106,14 +106,26 @@ dependencies:
 
 dependency_overrides:
   intl: ^0.19.0
+#flutter_native_splash:
+#  color: "#ffffff"
+#
+#  image: assets/onboarding/sp_full.png  # your logo path
+#
+#  android: true
+#  ios: true
+#
+#  android_gravity: center
+#  ios_content_mode: center
+#
+#  fullscreen: true
 
 flutter_native_splash:
   color: "#ffffff"              # Background color for older Android versions
-  image: assets/images/splash_img_new.png     # Your splash image (logo)
+  image: assets/onboarding/sp_full.png    # Your splash image (logo)
 
   # Android 12+ Specific Settings (Crucial)
   android_12:
-    image: assets/images/splash_img_new.png # Should be a 1152x1152px image
+    image: assets/onboarding/sp_full.png # Should be a 1152x1152px image
     color: "#ffffff"                   # Background color
     icon_background_color: "#ffffff"
     # Optional: color behind the icon

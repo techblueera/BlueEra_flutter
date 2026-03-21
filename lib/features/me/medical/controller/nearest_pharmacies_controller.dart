@@ -39,18 +39,19 @@ class PharmacyItem {
   factory PharmacyItem.fromJson(Map<String, dynamic> json) {
     return PharmacyItem(
       id: json['_id']?.toString() ?? '',
-      name: json['pharmacyName']?.toString() ?? '',
+      name: json['business_name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      phone: json['phone']?.toString() ?? '',
+      email: json['business_number']?['email']?.toString() ?? '',
+      phone: json['business_number']?['phone']?.toString() ?? '',
       pincode: json['pincode']?.toString() ?? '',
       openFrom: json['openFrom']?.toString() ?? '',
       openTill: json['openTill']?.toString() ?? '',
       logo: json['logo']?.toString() ?? '',
-      rating: (json['averageRating'] is num)
-          ? (json['averageRating'] as num).toDouble()
+      rating: (json['avg_rating'] is num)
+          ? (json['avg_rating'] as num).toDouble()
           : 0.0,
-      reviews: json['numberOfReviews'] is int ? json['numberOfReviews'] : 0,
+      reviews:
+          json['total_ratings'] is int ? json['total_ratings'] : 0,
       inventories: (json['inventories'] as List?) ?? [],
       raw: json,
     );
@@ -65,19 +66,21 @@ class NearestPharmaciesController extends GetxController {
   final responseState = ApiResponse.initial('Initial').obs;
 
   Future<void> fetchNearest({
-    required String pincode,
-    required int radius,
+    required String category,
+    String? subCategory,
+    int page = 1,
+    int limit = 10,
   }) async {
     isLoading.value = true;
     error.value = '';
     pharmacies.clear();
     responseState.value = ApiResponse.initial('Initial');
     try {
-      final ResponseModel res = await _repo.fetchNearestPharmaciesRepo(
-        params: {
-          'pincode': pincode,
-          'radius': radius,
-        },
+      final ResponseModel res = await _repo.fetchFilteredBusinessRepo(
+        category: category,
+        subCategory: subCategory,
+        page: page,
+        limit: limit,
       );
       if (res.isSuccess) {
         responseState.value = ApiResponse.complete(res);
