@@ -152,6 +152,7 @@ class _MobileField extends StatelessWidget {
       validationType: ValidationTypeEnum.pNumber,
       hintText: AppStrings.enterMobileNumberHint.tr,
       isValidate: true,
+      autoFillType: AutoFillType.phone,
       onChange: (value) {
         final cursorPosition = controller.selection;
         controller.text = value;

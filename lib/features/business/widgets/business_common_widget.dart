@@ -79,6 +79,7 @@ void openOwnerEditSheet({
                   title: AppStrings.yourName,
                   hintText: AppStrings.yourNameHint,
                   isValidate: false,
+                  autoFillType: AutoFillType.name,
                 ),
                 const SizedBox(height: 16),
                 CommonTextField(
@@ -100,6 +101,7 @@ void openOwnerEditSheet({
                   title: AppStrings.email,
                   hintText: AppStrings.emailHint,
                   isValidate: false,
+                  autoFillType: AutoFillType.email,
                 ),
                 const SizedBox(height: 24),
                 CustomBtn(

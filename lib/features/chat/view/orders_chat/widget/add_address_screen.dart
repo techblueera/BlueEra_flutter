@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -92,6 +93,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 hintText: AppStrings.enterFullName,
                 regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                 isValidate: true,
+                autoFillType: AutoFillType.name,
               ),
               const SizedBox(height: 12),
               CommonTextField(
@@ -103,6 +105,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 regularExpression:
                     RegularExpressionUtils.phoneWithPrefixPattern,
                 isValidate: true,
+                autoFillType: AutoFillType.phone,
               ),
               const SizedBox(height: 12),
               CommonTextField(
@@ -111,6 +114,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 title: AppStrings.fullAddress,
                 hintText: AppStrings.addressHint,
                 isValidate: false,
+                autoFillType: AutoFillType.address,
               ),
               const SizedBox(height: 12),
               CommonTextField(
@@ -161,6 +165,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 title: AppStrings.pincodeTitle,
                 hintText: AppStrings.pincodeHint,
                 isValidate: true,
+                autoFillType: AutoFillType.postalCode,
               ),
               const SizedBox(height: 12),
               CommonTextField(

@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -188,6 +189,7 @@ class CommonMobileOtpDialog {
                 inputLength: 10,
                 maxLength: 10,
                 hintText: langController.tr('Enter your mobile number'),
+                autoFillType: AutoFillType.phone,
               ),
             ),
           ],

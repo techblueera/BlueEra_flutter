@@ -1107,8 +1107,10 @@ class DeliveryPartnerController extends GetxController {
       double lng = LocationService.lng;
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.latitude: lat,
-        ApiKeys.longitude: lng,
+        ApiKeys.latitude: 21.819289,
+        ApiKeys.longitude: 80.179749,
+        // ApiKeys.latitude: lat,
+        // ApiKeys.longitude: lng,
         ApiKeys.range_in_km: 10000,
       };
 
