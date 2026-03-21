@@ -15,6 +15,7 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_enum.dart';
 
 class GroceryOrFoodStoresScreen extends StatefulWidget {
+
   final List<OnboardingCategoryModel> arrCategories;
   final OnboardingCategoryModel selectedGroceryOrFoodCategory;
   final bool isGroceryStore;

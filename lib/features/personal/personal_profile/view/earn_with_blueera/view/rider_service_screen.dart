@@ -24,6 +24,8 @@ import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'rider_my_store_tab.dart';
+
 import '../../../../../business/visiting_card/view/business_own_profile_screen.dart';
 import '../../profile_setup_new_screen.dart';
 
@@ -179,7 +181,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                               : RiderProfileStatusScreen(
                                   screeName: 'from_tab_view',
                             ),
-              const Center(child: CustomText(AppStrings.comingSoon)),
+              const RiderMyStoreTab(),
               const Center(child: CustomText(AppStrings.comingSoon)),
             ],
           ),
@@ -240,7 +242,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                     ? AppStrings.myOrder.tr
                     : AppStrings.document.tr),
             Tab(text: AppStrings.myStore.tr),
-            Tab(text: AppStrings.linkedShops.tr),
+            Tab(text: AppStrings.statistics.tr),
           ],
         ),
       ),

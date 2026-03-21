@@ -113,4 +113,16 @@ class DeliveryPartnerRepo extends BaseService {
     );
     return response;
   }
+
+  /// Get Associated Shops for rider
+  Future<ResponseModel> getAssociatedShopsRepo({required Map<String, dynamic> params}) async {
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    var response = await ApiBaseHelper().getHTTP(
+      '$ridersAssociatedShops?$query',
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

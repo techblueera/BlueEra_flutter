@@ -37,6 +37,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_handler/share_handler.dart';
 import 'core/constants/getx_utils.dart';
+import 'core/services/address_cache_service.dart';
 import 'core/services/home_cache_service.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -293,6 +294,9 @@ Future<void> main() async {
 
   /// Initialize Home Cache Service
   await HomeCacheService.init();
+
+  /// Initialize Address Cache Service
+  await AddressCacheService.init();
 
   /// initializeMappls Map
 

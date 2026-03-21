@@ -14,6 +14,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
@@ -55,6 +56,14 @@ class DeliveryPartnerController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> vehicleDataResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> nearByRidersResponse = ApiResponse.initial('Initial').obs;
+
+  /// Associated shops
+  Rx<ApiResponse> associatedShopsResponse = ApiResponse.initial('Initial').obs;
+  Rx<AssociatedShopsResponse> associatedShopsData = AssociatedShopsResponse().obs;
+  RxList<AssociatedShop> associatedShops = <AssociatedShop>[].obs;
+  RxBool isAssociatedShopsLoading = false.obs;
+  int _associatedShopsPage = 1;
+  bool _hasMoreAssociatedShops = true;
 
   final stepStatus = <RiderProfileStep, bool>{}.obs;
   String? riderVerificationStatus;
@@ -1137,6 +1146,71 @@ class DeliveryPartnerController extends GetxController {
       log('stack trace-- $s');
     } finally {
       isNearByRidersLoading.value = false;
+    }
+  }
+
+  // ─── Associated Shops API ────────────────────────────────────
+
+  Future<void> getAssociatedShops({
+    String filter = 'all',
+    bool isLoadMore = false,
+  }) async {
+    if (isLoadMore && !_hasMoreAssociatedShops) return;
+
+    if (!isLoadMore) {
+      _associatedShopsPage = 1;
+      _hasMoreAssociatedShops = true;
+      isAssociatedShopsLoading.value = true;
+    }
+
+    try {
+      final params = <String, dynamic>{
+        'filter': filter,
+        'page': _associatedShopsPage,
+        'limit': 10,
+        'latitude': LocationService.lat,
+        'longitude': LocationService.lng,
+      };
+
+      final response =
+          await DeliveryPartnerRepo().getAssociatedShopsRepo(params: params);
+
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        final parsed = AssociatedShopsResponse.fromJson(data);
+
+        if (!isLoadMore) {
+          associatedShops.clear();
+        }
+
+        associatedShops.addAll(parsed.shops ?? []);
+        associatedShopsData.value = parsed;
+
+        final pagination = parsed.pagination;
+        if (pagination != null &&
+            pagination.page != null &&
+            pagination.totalPages != null) {
+          _hasMoreAssociatedShops =
+              pagination.page! < pagination.totalPages!;
+          if (_hasMoreAssociatedShops) _associatedShopsPage++;
+        } else {
+          _hasMoreAssociatedShops = false;
+        }
+
+        associatedShopsResponse.value = ApiResponse.complete(data);
+      } else {
+        if (!isLoadMore) {
+          associatedShopsResponse.value =
+              ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
+        }
+      }
+    } catch (e, s) {
+      log('getAssociatedShops error: $e\n$s');
+      if (!isLoadMore) {
+        associatedShopsResponse.value = ApiResponse.error('error');
+      }
+    } finally {
+      isAssociatedShopsLoading.value = false;
     }
   }
 }

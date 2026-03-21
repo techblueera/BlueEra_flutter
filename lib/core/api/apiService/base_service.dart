@@ -512,6 +512,7 @@ abstract class BaseService {
   final String ridersOnboardingVehicleInformation = "rider-service/riders/onboarding/vehicle-information";              // Onboarding rider (step 6)
   final String ridersOnboardingStatus = "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
   final String initRiderServiceUpload = "rider-service/s3/presigned-url";
+  final String ridersAssociatedShops = "rider-service/riders/associations/shops";
   final String aiCommentSuggestion = "ai-service/api/ai-comment/generate-suggestions";
   final String sendOrderReqToRider = "rider-service/riders/orders";
   final String getOrderFare = "rider-service/riders/fare";
