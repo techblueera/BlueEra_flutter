@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/string_utils.dart';
+
 /// Response model for GET /riders/associations/shops
 class AssociatedShopsResponse {
   List<AssociatedShop>? shops;
@@ -56,7 +58,7 @@ class AssociatedBusiness {
   AssociatedLocation? businessLocation;
   AssociatedBusinessNumber? businessNumber;
   num? avgRating;
-  num? totalRatings;
+  String? totalRatings;
   bool? isActive;
   bool? businessIsVerified;
 
@@ -91,7 +93,7 @@ class AssociatedBusiness {
         ? AssociatedBusinessNumber.fromJson(json['business_number'])
         : null;
     avgRating = json['avg_rating'];
-    totalRatings = json['total_ratings'];
+    totalRatings = parseToString(json['total_ratings']);
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
   }

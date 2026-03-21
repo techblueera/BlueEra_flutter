@@ -68,3 +68,15 @@ extension StringExtensions on String? {
     return this!.toLowerCase() == other.toLowerCase();
   }
 }
+
+// ✅ handles String, int, double — converts all to String
+String? parseToString(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value;
+  if (value is int) return value.toString();
+  if (value is double)
+    return value % 1 == 0
+        ? value.toInt().toString() // 5.0 → "5"
+        : value.toString(); // 4.5 → "4.5"
+  return value.toString(); // fallback
+}
