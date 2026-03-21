@@ -174,6 +174,9 @@ class RouteConstant {
   static const String medicalHomeScreen = "/MedicalHomeScreen";
   static const String hospitalDepartmentsScreen = "/HospitalDepartmentsScreen";
 
+  // Cart
+  static const String yourCartScreen = "/YourCartScreen";
+
   // Call screens
   static const String CallListScreen = "/CallListScreen";
   static const String OutgoingCallScreen = "/OutgoingCallScreen";

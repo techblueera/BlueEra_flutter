@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
@@ -150,8 +150,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           /// Cart with rounded bg
                           _appBarAction(
                             icon: AppIconAssets.cartIcon,
-                            onTap: () => commonSnackBar(
-                                message: "Coming soon...."),
+                            onTap: () => Navigator.pushNamed(
+                                context, RouteHelper.getYourCartScreenRoute()),
                           ),
                         ],
                       ),
