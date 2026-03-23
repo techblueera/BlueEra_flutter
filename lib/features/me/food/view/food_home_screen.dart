@@ -1,18 +1,15 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_common_gallery_card.dart';
+import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
@@ -21,12 +18,9 @@ import 'package:BlueEra/features/me/food/view/widget/food_home_profile_header.da
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -41,10 +35,10 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   final controller = getOrPut(() => RestaurantController());
 
   final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  Get.find<ViewBusinessDetailsController>();
 
   @override
-  initState(){
+  initState() {
     super.initState();
     controller.fetchHomeData(businessId: businessId);
   }
@@ -54,7 +48,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     return Material(
       color: AppColors.appBackgroundColor,
       child: Obx(() {
-        if(controller.foodHomeDataResponse.value.status == Status.INITIAL){
+        if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -75,6 +69,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 ///FOOD HOTEL....
                 CustomFormCard(
                   padding: EdgeInsets.all(10),
@@ -109,123 +104,22 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 _buildMenuCategories(controller.foodMenuNestedCategory),
 
                 /// Gallery
-               CustomFormCard(
-                       padding: EdgeInsets.all(10),
-                        margin: EdgeInsets.only(top: 10.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                CustomText(AppStrings.gallery.tr,
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                                (data.gallery?.isNotEmpty ?? false)
-                                    ? InkWell(
-                                    onTap: () {
-                                      Get.to(()=> FoodServicePhotosPhotoScreen());
-                                    },
-                                    child: LocalAssets(
-                                      imagePath: AppIconAssets.editIcon,
-                                      imgColor: AppColors.mainTextColor,
-                                    ))
-                                   : SizedBox(),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            (data.gallery?.isNotEmpty ?? false)
-                                ? _buildGallery(data.gallery ?? [], context)
-                            : InkWell(
-                              onTap: () {
-                                Get.to(()=> FoodServicePhotosPhotoScreen());
-                              },
-                              child: Container(
-                                height: SizeConfig.size200,
-                                width: SizeConfig.screenWidth,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    image: DecorationImage(
-                                      image: AssetImage(
-                                          AppImageAssets.homeMadeFoodBanner
-                                      ),
-                                      fit: BoxFit.cover,
-                                    )
-                                ),
-                                child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-
-                                      Positioned.fill(
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(10.0),
-                                          child: BackdropFilter(
-                                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(10.0),
-                                                  color: AppColors.black.withValues(alpha: 0.5)
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          LocalAssets(
-                                            imagePath: AppImageAssets.noMeContent,
-                                            height: SizeConfig.size80,
-                                            width: SizeConfig.size80,
-                                          ),
-                                          SizedBox(height: 6.0),
-                                          CustomText(
-                                            'You Have Not Post Any Photo',
-                                            fontSize:  SizeConfig.small,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.white,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          SizedBox(height: 10.0),
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(6.0),
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                              child: Container(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 10.0,
-                                                    vertical: 6.0
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(10.0),
-                                                  color: AppColors.white.withValues(alpha: 0.1),
-                                                  border: Border.all(
-                                                    color: AppColors.white.withValues(alpha: 0.16),
-                                                  ),
-                                                ),
-                                                child:  CustomText(
-                                                  'Add Photo',
-                                                  fontSize:  SizeConfig.small,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ]
-
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
+                SizedBox(height: 10.0),
+                CommonGalleryCard(
+                  gallery: data.gallery
+                      ?.expand((g) => g.imageUrls ?? [])
+                      .cast<String>()
+                      .toList(),
+                  onEditTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
+                  onAddTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
+                  emptyTitle: 'You Have Not Post Any Photo',
+                  addButtonLabel: 'Add Photo',
+                ),
 
                 SizedBox(height: 10.0),
-
-                _buildContactNdMapCard(data.businessProfileDetails),
+                BusinessContactMapCard(
+                  businessProfileDetails: data.businessProfileDetails,
+                ),
 
                 SizedBox(
                   height: 100,
@@ -259,7 +153,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
       children:
-          List.generate(allImages.length > 10 ? 10 : allImages.length, (index) {
+      List.generate(allImages.length > 10 ? 10 : allImages.length, (index) {
         // Logic to replicate the pattern in your image:
         // Large Vertical (index 0), Two small (index 1,2), Large Horizontal (index 3)...
         int crossAxisCellCount = 2;
@@ -299,188 +193,15 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
               child: Image.network(
                 allImages[index],
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image)),
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.broken_image)),
               ),
             ),
           ),
         );
       }),
-    );
-  }
-
-  Widget _buildContactNdMapCard(BusinessProfileDetails? businessProfileDetails) {
-    final logoUrl = businessProfileDetails?.logo;
-
-    return CustomFormCard(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-              AppStrings.contactUs.tr,
-              fontSize: SizeConfig.large,
-              color: AppColors.mainTextColor,
-              fontWeight: FontWeight.w600),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                color: AppColors.white,
-                border: Border.all(color: AppColors.greyE5),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [AppShadows.textFieldShadow]
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      key: ValueKey(logoUrl),
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.white, // Background color for placeholder transparency
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 10)
-                        ],
-                        image: DecorationImage(
-                          image: (logoUrl != null && logoUrl.isNotEmpty)
-                              ? NetworkImage(logoUrl) as ImageProvider
-                              : AssetImage(AppIconAssets.place_holder_image),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                              businessProfileDetails?.businessName,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                          const SizedBox(height: 5),
-                          (businessProfileDetails?.businessDescription?.isNotEmpty ??false)
-                              ? ExpandableText(
-                            text: businessProfileDetails?.businessDescription??'',
-                            trimLines: 3,
-                            isReadMoreNewLine: false,
-                            expandMode: ExpandMode.dialog,
-                            style: TextStyle(
-                              color: AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                          )
-                              : CustomText(
-                            AppStrings.na,
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-
-                const Divider(
-                    color: AppColors.greyE5,
-                    height: 30),
-
-                // Contact List
-                if(businessProfileDetails?.websiteUrl?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.website_click,
-                      businessProfileDetails?.websiteUrl ?? "",
-                      AppColors.primaryColor),
-
-                if(businessProfileDetails?.subCategoryDetails?.name?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.principal,
-                      businessProfileDetails?.subCategoryDetails?.name ?? "",
-                      AppColors.secondaryTextColor),
-
-                if(businessProfileDetails?.ownerDetails?[0].email?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.email,
-                      businessProfileDetails?.ownerDetails?[0].email ?? "",
-                      AppColors.secondaryTextColor),
-
-                if(businessProfileDetails?.businessNumber?.officeMobNo?.number?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.phone_outline,
-                      businessProfileDetails?.businessNumber?.officeMobNo?.number ?? "",
-                      AppColors.secondaryTextColor),
-
-                if(businessProfileDetails?.address?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.location_new,
-                      businessProfileDetails?.address ?? "",
-                      AppColors.secondaryTextColor),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          // SizedBox(
-          //   width: double.infinity,
-          //   height: 180,
-          //   child: Stack(
-          //     children: [
-          //       GoogleMap(
-          //         onMapCreated: _onMapCreated,
-          //         initialCameraPosition: CameraPosition(
-          //           target: LatLng(widget.latitude, widget.longitude),
-          //           zoom: 14.0,
-          //         ),
-          //         markers: _markers,
-          //         myLocationEnabled: false,
-          //         compassEnabled: false,
-          //         // Fix for iOS gesture conflicts
-          //         // gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-          //         //   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-          //         // },
-          //       ),
-          //       // ... rest of your UI (Send button)
-          //     ],
-          //   ),
-          // ),
-
-          BusinessLocationMapWidget(
-            latitude: businessProfileDetails?.businessLocation?.lat ?? 0.0,
-            longitude: businessProfileDetails?.businessLocation?.lon ?? 0.0,
-            businessName: businessProfileDetails?.businessName ?? "",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _contactItem(String icon, String label, Color iconColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: icon,
-            imgColor: iconColor,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-              child: CustomText(label,
-                  fontSize: 15, color: AppColors.mainTextColor)),
-        ],
-      ),
     );
   }
 
@@ -557,103 +278,109 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   // }
 
   Widget _buildHorizontalFoodList() {
-    return Obx(() => SizedBox(
-      height: 210,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: controller.allFoodItems.length,
-        padding: EdgeInsets.all(10),
-        itemBuilder: (context, index) {
-          final item = controller.allFoodItems[index];
+    return Obx(() =>
+        SizedBox(
+          height: 210,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: controller.allFoodItems.length,
+            padding: EdgeInsets.all(10),
+            itemBuilder: (context, index) {
+              final item = controller.allFoodItems[index];
 
-          // Variant Logic
-          final bool hasVariants = item.variants != null && item.variants!.isNotEmpty;
-          final int variantCount = item.variants?.length ?? 0;
-          final bool isMultiVariant = variantCount > 1;
+              // Variant Logic
+              final bool hasVariants = item.variants != null &&
+                  item.variants!.isNotEmpty;
+              final int variantCount = item.variants?.length ?? 0;
+              final bool isMultiVariant = variantCount > 1;
 
-          // Use the first variant for price, or fallback to the top-level item price
-          final displayPrice = hasVariants
-              ? item.variants![0].price?.sellingPrice.toString()
-              : item.price?.sellingPrice.toString() ?? "0";
+              // Use the first variant for price, or fallback to the top-level item price
+              final displayPrice = hasVariants
+                  ? item.variants![0].price?.sellingPrice.toString()
+                  : item.price?.sellingPrice.toString() ?? "0";
 
-          return Container(
-            width: 160,
-            margin: const EdgeInsets.only(right: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // --- 1. Product Image with Border ---
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.greyE5, width: 0.5),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: item.product?.images?.firstOrNull ?? "",
-                      height: 110,
-                      width: 160,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(color: Colors.grey.shade100),
-                      errorWidget: (_, __, ___) => _buildImagePlaceholder(),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // --- 2. Item Name ---
-                CustomText(
-                  item.product?.name ?? "Unknown Item",
-                  fontWeight: FontWeight.bold,
-                  maxLines: 1,
-                  fontSize: 14,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                const SizedBox(height: 4),
-
-                // --- 3. Price & Dietary Info ---
-                Row(
+              return Container(
+                width: 160,
+                margin: const EdgeInsets.only(right: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    FoodTypeIndicator(
-                      isVegetarian: item.product?.dietaryType?.toLowerCase() == "veg",
-                      size: 6,
+                    // --- 1. Product Image with Border ---
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.greyE5, width: 0.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: item.product?.images?.firstOrNull ?? "",
+                          height: 110,
+                          width: 160,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              Container(color: Colors.grey.shade100),
+                          errorWidget: (_, __, ___) => _buildImagePlaceholder(),
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 5),
+
+                    const SizedBox(height: 8),
+
+                    // --- 2. Item Name ---
                     CustomText(
-                      "₹$displayPrice",
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                      item.product?.name ?? "Unknown Item",
+                      fontWeight: FontWeight.bold,
+                      maxLines: 1,
+                      fontSize: 14,
+                      overflow: TextOverflow.ellipsis,
                     ),
+
+                    const SizedBox(height: 4),
+
+                    // --- 3. Price & Dietary Info ---
+                    Row(
+                      children: [
+                        FoodTypeIndicator(
+                          isVegetarian: item.product?.dietaryType
+                              ?.toLowerCase() == "veg",
+                          size: 6,
+                        ),
+                        const SizedBox(width: 5),
+                        CustomText(
+                          "₹$displayPrice",
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ],
+                    ),
+
+                    // --- 4. Multiple Variants Indicator ---
+                    if (isMultiVariant)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withValues(
+                                alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: CustomText(
+                            "+${variantCount - 1} more options",
+                            fontSize: 10,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-
-                // --- 4. Multiple Variants Indicator ---
-                if (isMultiVariant)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: CustomText(
-                        "+${variantCount - 1} more options",
-                        fontSize: 10,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
-    ));
+              );
+            },
+          ),
+        ));
   }
 
   Widget _buildImagePlaceholder() {
@@ -670,7 +397,6 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   }
 
   Widget _buildMenuCategories(List<GroceryNestedCategoryModel> menus) {
-
     return Column(
       children: [
         SizedBox(height: SizeConfig.paddingXSL),
@@ -702,16 +428,16 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   var categoryItem = menus[index];
                   return CommonServiceCard(
                     service: categoryItem,
-                    getName: (_categoryItem) => _categoryItem.name??'',
-                    getIcon: (_categoryItem) => _categoryItem.image??'',
+                    getName: (_categoryItem) => _categoryItem.name ?? '',
+                    getIcon: (_categoryItem) => _categoryItem.image ?? '',
                     iconHeight: SizeConfig.size60,
                     boxShadow: [],
                     onTap: (_categoryItem) {
-
                       return Get.to(
-                              ()=> MyFoodProductScreen(
-                                  foodMenu: _categoryItem,
-                      ));
+                              () =>
+                              MyFoodProductScreen(
+                                foodMenu: _categoryItem,
+                              ));
 
                       // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
                       //   arguments: {

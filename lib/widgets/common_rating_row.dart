@@ -30,7 +30,7 @@ class CommonRatingRow extends StatelessWidget {
         // Rating Text
         CustomText(
           rating != 0.0 ? "$rating " : 'N/A',
-          fontSize: SizeConfig.extraSmall,
+          fontSize: SizeConfig.small,
           color: AppColors.yellow00,
         ),
         const SizedBox(width: 4),
@@ -39,7 +39,7 @@ class CommonRatingRow extends StatelessWidget {
         CustomText(
           // Assuming formatNumberLikePost is a global utility function
           "(${formatNumberLikePost(reviews)} reviews) ",
-          fontSize: SizeConfig.extraSmall,
+          fontSize: SizeConfig.small,
           color: AppColors.grey6D,
         ),
 
@@ -49,7 +49,7 @@ class CommonRatingRow extends StatelessWidget {
           const SizedBox(width: 2),
           CustomText(
             distance!,
-            fontSize: SizeConfig.extraSmall,
+            fontSize: SizeConfig.small,
             color: AppColors.black30,
           ),
         ],

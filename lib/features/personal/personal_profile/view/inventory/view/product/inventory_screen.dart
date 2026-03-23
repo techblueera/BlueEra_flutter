@@ -14,7 +14,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_business_profile_full_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_home_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_service_not_create_screen.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -63,34 +63,34 @@ class _InventoryScreenState extends State<InventoryScreen>
     // if (widget.isShowScreen?.isNotEmpty ?? false) {
     //   _businessType = widget.isShowScreen ?? "";
     // }
-    apiCalling();
+    // apiCalling();
     _initializeData();
     super.initState();
   }
 
-  apiCalling() async {
-    try {
-      log('id -- $productBusinessProfileIDGlobal');
-      if (productBusinessProfileIDGlobal.isEmpty) {
-        ResponseModel response = await InventoryRepo().getBusinessProfileRepo();
-        if (response.isSuccess) {
-          productBusinessProfileIDGlobal = response.response?.data['data']['_id'];
-          if (productBusinessProfileIDGlobal.isNotEmpty) {
-            await setProductBusinessProfileID(productBusinessProfileIDGlobal);
-          } else {
-            await setProductBusinessProfileID("");
-          }
-        }
-      }
-      await getProductBusinessProfileID();
-      setState(() {
-        controller.hasProfile.value = productBusinessProfileIDGlobal.isNotEmpty;
-      });
-    } on Exception {
-      // TODO
-    }
-  }
-
+  // apiCalling() async {
+  //   try {
+  //     log('id -- $productBusinessProfileIDGlobal');
+  //     if (productBusinessProfileIDGlobal.isEmpty) {
+  //       ResponseModel response = await InventoryRepo().getBusinessProfileRepo();
+  //       if (response.isSuccess) {
+  //         productBusinessProfileIDGlobal = response.response?.data['data']['_id'];
+  //         if (productBusinessProfileIDGlobal.isNotEmpty) {
+  //           await setProductBusinessProfileID(productBusinessProfileIDGlobal);
+  //         } else {
+  //           await setProductBusinessProfileID("");
+  //         }
+  //       }
+  //     }
+  //     await getProductBusinessProfileID();
+  //     setState(() {
+  //       controller.hasProfile.value = productBusinessProfileIDGlobal.isNotEmpty;
+  //     });
+  //   } on Exception {
+  //     // TODO
+  //   }
+  // }
+  //
 
   void _initializeData() {
     // _businessType = businessTypeGlobal.toLowerCase();
@@ -218,8 +218,7 @@ class _InventoryScreenState extends State<InventoryScreen>
       //   ),
       // ),
       backgroundColor: AppColors.whiteF3,
-      floatingActionButton: Obx(() => controller.hasProfile.value
-          ? Padding(
+      floatingActionButton: Padding(
         padding: EdgeInsets.only(
             bottom: widget.fromBottomNavBar
                 ? kBottomNavigationBarHeight + SizeConfig.size20
@@ -242,11 +241,9 @@ class _InventoryScreenState extends State<InventoryScreen>
             size: SizeConfig.size36,
           ),
         ),
-      )
-          : const SizedBox.shrink()),
+      ),
       body: SafeArea(
-        child: Obx(()=> controller.hasProfile.value
-            ? NestedScrollView(
+        child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverAppBar(
@@ -298,7 +295,8 @@ class _InventoryScreenState extends State<InventoryScreen>
             //   )
             // ],
             children: [
-              ProductBusinessProfileFullScreen(),
+              ProductHomeScreen(),
+              // ProductBusinessProfileFullScreen(),
               ProductScreen(),
               Center(
                 child: CustomText(
@@ -308,9 +306,6 @@ class _InventoryScreenState extends State<InventoryScreen>
             ],
           ),
         )
-            : ProductProfileNotCreateScreen(
-          controller: controller,
-        )),
       ),
     );
   }

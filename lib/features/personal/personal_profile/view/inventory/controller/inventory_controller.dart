@@ -382,7 +382,6 @@ class InventoryController extends GetxController {
   /// Fetch suggested product of similar stores
   Future<void> fetchListOfSuggestedProductApi({bool isLoadMore = false}) async {
 
-
     try {
 
       if(isSuggestedProductLoadingLoadingMore.isTrue) return;

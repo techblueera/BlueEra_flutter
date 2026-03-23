@@ -1337,6 +1337,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             ApiKeys.lat: locationData.lat,
             ApiKeys.lon: locationData.long,
           }),
+          ApiKeys.pincode: locationData.pinCode,
+          ApiKeys.address: locationData.fullAddress,
         };
         logs("requestData PERSONAL ==== ${requestData}");
         await authController.addIndivisualUser(reqData: requestData);

@@ -464,7 +464,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   Widget _consultationContent({
     Key? key,
     required List<ProfessionTypeData> arrConsultationsCategory}) {
-    if(arrConsultationsCategory.isEmpty )
+    if(arrConsultationsCategory.isEmpty)
       return EmptyStateWidget(
         message: 'No profession found',
       );
