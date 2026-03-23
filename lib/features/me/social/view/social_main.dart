@@ -1,16 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/features/me/social/controller/social_home_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
-import 'package:BlueEra/features/me/social/view/social_update_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/profile_avatar_widget.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -95,17 +92,9 @@ class _SocialMainScreenState extends State<SocialMainScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Profile Avatar
-              Padding(
-                padding: const EdgeInsets.only(left: 15.0),
-                child: CachedAvatarWidget(
-                  imageUrl: userProfileGlobal.isNotEmpty
-                      ? userProfileGlobal
-                      : null,
-                  size: 34,
-                  borderRadius: 17,
-                  borderColor: AppColors.primaryColor,
-                  showProfileOnFullScreen: false,
-                ),
+              const Padding(
+                padding: EdgeInsets.only(left: 15.0),
+                child: ProfileAvatarWidget(),
               ),
               const SizedBox(width: 8),
               // --- Profile Avatar + Tab Bar ---

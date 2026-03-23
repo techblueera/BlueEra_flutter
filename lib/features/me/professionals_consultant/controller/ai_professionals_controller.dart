@@ -269,6 +269,7 @@ class AiProfessionalsController extends GetxController {
       if (response.isSuccess) {
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
+        Get.back();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

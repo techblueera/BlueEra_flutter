@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -28,17 +30,16 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     controller.clearBasicProfile();
-
     BasicDetails? basicDetails =
         controller.getProfessionalServiceRes?.value.data?.basicDetails;
-
-    controller.selectedImage.value = File(basicDetails?.profilePhotoUrl ?? "");
-
+    controller.selectedImage.value =
+        File(basicDetails?.profilePhotoUrl ?? "");
     controller.nameController.text = basicDetails?.fullName ?? "";
-    controller.titleController.text = basicDetails?.professionalTitle ?? "";
-    controller.taglineController.text = basicDetails?.shortTagline ?? "";
+    controller.titleController.text =
+        basicDetails?.professionalTitle ?? "";
+    controller.taglineController.text =
+        basicDetails?.shortTagline ?? "";
     controller.locationController.text = basicDetails?.location ?? "";
     controller.selectedLanguage.value =
         basicDetails?.languagesSpoken?.firstOrNull ?? "";
@@ -49,113 +50,192 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: "Basic Profile"),
-      // Replace with your standard AppBar
-      body: CommonCardWidget(
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(1.0),
+          padding: EdgeInsets.all(SizeConfig.size14),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Profile Image Upload
-              const CustomText("Upload Profile Photo",
-                  fontWeight: FontWeight.w500),
-              const SizedBox(height: 10),
-              Center(
-                child: Obx(() => CommonProfileImage(
-                      imagePath: controller.selectedImage.value?.path ?? "",
-                      dialogTitle: "Upload Picture",
-                      onImageUpdate: (path) {
-                        controller.selectedImage.value = File(path);
-                        controller.isImageEdit.value=true;
-                      },
-                      isOwnProfile: true,
-                      showProfileBorder: true,
-                      borderColor: AppColors.primaryColor,
-                    )),
+              // --- Profile Photo ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _sectionIcon(Icons.camera_alt_outlined,
+                          "Profile Photo", "Upload a professional photo"),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Obx(() => CommonProfileImage(
+                              imagePath:
+                                  controller.selectedImage.value?.path ??
+                                      "",
+                              dialogTitle: "Upload Picture",
+                              onImageUpdate: (path) {
+                                controller.selectedImage.value =
+                                    File(path);
+                                controller.isImageEdit.value = true;
+                              },
+                              isOwnProfile: true,
+                              showProfileBorder: true,
+                              borderColor: AppColors.primaryColor,
+                            )),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+              SizedBox(height: SizeConfig.size14),
 
-              const SizedBox(height: 24),
-
-              // 2. Full Name
-              CommonTextField(
-                title: "Full Name",
-                textEditController: controller.nameController,
-                hintText: "E.g. Virendra Kishor",
+              // --- Personal Details ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionIcon(Icons.person_outline,
+                          "Personal Details", "Your name and title"),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        title: AppStrings.fullName,
+                        textEditController: controller.nameController,
+                        hintText: "E.g. Rajesh Kumar",
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        title: "Professional Title",
+                        textEditController:
+                            controller.titleController,
+                        hintText: "E.g. Finance & Tax Consultant",
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        title: "Short Tagline",
+                        textEditController:
+                            controller.taglineController,
+                        hintText:
+                            "E.g. Tax & Compliance Expert for SMEs",
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: SizeConfig.size14),
 
-              // 3. Professional Title
-              CommonTextField(
-                title: "Professional Title",
-                textEditController: controller.titleController,
-                hintText: "E.g. Ramesh Bhagat",
+              // --- Location & Language ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionIcon(Icons.location_on_outlined,
+                          "Location & Language", "Where are you based"),
+                      const SizedBox(height: 16),
+                      CommonLocationSearchField(
+                        controller: controller.locationController,
+                        title: AppStrings.location,
+                        isShowLeading: false,
+                        onSelected:
+                            (placeId, lat, lng, address) async {
+                          controller.locationController.text = address;
+                          try {
+                            final detailsResponse = await PlaceRepo()
+                                .getCompletePlaceDetails(
+                                    placeId: placeId);
+                            final detailsData =
+                                detailsResponse.response?.data;
+                            final placeDetails =
+                                PlaceDetailsResponse.fromJson(
+                                    detailsData);
+                            controller.selectedLat = placeDetails
+                                    .result
+                                    ?.geometry
+                                    ?.location
+                                    ?.lat ??
+                                0.0;
+                            controller.selectedLng = placeDetails
+                                    .result
+                                    ?.geometry
+                                    ?.location
+                                    ?.lng ??
+                                0.0;
+                          } catch (e) {
+                            debugPrint(
+                                "Error fetching place details: $e");
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CustomText("Languages Spoken",
+                          color: AppColors.mainTextColor),
+                      const SizedBox(height: 10),
+                      Obx(() => CommonDropdownDialog<String>(
+                            title: "Select Language",
+                            hintText: "E.g. English",
+                            items: controller.indianLanguages,
+                            selectedValue: controller
+                                    .selectedLanguage.value.isEmpty
+                                ? null
+                                : controller.selectedLanguage.value,
+                            displayValue: (lang) => lang,
+                            onChanged: (value) =>
+                                controller.onLanguageChanged(value),
+                          )),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 30),
 
-              // 4. Short Tagline
-              CommonTextField(
-                title: "Short Tagline",
-                textEditController: controller.taglineController,
-                hintText: "E.g. Tax & Compliance Expert for SMEs....",
-              ),
-              const SizedBox(height: 16),
-
-              // 5. Location
-              CommonLocationSearchField(
-                controller: controller.locationController,
-                title: "Location",
-                isShowLeading: false,
-                onSelected: (placeId, lat, lng, address) async {
-                  controller.locationController.text = address;
-                  // Fetch and auto-fill details
-                  try {
-                    final detailsResponse = await PlaceRepo()
-                        .getCompletePlaceDetails(placeId: placeId);
-                    final detailsData = detailsResponse.response?.data;
-                    final placeDetails =
-                        PlaceDetailsResponse.fromJson(detailsData);
-                    controller.selectedLat =
-                        placeDetails.result?.geometry?.location?.lat ?? 0.0;
-                    controller.selectedLng =
-                        placeDetails.result?.geometry?.location?.lng ?? 0.0;
-                  } catch (e) {
-                    print("Error fetching place details: $e");
-                  }
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // 6. Languages Spoken Dropdown
-              const CustomText("Languages Spoken",
-                  color: AppColors.mainTextColor),
-              const SizedBox(height: 10),
-              Obx(() => CommonDropdownDialog<String>(
-                    title: "Select Language",
-                    hintText: "E.g. English",
-                    items: controller.indianLanguages,
-                    selectedValue: controller.selectedLanguage.value.isEmpty
-                        ? null
-                        : controller.selectedLanguage.value,
-                    displayValue: (lang) => lang,
-                    onChanged: (value) => controller.onLanguageChanged(value),
-                  )),
-
-              const SizedBox(height: 40),
-
-              // 7. Save Button
+              // --- Save ---
               Obx(() => CustomBtn(
-                    title: "Save",
+                    title: AppStrings.save.tr,
                     isValidate: controller.isBasicValid.value,
                     onTap: controller.isBasicValid.value
                         ? () => controller.saveProfile()
                         : null,
                   )),
-              const SizedBox(height: 20),
+              SizedBox(height: SizeConfig.size20),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _sectionIcon(
+      IconData icon, String title, String subtitle) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child:
+              Icon(icon, color: AppColors.primaryColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(title,
+                  fontWeight: FontWeight.w600,
+                  fontSize: SizeConfig.medium),
+              const SizedBox(height: 2),
+              CustomText(subtitle,
+                  color: AppColors.secondaryTextColor,
+                  fontSize: SizeConfig.small),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

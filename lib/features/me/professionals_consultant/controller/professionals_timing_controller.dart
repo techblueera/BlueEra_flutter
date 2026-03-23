@@ -140,9 +140,8 @@ class ProfessionalsTimingController extends GetxController {
 
       if (response.isSuccess== true) {
          commonSnackBar(message: "Availability updated successfully");
-         // Refresh data to ensure sync (optional, but good practice)
-         // await fetchTimings(); 
          isFirstTime = false;
+         Get.back();
       } else {
          commonSnackBar(message: response.response?.data['message'] != null ? response.response?.data['message'] : "Failed to update availability");
       }

@@ -1,6 +1,9 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -8,6 +11,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -25,12 +29,11 @@ class _ProfessionalContactUsScreenState
     extends State<ProfessionalContactUsScreen> {
   final controller = Get.put(ProfessionalsController());
 
-  // Controllers
-   TextEditingController branchNameController=TextEditingController();
-   TextEditingController websiteController=TextEditingController();
-   TextEditingController addressController=TextEditingController();
-   TextEditingController emailController=TextEditingController();
-   TextEditingController phoneController=TextEditingController();
+  TextEditingController branchNameController = TextEditingController();
+  TextEditingController websiteController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
 
   apiCalling() async {
     await controller.fetchHomeData();
@@ -40,15 +43,12 @@ class _ProfessionalContactUsScreenState
   void initState() {
     super.initState();
     apiCalling();
-    // Initialize controllers with profile data if editing, otherwise empty
-
-    // Run initial validation check after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) => _triggerValidation());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _triggerValidation());
   }
 
   @override
   void dispose() {
-    // Clean up controllers
     branchNameController.dispose();
     websiteController.dispose();
     addressController.dispose();
@@ -69,113 +69,240 @@ class _ProfessionalContactUsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Determine if we are adding or editing for the UI
     final bool isEdit = widget.profile != null;
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: isEdit ? "Update Contact" : "Contact Us"),
+      appBar: CommonBackAppBar(
+          title: isEdit ? "Update Contact" : AppStrings.contactUs),
       body: Obx(() {
         if (controller.contactUsData.value != null) {
           branchNameController = TextEditingController(
-              text: controller.contactUsData.value?.data?.contactPerson ?? "");
+              text: controller.contactUsData.value?.data
+                      ?.contactPerson ??
+                  "");
           websiteController = TextEditingController(
-              text: controller.contactUsData.value?.data?.website ?? "");
+              text: controller.contactUsData.value?.data?.website ??
+                  "");
           addressController = TextEditingController(
-              text: controller.contactUsData.value?.data?.address ?? "");
+              text: controller.contactUsData.value?.data?.address ??
+                  "");
           emailController = TextEditingController(
-              text: controller.contactUsData.value?.data?.email ?? "");
+              text:
+                  controller.contactUsData.value?.data?.email ?? "");
           phoneController = TextEditingController(
-              text: controller.contactUsData.value?.data?.phone ?? "");
+              text:
+                  controller.contactUsData.value?.data?.phone ?? "");
 
-          // If editing, store existing lat/lng in controller
-          if (controller.contactUsData.value?.data?.location != null) {
-            controller.selectedLat =
-                controller.contactUsData.value?.data?.location?.coordinates![0];
-            controller.selectedLng =
-                controller.contactUsData.value?.data?.location?.coordinates![1];
+          if (controller.contactUsData.value?.data?.location !=
+              null) {
+            controller.selectedLat = controller.contactUsData.value
+                ?.data?.location?.coordinates![0];
+            controller.selectedLng = controller.contactUsData.value
+                ?.data?.location?.coordinates![1];
           }
         }
-        return CommonCardWidget(
-          padding: 0,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                CommonTextField(
-                  textEditController: branchNameController,
-                  hintText: "E.g. DSP Dehradun",
-                  title: "Contact Person Name",
-                  onChange: (_) => _triggerValidation(),
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(SizeConfig.size14),
+          child: Column(
+            children: [
+              // --- Info Banner ---
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor
+                      .withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: AppColors.primaryColor
+                          .withValues(alpha: 0.15)),
                 ),
-                const SizedBox(height: 12),
-                HttpsTextField(
-                  controller: websiteController,
-                  hintText: "https://dpsdehradun.com",
-                  title: "Website URL",
-                  onChange: (_) => _triggerValidation(),
+                child: Row(
+                  children: [
+                    Icon(Icons.contact_mail_outlined,
+                        color: AppColors.primaryColor, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomText(
+                        "Add your contact details so clients can reach you",
+                        color: AppColors.primaryColor,
+                        fontSize: SizeConfig.small,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                CommonLocationSearchField(
-                  controller: addressController,
-                  title: "Location",
-                  isShowLeading: false,
-                  onSelected: (placeId, lat, lng, address) async {
-                    addressController.text = address;
-                    // Fetch and auto-fill details
-                    try {
-                      final detailsResponse = await PlaceRepo()
-                          .getCompletePlaceDetails(placeId: placeId);
-                      final detailsData = detailsResponse.response?.data;
-                      final placeDetails =
-                          PlaceDetailsResponse.fromJson(detailsData);
-                      controller.selectedLat =
-                          placeDetails.result?.geometry?.location?.lat ?? 0.0;
-                      controller.selectedLng =
-                          placeDetails.result?.geometry?.location?.lng ?? 0.0;
-                    } catch (e) {
-                      print("Error fetching place details: $e");
-                    }
+              ),
+              SizedBox(height: SizeConfig.size14),
 
-                    _triggerValidation();
-                  },
+              // --- Personal Info ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionIcon(Icons.person_outline,
+                          "Personal Info", "Your name and website"),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        textEditController: branchNameController,
+                        hintText: "E.g. Rajesh Kumar",
+                        title: "Contact Person Name",
+                        onChange: (_) => _triggerValidation(),
+                      ),
+                      const SizedBox(height: 12),
+                      HttpsTextField(
+                        controller: websiteController,
+                        hintText: "https://yourwebsite.com",
+                        title: AppStrings.website,
+                        onChange: (_) => _triggerValidation(),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                CommonTextField(
-                  textEditController: emailController,
-                  hintText: "dpsdehradun@gmail.com",
-                  title: "Email Address",
-                  onChange: (_) => _triggerValidation(),
+              ),
+              SizedBox(height: SizeConfig.size14),
+
+              // --- Contact Details ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionIcon(Icons.phone_outlined,
+                          "Contact Details", "Email and phone"),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        textEditController: emailController,
+                        hintText: "yourname@gmail.com",
+                        title: AppStrings.email,
+                        onChange: (_) => _triggerValidation(),
+                      ),
+                      const SizedBox(height: 12),
+                      CommonTextField(
+                        textEditController: phoneController,
+                        hintText: "+91 1234567890",
+                        title: AppStrings.phoneNumber,
+                        maxLength: 10,
+                        keyBoardType: TextInputType.phone,
+                        onChange: (_) => _triggerValidation(),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                CommonTextField(
-                  textEditController: phoneController,
-                  hintText: "+91 1234567890",
-                  title: "Phone Number",
-                  maxLength: 10,
-                  keyBoardType: TextInputType.phone,
-                  onChange: (_) => _triggerValidation(),
+              ),
+              SizedBox(height: SizeConfig.size14),
+
+              // --- Location ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionIcon(Icons.location_on_outlined,
+                          AppStrings.location, "Your office address"),
+                      const SizedBox(height: 16),
+                      CommonLocationSearchField(
+                        controller: addressController,
+                        title: AppStrings.location,
+                        isShowLeading: false,
+                        onSelected:
+                            (placeId, lat, lng, address) async {
+                          addressController.text = address;
+                          try {
+                            final detailsResponse =
+                                await PlaceRepo()
+                                    .getCompletePlaceDetails(
+                                        placeId: placeId);
+                            final detailsData =
+                                detailsResponse.response?.data;
+                            final placeDetails =
+                                PlaceDetailsResponse.fromJson(
+                                    detailsData);
+                            controller.selectedLat = placeDetails
+                                    .result
+                                    ?.geometry
+                                    ?.location
+                                    ?.lat ??
+                                0.0;
+                            controller.selectedLng = placeDetails
+                                    .result
+                                    ?.geometry
+                                    ?.location
+                                    ?.lng ??
+                                0.0;
+                          } catch (e) {
+                            debugPrint(
+                                "Error fetching place details: $e");
+                          }
+                          _triggerValidation();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 32),
-                Obx(() => CustomBtn(
-                      isLoading: controller.isLoading.value,
-                      onTap: controller.isFormValid.value
-                          ? () => controller.submitBranchDetails(
-                                // id: widget.profile?.id, // Pass ID for editing
-                                branchName: branchNameController.text,
-                                website: websiteController.text,
-                                address: addressController.text,
-                                email: emailController.text,
-                                phone: phoneController.text,
-                              )
-                          : null,
-                      title: isEdit ? "Update" : "Submit",
-                      isValidate: controller.isFormValid.value,
-                    )),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+
+              // --- Submit ---
+              Obx(() => CustomBtn(
+                    isLoading: controller.isLoading.value,
+                    onTap: controller.isFormValid.value
+                        ? () => controller.submitBranchDetails(
+                              branchName:
+                                  branchNameController.text,
+                              website: websiteController.text,
+                              address: addressController.text,
+                              email: emailController.text,
+                              phone: phoneController.text,
+                            )
+                        : null,
+                    title: isEdit
+                        ? AppStrings.update.tr
+                        : AppStrings.submit.tr,
+                    isValidate: controller.isFormValid.value,
+                  )),
+              SizedBox(height: SizeConfig.size20),
+            ],
           ),
         );
       }),
+    );
+  }
+
+  Widget _sectionIcon(
+      IconData icon, String title, String subtitle) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child:
+              Icon(icon, color: AppColors.primaryColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(title,
+                  fontWeight: FontWeight.w600,
+                  fontSize: SizeConfig.medium),
+              const SizedBox(height: 2),
+              CustomText(subtitle,
+                  color: AppColors.secondaryTextColor,
+                  fontSize: SizeConfig.small),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
