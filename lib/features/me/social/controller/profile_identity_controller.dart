@@ -119,8 +119,8 @@ class ProfileIdentityController extends GetxController {
 
         if (response.success == true) {
           commonSnackBar(message: "Success Profile Saved Successfully");
-          // Update local state if needed
           isEditMode.value = true;
+          Get.back();
         } else {
           commonSnackBar(message: "Error Failed to save profile");
         }

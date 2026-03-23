@@ -17,9 +17,13 @@ class SocialEventController extends GetxController {
   final toTimeController = TextEditingController();
   var lat = 0.0.obs;
   var lng = 0.0.obs;
-  // Date Selection Observables
+  // Date Selection Observables (legacy - kept for compatibility)
   var startDay = 0.obs, startMonth = 0.obs, startYear = 0.obs;
   var endDay = 0.obs, endMonth = 0.obs, endYear = 0.obs;
+
+  // DateTime observables for date picker
+  var selectedStartDate = Rxn<DateTime>();
+  var selectedEndDate = Rxn<DateTime>();
 
   // Button State
   var isFormValid = false.obs;
@@ -76,6 +80,7 @@ class SocialEventController extends GetxController {
              startDay.value = date.day;
              startMonth.value = date.month;
              startYear.value = date.year;
+             selectedStartDate.value = date;
           } catch (_) {}
       }
        if (event.endDate != null) {
@@ -84,6 +89,7 @@ class SocialEventController extends GetxController {
              endDay.value = date.day;
              endMonth.value = date.month;
              endYear.value = date.year;
+             selectedEndDate.value = date;
           } catch (_) {}
       }
       
@@ -104,8 +110,8 @@ class SocialEventController extends GetxController {
   }
 
   void validateForm() {
-    bool isDatesFilled = startDay.value!=0 && startMonth.value!=0 && startYear.value!=0 &&
-        endDay.value!=0 && endMonth.value!=0 && endYear.value!=0;
+    bool isDatesFilled = selectedStartDate.value != null &&
+        selectedEndDate.value != null;
 
     bool isTextFilled = titleController.text.trim().isNotEmpty &&
         venueController.text.trim().isNotEmpty &&
@@ -115,6 +121,30 @@ class SocialEventController extends GetxController {
         linkController.text.trim().isNotEmpty;
 
     isFormValid.value = isDatesFilled && isTextFilled;
+  }
+
+  void setStartDate(DateTime date) {
+    selectedStartDate.value = date;
+    startDay.value = date.day;
+    startMonth.value = date.month;
+    startYear.value = date.year;
+    // Reset end date if it's before start date
+    if (selectedEndDate.value != null &&
+        selectedEndDate.value!.isBefore(date)) {
+      selectedEndDate.value = null;
+      endDay.value = 0;
+      endMonth.value = 0;
+      endYear.value = 0;
+    }
+    validateForm();
+  }
+
+  void setEndDate(DateTime date) {
+    selectedEndDate.value = date;
+    endDay.value = date.day;
+    endMonth.value = date.month;
+    endYear.value = date.year;
+    validateForm();
   }
 
 
@@ -159,6 +189,8 @@ class SocialEventController extends GetxController {
     linkController.clear();
     startDay.value = 0; startMonth.value = 0; startYear.value = 0;
     endDay.value = 0; endMonth.value = 0; endYear.value = 0;
+    selectedStartDate.value = null;
+    selectedEndDate.value = null;
     fromTimeController.clear();
     toTimeController.clear();
     selectedFromTime.value = "09:00 AM";

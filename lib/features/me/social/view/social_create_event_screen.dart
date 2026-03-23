@@ -12,9 +12,9 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class SocialCreateEventScreen extends StatelessWidget {
   final controller = Get.find<SocialEventController>();
@@ -105,18 +105,48 @@ class SocialCreateEventScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // Start Date Picker
                     CustomText(AppStrings.startingDate,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
                     const SizedBox(height: 8),
-                    _buildDatePicker(isStart: true),
+                    _buildDatePickerField(
+                      context: context,
+                      dateObs: controller.selectedStartDate,
+                      hintText: "Select start date",
+                      firstDate: DateTime.now(),
+                      lastDate:
+                          DateTime.now().add(const Duration(days: 365 * 5)),
+                      onDateSelected: (date) =>
+                          controller.setStartDate(date),
+                    ),
                     const SizedBox(height: 16),
+
+                    // End Date Picker
                     CustomText(AppStrings.endDate,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
                     const SizedBox(height: 8),
-                    _buildDatePicker(isStart: false),
+                    Obx(() {
+                      final startDate = controller.selectedStartDate.value;
+                      return _buildDatePickerField(
+                        context: context,
+                        dateObs: controller.selectedEndDate,
+                        hintText: startDate == null
+                            ? "Select start date first"
+                            : "Select end date",
+                        enabled: startDate != null,
+                        firstDate: startDate ?? DateTime.now(),
+                        lastDate: DateTime.now()
+                            .add(const Duration(days: 365 * 5)),
+                        onDateSelected: (date) =>
+                            controller.setEndDate(date),
+                      );
+                    }),
                     const SizedBox(height: 16),
+
+                    // Time Selection
                     CustomText(AppStrings.time,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
@@ -229,35 +259,79 @@ class SocialCreateEventScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDatePicker({required bool isStart}) {
+  Widget _buildDatePickerField({
+    required BuildContext context,
+    required Rxn<DateTime> dateObs,
+    required String hintText,
+    required DateTime firstDate,
+    required DateTime lastDate,
+    required Function(DateTime) onDateSelected,
+    bool enabled = true,
+  }) {
     return Obx(() {
-      return NewDatePicker(
-        selectedDay:
-            isStart ? controller.startDay.value : controller.endDay.value,
-        selectedMonth: isStart
-            ? controller.startMonth.value
-            : controller.endMonth.value,
-        selectedYear: isStart
-            ? controller.startYear.value
-            : controller.endYear.value,
-        onDayChanged: (val) {
-          isStart
-              ? controller.startDay.value = val!
-              : controller.endDay.value = val!;
-          controller.validateForm();
-        },
-        onMonthChanged: (val) {
-          isStart
-              ? controller.startMonth.value = val!
-              : controller.endMonth.value = val!;
-          controller.validateForm();
-        },
-        onYearChanged: (val) {
-          isStart
-              ? controller.startYear.value = val!
-              : controller.endYear.value = val!;
-          controller.validateForm();
-        },
+      final date = dateObs.value;
+      return InkWell(
+        onTap: enabled
+            ? () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: date ?? firstDate,
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.light(
+                          primary: AppColors.primaryColor,
+                          onPrimary: Colors.white,
+                          surface: Colors.white,
+                          onSurface: AppColors.mainTextColor,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (picked != null) {
+                  onDateSelected(picked);
+                }
+              }
+            : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: double.infinity,
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: enabled
+                ? const Color(0xFFF5F5F7)
+                : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  date != null
+                      ? DateFormat('dd MMM yyyy').format(date)
+                      : hintText,
+                  color: date != null
+                      ? AppColors.mainTextColor
+                      : AppColors.secondaryTextColor,
+                  fontSize: SizeConfig.medium,
+                ),
+              ),
+              Icon(
+                Icons.calendar_month_outlined,
+                size: 20,
+                color: enabled
+                    ? AppColors.primaryColor
+                    : Colors.grey,
+              ),
+            ],
+          ),
+        ),
       );
     });
   }

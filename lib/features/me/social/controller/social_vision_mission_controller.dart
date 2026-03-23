@@ -100,13 +100,13 @@ class SocialVisionMissionController extends GetxController {
       
       if (response.success == true) {
         commonSnackBar(message: "Saved successfully");
-        // Update local state with response data
         if (response.data != null) {
             existingId = response.data!.sId;
             descriptionController.text = response.data!.description ?? "";
             serverImageUrl.value = response.data!.mediaUrl;
-            selectedImage.value = null; // Clear selected file as it's now on server
+            selectedImage.value = null;
         }
+        Get.back();
       } else {
         commonSnackBar(message: "Failed to save");
       }

@@ -74,7 +74,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen> {
             children: [
               _buildHeaderSection(context),
               _identityCard(data?.identity),
-              _activityVideosSection(data?.activities ?? []),
+              // _activityVideosSection(data?.activities ?? []),
               _activitiesCard(data?.activities ?? []),
               _missionVisionCard(data?.missionVision),
               _eventsCard(data?.events ?? []),
