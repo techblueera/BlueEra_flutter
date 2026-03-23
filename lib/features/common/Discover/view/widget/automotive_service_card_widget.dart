@@ -23,24 +23,27 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
         children: [
           titleWidget(AppStrings.automotiveShowroom),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: automotiveServiceItemsCategories.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = automotiveServiceItemsCategories[index];
-              return CommonServiceCard(
-                service: item,
-                getName: (item) => item.name,
-                getIcon: (item) => item.icon??"",
-                onTap: (item) =>  commonSnackBar(message: "Coming Soon..."),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: automotiveServiceItemsCategories.length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var item = automotiveServiceItemsCategories[index];
+                return CommonServiceCard(
+                  service: item,
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon??"",
+                  onTap: (item) =>  commonSnackBar(message: "Coming Soon..."),
+                );
+              },
+            ),
           ),
 
         ],

@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/social__event_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_create_event_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -15,103 +14,54 @@ import 'package:intl/intl.dart';
 class EventScheduleScreen extends StatelessWidget {
   final controller = Get.put(SocialEventController());
 
+  EventScheduleScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    // Ensure SizeConfig is initialized if not already (though usually done in main)
-    // SizeConfig.init(context);
-
     return Scaffold(
-      // backgroundColor: Colors.white,
-      appBar: CommonBackAppBar(
-        title: AppStrings.eventsSchedule,
+      appBar: CommonBackAppBar(title: AppStrings.eventsSchedule),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          controller.resetForm();
+          Get.to(() => SocialCreateEventScreen());
+        },
+        backgroundColor: AppColors.primaryColor,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: CustomText(AppStrings.createEvent,
+            color: Colors.white,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600),
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(bottom: 30.0),
-        child: CommonCardWidget(
-          padding: 0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(SizeConfig.paddingM),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      AppStrings.events,                        fontSize: SizeConfig.large18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        controller.resetForm();
-                        Get.to(() => SocialCreateEventScreen());
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.paddingXS,
-                            vertical: SizeConfig.paddingXSmall),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.add,
-                                color: AppColors.primaryColor,
-                                size: SizeConfig.large),
-                            SizedBox(width: 4),
-                            CustomText(
-                              AppStrings.addMore,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: SizeConfig.small,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Obx(() {
-                  if (controller.isListLoading.value) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (controller.eventList.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.event_busy,
-                              size: 64, color: Colors.grey.shade300),
-                          SizedBox(height: 16),
-                          CustomText(
-                            AppStrings.noEventsFound,
-                              color:AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.medium,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-                    itemCount: controller.eventList.length,
-                    itemBuilder: (context, index) {
-                      final event = controller.eventList[index];
-                      return _buildEventCard(context, event);
-                    },
-                  );
-                }),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: Obx(() {
+        if (controller.isListLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (controller.eventList.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                CustomText(AppStrings.noEventsFound,
+                    color: AppColors.secondaryTextColor,
+                    fontSize: SizeConfig.medium),
+                const SizedBox(height: 8),
+                CustomText("Tap + to create your first event",
+                    color: Colors.grey[400], fontSize: SizeConfig.small),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: EdgeInsets.all(SizeConfig.paddingM),
+          itemCount: controller.eventList.length,
+          itemBuilder: (context, index) {
+            final event = controller.eventList[index];
+            return _buildEventCard(context, event);
+          },
+        );
+      }),
     );
   }
 
@@ -123,44 +73,69 @@ class EventScheduleScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(SizeConfig.paddingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-
-            // --- HEADER WITH POPUP MENU ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Event header with gradient
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primaryColor.withValues(alpha: 0.8),
+                  AppColors.primaryColor.withValues(alpha: 0.5),
+                ],
+              ),
+            ),
+            child: Row(
               children: [
                 Expanded(
-                  child: CustomText(
-                    event.title ?? "No Title",
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black87,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        event.title ?? "No Title",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.white,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (event.eventType != null &&
+                          event.eventType!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: CustomText(event.eventType ?? "",
+                              color: Colors.white,
+                              fontSize: SizeConfig.extraSmall),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 SizedBox(
-                  height: 24,
-                  width: 24,
+                  height: 28,
+                  width: 28,
                   child: PopupMenuButton<String>(
-                    // 1. Remove the default padding
                     padding: EdgeInsets.zero,
-
-                    // 2. Override default constraints to remove the minimum touch target margin
                     constraints: const BoxConstraints(),
-                    icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                    icon: const Icon(Icons.more_vert,
+                        color: Colors.white, size: 20),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     onSelected: (value) {
@@ -177,8 +152,8 @@ class EventScheduleScreen extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(Icons.edit_outlined,
-                                color: Colors.blue, size: 20),
-                            SizedBox(width: 10),
+                                color: AppColors.primaryColor, size: 18),
+                            const SizedBox(width: 8),
                             CustomText(AppStrings.edit),
                           ],
                         ),
@@ -188,9 +163,10 @@ class EventScheduleScreen extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(Icons.delete_outline,
-                                color: Colors.red, size: 20),
-                            SizedBox(width: 10),
-                            CustomText(AppStrings.delete, color: Colors.red),
+                                color: Colors.red, size: 18),
+                            const SizedBox(width: 8),
+                            CustomText(AppStrings.delete,
+                                color: Colors.red),
                           ],
                         ),
                       ),
@@ -199,51 +175,56 @@ class EventScheduleScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
 
-            Divider(
-                height: SizeConfig.paddingM,
-                thickness: 1,
-                color: Colors.grey.shade100),
-            // Details
-            _buildDetailRow(AppStrings.title, event.title ?? "No Title"),
-            SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow(
-                AppStrings.date,
-                event.startDate != null
-                    ? _formatDate(event.startDate!)
-                    : "N/A"),
-            SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow(AppStrings.timing,
-                "${event.timing?.from ?? ''} to ${event.timing?.to ?? ''}"),
-            SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow("${AppStrings.ticket.tr}", "Free"),
-            SizedBox(height: SizeConfig.paddingXS),
-            _buildDetailRow(AppStrings.location, event.venue?.name ?? "N/A"),
-          ],
-        ),
+          // Event details
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.paddingM),
+            child: Column(
+              children: [
+                _buildDetailRow(
+                    Icons.calendar_today_outlined,
+                    AppStrings.date,
+                    event.startDate != null
+                        ? _formatDate(event.startDate!)
+                        : "N/A"),
+                SizedBox(height: SizeConfig.paddingXS),
+                _buildDetailRow(
+                    Icons.access_time,
+                    AppStrings.timing,
+                    "${event.timing?.from ?? ''} to ${event.timing?.to ?? ''}"),
+                SizedBox(height: SizeConfig.paddingXS),
+                _buildDetailRow(Icons.location_on_outlined,
+                    AppStrings.location, event.venue?.name ?? "N/A"),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(icon, size: 16, color: AppColors.secondaryTextColor),
+        const SizedBox(width: 8),
         SizedBox(
-          width: 80,
+          width: 60,
           child: CustomText(
             "$label:",
-              color: Colors.grey.shade600,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w500,
           ),
         ),
         Expanded(
           child: CustomText(
             value,
-              color: Colors.black87,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -256,15 +237,14 @@ class EventScheduleScreen extends StatelessWidget {
       BuildContext context, SocialEventData event) async {
     await showCommonDialog(
         context: context,
-        text:
-        AppStrings.deleteEventConfirm,
+        text: AppStrings.deleteEventConfirm,
         confirmCallback: () async {
           Get.back();
           controller.eventId = event.sId;
           controller.deleteEvent();
         },
         cancelCallback: () {
-          Navigator.of(context).pop(); // Close the dialog
+          Navigator.of(context).pop();
         },
         confirmText: AppStrings.yes,
         cancelText: AppStrings.no);
@@ -273,7 +253,7 @@ class EventScheduleScreen extends StatelessWidget {
   String _formatDate(String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
-      return DateFormat('dd/MM/yyyy').format(date);
+      return DateFormat('dd MMM yyyy').format(date);
     } catch (e) {
       return dateStr;
     }

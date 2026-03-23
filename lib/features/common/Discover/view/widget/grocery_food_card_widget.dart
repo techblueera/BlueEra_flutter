@@ -26,30 +26,28 @@ class GroceryFoodCardWidget extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: titleWidget("Grocery & Food"),
-                  ),
-                  SizedBox(width: SizeConfig.paddingXSL),
-                  ViewAllButton(
-                    onTap: () {},
-                  ),
+                  titleWidget("Grocery & Food"),
+
                 ],
               ),
               SizedBox(height: SizeConfig.paddingXSL),
-              GridIconImageWidget(
-                items: [
-                  ...GroceryData.grocerySuperCategories.take(3).toList(),
-                ],
-                crossAxisCount: 3,
-                getName: (item) => item.name,
-                getIcon: (item) => item.icon,
-                onTap: (item) {
-                  if (item.slugId == "HOME_MADE_FOOD") {
-                    Get.to(() => HomeMadeFoodScreen());
-                  } else {
-                    chooseDeliveryOption();
-                  }
-                },
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal:18.0),
+                child: GridIconImageWidget(
+                  items: [
+                    ...GroceryData.grocerySuperCategories.take(3).toList(),
+                  ],
+                  crossAxisCount: 3,
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon,
+                  onTap: (item) {
+                    if (item.slugId == "HOME_MADE_FOOD") {
+                      Get.to(() => HomeMadeFoodScreen());
+                    } else {
+                      chooseDeliveryOption();
+                    }
+                  },
+                ),
               )
             ],
           ),

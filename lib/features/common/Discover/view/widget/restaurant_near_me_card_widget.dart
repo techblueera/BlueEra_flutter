@@ -25,10 +25,9 @@ class RestaurantNearMeCardWidget extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: titleWidget(AppStrings.restaurantNearby),
-              ),
+              titleWidget(AppStrings.restaurantNearby),
               SizedBox(
                 width: SizeConfig.size8,
               ),
@@ -42,84 +41,87 @@ class RestaurantNearMeCardWidget extends StatelessWidget {
               ),                    ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          SizedBox(
-            height: 140, // Adjust this height based on your CommonServiceCard design
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
-              itemCount: businessOnboardingFoodsCategories.take(6).length,
-              // Using a physics that feels natural on mobile
-              physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, index) {
-                var categoryItem = businessOnboardingFoodsCategories[index];
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: SizedBox(
+              height: 140, // Adjust this height based on your CommonServiceCard design
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
+                itemCount: businessOnboardingFoodsCategories.take(6).length,
+                // Using a physics that feels natural on mobile
+                physics: const BouncingScrollPhysics(),
+                itemBuilder: (context, index) {
+                  var categoryItem = businessOnboardingFoodsCategories[index];
 
-                return Padding(
-                  padding: EdgeInsets.only(right: 6), // Matches your previous margin: 6
-                  child: SizedBox(
-                    width: 120, // Horizontal lists need a fixed width for children
-                    child: AspectRatio(
-                      aspectRatio: 1.0, // Adjusted for a more square look like the design
-                      child: Container(
-                        margin: EdgeInsets.zero,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20), // Increased for smoother look
-                          border: Border.all(color: categoryItem.colorCode??Colors.white, width: 1.0),
-                        ),
-                        // Use ClipRRect so the children don't bleed over the rounded border
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Column(
-                            children: [
-                              // 1. Top Section: Icon with soft background
-                              Expanded(
-                                flex: 3,
-                                child: Container(
+                  return Padding(
+                    padding: EdgeInsets.only(right: 6), // Matches your previous margin: 6
+                    child: SizedBox(
+                      width: 120, // Horizontal lists need a fixed width for children
+                      child: AspectRatio(
+                        aspectRatio: 1.0, // Adjusted for a more square look like the design
+                        child: Container(
+                          margin: EdgeInsets.zero,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20), // Increased for smoother look
+                            border: Border.all(color: categoryItem.colorCode??Colors.white, width: 1.0),
+                          ),
+                          // Use ClipRRect so the children don't bleed over the rounded border
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Column(
+                              children: [
+                                // 1. Top Section: Icon with soft background
+                                Expanded(
+                                  flex: 3,
+                                  child: Container(
+                                    width: double.infinity,
+                                    color: categoryItem.colorCode, // The soft blue tint from your image
+                                    child: LocalAssets(imagePath: categoryItem.icon ?? ""),
+                                  ),
+                                ),
+
+                                // 2. Bottom Section: Text with solid background
+                                Container(
                                   width: double.infinity,
-                                  color: categoryItem.colorCode, // The soft blue tint from your image
-                                  child: LocalAssets(imagePath: categoryItem.icon ?? ""),
-                                ),
-                              ),
+                                  color: AppColors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CustomText(
+                                        categoryItem.name,
+                                        textAlign: TextAlign.center,
+                                        color: AppColors.mainTextColor, // White text looks better on Red
+                                        fontWeight: FontWeight.w500,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
 
-                              // 2. Bottom Section: Text with solid background
-                              Container(
-                                width: double.infinity,
-                                color: AppColors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CustomText(
-                                      categoryItem.name,
-                                      textAlign: TextAlign.center,
-                                      color: AppColors.mainTextColor, // White text looks better on Red
-                                      fontWeight: FontWeight.w500,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
+                      /*child: CommonServiceCard(
+                        service: categoryItem,color: categoryItem.colorCode,
+                        getName: (item) => item.name,
+                        getIcon: (item) => item.icon ?? '',
+                        iconHeight: SizeConfig.size80,
+                        onTap: (item) {
+                          Get.to(AllFoodServiceScreen(
+                            professionalConsultantCategories: businessOnboardingFoodsCategories,
+                            selectedProfessionConsultantData: categoryItem,
+                          ));
+                        },
+                      ),*/
                     ),
-                    /*child: CommonServiceCard(
-                      service: categoryItem,color: categoryItem.colorCode,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon ?? '',
-                      iconHeight: SizeConfig.size80,
-                      onTap: (item) {
-                        Get.to(AllFoodServiceScreen(
-                          professionalConsultantCategories: businessOnboardingFoodsCategories,
-                          selectedProfessionConsultantData: categoryItem,
-                        ));
-                      },
-                    ),*/
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           )
 /*

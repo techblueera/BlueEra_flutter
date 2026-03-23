@@ -7,8 +7,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 class CommonWebView extends StatefulWidget {
   final String urlLink;
   final String urlTitle;
+  final bool? hideAppBar;
 
-  const CommonWebView({required this.urlLink, required this.urlTitle});
+  const CommonWebView({required this.urlLink, required this.urlTitle,  this.hideAppBar});
 
   @override
   State<CommonWebView> createState() => _CommonWebViewState();
@@ -29,19 +30,19 @@ class _CommonWebViewState extends State<CommonWebView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
+      appBar:(widget.hideAppBar??false)?null: CommonBackAppBar(
         title: widget.urlTitle,
       ),
       body: SafeArea(
           child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size8,
-              vertical: SizeConfig.paddingM,
-            ),
-            child: HorizontalVideoPlayer(),
-          ),
+          // Padding(
+          //   padding: EdgeInsets.symmetric(
+          //     horizontal: SizeConfig.size8,
+          //     vertical: SizeConfig.paddingM,
+          //   ),
+          //   child: HorizontalVideoPlayer(),
+          // ),
           Expanded(child: WebViewWidget(controller: controller)),
         ],
       )),

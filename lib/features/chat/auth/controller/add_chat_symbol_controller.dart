@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -350,7 +351,7 @@ class AddChatSymbolController extends GetxController {
     ResponseModel responseModel = await symbolRepo.createSymbol(params);
 
     if (responseModel.isSuccess) {
-
+      Get.find<SymbolFeedController>().fetchSymbolFeed();
       commonSnackBar(message: "Symbol Added Successfully");
      await getSymbolsForPartUser(userId);
       isPosting.value = false;

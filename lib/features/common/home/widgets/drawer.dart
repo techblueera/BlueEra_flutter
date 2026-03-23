@@ -158,31 +158,31 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: InkWell(
         onTap: () {
-          if (isGuestUser()) {
-            createProfileScreen();
-          } else if (isIndividualUser()) {
-            navigatePushTo(context, PersonalProfileSetupNewScreen());
-          } else if (isBusinessUser()) {
-            navigatePushTo(context, BusinessOwnProfileScreen());
-          }
+          // if (isGuestUser()) {
+          //   createProfileScreen();
+          // } else if (isIndividualUser()) {
+          //   navigatePushTo(context, PersonalProfileSetupNewScreen());
+          // } else if (isBusinessUser()) {
+          //   navigatePushTo(context, BusinessOwnProfileScreen());
+          // }
         },
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage: (imageUrl.isNotEmpty &&
-                  imageUrl != "null" &&
-                  Uri.tryParse(imageUrl)?.hasAbsolutePath == true &&
-                  Uri.tryParse(imageUrl)?.hasScheme == true)
-                  ? NetworkImage(imageUrl)
-                  : null,
-              child: (imageUrl.isEmpty ||
-                  imageUrl == "null")
-                  ? Icon(Icons.person)
-                  : null,
-            ),
+            // CircleAvatar(
+            //   radius: 26,
+            //   backgroundColor: Colors.grey.shade200,
+            //   backgroundImage: (imageUrl.isNotEmpty &&
+            //       imageUrl != "null" &&
+            //       Uri.tryParse(imageUrl)?.hasAbsolutePath == true &&
+            //       Uri.tryParse(imageUrl)?.hasScheme == true)
+            //       ? NetworkImage(imageUrl)
+            //       : null,
+            //   child: (imageUrl.isEmpty ||
+            //       imageUrl == "null")
+            //       ? Icon(Icons.person)
+            //       : null,
+            // ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -193,13 +193,13 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 2),
-                  CustomText(
-                    userDesigination(),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                  ),
+                  // const SizedBox(height: 2),
+                  // CustomText(
+                  //   userDesigination(),
+                  //   fontSize: 14,
+                  //   fontWeight: FontWeight.w400,
+                  //   color: AppColors.secondaryTextColor,
+                  // ),
                 ],
               ),
             ),

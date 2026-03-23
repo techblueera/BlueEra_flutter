@@ -205,21 +205,6 @@ class _HomeScreenState extends State<HomeScreen> {
       isGuestLogout: isGuestUser(),
       controller: searchController,
       onClearCallback: () => searchController.clear(),
-      // buildCustomActionWidget: isGuestUser()
-      //     ? null
-      //     : () => GestureDetector(
-      //           onTap: () {
-      //             Get.toNamed('/CallListScreen');
-      //           },
-      //           child: Padding(
-      //             padding: const EdgeInsets.only(top: 8.0, right: 4.0),
-      //             child: Icon(
-      //               Icons.call_rounded,
-      //               color: AppColors.black28,
-      //               size: 24,
-      //             ),
-      //           ),
-      //         ),
       onNotificationTap: () {
         Navigator.pushNamed(
           context,
@@ -252,6 +237,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       setState(() {
                         selectedIndex = index;
                         selectedSubIndex = 0;
+                      });
+                      // Recalculate header height after tab change
+                      // (Community tab adds Joined/Suggested row)
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _calculateHeaderHeight();
                       });
                     },
                     children: [
@@ -693,6 +683,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPageChanged: (index) {
                       setState(() {
                         selectedIndex = index;
+                      });
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _calculateHeaderHeight();
                       });
                     },
                     children: isIndividual()

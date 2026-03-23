@@ -24,10 +24,9 @@ class HotelStayServiceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: titleWidget(AppStrings.bookYourStay),
-              ),
+              titleWidget(AppStrings.bookYourStay),
               SizedBox(
                 width: SizeConfig.size8,
               ),
@@ -35,84 +34,87 @@ class HotelStayServiceCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: stayItemsCategories.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = stayItemsCategories[index];
-              return InkWell(
-                onTap: (){
-                  Get.to(() => AllStayServiceScreen(
-                      stayCategories: stayItemsCategories,
-                      selectedStayCategory: item));
-                },
-                child: AspectRatio(
-                  aspectRatio: 1.0, // Adjusted for a more square look like the design
-                  child: Container(
-                    margin: EdgeInsets.zero,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20), // Increased for smoother look
-                      border: Border.all(color: const Color(0xffDDE2EE), width: 1.0),
-                    ),
-                    // Use ClipRRect so the children don't bleed over the rounded border
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Column(
-                        children: [
-                          // 1. Top Section: Icon with soft background
-                          Expanded(
-                            flex: 3,
-                            child: Container(
-                              width: double.infinity,
-                              color: item.colorCode, // The soft blue tint from your image
-                              child: LocalAssets(imagePath: item.icon ?? ""),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: stayItemsCategories.length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var item = stayItemsCategories[index];
+                return InkWell(
+                  onTap: (){
+                    Get.to(() => AllStayServiceScreen(
+                        stayCategories: stayItemsCategories,
+                        selectedStayCategory: item));
+                  },
+                  child: AspectRatio(
+                    aspectRatio: 1.0, // Adjusted for a more square look like the design
+                    child: Container(
+                      margin: EdgeInsets.zero,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20), // Increased for smoother look
+                        border: Border.all(color: const Color(0xffDDE2EE), width: 1.0),
+                      ),
+                      // Use ClipRRect so the children don't bleed over the rounded border
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Column(
+                          children: [
+                            // 1. Top Section: Icon with soft background
+                            Expanded(
+                              flex: 3,
+                              child: Container(
+                                width: double.infinity,
+                                color: item.colorCode, // The soft blue tint from your image
+                                child: LocalAssets(imagePath: item.icon ?? ""),
+                              ),
                             ),
-                          ),
 
-                          // 2. Bottom Section: Text with solid background
-                          Container(
-                            width: double.infinity,
-                            color: AppColors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CustomText(
-                                  item.name,
-                                  textAlign: TextAlign.center,
-                                  color: AppColors.mainTextColor, // White text looks better on Red
-                                  fontWeight: FontWeight.w500,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                // If you want the "Premium Rooms" subtitle from image 2:
-                                if (item.subtitle != null) ...[
-                                  const SizedBox(height: 2),
+                            // 2. Bottom Section: Text with solid background
+                            Container(
+                              width: double.infinity,
+                              color: AppColors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   CustomText(
-                                    item.subtitle??"N/A",
-                                    fontSize: SizeConfig.small,
-                                    color:AppColors.secondaryTextColor,
-                                    maxLines: 1,
+                                    item.name,
+                                    textAlign: TextAlign.center,
+                                    color: AppColors.mainTextColor, // White text looks better on Red
+                                    fontWeight: FontWeight.w500,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
+                                  // If you want the "Premium Rooms" subtitle from image 2:
+                                  if (item.subtitle != null) ...[
+                                    const SizedBox(height: 2),
+                                    CustomText(
+                                      item.subtitle??"N/A",
+                                      fontSize: SizeConfig.small,
+                                      color:AppColors.secondaryTextColor,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
+                );
 
-            },
+              },
+            ),
           ),
         ],
       ),

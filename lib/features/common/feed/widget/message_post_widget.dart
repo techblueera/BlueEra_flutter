@@ -664,6 +664,24 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                // Views
+                                _feedActionButton(
+                                  iconPath: AppIconAssets.eye_new,
+                                  count: formatNumberLikePost(_post.viewsCount ?? 0),
+                                ),
+
+                                // Comment
+                                _feedActionButton(
+                                  iconPath: AppIconAssets.comment_new,
+                                  count: formatNumberLikePost(_post.commentsCount ?? 0),
+                                  onTap: () {
+                                    if (isGuestUser()) {
+                                      createProfileScreen();
+                                    } else {
+                                      widget.commentView();
+                                    }
+                                  },
+                                ),
                                 // Like
                                 _feedActionButton(
                                   iconPath: AppIconAssets.like_new,
@@ -676,18 +694,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                       createProfileScreen();
                                     } else {
                                       widget.likeFeed();
-                                    }
-                                  },
-                                ),
-                                // Comment
-                                _feedActionButton(
-                                  iconPath: AppIconAssets.comment_new,
-                                  count: formatNumberLikePost(_post.commentsCount ?? 0),
-                                  onTap: () {
-                                    if (isGuestUser()) {
-                                      createProfileScreen();
-                                    } else {
-                                      widget.commentView();
                                     }
                                   },
                                 ),
@@ -704,11 +710,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                       _showRepostDialog();
                                     },
                                   ),
-                                // Views
-                                _feedActionButton(
-                                  iconPath: AppIconAssets.eye_new,
-                                  count: formatNumberLikePost(_post.viewsCount ?? 0),
-                                ),
+
                                 // Share
                                 _feedActionButton(
                                   iconPath: AppIconAssets.share_bold,

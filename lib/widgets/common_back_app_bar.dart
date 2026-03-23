@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
@@ -104,7 +105,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       // this.isAddProduct = false,
       // this.isAddProductCategory = false,
       this.bottomWidget,
-      this.showTransactionFilter=false,
+      this.showTransactionFilter = false,
       this.isGoLiveWidget,
       this.isShowAcceptOrRejectBtn,
       this.isFollowRefreshWidget,
@@ -129,7 +130,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.showElevation,
       this.categoryId,
       this.isCustomTitleWidget,
-        this.isForwardUi});
+      this.isForwardUi});
 
   // final AppBar? appBar;
   final String? title;
@@ -467,10 +468,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   onSelected: (value) async {
                     if (isGuestUser()) {
                       createProfileScreen();
-                    } else if (/*value == PostCreationMenu.videos ||
-                      value == PostCreationMenu.photos ||*/
-                        value == PostCreationMenu.message ||
-                            value == PostCreationMenu.poll) {
+                    } else if (value == PostCreationMenu.message ||
+                        value == PostCreationMenu.poll) {
                       postVia(context, value);
                     } else if (value == PostCreationMenu.jobPost) {
                       Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
@@ -479,6 +478,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             'jobId': '',
                             'createJobVia': 'business',
                           });
+                    } else if (value == PostCreationMenu.symbol) {
+                      Get.to(() => AddChatSymbolScreen());
                     }
                   },
                   icon: Padding(
@@ -563,7 +564,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           Builder(
             builder: (context) => buildCustomActionWidget!(),
           ),
-        if(showTransactionFilter??false)
+        if (showTransactionFilter ?? false)
           PopupMenuButton<int>(
               offset: const Offset(-6, 36),
               color: AppColors.white,
@@ -571,208 +572,207 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
               onSelected: (value) {},
-              icon:LocalAssets(imagePath: AppIconAssets.filterIcon,height: 24,width: 24,),
-              itemBuilder: (context) =>
-              [
-                PopupMenuItem(
-                    value: 2,
-                    child: ExpansionTile(
-                      expandedAlignment: Alignment.centerLeft,
-                      childrenPadding: EdgeInsets.zero,
-                      expandedCrossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      title: CustomText(
-                        "Type",
-                        color: AppColors.black,
-                        fontWeight: FontWeight.w600,
-                        fontSize: SizeConfig.medium15,
-                      ),
-                      children: [
-                        Row(
+              icon: LocalAssets(
+                imagePath: AppIconAssets.filterIcon,
+                height: 24,
+                width: 24,
+              ),
+              itemBuilder: (context) => [
+                    PopupMenuItem(
+                        value: 2,
+                        child: ExpansionTile(
+                          expandedAlignment: Alignment.centerLeft,
+                          childrenPadding: EdgeInsets.zero,
+                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                          title: CustomText(
+                            "Type",
+                            color: AppColors.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium15,
+                          ),
                           children: [
-                            InkWell(
-                              onTap: () =>transactionFilterOnTap?.call("CREDIT"),
-
-                              child: CustomText(
-                                "Credit",
-                                textAlign: TextAlign.left,
-                                color: transactionFilterSelectedValue ==
-                                    "CREDIT"
-                                    ? AppColors.green39
-                                    : AppColors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeConfig.medium,
-                              ),
-                            ),
-                            transactionFilterSelectedValue == "CREDIT"
-                                ? Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 8.0),
-                              child: InkWell(
-                                onTap: () =>transactionFilterOnTap?.call(null),
-
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () =>
+                                      transactionFilterOnTap?.call("CREDIT"),
+                                  child: CustomText(
+                                    "Credit",
+                                    textAlign: TextAlign.left,
+                                    color: transactionFilterSelectedValue ==
+                                            "CREDIT"
+                                        ? AppColors.green39
+                                        : AppColors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: SizeConfig.medium,
+                                  ),
                                 ),
-                              ),
-                            )
-                                : SizedBox()
-                          ],
-                        ),
-                        Divider(),
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: () =>transactionFilterOnTap?.call("DEBIT"),
-
-                              child: CustomText(
-                                "Debit",
-                                textAlign: TextAlign.left,
-                                color:
+                                transactionFilterSelectedValue == "CREDIT"
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: InkWell(
+                                          onTap: () => transactionFilterOnTap
+                                              ?.call(null),
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : SizedBox()
+                              ],
+                            ),
+                            Divider(),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () =>
+                                      transactionFilterOnTap?.call("DEBIT"),
+                                  child: CustomText(
+                                    "Debit",
+                                    textAlign: TextAlign.left,
+                                    color: transactionFilterSelectedValue ==
+                                            "DEBIT"
+                                        ? AppColors.green39
+                                        : AppColors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: SizeConfig.medium,
+                                  ),
+                                ),
                                 transactionFilterSelectedValue == "DEBIT"
-                                    ? AppColors.green39
-                                    : AppColors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeConfig.medium,
-                              ),
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: InkWell(
+                                          onTap: () => transactionFilterOnTap
+                                              ?.call(null),
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : SizedBox()
+                              ],
                             ),
-                            transactionFilterSelectedValue == "DEBIT"
-                                ? Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 8.0),
-                              child: InkWell(
-                                onTap: () =>transactionFilterOnTap?.call(null),
-
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
-                                ),
-                              ),
-                            )
-                                : SizedBox()
+                            Divider(),
                           ],
-                        ),
-                        Divider(),
-                      ],
-                    )),
-                PopupMenuItem(
-                    value: 1,
-                    child: ExpansionTile(
-                      expandedAlignment: Alignment.centerLeft,
-                      childrenPadding: EdgeInsets.zero,
-                      expandedCrossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      title: CustomText(
-                        "Status",
-                        color: AppColors.black,
-                        fontWeight: FontWeight.w600,
-                        fontSize: SizeConfig.medium15,
-                      ),
-                      children: [
-                        Row(
+                        )),
+                    PopupMenuItem(
+                        value: 1,
+                        child: ExpansionTile(
+                          expandedAlignment: Alignment.centerLeft,
+                          childrenPadding: EdgeInsets.zero,
+                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                          title: CustomText(
+                            "Status",
+                            color: AppColors.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium15,
+                          ),
                           children: [
-                            InkWell(
-                              onTap: () =>transactionFilterOnTap?.call("SUCCESSFUL"),
-                              child: CustomText(
-                                "Successful",
-                                textAlign: TextAlign.left,
-                                color: transactionFilterSelectedValue ==
-                                    "SUCCESSFUL"
-                                    ? AppColors.green39
-                                    : AppColors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeConfig.medium,
-                              ),
-                            ),
-                            transactionFilterSelectedValue == "SUCCESSFUL"
-                                ? Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 8.0),
-                              child: InkWell(
-                                onTap: () =>transactionFilterOnTap?.call(null),
-
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () => transactionFilterOnTap
+                                      ?.call("SUCCESSFUL"),
+                                  child: CustomText(
+                                    "Successful",
+                                    textAlign: TextAlign.left,
+                                    color: transactionFilterSelectedValue ==
+                                            "SUCCESSFUL"
+                                        ? AppColors.green39
+                                        : AppColors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: SizeConfig.medium,
+                                  ),
                                 ),
-                              ),
-                            )
-                                : SizedBox()
-                          ],
-                        ),
-                        Divider(),
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: () =>transactionFilterOnTap?.call("FAILED"),
-
-                              child: CustomText(
-                                "Failed",
-                                textAlign: TextAlign.left,
-                                color: transactionFilterSelectedValue ==
-                                    "FAILED"
-                                    ? AppColors.green39
-                                    : AppColors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeConfig.medium,
-                              ),
+                                transactionFilterSelectedValue == "SUCCESSFUL"
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: InkWell(
+                                          onTap: () => transactionFilterOnTap
+                                              ?.call(null),
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : SizedBox()
+                              ],
                             ),
-                            transactionFilterSelectedValue == "FAILED"
-                                ? Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 8.0),
-                              child: InkWell(
-                                onTap: () =>transactionFilterOnTap?.call(null),
-
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
+                            Divider(),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () =>
+                                      transactionFilterOnTap?.call("FAILED"),
+                                  child: CustomText(
+                                    "Failed",
+                                    textAlign: TextAlign.left,
+                                    color: transactionFilterSelectedValue ==
+                                            "FAILED"
+                                        ? AppColors.green39
+                                        : AppColors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: SizeConfig.medium,
+                                  ),
                                 ),
-                              ),
-                            )
-                                : SizedBox()
-                          ],
-                        ),
-                        Divider(),
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: () =>transactionFilterOnTap?.call("PENDING"),
-
-                              child: CustomText(
-                                "Pending",
-                                color: transactionFilterSelectedValue ==
-                                    "PENDING"
-                                    ? AppColors.green39
-                                    : AppColors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeConfig.medium,
-                              ),
+                                transactionFilterSelectedValue == "FAILED"
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: InkWell(
+                                          onTap: () => transactionFilterOnTap
+                                              ?.call(null),
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : SizedBox()
+                              ],
                             ),
-                            transactionFilterSelectedValue == "PENDING"
-                                ? Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 8.0),
-                              child: InkWell(
-                                onTap: () =>transactionFilterOnTap?.call(null),
-
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
+                            Divider(),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () =>
+                                      transactionFilterOnTap?.call("PENDING"),
+                                  child: CustomText(
+                                    "Pending",
+                                    color: transactionFilterSelectedValue ==
+                                            "PENDING"
+                                        ? AppColors.green39
+                                        : AppColors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: SizeConfig.medium,
+                                  ),
                                 ),
-                              ),
-                            )
-                                : SizedBox()
+                                transactionFilterSelectedValue == "PENDING"
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: InkWell(
+                                          onTap: () => transactionFilterOnTap
+                                              ?.call(null),
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : SizedBox()
+                              ],
+                            ),
+                            Divider(),
                           ],
-                        ),
-                        Divider(),
-                      ],
-                    )),
-
-
-
-              ]),
+                        )),
+                  ]),
         if (actionText?.isNotEmpty ?? false)
           Padding(
             padding: const EdgeInsets.only(right: 25),
@@ -972,11 +972,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               onPressed: onRightTextButtonTap ?? () {},
               child: CustomText(
                 rightTextButtonText ?? '',
-
-                  color: rightTextButtonColor ?? AppColors.primaryColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: SizeConfig.medium,
-
+                color: rightTextButtonColor ?? AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: SizeConfig.medium,
               ),
             ),
           ),
@@ -1106,21 +1104,21 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if(isForwardUi??false)
+        if (isForwardUi ?? false)
           Row(
             children: [
               Icon(Icons.person_add_alt, color: Colors.black),
               SizedBox(width: 16),
               InkWell(
-                  onTap: (){
-                    Get.to(()=>BeAvailableContactsList(isFromForwardMessage: true,));
+                  onTap: () {
+                    Get.to(() => BeAvailableContactsList(
+                          isFromForwardMessage: true,
+                        ));
                   },
                   child: Icon(Icons.search, color: Colors.black)),
               SizedBox(width: 12),
             ],
           ),
-
-
       ],
       bottom: bottomWidget,
     );

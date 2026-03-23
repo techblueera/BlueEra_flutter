@@ -23,10 +23,9 @@ class BookHomeServiceWidget extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: titleWidget(AppStrings.bookHomeServices),
-              ),
+              titleWidget(AppStrings.bookHomeServices),
               SizedBox(
                 width: SizeConfig.size8,
               ),
@@ -41,30 +40,33 @@ class BookHomeServiceWidget extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: individualSkillWorkList.take(9).length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var categoryItem = individualSkillWorkList[index];
-              return CommonServiceCard(
-                service: categoryItem,
-                getName: (item) => item.name,
-                getIcon: (item) => item.icon ?? '',
-                onTap: (item) {
-                  var categoryItem = individualSkillWorkList[index];
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: individualSkillWorkList.take(9).length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var categoryItem = individualSkillWorkList[index];
+                return CommonServiceCard(
+                  service: categoryItem,
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon ?? '',
+                  onTap: (item) {
+                    var categoryItem = individualSkillWorkList[index];
 
-                  Get.to(() => AllSelfProfessionScreen(
-                      selfEmployedCategories: individualSkillWorkList,
-                      selectedSelfProfessionData: categoryItem));
-                },
-              );
-            },
+                    Get.to(() => AllSelfProfessionScreen(
+                        selfEmployedCategories: individualSkillWorkList,
+                        selectedSelfProfessionData: categoryItem));
+                  },
+                );
+              },
+            ),
           )
         ],
       ),

@@ -23,10 +23,9 @@ class FindServiceCardWidget extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: titleWidget(AppStrings.findServices),
-              ),
+              titleWidget(AppStrings.findServices),
               SizedBox(
                 width: SizeConfig.size8,
               ),
@@ -42,30 +41,33 @@ class FindServiceCardWidget extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: businessOnboardingServicesCategories.take(6).length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var categoryItem = businessOnboardingServicesCategories[index];
-              return CommonServiceCard(
-                service: categoryItem,
-                getName: (item) => item.name,
-                getIcon: (item) => item.icon ?? '',
-                iconHeight: SizeConfig.size80,
-                onTap: (item) {
-                  Get.to(() => ServicesNearMeScreen(
-                    businessServicesCategories:
-                    businessOnboardingServicesCategories,
-                  ));
-                },
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: businessOnboardingServicesCategories.take(6).length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var categoryItem = businessOnboardingServicesCategories[index];
+                return CommonServiceCard(
+                  service: categoryItem,
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon ?? '',
+                  iconHeight: SizeConfig.size80,
+                  onTap: (item) {
+                    Get.to(() => ServicesNearMeScreen(
+                      businessServicesCategories:
+                      businessOnboardingServicesCategories,
+                    ));
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

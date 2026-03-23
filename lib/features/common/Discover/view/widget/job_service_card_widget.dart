@@ -23,42 +23,39 @@ class JobServiceCardWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: titleWidget("Job Near Me"),
-              ),
-            ],
-          ),
+          titleWidget("Job Near Me"),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: jobCategories.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = jobCategories[index];
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: jobCategories.length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var item = jobCategories[index];
 
-              return CommonServiceCard(
-                service: item,
-                flex: 2,
-                getName: (item) => (item.name),
-                getIcon: (item) => (item.icon ?? ""),
-                iconHeight: SizeConfig.size60,
-                onTap: (item) {
-                  Widget dest =
-                  isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
+                return CommonServiceCard(
+                  service: item,
+                  flex: 2,
+                  getName: (item) => (item.name),
+                  getIcon: (item) => (item.icon ?? ""),
+                  iconHeight: SizeConfig.size60,
+                  onTap: (item) {
+                    Widget dest =
+                    isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
 
-                  Get.to(() => dest);
+                    Get.to(() => dest);
 
 
-                },
-              );
-            },
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

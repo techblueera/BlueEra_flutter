@@ -28,36 +28,92 @@ class SocialCertificatesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: AppStrings.certifications),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          certController.openForCreate();
+          _openAddEditSheet(context, false);
+        },
+        backgroundColor: AppColors.primaryColor,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: CustomText(AppStrings.addMore,
+            color: Colors.white,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600),
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(SizeConfig.size8),
+        padding: EdgeInsets.all(SizeConfig.size14),
         child: Column(
           children: [
-            CommonCardWidget(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // --- Info Banner ---
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color:
+                    AppColors.primaryColor.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: AppColors.primaryColor
+                        .withValues(alpha: 0.15)),
+              ),
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(AppStrings.certifications,
-                          fontWeight: FontWeight.w600),
-                      InkWell(
-                        onTap: () {
-                          certController.openForCreate();
-                          _openAddEditSheet(context, false);
-                        },
-                        child:  CustomText(
-                          "+ ${AppStrings.addMore.tr}",
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                    ],
+                  Icon(Icons.emoji_events_outlined,
+                      color: AppColors.primaryColor, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CustomText(
+                      "Showcase your certificates and achievements",
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.small,
+                    ),
                   ),
-                  SizedBox(height: SizeConfig.size15),
-                  Obx(() {
-                    return _buildCertificatesGrid();
-                  }),
                 ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size14),
+
+            // --- Certificates Grid ---
+            CommonCardWidget(
+              padding: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(AppStrings.certifications,
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.medium),
+                    SizedBox(height: SizeConfig.size15),
+                    Obx(() {
+                      final List<SocialCertificationData> items =
+                          certController.socialCertificationDataList ??
+                              [];
+                      if (items.isEmpty) {
+                        return Center(
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 20),
+                              Icon(Icons.emoji_events_outlined,
+                                  size: 48, color: Colors.grey[300]),
+                              const SizedBox(height: 12),
+                              CustomText(AppStrings.noDataFound,
+                                  color:
+                                      AppColors.secondaryTextColor),
+                              const SizedBox(height: 4),
+                              CustomText(
+                                  "Tap + to add your first certificate",
+                                  color: Colors.grey[400],
+                                  fontSize: SizeConfig.small),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        );
+                      }
+                      return _buildCertificatesGrid(
+                          context, items);
+                    }),
+                  ],
+                ),
               ),
             ),
           ],
@@ -66,101 +122,116 @@ class SocialCertificatesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCertificatesGrid() {
-    final items = certController.socialCertificationDataList ?? [];
-
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return SizedBox(
-      height: 260, // Height of the card area
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        padding: EdgeInsets.symmetric(horizontal: 0),
-        itemBuilder: (context, index) {
-          SocialCertificationData cert = items[index];
-          return GestureDetector(
-            onTap: () {
-              certController.openForEdit(cert);
-              _openAddEditSheet(context, true);
-            },
-            // onLongPress: () => _showDeleteDialog(cert), // Abstracted for clarity
-            child: Container(
-              width: 240, // Width as per design aspect ratio
-              margin: EdgeInsets.only(right: SizeConfig.size12),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Stack(
-                  children: [
-                    // 1. Background Image
-                    Positioned.fill(
-                      child: CachedNetworkImage(
-                        imageUrl: cert.fileUrl ?? "",
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            Container(color: Colors.grey[300]),
-                        errorWidget: (context, url, error) => Image.asset(
-                            AppImageAssets.noImageFound,
-                            fit: BoxFit.cover),
-                      ),
+  Widget _buildCertificatesGrid(
+      BuildContext context, List<SocialCertificationData> items) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.85,
+      ),
+      itemBuilder: (context, index) {
+        final cert = items[index];
+        return GestureDetector(
+          onTap: () {
+            certController.openForEdit(cert);
+            _openAddEditSheet(context, true);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CachedNetworkImage(
+                      imageUrl: cert.fileUrl ?? "",
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          Container(color: Colors.grey[200]),
+                      errorWidget: (context, url, error) =>
+                          Image.asset(AppImageAssets.noImageFound,
+                              fit: BoxFit.cover),
                     ),
-
-                    // 2. Gradient Overlay for Text Readability
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.1),
-                              Colors.black.withOpacity(0.8),
-                            ],
-                            stops: const [0.5, 0.7, 1.0],
-                          ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.1),
+                            Colors.black.withValues(alpha: 0.8),
+                          ],
+                          stops: const [0.5, 0.7, 1.0],
                         ),
                       ),
                     ),
-
-                    // 3. Text Content Overlaid at the Bottom
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Padding(
-                        padding: EdgeInsets.all(SizeConfig.size12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomText(
-                              cert.title ?? "Certificate Name",
-                              color: Colors.white,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.bold,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                  ),
+                  // Edit icon
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.edit,
+                          color: Colors.white, size: 14),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding:
+                          EdgeInsets.all(SizeConfig.size10),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomText(
+                            cert.title ?? "Certificate",
+                            color: Colors.white,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.bold,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (cert.description != null &&
+                              cert.description!.isNotEmpty) ...[
                             SizedBox(height: SizeConfig.size4),
                             CustomText(
-                              cert.description ?? "Description goes here...",
+                              cert.description!,
                               color: Colors.white,
                               fontSize: SizeConfig.small,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -169,30 +240,52 @@ class SocialCertificatesScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
         return StatefulBuilder(
-          builder:
-              (BuildContext context, void Function(void Function()) setState) {
+          builder: (BuildContext context,
+              void Function(void Function()) setState) {
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.only(
                   left: SizeConfig.size14,
                   right: SizeConfig.size14,
                   top: SizeConfig.size14,
-                  bottom: MediaQuery.of(context).viewInsets.bottom +
-                      SizeConfig.size14,
+                  bottom:
+                      MediaQuery.of(context).viewInsets.bottom +
+                          SizeConfig.size14,
                 ),
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
+                      // Handle bar
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius:
+                                BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText(AppStrings.addMore,
-                              fontWeight: FontWeight.w600),
+                          CustomText(
+                            isEdit
+                                ? "Edit Certificate"
+                                : "Add Certificate",
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Get.back(),
@@ -200,120 +293,120 @@ class SocialCertificatesScreen extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: SizeConfig.size12),
-                      // _documentTypeDropdown(),
-                      // SizedBox(height: SizeConfig.size12),
                       CommonTextField(
                         title: AppStrings.title,
-                        textEditController: certController.titleController,
-                        hintText: "E.g. Certificate Name",
+                        textEditController:
+                            certController.titleController,
+                        hintText: "E.g. Certificate of Excellence",
                         onChange: (val) {
                           setState(() {});
                         },
                       ),
                       SizedBox(height: SizeConfig.size12),
-
-                      ///DOB selection
                       CustomText(
                         AppStrings.certificateIssuedBy,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
-                      SizedBox(
-                        height: SizeConfig.size10,
-                      ),
+                      SizedBox(height: SizeConfig.size10),
                       NewDatePicker(
-                        selectedDay: certController.selectedDay,
-                        selectedMonth: certController.selectedMonth,
-                        selectedYear: certController.selectedYear,
+                        selectedDay:
+                            certController.selectedDay,
+                        selectedMonth:
+                            certController.selectedMonth,
+                        selectedYear:
+                            certController.selectedYear,
                         isAgeValidation15: false,
                         onDayChanged: (value) {
                           setState(() {
-                            certController.selectedDay = value;
+                            certController.selectedDay =
+                                value;
                           });
                         },
                         onMonthChanged: (value) {
                           setState(() {
-                            certController.selectedMonth = value;
+                            certController.selectedMonth =
+                                value;
                           });
                         },
                         onYearChanged: (value) {
                           setState(() {
-                            certController.selectedYear = value;
+                            certController.selectedYear =
+                                value;
                           });
                         },
                       ),
                       SizedBox(height: SizeConfig.size12),
                       if (!isEdit) ...[
-                        _filePicker(),
+                        _filePicker(setState),
                         SizedBox(height: SizeConfig.size12),
                       ],
-                      // CommonTextField(
-                      //   title: "Description",
-                      //   textEditController:
-                      //       certController.descriptionController,
-                      //   hintText: "Add a brief description",
-                      //   maxLine: 4,
-                      // ),
                       AiDescriptionField(
                         label: AppStrings.description,
-                        hintText: "Tell us more about the organization...",
-                        controller: certController.descriptionController,
+                        hintText: "Describe your achievement...",
+                        controller:
+                            certController.descriptionController,
                         rxValue: certController.description,
-                        // Your RX variable from the controller
                         aiType: "Certificate",
                         aiData: {
-                          // "docType": certController.documentType.value,
-                          "title": certController.titleController.text,
-                          // "issuedBy": certController.issuedByController.text,
+                          "title": certController
+                              .titleController.text,
                         },
                       ),
                       SizedBox(height: SizeConfig.size20),
                       Obx(() => CustomBtn(
-                            title: isEdit ? AppStrings.update.tr : AppStrings.save.tr,
-                            isValidate: !(certController.isSaving.value),
+                            title: isEdit
+                                ? AppStrings.update.tr
+                                : AppStrings.save.tr,
+                            isValidate:
+                                !(certController.isSaving.value),
+                            isLoading:
+                                certController.isSaving.value,
                             onTap: certController.isSaving.value
                                 ? null
                                 : () async {
-                                    if (isEdit == false &&
-                                        certController.selectedFile.value ==
+                                    if (!isEdit &&
+                                        certController
+                                                .selectedFile
+                                                .value ==
                                             null) {
                                       commonSnackBar(
-                                          message:
-                                          AppStrings.uploadImages);
+                                          message: AppStrings
+                                              .uploadImages);
                                       return;
                                     }
                                     await certController.save();
                                     Get.back();
                                   },
                           )),
-                      if(isEdit)...[
-                        SizedBox(height: SizeConfig.size20),
+                      if (isEdit) ...[
+                        SizedBox(height: SizeConfig.size12),
                         CustomBtn(
                           title: AppStrings.delete,
                           onTap: () async {
                             await showCommonDialog(
-                                context: context,
-                                text:
-                                AppStrings.deleteConfirm,
-                                confirmCallback: () async {
-                                  Get.back();
-                                  await certController
-                                      .deleteCertificateController(
-                                      certiId: certController
-                                          .editingCertificateId.value ??
-                                          "");
-                                },
-                                cancelCallback: () {
-                                  Navigator.of(context).pop(); // Close the dialog
-                                },
-                                confirmText: AppStrings.yes,
-                                cancelText: AppStrings.no);
-                            // Get.back();
+                              context: context,
+                              text: AppStrings.deleteConfirm,
+                              confirmCallback: () async {
+                                Get.back();
+                                await certController
+                                    .deleteCertificateController(
+                                  certiId: certController
+                                          .editingCertificateId
+                                          .value ??
+                                      "",
+                                );
+                              },
+                              cancelCallback: () {
+                                Navigator.of(context).pop();
+                              },
+                              confirmText: AppStrings.yes,
+                              cancelText: AppStrings.no,
+                            );
                           },
                           bgColor: AppColors.red00,
                         ),
                       ],
-
                       SizedBox(height: SizeConfig.size30),
                     ],
                   ),
@@ -326,39 +419,56 @@ class SocialCertificatesScreen extends StatelessWidget {
     );
   }
 
-
-  Widget _filePicker() {
+  Widget _filePicker(void Function(void Function()) setState) {
     return Obx(() {
       final file = certController.selectedFile.value;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           CustomText(AppStrings.uploadDocument),
+          CustomText(AppStrings.uploadDocument,
+              fontWeight: FontWeight.w500),
           SizedBox(height: SizeConfig.size8),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final x = await ImagePicker()
-                      .pickImage(source: ImageSource.gallery);
-                  if (x != null) {
-                    certController.selectedFile.value = File(x.path);
-                    certController.isImageEdit.value = true;
-                  }
-                },
-                icon: const Icon(Icons.attach_file),
-                label: const CustomText("JPG / PNG"),
+          InkWell(
+            onTap: () async {
+              final x = await ImagePicker()
+                  .pickImage(source: ImageSource.gallery);
+              if (x != null) {
+                certController.selectedFile.value =
+                    File(x.path);
+                certController.isImageEdit.value = true;
+                setState(() {});
+              }
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border.all(
+                    color: AppColors.primaryColor,
+                    style: BorderStyle.solid),
+                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primaryColor
+                    .withValues(alpha: 0.05),
               ),
-              SizedBox(width: SizeConfig.size12),
-              if (file != null)
-                Expanded(
-                  child: CustomText(
-                    file.path.split('/').last,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.attach_file,
+                      color: AppColors.primaryColor, size: 18),
+                  const SizedBox(width: 8),
+                  CustomText(
+                    file != null
+                        ? file.path.split('/').last
+                        : "JPG / PNG",
+                    color: AppColors.primaryColor,
+                    fontSize: SizeConfig.small,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
         ],
       );

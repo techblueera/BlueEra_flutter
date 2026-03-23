@@ -1,11 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/social_feed_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_feed/add_social_feed_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -18,12 +19,10 @@ class SocialFeedScreen extends StatefulWidget {
 
 class _SocialFeedScreenState extends State<SocialFeedScreen> {
   final controller = Get.put(SocialFeedController());
-
   final scrollController = ScrollController();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
@@ -37,33 +36,42 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: AppStrings.activityFeed),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding:
-              EdgeInsets.only(left: 15.0, right: 15.0, bottom: 30, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              borderColor: AppColors.primaryColor,
-              textColor: AppColors.primaryColor,
-              onTap: () {
-                Get.to(() => AddSocialFeedScreen());
-              },
-              title:AppStrings.addActivityFeed),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.to(() => AddSocialFeedScreen()),
+        backgroundColor: AppColors.primaryColor,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: CustomText(AppStrings.addActivityFeed,
+            color: Colors.white,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600),
       ),
       body: Obx(() {
         if (controller.isLoading.value && controller.departmentList.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.departmentList.isEmpty) {
-          return Center(child: CustomText(AppStrings.noDataFound));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.post_add, size: 64, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                CustomText(AppStrings.noDataFound,
+                    color: AppColors.secondaryTextColor,
+                    fontSize: SizeConfig.medium),
+                const SizedBox(height: 8),
+                CustomText("Tap + to create your first activity feed",
+                    color: Colors.grey[400], fontSize: SizeConfig.small),
+              ],
+            ),
+          );
         }
         return RefreshIndicator(
           onRefresh: () => controller.fetchDepartments(isRefresh: true),
           child: ListView.builder(
             controller: scrollController,
             padding: const EdgeInsets.all(12),
-            itemCount: controller.departmentList.length ,
+            itemCount: controller.departmentList.length,
             itemBuilder: (context, index) {
               if (index < controller.departmentList.length) {
                 return DepartmentCard(
@@ -71,7 +79,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   onEdit: () {
                     Get.to(() => AddSocialFeedScreen(
                           isEdit: true,
-                          departmentData: controller.departmentList[index],
+                          departmentData:
+                              controller.departmentList[index],
                         ));
                   },
                   onDelete: () async {
@@ -84,7 +93,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                                   controller.departmentList[index].id!);
                         },
                         cancelCallback: () {
-                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.of(context).pop();
                         },
                         confirmText: AppStrings.yes,
                         cancelText: AppStrings.no);
@@ -107,66 +116,123 @@ class DepartmentCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const DepartmentCard(
-      {required this.data, required this.onEdit, required this.onDelete});
+      {super.key,
+      required this.data,
+      required this.onEdit,
+      required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
+      elevation: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image gallery at top
+          if (data.mediaUrls != null && (data.mediaUrls as List).isNotEmpty)
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: SizedBox(
+                height: 180,
+                width: double.infinity,
+                child: (data.mediaUrls as List).length == 1
+                    ? CachedNetworkImage(
+                        imageUrl: data.mediaUrls[0],
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) =>
+                            Container(color: Colors.grey[200]),
+                        errorWidget: (_, __, ___) =>
+                            Container(color: Colors.grey[200]),
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: (data.mediaUrls as List).length,
+                        itemBuilder: (context, i) => Container(
+                          width: 200,
+                          margin: EdgeInsets.only(
+                              right: i < (data.mediaUrls as List).length - 1
+                                  ? 2
+                                  : 0),
+                          child: CachedNetworkImage(
+                            imageUrl: data.mediaUrls[i],
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) =>
+                                Container(color: Colors.grey[200]),
+                            errorWidget: (_, __, ___) =>
+                                Container(color: Colors.grey[200]),
+                          ),
+                        ),
+                      ),
+              ),
+            ),
 
-                Expanded(
-                    child: CustomText(data.title ?? "",
-                        fontSize: 18, fontWeight: FontWeight.bold)),
-                PopupMenuButton(
-                  onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                        value: 'edit', child: CustomText(AppStrings.edit)),
-                    const PopupMenuItem(
-                        value: 'delete',
-                        child: CustomText(AppStrings.delete, color: AppColors.red00)),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title + Menu
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(data.title ?? "",
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    PopupMenuButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: Icon(Icons.more_vert,
+                          color: Colors.grey[600], size: 20),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      onSelected: (val) =>
+                          val == 'edit' ? onEdit() : onDelete(),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  color: AppColors.primaryColor, size: 18),
+                              const SizedBox(width: 8),
+                              CustomText(AppStrings.edit),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  color: AppColors.red, size: 18),
+                              const SizedBox(width: 8),
+                              CustomText(AppStrings.delete,
+                                  color: AppColors.red00),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                )
+                ),
+                if (data.description != null &&
+                    (data.description as String).isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  CustomText(
+                    data.description,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: 5),
-            CustomText("${AppStrings.description.tr}: ${data.description}",
-                color: Colors.grey[700], maxLines: 2),
-            const SizedBox(height: 10),
-
-            // Image Gallery Row
-            if (data.mediaUrls != null)
-              SizedBox(
-                height: 60,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: data.mediaUrls.length,
-                  itemBuilder: (context, i) => Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    width: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                          image: NetworkImage(data.mediaUrls[i]),
-                          fit: BoxFit.cover),
-                    ),
-                  ),
-                ),
-              ),
-
-            const Divider(),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-
 }

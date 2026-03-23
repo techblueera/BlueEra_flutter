@@ -28,17 +28,20 @@ class ResponsiveRentalCard extends StatelessWidget {
           titleWidget(AppStrings.rentalServices),
           SizedBox(height: SizeConfig.paddingXSL),
 
-          CommonCardWidget(
-            cardMargin: 0,
-            padding: 0,borderColorColor: Color(0xffDDE2EE),
-            // elevation: 0,
-            // shape: RoundedRectangleBorder(
-            //   borderRadius: BorderRadius.circular(24),
-            //   side: BorderSide(color: Colors.grey.shade200),
-            // ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child:  Row(children: _buildContent(true)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: CommonCardWidget(
+              cardMargin: 0,
+              padding: 0,borderColorColor: Color(0xffDDE2EE),
+              // elevation: 0,
+              // shape: RoundedRectangleBorder(
+              //   borderRadius: BorderRadius.circular(24),
+              //   side: BorderSide(color: Colors.grey.shade200),
+              // ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child:  Row(children: _buildContent(true)),
+              ),
             ),
           ),
           SizedBox(height: SizeConfig.paddingXSL),

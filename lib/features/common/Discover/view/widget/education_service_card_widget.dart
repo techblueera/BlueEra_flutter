@@ -21,40 +21,37 @@ class EducationServiceCardWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: titleWidget("Education Training & Sectors"),
-              ),
-            ],
-          ),
+          titleWidget("Education Training & Sectors"),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: businessOnboardingEducationTrainingCategories.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = businessOnboardingEducationTrainingCategories[index];
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: businessOnboardingEducationTrainingCategories.length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var item = businessOnboardingEducationTrainingCategories[index];
 
-              return CommonServiceCard(
-                service: item,
-                flex: 2,
-                getName: (item) => (item.name),
-                getIcon: (item) => (item.icon ?? ""),
-                iconHeight: SizeConfig.size60,
-                onTap: (item) {
-                  Get.to(() => AllEducationServiceScreen(
-                      professionalConsultantCategories:
-                          businessOnboardingEducationTrainingCategories,
-                      selectedProfessionConsultantData: item));
-                },
-              );
-            },
+                return CommonServiceCard(
+                  service: item,
+                  flex: 2,
+                  getName: (item) => (item.name),
+                  getIcon: (item) => (item.icon ?? ""),
+                  iconHeight: SizeConfig.size60,
+                  onTap: (item) {
+                    Get.to(() => AllEducationServiceScreen(
+                        professionalConsultantCategories:
+                            businessOnboardingEducationTrainingCategories,
+                        selectedProfessionConsultantData: item));
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

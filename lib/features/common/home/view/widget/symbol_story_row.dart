@@ -171,8 +171,7 @@ class _SymbolLinkPreviewCard extends StatelessWidget {
                         SizedBox(
                           height: 160,
                           width: double.infinity,
-                          child:
-                              Image(image: imageProvider, fit: BoxFit.cover),
+                          child: Image(image: imageProvider, fit: BoxFit.cover),
                         )
                       else if (svgImage != null)
                         SizedBox(
@@ -386,21 +385,19 @@ class _SymbolStoryItem extends StatelessWidget {
                   width: 64,
                   height: 64,
                   padding: const EdgeInsets.all(2.5),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: hasSeen
-                        ? null
-                        : const LinearGradient(
-                            colors: [
-                              Color(0xFF00C853),
-                              Color(0xFF0085FE),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                    border: hasSeen
-                        ? Border.all(color: AppColors.greyE5, width: 2)
-                        : null,
+                    gradient: SweepGradient(
+                      startAngle: 0.0,
+                      endAngle: 6.28319,
+                      colors: [
+                        AppColors.symbolBorderRed,
+                        AppColors.symbolBorderBlue,
+                        AppColors.symbolBorderYellow,
+                        AppColors.symbolBorderGreen,
+                        AppColors.symbolBorderRed,
+                      ],
+                    ),
                   ),
                   child: Container(
                     decoration: BoxDecoration(
@@ -408,27 +405,26 @@ class _SymbolStoryItem extends StatelessWidget {
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: ClipOval(
-                      child:
-                          (profileImage != null && profileImage.isNotEmpty)
-                              ? CachedNetworkImage(
-                                  imageUrl: profileImage,
-                                  fit: BoxFit.cover,
-                                  placeholder: (_, __) => Container(
-                                    color: Colors.grey[200],
-                                    child: Icon(Icons.person,
-                                        color: Colors.grey[400], size: 28),
-                                  ),
-                                  errorWidget: (_, __, ___) => Container(
-                                    color: Colors.grey[200],
-                                    child: Icon(Icons.person,
-                                        color: Colors.grey[400], size: 28),
-                                  ),
-                                )
-                              : Container(
-                                  color: Colors.grey[200],
-                                  child: Icon(Icons.person,
-                                      color: Colors.grey[400], size: 28),
-                                ),
+                      child: (profileImage != null && profileImage.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: profileImage,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                color: Colors.grey[200],
+                                child: Icon(Icons.person,
+                                    color: Colors.grey[400], size: 28),
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                color: Colors.grey[200],
+                                child: Icon(Icons.person,
+                                    color: Colors.grey[400], size: 28),
+                              ),
+                            )
+                          : Container(
+                              color: Colors.grey[200],
+                              child: Icon(Icons.person,
+                                  color: Colors.grey[400], size: 28),
+                            ),
                     ),
                   ),
                 ),
@@ -445,8 +441,8 @@ class _SymbolStoryItem extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
-                      child: const Icon(Icons.link,
-                          color: Colors.white, size: 10),
+                      child:
+                          const Icon(Icons.link, color: Colors.white, size: 10),
                     ),
                   ),
               ],

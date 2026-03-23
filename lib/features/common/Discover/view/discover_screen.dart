@@ -68,7 +68,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final statusBarHeight = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -126,13 +125,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                   Flexible(
                                     child: CustomText(
                                       [
-                                        LocationService.userCurrentAddress
-                                            .value.subLocality,
+                                        LocationService.userCurrentAddress.value
+                                            .subLocality,
                                         LocationService
                                             .userCurrentAddress.value.city,
-                                      ]
-                                          .where((e) => e.isNotEmpty)
-                                          .join(', '),
+                                      ].where((e) => e.isNotEmpty).join(', '),
                                       fontSize: SizeConfig.medium,
                                       color: AppColors.white,
                                       fontWeight: FontWeight.w700,
@@ -240,8 +237,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     key: _qrWidgetKey,
                     builder: (_) {
                       getOrPut(() => EmergencyProfileController());
-                      return EmergencyQrWidget(
-                          key: ValueKey('emergency_qr'));
+                      return EmergencyQrWidget(key: ValueKey('emergency_qr'));
                     },
                   ),
                 ),
@@ -316,10 +312,15 @@ class DottedLinePainter extends CustomPainter {
 }
 
 Widget titleWidget(String title) {
-  return CustomText(title,
-      fontSize: SizeConfig.large,
-      color: AppColors.mainTextColor,
-      fontWeight: FontWeight.w600);
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+        border: Border.all(color: AppColors.secondaryTextColor, width: 0.1),borderRadius: BorderRadius.circular(8)),
+    child: CustomText(title,
+        fontSize: SizeConfig.large,
+        color: AppColors.mainTextColor,
+        fontWeight: FontWeight.w600),
+  );
 }
 
 class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
@@ -328,10 +329,10 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   _StickySearchBarDelegate({required this.topPadding});
 
   @override
-  double get minExtent => 56;
+  double get minExtent => 56 + topPadding;
 
   @override
-  double get maxExtent => 56;
+  double get maxExtent => 56 + topPadding;
 
   @override
   Widget build(
@@ -339,7 +340,7 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
     return Container(
       color: AppColors.white,
       padding: EdgeInsets.only(
-        top: SizeConfig.size8,
+        top: topPadding + SizeConfig.size8,
         left: SizeConfig.size16,
         right: SizeConfig.size16,
         bottom: SizeConfig.size8,
@@ -353,8 +354,7 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
         ),
         child: Row(
           children: [
-            Icon(Icons.search,
-                color: AppColors.secondaryTextColor, size: 22),
+            Icon(Icons.search, color: AppColors.secondaryTextColor, size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: CustomText(

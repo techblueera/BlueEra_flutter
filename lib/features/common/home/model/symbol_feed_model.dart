@@ -105,8 +105,8 @@ class SymbolFeedItem {
           ? DateTime.tryParse(json['updated_at'])
           : null,
       hasSeen: json['has_seen'],
-      user: json['user_id'] is Map
-          ? SymbolFeedUser.fromJson(json['user_id'])
+      user: json['user'] is Map
+          ? SymbolFeedUser.fromJson(json['user'])
           : null,
     );
   }

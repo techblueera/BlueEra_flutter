@@ -714,6 +714,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
 
   final List<PostCreationMenu> items = [
     PostCreationMenu.message,
+    PostCreationMenu.symbol,
     PostCreationMenu.poll,
     // PostCreationMenu.photos,
     // if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
@@ -726,6 +727,8 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
 
   const iconMap = {
     PostCreationMenu.message: AppIconAssets.message_post,
+    // PostCreationMenu.symbol:  AppIconAssets.message_post,
+    PostCreationMenu.symbol: "assets/icons/add_symbol_color.png",
     PostCreationMenu.poll: AppIconAssets.qa_ask_questionOutlinedIcon,
     // PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
     // PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
@@ -737,6 +740,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   const titleMap = {
     PostCreationMenu.message: AppStrings.lekha,
     PostCreationMenu.poll: AppStrings.poll,
+    PostCreationMenu.symbol: "Symbol",
     // PostCreationMenu.photos: AppStrings.symbol,
     PostCreationMenu.jobPost: AppStrings.jobPost,
     // PostCreationMenu.travel: AppStrings.travel,
@@ -752,7 +756,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
         value: menu,
         child: Row(
           children: [
-            LocalAssets(imagePath: iconMap[menu]!),
+            LocalAssets(imagePath: iconMap[menu]!,width: 25,height: 25,),
             SizedBox(width: SizeConfig.size5),
             CustomText(
               titleMap[menu]!,

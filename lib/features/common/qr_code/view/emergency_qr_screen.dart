@@ -54,7 +54,7 @@ class EmergencyQrWidget extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(0),
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.shade200,
@@ -200,8 +200,8 @@ class EmergencyQrWidget extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(0),
+          // border: Border.all(color: Colors.grey.shade300),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

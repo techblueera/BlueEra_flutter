@@ -101,10 +101,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       final pipController = getOrPut(() => PipFloatingPageController());
       pipController.setPipStatus(false);
     }
-    if (isGuestUser()) {
-      logs("DIALOGE CALL");
-      _checkAndShowDialog();
-    }
+    // if (isGuestUser()) {
+    //   logs("DIALOGE CALL");
+    //   _checkAndShowDialog();
+    // }
     _checkAndFetchLocationData();
     // _getAllBusinessCategories();
     _initializeControllers();

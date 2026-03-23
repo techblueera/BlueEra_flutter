@@ -22,10 +22,9 @@ class HealthServiceCardWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: titleWidget("Healthcare Services"),
-              ),
+              titleWidget("Healthcare Services"),
               SizedBox(width: SizeConfig.size8),
               ViewAllButton(
                 onTap: () {
@@ -39,29 +38,32 @@ class HealthServiceCardWidget extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          SizedBox(
-            height: SizeConfig.size124,
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              primary: false,
-              itemCount: healthCareList.length,
-              scrollDirection: Axis.horizontal,
-              physics: AlwaysScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var categoryItem = healthCareList[index];
-                return CommonServiceCardHealth(
-                  service: categoryItem,
-                  getName: (item) => item.name,
-                  getIcon: (item) => item.icon ?? '',
-                  margin: EdgeInsets.only(right: 6),
-                  onTap: (item) {
-                    Get.to(HealthCareListingScreen(
-                      selectedProfessionConsultantData: categoryItem,
-                    ));
-                  },
-                );
-              },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: SizedBox(
+              height: SizeConfig.size124,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                primary: false,
+                itemCount: healthCareList.length,
+                scrollDirection: Axis.horizontal,
+                physics: AlwaysScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  var categoryItem = healthCareList[index];
+                  return CommonServiceCardHealth(
+                    service: categoryItem,
+                    getName: (item) => item.name,
+                    getIcon: (item) => item.icon ?? '',
+                    margin: EdgeInsets.only(right: 6),
+                    onTap: (item) {
+                      Get.to(HealthCareListingScreen(
+                        selectedProfessionConsultantData: categoryItem,
+                      ));
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ],

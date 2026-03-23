@@ -36,10 +36,11 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
     controller.networkImages.clear();
     controller.deptName.value = "";
     if (widget.isEdit && widget.departmentData != null) {
-      controller.initEditData(widget.departmentData ?? SocialActivityFeedData());
+      controller
+          .initEditData(widget.departmentData ?? SocialActivityFeedData());
       nameCtrl.text = controller.deptName.value;
       descCtrl.text = controller.description.value;
-    } else {}
+    }
     super.initState();
   }
 
@@ -47,56 +48,133 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.isEdit ? AppStrings.editActivityFeed.tr :AppStrings.addActivityFeed.tr),
-      body: CommonCardWidget(
-        child: SafeArea(
-          child: SingleChildScrollView(
-            // padding: EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _buildImagePicker(),
-                SizedBox(height: 20),
-                CommonTextField(
-                  textEditController: nameCtrl,
-                  title: AppStrings.title,
-                  onChange: (v) {
-                    controller.deptName.value = v;
-                    controller.validateForm(isEdit: widget.isEdit);
-                  },
+          title: widget.isEdit
+              ? AppStrings.editActivityFeed.tr
+              : AppStrings.addActivityFeed.tr),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(SizeConfig.size14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Image Upload Section ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(Icons.photo_library_outlined,
+                                color: AppColors.primaryColor, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(AppStrings.uploadImages,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: SizeConfig.medium),
+                                const SizedBox(height: 2),
+                                CustomText("Add up to 5 photos",
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: SizeConfig.small),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildImagePicker(),
+                    ],
+                  ),
                 ),
-                SizedBox(height: SizeConfig.paddingM),
+              ),
+              SizedBox(height: SizeConfig.size14),
 
-                Obx(() {
-                  return AiDescriptionField(
-                    label: AppStrings.description,
-                    hintText: "Share your feed...",
-                    controller: descCtrl,
-                    rxValue: controller.description,
-                    aiType: "Activity Feed",
-                    aiData: {"title": controller.deptName.value},
-                    onChanged: (val) {
-                      controller.validateForm(isEdit: widget.isEdit);
-                    },
-                  );
-                }),
+              // --- Details Section ---
+              CommonCardWidget(
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(Icons.edit_note,
+                                color: AppColors.primaryColor, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          CustomText("Activity Details",
+                              fontWeight: FontWeight.w600,
+                              fontSize: SizeConfig.medium),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        textEditController: nameCtrl,
+                        title: AppStrings.title,
+                        hintText: "Give your activity a title...",
+                        onChange: (v) {
+                          controller.deptName.value = v;
+                          controller.validateForm(isEdit: widget.isEdit);
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      Obx(() {
+                        return AiDescriptionField(
+                          label: AppStrings.description,
+                          hintText: "Describe your activity...",
+                          controller: descCtrl,
+                          rxValue: controller.description,
+                          aiType: "Activity Feed",
+                          aiData: {"title": controller.deptName.value},
+                          onChanged: (val) {
+                            controller.validateForm(
+                                isEdit: widget.isEdit);
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size30),
 
-
-                SizedBox(height: 40),
-                Obx(() =>
-                    CustomBtn(
-                      title:
-                      widget.isEdit ? AppStrings.update.tr : AppStrings.add.tr,
-                      isValidate: controller.isFormValid.value &&
-                          !controller.isUploading.value,
-                      onTap: controller.isFormValid.value
-                          ? () =>
-                          controller.submitDepartment(
-                              isEdit: widget.isEdit,
-                              deptId: widget.departmentData?.id ?? "")
-                          : null,
-                    )),
-              ],
-            ),
+              // --- Submit Button ---
+              Obx(() => CustomBtn(
+                    title: widget.isEdit
+                        ? AppStrings.update.tr
+                        : AppStrings.add.tr,
+                    isValidate: controller.isFormValid.value &&
+                        !controller.isUploading.value,
+                    isLoading: controller.isUploading.value,
+                    onTap: controller.isFormValid.value
+                        ? () => controller.submitDepartment(
+                            isEdit: widget.isEdit,
+                            deptId: widget.departmentData?.id ?? "")
+                        : null,
+                  )),
+              SizedBox(height: SizeConfig.size20),
+            ],
           ),
         ),
       ),
@@ -104,54 +182,51 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
   }
 
   Widget _buildImagePicker() {
-    return Obx(() =>
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Obx(() => Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            Align(
-                alignment: Alignment.centerLeft,
-                child: CustomText(
-                  AppStrings.uploadImages,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.mainTextColor,
-                )),
-            SizedBox(height: SizeConfig.paddingXSL),
-            Wrap(
-              alignment: WrapAlignment.start,
-              crossAxisAlignment: WrapCrossAlignment.start,
-              children: [
-                // 1. Show Network Images (Edit Mode)
-                ...controller.networkImages
-                    .map((url) => _imageTile(url, isNetwork: true)),
-                // 2. Show Locally Picked Images
-                ...controller.selectedImages
-                    .map((file) => _imageTile(file.path, isNetwork: false)),
-                // 3. Add Button
-                if ((controller.networkImages.length +
+            ...controller.networkImages
+                .map((url) => _imageTile(url, isNetwork: true)),
+            ...controller.selectedImages
+                .map((file) => _imageTile(file.path, isNetwork: false)),
+            if ((controller.networkImages.length +
                     controller.selectedImages.length) <
-                    5)
-                  GestureDetector(
-                    onTap: () async {
-                      // Pick image logic and add to controller.selectedImages
-                      final selectedPath =
+                5)
+              GestureDetector(
+                onTap: () async {
+                  final selectedPath =
                       await CommonImageUploadTile.pickImage(
                           context: context);
-                      controller.selectedImages.add(File(selectedPath ?? ""));
-
-                      controller.validateForm(isEdit: widget.isEdit);
-                    },
-                    child: Container(
-                        height: 80,
-                        width: 80,
-                        margin: EdgeInsets.only(top: 4, left: 10),
-                        decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.primaryColor)),
-                        child: Icon(Icons.add)),
-                  )
-              ],
-            ),
+                  if (selectedPath != null) {
+                    controller.selectedImages.add(File(selectedPath));
+                    controller.validateForm(isEdit: widget.isEdit);
+                  }
+                },
+                child: Container(
+                  height: 80,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: AppColors.primaryColor,
+                        style: BorderStyle.solid),
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.primaryColor
+                        .withValues(alpha: 0.05),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: AppColors.primaryColor, size: 24),
+                      const SizedBox(height: 4),
+                      CustomText("Add",
+                          color: AppColors.primaryColor,
+                          fontSize: 10),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ));
   }
@@ -160,32 +235,41 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
     return Stack(
       children: [
         Container(
-          margin: EdgeInsets.all(5),
           height: 80,
           width: 80,
-          decoration:
-          BoxDecoration(border: Border.all(color: AppColors.primaryColor)),
-          child: isNetwork
-              ? Image.network(path, fit: BoxFit.cover)
-              : Image.file(File(path), fit: BoxFit.cover),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: isNetwork
+                ? Image.network(path, fit: BoxFit.cover)
+                : Image.file(File(path), fit: BoxFit.cover),
+          ),
         ),
         Positioned(
-          right: 0,
-          top: 0,
+          right: -4,
+          top: -4,
           child: InkWell(
             onTap: () {
               isNetwork
                   ? controller.networkImages.remove(path)
                   : controller.selectedImages
-                  .removeWhere((element) => element.path == path);
+                      .removeWhere((element) => element.path == path);
               controller.validateForm(isEdit: widget.isEdit);
             },
-            child: CircleAvatar(
-                radius: 10,
-                backgroundColor: Colors.red,
-                child: Icon(Icons.close, size: 12, color: Colors.white)),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child:
+                  const Icon(Icons.close, size: 12, color: Colors.white),
+            ),
           ),
-        )
+        ),
       ],
     );
   }

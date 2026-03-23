@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/social/controller/social_activity_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
@@ -23,124 +25,274 @@ class SocialActivityFormScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title:AppStrings.socialDetails),
+      appBar: CommonBackAppBar(title: AppStrings.socialDetails),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 40),
-        child: CommonCardWidget(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Obx(() => _buildImageSection(context)),
-              const SizedBox(height: 16),
-
-              CommonTextField(
-                textEditController: controller.titleController,
-                title: AppStrings.activityTitle,
-                hintText: "E.g. Free Health Check-up Camp...",
-                onChange: (val) {
-                  controller.activityTitle.value = val;
-                },
+        padding: EdgeInsets.all(SizeConfig.size14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Image Upload ---
+            CommonCardWidget(
+              padding: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.add_photo_alternate_outlined,
+                              color: AppColors.primaryColor, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(AppStrings.uploadPhotos,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: SizeConfig.medium),
+                              const SizedBox(height: 2),
+                              CustomText("Add a photo for this activity",
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.small),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(() => _buildImageSection(context)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
+            ),
+            SizedBox(height: SizeConfig.size14),
 
-              Obx(() {
-                return AiDescriptionField(
-                  label: AppStrings.descriptionMessage,
-                  hintText: "Free medicines & doctor consultation",
-                  controller: controller.descriptionController,
-                  rxValue: "".obs,
-                  aiType: "Activity",
-                  aiData: {"title": controller.activityTitle.value},
-                );
-              }),
-              const SizedBox(height: 16),
-              CommonTextField(
-                textEditController: controller.typeController,
-                title: AppStrings.activityType,
-                hintText: "E.g. Free Health Check-up Camp...",
-                onChange: (val) {
-                  controller.activityType.value = val;
-                },
+            // --- Activity Info ---
+            CommonCardWidget(
+              padding: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.volunteer_activism,
+                              color: AppColors.primaryColor, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        CustomText("Activity Info",
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      textEditController: controller.titleController,
+                      title: AppStrings.activityTitle,
+                      hintText: "E.g. Free Health Check-up Camp...",
+                      onChange: (val) {
+                        controller.activityTitle.value = val;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(() {
+                      return AiDescriptionField(
+                        label: AppStrings.descriptionMessage,
+                        hintText:
+                            "Free medicines & doctor consultation",
+                        controller: controller.descriptionController,
+                        rxValue: "".obs,
+                        aiType: "Activity",
+                        aiData: {
+                          "title": controller.activityTitle.value
+                        },
+                      );
+                    }),
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      textEditController: controller.typeController,
+                      title: AppStrings.activityType,
+                      hintText: "E.g. Health Camp, Education...",
+                      onChange: (val) {
+                        controller.activityType.value = val;
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              _buildDateRow(AppStrings.date),
-              const SizedBox(height: 16),
+            ),
+            SizedBox(height: SizeConfig.size14),
 
-              CommonLocationSearchField(
-                controller: controller.venueController,
-                hintText: "E.g. Lucknow, Uttar Pradesh...",
-                isShowLeading: false,
-                title: AppStrings.location,
-                onSelected: (placeId, lat, lng, address) async {
-                  controller.venueController.text = address;
-
-                  try {
-                    final detailsResponse = await PlaceRepo()
-                        .getCompletePlaceDetails(placeId: placeId);
-                    final detailsData = detailsResponse.response?.data;
-                    final placeDetails =
-                        PlaceDetailsResponse.fromJson(detailsData);
-                    controller.lat.value =
-                        placeDetails.result?.geometry?.location?.lat ?? 0.0;
-                    controller.lng.value =
-                        placeDetails.result?.geometry?.location?.lng ?? 0.0;
-                  } catch (e) {
-                    print("Error fetching place details: $e");
-                  }
-
-                  controller.validateForm();
-                },
+            // --- Date & Location ---
+            CommonCardWidget(
+              padding: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.calendar_month,
+                              color: AppColors.primaryColor, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        CustomText("Date & Location",
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDateRow(AppStrings.date),
+                    const SizedBox(height: 16),
+                    CommonLocationSearchField(
+                      controller: controller.venueController,
+                      hintText: "E.g. Lucknow, Uttar Pradesh...",
+                      isShowLeading: false,
+                      title: AppStrings.location,
+                      onSelected:
+                          (placeId, lat, lng, address) async {
+                        controller.venueController.text = address;
+                        try {
+                          final detailsResponse = await PlaceRepo()
+                              .getCompletePlaceDetails(
+                                  placeId: placeId);
+                          final detailsData =
+                              detailsResponse.response?.data;
+                          final placeDetails =
+                              PlaceDetailsResponse.fromJson(
+                                  detailsData);
+                          controller.lat.value = placeDetails.result
+                                  ?.geometry?.location?.lat ??
+                              0.0;
+                          controller.lng.value = placeDetails.result
+                                  ?.geometry?.location?.lng ??
+                              0.0;
+                        } catch (e) {
+                          debugPrint(
+                              "Error fetching place details: $e");
+                        }
+                        controller.validateForm();
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
+            ),
+            SizedBox(height: SizeConfig.size14),
 
-              CommonTextField(
-                textEditController: controller.roleController,
-                title: AppStrings.yourRole,
-                hintText: "E.g. Organizer, Chief Guest...",
-                onChange: (val) {
-                  controller.activityRole.value = val;
-                },
+            // --- Role & Impact ---
+            CommonCardWidget(
+              padding: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.groups_outlined,
+                              color: AppColors.primaryColor, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        CustomText("Role & Impact",
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      textEditController: controller.roleController,
+                      title: AppStrings.yourRole,
+                      hintText: "E.g. Organizer, Chief Guest...",
+                      onChange: (val) {
+                        controller.activityRole.value = val;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      textEditController:
+                          controller.organizerController,
+                      title: AppStrings.organizerName,
+                      hintText: "E.g. Organization Name...",
+                      onChange: (val) {
+                        controller.activityOrganizer.value = val;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(() {
+                      return AiDescriptionField(
+                        label: AppStrings.beneficiariesImpact,
+                        hintText:
+                            "E.g. 80 villagers / 1.2K Peoples benefited...",
+                        controller: controller.impactController,
+                        rxValue: "".obs,
+                        aiType: "Beneficiaries",
+                        maxChars: 140,
+                        aiData: {
+                          "title": controller.activityTitle.value,
+                          "role": controller.activityRole.value,
+                          "activityType":
+                              controller.activityType.value,
+                          "organizer":
+                              controller.activityOrganizer.value
+                        },
+                        onChanged: (_) =>
+                            controller.validateForm(),
+                      );
+                    }),
+                  ],
+                ),
               ),
-              const SizedBox(height: 30),
-              CommonTextField(
-                textEditController: controller.organizerController,
-                title:AppStrings.organizerName,
-                hintText: "E.g. Organizer, Chief Guest...",
-                onChange: (val) {
-                  controller.activityOrganizer.value = val;
-                },
-              ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 30),
 
-              Obx(() {
-                return AiDescriptionField(
-                  label: AppStrings.beneficiariesImpact,
-                  hintText:
-                      "E.g. 80 villagers / 1.2K Peoples / 99 KM Are Beneficiaries ....",
-                  controller: controller.impactController,
-                  rxValue: "".obs,
-                  aiType: "Beneficiaries",
-                  maxChars: 140,
-                  aiData: {
-                    "title": controller.activityTitle.value,
-                    "role": controller.activityRole.value,
-                    "activityType": controller.activityType.value,
-                    "organizer": controller.activityOrganizer.value
-                  },
-                  onChanged: (_) => controller.validateForm(),
-                );
-              }),
-              const SizedBox(height: 30),
-              Obx(() {
-                return CustomBtn(
-                    isValidate: controller.isFormValid.value,
-                    onTap: controller.isFormValid.value
-                        ? (controller.isSaving.value ? null : controller.save)
-                        : null,
-                    title: AppStrings.save);
-              })
-            ],
-          ),
+            // --- Save Button ---
+            Obx(() {
+              return CustomBtn(
+                isValidate: controller.isFormValid.value,
+                isLoading: controller.isSaving.value,
+                onTap: controller.isFormValid.value
+                    ? (controller.isSaving.value
+                        ? null
+                        : controller.save)
+                    : null,
+                title: AppStrings.save,
+              );
+            }),
+            SizedBox(height: SizeConfig.size20),
+          ],
         ),
       ),
     );
@@ -174,26 +326,32 @@ class SocialActivityFormScreen extends StatelessWidget {
           Positioned(
             right: 5,
             top: 5,
-            child: CircleAvatar(
-              backgroundColor: Colors.red,
-              child: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.white),
-                onPressed: () {
-                  controller.selectedImage.value = null;
-                  controller.serverImageUrl.value = null;
-                  controller.validateForm();
-                },
+            child: InkWell(
+              onTap: () {
+                controller.selectedImage.value = null;
+                controller.serverImageUrl.value = null;
+                controller.validateForm();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close,
+                    color: Colors.white, size: 16),
               ),
             ),
-          )
+          ),
         ],
       );
     }
     return CommonImageUploadTile(
-      title:AppStrings.uploadPhotos,
+      title: AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
-        final path = await CommonImageUploadTile.pickImage(context: context);
+        final path = await CommonImageUploadTile.pickImage(
+            context: context);
         if (path != null) {
           controller.selectedImage.value = File(path);
           controller.validateForm();
@@ -212,7 +370,8 @@ class SocialActivityFormScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(label, fontSize: 14, fontWeight: FontWeight.w400),
+        CustomText(label,
+            fontSize: 14, fontWeight: FontWeight.w400),
         const SizedBox(height: 8),
         Obx(() => NewDatePicker(
               selectedDay: controller.startDay.value,

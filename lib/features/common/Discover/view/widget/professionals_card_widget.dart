@@ -24,10 +24,9 @@ class ProfessionalsCardWidget extends StatelessWidget {
         children: [
 
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: titleWidget(AppStrings.professionals),
-              ),
+              titleWidget(AppStrings.professionals),
               SizedBox(
                 width: SizeConfig.size8,
               ),
@@ -43,32 +42,35 @@ class ProfessionalsCardWidget extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: individualOnboardingConsultationList.take(6).length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var categoryItem = individualOnboardingConsultationList[index];
-              return CommonServiceCard(
-                service: categoryItem,
-                getName: (item) => item.name,
-                getIcon: (item) => item.icon ?? '',
-                iconHeight: SizeConfig.size80,
-                onTap: (item) {
-                  var categoryItem = individualOnboardingConsultationList[index];
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            child: MasonryGridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              padding: EdgeInsets.zero,
+              primary: false,
+              shrinkWrap: true,
+              itemCount: individualOnboardingConsultationList.take(6).length,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                var categoryItem = individualOnboardingConsultationList[index];
+                return CommonServiceCard(
+                  service: categoryItem,
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon ?? '',
+                  iconHeight: SizeConfig.size80,
+                  onTap: (item) {
+                    var categoryItem = individualOnboardingConsultationList[index];
 
-                  Get.to(() => AllProfessionConsultantScreen(
-                      professionalConsultantCategories:
-                      individualOnboardingConsultationList,
-                      selectedProfessionConsultantData: categoryItem));
-                },
-              );
-            },
+                    Get.to(() => AllProfessionConsultantScreen(
+                        professionalConsultantCategories:
+                        individualOnboardingConsultationList,
+                        selectedProfessionConsultantData: categoryItem));
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

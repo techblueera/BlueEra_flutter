@@ -747,6 +747,7 @@ enum VideoStatus {
 
 enum PostCreationMenu {
   message,
+  symbol,
   poll,
   // photos,
   jobPost;
