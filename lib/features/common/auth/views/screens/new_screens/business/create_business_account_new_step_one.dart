@@ -66,125 +66,105 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
         appBar: CommonBackAppBar(
           isLeading: true,
         ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Container(
-              margin: EdgeInsets.only(
-                left: SizeConfig.size8,
-                right: SizeConfig.size8,
-                top: SizeConfig.size15,
-                bottom: SizeConfig.size40,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// Business logo
-                  CustomFormCard(
-                      child: Column(
-                    children: [
-                      InkWell(
-                        onTap: () => _selectImage(context),
-                        child: Container(
-                          padding: EdgeInsets.all(SizeConfig.size2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.grey.shade400,
-                              width: 1.0,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 40,
-                            backgroundColor: AppColors.whiteF3,
-                            child: _imagePath?.isNotEmpty == true
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(40),
-                                    child: Image(
-                                      image: FileImage(File(_imagePath!))
-                                        ..evict(),
-                                    ),
-                                  )
-                                : LocalAssets(
-                                    imagePath: AppIconAssets.user_out_line,
-                                    imgColor: AppColors.secondaryTextColor,
-                                  ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      InkWell(
-                        onTap: () => _selectImage(context),
-                        child: CustomText(
-                          AppStrings.uploadYourPhotoLogo,
-                          color: AppColors.mainTextColor,
-                          textAlign: TextAlign.center,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  )),
-
-                  /// Category and Sub Category
-                  if(authController.selectedTypeOfBusiness != BusinessType.Both)
-                  ...[
-                    SizedBox(
-                      height: SizeConfig.paddingXSL,
-                    ),
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Container(
+                margin: EdgeInsets.only(
+                  left: SizeConfig.size8,
+                  right: SizeConfig.size8,
+                  top: SizeConfig.size15,
+                  bottom: SizeConfig.size40,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// Business logo
                     CustomFormCard(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(
-                                AppStrings.youHaveChosen,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.mainTextColor
-                            ),
-                            SizedBox(
-                              height: SizeConfig.paddingS,
-                            ),
-                            Container(
-                              padding: EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(10.0)
+                      children: [
+                        InkWell(
+                          onTap: () => _selectImage(context),
+                          child: Container(
+                            padding: EdgeInsets.all(SizeConfig.size2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey.shade400,
+                                width: 1.0,
                               ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      CustomText(
-                                          "${AppStrings.category.tr} - ",
-                                          color: AppColors.secondaryTextColor,
-                                          fontSize: SizeConfig.small,
-                                          fontWeight: FontWeight.w400
+                            ),
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundColor: AppColors.whiteF3,
+                              child: _imagePath?.isNotEmpty == true
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(40),
+                                      child: Image(
+                                        image: FileImage(File(_imagePath!))
+                                          ..evict(),
                                       ),
-                                      Expanded(
-                                        child: CustomText(
-                                            authController.selectedCategoryName?.replaceAll('\n', ' '),
-                                            color: AppColors.primaryColor,
-                                            fontSize: SizeConfig.small,
-                                            fontWeight: FontWeight.w400
-                                        ),
-                                      )
-                                    ],
-                                  ),
-
-                                  if(authController.selectedSubCategoryData!=null)...[
-                                    SizedBox(height: SizeConfig.paddingXSmall),
+                                    )
+                                  : LocalAssets(
+                                      imagePath: AppIconAssets.user_out_line,
+                                      imgColor: AppColors.secondaryTextColor,
+                                    ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.size8),
+                        InkWell(
+                          onTap: () => _selectImage(context),
+                          child: CustomText(
+                            AppStrings.uploadYourPhotoLogo,
+                            color: AppColors.mainTextColor,
+                            textAlign: TextAlign.center,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    )),
+          
+                    /// Category and Sub Category
+                    if(authController.selectedTypeOfBusiness != BusinessType.Both)
+                    ...[
+                      SizedBox(
+                        height: SizeConfig.paddingXSL,
+                      ),
+                      CustomFormCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                  AppStrings.youHaveChosen,
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.mainTextColor
+                              ),
+                              SizedBox(
+                                height: SizeConfig.paddingS,
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(10.0)
+                                ),
+                                child: Column(
+                                  children: [
                                     Row(
                                       children: [
                                         CustomText(
-                                            "${AppStrings.subCategory.tr} - ",
+                                            "${AppStrings.category.tr} - ",
                                             color: AppColors.secondaryTextColor,
                                             fontSize: SizeConfig.small,
                                             fontWeight: FontWeight.w400
                                         ),
                                         Expanded(
                                           child: CustomText(
-                                              authController.selectedSubCategoryData?.name,
+                                              authController.selectedCategoryName?.replaceAll('\n', ' '),
                                               color: AppColors.primaryColor,
                                               fontSize: SizeConfig.small,
                                               fontWeight: FontWeight.w400
@@ -192,373 +172,395 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                         )
                                       ],
                                     ),
-                                  ]
-
-                                ],
+          
+                                    if(authController.selectedSubCategoryData!=null)...[
+                                      SizedBox(height: SizeConfig.paddingXSmall),
+                                      Row(
+                                        children: [
+                                          CustomText(
+                                              "${AppStrings.subCategory.tr} - ",
+                                              color: AppColors.secondaryTextColor,
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400
+                                          ),
+                                          Expanded(
+                                            child: CustomText(
+                                                authController.selectedSubCategoryData?.name,
+                                                color: AppColors.primaryColor,
+                                                fontSize: SizeConfig.small,
+                                                fontWeight: FontWeight.w400
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ]
+          
+                                  ],
+                                ),
                               ),
-                            ),
-
-
-                            // RichText(
-                            //   text: TextSpan(
-                            //     style: TextStyle(
-                            //         color: AppColors.secondaryTextColor, // Default grey text
-                            //         fontSize: SizeConfig.small,
-                            //         fontWeight: FontWeight.w400
-                            //     ),
-                            //     children: [
-                            //       TextSpan(text: "${AppStrings.category.tr} - "),
-                            //       TextSpan(
-                            //         text: authController.selectedCategoryData?.name,
-                            //         style: TextStyle(
-                            //             color: AppColors.primaryColor, // Default grey text
-                            //             fontSize: SizeConfig.small,
-                            //             fontWeight: FontWeight.w400
-                            //         ),
-                            //       ),
-                            //       TextSpan(text: "  >  ${AppStrings.subCategory.tr} - "),
-                            //       TextSpan(
-                            //         text: authController.selectedSubCategoryData?.name,
-                            //         style:  TextStyle(
-                            //             color: AppColors.primaryColor, // Default grey text
-                            //             fontSize: SizeConfig.small,
-                            //             fontWeight: FontWeight.w400
-                            //         ),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
-
-
-                            // SizedBox(
-                            //   height: SizeConfig.paddingM,
-                            // ),
-
-
-                            /// Business Specialization
-                            // CommonTextField(
-                            //   textEditController: authController
-                            //       .subCategorySpecializationTextController,
-                            //   hintText:AppStrings.businessSpecializationHint,
-                            //   title: AppStrings.businessSpecializationOptional,
-                            //   maxLine: 1,
-                            //   maxLength: 24,
-                            //   keyBoardType: TextInputType.text,
-                            //   textInputAction: TextInputAction.done,
-                            //   isValidate: false,
-                            //   inputFormatters: [
-                            //     FilteringTextInputFormatter.allow(RegExp(
-                            //         RegularExpressionUtils
-                            //             .alphabetPatternSpace)),
-                            //     NoLeadingSpaceFormatter(),
-                            //     NoConsecutiveSpacesFormatter(),
-                            //   ],
-                            //   // we will handle validation manually
-                            //   onChange: (val) {
-                            //     String newVal = val;
-                            //     authController
-                            //         .categorySpecializationText.value = val;
-                            //     // Allow only alphabets + spaces
-                            //     if (!RegExp(r'^[a-zA-Z ]*$')
-                            //         .hasMatch(newVal)) {
-                            //       authController.errorMessage.value =
-                            //           AppStrings.specialCharactersNotAllowed.tr;
-                            //     } else if (newVal.isEmpty) {
-                            //       authController.errorMessage.value =
-                            //           AppStrings.pleaseEnterBusinessSpecialization.tr;
-                            //     } else if (newVal.length < 8) {
-                            //       authController.errorMessage.value =
-                            //           AppStrings.min8CharactersRequired.tr;
-                            //     } else if (newVal.length > 24) {
-                            //       authController.errorMessage.value =
-                            //           AppStrings.max24CharactersAllowed.tr;
-                            //     } else {
-                            //       authController.errorMessage.value = "";
-                            //     }
-                            //
-                            //   },
-                            // ),
-
-                            // SizedBox(height: SizeConfig.size5),
-                            //
-                            // // 👇 Error/Helper Message
-                            // Obx(() => authController
-                            //     .errorMessage.value.isNotEmpty &&
-                            //     (authController.categorySpecializationText
-                            //         .value.isNotEmpty)
-                            //     ? Align(
-                            //   alignment: Alignment.centerLeft,
-                            //   child: CustomText(
-                            //     authController.errorMessage.value,
-                            //     color: Colors.red,
-                            //     fontSize: 12,
-                            //     textAlign: TextAlign.left,
-                            //   ),
-                            // )
-                            //     : SizedBox()),
-                            //
-                            // // 👇 Counter (bottom right)
-                            // Align(
-                            //   alignment: Alignment.centerRight,
-                            //   child: Obx(() => CustomText(
-                            //     "${authController.categorySpecializationText.value.length}/24",
-                            //     color: Colors.grey,
-                            //     fontSize: 12,
-                            //   )),
-                            // ),
-
-                          ],
-                        )
+          
+          
+                              // RichText(
+                              //   text: TextSpan(
+                              //     style: TextStyle(
+                              //         color: AppColors.secondaryTextColor, // Default grey text
+                              //         fontSize: SizeConfig.small,
+                              //         fontWeight: FontWeight.w400
+                              //     ),
+                              //     children: [
+                              //       TextSpan(text: "${AppStrings.category.tr} - "),
+                              //       TextSpan(
+                              //         text: authController.selectedCategoryData?.name,
+                              //         style: TextStyle(
+                              //             color: AppColors.primaryColor, // Default grey text
+                              //             fontSize: SizeConfig.small,
+                              //             fontWeight: FontWeight.w400
+                              //         ),
+                              //       ),
+                              //       TextSpan(text: "  >  ${AppStrings.subCategory.tr} - "),
+                              //       TextSpan(
+                              //         text: authController.selectedSubCategoryData?.name,
+                              //         style:  TextStyle(
+                              //             color: AppColors.primaryColor, // Default grey text
+                              //             fontSize: SizeConfig.small,
+                              //             fontWeight: FontWeight.w400
+                              //         ),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
+          
+          
+                              // SizedBox(
+                              //   height: SizeConfig.paddingM,
+                              // ),
+          
+          
+                              /// Business Specialization
+                              // CommonTextField(
+                              //   textEditController: authController
+                              //       .subCategorySpecializationTextController,
+                              //   hintText:AppStrings.businessSpecializationHint,
+                              //   title: AppStrings.businessSpecializationOptional,
+                              //   maxLine: 1,
+                              //   maxLength: 24,
+                              //   keyBoardType: TextInputType.text,
+                              //   textInputAction: TextInputAction.done,
+                              //   isValidate: false,
+                              //   inputFormatters: [
+                              //     FilteringTextInputFormatter.allow(RegExp(
+                              //         RegularExpressionUtils
+                              //             .alphabetPatternSpace)),
+                              //     NoLeadingSpaceFormatter(),
+                              //     NoConsecutiveSpacesFormatter(),
+                              //   ],
+                              //   // we will handle validation manually
+                              //   onChange: (val) {
+                              //     String newVal = val;
+                              //     authController
+                              //         .categorySpecializationText.value = val;
+                              //     // Allow only alphabets + spaces
+                              //     if (!RegExp(r'^[a-zA-Z ]*$')
+                              //         .hasMatch(newVal)) {
+                              //       authController.errorMessage.value =
+                              //           AppStrings.specialCharactersNotAllowed.tr;
+                              //     } else if (newVal.isEmpty) {
+                              //       authController.errorMessage.value =
+                              //           AppStrings.pleaseEnterBusinessSpecialization.tr;
+                              //     } else if (newVal.length < 8) {
+                              //       authController.errorMessage.value =
+                              //           AppStrings.min8CharactersRequired.tr;
+                              //     } else if (newVal.length > 24) {
+                              //       authController.errorMessage.value =
+                              //           AppStrings.max24CharactersAllowed.tr;
+                              //     } else {
+                              //       authController.errorMessage.value = "";
+                              //     }
+                              //
+                              //   },
+                              // ),
+          
+                              // SizedBox(height: SizeConfig.size5),
+                              //
+                              // // 👇 Error/Helper Message
+                              // Obx(() => authController
+                              //     .errorMessage.value.isNotEmpty &&
+                              //     (authController.categorySpecializationText
+                              //         .value.isNotEmpty)
+                              //     ? Align(
+                              //   alignment: Alignment.centerLeft,
+                              //   child: CustomText(
+                              //     authController.errorMessage.value,
+                              //     color: Colors.red,
+                              //     fontSize: 12,
+                              //     textAlign: TextAlign.left,
+                              //   ),
+                              // )
+                              //     : SizedBox()),
+                              //
+                              // // 👇 Counter (bottom right)
+                              // Align(
+                              //   alignment: Alignment.centerRight,
+                              //   child: Obx(() => CustomText(
+                              //     "${authController.categorySpecializationText.value.length}/24",
+                              //     color: Colors.grey,
+                              //     fontSize: 12,
+                              //   )),
+                              // ),
+          
+                            ],
+                          )
+                      ),
+                    ],
+          
+                    SizedBox(
+                      height: SizeConfig.paddingXSL,
                     ),
-                  ],
-
-                  SizedBox(
-                    height: SizeConfig.paddingXSL,
-                  ),
-
-                  /// Business Details
-                  CustomFormCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          AppStrings.businessDetailsTitle,
-                          fontSize: SizeConfig.extraLarge,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.mainTextColor
-                        ),
-                        SizedBox(
-                          height: SizeConfig.paddingS,
-                        ),
-
-                        ///ENTER ORG/COMPANY NAME...
-                        Obx(() {
-                          return IgnorePointer(
-                            ignoring: (authController.isHaveGstApprove.value) ? true : false,
-                            child: CommonTextField(
-                              textEditController:
-                              authController.businessNameTextController,
-                              // inputLength: AppConstants.inputCharterLimit30,
-                              maxLength: AppConstants.inputCharterLimit30,
-                              keyBoardType: TextInputType.text,
-                              regularExpression:
-                              RegularExpressionUtils.alphabetSpacePattern,
-
-                              title: AppStrings.businessName,
-                              hintText: AppConstants.businessName,
-                              isValidate: true,
-                              onChange: (val) {
-                                authController.businessName.value = val;
-                                setState(() {});
-                              },
-
-                              validator: (value) {
-                                if (authController.businessName.value.isEmpty) {
-                                  return AppStrings.enterBusinessName.tr;
-                                } else if (authController.businessName.value.length <
-                                    5) {
-                                  return AppStrings.minFiveCharactersRequired.tr;
-                                }
-                                return null;
-                              },
-                            ),
-                          );
-                        }),
-                        SizedBox(
-                          height: SizeConfig.paddingXSL,
-                        ),
-                        if (!authController.isHaveGstApprove.value)
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Obx(() => CustomText(
-                              "${authController.businessName.value.length}/${AppConstants.inputCharterLimit30}",
-                              color: AppColors.grey9B,
-                              fontSize: SizeConfig.small,
-                            )),
+          
+                    /// Business Details
+                    CustomFormCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            AppStrings.businessDetailsTitle,
+                            fontSize: SizeConfig.extraLarge,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.mainTextColor
                           ),
-
-                        SizedBox(
-                          height: SizeConfig.paddingM,
-                        ),
-
-                        ///DOB selection
-                        CustomText(
-                          AppStrings.dateOfIncorporation,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor
-                        ),
-                        SizedBox(
-                          height: SizeConfig.paddingXSL,
-                        ),
-                        Obx(() {
-                          return IgnorePointer(
-                            ignoring:
-                            (authController.isHaveGstApprove.value) ? true : false,
-                            child: NewDatePicker(
-                              selectedDay: authController.selectedDay?.value,
-                              selectedMonth: authController.selectedMonth?.value,
-                              selectedYear: authController.selectedYear?.value,
-                              onDayChanged: (value) {
-                                authController.selectedDay?.value = value ?? 0;
-                              },
-                              onMonthChanged: (value) {
-                                authController.selectedMonth?.value = value ?? 0;
-                              },
-                              onYearChanged: (value) {
-                                authController.selectedYear?.value = value ?? 0;
-                              },
+                          SizedBox(
+                            height: SizeConfig.paddingS,
+                          ),
+          
+                          ///ENTER ORG/COMPANY NAME...
+                          Obx(() {
+                            return IgnorePointer(
+                              ignoring: (authController.isHaveGstApprove.value) ? true : false,
+                              child: CommonTextField(
+                                textEditController:
+                                authController.businessNameTextController,
+                                // inputLength: AppConstants.inputCharterLimit30,
+                                maxLength: AppConstants.inputCharterLimit30,
+                                keyBoardType: TextInputType.text,
+                                regularExpression:
+                                RegularExpressionUtils.alphabetSpacePattern,
+          
+                                title: AppStrings.businessName,
+                                hintText: AppConstants.businessName,
+                                isValidate: true,
+                                onChange: (val) {
+                                  authController.businessName.value = val;
+                                  setState(() {});
+                                },
+          
+                                validator: (value) {
+                                  if (authController.businessName.value.isEmpty) {
+                                    return AppStrings.enterBusinessName.tr;
+                                  } else if (authController.businessName.value.length <
+                                      5) {
+                                    return AppStrings.minFiveCharactersRequired.tr;
+                                  }
+                                  return null;
+                                },
+                              ),
+                            );
+                          }),
+                          SizedBox(
+                            height: SizeConfig.paddingXSL,
+                          ),
+                          if (!authController.isHaveGstApprove.value)
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Obx(() => CustomText(
+                                "${authController.businessName.value.length}/${AppConstants.inputCharterLimit30}",
+                                color: AppColors.grey9B,
+                                fontSize: SizeConfig.small,
+                              )),
                             ),
-                          );
-                        }),
-
-                        if (authController.selectedTypeOfBusiness == BusinessType.Product) ...[
+          
                           SizedBox(
                             height: SizeConfig.paddingM,
                           ),
+          
+                          ///DOB selection
                           CustomText(
-                            AppStrings.natureOfBusiness,
+                            AppStrings.dateOfIncorporation,
                             fontSize: SizeConfig.medium,
                             color: AppColors.mainTextColor
                           ),
                           SizedBox(
                             height: SizeConfig.paddingXSL,
                           ),
-                          CommonDropdownDialog<NatureOfBusiness>(
-                            items: NatureOfBusiness.values,
-                            selectedValue: authController.selectedNatureOfBusiness,
-                            hintText: AppStrings.selectNatureOfBusiness,
-                            displayValue: (profession) => profession.displayName,
-                            title: AppStrings.natureOfBusiness,
-                            onChanged: (value) {
-                              setState(() {
-                                authController.selectedNatureOfBusiness = value;
-                              });
-                            },
+                          Obx(() {
+                            return IgnorePointer(
+                              ignoring:
+                              (authController.isHaveGstApprove.value) ? true : false,
+                              child: NewDatePicker(
+                                selectedDay: authController.selectedDay?.value,
+                                selectedMonth: authController.selectedMonth?.value,
+                                selectedYear: authController.selectedYear?.value,
+                                onDayChanged: (value) {
+                                  authController.selectedDay?.value = value ?? 0;
+                                },
+                                onMonthChanged: (value) {
+                                  authController.selectedMonth?.value = value ?? 0;
+                                },
+                                onYearChanged: (value) {
+                                  authController.selectedYear?.value = value ?? 0;
+                                },
+                              ),
+                            );
+                          }),
+          
+                          if (authController.selectedTypeOfBusiness == BusinessType.Product) ...[
+                            SizedBox(
+                              height: SizeConfig.paddingM,
+                            ),
+                            CustomText(
+                              AppStrings.natureOfBusiness,
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor
+                            ),
+                            SizedBox(
+                              height: SizeConfig.paddingXSL,
+                            ),
+                            CommonDropdownDialog<NatureOfBusiness>(
+                              items: NatureOfBusiness.values,
+                              selectedValue: authController.selectedNatureOfBusiness,
+                              hintText: AppStrings.selectNatureOfBusiness,
+                              displayValue: (profession) => profession.displayName,
+                              title: AppStrings.natureOfBusiness,
+                              onChanged: (value) {
+                                setState(() {
+                                  authController.selectedNatureOfBusiness = value;
+                                });
+                              },
+                            ),
+                            if (authController.selectedNatureOfBusiness == NatureOfBusiness.OTHERS) ...[
+                              SizedBox(height: SizeConfig.size20),
+                              CommonTextField(
+                                textEditController:
+                                authController.otherNatureOfBusinessTextController,
+                                inputLength: AppConstants.inputCharterLimit100,
+                                keyBoardType: TextInputType.text,
+                                regularExpression:
+                                RegularExpressionUtils.alphabetSpacePattern,
+                                titleColor: Colors.black,
+                                hintText: AppStrings.pleaseSpecifyIfOther,
+                                autovalidateMode: _autoValidate,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return AppStrings.enterOtherNatureOfBusiness.tr;
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+          
+                            // SizedBox(height: SizeConfig.paddingL),
+                          ],
+          
+                          if (isServiceOrManufacturing) ...[
+          
+                            // Number Of Employees
+                            SizedBox(
+                              height: SizeConfig.paddingM,
+                            ),
+                            CustomText(
+                              AppStrings.numberOfEmployees,
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor
+                            ),
+                            SizedBox(
+                              height: SizeConfig.paddingXSL,
+                            ),
+                            CommonDropdownDialog<String>(
+                              items: authController.employeeRangeOptions,
+                              selectedValue: authController.selectedNumberOfEmployees,
+                              hintText: AppStrings.numberOfEmployeesHintText,
+                              displayValue: (v) => v,
+                              title: AppStrings.numberOfEmployees,
+                              onChanged: (value) {
+                                setState(() {
+                                  authController.selectedNumberOfEmployees = value;
+                                });
+                              },
+                            ),
+          
+                            // Number Of Branch
+                            SizedBox(
+                              height: SizeConfig.paddingM,
+                            ),
+                            CustomText(
+                              AppStrings.numberOfBranchOrUnit,
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor
+                            ),
+                            SizedBox(
+                              height: SizeConfig.paddingXSL,
+                            ),
+                            CommonDropdownDialog<String>(
+                              items: authController.branchUnitOptions,
+                              selectedValue: authController.selectedNumberOfBranch,
+                              hintText: AppStrings.numberOfBranchOrUnitHintText,
+                              displayValue: (v) => v,
+                              title: AppStrings.numberOfBranchOrUnit,
+                              onChanged: (value) {
+                                setState(() {
+                                  authController.selectedNumberOfBranch = value;
+                                });
+                              },
+                            ),
+          
+                          ],
+          
+          
+                          SizedBox(
+                            height: SizeConfig.size20,
                           ),
-                          if (authController.selectedNatureOfBusiness == NatureOfBusiness.OTHERS) ...[
-                            SizedBox(height: SizeConfig.size20),
+          
+                          ..._referralCodeEnable
+                              ? [
                             CommonTextField(
                               textEditController:
-                              authController.otherNatureOfBusinessTextController,
-                              inputLength: AppConstants.inputCharterLimit100,
+                              authController.referralCodeController,
+                              inputLength: AppConstants.inputCharterLimit10,
                               keyBoardType: TextInputType.text,
                               regularExpression:
-                              RegularExpressionUtils.alphabetSpacePattern,
-                              titleColor: Colors.black,
-                              hintText: AppStrings.pleaseSpecifyIfOther,
+                              RegularExpressionUtils.alphanumericPattern,
+                              title: AppStrings.referralCode,
+                              hintText: AppStrings.enterReferralCode,
                               autovalidateMode: _autoValidate,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return AppStrings.enterOtherNatureOfBusiness.tr;
+                                  return  AppStrings.pleaseEnterReferralCode.tr;
                                 }
                                 return null;
                               },
                             ),
-                          ],
-
-                          // SizedBox(height: SizeConfig.paddingL),
-                        ],
-
-                        if (isServiceOrManufacturing) ...[
-
-                          // Number Of Employees
-                          SizedBox(
-                            height: SizeConfig.paddingM,
-                          ),
-                          CustomText(
-                            AppStrings.numberOfEmployees,
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor
-                          ),
-                          SizedBox(
-                            height: SizeConfig.paddingXSL,
-                          ),
-                          CommonDropdownDialog<String>(
-                            items: authController.employeeRangeOptions,
-                            selectedValue: authController.selectedNumberOfEmployees,
-                            hintText: AppStrings.numberOfEmployeesHintText,
-                            displayValue: (v) => v,
-                            title: AppStrings.numberOfEmployees,
-                            onChanged: (value) {
-                              setState(() {
-                                authController.selectedNumberOfEmployees = value;
-                              });
-                            },
-                          ),
-
-                          // Number Of Branch
-                          SizedBox(
-                            height: SizeConfig.paddingM,
-                          ),
-                          CustomText(
-                            AppStrings.numberOfBranchOrUnit,
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor
-                          ),
-                          SizedBox(
-                            height: SizeConfig.paddingXSL,
-                          ),
-                          CommonDropdownDialog<String>(
-                            items: authController.branchUnitOptions,
-                            selectedValue: authController.selectedNumberOfBranch,
-                            hintText: AppStrings.numberOfBranchOrUnitHintText,
-                            displayValue: (v) => v,
-                            title: AppStrings.numberOfBranchOrUnit,
-                            onChanged: (value) {
-                              setState(() {
-                                authController.selectedNumberOfBranch = value;
-                              });
-                            },
-                          ),
-
-                        ],
-
-
-                        SizedBox(
-                          height: SizeConfig.size20,
-                        ),
-
-                        ..._referralCodeEnable
-                            ? [
-                          CommonTextField(
-                            textEditController:
-                            authController.referralCodeController,
-                            inputLength: AppConstants.inputCharterLimit10,
-                            keyBoardType: TextInputType.text,
-                            regularExpression:
-                            RegularExpressionUtils.alphanumericPattern,
-                            title: AppStrings.referralCode,
-                            hintText: AppStrings.enterReferralCode,
-                            autovalidateMode: _autoValidate,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return  AppStrings.pleaseEnterReferralCode.tr;
-                              }
-                              return null;
-                            },
-                          ),
-                        ]
-                            : [
-                          Center(
-                            child: InkWell(
-                              onTap: () =>
-                                  setState(() => _referralCodeEnable = true),
-                              child: CustomText(
-                                AppStrings.doYouHaveReferralCode,
-                                color: AppColors.primaryColor,
-                                decoration: TextDecoration.underline,
-                                fontSize: SizeConfig.medium,
-                                decorationColor: AppColors.primaryColor,
+                          ]
+                              : [
+                            Center(
+                              child: InkWell(
+                                onTap: () =>
+                                    setState(() => _referralCodeEnable = true),
+                                child: CustomText(
+                                  AppStrings.doYouHaveReferralCode,
+                                  color: AppColors.primaryColor,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: SizeConfig.medium,
+                                  decorationColor: AppColors.primaryColor,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
+          
                         ],
-
-                      ],
+                      ),
                     ),
-                  ),
-
-                ],
+          
+                  ],
+                ),
               ),
             ),
           ),
@@ -660,6 +662,8 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
           ApiKeys.lat: locationData.lat.toString(),
           ApiKeys.lon: locationData.long.toString(),
         }),
+        ApiKeys.pincode: locationData.pinCode,
+        ApiKeys.address: locationData.fullAddress,
         ApiKeys.type_of_business: authController.selectedTypeOfBusiness?.name,
         ApiKeys.nature_of_business: authController.selectedNatureOfBusiness?.name,
         ApiKeys.date_of_incorporation: {
@@ -673,7 +677,6 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
         //         ? "68a80b766fdb4e82b42b77c0"
         //         : authController.selectedCategoryData?.id,
         ApiKeys.category_Of_Business: authController.selectedCategorySlugId,
-
         if (authController.selectedTypeOfBusiness == BusinessType.Both)
           ApiKeys.category_other:
               authController.businessOtherCategoryTextController.text,

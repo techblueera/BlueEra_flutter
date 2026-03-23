@@ -486,11 +486,8 @@ class _CreateBusinessAccountNewStepTwoState
                                     }
                                         : null,
                                   },
-
-                                  ApiKeys.city_state_pincode:
-                                  cityController.text,
-                                  ApiKeys.address:
-                                  fullBusinessAddressTextController.text,
+                                  ApiKeys.city_state_pincode: cityController.text,
+                                  ApiKeys.address: fullBusinessAddressTextController.text,
                                   ApiKeys.business_location: jsonEncode({
                                     ApiKeys.lat: viewBusinessDetailsController
                                         .addressLat?.value
@@ -530,37 +527,4 @@ class _CreateBusinessAccountNewStepTwoState
     );
   }
 
-  // Widget _buildFetchAddressWidgets({required Widget child}) {
-  //   return Obx(() {
-  //     if (locationController.isFetchingAddress.value) {
-  //       return Padding(
-  //         padding: const EdgeInsets.only(top: 8.0),
-  //         child: const SizedBox(
-  //           width: 16,
-  //           height: 16,
-  //           child: CircularProgressIndicator(strokeWidth: 2),
-  //         ),
-  //       );
-  //     }
-  //
-  //     if (!locationController.fetchAddressFromGeo.value) {
-  //       return Padding(
-  //         padding: const EdgeInsets.only(top: 8.0),
-  //         child: GestureDetector(
-  //           onTap: () => updateAddressFromLocation(),
-  //           child: CustomText(
-  //             AppStrings.gpsLocationNotFound,
-  //             fontSize: SizeConfig.small,
-  //             fontWeight: FontWeight.w600,
-  //             color: AppColors.red,
-  //             decoration: TextDecoration.underline,
-  //             decorationColor: AppColors.red,
-  //           ),
-  //         ),
-  //       );
-  //     }
-  //
-  //     return child;
-  //   });
-  // }
 }

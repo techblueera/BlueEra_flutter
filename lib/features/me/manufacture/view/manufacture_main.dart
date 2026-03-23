@@ -59,7 +59,7 @@ class _ManufactureMainState extends State<ManufactureMain>
                     ),
                     InkWell(
                       onTap: (){
-                        Get.to(()=>AddMedicalService());
+                        Get.to(()=> AddMedicalService());
                       },
                       child: Container(
                         height: SizeConfig.size40,

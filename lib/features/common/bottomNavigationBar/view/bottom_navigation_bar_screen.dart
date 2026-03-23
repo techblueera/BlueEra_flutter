@@ -464,19 +464,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
+    } else if(businessTypeGlobal.toUpperCase() ==
+        BusinessType.Product.name.toUpperCase()){
+      return const InventoryScreen(fromBottomNavBar: true);
     }
-    // else if (businessTypeGlobal.toUpperCase() ==
-    //     BusinessType.Healthcare.name.toUpperCase()) {
-    //   return MedicalMain();
-    // }
     else if (_isServiceOrSpecificAutomotive()) {
       return const OthersMain();
     } else if (checkInventoryEligibility(
         businessTypeGlobal, businessCategoryGlobal)) {
       return const ManufactureMain();
     } else {
-      /// right now showing inventory (will remove this)
-      return const InventoryScreen(fromBottomNavBar: true);
+      // return const InventoryScreen(fromBottomNavBar: true);
+      return SizedBox();
     }
   }
 
