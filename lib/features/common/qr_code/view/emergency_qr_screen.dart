@@ -15,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/features/common/qr_code/view/qr_design_options_screen.dart';
 
 class EmergencyQrWidget extends StatelessWidget {
   EmergencyQrWidget({super.key});
@@ -140,24 +141,41 @@ class EmergencyQrWidget extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              // const SizedBox(height: 12),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     Obx(() => _actionButton(
-              //           icon: Icons.download_rounded,
-              //           label: _isSaving.value ? "Saving..." : "Save",
-              //           onTap:
-              //               _isSaving.value ? null : () => _saveQrToGallery(),
-              //         )),
-              //     const SizedBox(width: 16),
-              //     _actionButton(
-              //       icon: Icons.share_rounded,
-              //       label: "Share",
-              //       onTap: () => _shareQr(),
-              //     ),
-              //   ],
-              // ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => QrDesignOptionsScreen(
+                        userName: controller.fullName.value,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.primaryColor,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.style_outlined,
+                          color: Colors.white, size: 18),
+                      const SizedBox(width: 8),
+                      CustomText(
+                        "View More Designs",
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
