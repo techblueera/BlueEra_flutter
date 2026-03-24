@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -81,15 +80,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
         return false;
       },
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-        child: Scaffold(
-          backgroundColor: AppColors.appBackgroundColor,
-          body: NotificationListener<UserScrollNotification>(
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        body: SafeArea(
+          top: false,
+          child: NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
               if (notification.direction == ScrollDirection.reverse) {
                 widget.onHeaderVisibilityChanged?.call(false);
@@ -111,7 +106,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         parentScrollController: _scrollController,
                         targetKey: _qrWidgetKey,
                       ),
-
+          
                       /// Overlay: location + cart on top of banner
                       Positioned(
                         top: statusBarHeight,
@@ -155,9 +150,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                 ),
                               ),
                             ),
-
+          
                             SizedBox(width: SizeConfig.size8),
-
+          
                             /// Cart with rounded bg
                             _appBarAction(
                               icon: AppIconAssets.cartIcon,
@@ -170,7 +165,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ],
                   ),
                 ),
-
+          
                 /// Search Bar - sticky on scroll
                 SliverPersistentHeader(
                   pinned: true,
@@ -178,69 +173,69 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     topPadding: MediaQuery.of(context).padding.top,
                   ),
                 ),
-
+          
                 _sliverGap(SizeConfig.size8),
-
+          
                 /// Grocery & Food
                 _sliverCard(child: GroceryFoodCardWidget()),
                 _sliverGap(),
-
+          
                 /// Medical / Healthcare Services
                 _sliverCard(child: HealthServiceCardWidget()),
                 _sliverGap(),
-
+          
                 /// Shopping
                 _sliverCard(child: ShoppingCardWidget()),
                 _sliverGap(),
-
+          
                 /// Home Services
                 _sliverCard(child: BookHomeServiceWidget()),
                 _sliverGap(),
-
+          
                 /// Home made food, product, service
                 _sliverCard(child: HomeMadeProductWidget()),
                 _sliverGap(),
-
+          
                 /// Stay Service
                 _sliverCard(child: HotelStayServiceCard()),
                 _sliverGap(),
-
+          
                 /// Consultation Service
                 _sliverCard(child: ProfessionalsCardWidget()),
                 _sliverGap(),
-
+          
                 /// Transport
                 _sliverCard(child: TransportServiceWidget()),
                 _sliverGap(),
-
+          
                 /// Rental Service
                 _sliverCard(child: ResponsiveRentalCard()),
                 _sliverGap(),
-
+          
                 /// Services
                 _sliverCard(child: FindServiceCardWidget()),
                 _sliverGap(),
-
+          
                 /// Financial Sectors
                 _sliverCard(child: FinancialSectors()),
                 _sliverGap(),
-
+          
                 /// Automotive Service
                 _sliverCard(child: AutomotiveServiceCardWidget()),
                 _sliverGap(),
-
+          
                 /// Restaurant
                 _sliverCard(child: RestaurantNearMeCardWidget()),
                 _sliverGap(),
-
+          
                 /// Education Service
                 _sliverCard(child: EducationServiceCardWidget()),
                 _sliverGap(),
-
+          
                 /// Job Service
                 _sliverCard(child: JobServiceCardWidget()),
                 _sliverGap(),
-
+          
               /// Emergency QR
               SliverToBoxAdapter(
                 child: Builder(
@@ -251,7 +246,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   },
                 ),
               ),
-
+          
               /// QR Sticker Design Options (visible when QR is generated)
               SliverPadding(
                 padding: EdgeInsets.only(bottom: 100),
@@ -279,8 +274,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
             ],
           ),
+                ),
         ),
-      ),
+            )
     );
   }
 
