@@ -24,10 +24,12 @@ import 'package:BlueEra/features/common/Discover/view/widget/restaurant_near_me_
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
+import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
@@ -230,14 +232,37 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               _sliverGap(),
 
               /// Emergency QR
+              SliverToBoxAdapter(
+                child: Builder(
+                  key: _qrWidgetKey,
+                  builder: (_) {
+                    getOrPut(() => EmergencyProfileController());
+                    return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+                  },
+                ),
+              ),
+
+              /// QR Sticker Design Options (visible when QR is generated)
               SliverPadding(
                 padding: EdgeInsets.only(bottom: 100),
                 sliver: SliverToBoxAdapter(
                   child: Builder(
-                    key: _qrWidgetKey,
                     builder: (_) {
-                      getOrPut(() => EmergencyProfileController());
-                      return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+                      final emergencyController =
+                          getOrPut(() => EmergencyProfileController());
+                      return Obx(() {
+                        if (!emergencyController.hasEmergencyData.value) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            SizedBox(height: SizeConfig.size8),
+                            QrDesignOptionsWidget(
+                              userName: emergencyController.fullName.value,
+                            ),
+                          ],
+                        );
+                      });
                     },
                   ),
                 ),
