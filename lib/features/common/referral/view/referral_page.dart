@@ -52,7 +52,7 @@ class _ReferralPageState extends State<ReferralPage> {
           .personalProfileDetails.value.user?.referral_code ?? '';
     } else {
       return
-        viewBusinessProfileController.businessProfileDetails?.data
+        viewBusinessProfileController.businessProfileDetails.value?.data
             ?.referral_code ?? "";
     }
   }

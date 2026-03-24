@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -9,58 +8,21 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/business_ratings_model.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_common_gallery_card.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/career_job_widget.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_header_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-final dummyJobPosts = [
-  JobPost(
-    jobTitle:      'Data Entry Operator',
-    companyName:   'BLueCs Limited',
-    companyLogo:   '',
-    posterImage:   '',
-    jobType:       'Full Time - On Site',
-    minExperience: '5 yrs',
-    salaryRange:   '15,000 to 20,000',
-    location:      'Gomti Nagar, Lucknow',
-  ),
-  JobPost(
-    jobTitle:      'Flutter Developer',
-    companyName:   'TechCorp India',
-    companyLogo:   '',
-    posterImage:   '',
-    jobType:       'Full Time - Remote',
-    minExperience: '2 yrs',
-    salaryRange:   '40,000 to 60,000',
-    location:      'Bangalore, Karnataka',
-  ),
-  JobPost(
-    jobTitle:      'Sales Executive',
-    companyName:   'RetailPlus Pvt Ltd',
-    companyLogo:   '',
-    posterImage:   '',
-    jobType:       'Part Time - On Site',
-    minExperience: '1 yr',
-    salaryRange:   '12,000 to 18,000',
-    location:      'Connaught Place, Delhi',
-  ),
-];
 
 class ProductHomeScreen extends StatefulWidget {
   const ProductHomeScreen({super.key});
@@ -82,7 +44,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
   Future<void> _loadData() async {
     viewBusinessDetailsController.isLoading.value = true;
     await viewBusinessDetailsController.viewBusinessProfile();
-    final businessId = viewBusinessDetailsController.businessProfileDetails?.data?.id;
+    final businessId = viewBusinessDetailsController.businessProfileDetails.value?.data?.id;
     if (businessId != null && businessId.isNotEmpty) {
       await Future.wait([
         viewBusinessDetailsController.fetchProducts(visitBusinessId: businessId),
@@ -109,7 +71,8 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                 child:
                     CircularProgressIndicator(color: AppColors.primaryColor));
           }
-          final profileModel = viewBusinessDetailsController.businessProfileDetails;
+          final profileModel = viewBusinessDetailsController.businessProfileDetails.value;
+
           final data = profileModel?.data;
           if (data == null) {
             return const Center(child: CustomText("No Profile Data Found"));
@@ -120,7 +83,8 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── 2. Search Bar ──
-                _buildSearchBar(),
+                // _buildSearchBar(),
+
                 const SizedBox(height: 10),
 
                 // ── 3. Profile Header Card ──
@@ -153,7 +117,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                   showViewAll: true,
                   child: _buildLivePhoto(data.livePhotos),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // ── 7. Gallery ──
                 CommonGalleryCard(
@@ -172,7 +136,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                 const SizedBox(height: 10),
 
                 // ── 8. Job ──
-                CareerJobsWidget(jobs: dummyJobPosts),
+                CareerJobsWidget(jobs: []),
                 const SizedBox(height: 10),
 
                 // ── 8. Testimonials ──
@@ -189,7 +153,15 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                 const SizedBox(height: 10),
 
                 // ── 11. QR Code ──
-                _buildQrCode(data),
+                BusinessQrCodeWidget(
+                  data:       data,
+                  onDownload: () {
+                    // downloadQrCode();
+                  },
+                  onShare:    () {
+                    // shareQrCode();
+                  },
+                ),
                 const SizedBox(height: 100),
               ],
             ),
@@ -247,26 +219,9 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
     );
   }
 
-  Widget _statItem(String value, String label) {
-    return Expanded(
-      child: Column(
-        children: [
-          CustomText(value,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor),
-          const SizedBox(height: 2),
-          CustomText(label,
-              fontSize: 10,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w400),
-        ],
-      ),
-    );
-  }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  //  4. ACTION BUTTONS
+  //  4. BUSINESS STATS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildBusinessStats(BusinessProfileDetails? details) {
     String formatCount(dynamic value) {
@@ -736,69 +691,6 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  //  11. QR CODE
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildQrCode(BusinessProfileDetails data) {
-    final qrData = data.id ?? data.businessName ?? "";
-    if (qrData.isEmpty) return const SizedBox();
-
-    return CustomFormCard(
-      padding: EdgeInsets.all(10.0),
-      child: Column(
-        children: [
-          const SizedBox(height: 14),
-          CustomText(data.businessName ?? "",
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor),
-          const SizedBox(height: 10),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 10.0,
-              vertical: 6.0,
-            ),
-            decoration: BoxDecoration(
-                border: Border.all(
-                    color: AppColors.secondaryTextColor, width: 0.5),
-                borderRadius: BorderRadius.circular(100.0)),
-            child: CustomText(data.subCategoryDetails?.name,
-                fontSize: 12,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                  color: AppColors.greyE5,
-                  width: 1.5
-              ),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.01),
-                    blurRadius: 16,
-                    offset: const Offset(0, 2)
-                ),
-              ],
-            ),
-            child: QrImageView(
-              data: qrData,
-              version: QrVersions.auto,
-              size: SizeConfig.screenWidth - (2 * SizeConfig.size80),
-              errorCorrectionLevel: QrErrorCorrectLevel.H,
-              gapless: true,
-            ),
-          ),
-
         ],
       ),
     );

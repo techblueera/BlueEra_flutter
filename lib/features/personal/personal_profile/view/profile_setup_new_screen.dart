@@ -2905,7 +2905,7 @@ class _PersonalProfileSetupNewScreenState
                         SizedBox(height: SizeConfig.size16),
 
                         /// Booking days and timings
-                        AvailabilityScheduleCard(data: data)
+                        AvailabilityScheduleCard(schedule: data.schedule ?? [])
                       ],
                     );
                   })

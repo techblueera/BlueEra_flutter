@@ -352,7 +352,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                         _buildCommonDivider(),
                         SizedBox(height: SizeConfig.size8),
                         bookingController.availabilityDetails.value!=null
-                            ? AvailabilityScheduleCard(data: bookingController.availabilityDetails.value!)
+                            ? AvailabilityScheduleCard(schedule: bookingController.availabilityDetails.value?.schedule ?? [])
                             : CustomText(
                           AppStrings.na,
                           fontSize: SizeConfig.medium,
@@ -1501,7 +1501,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
          AvailabilityData? availabilityData}) {
 
       // 1. Sync Data Logic
-      controller.syncScheduleToController(availabilityData);
+      controller.syncScheduleToController(availabilityData?.schedule);
 
       // 2. Show Sheet
       _showCommonUpdateSheet(

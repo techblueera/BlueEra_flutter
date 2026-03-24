@@ -221,7 +221,7 @@ class MedicalController extends GetxController {
   List<Map<String, dynamic>> buildSnapSearchInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-    final businessData = viewBusinessDetailsController.businessProfileDetails?.data;
+    final businessData = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
     String city = (businessData?.cityStatePincode != null && businessData!.cityStatePincode!.isNotEmpty)
         ? businessData.cityStatePincode!
@@ -465,7 +465,7 @@ class MedicalController extends GetxController {
       }
 
       final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-      String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
+      String postalCode = viewBusinessDetailsController.businessProfileDetails.value?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 
       Map<String, dynamic> queryParams = {
         ApiKeys.page: medicalCategoryProductsPage,
@@ -628,8 +628,8 @@ class MedicalController extends GetxController {
   List<Map<String, dynamic>> buildInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-    String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
-    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
+    String city = viewBusinessDetailsController.businessProfileDetails.value?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
+    String postalCode = viewBusinessDetailsController.businessProfileDetails.value?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 
     if(postalCode.isEmpty){
       commonSnackBar(message: 'Please enable your location permission for adding grocery');

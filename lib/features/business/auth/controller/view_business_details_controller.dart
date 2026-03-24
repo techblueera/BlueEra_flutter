@@ -77,7 +77,8 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessRatingsResponse = ApiResponse.initial('Initial').obs;
 
-  ViewBusinessProfileModel? businessProfileDetails;
+  final Rx<ViewBusinessProfileModel?> businessProfileDetails = Rx<ViewBusinessProfileModel?>(null);
+
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
       GetBusinessVerifyViewModel().obs;
 
@@ -165,16 +166,16 @@ class ViewBusinessDetailsController extends GetxController {
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
 
-      businessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+      businessProfileDetails.value = ViewBusinessProfileModel.fromJson(data);
 
       selectDay?.value =
-          businessProfileDetails?.data?.dateOfIncorporation?.date ?? 0;
+          businessProfileDetails.value?.data?.dateOfIncorporation?.date ?? 0;
       selectMonth?.value =
-          businessProfileDetails?.data?.dateOfIncorporation?.month ?? 0;
+          businessProfileDetails.value?.data?.dateOfIncorporation?.month ?? 0;
       selectYear?.value =
-          businessProfileDetails?.data?.dateOfIncorporation?.year ?? 0;
-      imagePath?.value = businessProfileDetails?.data?.logo ?? "";
-      coverImage?.value = businessProfileDetails?.data?.coverimage ?? "";
+          businessProfileDetails.value?.data?.dateOfIncorporation?.year ?? 0;
+      imagePath?.value = businessProfileDetails.value?.data?.logo ?? "";
+      coverImage?.value = businessProfileDetails.value?.data?.coverimage ?? "";
 /*      selectedCategoryOfBusiness.value = CategoryData(
           id: businessProfileDetails?.data?.categoryDetails?.id,
           name: businessProfileDetails?.data?.categoryDetails?.name);
@@ -236,35 +237,35 @@ class ViewBusinessDetailsController extends GetxController {
 */
 
       businessDescription.value =
-          businessProfileDetails?.data?.businessDescription ?? "";
+          businessProfileDetails.value?.data?.businessDescription ?? "";
       tempDescription.value = businessDescription.value;
       controllerVisit.isFollow.value =
-          businessProfileDetails?.data?.is_following ?? false;
-      isBusinessVerified.value=businessProfileDetails?.data?.businessIsVerified ?? false;
+          businessProfileDetails.value?.data?.is_following ?? false;
+      isBusinessVerified.value=businessProfileDetails.value?.data?.businessIsVerified ?? false;
       // if (selectedBusinessType?.value.name.toLowerCase() == "both") {
       //   selectedCategoryOfBusiness.value = null;
       //   selectedSubCategoryOfBusinessNew.value = null;
       // }
       Get.find<AuthController>().imgPath.value =
-          businessProfileDetails?.data?.logo ?? "";
-      log('business type -- ${businessProfileDetails?.data?.typeOfBusiness}');
+          businessProfileDetails.value?.data?.logo ?? "";
+      log('business type -- ${businessProfileDetails.value?.data?.typeOfBusiness}');
       await SharedPreferenceUtils.userLoggedInBusiness(
-        // contactNo: businessProfileDetails?.data?.userContactNo ?? '',
-        email: businessProfileDetails?.data?.ownerDetails?[0].email ?? '',
-        profileImage: businessProfileDetails?.data?.logo ?? '',
-        businessName: businessProfileDetails?.data?.businessName ?? '',
+        // contactNo: businessProfileDetails.value?.data?.userContactNo ?? '',
+        email: businessProfileDetails.value?.data?.ownerDetails?[0].email ?? '',
+        profileImage: businessProfileDetails.value?.data?.logo ?? '',
+        businessName: businessProfileDetails.value?.data?.businessName ?? '',
         businessOwnerName:
-            businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
-        businessId: businessProfileDetails!.data!.id!,
-        loginBusinessUserId: businessProfileDetails!.data!.userId!,
+            businessProfileDetails.value?.data?.ownerDetails?[0].name ?? '',
+        businessId: businessProfileDetails.value!.data!.id!,
+        loginBusinessUserId: businessProfileDetails.value!.data!.userId!,
         userNameAt: "",
-        businessAddress: businessProfileDetails?.data?.address ?? '',
+        businessAddress: businessProfileDetails.value?.data?.address ?? '',
         categoryOfBusiness:
-            businessProfileDetails?.data?.categoryDetails?.name ?? '',
+            businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
         subCategoryOfBusiness:
-            businessProfileDetails?.data?.subCategoryDetails?.name ?? '',
-        typeOfBusiness: businessProfileDetails?.data?.typeOfBusiness ?? '',
-        // typeOfBusiness: businessProfileDetails?.data?.typeOfBusiness ?? '',
+            businessProfileDetails.value?.data?.subCategoryDetails?.name ?? '',
+        typeOfBusiness: businessProfileDetails.value?.data?.typeOfBusiness ?? '',
+        // typeOfBusiness: businessProfileDetails.value?.data?.typeOfBusiness ?? '',
       );
 
       await getUserLoginData();

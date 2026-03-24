@@ -124,7 +124,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                   final controller =
                   getOrPut(() => ViewBusinessDetailsController());
 
-                  if ((controller.businessProfileDetails?.data?.livePhotos ??
+                  if ((controller.businessProfileDetails.value?.data?.livePhotos ??
                       [])
                       .length <
                       3) {

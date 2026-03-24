@@ -18,116 +18,113 @@ class VisitingHoursSelector extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            width: 1.5,
-            color: AppColors.greyE5
-          ),
+          border: Border.all(width: 1.5, color: AppColors.greyE5),
           color: AppColors.white,
-          boxShadow: [AppShadows.textFieldShadow]
-      ),
+          boxShadow: [AppShadows.textFieldShadow]),
       padding: EdgeInsets.all(SizeConfig.size15),
       child: Obx(() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: controller.visitingHours.keys.map((day) {
-          final isEnabled = controller.visitingHours[day]!;
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: CustomText(
-                      day,
-                      fontSize: SizeConfig.large,
-                    // maxLines: 1,
-                  ),
-                ),
-
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    children: [
-                      CustomSwitch(
-                        value: isEnabled,
-                        onChanged: (val) {
-                          controller.toggleDayStatus(day, val);
-                        },
-                        containerHeight: SizeConfig.size24,
-                        containerWidth: SizeConfig.size50,
-                        circleSize: SizeConfig.size18,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                        isEnabled ? "Open" : "Closed",
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: controller.visitingHours.keys.map((day) {
+              final isEnabled = controller.visitingHours[day]!;
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: CustomText(
+                        day,
                         fontSize: SizeConfig.large,
-                        color: AppColors.black,
+                        // maxLines: 1,
                       ),
-                      if (isEnabled) ...[  
-                        SizedBox(width: SizeConfig.size10),
-                        FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: _timeBox(day, true)),
-                        SizedBox(width: SizeConfig.size3),
-                        _timeBox(day, false),
-                      ],
-                    ],
-                  ),
-                )
-              ],
-            ),
-          );
-        }).toList(),
-      )),
+                    ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        children: [
+                          CustomSwitch(
+                            value: isEnabled,
+                            onChanged: (val) {
+                              controller.toggleDayStatus(day, val);
+                            },
+                            containerHeight: SizeConfig.size24,
+                            containerWidth: SizeConfig.size50,
+                            circleSize: SizeConfig.size18,
+                          ),
+                          SizedBox(width: SizeConfig.size10),
+                          CustomText(
+                            isEnabled ? "Open" : "Closed",
+                            fontSize: SizeConfig.large,
+                            color: AppColors.black,
+                          ),
+                          if (isEnabled) ...[
+                            SizedBox(width: SizeConfig.size10),
+                            FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: _timeBox(day, true)),
+                            SizedBox(width: SizeConfig.size3),
+                            _timeBox(day, false),
+                          ],
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              );
+            }).toList(),
+          )),
     );
   }
 
   Widget _timeBox(String day, bool isStart) {
     return Obx(() {
-      final selectedTime = isStart ? controller.startTimes[day]! : controller.endTimes[day]!;
+      final selectedTime = isStart
+          ? (controller.startTimes[day] ?? const TimeOfDay(hour: 10, minute: 0))
+          : (controller.endTimes[day] ?? const TimeOfDay(hour: 23, minute: 0));
+
       final timeOptions = controller.generateTimeList();
-      String selectedString = controller.formatTime(selectedTime);
+      final selectedString = controller.formatTime(selectedTime);
+
+      final validValue = timeOptions.contains(selectedString)
+          ? selectedString
+          : timeOptions.first;
 
       return Container(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size2),
-        margin:  EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8, vertical: SizeConfig.size2),
+        margin: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
         decoration: BoxDecoration(
-          color: AppColors.whiteF3,
-          borderRadius: BorderRadius.circular(4),
-          // border: Border.all(
-          //   color: AppColors.grey51
-          // )
-        ),
+            color: AppColors.whiteF3, borderRadius: BorderRadius.circular(4)),
         child: DropdownButton<String>(
-          value: selectedString,
+          value: validValue,
           isDense: true,
           icon: const SizedBox(),
           dropdownColor: AppColors.white,
           underline: const SizedBox(),
-          style: TextStyle(color: AppColors.grey9A, fontSize: SizeConfig.medium, fontWeight: FontWeight.w400),
-          items: timeOptions.map((timeStr) {
-            return DropdownMenuItem(
-              value: timeStr,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
-                child: CustomText(timeStr),
-              ),
-            );
-          }).toList(),
+          style: TextStyle(
+              color: AppColors.grey9A,
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w400),
+          items: timeOptions
+              .map((t) => DropdownMenuItem(
+                    value: t,
+                    child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size6),
+                        child: CustomText(t)),
+                  ))
+              .toList(),
           onChanged: (val) {
-            if (val != null) {
-              final parts = val.split(":");
-              final newTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-              if (isStart) {
-                controller.updateStartTime(day, newTime);
-              } else {
-                controller.updateEndTime(day, newTime);
-              }
-            }
+            if (val == null) return;
+            final parts = val.split(':');
+            final newTime = TimeOfDay(
+                hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+            isStart
+                ? controller.updateStartTime(day, newTime)
+                : controller.updateEndTime(day, newTime);
           },
         ),
       );
     });
   }
-
-
 }

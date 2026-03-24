@@ -135,7 +135,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     return GetBuilder<ViewBusinessDetailsController>(builder: (controller) {
       if (controller.viewBusinessResponse.status == Status.COMPLETE) {
         BusinessProfileDetails? details =
-            viewBusinessDetailsController.businessProfileDetails?.data;
+            viewBusinessDetailsController.businessProfileDetails.value?.data;
         if ((!isDialogShown &&
             (details?.businessLocation == null ||
                 details?.businessLocation?.lat == null ||

@@ -428,7 +428,7 @@ class BusinessProfileHeader extends StatelessWidget {
                           backgroundColor: theme.colorScheme.primary,
                         ),
                         onPressed: () {
-                          if ((controller.businessProfileDetails?.data
+                          if ((controller.businessProfileDetails.value?.data
                                           ?.livePhotos ??
                                       [])
                                   .length <

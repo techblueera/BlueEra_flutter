@@ -178,9 +178,9 @@ class CommonGalleryCard extends StatelessWidget {
                           horizontal: 10.0, vertical: 6.0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10.0),
-                        color: AppColors.white.withValues(alpha: 0.1),
+                        color: AppColors.primaryColor,
                         border: Border.all(
-                            color: AppColors.white.withValues(alpha: 0.16)),
+                          color: AppColors.primaryColor,),
                       ),
                       child: CustomText(
                         addButtonLabel,

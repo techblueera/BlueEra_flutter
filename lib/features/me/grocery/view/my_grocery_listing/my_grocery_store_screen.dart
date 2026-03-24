@@ -60,7 +60,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.businessProfileDetails?.data;
+          BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
           return RefreshIndicator(
             onRefresh: () async {

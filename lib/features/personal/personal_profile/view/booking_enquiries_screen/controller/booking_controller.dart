@@ -92,12 +92,6 @@ class BookingController extends GetxController {
   final errorMessage = ''.obs;
   final predictions = <PlacePrediction>[].obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // getMyBookingList();
-    // getMyEnquiry();
-  }
 
   Future<void> addBooingAppointment(
       {required Map<String, dynamic> params}) async {
@@ -445,65 +439,90 @@ class BookingController extends GetxController {
     //   selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
     // }
 
+    final controller = getOrPut(() => VisitingHoursSelectorController());
+
     // Prefill visiting hours
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      syncScheduleToController(availabilityData);
+      syncScheduleToController(availabilityData?.schedule);
     });
   }
 
-  final RxMap<String, bool>      visitingHours = <String, bool>{}.obs;
-  final RxMap<String, TimeOfDay> startTimes    = <String, TimeOfDay>{}.obs;
-  final RxMap<String, TimeOfDay> endTimes      = <String, TimeOfDay>{}.obs;
+  void syncScheduleToController(List<Schedule>? schedule) {
+    log('🔄 syncScheduleToController called');
+    log('📋 schedule: $schedule');
+    log('📋 schedule length: ${schedule?.length}');
 
-  void syncScheduleToController(AvailabilityData? availabilityData) {
-    if (availabilityData == null) return;
+    if (schedule == null) {
+      log('❌ schedule is null — returning');
+      return;
+    }
 
-    final controller = getOrPut(() => VisitingHoursSelectorController());
+    const allDays = [
+      'Monday', 'Tuesday', 'Wednesday',
+      'Thursday', 'Friday', 'Saturday', 'Sunday',
+    ];
 
     final Map<String, bool>      newVisitingHours = {};
     final Map<String, TimeOfDay> newStartTimes    = {};
     final Map<String, TimeOfDay> newEndTimes      = {};
 
-    for (final day in controller.visitingHours.keys) {
+    for (final day in allDays) {
       newVisitingHours[day] = false;
     }
 
-    for (final sch in availabilityData.schedule ?? []) {
+    for (final sch in schedule) {
+      log('📅 Processing: day=${sch.day}, isOpen=${sch.isOpen}, timeSlots=${sch.timeSlots?.length}');
+
       final uiDay = mapApiDayToUiDay((sch.day ?? '').toLowerCase());
-      if (uiDay == null) continue;
+      log('🗓 Mapped apiDay="${sch.day}" → uiDay="$uiDay"');
+
+      if (uiDay == null) {
+        log('⚠️ uiDay is null — skipping "${sch.day}"');
+        continue;
+      }
 
       newVisitingHours[uiDay] = sch.isOpen ?? false;
+      log('✅ Set $uiDay isOpen=${sch.isOpen}');
 
       final firstSlot = sch.timeSlots?.isNotEmpty == true ? sch.timeSlots!.first : null;
+      log('⏰ firstSlot: start=${firstSlot?.startTime}, end=${firstSlot?.endTime}');
+
       if (firstSlot != null) {
         final start = parseTimeOfDay(firstSlot.startTime);
         final end   = parseTimeOfDay(firstSlot.endTime);
+        log('🕐 Parsed start=$start, end=$end');
+
         if (start != null) newStartTimes[uiDay] = start;
         if (end   != null) newEndTimes[uiDay]   = end;
+      } else {
+        log('⚠️ No timeSlots for $uiDay');
       }
     }
 
-    // ✅ Single call — 1 rebuild
+    log('📊 Final newVisitingHours: $newVisitingHours');
+    log('📊 Final newStartTimes: $newStartTimes');
+    log('📊 Final newEndTimes: $newEndTimes');
+
     syncAll(
       visitingHours: newVisitingHours,
       startTimes:    newStartTimes,
       endTimes:      newEndTimes,
     );
+
+    log('✅ syncAll called successfully');
   }
 
-  // ✅ Single method to batch all updates — 1 rebuild only
   void syncAll({
     required Map<String, bool>      visitingHours,
     required Map<String, TimeOfDay> startTimes,
     required Map<String, TimeOfDay> endTimes,
   }) {
-    this.visitingHours.assignAll(visitingHours);
-    this.startTimes
-      ..clear()
-      ..addAll(startTimes);
-    this.endTimes
-      ..clear()
-      ..addAll(endTimes);
+    final visitingCtrl = getOrPut(() => VisitingHoursSelectorController());
+    visitingCtrl.syncAll(
+      visitingHours: visitingHours,
+      startTimes:    startTimes,
+      endTimes:      endTimes,
+    );
   }
 
   Future<void> getMyBookingList() async {

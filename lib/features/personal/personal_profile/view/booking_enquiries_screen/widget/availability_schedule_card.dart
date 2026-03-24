@@ -7,11 +7,11 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
 class AvailabilityScheduleCard extends StatelessWidget {
-  final AvailabilityData data;
+  final List<Schedule> schedule;
 
   const AvailabilityScheduleCard({
     super.key,
-    required this.data,
+    required this.schedule,
   });
 
   @override
@@ -20,8 +20,6 @@ class AvailabilityScheduleCard extends StatelessWidget {
     final Map<String, bool> visitingHours = {};
     final Map<String, TimeOfDay> startTimes = {};
     final Map<String, TimeOfDay> endTimes = {};
-
-    final schedule = data.schedule ?? [];
 
     for (final sch in schedule) {
       final apiDay = (sch.day ?? '').toLowerCase();

@@ -54,7 +54,7 @@ Future<void> showLivePhotoDialog({
                   return GetBuilder<ViewBusinessDetailsController>(
                     id: 'livePhotos',
                     builder: (controller) {
-                      final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
+                      final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];
 
                       final totalCount = apiPhotos.length;
                       final emptySlots = (3 - totalCount).clamp(0, 3);
@@ -112,7 +112,7 @@ Future<void> showLivePhotoDialog({
                     child: PositiveCustomBtn(
                       title: AppStrings.submit,
                       onTap: () {
-                        final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
+                        final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];
 
                         if (apiPhotos.length < 3) {
                           commonSnackBar(message: AppStrings.upload_live_photos_message);
@@ -228,7 +228,7 @@ Widget _buildImageContainer(
             onTap: () async {
               Map<String, dynamic> data = {ApiKeys.image_url: imagePath};
               await controller.deleteLiveStoreImage(data);
-              controller.businessProfileDetails?.data?.livePhotos?.removeAt(index);
+              controller.businessProfileDetails.value?.data?.livePhotos?.removeAt(index);
               controller.update(['livePhotos']);
             },
             child: CircleAvatar(

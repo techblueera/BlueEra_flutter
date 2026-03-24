@@ -182,7 +182,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
               } else if (isBusinessUser()) {
                 final controller = Get.find<ViewBusinessDetailsController>();
 
-                if ((controller.businessProfileDetails?.data?.livePhotos ?? [])
+                if ((controller.businessProfileDetails.value?.data?.livePhotos ?? [])
                         .length <
                     3) {
                   showLivePhotoDialog(

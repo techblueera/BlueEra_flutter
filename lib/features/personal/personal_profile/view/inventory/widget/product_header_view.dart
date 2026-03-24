@@ -1,33 +1,31 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/widgets/business_hour_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_availability_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
+import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_hours_sheet_content.dart';
 import 'package:BlueEra/features/business/widgets/business_website_url_widget.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-
 import '../../../../../../core/api/apiService/api_keys.dart';
 
 class ProductProfileHeader extends StatelessWidget {
@@ -171,6 +169,15 @@ class ProductProfileHeader extends StatelessWidget {
                         }
                       },
                       child: Image.asset('assets/images/camera.png'))),
+              Positioned(
+                  right: 10,
+                  bottom: 0,
+                  child: BusinessCardUi(
+                    onTap: () {
+                      Get.to(() => AllVisitingCards(
+                          businessDetails: details, showAppBar: true));
+                    },
+                  ))
 
               // Follow button & menu
             ],
@@ -200,27 +207,16 @@ class ProductProfileHeader extends StatelessWidget {
                             details?.avg_rating.toString() ?? '0.0') ??
                         0.0,
                     reviews: details?.total_ratings?.toInt() ?? 0,
-                    distance: '${calculateDistanceKm(
-                      LocationService.lat,
-                      LocationService.lng,
-                      details?.businessLocation?.lat?.toDouble() ?? 0.0,
-                      details?.businessLocation?.lon?.toDouble() ?? 0.0,
-                    ).toStringAsFixed(2)} Km Away',
+                    // distance: '${calculateDistanceKm(
+                    //   LocationService.lat,
+                    //   LocationService.lng,
+                    //   details?.businessLocation?.lat?.toDouble() ?? 0.0,
+                    //   details?.businessLocation?.lon?.toDouble() ?? 0.0,
+                    // ).toStringAsFixed(2)} Km Away',
                   ),
                   const SizedBox(width: 5),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.0,
-                      vertical: 6.0,
-                    ),
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                            color: AppColors.secondaryTextColor, width: 0.5),
-                        borderRadius: BorderRadius.circular(100.0)),
-                    child: CustomText(details?.subCategoryDetails?.name,
-                        fontSize: 12,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400),
+                  BusinessCommonSubCategoryWidget(
+                    label: details?.subCategoryDetails?.name,
                   )
                 ],
               ),
@@ -241,16 +237,18 @@ class ProductProfileHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              BusinessHoursWidget(
-                days: 'Monday – Friday',
-                openTime: '9:00 AM',
-                closeTime: '6:00 PM',
+              const SizedBox(height: 10),
+              BusinessAvailabilityWidget(
+                hasAvailability: details?.availability?.schedule != null,
+                schedule: details?.availability?.schedule,
+                onEditTap: () => _openBusinessHoursEditSheet(context),
+                onAddTap: () => _openBusinessHoursEditSheet(context),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               WebsiteUrlWidget(
-                websiteUrl: 'https://blueera.ai',
-              )
+                websiteUrl: details?.websiteUrl,
+                onAddTap: () => _openEditSheet(context),
+              ),
             ],
           ),
         ),
@@ -259,4 +257,102 @@ class ProductProfileHeader extends StatelessWidget {
       ],
     );
   }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  BUSINESS HOURS & WEBSITE EDIT BOTTOM SHEET
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  void _openBusinessHoursEditSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      builder: (ctx) {
+        return BusinessHoursSheetContent(
+          details: details,
+          controller: controller,
+        );
+      },
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  WEBSITE EDIT BOTTOM SHEET
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  void _openEditSheet(BuildContext context) {
+    final websiteController =
+        TextEditingController(text: details?.websiteUrl ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      builder: (ctx) {
+        return GestureDetector(
+          onTap: () => FocusScope.of(ctx).unfocus(),
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16,
+                vertical: SizeConfig.size16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const CustomText(
+                        'Update Website',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      const CloseButton(),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  HttpsTextField(
+                    controller: websiteController,
+                    title: 'Website URL',
+                    hintText: 'e.g. https://www.example.com',
+                    isUrlValidate: true,
+                  ),
+                  const SizedBox(height: 24),
+                  CustomBtn(
+                    radius: 10,
+                    bgColor: AppColors.primaryColor,
+                    title: AppStrings.save,
+                    onTap: () async {
+                      final params = <String, dynamic>{
+                        ApiKeys.businessId: businessId,
+                        ApiKeys.website_url: websiteController.text.trim(),
+                      };
+                      await controller.updateBusinessProfileDetails(params);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                  ),
+                  SizedBox(height: MediaQuery.of(ctx).padding.bottom),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
+

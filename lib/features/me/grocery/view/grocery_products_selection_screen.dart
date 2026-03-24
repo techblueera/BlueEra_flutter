@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -349,7 +350,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
   }
 
   Widget groceryCard(GroceryProductData groceryProductData) {
-    final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
+    // final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
     final price = controller.getPriceDetails(groceryProductData.variants?[0].pricing);
     // print("Selling Range: ${price.sellingRange}");
     // print("MRP Range: ${price.mrpRange}");
@@ -397,16 +398,13 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: SizeConfig.size30,
-                  child: CustomText(
-                    "${groceryProductData.name}",
-                    fontSize: SizeConfig.small,
-                    maxLines: 2,
-                    color: AppColors.mainTextColor,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.w600,
-                  ),
+                CustomText(
+                  "${groceryProductData.name}",
+                  fontSize: SizeConfig.small,
+                  maxLines: 1,
+                  color: AppColors.mainTextColor,
+                  overflow: TextOverflow.ellipsis,
+                  fontWeight: FontWeight.w600,
                 ),
                 SizedBox(height: SizeConfig.size6),
                 Row(
@@ -446,85 +444,90 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                   ],
                 ),
                 SizedBox(height: SizeConfig.size6),
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.price.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            "${price.sellingRange}",
-                            fontSize: 10,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            "${AppStrings.mrp.tr}: ",
-                            fontSize: 10,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(width: SizeConfig.size3),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: CustomText(
-                              "${price.mrpRange}",
-                              fontSize: 10,
-                              color: AppColors.grayText,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                    SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "${AppStrings.discount.tr}: ",
-                          fontSize: 10,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: SizeConfig.size3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            "${price.discountRange}",
-                            fontSize: 10,
-                            color: AppColors.green00,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    CustomBtn(
-                      height: SizeConfig.size36,
-                      onTap: () => controller.toggleSelection(groceryProductData),
-                      title: isSelected ? 'Added' : 'Add',
-                      textColor: isSelected ? AppColors.white : AppColors.primaryColor,
-                      bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
-                      radius: 6.0,
-                      borderColor: AppColors.primaryColor,
-                    )
-                  ],
+                PriceRow(
+                  sellingPrice: "${price.sellingRange}",
+                  mrp: "${price.mrpRange}",
+                  discount: "${price.discountRange}",
                 ),
+                // Column(
+                //   children: [
+                //     Row(
+                //       mainAxisAlignment: MainAxisAlignment.start,
+                //       children: [
+                //         CustomText(
+                //           "${AppStrings.price.tr}: ",
+                //           fontSize: 10,
+                //           color: AppColors.secondaryTextColor,
+                //           fontWeight: FontWeight.w600,
+                //         ),
+                //         SizedBox(width: SizeConfig.size3),
+                //         FittedBox(
+                //           fit: BoxFit.scaleDown,
+                //           child: CustomText(
+                //             "${price.sellingRange}",
+                //             fontSize: 10,
+                //             color: AppColors.primaryColor,
+                //             fontWeight: FontWeight.bold,
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //     SizedBox(height: 4),
+                //     Row(
+                //         mainAxisAlignment: MainAxisAlignment.start,
+                //         children: [
+                //           CustomText(
+                //             "${AppStrings.mrp.tr}: ",
+                //             fontSize: 10,
+                //             color: AppColors.secondaryTextColor,
+                //             fontWeight: FontWeight.w600,
+                //           ),
+                //           SizedBox(width: SizeConfig.size3),
+                //           FittedBox(
+                //             fit: BoxFit.scaleDown,
+                //             child: CustomText(
+                //               "${price.mrpRange}",
+                //               fontSize: 10,
+                //               color: AppColors.grayText,
+                //             ),
+                //           ),
+                //         ],
+                //       ),
+                //
+                //     SizedBox(height: 4),
+                //     Row(
+                //       mainAxisAlignment: MainAxisAlignment.start,
+                //       children: [
+                //         CustomText(
+                //           "${AppStrings.discount.tr}: ",
+                //           fontSize: 10,
+                //           color: AppColors.secondaryTextColor,
+                //           fontWeight: FontWeight.w600,
+                //         ),
+                //         SizedBox(width: SizeConfig.size3),
+                //         FittedBox(
+                //           fit: BoxFit.scaleDown,
+                //           child: CustomText(
+                //             "${price.discountRange}",
+                //             fontSize: 10,
+                //             color: AppColors.green00,
+                //             fontWeight: FontWeight.w600,
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //     SizedBox(height: SizeConfig.size8),
+                //     CustomBtn(
+                //       height: SizeConfig.size36,
+                //       onTap: () => controller.toggleSelection(groceryProductData),
+                //       title: isSelected ? 'Added' : 'Add',
+                //       textColor: isSelected ? AppColors.white : AppColors.primaryColor,
+                //       bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
+                //       radius: 6.0,
+                //       borderColor: AppColors.primaryColor,
+                //     )
+                //   ],
+                // ),
               ],
             ),
           ),

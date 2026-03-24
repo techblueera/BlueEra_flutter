@@ -56,7 +56,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
 
   @override
   Widget build(BuildContext context) {
-    details = controller.businessProfileDetails?.data;
+    details = controller.businessProfileDetails.value?.data;
 
     final theme = Theme.of(context);
     return Column(
@@ -593,21 +593,21 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     businessDescriptionController
                                         .generateDescriptions(bodyRequest: {
                                       ApiKeys.business_name: controller
-                                          .businessProfileDetails
+                                          .businessProfileDetails.value
                                           ?.data
                                           ?.businessName,
                                       ApiKeys.category: controller
-                                          .businessProfileDetails
+                                          .businessProfileDetails.value
                                           ?.data
                                           ?.categoryDetails
                                           ?.name,
                                       ApiKeys.sub_category: controller
-                                          .businessProfileDetails
+                                          .businessProfileDetails.value
                                           ?.data
                                           ?.subCategoryDetails
                                           ?.name,
                                       ApiKeys.city: controller
-                                          .businessProfileDetails
+                                          .businessProfileDetails.value
                                           ?.data
                                           ?.cityStatePincode,
                                     });
