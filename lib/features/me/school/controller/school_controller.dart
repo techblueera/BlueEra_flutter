@@ -48,7 +48,6 @@ class SchoolController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createSchoolResponse = ApiResponse.initial('Initial').obs;
 
-
 // Inside your GetxController
 
 // Inside your Controller
@@ -107,13 +106,14 @@ class SchoolController extends GetxController {
       print("Error: $e");
     }
   }
+
 // Inside your SchoolController
 //   RxBool isAiLoading = false.obs;
   RxString loadingStatusMessage = "AI is researching...".obs; // Dynamic message
   // RxInt secondsRemaining = 60.obs;
   Timer? _uiTimer;
 
- /* Future<void> aiInstitutionFetchDetailsController__() async {
+  /* Future<void> aiInstitutionFetchDetailsController__() async {
     String school = searchController.text;
     String website = websiteController.text;
 
@@ -182,7 +182,7 @@ class SchoolController extends GetxController {
     Get.back();
     try {
       ResponseModel response =
-      await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
+          await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
         ApiKeys.name: school,
         ApiKeys.url: website,
         ApiKeys.address: school,
@@ -205,19 +205,28 @@ class SchoolController extends GetxController {
     }
   }
 
-
-  Future<void> createSchoolController() async {
+  Future<void> createSchoolController(
+      {required Map<String, dynamic>? reqData}) async {
     // Logic for AI generation goes here
     try {
-      institutionFetchModel?.value.data?.category = businessCategoryGlobal;
-      institutionFetchModel?.value.data?.locationReq = {
-        "name": searchController.text,
-        "type": "Point",
-        "coordinates": [lat.value, lng.value]
-      };
+      // institutionFetchModel?.value.data?.category = businessCategoryGlobal;
+      // institutionFetchModel?.value.data?.locationReq = {
+      //   "name": searchController.text,
+      //   "type": "Point",
+      //   "coordinates": [lat.value, lng.value]
+      // };
 
-      ResponseModel response = await SchoolRepo()
-          .createSchoolRepo(reqBody: (institutionFetchModel?.value.data ?? {}));
+      ResponseModel response = await SchoolRepo().createSchoolRepo(reqBody: {
+        ApiKeys.business_name:   reqData![ApiKeys.business_name],
+        ApiKeys.business_location: reqData[ ApiKeys.business_location],
+        ApiKeys.type_of_business: reqData[ ApiKeys.type_of_business],
+        ApiKeys.nature_of_business: reqData[ ApiKeys.nature_of_business],
+        ApiKeys.date_of_incorporation: reqData[ ApiKeys.date_of_incorporation],
+        ApiKeys.category_Of_Business: reqData[ ApiKeys.category_Of_Business],
+        ApiKeys.sub_category_Of_Business: reqData[ ApiKeys.sub_category_Of_Business],
+        ApiKeys.number_of_Employees: reqData[ ApiKeys.number_of_Employees],
+        ApiKeys.number_of_branch: reqData[ ApiKeys.number_of_branch],
+      });
       if (response.isSuccess) {
         commonSnackBar(message: "School create successfully");
         createSchoolResponse.value =
@@ -236,11 +245,11 @@ class SchoolController extends GetxController {
         await getSchoolID();
         hasSchool.value = schoolIDGlobal.isNotEmpty;
 
-        await controller.updateAboutInfo();
+        // await controller.updateAboutInfo();
 
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
         // Get.offAll(BottomNavigationBarScreen());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

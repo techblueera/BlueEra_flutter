@@ -339,7 +339,7 @@ class Location {
   Location.fromJson(dynamic json) {
     name = json['name'];
     type = json['type'];
-    coordinates = json['coordinates'] != null ? json['coordinates'].cast<double>() : [];
+    coordinates = json['coordinates'] != null ? (json['coordinates'] as List).map((e) => (e as num).toDouble()).toList() : [];
   }
   String? name;
   String? type;

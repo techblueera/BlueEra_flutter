@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -33,213 +32,189 @@ class _FacilityScreenState extends State<FacilityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:  CommonBackAppBar(title: AppStrings.facilities,),
-      body: CommonCardWidget(
-        child: SafeArea(
-          child: Obx(() {
-            return SingleChildScrollView(
-              // padding: EdgeInsets.all(SizeConfig.size16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSwitch(AppStrings.homeSampleCollection.tr,
-                      controller.homeSampleCollection),
-                  _buildSwitch(
-                      AppStrings.wheelchairAssistance.tr, controller.wheelchairAssistance),
-
-                  _buildSwitch(AppStrings.digitalReport.tr,
-                      controller.digitalReport),
-
-                  _buildSwitch(AppStrings.doctorConsultationTieUp.tr,
-                      controller.doctorConsultationTieUp),
-                  _buildSwitch(AppStrings.insuranceCashlessSupport.tr,
-                      controller.insuranceCashlessSupport),
-
-                  _buildSwitch(AppStrings.online_upi_payment,
-                      controller.upiPayment),
-
-                  _buildSwitch(AppStrings.credit_card_payment,
-                      controller.cardPayment),
-                  _buildSwitch(AppStrings.health_checkup_packages,
-                      controller.healthPackage),
-
-                  // SizedBox(height: SizeConfig.size16),
-                  // _buildOtherSection(),
-                  SizedBox(height: SizeConfig.size20),
-                  CustomBtn(
-                    title: AppStrings.save,
-                    isValidate: controller.isValid.value,
-                    isLoading: controller.isLoading.value,
-                    onTap: controller.isValid.value
-                        ? () async {
-                            final ok = await controller.saveFacilities();
-                            if (ok) Get.back();
-                          }
-                        : null,
+      appBar: CommonBackAppBar(title: AppStrings.facilities),
+      body: SafeArea(
+        child: Obx(() {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(SizeConfig.size14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Info Banner ---
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.15)),
                   ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
-/*
-      floatingActionButton: Obx(() {
-        return Visibility(
-          visible: controller.otherEnabled.value,
-          child: FloatingActionButton(
-            onPressed: controller.addOther,
-            child: const Icon(
-              Icons.add,
-              color: AppColors.white,
+                  child: Row(
+                    children: [
+                      Icon(Icons.local_hospital_outlined,
+                          color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: CustomText(
+                          "Toggle the facilities available at your laboratory",
+                          color: AppColors.primaryColor,
+                          fontSize: SizeConfig.small,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size14),
+
+                // --- Core Facilities ---
+                CommonCardWidget(
+                  padding: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionIcon(
+                          Icons.medical_services_outlined,
+                          "Core Facilities",
+                          "Sample collection and reporting",
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSwitch(AppStrings.homeSampleCollection.tr,
+                            controller.homeSampleCollection),
+                        _buildSwitch(AppStrings.digitalReport.tr,
+                            controller.digitalReport),
+                        _buildSwitch(AppStrings.wheelchairAssistance.tr,
+                            controller.wheelchairAssistance),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size14),
+
+                // --- Consultation & Insurance ---
+                CommonCardWidget(
+                  padding: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionIcon(
+                          Icons.health_and_safety_outlined,
+                          "Consultation & Insurance",
+                          "Doctor tie-ups and insurance support",
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSwitch(AppStrings.doctorConsultationTieUp.tr,
+                            controller.doctorConsultationTieUp),
+                        _buildSwitch(AppStrings.insuranceCashlessSupport.tr,
+                            controller.insuranceCashlessSupport),
+                        _buildSwitch(AppStrings.health_checkup_packages,
+                            controller.healthPackage),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size14),
+
+                // --- Payment Options ---
+                CommonCardWidget(
+                  padding: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionIcon(
+                          Icons.payment_outlined,
+                          "Payment Options",
+                          "Accepted payment methods",
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSwitch(AppStrings.online_upi_payment,
+                            controller.upiPayment),
+                        _buildSwitch(AppStrings.credit_card_payment,
+                            controller.cardPayment),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // --- Save ---
+                CustomBtn(
+                  title: AppStrings.save,
+                  isValidate: controller.isValid.value,
+                  isLoading: controller.isLoading.value,
+                  onTap: controller.isValid.value
+                      ? () async {
+                          final ok = await controller.saveFacilities();
+                          if (ok) Get.back();
+                        }
+                      : null,
+                ),
+                SizedBox(height: SizeConfig.size20),
+              ],
             ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _sectionIcon(IconData icon, String title, String subtitle) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-        );
-      }),
-*/
+          child: Icon(icon, color: AppColors.primaryColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(title,
+                  fontWeight: FontWeight.w600, fontSize: SizeConfig.medium),
+              const SizedBox(height: 2),
+              CustomText(subtitle,
+                  color: AppColors.secondaryTextColor,
+                  fontSize: SizeConfig.small),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSwitch(String title, RxBool value) {
-    return CommonCardWidget(
-      padding: 0,
-      cardMargin: 8,
-      borderColorColor: AppColors.whiteE5,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(title,
-                color: AppColors.mainTextColor,),
-            Transform.scale(
-              scale: 0.8,
-              child: Switch(
-                value: value.value,
-                onChanged: (val) {
-                  value.value = val;
-                  controller.validateForm();
-                },
-                activeColor: AppColors.primaryColor,
-              ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: CustomText(title, color: AppColors.mainTextColor),
+          ),
+          Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: value.value,
+              onChanged: (val) {
+                value.value = val;
+                controller.validateForm();
+              },
+              activeColor: AppColors.primaryColor,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildOtherSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(AppStrings.otherFacilities.tr,
-                fontSize: SizeConfig.size14, fontWeight: FontWeight.w600),
-            Row(
-              children: [
-                CustomText(AppStrings.enable.tr,
-                    fontSize: SizeConfig.small, color: AppColors.black28),
-                SizedBox(width: SizeConfig.size8),
-                Obx(() => Transform.scale(
-                      scale: 0.8,
-                      child: Switch(
-                        value: controller.otherEnabled.value,
-                        onChanged: (val) {
-                          controller.otherEnabled.value = val;
-                          if (!val) {
-                            controller.others.clear();
-                            controller.otherLabelCtrls.clear();
-                            controller.otherDetailsCtrls.clear();
-                          }
-                          controller.validateForm();
-                        },
-                        activeColor: AppColors.primaryColor,
-                      ),
-                    )),
-              ],
-            ),
-          ],
-        ),
-        SizedBox(height: SizeConfig.size10),
-        Obx(() {
-          if (!controller.otherEnabled.value) {
-            return CustomText(AppStrings.turnOnCustomFacilities.tr,
-                color: AppColors.black28);
-          }
-          return Column(
-            children: [
-              Column(
-                children: List.generate(controller.others.length, (index) {
-                  return Container(
-                    margin: EdgeInsets.only(bottom: SizeConfig.size10),
-                    padding: EdgeInsets.all(SizeConfig.size12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            CustomText("${AppStrings.facility.tr} ${index + 1}",
-                                fontWeight: FontWeight.w600),
-                            Row(
-                              children: [
-                                CustomText(AppStrings.active.tr,
-                                    fontSize: SizeConfig.small,
-                                    color: AppColors.black28),
-                                SizedBox(width: SizeConfig.size6),
-                                Transform.scale(
-                                  scale: 0.8,
-                                  child: Switch(
-                                    value: controller.others[index].isActive,
-                                    onChanged: (val) => controller
-                                        .toggleOtherActive(index, val),
-                                    activeColor: AppColors.primaryColor,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () =>
-                                      controller.removeOther(index),
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: Colors.red),
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: SizeConfig.size10),
-                        CommonTextField(
-                          title: AppStrings.label.tr,
-                          hintText: AppStrings.egPickupDrop.tr,
-                          textEditController: controller.otherLabelCtrls[index],
-                          onChange: (_) => controller.updateOtherText(index),
-                        ),
-                        SizedBox(height: SizeConfig.size10),
-                        CommonTextField(
-                          title: AppStrings.details.tr,
-                          hintText: AppStrings.describeTheFacility.tr,
-                          textEditController:
-                              controller.otherDetailsCtrls[index],
-                          maxLine: 3,
-                          onChange: (_) => controller.updateOtherText(index),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-              PositiveCustomBtn(onTap: controller.addOther, title: AppStrings.addMore)
-            ],
-          );
-        }),
-      ],
     );
   }
 }

@@ -142,11 +142,12 @@ class HospitalServiceAiController extends GetxController {
     }
   }
 
-  Future<void> createHospitalServiceController() async {
+  Future<void> createHospitalServiceController(  {required Map<String, dynamic>? reqData}) async {
     try {
       aiHospitalResModel?.value.data?.category = businessCategoryGlobal;
       ResponseModel response = await hospitalServiceRepo.createHospitalRepo(
-          reqBody: {"aiOutput": aiHospitalResModel?.value.data});
+          reqBody: {"aiOutput": reqData});
+          // reqBody: {"aiOutput": aiHospitalResModel?.value.data});
       if (response.isSuccess) {
         commonSnackBar(message: "Hospital Service Created successfully");
 
@@ -160,9 +161,9 @@ class HospitalServiceAiController extends GetxController {
         await getHospitalID();
         await Future.delayed(Duration(milliseconds: 200));
         hasHospitalCreated.value = true;
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

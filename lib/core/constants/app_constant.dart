@@ -304,10 +304,12 @@ class AppConstants {
   static const healthcareMedicalServices = "Healthcare & Medical Services";
   static const hostelsStayService = "Hostels & Stay Service";
   static const HOSPITALS = "HOSPITAL SECTOR";
+  static const HOSPITALS_SECTOR = "HOSPITAL_SECTOR";
   static const wellness = "ALTERNATIVE WELLNESS";
   static const clinic = "CLINIC DOCTORS";
   static const MEDICAL_EDUCATION_INSTITUTIONS =
       "Medical Education Institutions";
+  static const DIAGNOSTIC_TESTING_CENTERSWith_ = "DIAGNOSTIC_SECTOR";
   static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC SECTOR";
   static const INSTRUMENTS_PHARMACY = "Instruments Pharmacy";
 

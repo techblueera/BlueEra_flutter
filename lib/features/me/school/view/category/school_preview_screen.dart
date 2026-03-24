@@ -60,7 +60,7 @@ class SchoolPreviewScreen extends StatelessWidget {
                 SizedBox(height: 20),
                 PositiveCustomBtn(
                     onTap: () async {
-                      await controller.createSchoolController();
+                      // await controller.createSchoolController();
                     },
                     title: AppStrings.createSchool),
                 SizedBox(height: 50),

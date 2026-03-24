@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -25,6 +26,9 @@ import 'package:BlueEra/features/common/auth/model/single_business_category_resp
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -52,13 +56,14 @@ class AuthController extends GetxController {
   RxString isOtpType = "".obs;
   RxString errorMessage = "".obs;
   RxString categorySpecializationText = ''.obs;
-  RxBool isSearchOpen=false.obs;
+  RxBool isSearchOpen = false.obs;
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 
   RxString selectedParentSlug = AppConstants.individual.obs;
-  Rxn<OnboardingCategoryModel> selectedIndividualOnboardingProfile = Rxn<OnboardingCategoryModel>();
-  Rxn<OnboardingCategoryModel> selectedBusinessOnboardingProfile = Rxn<OnboardingCategoryModel>();
-
+  Rxn<OnboardingCategoryModel> selectedIndividualOnboardingProfile =
+      Rxn<OnboardingCategoryModel>();
+  Rxn<OnboardingCategoryModel> selectedBusinessOnboardingProfile =
+      Rxn<OnboardingCategoryModel>();
 
   RxBool isAppLoading = false.obs;
 
@@ -126,11 +131,13 @@ class AuthController extends GetxController {
       commonSnackBar(message: e.toString());
     }
   }
+
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
     String? token;
     try {
-      token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
+      token = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.notificationDeviceToken);
       Map<String, dynamic> requestData = {
         ApiKeys.contact_no: mobileNumberEditController.text,
         ApiKeys.otp: otp,
@@ -183,13 +190,12 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.accountType, AppConstants.individual);
               await getUserLoginAccountType();
 
-
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.authToken, data.token);
 
               await getUserAuthToken();
               final personalController =
-              Get.put(ViewPersonalDetailsController(), permanent: true);
+                  Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
             }
 
@@ -261,7 +267,8 @@ class AuthController extends GetxController {
           await getUserAuthToken();
 
           commonSnackBar(message: response.message ?? AppStrings.success);
-          final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
+          final personalController =
+              Get.put(ViewPersonalDetailsController(), permanent: true);
           await personalController.viewPersonalProfile();
 
           final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];
@@ -276,7 +283,9 @@ class AuthController extends GetxController {
               ApiKeys.argSelectedMonth: dobMap[ApiKeys.month],
               ApiKeys.argSelectedYear: dobMap[ApiKeys.year]
             },
-            (route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute(),
+            (route) =>
+                route.settings.name ==
+                RouteHelper.getBottomNavigationBarScreenRoute(),
           );
 
           // Get.offNamedUntil(
@@ -301,11 +310,12 @@ class AuthController extends GetxController {
   }
 
   RxBool isAddBusinessUserLoading = false.obs;
+
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
     try {
       isAddBusinessUserLoading.value = true;
-      ResponseModel response =
-          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData, showProgress: false);
+      ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
+          bodyRequest: reqData, showProgress: false);
       if (response.isSuccess) {
         GuestUserResModel guestUserResModel =
             GuestUserResModel.fromJson(response.response?.data);
@@ -328,10 +338,68 @@ class AuthController extends GetxController {
               Get.put(ViewBusinessDetailsController());
           await viewProfileController.viewBusinessProfile();
 
+          logs(
+              " ApiKeys.category_Of_Business = ${reqData![ApiKeys.type_of_business]}");
+          logs(
+              " ApiKeys.ApiKeys.sub_category_Of_Business = ${reqData[ApiKeys.sub_category_Of_Business]}");
+          logs(
+              " ApiKeys.category_Of_Business = ${reqData[ApiKeys.category_Of_Business]}");
+          String typeOfBusiness =
+              reqData[ApiKeys.type_of_business].toString().toUpperCase();
+
+          ///FOR SCHOOL....
+          if (typeOfBusiness == BusinessType.Siksha.name.toUpperCase()) {
+            final controller = getOrPut(() => SchoolController());
+            await controller.createSchoolController(reqData: reqData);
+          }
+
+          ///FOR LAB....
+
+          else if (reqData[ApiKeys.category_Of_Business]
+                  .toString()
+                  .toUpperCase() ==
+              AppConstants.DIAGNOSTIC_TESTING_CENTERSWith_.toUpperCase()) {
+            final controller = getOrPut(() => LabServiceAiController());
+            await controller.createLabServiceController(reqData: {
+              ApiKeys.business_name: reqData[ApiKeys.business_name],
+              ApiKeys.business_location: reqData[ApiKeys.business_location],
+              ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
+              ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
+              ApiKeys.date_of_incorporation:
+                  reqData[ApiKeys.date_of_incorporation],
+              ApiKeys.category_Of_Business:
+                  reqData[ApiKeys.category_Of_Business],
+              ApiKeys.sub_category_Of_Business:
+                  reqData[ApiKeys.sub_category_Of_Business],
+              ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
+              ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
+            });
+          }
+
+          else if (reqData[ApiKeys.category_Of_Business]
+                  .toString()
+                  .toUpperCase() ==
+              AppConstants.HOSPITALS_SECTOR.toUpperCase()) {
+            final controller = getOrPut(() => HospitalServiceAiController());
+            await controller.createHospitalServiceController(reqData: {
+              ApiKeys.business_name: reqData[ApiKeys.business_name],
+              ApiKeys.business_location: reqData[ApiKeys.business_location],
+              ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
+              ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
+              ApiKeys.date_of_incorporation:
+                  reqData[ApiKeys.date_of_incorporation],
+              ApiKeys.category_Of_Business:
+                  reqData[ApiKeys.category_Of_Business],
+              ApiKeys.sub_category_Of_Business:
+                  reqData[ApiKeys.sub_category_Of_Business],
+              ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
+              ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
+            });
+          }
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
-          clearAllData();
           addUserResponse = ApiResponse.complete(response);
+          clearAllData();
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }
@@ -343,7 +411,7 @@ class AuthController extends GetxController {
       logs("ERRPR $e");
       addUserResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally{
+    } finally {
       isAddBusinessUserLoading.value = false;
     }
   }
@@ -395,8 +463,7 @@ class AuthController extends GetxController {
         isHaveGstApprove.value = true;
         businessNameTextController.text =
             gstVerifyModel?.value.data?.tradeName ?? "";
-        businessName.value =
-            gstVerifyModel?.value.data?.tradeName ?? "";
+        businessName.value = gstVerifyModel?.value.data?.tradeName ?? "";
         // Get.toNamed(RouteHelper.getBusinessAccountRoute());
 
         Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
@@ -498,8 +565,6 @@ class AuthController extends GetxController {
     subCategorySpecializationTextController.clear();
   }
 
-
-
   ///USER BLOCK(PARTIAL AND FULL)...
   Future<void> userBlocked(
       {required bool isPartialBlocked, required String otherUserId}) async {
@@ -557,17 +622,16 @@ class AuthController extends GetxController {
     } catch (e) {
       professionListingResponse = ApiResponse.error('error');
       update();
-    }finally{
+    } finally {
       isProfessionLoading.value = false;
     }
   }
 
-clearSubCategoryData()
-{
-  subcategoriesFiledNameList.clear();
-  update();
+  clearSubCategoryData() {
+    subcategoriesFiledNameList.clear();
+    update();
+  }
 
-}
   ///Add User...
   Future<void> createGuestAccountUserController(
       {required Map<String, dynamic> reqData}) async {
@@ -624,7 +688,6 @@ clearSubCategoryData()
   //     isAppLoading.value = false;
   //   }
   // }
-
 
   // RxBool isIndividualProfessionLoading = false.obs;
   // Future<void> getAllIndividualProfessionController() async {
@@ -782,13 +845,16 @@ clearSubCategoryData()
   RxBool isBusinessSubCategoriesLoading = false.obs;
   List<SubCategories> businessSubCategoriesList = [];
   Rxn<String> subCategoryErrorMessage = Rxn<String>();
-  Future<void> fetchBusinessSubCategories({required String categorySlugId}) async {
+
+  Future<void> fetchBusinessSubCategories(
+      {required String categorySlugId}) async {
     try {
       isBusinessSubCategoriesLoading.value = true;
       businessSubCategoriesList.clear();
       subCategoryErrorMessage.value = null;
 
-      final response = await AuthRepo().getBusinessSubCategoriesRepo(tagId: categorySlugId);
+      final response =
+          await AuthRepo().getBusinessSubCategoriesRepo(tagId: categorySlugId);
 
       if (!response.isSuccess) {
         subCategoryErrorMessage.value = response.message;
@@ -799,14 +865,15 @@ clearSubCategoryData()
       }
 
       final jsonData = response.response?.data;
-      final businessCategoryModel = SingleBusinessCategoryModelResponse.fromJson(jsonData);
+      final businessCategoryModel =
+          SingleBusinessCategoryModelResponse.fromJson(jsonData);
       businessSubCategoriesList = businessCategoryModel.subCategories ?? [];
 
       businessSubCategoryResponse.value = ApiResponse.complete(response);
     } catch (e) {
       subCategoryErrorMessage.value = e.toString();
       businessSubCategoryResponse.value = ApiResponse.error('error');
-    }finally{
+    } finally {
       isBusinessSubCategoriesLoading.value = false;
     }
   }
@@ -814,13 +881,16 @@ clearSubCategoryData()
   RxBool isBusinessCategoriesLoading = false.obs;
   List<BusinessCategory> businessCategoriesList = [];
   Rxn<String> categoryErrorMessage = Rxn<String>();
-  Future<void> fetchBusinessCategoriesByType({required BusinessType businessTpe}) async {
+
+  Future<void> fetchBusinessCategoriesByType(
+      {required BusinessType businessTpe}) async {
     try {
       isBusinessCategoriesLoading.value = true;
       businessCategoriesList.clear();
       categoryErrorMessage.value = null;
 
-      final response = await AuthRepo().fetchBusinessCategoriesByTypeRepo(businessType: businessTpe.name);
+      final response = await AuthRepo()
+          .fetchBusinessCategoriesByTypeRepo(businessType: businessTpe.name);
 
       if (!response.isSuccess) {
         categoryErrorMessage.value = response.message;
@@ -831,14 +901,16 @@ clearSubCategoryData()
       }
 
       final jsonData = response.response?.data;
-      final businessCategoryResponseModel = BusinessCategoryResponseModel.fromJson(jsonData);
-      businessCategoriesList = businessCategoryResponseModel.businessCategory ?? [];
+      final businessCategoryResponseModel =
+          BusinessCategoryResponseModel.fromJson(jsonData);
+      businessCategoriesList =
+          businessCategoryResponseModel.businessCategory ?? [];
 
       businessCategoryResponse = ApiResponse.complete(response);
     } catch (e) {
       categoryErrorMessage.value = e.toString();
       businessCategoryResponse = ApiResponse.error('error');
-    }finally{
+    } finally {
       isBusinessCategoriesLoading.value = false;
     }
   }
@@ -846,9 +918,8 @@ clearSubCategoryData()
   RxBool isIndividualFieldLoading = false.obs;
   RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
   RxList<SubCategories> arrIndividualSubCategories = <SubCategories>[].obs;
-  Future<void> fetchIndividualFields({
-    required String tagId
-  }) async {
+
+  Future<void> fetchIndividualFields({required String tagId}) async {
     try {
       isIndividualFieldLoading.value = true;
       arrIndividualFields.clear();
@@ -860,8 +931,10 @@ clearSubCategoryData()
 
       if (response.isSuccess) {
         contentCreatorFieldResponse.value = ApiResponse.complete(response);
-        final individualFieldsResponseModel = IndividualFieldsResponseModel.fromJson(response.response?.data);
-        arrIndividualFields.value = individualFieldsResponseModel.data?.fields ?? [];
+        final individualFieldsResponseModel =
+            IndividualFieldsResponseModel.fromJson(response.response?.data);
+        arrIndividualFields.value =
+            individualFieldsResponseModel.data?.fields ?? [];
       } else {
         contentCreatorFieldResponse.value = ApiResponse.error('error');
       }
@@ -878,7 +951,6 @@ clearSubCategoryData()
   List<ProfessionTypeData> individualOnboardingSkillWorkList = [];
   List<ProfessionTypeData> individualOnboardingConsultationList = [];
 
-
   Future<void> getAllIndividualProfession() async {
     try {
       isProfessionLoading.value = true;
@@ -889,24 +961,24 @@ clearSubCategoryData()
       if (responseModel.isSuccess) {
         professionListingResponse = ApiResponse.complete(responseModel);
         final data = responseModel.response?.data;
-        professionTypeDataList = PersonalProfessionModel.fromJson(data).data ?? [];
+        professionTypeDataList =
+            PersonalProfessionModel.fromJson(data).data ?? [];
         updateIndividualCategoriesFromApi(professionTypeDataList);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         professionListingResponse = ApiResponse.error('error');
-
       }
     } catch (e) {
       professionListingResponse = ApiResponse.error('error');
       update();
-    }finally{
+    } finally {
       isProfessionLoading.value = false;
     }
   }
 
-  void updateIndividualCategoriesFromApi(List<ProfessionTypeData> categoryData) {
-
+  void updateIndividualCategoriesFromApi(
+      List<ProfessionTypeData> categoryData) {
     individualOnboardingSocialProfileList.clear();
     individualOnboardingGigWorkList.clear();
     individualOnboardingSkillWorkList.clear();
@@ -918,7 +990,8 @@ clearSubCategoryData()
 
       switch (apiType) {
         case 'Social Profile':
-          apiCategory.individualProfileType = IndividualProfileType.SOCIAL_PROFILE;
+          apiCategory.individualProfileType =
+              IndividualProfileType.SOCIAL_PROFILE;
           individualOnboardingSocialProfileList.add(apiCategory);
           break;
         case 'GigWork':
@@ -926,11 +999,13 @@ clearSubCategoryData()
           individualOnboardingGigWorkList.add(apiCategory);
           break;
         case 'Self Employed':
-          apiCategory.individualProfileType = IndividualProfileType.SELF_EMPLOYED;
+          apiCategory.individualProfileType =
+              IndividualProfileType.SELF_EMPLOYED;
           individualOnboardingSkillWorkList.add(apiCategory);
           break;
         case 'Professional':
-          apiCategory.individualProfileType = IndividualProfileType.PROFESSIONAL;
+          apiCategory.individualProfileType =
+              IndividualProfileType.PROFESSIONAL;
           individualOnboardingConsultationList.add(apiCategory);
           break;
       }
@@ -943,7 +1018,6 @@ clearSubCategoryData()
 - Skill Work:  ${individualOnboardingSkillWorkList.length}
 - Consultation:     ${individualOnboardingConsultationList.length}
   ''');
-
   }
 
   RxBool isAllBusinessCategoriesLoading = false.obs;
@@ -972,18 +1046,18 @@ clearSubCategoryData()
       }
 
       final jsonData = response.response?.data;
-      List<CategoryData> businessCategories = CategoryModel.fromJson(jsonData).data ?? [];
+      List<CategoryData> businessCategories =
+          CategoryModel.fromJson(jsonData).data ?? [];
       updateBusinessCategoriesFromApi(businessCategories);
       businessCategoryResponse = ApiResponse.complete(response);
     } catch (e) {
       businessCategoryResponse = ApiResponse.error('error');
-    }finally{
+    } finally {
       isAllBusinessCategoriesLoading.value = false;
     }
   }
 
   void updateBusinessCategoriesFromApi(List<CategoryData> categoryData) {
-
     businessOnboardingServicesCategories.clear();
     businessOnboardingProductsCategories.clear();
     businessOnboardingGroceriesCategories.clear();
@@ -1052,7 +1126,5 @@ clearSubCategoryData()
 - Healthcare: ${businessOnboardingHealthcareSectorsCategories.length}
 - Finance:  ${businessOnboardingFinancialSectorsCategories.length}
   ''');
-
   }
-
 }
