@@ -83,36 +83,99 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
 
           BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size8,
-              vertical: SizeConfig.size15
-            ),
-            child: Column(
-              children: [
-                _groceryHeaderWidget(businessProfileDetails),
-
-                if(controller.groceryBusinessProductsList.isNotEmpty)
-                  _topSellingProduct(),
-
-                SizedBox(
-                  height: SizeConfig.paddingM,
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size8,
+                  vertical: SizeConfig.size15
                 ),
+                child: Column(
+                  children: [
+                    _groceryHeaderWidget(businessProfileDetails),
 
-                _categoryWithInventoryWidget(businessProfileDetails),
+                    if(controller.groceryBusinessProductsList.isNotEmpty)
+                      _topSellingProduct(),
 
-                SizedBox(
-                  height: SizeConfig.paddingM,
+                    SizedBox(
+                      height: SizeConfig.paddingM,
+                    ),
+
+                    _categoryWithInventoryWidget(businessProfileDetails),
+
+                    SizedBox(
+                      height: SizeConfig.paddingM,
+                    ),
+
+                    _buildContactNdMapCard(businessProfileDetails),
+
+                    SizedBox(
+                      height: SizeConfig.size100,
+                    ),
+
+                  ],
                 ),
-
-                _buildContactNdMapCard(businessProfileDetails),
-
-                SizedBox(
-                  height: SizeConfig.size100,
-                ),
-
-              ],
-            ),
+              ),
+              Obx(() {
+                final int itemCount = groceryCustomerController.selectedGroceriesVariants.length;
+                if (itemCount == 0) return const SizedBox.shrink();
+                return Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 20,
+                  child: GestureDetector(
+                    onTap: () {
+                      // Navigate to cart
+                      Get.toNamed(RouteHelper.getGroceryCartScreenRoute());
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: CustomText(
+                              '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                              fontSize: 13,
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          CustomText(
+                            'View Cart',
+                            fontSize: 16,
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: AppColors.white,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              })
+            ],
           );
         }
         )
