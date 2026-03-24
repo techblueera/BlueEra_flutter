@@ -1,9 +1,12 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -30,27 +33,27 @@ class JobPost {
 
   factory JobPost.fromJson(Map<String, dynamic> json) {
     return JobPost(
-      jobTitle:      json['job_title'],
-      companyName:   json['company_name'],
-      companyLogo:   json['company_logo'],
-      posterImage:   json['poster_image'],
-      jobType:       json['job_type'],
+      jobTitle: json['job_title'],
+      companyName: json['company_name'],
+      companyLogo: json['company_logo'],
+      posterImage: json['poster_image'],
+      jobType: json['job_type'],
       minExperience: json['min_experience'],
-      salaryRange:   json['salary_range'],
-      location:      json['location'],
+      salaryRange: json['salary_range'],
+      location: json['location'],
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'job_title':      jobTitle,
-    'company_name':   companyName,
-    'company_logo':   companyLogo,
-    'poster_image':   posterImage,
-    'job_type':       jobType,
-    'min_experience': minExperience,
-    'salary_range':   salaryRange,
-    'location':       location,
-  };
+        'job_title': jobTitle,
+        'company_name': companyName,
+        'company_logo': companyLogo,
+        'poster_image': posterImage,
+        'job_type': jobType,
+        'min_experience': minExperience,
+        'salary_range': salaryRange,
+        'location': location,
+      };
 }
 
 class CareerJobsWidget extends StatelessWidget {
@@ -74,7 +77,6 @@ class CareerJobsWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // ─── Header ───
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -103,7 +105,7 @@ class CareerJobsWidget extends StatelessWidget {
           // ─── Content ───
           hasJobs
               ? _buildJobCard(jobs!.first, context)
-              : _buildEmptyState(context),
+              : _buildEmptyState(_dummyJob, context),
         ],
       ),
     );
@@ -111,42 +113,40 @@ class CareerJobsWidget extends StatelessWidget {
 
   // ─── Job Card ───
   Widget _buildJobCard(JobPost job, BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.greyE5),
-        boxShadow: [AppShadows.textFieldShadow],
-      ),
+    return CustomFormCard(
+      padding: EdgeInsets.all(10),
+      border: Border.all(color: AppColors.greyE5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // ─── Top Row: Poster + Company Info ───
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-
                 // Job poster image
                 ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft:     Radius.circular(12),
-                    bottomLeft:  Radius.circular(12),
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
                   ),
                   child: CachedNetworkImage(
-                    imageUrl:    job.posterImage ?? '',
-                    width:       SizeConfig.size110,
-                    fit:         BoxFit.cover,
+                    imageUrl: job.posterImage ?? '',
+                    width: SizeConfig.size110,
+                    fit: BoxFit.cover,
                     placeholder: (_, __) => Container(
                       width: SizeConfig.size110,
                       color: const Color(0xFFFDD835),
-                      child: Center(child: Icon(Icons.work_outline, color: Colors.white, size: 32)),
+                      child: Center(
+                          child: Icon(Icons.work_outline,
+                              color: Colors.white, size: 32)),
                     ),
                     errorWidget: (_, __, ___) => Container(
                       width: SizeConfig.size110,
                       color: const Color(0xFFFDD835),
-                      child: Center(child: Icon(Icons.work_outline, color: Colors.white, size: 32)),
+                      child: Center(
+                          child: Icon(Icons.work_outline,
+                              color: Colors.white, size: 32)),
                     ),
                   ),
                 ),
@@ -158,29 +158,35 @@ class CareerJobsWidget extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         // Company logo + name
                         Row(
                           children: [
                             Container(
-                              width: 32, height: 32,
+                              width: 32,
+                              height: 32,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: job.companyLogo?.isNotEmpty == true
                                   ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CachedNetworkImage(imageUrl: job.companyLogo!, fit: BoxFit.cover),
-                              )
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                          imageUrl: job.companyLogo!,
+                                          fit: BoxFit.cover),
+                                    )
                                   : Center(
-                                child: CustomText(
-                                  job.companyName?.substring(0, 1).toUpperCase() ?? 'B',
-                                  fontSize: SizeConfig.medium,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
+                                      child: CustomText(
+                                        job.companyName
+                                                ?.substring(0, 1)
+                                                .toUpperCase() ??
+                                            'B',
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primaryColor,
+                                      ),
+                                    ),
                             ),
                             SizedBox(width: SizeConfig.size8),
                             Expanded(
@@ -209,12 +215,14 @@ class CareerJobsWidget extends StatelessWidget {
                           ],
                         ),
 
-                        Divider(color: AppColors.greyE5, height: SizeConfig.size16),
+                        Divider(
+                            color: AppColors.greyE5, height: SizeConfig.size16),
 
                         // Job details list
                         _buildJobDetail('Job type', job.jobType ?? '--'),
                         SizedBox(height: SizeConfig.size4),
-                        _buildJobDetail('Min Experience', job.minExperience ?? '--'),
+                        _buildJobDetail(
+                            'Min Experience', job.minExperience ?? '--'),
                         SizedBox(height: SizeConfig.size4),
                         _buildJobDetail('Monthly Pay', job.salaryRange ?? '--'),
                         SizedBox(height: SizeConfig.size4),
@@ -228,6 +236,217 @@ class CareerJobsWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // ─── Dummy data for empty state ───
+  static const _dummyJob = JobPost(
+    jobTitle: 'Data Entry Operator',
+    companyName: 'BlueCs Limited',
+    companyLogo: '',
+    posterImage: '',
+    jobType: 'Full Time - On Site',
+    minExperience: '5 yrs',
+    salaryRange: '15,000 to 20,000',
+    location: 'Gomti Nagar, Lucknow',
+  );
+
+  // ─── Empty State — dummy card with overlay ───
+  Widget _buildEmptyState(JobPost job, BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CustomFormCard(
+          padding: EdgeInsets.all(10),
+          border: Border.all(color: AppColors.greyE5),
+          child:    Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ─── Top Row: Poster + Company Info ───
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Job poster image
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomLeft: Radius.circular(12),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: job.posterImage ?? '',
+                        width: SizeConfig.size110,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          width: SizeConfig.size110,
+                          color: const Color(0xFFFDD835),
+                          child: Center(
+                              child: Icon(Icons.work_outline,
+                                  color: Colors.white, size: 32)),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          width: SizeConfig.size110,
+                          color: const Color(0xFFFDD835),
+                          child: Center(
+                              child: Icon(Icons.work_outline,
+                                  color: Colors.white, size: 32)),
+                        ),
+                      ),
+                    ),
+
+                    // Job details
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(SizeConfig.size10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Company logo + name
+                            Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryColor
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: job.companyLogo?.isNotEmpty == true
+                                      ? ClipRRect(
+                                    borderRadius:
+                                    BorderRadius.circular(8),
+                                    child: CachedNetworkImage(
+                                        imageUrl: job.companyLogo!,
+                                        fit: BoxFit.cover),
+                                  )
+                                      : Center(
+                                    child: CustomText(
+                                      job.companyName
+                                          ?.substring(0, 1)
+                                          .toUpperCase() ??
+                                          'B',
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: SizeConfig.size8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        job.jobTitle ?? '',
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.mainTextColor,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      CustomText(
+                                        job.companyName ?? '',
+                                        fontSize: SizeConfig.small,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.secondaryTextColor,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            Divider(
+                                color: AppColors.greyE5,
+                                height: SizeConfig.size16),
+
+                            // Job details list
+                            _buildJobDetail('Job type', job.jobType ?? '--'),
+                            SizedBox(height: SizeConfig.size4),
+                            _buildJobDetail(
+                                'Min Experience', job.minExperience ?? '--'),
+                            SizedBox(height: SizeConfig.size4),
+                            _buildJobDetail(
+                                'Monthly Pay', job.salaryRange ?? '--'),
+                            SizedBox(height: SizeConfig.size4),
+                            _buildJobDetail(
+                                'Job Location', job.location ?? '--'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Blur overlay
+        Positioned.fill(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10.0),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: AppColors.black.withValues(alpha: 0.5),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LocalAssets(
+                      imagePath: AppImageAssets.noMeContent,
+                      height: SizeConfig.size60,
+                      width: SizeConfig.size60,
+                    ),
+                    const SizedBox(height: 6.0),
+                    CustomText(
+                      'You Have Not Post\nAny Job',
+                      fontSize: SizeConfig.extraSmall,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10.0),
+                    // Glassmorphism button
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6.0),
+                      child: BackdropFilter(
+                        filter:
+                        ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 6.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            color:
+                            AppColors.primaryColor,
+                            border: Border.all(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                          child: CustomText(
+                            'Post Now',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -254,77 +473,6 @@ class CareerJobsWidget extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // ─── Empty State ───
-  Widget _buildEmptyState(BuildContext context) {
-    return InkWell(
-      onTap: onAddJob,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.size24),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.2),
-            width: 1.5,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 56, height: 56,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.work_outline_rounded, color: AppColors.primaryColor, size: 28),
-            ),
-            SizedBox(height: SizeConfig.size12),
-            CustomText(
-              'No Job Posts Yet',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            SizedBox(height: SizeConfig.size4),
-            CustomText(
-              'Post a job to find the right candidate',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: SizeConfig.size14),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.add_rounded, color: Colors.white, size: 16),
-                  SizedBox(width: SizeConfig.size4),
-                  CustomText(
-                    'Post a Job',
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

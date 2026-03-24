@@ -1,7 +1,4 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -12,10 +9,8 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_home_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_service_not_create_screen.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -217,31 +212,31 @@ class _InventoryScreenState extends State<InventoryScreen>
       //     ),
       //   ),
       // ),
-      backgroundColor: AppColors.whiteF3,
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(
-            bottom: widget.fromBottomNavBar
-                ? kBottomNavigationBarHeight + SizeConfig.size20
-                : 0.0),
-        child: FloatingActionButton(
-          onPressed: () async {
-            await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
-              ApiKeys.id: businessId,
-              ApiKeys.providerType: ProviderType.business
-            });
-            inventoryController.callApi(forceRefresh: true);
-          },
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            Icons.add,
-            size: SizeConfig.size36,
-          ),
-        ),
-      ),
+
+      // floatingActionButton: Padding(
+      //   padding: EdgeInsets.only(
+      //       bottom: widget.fromBottomNavBar
+      //           ? kBottomNavigationBarHeight + SizeConfig.size20
+      //           : 0.0),
+      //   child: FloatingActionButton(
+      //     onPressed: () async {
+      //       await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
+      //         ApiKeys.id: businessId,
+      //         ApiKeys.providerType: ProviderType.business
+      //       });
+      //       inventoryController.callApi(forceRefresh: true);
+      //     },
+      //     backgroundColor: AppColors.primaryColor,
+      //     foregroundColor: Colors.white,
+      //     shape: RoundedRectangleBorder(
+      //       borderRadius: BorderRadius.circular(10),
+      //     ),
+      //     child: Icon(
+      //       Icons.add,
+      //       size: SizeConfig.size36,
+      //     ),
+      //   ),
+      // ),
       body: SafeArea(
         child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -411,10 +406,23 @@ class _InventoryScreenState extends State<InventoryScreen>
           offset: const Offset(-6, 36),
           color: AppColors.white,
           elevation: 8,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           icon: Icon(Icons.more_vert),
           itemBuilder: (context) => inventoryPopupMenuItems(),
+          onSelected: (String value) async {
+            switch (value) {
+              case "ADD_PRODUCT":
+                await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
+                  ApiKeys.id: businessId,
+                  ApiKeys.providerType: ProviderType.business
+                });
+                inventoryController.callApi(forceRefresh: true);                break;
+
+              case "BUSINESS_CARDS":
+                Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());
+                break;
+            }
+          },
         ),
       ],
     );

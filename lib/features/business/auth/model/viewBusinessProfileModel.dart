@@ -1,4 +1,5 @@
 import 'package:BlueEra/features/business/auth/model/ReleatedStoresList.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 
 class ViewBusinessProfileModel {
   ViewBusinessProfileModel({
@@ -74,6 +75,7 @@ class BusinessProfileDetails {
       this.specification,
       this.avg_rating,
       this.userContactNo,
+      this.availability,
   });
 
   BusinessProfileDetails.fromJson(dynamic json) {
@@ -133,7 +135,7 @@ class BusinessProfileDetails {
     }
     specification = json['specification'];
     userContactNo = json['userContactNo'];
-
+    availability = json['availability'] != null ? AvailabilityData.fromJson(json['availability']) : null;
   }
 
   DateOfIncorporation? dateOfIncorporation;
@@ -177,7 +179,7 @@ class BusinessProfileDetails {
   num? avg_rating;
   num? total_ratings;
   String? userContactNo;
-
+  AvailabilityData? availability;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -237,6 +239,9 @@ class BusinessProfileDetails {
       map['business_number'] = this.businessNumber!.toJson();
     }
     map['userContactNo']=userContactNo;
+    if (availability != null) {
+      map['availability'] = availability?.toJson();
+    }
     return map;
   }
 

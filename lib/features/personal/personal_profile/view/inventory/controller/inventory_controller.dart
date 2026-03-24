@@ -406,10 +406,10 @@ class InventoryController extends GetxController {
          //    ?? viewIndivi dualProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
       }
       else{
-         businessLat = viewProfileController.businessProfileDetails?.data?.businessLocation?.lat ?? LocationService.lat;
-         businessLng = viewProfileController.businessProfileDetails?.data?.businessLocation?.lon ?? LocationService.lng ;
-         categoryId = viewProfileController.businessProfileDetails?.data?.categoryDetails?.id
-            ?? viewProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
+         businessLat = viewProfileController.businessProfileDetails.value?.data?.businessLocation?.lat ?? LocationService.lat;
+         businessLng = viewProfileController.businessProfileDetails.value?.data?.businessLocation?.lon ?? LocationService.lng ;
+         categoryId = viewProfileController.businessProfileDetails.value?.data?.categoryDetails?.id
+            ?? viewProfileController.businessProfileDetails.value?.data?.subCategoryDetails?.id ?? '';
 
       }
 

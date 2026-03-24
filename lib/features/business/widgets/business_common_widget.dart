@@ -122,7 +122,7 @@ void openOwnerEditSheet({
 void openBusinessDetailsEditSheet(BuildContext context) {
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  final data = viewBusinessDetailsController.businessProfileDetails?.data;
+  final data = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
   viewBusinessDetailsController.shopOpenTime.value =
       data?.openTime?.toString() ?? '';
@@ -132,7 +132,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
   // Controllers prSizeOfBusiness? selectedBusiness;e-filled with existing data
   TextEditingController specializationCtrl = TextEditingController(
     text: viewBusinessDetailsController
-            .businessProfileDetails?.data?.specification ??
+            .businessProfileDetails.value?.data?.specification ??
         '',
   );
   NatureOfBusiness? selectedBusiness;
@@ -146,25 +146,25 @@ void openBusinessDetailsEditSheet(BuildContext context) {
   }
 
   selectedBusiness = getBusinessFromString(viewBusinessDetailsController
-      .businessProfileDetails?.data?.natureOfBusiness);
+      .businessProfileDetails.value?.data?.natureOfBusiness);
 
   final subCategoryTextController = TextEditingController(
       text: viewBusinessDetailsController
-              .businessProfileDetails?.data?.category_other ??
+              .businessProfileDetails.value?.data?.category_other ??
           "");
   viewBusinessDetailsController.selectedCategory.value = CategoryData(
       id: viewBusinessDetailsController
-          .businessProfileDetails?.data?.categoryDetails?.id,
+          .businessProfileDetails.value?.data?.categoryDetails?.id,
       name: viewBusinessDetailsController
-          .businessProfileDetails?.data?.categoryDetails?.name);
+          .businessProfileDetails.value?.data?.categoryDetails?.name);
   viewBusinessDetailsController.selectedSubCategory.value = SubCategories(
       sId: viewBusinessDetailsController
-          .businessProfileDetails?.data?.subCategoryDetails?.id,
+          .businessProfileDetails.value?.data?.subCategoryDetails?.id,
       name: viewBusinessDetailsController
-          .businessProfileDetails?.data?.subCategoryDetails?.name);
+          .businessProfileDetails.value?.data?.subCategoryDetails?.name);
 
   final typeFromApi = viewBusinessDetailsController
-      .businessProfileDetails?.data?.typeOfBusiness;
+      .businessProfileDetails.value?.data?.typeOfBusiness;
 
   final selectedCategory = getBusinessCategoryFromType(
     typeFromApi,

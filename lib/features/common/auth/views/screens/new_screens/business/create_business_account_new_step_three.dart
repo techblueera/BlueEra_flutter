@@ -63,18 +63,18 @@ class _CreateBusinessAccountNewStepThreeState
         bodyRequest: {
           ApiKeys.business_name:
           viewBusinessDetailsController
-              .businessProfileDetails
+              .businessProfileDetails.value
               ?.data
               ?.businessName,
           ApiKeys.category:
           viewBusinessDetailsController
-              .businessProfileDetails
+              .businessProfileDetails.value
               ?.data
               ?.categoryDetails
               ?.name,
           ApiKeys.sub_category:
           viewBusinessDetailsController
-              .businessProfileDetails
+              .businessProfileDetails.value
               ?.data
               ?.subCategoryDetails
               ?.name,

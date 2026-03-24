@@ -93,7 +93,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     } else {
       return _capitalizeFirstLetter(
         viewBusinessProfileController
-            .businessProfileDetails?.data?.businessName ??
+            .businessProfileDetails.value?.data?.businessName ??
             '',
       );
     }
@@ -115,7 +115,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     } else {
       return _capitalizeFirstLetter(
         viewBusinessProfileController
-            .businessProfileDetails?.data?.categoryDetails?.name ??
+            .businessProfileDetails.value?.data?.categoryDetails?.name ??
             '',
       );
     }
@@ -266,7 +266,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               }else{
                 final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
                 Get.to(()=> AllVisitingCards(
-                    businessDetails: viewBusinessDetailsController.businessProfileDetails?.data,
+                    businessDetails: viewBusinessDetailsController.businessProfileDetails.value?.data,
                     showAppBar: true
                   )
                 );

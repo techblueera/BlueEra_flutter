@@ -686,5 +686,6 @@ class AppIconAssets {
   static const String morningBreakfastIcon = "${iconPath}morning_breakfast_icon.svg";
   static const String morningLunchIcon = "${iconPath}morning_lunch_icon.svg";
   static const String nightDinnerIcon = "${iconPath}night_dinner_icon.svg";
+  static const String businessCardIcon = "${iconPath}business_card_icon.svg";
 
 }

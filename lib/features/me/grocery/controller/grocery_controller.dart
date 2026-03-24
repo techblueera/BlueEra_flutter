@@ -529,7 +529,7 @@ class GroceryController extends GetxController {
   List<Map<String, dynamic>> buildInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-    final businessData = viewBusinessDetailsController.businessProfileDetails?.data;
+    final businessData = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
     print("City (Profile): ${businessData?.cityStatePincode}");
     print("Pincode (Profile): ${businessData?.pincode}");
@@ -912,8 +912,8 @@ class GroceryController extends GetxController {
 
   Map<String, dynamic> buildMissingRequestsPayload(List<MissingProducts> missingProducts) {
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-    String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
-    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
+    String city = viewBusinessDetailsController.businessProfileDetails.value?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
+    String postalCode = viewBusinessDetailsController.businessProfileDetails.value?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 
     if(postalCode.isEmpty) {
       commonSnackBar(message: 'Please enable your location permission for adding grocery');

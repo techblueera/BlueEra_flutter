@@ -793,6 +793,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
 
 List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
   final items = <Map<String, dynamic>>[
+    {"id": "ADD PRODUCT", 'title': 'Add Product'},
     {"id": "BUSINESS CARDS", 'title': AppStrings.myBusinessCard}
   ];
 
@@ -803,11 +804,6 @@ List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
       PopupMenuItem<String>(
         height: SizeConfig.size35,
         value: items[i]['id'],
-        onTap: () {
-          if (items[i]['id'] == "BUSINESS CARDS") {
-            Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());
-          }
-        },
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1086,7 +1082,7 @@ List<String> isShowFood = [AppConstants.food];
 
 String? businessType() {
   final controller = Get.find<ViewBusinessDetailsController>();
-  return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
+  return controller.businessProfileDetails.value?.data?.typeOfBusiness?.toLowerCase();
 }
 
 List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(

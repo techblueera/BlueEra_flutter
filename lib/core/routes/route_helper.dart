@@ -462,7 +462,8 @@ class RouteHelper {
   static String getGroceryProductsSelectionScreenRoute() =>
       RouteConstant.groceryProductsSelectionScreen;
 
-  static String getAddGroceryScreenRoute() => RouteConstant.addGroceryScreen;
+  static String getAddGroceryScreenRoute() =>
+      RouteConstant.addGroceryScreen;
 
   static String getAddGroceryVariantScreenRoute() =>
       RouteConstant.addGroceryVariantScreen;

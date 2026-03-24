@@ -119,7 +119,7 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
                 // GetBuilder<ViewBusinessDetailsController>(
                 //   id: 'livePhotos',
                 //   builder: (controller) {
-                //     final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
+                //     final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];
                 //
                 //     final totalCount = apiPhotos.length;
                 //     final emptySlots = (3 - totalCount).clamp(0, 3);
@@ -204,7 +204,7 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
                 GetBuilder<ViewBusinessDetailsController>(
                   id: 'livePhotos',
                   builder: (controller) {
-                    final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
+                    final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];
                     final int count = apiPhotos.length;
                     final bool hasPhoto = count > 0;
 
@@ -423,7 +423,7 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
                 localPhotos[index] = null;
                 Map<String, dynamic> data = {ApiKeys.image_url: imagePath};
                 await controller.deleteLiveStoreImage(data);
-                controller.businessProfileDetails?.data?.livePhotos?.removeAt(index);
+                controller.businessProfileDetails.value?.data?.livePhotos?.removeAt(index);
                 controller.update(['livePhotos']);
               },
               child: CircleAvatar(
@@ -569,7 +569,7 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
   //             onTap: () async {
   //               Map<String, dynamic> data = {ApiKeys.image_url: imagePath};
   //               await controller.deleteLiveStoreImage(data);
-  //               controller.businessProfileDetails?.data?.livePhotos?.removeAt(index);
+  //               controller.businessProfileDetails.value?.data?.livePhotos?.removeAt(index);
   //               controller.update(['livePhotos']);
   //             },
   //             child: CircleAvatar(
