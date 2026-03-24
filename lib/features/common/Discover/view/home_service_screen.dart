@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 
 class HomeServiceScreen extends StatefulWidget {
@@ -70,7 +71,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
       body: SafeArea(
         child: Column(
           children: [

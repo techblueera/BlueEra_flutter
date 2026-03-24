@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -25,6 +26,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/routes/route_constant.dart';
+import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class GroceryCustomerController extends GetxController {
   Rx<ApiResponse> groceryCategoryOfChildrenResponse =
@@ -70,9 +75,13 @@ class GroceryCustomerController extends GetxController {
   // Map to store inventory ID for each variant ID: { "variant_id": "inventory_id" }
   var cartInventoryIds = <String, String>{}.obs;
 
+  // Map to store business info for each variant ID: { "variant_id": { businessId, businessName, logo, address } }
+  var cartBusinessInfo = <String, Map<String, String>>{}.obs;
+
   // --- Actions ---
   void addToCart(ProductVariants variant,
-      {String? productId, String? inventoryId}) {
+      {String? productId, String? inventoryId,
+      String? businessId, String? businessName, String? businessLogo, String? businessAddress}) {
     if (variant.sId == null) return;
 
     if (cartQuantities.containsKey(variant.sId)) {
@@ -85,6 +94,14 @@ class GroceryCustomerController extends GetxController {
       }
       if (inventoryId != null) {
         cartInventoryIds[variant.sId!] = inventoryId;
+      }
+      if (businessId != null) {
+        cartBusinessInfo[variant.sId!] = {
+          'businessId': businessId,
+          'businessName': businessName ?? '',
+          'logo': businessLogo ?? '',
+          'address': businessAddress ?? '',
+        };
       }
     }
   }
@@ -101,6 +118,7 @@ class GroceryCustomerController extends GetxController {
       cartQuantities.remove(variant.sId);
       cartProductIds.remove(variant.sId);
       cartInventoryIds.remove(variant.sId);
+      cartBusinessInfo.remove(variant.sId);
       selectedGroceriesVariants.removeWhere((v) => v.sId == variant.sId);
     }
   }
@@ -586,11 +604,18 @@ class GroceryCustomerController extends GetxController {
       hide();
       selectedGroceriesVariants.clear();
       cartQuantities.clear();
-      Future.delayed(Duration(milliseconds: 500), () {
-        Get.back();
-        Get.back();
-        Get.back();
+      cartBusinessInfo.clear();
+      final controller = getOrPut(() => BottomBarController());
+      controller.onChangeIndex(3);
+
+      ChatViewController  chatViewController = getOrPut(() => ChatViewController());
+      chatViewController.onSelectChatTab(3);
+      Future.delayed(Duration(seconds: 400),(){
+
       });
+      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
+
+      Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
 
       //
       // final addGroceryOrderResponseModel =

@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -237,7 +238,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     // final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
       bottomSheet: _rideBookingBottomSheet(),
       body: Stack(
         children: [

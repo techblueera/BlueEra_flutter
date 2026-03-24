@@ -5,6 +5,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/address_cache_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/get_adress_details_model.dart';
+import 'package:BlueEra/features/common/Discover/view/self_pickup_cart_screen.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -124,19 +127,7 @@ class _YourCartScreenState extends State<YourCartScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
               child: Column(
                 children: [
-                  _CartCard(
-                    title: 'Self Pick-Up',
-                    subtitle: '5 Shops - 50 Items',
-                    accentColor: const Color(0xFFE6A800),
-                    bgGradientStart: const Color(0xFFFFFDF5),
-                    bgGradientEnd: const Color(0xFFFFF8E1),
-                    iconData: Icons.shopping_bag_outlined,
-                    iconBgColor: const Color(0xFFFFF0B3),
-                    payPrice: '\u20B91,499',
-                    payOriginalPrice: '\u20B998,000',
-                    savePrice: '\u20B91,499',
-                    discountPercent: '50% Off',
-                  ),
+                  _buildSelfPickUpCard(context),
                   const SizedBox(height: 14),
                   _CartCard(
                     title: 'Book Rider',
@@ -205,6 +196,72 @@ class _YourCartScreenState extends State<YourCartScreen> {
                 : _noAddressWidget(),
           ),
         ),
+      );
+    });
+  }
+
+  Widget _buildSelfPickUpCard(BuildContext context) {
+    final bool hasController =
+        Get.isRegistered<GroceryCustomerController>();
+
+    if (!hasController) {
+      return _CartCard(
+        title: 'Self Pick-Up',
+        subtitle: '0 Shops - 0 Items',
+        accentColor: const Color(0xFFE6A800),
+        bgGradientStart: const Color(0xFFFFFDF5),
+        bgGradientEnd: const Color(0xFFFFF8E1),
+        iconData: Icons.shopping_bag_outlined,
+        iconBgColor: const Color(0xFFFFF0B3),
+        payPrice: '\u20B90',
+        payOriginalPrice: '\u20B90',
+        savePrice: '\u20B90',
+        discountPercent: '0% Off',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SelfPickUpCartScreen()),
+          );
+        },
+      );
+    }
+
+    final controller = Get.find<GroceryCustomerController>();
+
+    return Obx(() {
+      // Group by business
+      final Map<String, List<ProductVariants>> grouped = {};
+      for (var variant in controller.selectedGroceriesVariants) {
+        final info = controller.cartBusinessInfo[variant.sId];
+        final businessId = info?['businessId'] ?? 'unknown';
+        grouped.putIfAbsent(businessId, () => []).add(variant);
+      }
+
+      final int shopCount = grouped.length;
+      final int totalItems = controller.totalItemsCount;
+      final double totalSellingPrice = controller.totalSellingPrice;
+      final double totalMRP = controller.totalMRP;
+      final double totalSavings = controller.totalSavings;
+      final double discountPct = controller.totalDiscountPercentage;
+
+      return _CartCard(
+        title: 'Self Pick-Up',
+        subtitle: '$shopCount ${shopCount == 1 ? 'Shop' : 'Shops'} - $totalItems ${totalItems == 1 ? 'Item' : 'Items'}',
+        accentColor: const Color(0xFFE6A800),
+        bgGradientStart: const Color(0xFFFFFDF5),
+        bgGradientEnd: const Color(0xFFFFF8E1),
+        iconData: Icons.shopping_bag_outlined,
+        iconBgColor: const Color(0xFFFFF0B3),
+        payPrice: '\u20B9${totalSellingPrice.toStringAsFixed(0)}',
+        payOriginalPrice: '\u20B9${totalMRP.toStringAsFixed(0)}',
+        savePrice: '\u20B9${totalSavings.toStringAsFixed(0)}',
+        discountPercent: '${discountPct.toStringAsFixed(0)}% Off',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SelfPickUpCartScreen()),
+          );
+        },
       );
     });
   }
@@ -1204,6 +1261,7 @@ class _CartCard extends StatelessWidget {
   final String payOriginalPrice;
   final String savePrice;
   final String discountPercent;
+  final VoidCallback? onTap;
 
   const _CartCard({
     required this.title,
@@ -1217,11 +1275,14 @@ class _CartCard extends StatelessWidget {
     required this.payOriginalPrice,
     required this.savePrice,
     required this.discountPercent,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1313,6 +1374,7 @@ class _CartCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

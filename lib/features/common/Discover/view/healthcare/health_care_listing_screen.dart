@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 
 class HealthCareListingScreen extends StatefulWidget {
@@ -58,7 +59,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
       body: SafeArea(
         child: Column(
           children: [

@@ -35,7 +35,7 @@ class CommonCartIcon extends StatelessWidget {
 
       return InkWell(
         onTap: () => Get.toNamed(
-            RouteHelper.getGroceryCartScreenRoute(),
+            RouteHelper.getYourAddToCardScreenRoute(),
             arguments: {
              ApiKeys.argIsDeliveredByRider: argIsDeliveredByRider
            }

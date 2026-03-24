@@ -54,9 +54,10 @@ class NewChatMainScreen extends StatefulWidget {
 
 class _NewChatMainScreenState extends State<NewChatMainScreen>
     with SingleTickerProviderStateMixin {
-  late ChatViewController chatViewController;
-  late ChatThemeController chatThemeController;
-  final addSymbolController = getOrPut(() => AddChatSymbolController());
+   ChatViewController  chatViewController = getOrPut(() => ChatViewController());
+   ChatThemeController chatThemeController = getOrPut(() => ChatThemeController());
+
+   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final bottomBarController = getOrPut(() => BottomBarController());
 
 
@@ -66,11 +67,10 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
 
     super.initState();
     addSymbolController.getSymbolsForPartUser(userId);
-    chatViewController = getOrPut(() => ChatViewController());
+
     getOrPut(() => ChatFlagController());
     getOrPut(() => ChatPinArchiveController());
     getOrPut(() => CallController());
-    chatThemeController = getOrPut(() => ChatThemeController());
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }

@@ -481,6 +481,8 @@ class RouteHelper {
 
   static String getGroceryCartScreenRoute() =>
       RouteConstant.groceryCartScreen;
+  static String getYourAddToCardScreenRoute() =>
+      RouteConstant.yourAddToCardScreen;
 
   // static String getRiderProfileStatusScreenRoute() =>
   //     RouteConstant.RiderProfileStatusScreen;
@@ -1574,7 +1576,12 @@ class RouteHelper {
                 isDeliveredByRider: argIsDeliveredByRider
             ),
             settings: RouteSettings(name: getGroceryCartScreenRoute()));
+      case RouteConstant.yourAddToCardScreen:
 
+        return MaterialPageRoute(
+            builder: (_) => YourCartScreen(
+            ),
+            settings: RouteSettings(name: getYourAddToCardScreenRoute()));
       //   case RouteConstant.RiderProfileStatusScreen:
       //     return MaterialPageRoute(
       //       builder: (_) => RiderProfileStatusScreen(screeName: '', isAllComplete: false: ''lStepsCompleted: null,),

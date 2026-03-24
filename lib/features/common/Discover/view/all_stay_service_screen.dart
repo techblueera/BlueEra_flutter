@@ -27,6 +27,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -89,7 +90,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
       body: SafeArea(
         child: Column(
           children: [
