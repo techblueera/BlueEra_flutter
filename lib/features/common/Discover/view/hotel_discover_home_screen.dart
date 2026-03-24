@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 
 class HotelDiscoverHomeScreen extends StatefulWidget {
@@ -74,6 +75,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: profile?.name,
+        buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
       bottomNavigationBar: profile?.businessId != userId
           ? SafeArea(

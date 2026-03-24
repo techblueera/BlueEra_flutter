@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/new_food_home_res_model.dart';
 
@@ -30,6 +31,7 @@ class DiscoverFoodHomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: data.businessProfile?.businessName,
+        buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
       body: SingleChildScrollView(
         child: Column(

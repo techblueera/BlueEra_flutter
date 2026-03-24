@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 
 class DiscoverSchoolHomeScreen extends StatelessWidget {
@@ -34,7 +35,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
-     appBar: CommonBackAppBar(title: AppStrings.school,),
+     appBar: CommonBackAppBar(title: AppStrings.school, buildCustomActionWidget: () => const DiscoverCartIcon(),),
       bottomNavigationBar:schoolAboutUsController
           .schoolDetailsData?.value.ownerId != userId
           ? SafeArea(

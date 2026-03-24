@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 
 class AllRentalServiceScreen extends StatefulWidget {
@@ -53,6 +54,7 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: widget.type.label,
+        buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
       body: SafeArea(
         child: Obx(() {

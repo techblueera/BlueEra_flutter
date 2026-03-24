@@ -20,6 +20,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/create_profile_s
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -165,6 +166,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
           ],
         ),
         actions: [
+          const DiscoverCartIcon(),
           Center(
             child: InkWell(
               borderRadius: BorderRadius.circular(20),

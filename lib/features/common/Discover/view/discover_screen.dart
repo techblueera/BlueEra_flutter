@@ -31,6 +31,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
+
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible)? onHeaderVisibilityChanged;
@@ -49,6 +51,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   late final double userLat;
   late final double userLng;
+  final bottomBarController = getOrPut(() => BottomBarController());
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _qrWidgetKey = GlobalKey();
@@ -69,180 +72,188 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
-        body: NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            if (notification.direction == ScrollDirection.reverse) {
-              widget.onHeaderVisibilityChanged?.call(false);
-            } else if (notification.direction == ScrollDirection.forward) {
-              widget.onHeaderVisibilityChanged?.call(true);
-            }
-            return true;
-          },
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              /// Banner covering full top: status bar + notch + icons overlay
-              SliverToBoxAdapter(
-                child: Stack(
-                  children: [
-                    /// Banner image — full width, covers status bar & notch
-                    DiscoverBannerSlider(
-                      parentScrollController: _scrollController,
-                      targetKey: _qrWidgetKey,
-                    ),
+    return WillPopScope(
+      onWillPop: () async{
 
-                    /// Overlay: location + cart on top of banner
-                    Positioned(
-                      top: statusBarHeight,
-                      left: SizeConfig.size12,
-                      right: SizeConfig.size12,
-                      child: Row(
-                        children: [
-                          /// Location with rounded bg
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.black.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.location_on_outlined,
-                                      color: AppColors.white, size: 20),
-                                  SizedBox(width: SizeConfig.size6),
-                                  Flexible(
-                                    child: CustomText(
-                                      [
-                                        LocationService.userCurrentAddress.value
-                                            .subLocality,
-                                        LocationService
-                                            .userCurrentAddress.value.city,
-                                      ].where((e) => e.isNotEmpty).join(', '),
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.white,
-                                      fontWeight: FontWeight.w700,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+          bottomBarController.onChangeIndex(0);
+
+        return false;
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: AppColors.appBackgroundColor,
+          body: NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                widget.onHeaderVisibilityChanged?.call(false);
+              } else if (notification.direction == ScrollDirection.forward) {
+                widget.onHeaderVisibilityChanged?.call(true);
+              }
+              return true;
+            },
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                /// Banner covering full top: status bar + notch + icons overlay
+                SliverToBoxAdapter(
+                  child: Stack(
+                    children: [
+                      /// Banner image — full width, covers status bar & notch
+                      DiscoverBannerSlider(
+                        parentScrollController: _scrollController,
+                        targetKey: _qrWidgetKey,
+                      ),
+
+                      /// Overlay: location + cart on top of banner
+                      Positioned(
+                        top: statusBarHeight,
+                        left: SizeConfig.size12,
+                        right: SizeConfig.size12,
+                        child: Row(
+                          children: [
+                            /// Location with rounded bg
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.black.withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.location_on_outlined,
+                                        color: AppColors.white, size: 20),
+                                    SizedBox(width: SizeConfig.size6),
+                                    Flexible(
+                                      child: CustomText(
+                                        [
+                                          LocationService.userCurrentAddress.value
+                                              .subLocality,
+                                          LocationService
+                                              .userCurrentAddress.value.city,
+                                        ].where((e) => e.isNotEmpty).join(', '),
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.white,
+                                        fontWeight: FontWeight.w700,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                                  Icon(Icons.keyboard_arrow_down,
-                                      color: AppColors.white, size: 18),
-                                ],
+                                    Icon(Icons.keyboard_arrow_down,
+                                        color: AppColors.white, size: 18),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
 
-                          SizedBox(width: SizeConfig.size8),
+                            SizedBox(width: SizeConfig.size8),
 
-                          /// Cart with rounded bg
-                          _appBarAction(
-                            icon: AppIconAssets.cartIcon,
-                            onTap: () => Navigator.pushNamed(
-                                context, RouteHelper.getYourCartScreenRoute()),
-                          ),
-                        ],
+                            /// Cart with rounded bg
+                            _appBarAction(
+                              icon: AppIconAssets.cartIcon,
+                              onTap: () => Navigator.pushNamed(
+                                  context, RouteHelper.getYourCartScreenRoute()),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              /// Search Bar - sticky on scroll
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _StickySearchBarDelegate(
-                  topPadding: MediaQuery.of(context).padding.top,
-                ),
-              ),
-
-              _sliverGap(SizeConfig.size8),
-
-              /// Grocery & Food
-              _sliverCard(child: GroceryFoodCardWidget()),
-              _sliverGap(),
-
-              /// Medical / Healthcare Services
-              _sliverCard(child: HealthServiceCardWidget()),
-              _sliverGap(),
-
-              /// Shopping
-              _sliverCard(child: ShoppingCardWidget()),
-              _sliverGap(),
-
-              /// Home Services
-              _sliverCard(child: BookHomeServiceWidget()),
-              _sliverGap(),
-
-              /// Home made food, product, service
-              _sliverCard(child: HomeMadeProductWidget()),
-              _sliverGap(),
-
-              /// Stay Service
-              _sliverCard(child: HotelStayServiceCard()),
-              _sliverGap(),
-
-              /// Consultation Service
-              _sliverCard(child: ProfessionalsCardWidget()),
-              _sliverGap(),
-
-              /// Transport
-              _sliverCard(child: TransportServiceWidget()),
-              _sliverGap(),
-
-              /// Rental Service
-              _sliverCard(child: ResponsiveRentalCard()),
-              _sliverGap(),
-
-              /// Services
-              _sliverCard(child: FindServiceCardWidget()),
-              _sliverGap(),
-
-              /// Financial Sectors
-              _sliverCard(child: FinancialSectors()),
-              _sliverGap(),
-
-              /// Automotive Service
-              _sliverCard(child: AutomotiveServiceCardWidget()),
-              _sliverGap(),
-
-              /// Restaurant
-              _sliverCard(child: RestaurantNearMeCardWidget()),
-              _sliverGap(),
-
-              /// Education Service
-              _sliverCard(child: EducationServiceCardWidget()),
-              _sliverGap(),
-
-              /// Job Service
-              _sliverCard(child: JobServiceCardWidget()),
-              _sliverGap(),
-
-              /// Emergency QR
-              SliverPadding(
-                padding: EdgeInsets.only(bottom: 100),
-                sliver: SliverToBoxAdapter(
-                  child: Builder(
-                    key: _qrWidgetKey,
-                    builder: (_) {
-                      getOrPut(() => EmergencyProfileController());
-                      return EmergencyQrWidget(key: ValueKey('emergency_qr'));
-                    },
+                    ],
                   ),
                 ),
-              ),
-            ],
+
+                /// Search Bar - sticky on scroll
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _StickySearchBarDelegate(
+                    topPadding: MediaQuery.of(context).padding.top,
+                  ),
+                ),
+
+                _sliverGap(SizeConfig.size8),
+
+                /// Grocery & Food
+                _sliverCard(child: GroceryFoodCardWidget()),
+                _sliverGap(),
+
+                /// Medical / Healthcare Services
+                _sliverCard(child: HealthServiceCardWidget()),
+                _sliverGap(),
+
+                /// Shopping
+                _sliverCard(child: ShoppingCardWidget()),
+                _sliverGap(),
+
+                /// Home Services
+                _sliverCard(child: BookHomeServiceWidget()),
+                _sliverGap(),
+
+                /// Home made food, product, service
+                _sliverCard(child: HomeMadeProductWidget()),
+                _sliverGap(),
+
+                /// Stay Service
+                _sliverCard(child: HotelStayServiceCard()),
+                _sliverGap(),
+
+                /// Consultation Service
+                _sliverCard(child: ProfessionalsCardWidget()),
+                _sliverGap(),
+
+                /// Transport
+                _sliverCard(child: TransportServiceWidget()),
+                _sliverGap(),
+
+                /// Rental Service
+                _sliverCard(child: ResponsiveRentalCard()),
+                _sliverGap(),
+
+                /// Services
+                _sliverCard(child: FindServiceCardWidget()),
+                _sliverGap(),
+
+                /// Financial Sectors
+                _sliverCard(child: FinancialSectors()),
+                _sliverGap(),
+
+                /// Automotive Service
+                _sliverCard(child: AutomotiveServiceCardWidget()),
+                _sliverGap(),
+
+                /// Restaurant
+                _sliverCard(child: RestaurantNearMeCardWidget()),
+                _sliverGap(),
+
+                /// Education Service
+                _sliverCard(child: EducationServiceCardWidget()),
+                _sliverGap(),
+
+                /// Job Service
+                _sliverCard(child: JobServiceCardWidget()),
+                _sliverGap(),
+
+                /// Emergency QR
+                SliverPadding(
+                  padding: EdgeInsets.only(bottom: 100),
+                  sliver: SliverToBoxAdapter(
+                    child: Builder(
+                      key: _qrWidgetKey,
+                      builder: (_) {
+                        getOrPut(() => EmergencyProfileController());
+                        return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -159,7 +160,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
   Widget build(BuildContext context) {
     return Obx(() {
       return Scaffold(
-        appBar: CommonBackAppBar(),
+        appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
         backgroundColor: AppColors.white,
         bottomNavigationBar: SafeArea(
           child: Padding(

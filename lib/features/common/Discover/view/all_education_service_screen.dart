@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_enum.dart';
 
@@ -61,7 +62,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
       body: SafeArea(
         child: Column(
           children: [

@@ -124,10 +124,13 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                   right: 16,
                   bottom: 20,
                   child: GestureDetector(
-                    onTap: () {
-                      // Navigate to cart
-                      Get.toNamed(RouteHelper.getGroceryCartScreenRoute());
-                    },
+
+                      onTap: () => Get.toNamed(
+                          RouteHelper.getYourAddToCardScreenRoute(),
+                          arguments: {
+                            ApiKeys.argIsDeliveredByRider: false
+                          }
+                      ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
@@ -446,11 +449,18 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                     }
 
                                     if(!isAdded){
-                                      groceryCustomerController.addToCart(productVariants,inventoryId:  groceryProductData.sId, productId: productVariants.sId);
-                                      commonSnackBar(message: 'Added into cart');
+                                      final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                                      groceryCustomerController.addToCart(
+                                        productVariants,
+                                        inventoryId: groceryProductData.sId,
+                                        productId: productVariants.sId,
+                                        businessId: widget.visitBusinessId,
+                                        businessName: bDetails?.businessName,
+                                        businessLogo: bDetails?.logo,
+                                        businessAddress: bDetails?.address,
+                                      );
                                     }else{
                                       groceryCustomerController.removeFromCart(productVariants);
-                                      commonSnackBar(message: 'Remove from cart');
                                     }
                                   },
                                   icon: Container(

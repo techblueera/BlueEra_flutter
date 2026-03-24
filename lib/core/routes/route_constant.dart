@@ -131,6 +131,7 @@ class RouteConstant {
   static const String groceryCustomerListingScreen = "/GroceryCustomerListingScreen";
   static const String riderServiceScreen = "/RiderServiceScreen";
   static const String groceryCartScreen = "/GroceryCartScreen";
+  static const String yourAddToCardScreen = "/YourAddToCardScreen";
   // static const String RiderProfileStatusScreen = "/RiderProfileStatusScreen";
   static const String grocerySuperCategoryScreen = "/GrocerySuperCategoryScreen";
   static const String paymentSettingScreen = "/PaymentSettingScreen";
