@@ -24,7 +24,7 @@ class HospitalServicePreview extends StatelessWidget {
               const EdgeInsets.only(right: 15.0, left: 15, bottom: 15, top: 5),
           child: PositiveCustomBtn(
               onTap: () async {
-                await controller.createHospitalServiceController();
+                // await controller.createHospitalServiceController();
               },
               title: "Create Hospital"),
         ),

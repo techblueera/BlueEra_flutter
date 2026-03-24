@@ -24,7 +24,7 @@ class LabPreviewScreen extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 30.0,right: 20,left: 20,top: 10),
           child: PositiveCustomBtn(
               onTap: () async {
-                await controller.createLabServiceController();
+                // await controller.createLabServiceController();
               },
               title: AppStrings.createLaboratory.tr),
         ),

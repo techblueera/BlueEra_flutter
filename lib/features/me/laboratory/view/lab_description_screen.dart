@@ -1,9 +1,12 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profile_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,37 +36,116 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
       appBar: CommonBackAppBar(
         title: AppStrings.description.tr,
       ),
-      body: Obx(() {
-        return SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size16),
+      body: SafeArea(
+        child: Obx(() {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(SizeConfig.size14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Info Banner ---
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.15)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline,
+                          color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: CustomText(
+                          "Add a description to help patients understand your laboratory",
+                          color: AppColors.primaryColor,
+                          fontSize: SizeConfig.small,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size14),
+
+                // --- Description Card ---
+                CommonCardWidget(
+                  padding: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionIcon(
+                          Icons.description_outlined,
+                          AppStrings.description.tr,
+                          "Tell patients about your lab services",
+                        ),
+                        const SizedBox(height: 16),
+                        CommonTextField(
+                          title: "",
+                          hintText: "Enter description (max 500 characters)",
+                          textEditController: controller.descController,
+                          maxLine: 6,
+                          maxLength: 500,
+                          isCounterVisible: true,
+                          onChange: (_) => controller.validateForm(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // --- Save ---
+                CustomBtn(
+                  title: AppStrings.save,
+                  isValidate: controller.isValid.value,
+                  isLoading: controller.isLoading.value,
+                  onTap: controller.isValid.value
+                      ? () async {
+                          final ok = await controller.save();
+                          if (ok) Get.back();
+                        }
+                      : null,
+                ),
+                SizedBox(height: SizeConfig.size20),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _sectionIcon(IconData icon, String title, String subtitle) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.primaryColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonTextField(
-                title: AppStrings.description,
-                hintText: "Enter description (max 500 characters)",
-                textEditController: controller.descController,
-                maxLine: 6,
-                maxLength: 500,
-                isCounterVisible: true,
-                onChange: (_) => controller.validateForm(),
-              ),
-              SizedBox(height: SizeConfig.size20),
-              CustomBtn(
-                title: AppStrings.save,
-                isValidate: controller.isValid.value,
-                isLoading: controller.isLoading.value,
-                onTap: controller.isValid.value
-                    ? () async {
-                        final ok = await controller.save();
-                        if (ok) Get.back();
-                      }
-                    : null,
-              ),
+              CustomText(title,
+                  fontWeight: FontWeight.w600, fontSize: SizeConfig.medium),
+              const SizedBox(height: 2),
+              CustomText(subtitle,
+                  color: AppColors.secondaryTextColor,
+                  fontSize: SizeConfig.small),
             ],
           ),
-        );
-      }),
+        ),
+      ],
     );
   }
 }

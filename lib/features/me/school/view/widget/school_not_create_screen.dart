@@ -26,8 +26,6 @@ class SchoolNotCreateScreen extends StatelessWidget {
                     const CircularProgressIndicator(),
                     const SizedBox(height: 15),
                     CustomText("AI searching your details please wait"),
-                    // const CustomText("Ai fetched your details see your details",
-                    //    fontSize: 12),
                     const CustomText("Please wait for 10-15 sec",
                        fontSize: 12),
                   ],

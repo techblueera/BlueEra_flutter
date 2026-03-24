@@ -53,7 +53,38 @@ class LabServiceAiController extends GetxController {
     }
   }
 
-  Future<void> createLabServiceController() async {
+  Future<void> createLabServiceController({required Map<String, dynamic>? reqData}) async {
+    try {
+      ResponseModel response = await labServiceRepo
+          // .createLabServiceRepo(reqBody: {"data": aiLabResModel?.value.data});
+          .createLabServiceRepo(reqBody: {"data": reqData});
+      if (response.isSuccess) {
+        commonSnackBar(message: "Laboratory Service Created successfully");
+
+        labAddress.value = "";
+        String? labID = response.response?.data['laboratoryId'];
+        if (labID != null && labID.isNotEmpty) {
+          await setLabID(labID);
+        } else {
+          await setLabID("");
+        }
+        await getLabID();
+        await Future.delayed(Duration(milliseconds: 200));
+        hasLabCreated.value=true;
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      hasLabCreated.value=false;
+
+      commonSnackBar(message: e.toString());
+    }
+  }
+
+  Future<void> createLabServiceController_() async {
     try {
       ResponseModel response = await labServiceRepo
           .createLabServiceRepo(reqBody: {"data": aiLabResModel?.value.data});

@@ -23,9 +23,9 @@ import 'package:sms_autofill/sms_autofill.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 
-
 class OtpPageScreen extends StatefulWidget {
   const OtpPageScreen({super.key, this.mobileNumber});
+
   final String? mobileNumber;
 
   @override
@@ -157,7 +157,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
             await SharedPreferenceUtils.clearPreference();
             Navigator.of(context).pushNamedAndRemoveUntil(
               RouteHelper.getMobileNumberLoginRoute(),
-                  (Route<dynamic> route) => false,
+              (Route<dynamic> route) => false,
             );
           },
           cancelCallback: () => Navigator.of(context).pop(),
@@ -173,7 +173,6 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
               child: SizedBox(
                 height: height,
                 width: double.infinity,
-
                 child: Obx(() {
                   return Column(
                     children: [
@@ -204,7 +203,9 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         controller: _otpController,
                         length: 6,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         defaultPinTheme: PinTheme(
                           width: 50,
                           height: 50,
@@ -214,7 +215,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                           ),
                           decoration: BoxDecoration(
                             borderRadius:
-                            BorderRadius.circular(SizeConfig.size10),
+                                BorderRadius.circular(SizeConfig.size10),
                             color: AppColors.white,
                             border: Border.all(
                               color: AppColors.greyE5,
@@ -287,29 +288,28 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                             langController.tr("Didn't get OTP code?"),
                             color: Colors.black,
                             fontWeight: FontWeight.w400,
-                           // decoration: TextDecoration.underline,
+                            // decoration: TextDecoration.underline,
                           ),
                           _isTimerActive
                               ? CustomText(
-                            _formatTime(_secondsLeft),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryColor,
-                          )
+                                  _formatTime(_secondsLeft),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryColor,
+                                )
                               : InkWell(
-                            onTap: () => _onResendOtpPressed(context),
-                            child: CustomText(
-                              langController.tr('Resend Code'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryColor,
-                              //decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primaryColor,
-                            ),
-                          ),
+                                  onTap: () => _onResendOtpPressed(context),
+                                  child: CustomText(
+                                    langController.tr('Resend Code'),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryColor,
+                                    //decoration: TextDecoration.underline,
+                                    decorationColor: AppColors.primaryColor,
+                                  ),
+                                ),
                         ],
                       ),
-
 
                       const Spacer(flex: 1),
                     ],

@@ -1,23 +1,27 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
-import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/empty_blood_test_add_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/empty_health_camp_widget.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
-import 'package:BlueEra/features/me/laboratory/view/health_camp_detail_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_description_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/facility_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/constants/app_strings.dart' show AppStrings;
 
 class LabFullDetailsScreen extends StatefulWidget {
   const LabFullDetailsScreen({super.key});
@@ -64,6 +68,46 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                   schoolAboutUsController: controller,
                 ),
 
+                // Description section - show empty state if no description
+                SizedBox(height: SizeConfig.size12),
+                if ((profile?.description ?? '').isEmpty)
+                  _emptySection(
+                    title: AppStrings.description.tr,
+                    subtitle: "Add a description for your laboratory",
+                    icon: Icons.description_outlined,
+                    onEdit: () => Get.to(() => const LabDescriptionScreen())
+                        ?.then((_) => controller.fetchFullDetails()),
+                  )
+                else
+                  CommonCardWidget(
+                    padding: 10,
+                    cardMargin: 0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText(AppStrings.description.tr,
+                                fontWeight: FontWeight.w700),
+                            _editButton(
+                              onTap: () =>
+                                  Get.to(() => const LabDescriptionScreen())
+                                      ?.then((_) =>
+                                          controller.fetchFullDetails()),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: SizeConfig.size8),
+                        CustomText(
+                          profile?.description ?? '',
+                          fontSize: 14,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ],
+                    ),
+                  ),
+
                 SizedBox(height: SizeConfig.size12),
                 BloodTestEmptyState(),
                 SizedBox(height: SizeConfig.size12),
@@ -73,19 +117,55 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 EmptyHealthCampWidget(),
 
                 SizedBox(height: SizeConfig.size12),
-                // _basicTest(tests),
-                // SizedBox(height: SizeConfig.size16),
-                CommonCardWidget(
+                // Popular services - show empty state if no tests
+                if (tests.isEmpty)
+                  _emptySection(
+                    title: AppStrings.ourPopularServices.tr,
+                    subtitle: "Add tests to showcase your popular services",
+                    icon: Icons.medical_services_outlined,
+                    onEdit: null,
+                  )
+                else
+                  CommonCardWidget(
+                      padding: 10,
+                      cardMargin: 0,
+                      child: _popularServices(tests, profile)),
+
+                // Facility section - show empty state if no facility data
+                SizedBox(height: SizeConfig.size16),
+                if (_isFacilityEmpty(facility))
+                  _emptySection(
+                    title: AppStrings.facility.tr,
+                    subtitle: "Add facility details for your laboratory",
+                    icon: Icons.local_hospital_outlined,
+                    onEdit: () => Get.to(() => FacilityScreen())
+                        ?.then((_) => controller.fetchFullDetails()),
+                  )
+                else
+                  CommonCardWidget(
                     padding: 10,
                     cardMargin: 0,
-                    child: _popularServices(tests, profile)),
+                    child: _allServices(facility),
+                  ),
+
+                // Gallery section
                 SizedBox(height: SizeConfig.size16),
-                // CommonCardWidget(
-                //     padding: 10, cardMargin: 0, child: _allServices(facility)),
-                // SizedBox(height: SizeConfig.size16),
-                LabHomeGalleryWidget(photos: galleries),
-                // SizedBox(height: SizeConfig.size16),
-                _contact(contact, isWide),
+                _buildGallerySection(galleries, context),
+
+                // Contact section - show empty state if no contact
+                SizedBox(height: SizeConfig.size16),
+                if (contact == null)
+                  _emptySection(
+                    title: AppStrings.contactUs.tr,
+                    subtitle: "Add contact information for your laboratory",
+                    icon: Icons.contact_phone_outlined,
+                    onEdit: () => Get.to(() => LabContactUsScreen())
+                        ?.then((_) => controller.fetchFullDetails()),
+                  )
+                else
+                  _contact(contact, isWide),
+
+                SizedBox(height: kBottomNavigationBarHeight + 30),
               ],
             ),
           );
@@ -94,179 +174,98 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
     );
   }
 
-  Widget _buildHealthCampCard() {
-    return GestureDetector(
-      onTap: () => Get.to(() => const HealthCampDetailScreen()),
-      child: CommonCardWidget(
-        cardMargin: 0,
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.local_hospital_outlined,
-                color: AppColors.primaryColor,
-                size: 24,
-              ),
-            ),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    AppStrings.healthCamp.tr,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                  SizedBox(height: 2),
-                  CustomText(
-                    "Manage your health camp",
-                    fontSize: 11,
-                    color: AppColors.greyA5,
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, color: AppColors.greyA5),
-          ],
-        ),
-      ),
-    );
+  bool _isFacilityEmpty(Facility? facility) {
+    if (facility == null) return true;
+    return facility.wheelchairAssistance != true &&
+        facility.doctorConsultationTieUp != true &&
+        facility.insuranceCashlessSupport != true &&
+        facility.homeSampleCollection != true &&
+        facility.digitalReport != true &&
+        (facility.other?.isEmpty ?? true);
   }
 
-  Widget _basicTest(List<Tests> tests) {
-    final List<Color> cardColors = [
-      Color(0xFFFFFBEB), // Soft Yellow/Cream
-      Color(0xFFF0FDF4), // Soft Green
-      Color(0xFFEFF6FF), // Soft Blue
-      Color(0xFFFAF5FF), // Soft Purple
-    ];
-    if (tests.isEmpty) return const SizedBox.shrink();
+  Widget _emptySection({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    VoidCallback? onEdit,
+  }) {
     return CommonCardWidget(
+      padding: 10,
       cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(AppStrings.testReport.tr, fontWeight: FontWeight.w700),
-          SizedBox(
-            height: 200, // Adjusted height to accommodate the layout
-            child: ListView.builder(
-              itemCount: tests.length,
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 0),
-              itemBuilder: (BuildContext context, int index) {
-                final t = tests[index];
-                // Logic to repeat the 4 colors
-                final backgroundColor = cardColors[index % cardColors.length];
-
-                return Container(
-                  width: 300,
-                  // Fixed width for horizontal cards
-                  margin: EdgeInsets.only(right: 12, top: 8, bottom: 8),
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
-                    // Subtle shadow to match the "lifted" look
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(title, fontWeight: FontWeight.w700),
+              if (onEdit != null) _editButton(onTap: onEdit),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size16),
+          Center(
+            child: Column(
+              children: [
+                Icon(icon, size: 40, color: AppColors.greyA5),
+                SizedBox(height: SizeConfig.size8),
+                CustomText(
+                  subtitle,
+                  fontSize: 13,
+                  color: AppColors.greyA5,
+                  textAlign: TextAlign.center,
+                ),
+                if (onEdit != null) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  InkWell(
+                    onTap: onEdit,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ],
+                      child: CustomText(
+                        AppStrings.create.tr,
+                        fontSize: 13,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Row: Title and More Icon
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              t.testName ?? "Test Name",
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          // Icon(Icons.more_vert, color: Colors.black87),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      CustomText(
-                        t.description ?? "",
-                        color: Colors.grey.shade600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Divider(color: Colors.grey.shade300, height: 1),
-                      ),
-
-                      // Middle Row: Report Time and Price
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _pill(
-                              "${AppStrings.reportsWithin.tr} ${t.estimatedReportHours ?? 24} ${AppStrings.hours.tr}",
-                              Colors.white),
-                          _pill("INR-${t.customerPrice ?? 0}", Colors.white,
-                              isBold: true),
-                        ],
-                      ),
-
-                      SizedBox(height: 12),
-
-                      // Bottom Row: Home Collection status
-                      Row(
-                        children: [
-                          Icon(Icons.circle, size: 8, color: Colors.grey),
-                          SizedBox(width: 8),
-                          CustomText(
-                            AppStrings.homeSampleCollectionAvailable.tr,
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+                ],
+                SizedBox(height: SizeConfig.size8),
+              ],
             ),
           ),
         ],
       ),
     );
-
-// Helper method for the styled pills
   }
 
-  // Helper method for the styled pills
-  Widget _pill(String text, Color bgColor, {bool isBold = false}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          fontSize: 13,
+  Widget _editButton({required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.edit_outlined,
+                size: 14, color: AppColors.primaryColor),
+            SizedBox(width: 4),
+            CustomText(
+              AppStrings.edit.tr,
+              fontSize: 12,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ],
         ),
       ),
     );
@@ -331,7 +330,16 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(AppStrings.ourAllServices.tr, fontWeight: FontWeight.w700),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(AppStrings.facility.tr, fontWeight: FontWeight.w700),
+              _editButton(
+                onTap: () => Get.to(() => FacilityScreen())
+                    ?.then((_) => controller.fetchFullDetails()),
+              ),
+            ],
+          ),
           SizedBox(height: SizeConfig.size8),
           Wrap(
             spacing: 8,
@@ -346,13 +354,225 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
     );
   }
 
+  void _navigateToGalleryEdit() {
+    Get.to(() => LabServicePhotosPhotoScreen())
+        ?.then((_) => controller.fetchFullDetails());
+  }
+
+  Widget _buildGallerySection(
+      List<Galleries> galleries, BuildContext context) {
+    final List<String> allImages = galleries
+            .expand((photo) => photo.imageUrls ?? <String>[])
+            .toList();
+    final hasData = allImages.isNotEmpty;
+
+    return CommonCardWidget(
+      cardMargin: 0,
+      padding: 10,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Expanded(
+                    child: ServiceHomeTitleWidget(title: AppStrings.gallery)),
+                InkWell(
+                  onTap: _navigateToGalleryEdit,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Icons.edit_outlined,
+                        size: 18, color: AppColors.primaryColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (hasData)
+            _buildGalleryGrid(allImages, context)
+          else
+            _emptyGalleryPlaceholder(),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyGalleryPlaceholder() {
+    return InkWell(
+      onTap: _navigateToGalleryEdit,
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 6,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
+        ),
+        itemBuilder: (_, __) => Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEEEEE),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Icon(Icons.image, size: 28, color: Color(0xFFBDBDBD)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGalleryGrid(List<String> signedUrls, BuildContext context) {
+    final count = signedUrls.length;
+    final hasMore = count > 4;
+
+    Widget imageTile(int index, {double? height}) {
+      return InkWell(
+        onTap: () => navigatePushTo(
+          context,
+          ImageViewScreen(
+            subTitle: AppStrings.imageViewer,
+            appBarTitle: AppStrings.imageViewer,
+            imageUrls: signedUrls,
+            initialIndex: index,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: CachedNetworkImage(
+            imageUrl: signedUrls[index],
+            height: height,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(color: Colors.grey[200]),
+            errorWidget: (_, __, ___) => Container(
+              color: Colors.grey[200],
+              child: const Icon(Icons.broken_image),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget viewMoreOverlay(int index) {
+      return InkWell(
+        onTap: () => navigatePushTo(
+          context,
+          ImageViewScreen(
+            subTitle: AppStrings.imageViewer,
+            appBarTitle: AppStrings.imageViewer,
+            imageUrls: signedUrls,
+            initialIndex: 0,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: signedUrls[index],
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(color: Colors.grey[200]),
+                errorWidget: (_, __, ___) =>
+                    Container(color: Colors.grey[200]),
+              ),
+              Container(
+                color: Colors.black.withValues(alpha: 0.55),
+                child: Center(
+                  child: CustomText(
+                    "+${count - 3}",
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // 1 image: full width
+    if (count == 1) {
+      return imageTile(0, height: 200);
+    }
+
+    // 2 images: side by side
+    if (count == 2) {
+      return SizedBox(
+        height: 160,
+        child: Row(
+          children: [
+            Expanded(child: imageTile(0, height: 160)),
+            const SizedBox(width: 6),
+            Expanded(child: imageTile(1, height: 160)),
+          ],
+        ),
+      );
+    }
+
+    // 3 images: 1 left vertical + 2 right stacked
+    if (count == 3) {
+      return SizedBox(
+        height: 200,
+        child: Row(
+          children: [
+            Expanded(flex: 1, child: imageTile(0, height: 200)),
+            const SizedBox(width: 6),
+            Expanded(
+              flex: 1,
+              child: Column(
+                children: [
+                  Expanded(child: imageTile(1)),
+                  const SizedBox(height: 6),
+                  Expanded(child: imageTile(2)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 4+ images: 2x2 grid, with "+N" overlay on last tile if more than 4
+    return SizedBox(
+      height: 260,
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: imageTile(0)),
+                const SizedBox(width: 6),
+                Expanded(child: imageTile(1)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: imageTile(2)),
+                const SizedBox(width: 6),
+                Expanded(
+                    child: hasMore ? viewMoreOverlay(3) : imageTile(3)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _contact(ContactInfo? contact, bool isWide) {
     final loc = contact?.location;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 5. Contact Section
-        SizedBox(height: SizeConfig.size16),
         _buildContactCard(contact),
         SizedBox(height: SizeConfig.size16),
 
@@ -363,8 +583,6 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
             businessName: loc?.name ?? "",
             padding: 0,
             isTitleShow: true),
-
-        SizedBox(height: kBottomNavigationBarHeight + 30),
       ],
     );
   }
@@ -389,8 +607,17 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 6),
-            child:  CustomText(AppStrings.contactUs, fontWeight: FontWeight.bold),
+            padding: const EdgeInsets.only(top: 8.0, left: 6, right: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(AppStrings.contactUs, fontWeight: FontWeight.bold),
+                _editButton(
+                  onTap: () => Get.to(() => LabContactUsScreen())
+                      ?.then((_) => controller.fetchFullDetails()),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           Container(
