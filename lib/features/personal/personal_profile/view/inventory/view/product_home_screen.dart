@@ -13,7 +13,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/career_job_widget.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_header_view.dart';
+import 'package:BlueEra/features/business/widgets/business_header_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -211,7 +211,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: CustomFormCard(
           padding: EdgeInsets.zero,
-          child: ProductProfileHeader(
+          child: BusinessProfileHeaderView(
             details: data,
             controller: viewBusinessDetailsController,
           )

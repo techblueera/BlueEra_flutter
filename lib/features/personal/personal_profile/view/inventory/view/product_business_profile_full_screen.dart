@@ -12,7 +12,7 @@
 // import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 // import 'package:BlueEra/features/me/others/widget/other_product_widget.dart';
 // import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
-// import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_header_view.dart';
+// import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_header_view.dart';
 // import 'package:BlueEra/widgets/common_card_widget.dart';
 // import 'package:BlueEra/widgets/custom_text_cm.dart';
 // import 'package:BlueEra/widgets/image_view_screen.dart';

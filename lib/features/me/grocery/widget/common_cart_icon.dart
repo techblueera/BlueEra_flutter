@@ -36,9 +36,6 @@ class CommonCartIcon extends StatelessWidget {
       return InkWell(
         onTap: () => Get.toNamed(
             RouteHelper.getYourAddToCardScreenRoute(),
-            arguments: {
-             ApiKeys.argIsDeliveredByRider: argIsDeliveredByRider
-           }
         ),
         child: Padding(
           padding: const EdgeInsets.only(right: 20.0),

@@ -52,7 +52,6 @@ class _GroceryNestedCategoryWithInventoryScreenState
     _argGroceryCategoryWithInventory = widget.argGroceryCategoryWithInventory;
     _argArrGroceryCatName = widget.argArrGroceryCatName;
 
-    // Categories Dairy, Beverages, vegetables, fruit
     updateGroceryCategory(widget.argArrGroceryCatKey, isInitial: true);
     super.initState();
   }
@@ -205,7 +204,7 @@ class _GroceryNestedCategoryWithInventoryScreenState
             return InkWell(
               onTap: () {
                 Get.toNamed(
-                  RouteHelper.getGroceryProductsScreenRoute(),
+                  RouteHelper.getMyGroceryProductsScreenRoute(),
                   arguments: {
                     ApiKeys.userId: widget.userId,
                     ApiKeys.argGroceries: item.children,

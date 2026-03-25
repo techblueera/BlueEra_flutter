@@ -82,7 +82,8 @@ class GroceryCustomerController extends GetxController {
   var cartDeliveryType = <String, String>{}.obs;
 
   // --- Actions ---
-  void addToCart(ProductVariants variant,
+  void addToCart(
+      ProductVariants variant,
       {String? productId, String? inventoryId,
       String? businessId, String? businessName, String? businessLogo, String? businessAddress,
       String? deliveryType}) {
@@ -720,8 +721,10 @@ class GroceryCustomerController extends GetxController {
       double lng = LocationService.lng;
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.latitude: lat,
-        ApiKeys.longitude: lng,
+        // ApiKeys.latitude: lat,
+        // ApiKeys.longitude: lng,
+        ApiKeys.latitude: 21.817693,
+        ApiKeys.longitude: 80.181220,
         ApiKeys.range_in_km: 10000,
       };
 

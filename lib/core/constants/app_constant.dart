@@ -4368,8 +4368,6 @@ final List<CollapsibleGridModel> cloudKitchenHomeMadeFood = [
     ),
 ];
 
-
-
 // final List<CollapsibleGridModel> individualSocialProfileList = [
 //   IndividualProfileCategory(
 //     name: AppStrings.politician,
@@ -4534,6 +4532,24 @@ final List<CollapsibleGridModel> cloudKitchenHomeMadeFood = [
 //   )
 // ];
 
+const List<CollapsibleGridModel> groceryOrFoodCategories = [
+  CollapsibleGridModel(
+    name: 'Grocery & Stationary',
+    slugId: 'GROCERY_STATIONARY',
+    icon: AppImageAssets.groceryItemsColorful,
+  ),
+  CollapsibleGridModel(
+    name: 'Food & Restaurant',
+    slugId: 'FOOD_RESTAURANT',
+    icon: AppImageAssets.dairyFrozenItemsColorful,
+  ),
+  CollapsibleGridModel(
+    name: AppStrings.homeMadeFoodItems,
+    slugId: "HOME_MADE_FOOD",
+    icon: AppImageAssets.homeMadeFoodBanner,
+  ),
+];
+
 final List<Map<String, String>> chooseDeliveryOptions = [
   {
     "id": "SELF",
@@ -4547,12 +4563,12 @@ final List<Map<String, String>> chooseDeliveryOptions = [
     "title": "Book Rider",
     "subtitle": "Quick, Personalize, ₹8/Km"
   },
-  {
-    "id": "PARTNER",
-    "icon": AppImageAssets.transporterIcon,
-    "title": "Order Via Partner",
-    "subtitle": "Safe, Low Chargeable, Deliver in 1-3 Hours"
-  },
+  // {
+  //   "id": "PARTNER",
+  //   "icon": AppImageAssets.transporterIcon,
+  //   "title": "Order Via Partner",
+  //   "subtitle": "Safe, Low Chargeable, Deliver in 1-3 Hours"
+  // },
 ];
 
 List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
