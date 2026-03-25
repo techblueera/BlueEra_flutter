@@ -10,7 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RiderAssociationMsgCard extends StatelessWidget {
+class RiderAssociationMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
 
@@ -21,13 +21,36 @@ class RiderAssociationMsgCard extends StatelessWidget {
   });
 
   @override
+  State<RiderAssociationMsgCard> createState() =>
+      _RiderAssociationMsgCardState();
+}
+
+class _RiderAssociationMsgCardState extends State<RiderAssociationMsgCard> {
+  late String _localStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _localStatus =
+        widget.message.metadata?.riderAssociation?.status ?? 'pending';
+  }
+
+  void _onStatusChanged(String newStatus) {
+    if (mounted) {
+      setState(() {
+        _localStatus = newStatus;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final association = message.metadata?.riderAssociation;
+    final association = widget.message.metadata?.riderAssociation;
     if (association == null) {
       return const SizedBox.shrink();
     }
 
-    final status = association.status ?? 'pending';
+    final status = _localStatus;
     final requestedBy = association.requestedBy ?? '';
     final riderInfo = association.riderInfo;
     final businessInfo = association.businessInfo;
@@ -268,7 +291,7 @@ class RiderAssociationMsgCard extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerRight,
               child: CustomText(
-                time,
+                widget.time,
                 fontSize: SizeConfig.extraSmall8,
                 color: AppColors.secondaryTextColor,
               ),
@@ -297,7 +320,8 @@ class RiderAssociationMsgCard extends StatelessWidget {
         association: association,
         status: status,
         isRecipient: isRecipient,
-        message: message,
+        message: widget.message,
+        onStatusChanged: _onStatusChanged,
       ),
     );
   }
@@ -309,8 +333,9 @@ class RiderAssociationMsgCard extends StatelessWidget {
       action: action,
     );
     if (response.isSuccess) {
-      message.metadata?.riderAssociation?.status =
-          action == 'accept' ? 'accepted' : 'rejected';
+      final newStatus = action == 'accept' ? 'accepted' : 'rejected';
+      widget.message.metadata?.riderAssociation?.status = newStatus;
+      _onStatusChanged(newStatus);
       if (Get.isRegistered<DeliveryPartnerController>()) {
         Get.find<DeliveryPartnerController>().update();
       }
@@ -364,6 +389,7 @@ class _RiderDetailsSheet extends StatelessWidget {
   final String status;
   final bool isRecipient;
   final Messages message;
+  final void Function(String newStatus)? onStatusChanged;
 
   const _RiderDetailsSheet({
     required this.riderInfo,
@@ -371,6 +397,7 @@ class _RiderDetailsSheet extends StatelessWidget {
     required this.status,
     required this.isRecipient,
     required this.message,
+    this.onStatusChanged,
   });
 
   @override
@@ -550,8 +577,9 @@ class _RiderDetailsSheet extends StatelessWidget {
       action: action,
     );
     if (response.isSuccess) {
-      message.metadata?.riderAssociation?.status =
-          action == 'accept' ? 'accepted' : 'rejected';
+      final newStatus = action == 'accept' ? 'accepted' : 'rejected';
+      message.metadata?.riderAssociation?.status = newStatus;
+      onStatusChanged?.call(newStatus);
       if (Get.isRegistered<DeliveryPartnerController>()) {
         Get.find<DeliveryPartnerController>().update();
       }

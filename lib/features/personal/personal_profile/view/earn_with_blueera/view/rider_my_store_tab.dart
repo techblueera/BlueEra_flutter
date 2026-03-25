@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_add_store_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -75,7 +74,10 @@ class _RiderMyStoreTabState extends State<RiderMyStoreTab> {
       children: [
         _buildFilterSidebar(),
         SizedBox(width: SizeConfig.size6),
-        Expanded(child: _buildShopList()),
+        Expanded(child: Padding(
+          padding: const EdgeInsets.only(bottom: 60.0),
+          child: _buildShopList(),
+        )),
       ],
     );
   }
@@ -182,31 +184,18 @@ class _RiderMyStoreTabState extends State<RiderMyStoreTab> {
 
       // Empty
       if (!isLoading && shops.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const EmptyStateWidget(message: 'No associated stores yet'),
-              const SizedBox(height: 16),
-              _newStoreButton(),
-            ],
-          ),
+        return const Center(
+          child: EmptyStateWidget(message: 'No associated stores yet'),
         );
       }
 
       // List
       return Column(
         children: [
-          /// "New Store" button
-          Padding(
-            padding: EdgeInsets.only(
-                top: SizeConfig.size10, right: SizeConfig.paddingXS),
-            child: _newStoreButton(),
-          ),
-
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
+
               itemCount: shops.length,
               padding: EdgeInsets.only(
                 top: SizeConfig.paddingM,
@@ -225,38 +214,6 @@ class _RiderMyStoreTabState extends State<RiderMyStoreTab> {
     });
   }
 
-  Widget _newStoreButton() {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RiderAddStoreScreen()),
-        ).then((_) => _fetchShops()); // Refresh after coming back
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.add, color: AppColors.white, size: 20),
-            const SizedBox(width: 8),
-            CustomText(
-              'New Store',
-              fontSize: SizeConfig.medium,
-              color: AppColors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════

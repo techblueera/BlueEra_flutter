@@ -48,7 +48,7 @@ class _OrderCardState extends State<OrderCard> {
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => DeliverPartnerOrdersController());
-
+    log("dskjnckjsncs ${widget.order.toJson()}");
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -833,7 +833,7 @@ class _OrderCardState extends State<OrderCard> {
                 widget.order.id ?? "",
               );
             }else if(widget.order.orderFor?.toLowerCase()==AppConstants.grocery){
-              Get.to(DeliveryPickupShopsList(
+              Get.to(()=>DeliveryPickupShopsList(
                 order: widget.order,
                 orderId: widget.order.orderId??'', rideOrderId: widget.order.id??'',));
             }else if(widget.order.orderFor?.toLowerCase()==AppConstants.product

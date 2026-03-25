@@ -168,18 +168,7 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  /// GET ALL GROCERY ORDER...
-  Future<ResponseModel> groceryOrderServiceRepo(
-      {required String? orderID,
-      required Map<String, dynamic> queryParm}) async {
-    final response = await ApiBaseHelper().getHTTP(
-      "${groceryServiceOrder(orderID ?? " ")}",
-      params: queryParm,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
+
 
   /// ACCEPT GROCERY ACCEPT ORDER...
   Future<ResponseModel> createGroceryAcceptOrderServiceRepo(

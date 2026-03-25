@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'rider_add_store_screen.dart';
 import 'rider_my_store_tab.dart';
 
 import '../../../../../business/visiting_card/view/business_own_profile_screen.dart';
@@ -41,6 +42,7 @@ class RiderServiceScreen extends StatefulWidget {
 class _RiderServiceScreenState extends State<RiderServiceScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
+  int _currentTabIndex = 0;
 
   final controller = getOrPut(() => DeliveryPartnerController());
   final viewPersonalDetailsController =
@@ -53,7 +55,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _checkRiderServiceStatus();
     _checkRiderStatus();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
     super.initState();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    if (_currentTabIndex != _tabController.index) {
+      setState(() => _currentTabIndex = _tabController.index);
+    }
   }
 
   @override
@@ -82,6 +92,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   void dispose() {
     print('disposed');
     deleteIfRegistered<DeliveryPartnerController>();
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
@@ -329,6 +340,39 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   //   );
   // }
 
+  Widget _buildNewStoreButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RiderAddStoreScreen()),
+        ).then((_) => controller.getAssociatedShops(filter: 'all'));
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: SizeConfig.paddingL),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.add, color: AppColors.white, size: 18),
+            SizedBox(width: SizeConfig.size4),
+            CustomText(
+              'New Store',
+              fontSize: SizeConfig.medium,
+              color: AppColors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -364,8 +408,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         // CommonProfileAvatar(),
         // SizedBox(width: SizeConfig.size15),
 
-        // 2. trailing – Go-Live switch (always at the end)
-        Builder(builder: (_) {
+        // 2. trailing – "New Store" on My Store tab, Go-Live elsewhere
+        if (_currentTabIndex == 1)
+          _buildNewStoreButton()
+        else
+          Builder(builder: (_) {
             final statusData = serviceProviderStatusGlobal.toUpperCase();
             viewPersonalDetailsController.shopStatusOpenClose.value =
                 statusData == AppConstants.OPEN.toUpperCase();

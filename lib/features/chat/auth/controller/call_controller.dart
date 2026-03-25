@@ -122,6 +122,10 @@ class CallController extends GetxController {
   /// Prevents the CallKit listener from firing acceptCall a second time.
   static bool _killedStateAcceptHandled = false;
 
+  /// True while we are programmatically dismissing the CallKit UI after accepting.
+  /// Prevents the resulting actionCallEnded event from killing the active call.
+  bool _isDismissingCallKitUI = false;
+
   static void setKilledStateAcceptHandled() {
     _killedStateAcceptHandled = true;
   }
@@ -579,10 +583,17 @@ class CallController extends GetxController {
 
     // On iOS: now that WebRTC is set up and the audio session is active,
     // dismiss the CallKit UI. The WebRTC audio session takes over.
+    // We set _isDismissingCallKitUI so the resulting actionCallEnded event
+    // does NOT trigger endCall() and kill the live call.
     if (Platform.isIOS) {
       try {
+        _isDismissingCallKitUI = true;
         await FlutterCallkitIncoming.endCall(savedCallId);
       } catch (_) {}
+      // Small delay to ensure the actionCallEnded event is processed
+      // before we lower the flag.
+      await Future.delayed(const Duration(milliseconds: 300));
+      _isDismissingCallKitUI = false;
     }
 
     // Keep screen on and keep socket alive during call
@@ -1808,7 +1819,9 @@ class CallController extends GetxController {
           // iOS: user ended the call from native CallKit UI (lock screen, phone app).
           // Only act if the call is actively connected and we're on iOS.
           // On Android, CallActivity handles its own lifecycle — skip here.
+          // Skip if we triggered this endCall ourselves to dismiss the UI after accept.
           if (Platform.isIOS &&
+              !_isDismissingCallKitUI &&
               callStatus.value != CallStatus.idle &&
               (callStatus.value == CallStatus.connected ||
                callStatus.value == CallStatus.connecting ||

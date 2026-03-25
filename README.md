@@ -14,8 +14,9 @@ Doctor summary (to see all details, run flutter doctor -v):
 [✓] Network resources       
 
 • No issues found!
-9876543211
-https://meet.google.com/xzn-wvyj-ump
+9876543211- friends
+9411223344 -renuka 
+
 
 
 

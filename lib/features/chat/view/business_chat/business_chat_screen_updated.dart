@@ -93,12 +93,9 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
-          chatViewController.onSelectChatTab(1);
-          bottomBarController.onChangeIndex(4);
-          Navigator.popUntil(
-              context,
-              ModalRoute.withName(
-                  RouteHelper.getBottomNavigationBarScreenRoute()));
+          // chatViewController.onSelectChatTab(1);
+          // bottomBarController.onChangeIndex(4);
+         Get.back();
         } else {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
