@@ -112,6 +112,10 @@ class OtherBranchContactController extends GetxController {
   RxList<SchoolContactUsData>? schoolContactUsData =
       <SchoolContactUsData>[].obs;
 
+  String get website => (schoolContactUsData != null && schoolContactUsData!.isNotEmpty)
+      ? (schoolContactUsData!.first.branch?.website ?? "")
+      : "";
+
   ///====================API CALLING START==============================
   ///GET BRANCH CONTACT DETAILS...
 

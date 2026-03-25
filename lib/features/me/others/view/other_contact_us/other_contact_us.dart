@@ -32,8 +32,10 @@ class _OtherContactUsState extends State<OtherContactUs> {
   @override
   void initState() {
     // TODO: implement initState
-    controller.getBranchDetailsController();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.getBranchDetailsController();
+    });
   }
 
   @override

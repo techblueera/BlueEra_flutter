@@ -653,7 +653,9 @@ class ContactUs {
     sId = json['_id'];
     businessProfileId = json['businessProfileId'];
     name = json['name'];
-    websiteUrl = json['websiteUrl'];
+    // website can be top-level or nested under branch.website
+    websiteUrl = json['websiteUrl'] ??
+        (json['branch'] is Map ? json['branch']['website'] : null);
     location = json['location'] != null ? new Location.fromJson(json['location']) : null;
     department = json['department'];
     email = json['email'];

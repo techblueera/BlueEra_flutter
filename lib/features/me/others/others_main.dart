@@ -1,9 +1,6 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/others/view/business_profile_full_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
@@ -24,8 +21,15 @@ class _OthersMainState extends State<OthersMain>
 
   bool _hasWebsite = false;
 
-  String get _websiteUrl =>
-      controller.businessProfile.value?.contactUs?.firstOrNull?.websiteUrl ?? '';
+  String get _websiteUrl {
+    final contacts = controller.businessProfile.value?.contactUs;
+    if (contacts == null) return '';
+    for (final c in contacts) {
+      final url = c.websiteUrl ?? '';
+      if (url.isNotEmpty) return url;
+    }
+    return '';
+  }
 
   @override
   void initState() {
@@ -33,44 +37,27 @@ class _OthersMainState extends State<OthersMain>
     _tabController = TabController(length: 2, vsync: this);
     _apiCalling();
 
-    ever(controller.businessProfile, (_) {
-      final newHasWebsite = _websiteUrl.isNotEmpty;
-      if (newHasWebsite != _hasWebsite) {
-        _hasWebsite = newHasWebsite;
-        final currentIndex = _tabController.index;
-        _tabController.dispose();
-        _tabController = TabController(
-          length: _hasWebsite ? 3 : 2,
-          vsync: this,
-          initialIndex: currentIndex.clamp(0, _hasWebsite ? 2 : 1),
-        );
-        if (mounted) setState(() {});
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ever(controller.businessProfile, (_) {
+        if (!mounted) return;
+        final newHasWebsite = _websiteUrl.isNotEmpty;
+        if (newHasWebsite != _hasWebsite) {
+          _hasWebsite = newHasWebsite;
+          final currentIndex = _tabController.index;
+          _tabController.dispose();
+          _tabController = TabController(
+            length: _hasWebsite ? 3 : 2,
+            vsync: this,
+            initialIndex: currentIndex.clamp(0, _hasWebsite ? 2 : 1),
+          );
+          setState(() {});
+        }
+      });
     });
   }
 
   Future<void> _apiCalling() async {
-    try {
-      if (otherServiceIDGlobal.isEmpty) {
-        ResponseModel response = await OtherRepo().getBusinessProfileRepo();
-        if (response.isSuccess) {
-          otherServiceIDGlobal = response.response?.data['data']['_id'];
-          if (otherServiceIDGlobal.isNotEmpty) {
-            await setOtherServiceID(otherServiceIDGlobal);
-          } else {
-            await setOtherServiceID('');
-          }
-        }
-      }
-      await getOtherServiceID();
-      if (mounted) {
-        setState(() {
-          controller.hasProfile.value = otherServiceIDGlobal.isNotEmpty;
-        });
-      }
-    } on Exception {
-      // TODO
-    }
+    await controller.getBusinessProfileFull();
   }
 
   @override
@@ -98,6 +85,7 @@ class _OthersMainState extends State<OthersMain>
               tabs: [
                 const Tab(text: 'Others'),
                 if (_hasWebsite) const Tab(text: 'Website'),
+                // const Tab(text: 'Update'),
                 const Tab(text: 'Statistics'),
               ],
             ),
@@ -112,6 +100,7 @@ class _OthersMainState extends State<OthersMain>
                       urlTitle: '',
                       hideAppBar: true,
                     ),
+                  // const AddOthersServices(),
                   const Center(child: CustomText(AppStrings.comingSoon)),
                 ],
               ),

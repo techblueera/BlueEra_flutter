@@ -8,21 +8,17 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
-import 'package:BlueEra/features/me/others/view/announcements/announcements_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/others/view/other_header_view.dart';
-import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
+import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
+import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
-import 'package:BlueEra/features/me/others/view/timing_screen.dart';
 import 'package:BlueEra/features/me/others/widget/other_product_widget.dart';
-import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -44,12 +40,16 @@ class BusinessProfileFullScreen extends StatefulWidget {
 
 class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
   final controller = getOrPut(() => BusinessProfileFullController());
+  final contactController = getOrPut(() => OtherBranchContactController());
 
   @override
   void initState() {
     // TODO: implement initState
-    controller.getBusinessProfileFull();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.getBusinessProfileFull();
+      contactController.getBranchDetailsController();
+    });
   }
 
   @override
@@ -62,7 +62,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         }
         final data = controller.businessProfile.value;
         if (data == null) {
-          return _buildFullPlaceholder();
+          return const Center(child: CircularProgressIndicator());
         }
 
         return CustomScrollView(
@@ -138,8 +138,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             Get.to(OthersAboutUs());
                           }),
                           const SizedBox(height: 10),
-                          if (data.aboutOrganisation != null &&
-                              data.aboutOrganisation!.isNotEmpty)
+                          if (data.aboutOrganisation != null && data.aboutOrganisation!.isNotEmpty)
                             _buildServicesList(data.aboutOrganisation!)
                           else
                             _buildOrgEmptyCard(onTap: () => Get.to(OthersAboutUs())),
@@ -175,10 +174,32 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       cardMargin: 0,
                       padding: 10,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle("Gallery", onSeeAll: () {
-                            Get.to(OtherServicePhotosPhotoScreen());
-                          }),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ServiceHomeTitleWidget(title: 'Gallery'),
+                              GestureDetector(
+                                onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryColor,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(Icons.add_photo_alternate_outlined, size: 14, color: Colors.white),
+                                      SizedBox(width: 4),
+                                      CustomText('Add / Edit', fontSize: 12, color: Colors.white),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 10),
                           if (data.gallery != null && data.gallery!.isNotEmpty)
                             _buildGallery(data.gallery!, context)
@@ -192,6 +213,36 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
+
+                    /// Website Section
+                    Obx(() {
+                      final website = contactController.website.isNotEmpty 
+                          ? contactController.website 
+                          : controller.website;
+                      if (website.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        children: [
+                          CommonCardWidget(
+                            cardMargin: 0,
+                            padding: 10,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle("Website"),
+                                const SizedBox(height: 10),
+                                _buildContactRow(
+                                  AppIconAssets.website_click,
+                                  website,
+                                  AppColors.primaryColor,
+                                  isLink: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      );
+                    }),
 
                     // // Testimonials (Management messages?)
                     // if (data.management != null &&
@@ -211,13 +262,13 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             Get.to(OtherContactUs());
                           }),
                           const SizedBox(height: 10),
-                          if (data.contactUs != null && data.contactUs!.isNotEmpty &&
-                              (data.contactUs!.first.contactNumber != null ||
-                               data.contactUs!.first.email != null ||
-                               data.contactUs!.first.websiteUrl != null))
-                            _buildContactUs(data.contactUs, data.timings, data.profile)
-                          else
-                            _buildContactEmptyCard(onTap: () => Get.to(OtherContactUs())),
+                          Obx(() {
+                            final contacts = contactController.schoolContactUsData;
+                            if (contacts == null || contacts.isEmpty) {
+                              return _buildContactEmptyCard(onTap: () => Get.to(OtherContactUs()));
+                            }
+                            return _buildContactUs(contacts);
+                          }),
                         ],
                       ),
                     ),
@@ -227,12 +278,10 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       borderRadius: BorderRadius.circular(12),
                       child: BusinessLocationWidget(
                           locationText: data.profile?.location?.address,
-                          latitude: double.parse(data
-                                  .profile?.location?.coordinates?[0]
+                          latitude: double.parse(data.profile?.location?.coordinates?[0]
                                   .toString() ??
                               "0.0"),
-                          longitude: double.parse(data
-                                  .profile?.location?.coordinates?[1]
+                          longitude: double.parse(data.profile?.location?.coordinates?[1]
                                   .toString() ??
                               "0.0"),
                           businessName: data.profile?.profileName ?? "",
@@ -253,42 +302,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
 
 
-
-  Widget _buildFullPlaceholder() {
-    final items = [
-      (title: 'About US', icon: AppIconAssets.about_us, page: () => OthersAboutUs()),
-      (title: 'Products', icon: AppIconAssets.other_products, page: () => AddProductScreen(id: businessId, providerType: ProviderType.business)),
-      (title: 'Services', icon: AppIconAssets.other_services, page: () => ServiceUploadScreen(providerType: ProviderType.business)),
-      (title: 'Announcements', icon: AppIconAssets.other_announcements, page: () => AnnouncementsScreen()),
-      (title: 'Gallery', icon: AppIconAssets.other_gallery, page: () => OtherServicePhotosPhotoScreen()),
-      (title: 'Privacy Policy, Terms & Condition', icon: AppIconAssets.other_privacy, page: () => OtherPrivacyConditionScreen()),
-      (title: 'Careers', icon: AppIconAssets.other_careers, page: () => OtherJobListingScreen()),
-      (title: 'Timing', icon: AppIconAssets.other_timing, page: () => TimingScreen()),
-      (title: 'Contact US', icon: AppIconAssets.contact_us, page: () => OtherContactUs()),
-    ];
-
-    return Material(
-      color: AppColors.appBackgroundColor,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            ...items.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: InkWell(
-                onTap: () => Get.to(item.page()),
-                child: MeMenuCardDesign(
-                  title: item.title,
-                  icon: item.icon,
-                ),
-              ),
-            )),
-            const SizedBox(height: 80),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildOrgEmptyCard({required VoidCallback onTap}) {
     return Container(
@@ -801,37 +814,95 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
 
 
-  Widget _buildContactUs(
-      List<ContactUs>? contacts, Timings? timings, Profile? profile) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (profile?.profileName != null)
-            CustomText(
-              profile!.profileName!,
-             fontWeight: FontWeight.w500,
+  Widget _buildContactUs(List<SchoolContactUsData> contacts) {
+    if (contacts.isEmpty) return const SizedBox.shrink();
+    final data = contacts.first;
+    final branch = data.branch;
+    final firstDept = data.departments?.isNotEmpty == true ? data.departments!.first : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
+            color: Colors.white,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: CustomText(
+                      branch?.name ?? "",
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Get.to(OtherBranchOnlyScreen(schoolContactUsData: data)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primaryColor),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
+                          SizedBox(width: 4),
+                          CustomText('Edit', fontSize: 12, color: AppColors.primaryColor),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (branch?.website != null && branch!.website!.isNotEmpty)
+                _buildContactRow(AppIconAssets.website_click,
+                    branch.website!, AppColors.primaryColor, isLink: true),
+              if (firstDept != null) ...[
+                if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
+                  _buildContactRow(AppIconAssets.phone_outline,
+                      firstDept.phone!, AppColors.mainTextColor),
+                if (firstDept.email != null && firstDept.email!.isNotEmpty)
+                  _buildContactRow(AppIconAssets.email,
+                      firstDept.email!, AppColors.mainTextColor),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () => Get.to(OtherBranchDetailsFormScreen()),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
-          const SizedBox(height: 8),
-          if (contacts != null && contacts.isNotEmpty) ...[
-            if (contacts.first.websiteUrl != null)
-              _buildContactRow(AppIconAssets.website_click,
-                  contacts.first.websiteUrl!, AppColors.primaryColor,
-                  isLink: true),
-            if (contacts.first.contactNumber != null)
-              _buildContactRow(AppIconAssets.phone_outline,
-                  contacts.first.contactNumber!, AppColors.mainTextColor),
-            if (contacts.first.email != null)
-              _buildContactRow(AppIconAssets.email, contacts.first.email!,
-                  AppColors.mainTextColor),
-          ],
-        ],
-      ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.add, size: 16, color: AppColors.primaryColor),
+                SizedBox(width: 6),
+                CustomText('Add More', fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
