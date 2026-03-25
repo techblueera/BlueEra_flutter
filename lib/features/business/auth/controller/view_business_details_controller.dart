@@ -563,8 +563,8 @@ class ViewBusinessDetailsController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      logs("ERROR ${e}");
+    } catch (e, s) {
+      logs("Stack trace ${s}");
       viewBusinessResponseNew = ApiResponse.error('error');
     }finally{
       isProfileLoading.value = false;

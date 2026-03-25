@@ -59,7 +59,10 @@ class GroceryProductCard extends StatelessWidget {
         }
 
         // ✅ Bottom sheet instead of navigation
-        _showVariantsBottomSheet(Get.context!, variants);
+        _showVariantsBottomSheet(
+            Get.context!,
+            variants,
+        );
       },
       // onTap: (){
       //
@@ -232,7 +235,6 @@ class GroceryProductCard extends StatelessWidget {
       BuildContext context,
       List<ProductVariants> variants,
       ) {
-    final groceryCustomerController = Get.find<GroceryCustomerController>();
 
     showModalBottomSheet(
       context: context,
@@ -301,7 +303,6 @@ class GroceryProductCard extends StatelessWidget {
                       context: context,
                       variant: variant,
                       productImage: productImage,
-                      controller: groceryCustomerController,
                     );
                   },
                 ),
@@ -317,8 +318,10 @@ class GroceryProductCard extends StatelessWidget {
     required BuildContext context,
     required ProductVariants variant,
     required String productImage,
-    required GroceryCustomerController controller,
   }) {
+    final GroceryCustomerController? _groceryCustomerController =
+    !isMyGroceryStore ? Get.find<GroceryCustomerController>() : null;
+
     final price = groceryController.getPriceDetails(variant.pricing);
 
     return Container(
@@ -390,82 +393,133 @@ class GroceryProductCard extends StatelessWidget {
 
           SizedBox(width: SizeConfig.size10),
 
-          // Dashed Divider
-          DashedBorderContainer(
-            borderColor: AppColors.greyE5,
-            strokeWidth: 1,
-            dashLength: 2,
-            child: SizedBox(height: SizeConfig.size50, width: 1),
-          ),
 
-          SizedBox(width: SizeConfig.size10),
+          if(!isMyGroceryStore)...[
+            // Dashed Divider
+            DashedBorderContainer(
+              borderColor: AppColors.greyE5,
+              strokeWidth: 1,
+              dashLength: 2,
+              child: SizedBox(height: SizeConfig.size50, width: 1),
+            ),
 
-          // Add / Remove Button
-          Obx(() {
-            final bool isAdded = controller.selectedGroceriesVariants
-                .any((v) => v.sId == variant.sId);
+            SizedBox(width: SizeConfig.size10),
 
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              width: SizeConfig.size70,
-              height: SizeConfig.size30,
-              decoration: BoxDecoration(
-                color: isAdded ? AppColors.red.withValues(alpha: 0.08)
-                    : AppColors.primaryColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isAdded ? AppColors.red : AppColors.primaryColor,
-                  width: 1,
+            // Add / Remove Button
+            Obx(() {
+              final bool isAdded = _groceryCustomerController?.selectedGroceriesVariants
+                  .any((v) => v.sId == variant.sId) ?? false;
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                width: SizeConfig.size70,
+                height: SizeConfig.size30,
+                decoration: BoxDecoration(
+                  color: isAdded ? AppColors.red.withValues(alpha: 0.08)
+                      : AppColors.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isAdded ? AppColors.red : AppColors.primaryColor,
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () {
-                  if (isAdded) {
-                    controller.removeFromCart(variant);
-                  } else {
-                    controller.addToCart(
-                      variant,
-                      productId: variant.sId,
-                      inventoryId: groceryProducts.sId,
-                      deliveryType: 'RIDER',
-                    );
-                  }
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, animation) => ScaleTransition(
-                        scale: animation,
-                        child: child,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    if (isAdded) {
+                      _groceryCustomerController?.removeFromCart(variant);
+                    } else {
+                      _groceryCustomerController?.addToCart(
+                        variant,
+                        productId: variant.sId,
+                        inventoryId: groceryProducts.sId,
+                        deliveryType: 'RIDER',
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (child, animation) => ScaleTransition(
+                          scale: animation,
+                          child: child,
+                        ),
+                        child: Icon(
+                          isAdded ? Icons.remove : Icons.add,
+                          key: ValueKey(isAdded),
+                          size: 12,
+                          color: isAdded ? AppColors.red : AppColors.primaryColor,
+                        ),
                       ),
-                      child: Icon(
-                        isAdded ? Icons.remove : Icons.add,
-                        key: ValueKey(isAdded),
-                        size: 12,
-                        color: isAdded ? AppColors.red : AppColors.primaryColor,
+                      SizedBox(width: 3),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: CustomText(
+                          isAdded ? 'REMOVE' : 'ADD',
+                          key: ValueKey(isAdded),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isAdded ? AppColors.red : AppColors.primaryColor,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 3),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: CustomText(
-                        isAdded ? 'REMOVE' : 'ADD',
-                        key: ValueKey(isAdded),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isAdded ? AppColors.red : AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ]
+          else ...[
+            SizedBox(width: SizeConfig.size10),
+            // ✅ OWNER VIEW: Edit Inventory / Manage
+            _buildEditButton(
+                onTap: () {  }
+            )
+          ],
+
         ],
+      ),
+    );
+  }
+
+  Widget _buildEditButton({required VoidCallback onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: SizeConfig.size70,
+          height: SizeConfig.size30,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: AppColors.primaryColor,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LocalAssets(
+                imagePath: AppIconAssets.pen_line,
+                height: 14,
+                width: 14,
+                imgColor: AppColors.primaryColor,
+              ),
+              const SizedBox(width: 4),
+              CustomText(
+                'EDIT',
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

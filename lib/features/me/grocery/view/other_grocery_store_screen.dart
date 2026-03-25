@@ -1,10 +1,10 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -16,8 +16,8 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -55,7 +55,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
 
   @override
   void initState() {
-    groceryCustomerController.resetController();
+    // groceryCustomerController.resetController();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllGroceryData(widget.userId, otherStore: true);
     super.initState();
@@ -82,7 +82,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 // --- 1. Profile Header Section (Independent) ---
                 Obx(() {
                   if (viewBusinessDetailsController.isProfileLoading.value) {
-                    return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+                    return buildBusinessHeaderSkeleton();
                   }
                   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
                   return _groceryHeaderWidget(details);
@@ -91,7 +91,9 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 // --- 2. Top Selling Products (Independent) ---
                 Obx(() {
                   if (controller.fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL) {
-                    return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                    return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.paddingM),
+                        child: buildHorizontalProductListSkeleton());
                   }
                   return controller.groceryBusinessProductsList.isNotEmpty
                       ? _topSellingProduct()
@@ -103,7 +105,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 // --- 3. Categories Section (Independent) ---
                 Obx(() {
                   if (controller.fetchMyGroceryCategoryResponse.value.status == Status.INITIAL) {
-                    return const SizedBox(height: 150, child: Center(child: CircularProgressIndicator()));
+                    return buildCategoryGridSkeleton();
                   }
                   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
                   return _categoryWithInventoryWidget(details);
@@ -329,7 +331,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
           ),
 
           SizedBox(
-            height: SizeConfig.size265,
+            height: SizeConfig.size240,
             child: ListView.builder(
                 itemCount: controller.groceryBusinessProductsList.length,
                 scrollDirection: Axis.horizontal,
@@ -475,74 +477,10 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                 ),
                               ),
                               SizedBox(height: SizeConfig.size6),
-                              Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      CustomText(
-                                        "${AppStrings.price.tr}: ",
-                                        fontSize: 10,
-                                        color: AppColors.secondaryTextColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      SizedBox(width: SizeConfig.size3),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: CustomText(
-                                          "₹${groceryProductData.minSellingPrice}",
-                                          fontSize: 10,
-                                          color: AppColors.primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      CustomText(
-                                        "${AppStrings.mrp.tr}: ",
-                                        fontSize: 10,
-                                        color: AppColors.secondaryTextColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      SizedBox(width: SizeConfig.size3),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: CustomText(
-                                          "₹${groceryProductData.minMrp}",
-                                          fontSize: 10,
-                                          color: AppColors.grayText,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      CustomText(
-                                        "${AppStrings.discount.tr}: ",
-                                        fontSize: 10,
-                                        color: AppColors.secondaryTextColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      SizedBox(width: SizeConfig.size3),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: CustomText(
-                                          "${groceryProductData.avgDiscount}% OFF",
-                                          fontSize: 10,
-                                          color: AppColors.green00,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              PriceRow(
+                                sellingPrice:  "₹${groceryProductData.minSellingPrice}",
+                                mrp: "₹${groceryProductData.minMrp}",
+                                discount:  "${groceryProductData.avgDiscount}% OFF",
                               ),
                               SizedBox(height: SizeConfig.size4),
                             ],

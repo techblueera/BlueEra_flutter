@@ -1,8 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -35,11 +36,12 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
   final viewBusinessDetailsController =
         Get.find<ViewBusinessDetailsController>();
-
+  BusinessProfileDetails? businessProfileDetails;
   @override
   void initState() {
     // controller.fetchMyGroceryCategoryWithVariants();
     // controller.fetchGroceryBusinessProductsRepo();
+    businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
     controller.fetchAllGroceryData(userId, otherStore: false);
     super.initState();
   }
@@ -52,58 +54,65 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Obx((){
-          if (controller.myGroceryLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              controller.fetchAllGroceryData(userId, otherStore: false);
-            },
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 15.0,
-              ),
-              child: Column(
-                children: [
-                  CustomFormCard(
-                      padding: EdgeInsets.zero,
-                      child: BusinessProfileHeaderView(
-                        details: businessProfileDetails,
-                        controller: viewBusinessDetailsController,
-                   ),
-                  ),
-
-                  if(controller.groceryBusinessProductsList.isNotEmpty)
-                  _topSellingProduct(),
-
-                  SizedBox(
-                    height: SizeConfig.paddingM,
-                  ),
-
-                  _categoryWithInventoryWidget(),
-
-                  SizedBox(
-                    height: SizeConfig.paddingM,
-                  ),
-
-                  BusinessContactMapCard(
-                    businessProfileDetails: businessProfileDetails,
-                  ),
-
-                  SizedBox(
-                    height: SizeConfig.size100,
-                  ),
-
-                ],
-              ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            controller.fetchAllGroceryData(userId, otherStore: false);
+          },
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 15.0,
             ),
-          );
-        }
+            child: Column(
+              children: [
+                CustomFormCard(
+                  padding: EdgeInsets.zero,
+                  child: BusinessProfileHeaderView(
+                    details: businessProfileDetails,
+                    controller: viewBusinessDetailsController,
+                  ),
+                ),
+
+                // --- 2. Top Selling Products (Reactive) ---
+                Obx(() {
+                  if (controller.fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: buildHorizontalProductListSkeleton(),
+                    );
+                  }
+
+                  return controller.groceryBusinessProductsList.isNotEmpty
+                      ? _topSellingProduct()
+                      : const SizedBox.shrink();
+                }),
+
+                SizedBox(
+                  height: SizeConfig.paddingM,
+                ),
+
+                Obx(() {
+                  if (controller.fetchMyGroceryCategoryResponse.value.status == Status.INITIAL) {
+                    return buildCategoryGridSkeleton();
+                  }
+                  return _categoryWithInventoryWidget();
+                }),
+
+                SizedBox(
+                  height: SizeConfig.paddingM,
+                ),
+
+                BusinessContactMapCard(
+                  businessProfileDetails: businessProfileDetails,
+                ),
+
+                SizedBox(
+                  height: SizeConfig.size100,
+                ),
+
+              ],
+            ),
+          ),
         )
     );
   }
