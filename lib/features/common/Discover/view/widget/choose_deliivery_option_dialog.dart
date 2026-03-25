@@ -1,18 +1,19 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/view/choose_delivery_options_screen.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
+import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChooseDeliveryOptionDialog extends StatefulWidget {
-  const ChooseDeliveryOptionDialog({super.key});
+  final String proceedWith;
+  const ChooseDeliveryOptionDialog({super.key, required this.proceedWith});
 
   @override
   State<ChooseDeliveryOptionDialog> createState() => _ChooseDeliveryOptionDialogState();
@@ -98,65 +99,108 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
     required String title,
     required String subtitle,
   }) {
-    bool isSelected = _selectedOptionId == id;
+    // bool isSelected = _selectedOptionId == id;
 
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedOptionId = id;
-        });
-        Get.off(()=> ChooseDeliveryOptionsScreen(optionId: _selectedOptionId));
-      },
+    return Material(
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(10.0),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.white : AppColors.whiteFE,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            color: isSelected ? AppColors.greenShade : AppColors.greyE5,
-            width: isSelected ? 1.5 : 1.0,
+      child: InkWell(
+        onTap: () {
+          // setState(() {
+            _selectedOptionId = id;
+          // });
+          if(_selectedOptionId == 'SELF'){
+            bool isGrocery = widget.proceedWith == 'GROCERY_STATIONARY';
+            navigateToGroceryOrFoodStore(
+              categories: isGrocery ? groceriesCategories : businessOnboardingFoodsCategories,
+              isGrocery: isGrocery
+            );
+            // Get.to(()=> SelfPickupStoreScreen());
+          }else if(_selectedOptionId == 'RIDER'){
+            Get.to(()=> RiderStoreScreen());
+            }
+          // else{
+          //   Get.to(()=> FranchiseHome(
+          //       // onBackPressed: (){
+          //       //   _selectedOptionId = 'RIDER';
+          //       //   setState(() {});
+          //       // }
+          //   ));
+          // }
+          // Get.to(()=> ChooseDeliveryOptionsScreen(
+          //     optionId: _selectedOptionId));
+        },
+        borderRadius: BorderRadius.circular(10.0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            // color: isSelected ? AppColors.white : AppColors.whiteFE,
+            color: AppColors.whiteFE,
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(
+              // color: isSelected ? AppColors.greenShade : AppColors.greyE5,
+              // width: isSelected ? 1.5 : 1.0,
+              color: AppColors.greyE5,
+              width: 1.0,
+            ),
+            // boxShadow: isSelected ? [AppShadows.textFieldShadow] : [],
           ),
-          boxShadow: isSelected ? [AppShadows.textFieldShadow] : [],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: LocalAssets(imagePath: icon, boxFix: BoxFit.contain),
-            ),
-            const SizedBox(width: 12.0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    title,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppColors.mainTextColor : AppColors.secondaryTextColor,
-                  ),
-                  const SizedBox(height: 4),
-                  CustomText(
-                    subtitle,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ],
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: LocalAssets(imagePath: icon, boxFix: BoxFit.contain),
               ),
-            ),
-            if (isSelected)
-              LocalAssets(
-                  imagePath: AppIconAssets.green_tick_icon,
-                  width: 20,
-                  height: 20,
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      title,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      // color: isSelected ? AppColors.mainTextColor : AppColors.secondaryTextColor,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    const SizedBox(height: 4),
+                    CustomText(
+                      subtitle,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ),
               ),
-          ],
+              // if (isSelected)
+              //   LocalAssets(
+              //       imagePath: AppIconAssets.green_tick_icon,
+              //       width: 20,
+              //       height: 20,
+              //   ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  void navigateToGroceryOrFoodStore({
+    required List<OnboardingCategoryModel> categories,
+    // required var categoryData,
+    bool isGrocery = true,
+  }) {
+    Get.offNamed(
+      RouteHelper.getGroceryOrFoodStoresScreenRoute(),
+      arguments: {
+        ApiKeys.argCategories: categories,
+        // ApiKeys.argCategoryData: categoryData,
+        ApiKeys.argIsGroceryStore: isGrocery,
+      },
+    );
+  }
+
 }

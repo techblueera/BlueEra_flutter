@@ -23,6 +23,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventor
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/other_grocery_product_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/other_grocery_store_screen.dart';
@@ -105,8 +106,7 @@ import 'package:BlueEra/features/me/grocery/view/grocery_or_food_stores_screen.d
 import 'package:BlueEra/features/me/grocery/view/grocery_products_selection_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_products_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_variant_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/my_medical_products_response.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_screen.dart';
@@ -468,11 +468,11 @@ class RouteHelper {
   static String getAddGroceryVariantScreenRoute() =>
       RouteConstant.addGroceryVariantScreen;
 
-  static String getGroceryProductsScreenRoute() =>
-      RouteConstant.groceryProductsScreen;
+  static String getMyGroceryProductsScreenRoute() =>
+      RouteConstant.myGroceryProductsScreen;
 
-  static String getMyGroceryVariantScreenRoute() =>
-      RouteConstant.MyGroceryVariantScreen;
+  static String getOtherGroceryProductsScreenRoute() =>
+      RouteConstant.otherGroceryProductsScreen;
 
   static String getGroceryCustomerListingScreenRoute() =>
       RouteConstant.groceryCustomerListingScreen;
@@ -482,6 +482,7 @@ class RouteHelper {
 
   static String getGroceryCartScreenRoute() =>
       RouteConstant.groceryCartScreen;
+
   static String getYourAddToCardScreenRoute() =>
       RouteConstant.yourAddToCardScreen;
 
@@ -1523,30 +1524,29 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => AddGroceryVariantScreen(),
             settings: RouteSettings(name: getAddGroceryVariantScreenRoute()));
-      case RouteConstant.groceryProductsScreen:
+      case RouteConstant.myGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = args[ApiKeys.userId] as String;
         final List<GroceryNestedCategoryModel> argGroceries =
         args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
         return MaterialPageRoute(
-            builder: (_) => GroceryProductsScreen(
+            builder: (_) => MyGroceryProductsScreen(
                   userId: userId,
                   arrGroceries: argGroceries
                 ),
-            settings: RouteSettings(name: getGroceryProductsScreenRoute()));
-      case RouteConstant.MyGroceryVariantScreen:
+            settings: RouteSettings(name: getMyGroceryProductsScreenRoute()));
+      case RouteConstant.otherGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<ProductVariants> variants =
-            args[ApiKeys.argVariants] as List<ProductVariants>;
-        final bool argIsMyGroceryStore = args[ApiKeys.argIsMyGroceryStore] as bool;
-        final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
+        final String userId = args[ApiKeys.userId] as String;
+        final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
+        final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
         return MaterialPageRoute(
-            builder: (_) => MyGroceryVariantScreen(
-                variants: variants,
-                isMyGroceryStore: argIsMyGroceryStore,
-                isShowInGrid: argIsShowInGrid
+            builder: (_) => OtherGroceryProductsScreen(
+                userId: userId,
+                argArrGroceryCatKey: argArrGroceryCatKey,
+                argArrGroceryCatName: argArrGroceryCatName,
             ),
-            settings: RouteSettings(name: getMyGroceryVariantScreenRoute()));
+            settings: RouteSettings(name: getOtherGroceryProductsScreenRoute()));
       case RouteConstant.groceryCustomerListingScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<GroceryNestedCategoryModel> argGroceries =
@@ -1742,12 +1742,12 @@ class RouteHelper {
        case RouteConstant.groceryOrFoodStoresScreen:
               final args = settings.arguments as Map<String, dynamic>;
               final List<OnboardingCategoryModel> argCategories = args[ApiKeys.argCategories] as List<OnboardingCategoryModel>;
-              final OnboardingCategoryModel selectedGroceryCategoryData = args[ApiKeys.argCategoryData] as OnboardingCategoryModel;
+              // final OnboardingCategoryModel selectedGroceryCategoryData = args[ApiKeys.argCategoryData] as OnboardingCategoryModel;
               final bool argIsGroceryStore = args[ApiKeys.argIsGroceryStore] as bool;
               return MaterialPageRoute(
                   builder: (_) => GroceryOrFoodStoresScreen(
                       arrCategories: argCategories,
-                      selectedGroceryOrFoodCategory: selectedGroceryCategoryData,
+                      // selectedGroceryOrFoodCategory: selectedGroceryCategoryData,
                       isGroceryStore: argIsGroceryStore,
                   ),
                   settings: RouteSettings(name: getGroceryOrFoodStoresScreenRoute())

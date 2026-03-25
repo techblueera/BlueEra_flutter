@@ -1,5 +1,6 @@
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -17,6 +18,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controll
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -67,120 +69,68 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CommonBackAppBar(
-            buildCustomActionWidget: () =>  CommonCartIcon(
-                argIsDeliveredByRider: false,
+      appBar: CommonBackAppBar(),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size8,
+              vertical: SizeConfig.size15,
             ),
-        ),
-        body: Obx((){
+            child: Column(
+              children: [
+                // --- 1. Profile Header Section (Independent) ---
+                Obx(() {
+                  if (viewBusinessDetailsController.isProfileLoading.value) {
+                    return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+                  }
+                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                  return _groceryHeaderWidget(details);
+                }),
 
-          final bool isProfileLoading = viewBusinessDetailsController.isProfileLoading.value;
-          final bool isGroceryLoading = controller.myGroceryLoading.value;
+                // --- 2. Top Selling Products (Independent) ---
+                Obx(() {
+                  if (controller.fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL) {
+                    return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                  }
+                  return controller.groceryBusinessProductsList.isNotEmpty
+                      ? _topSellingProduct()
+                      : const SizedBox.shrink();
+                }),
 
-          if (isProfileLoading || isGroceryLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+                SizedBox(height: SizeConfig.paddingM),
 
-          BusinessProfileDetails? businessProfileDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                // --- 3. Categories Section (Independent) ---
+                Obx(() {
+                  if (controller.fetchMyGroceryCategoryResponse.value.status == Status.INITIAL) {
+                    return const SizedBox(height: 150, child: Center(child: CircularProgressIndicator()));
+                  }
+                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                  return _categoryWithInventoryWidget(details);
+                }),
 
-          return Stack(
-            children: [
-              SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8,
-                  vertical: SizeConfig.size15
-                ),
-                child: Column(
-                  children: [
-                    _groceryHeaderWidget(businessProfileDetails),
+                SizedBox(height: SizeConfig.paddingM),
 
-                    if(controller.groceryBusinessProductsList.isNotEmpty)
-                      _topSellingProduct(),
+                // --- 4. Contact/Map Section (Depends on Profile) ---
+                Obx(() {
+                  if (viewBusinessDetailsController.isProfileLoading.value) {
+                    return const SizedBox.shrink();
+                  }
+                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                  return _buildContactNdMapCard(details);
+                }),
 
-                    SizedBox(
-                      height: SizeConfig.paddingM,
-                    ),
+                SizedBox(height: SizeConfig.size100),
+              ],
+            ),
+          ),
 
-                    _categoryWithInventoryWidget(businessProfileDetails),
-
-                    SizedBox(
-                      height: SizeConfig.paddingM,
-                    ),
-
-                    _buildContactNdMapCard(businessProfileDetails),
-
-                    SizedBox(
-                      height: SizeConfig.size100,
-                    ),
-
-                  ],
-                ),
-              ),
-              Obx(() {
-                final int itemCount = groceryCustomerController.selectedGroceriesVariants.length;
-                if (itemCount == 0) return const SizedBox.shrink();
-                return Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 20,
-                  child: GestureDetector(
-                      onTap: () => Get.toNamed(
-                          RouteHelper.getYourAddToCardScreenRoute(),
-                          arguments: {
-                            ApiKeys.argIsDeliveredByRider: false
-                          }
-                      ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryColor.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: CustomText(
-                              '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
-                              fontSize: 13,
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          CustomText(
-                            'View Cart',
-                            fontSize: 16,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: AppColors.white,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              })
-            ],
-          );
-        }
-        )
+          // --- 5. Cart UI (Always Reactive) ---
+          SelfPickupCommonCartUi(
+            selectedVariants: groceryCustomerController.selectedGroceriesVariants,
+          ),
+        ],
+      ),
     );
   }
 
@@ -649,22 +599,26 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 boxShadow: [],
                 onTap: (_categoryItem) {
 
-                  return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+
+
+                  Get.toNamed(
+                    RouteHelper.getOtherGroceryProductsScreenRoute(),
                     arguments: {
                       ApiKeys.userId: details?.userId,
-                      ApiKeys.argGroceryCategoryWithInventory: groceryCategoryList,
                       ApiKeys.argArrGroceryCatKey: _categoryItem.key,
                       ApiKeys.argArrGroceryCatName: _categoryItem.name,
                     },
                   );
 
-                //   return Get.toNamed(RouteHelper.getMyGroceryProductsScreenRoute(),
-                //   arguments: {
-                //     ApiKeys.userId: details?.userId,
-                //     ApiKeys.argCategoryId: _categoryItem.sId,
-                //     ApiKeys.argCategoryName: _categoryItem.name
-                //   },
-                // );
+                  // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+                  //   arguments: {
+                  //     ApiKeys.userId: details?.userId,
+                  //     ApiKeys.argGroceryCategoryWithInventory: groceryCategoryList,
+                  //     ApiKeys.argArrGroceryCatKey: _categoryItem.key,
+                  //     ApiKeys.argArrGroceryCatName: _categoryItem.name,
+                  //   },
+                  // );
+
                 },
               );
             },

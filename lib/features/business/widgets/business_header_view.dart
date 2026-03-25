@@ -26,13 +26,13 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
-import '../../../../../../core/api/apiService/api_keys.dart';
+import '../../../core/api/apiService/api_keys.dart';
 
-class ProductProfileHeader extends StatelessWidget {
+class BusinessProfileHeaderView extends StatelessWidget {
   final BusinessProfileDetails? details;
   final ViewBusinessDetailsController controller;
 
-  const ProductProfileHeader(
+  const BusinessProfileHeaderView(
       {super.key, required this.details, required this.controller});
 
   String cleanValue(String? value) {

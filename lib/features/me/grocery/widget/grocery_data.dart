@@ -1,10 +1,10 @@
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 
 class GroceryData {
+
   /// Super Grocery Categories
   static const List<CollapsibleGridModel> grocerySuperCategories = [
     CollapsibleGridModel(
@@ -16,11 +16,6 @@ class GroceryData {
         name: AppStrings.labelDairyBeverages,
         slugId: GroceryConstant.DAIRY_BEVERAGES,
         icon: AppImageAssets.dairyFrozenItemsColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.homeMadeFoodItems,
-        slugId: "HOME_MADE_FOOD",
-        icon: AppImageAssets.homeMadeFoodBanner,
     ),
     CollapsibleGridModel(
         name: AppStrings.labelVegetablesFruit,
@@ -74,8 +69,7 @@ class GroceryData {
     ),
   ];
 
-
-// static const List<CollapsibleGridModel> grocerySuperCategories = [
+  // static const List<CollapsibleGridModel> grocerySuperCategories = [
   //   CollapsibleGridModel(
   //       icon: AppIconAssets.groceryItemsGrey,
   //       name: AppStrings.labelGroceryItems,

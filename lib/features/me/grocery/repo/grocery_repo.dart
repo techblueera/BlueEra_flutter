@@ -260,7 +260,7 @@ class GroceryRepo extends BaseService {
   }
 
   Future<ResponseModel> fetchGroceryNestedCategoryRepo(
-      {required Map<String, dynamic> queryParams}) async {
+      {Map<String, dynamic>? queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       groceryNestedCategory,
       showProgress: false,

@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -31,8 +30,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -81,15 +78,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
         return false;
       },
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-        child: Scaffold(
-          backgroundColor: AppColors.appBackgroundColor,
-          body: NotificationListener<UserScrollNotification>(
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        body: SafeArea(
+          top: false,
+          child: NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
               if (notification.direction == ScrollDirection.reverse) {
                 widget.onHeaderVisibilityChanged?.call(false);
@@ -279,9 +272,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
             ],
           ),
+                ),
         ),
-      ),
-    ));
+            ));
   }
 
   Widget _appBarAction({required String icon, required VoidCallback onTap}) {

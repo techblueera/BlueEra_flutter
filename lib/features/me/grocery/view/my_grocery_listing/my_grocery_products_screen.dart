@@ -20,21 +20,21 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../../widgets/local_assets.dart';
 
-class GroceryProductsScreen extends StatefulWidget {
+class MyGroceryProductsScreen extends StatefulWidget {
   final String userId;
   final List<GroceryNestedCategoryModel> arrGroceries;
 
-  GroceryProductsScreen({
+  MyGroceryProductsScreen({
     super.key,
     required this.userId,
     required this.arrGroceries,
   });
 
   @override
-  State<GroceryProductsScreen> createState() => _GroceryProductsScreenState();
+  State<MyGroceryProductsScreen> createState() => _MyGroceryProductsScreenState();
 }
 
-class _GroceryProductsScreenState extends State<GroceryProductsScreen> {
+class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
   final TextEditingController searchController = TextEditingController();

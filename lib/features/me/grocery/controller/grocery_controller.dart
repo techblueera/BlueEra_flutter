@@ -644,6 +644,9 @@ class GroceryController extends GetxController {
 
   Future<void> fetchGroceryCategoryWithInventory(String userId, bool otherStore) async {
     try {
+
+      fetchMyGroceryCategoryResponse.value = ApiResponse.initial('Initial');
+
       var params = {
         ApiKeys.businessId: userId
       };
@@ -680,6 +683,9 @@ class GroceryController extends GetxController {
 
   Future<void> fetchGroceryBusinessProductsRepo(String userId, bool otherStore) async {
     try {
+
+      fetchGroceryBusinessProductsResponse.value = ApiResponse.initial('Initial');
+
       Map<String, dynamic> params = {
         ApiKeys.businessId: userId,
         ApiKeys.sortBy: "discount_high_to_low",

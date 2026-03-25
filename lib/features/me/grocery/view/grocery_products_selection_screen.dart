@@ -81,8 +81,8 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
             :  InkWell(
               onTap: ()=> Get.toNamed(RouteHelper.getAddGroceryScreenRoute()),
               child: Padding(
-                        padding: const EdgeInsets.only(right: 20.0),
-                        child: Stack(
+              padding: const EdgeInsets.only(right: 20.0),
+              child: Stack(
               clipBehavior: Clip.none,
               children: [
                 LocalAssets(
@@ -127,7 +127,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
               child: SafeArea(
                 child: CustomBtn(
                   onTap: () {
-                    Get.toNamed(RouteHelper.getAddGroceryScreenRoute());
+                     Get.toNamed(RouteHelper.getAddGroceryScreenRoute());
                   },
                   isValidate: true,
                   radius: SizeConfig.size8,
@@ -280,7 +280,6 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
 
           Obx(() {
             final List<dynamic> tabData = ["All", ...controller.selectedGroceryData.value?.children??[]];
-
 
             return HorizontalTabSelector<dynamic>(
               tabs: tabData,
