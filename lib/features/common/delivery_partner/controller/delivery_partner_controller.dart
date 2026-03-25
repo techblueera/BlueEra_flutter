@@ -1215,4 +1215,32 @@ class DeliveryPartnerController extends GetxController {
       isAssociatedShopsLoading.value = false;
     }
   }
+
+  // ─── Send Association Request API ─────────────────────────────
+
+  /// Track which store userIds have pending/sent requests to avoid duplicate taps
+  final RxSet<String> pendingRequestUserIds = <String>{}.obs;
+
+  Future<void> sendAssociationRequest({required String targetUserId}) async {
+    if (pendingRequestUserIds.contains(targetUserId)) return;
+
+    pendingRequestUserIds.add(targetUserId);
+    try {
+      final response = await DeliveryPartnerRepo()
+          .sendAssociationRequestRepo(targetUserId: targetUserId);
+
+      if (response.isSuccess) {
+        commonSnackBar(message: 'Request sent successfully!');
+      } else {
+        final data = response.response?.data;
+        final msg = (data is Map) ? data['message'] : null;
+        commonSnackBar(message: msg ?? 'Failed to send request');
+        pendingRequestUserIds.remove(targetUserId);
+      }
+    } catch (e) {
+      log('sendAssociationRequest error: $e');
+      commonSnackBar(message: 'Something went wrong. Try again.');
+      pendingRequestUserIds.remove(targetUserId);
+    }
+  }
 }

@@ -400,6 +400,9 @@ class MessageMetadata {
   String? selfpickupOrderId;
   SelfPickupOrderModel? selfPickupOrder;
 
+  String? riderAssociationId;
+  RiderAssociationMetadata? riderAssociation;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -422,6 +425,8 @@ class MessageMetadata {
     this.rider,
     this.selfpickupOrderId,
     this.selfPickupOrder,
+    this.riderAssociationId,
+    this.riderAssociation,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -453,6 +458,11 @@ class MessageMetadata {
       selfPickupOrder: (json['order'] != null && json['selfpickupOrderId'] != null)
           ? SelfPickupOrderModel.fromJson(json['order'])
           : null,
+      riderAssociationId: json['riderAssociationId']?.toString(),
+      riderAssociation: json['riderAssociation'] != null
+          ? RiderAssociationMetadata.fromJson(
+              Map<String, dynamic>.from(json['riderAssociation']))
+          : null,
     );
   }
 
@@ -478,8 +488,132 @@ class MessageMetadata {
       'order': order?.toJson(),
       'rider': rider?.toJson(),
       'selfpickupOrderId': selfpickupOrderId,
+      'riderAssociationId': riderAssociationId,
+      'riderAssociation': riderAssociation?.toJson(),
     };
   }
+}
+
+// ─── Rider Association Metadata ───────────────────────────────
+
+class RiderAssociationMetadata {
+  final String? associationId;
+  final String? riderUserId;
+  final String? businessUserId;
+  final String? requestedBy;
+  String? status;
+  final RiderAssociationRiderInfo? riderInfo;
+  final RiderAssociationBusinessInfo? businessInfo;
+
+  RiderAssociationMetadata({
+    this.associationId,
+    this.riderUserId,
+    this.businessUserId,
+    this.requestedBy,
+    this.status,
+    this.riderInfo,
+    this.businessInfo,
+  });
+
+  factory RiderAssociationMetadata.fromJson(Map<String, dynamic> json) {
+    return RiderAssociationMetadata(
+      associationId: json['associationId']?.toString(),
+      riderUserId: json['riderUserId']?.toString(),
+      businessUserId: json['businessUserId']?.toString(),
+      requestedBy: json['requestedBy']?.toString(),
+      status: json['status']?.toString(),
+      riderInfo: json['riderInfo'] != null
+          ? RiderAssociationRiderInfo.fromJson(
+              Map<String, dynamic>.from(json['riderInfo']))
+          : null,
+      businessInfo: json['businessInfo'] != null
+          ? RiderAssociationBusinessInfo.fromJson(
+              Map<String, dynamic>.from(json['businessInfo']))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'associationId': associationId,
+    'riderUserId': riderUserId,
+    'businessUserId': businessUserId,
+    'requestedBy': requestedBy,
+    'status': status,
+    'riderInfo': riderInfo?.toJson(),
+    'businessInfo': businessInfo?.toJson(),
+  };
+}
+
+class RiderAssociationRiderInfo {
+  final String? name;
+  final String? profileImage;
+  final String? vehicleType;
+  final String? contactNo;
+  final double? ratingsAverage;
+  final int? ratingsCount;
+
+  RiderAssociationRiderInfo({
+    this.name,
+    this.profileImage,
+    this.vehicleType,
+    this.contactNo,
+    this.ratingsAverage,
+    this.ratingsCount,
+  });
+
+  factory RiderAssociationRiderInfo.fromJson(Map<String, dynamic> json) {
+    final ratings = json['ratings'];
+    return RiderAssociationRiderInfo(
+      name: json['name']?.toString(),
+      profileImage: json['profileImage']?.toString(),
+      vehicleType: json['vehicleType']?.toString(),
+      contactNo: json['contactNo']?.toString(),
+      ratingsAverage: (ratings is Map)
+          ? double.tryParse(ratings['average']?.toString() ?? '0')
+          : null,
+      ratingsCount: (ratings is Map)
+          ? int.tryParse(ratings['count']?.toString() ?? '0')
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'profileImage': profileImage,
+    'vehicleType': vehicleType,
+    'contactNo': contactNo,
+    'ratings': {'average': ratingsAverage, 'count': ratingsCount},
+  };
+}
+
+class RiderAssociationBusinessInfo {
+  final String? businessName;
+  final String? logo;
+  final String? category;
+  final String? contactNo;
+
+  RiderAssociationBusinessInfo({
+    this.businessName,
+    this.logo,
+    this.category,
+    this.contactNo,
+  });
+
+  factory RiderAssociationBusinessInfo.fromJson(Map<String, dynamic> json) {
+    return RiderAssociationBusinessInfo(
+      businessName: json['businessName']?.toString(),
+      logo: json['logo']?.toString(),
+      category: json['category']?.toString(),
+      contactNo: json['contactNo']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'businessName': businessName,
+    'logo': logo,
+    'category': category,
+    'contactNo': contactNo,
+  };
 }
 
 class Rider {

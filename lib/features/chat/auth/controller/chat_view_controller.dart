@@ -1344,7 +1344,6 @@ class ChatViewController extends GetxController {
         (conversationId ?? "") != userOpenConversationId) {
       getListOfMessageResponse.value = ApiResponse.initial('Initial');
     }
-
     if (event == ChatEmitEvents.ChatList) {
       final type = data[ApiKeys.type];
       List<ChatList> localChats =
@@ -1886,7 +1885,7 @@ class ChatViewController extends GetxController {
       String contactNo=details.data?.sender?.contact??'';
       String contactName=details.data?.sender?.name??'';
       String profileImage=details.data?.sender?.profileImage??'';
-      String type=details.data?.sender?.accountType==AppConstants.individual?AppConstants.personal_Chat_Type:AppConstants.business_Chat_Type;
+      String type=details.data?.conversation?.type??'';
       businessTabIndexSelected.value = 0;
       await getLocalConversation(
           conversationId, chatPersonUserId, otherUserId, contactName);
@@ -1894,7 +1893,6 @@ class ChatViewController extends GetxController {
       if (isWithProductSend == true) {
         await sendProductMessages(shareProductParams ?? {});
       }
-
 
       if (type == AppConstants.business_Chat_Type) {
         if (isFromContactList != null && isFromContactList) {

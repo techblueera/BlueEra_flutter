@@ -114,6 +114,38 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
+  /// Send association request to a business/rider
+  Future<ResponseModel> sendAssociationRequestRepo({required String targetUserId}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      ridersAssociationRequest,
+      params: {'targetUserId': targetUserId},
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Respond to an association request (accept/reject)
+  Future<ResponseModel> respondToAssociationRepo({
+    required String associationId,
+    required String action,
+    String? reason,
+  }) async {
+    final params = <String, dynamic>{'action': action};
+    if (reason != null && reason.isNotEmpty) {
+      params['reason'] = reason;
+    }
+    var response = await ApiBaseHelper().patchHTTP(
+      '$ridersAssociationRespond/$associationId/respond',
+      params: params,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Get Associated Shops for rider
   Future<ResponseModel> getAssociatedShopsRepo({required Map<String, dynamic> params}) async {
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');

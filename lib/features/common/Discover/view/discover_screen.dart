@@ -281,7 +281,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _appBarAction({required String icon, required VoidCallback onTap}) {

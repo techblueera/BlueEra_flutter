@@ -11,11 +11,11 @@ Doctor summary (to see all details, run flutter doctor -v):
 [✓] VS Code (version 1.103.2)
 [✓] VS Code (version 1.98.2)
 [✓] Connected device (3 available)
-[✓] Network resources
+[✓] Network resources       
 
 • No issues found!
 9876543211
-
+https://meet.google.com/xzn-wvyj-ump
 
 
 
