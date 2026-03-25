@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
+import 'package:BlueEra/features/me/hospital/view/management/hospital_management_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -8,49 +9,92 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ManagementCardListWidget extends StatelessWidget {
-  ManagementCardListWidget({super.key});
+  final bool isReadOnly;
+  ManagementCardListWidget({super.key, this.isReadOnly = true});
 
   final controller = Get.find<HospitalServiceAiController>();
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.hospitalDataResModel?.value.data?.management?.isNotEmpty ??
-          false) {
-        // Accessing management list from your response model
-        final managementList =
-            controller.hospitalDataResModel?.value.data?.management ?? [];
-        return CommonCardWidget(
-          padding: 0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Section Header
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
-                child: ServiceHomeTitleWidget(
-                  title: AppStrings.managementTrust,
-                ),
-              ),
+      final managementList =
+          controller.hospitalDataResModel?.value.data?.management ?? [];
+      final isEmpty = managementList.isEmpty;
 
-              // Horizontal List
-              SizedBox(
-                height: 280, // Height to accommodate the card
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(left: 16, bottom: 10),
-                  itemCount: managementList.length,
-                  itemBuilder: (context, index) {
-                    return HospitalManagementCard(
-                        person: managementList[index]);
-                  },
-                ),
+      if (isEmpty && isReadOnly) return SizedBox.shrink();
+
+      return CommonCardWidget(
+        padding: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section Header
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ServiceHomeTitleWidget(
+                    title: AppStrings.managementTrust,
+                  ),
+                  if (!isReadOnly)
+                    IconButton(
+                      onPressed: () => Get.to(const HospitalManagementScreen()),
+                      icon: Icon(
+                        isEmpty ? Icons.add_circle_outline : Icons.edit_outlined,
+                        size: 20,
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
-        );
-      }
-      return SizedBox.shrink();
+            ),
+
+            // Horizontal List
+            SizedBox(
+              height: 280,
+              child: isEmpty
+                  ? ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.only(left: 16, bottom: 10),
+                      children: List.generate(
+                        3,
+                        (_) => GestureDetector(
+                          onTap: () => Get.to(const HospitalManagementScreen()),
+                          child: Container(
+                            width: 260,
+                            margin: const EdgeInsets.only(right: 16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey[200],
+                              border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.person_add_outlined, color: Colors.grey[400], size: 40),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Add Management',
+                                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.only(left: 16, bottom: 10),
+                      itemCount: managementList.length,
+                      itemBuilder: (context, index) {
+                        return HospitalManagementCard(person: managementList[index]);
+                      },
+                    ),
+            ),
+          ],
+        ),
+      );
     });
   }
 }

@@ -32,8 +32,10 @@ class _OtherContactUsState extends State<OtherContactUs> {
   @override
   void initState() {
     // TODO: implement initState
-    controller.getBranchDetailsController();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.getBranchDetailsController();
+    });
   }
 
   @override
@@ -277,7 +279,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                 }
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.ERROR) {
-                  return CustomText(AppStrings.somethingWentWrong);
+                  return Center(child: CustomText(AppStrings.noDataFound));
                 }
                 return SizedBox();
               }),

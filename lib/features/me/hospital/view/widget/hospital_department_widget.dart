@@ -3,6 +3,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hospital/view/ipd/hospital_ipd_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/opd/hospital_opd_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -10,7 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HospitalBookingScreen extends StatelessWidget {
+  final bool isReadOnly;
   final controller = Get.find<HospitalServiceAiController>();
+
+  HospitalBookingScreen({this.isReadOnly = true});
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +26,18 @@ class HospitalBookingScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ServiceHomeTitleWidget(
-                title: AppStrings.opdDoctors,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ServiceHomeTitleWidget(
+                    title: AppStrings.opdDoctors,
+                  ),
+                  if (!isReadOnly)
+                    IconButton(
+                      onPressed: () => Get.to(const HospitalOpdScreen()),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                    ),
+                ],
               ),
               SizedBox(height: 10),
 
@@ -81,7 +96,21 @@ class HospitalBookingScreen extends StatelessWidget {
               Obx(() {
                 final items = controller.currentCategoryItems;
                 if (items.isEmpty)
-                  return Center(child: CustomText(AppStrings.noDataFound));
+                  return SizedBox(
+                    height: 280,
+                    child: isReadOnly
+                        ? Center(child: CustomText(AppStrings.noDataFound))
+                        : ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: List.generate(
+                              3,
+                              (_) => _buildDummyDoctorCard(
+                                label: 'Add OPD Doctors',
+                                onTap: () => Get.to(const HospitalOpdScreen()),
+                              ),
+                            ),
+                          ),
+                  );
 
                 return Container(
                   height: 280,
@@ -90,12 +119,9 @@ class HospitalBookingScreen extends StatelessWidget {
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
-                      // If OPD, item is Doctor. If IPD, item is Ward/Bed.
-
                       return DoctorOrBedCard(
                         title: item.name ?? "",
                         subtitle: item.timing,
-                        // imageUrl: "",
                         imageUrl: item.imageUrl,
                         description: item.description ?? "",
                         tag: "${item.timing ?? 0}",
@@ -113,8 +139,18 @@ class HospitalBookingScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ServiceHomeTitleWidget(
-                title: AppStrings.ipdTitle,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ServiceHomeTitleWidget(
+                    title: AppStrings.ipdTitle,
+                  ),
+                  if (!isReadOnly)
+                    IconButton(
+                      onPressed: () => Get.to(const HospitalIpdScreen()),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                    ),
+                ],
               ),
 
               SizedBox(height: 10),
@@ -173,7 +209,21 @@ class HospitalBookingScreen extends StatelessWidget {
               Obx(() {
                 final items = controller.currentCategoryItemsIpd;
                 if (items.isEmpty)
-                  return Center(child: CustomText(AppStrings.noDataFound));
+                  return SizedBox(
+                    height: 280,
+                    child: isReadOnly
+                        ? Center(child: CustomText(AppStrings.noDataFound))
+                        : ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: List.generate(
+                              3,
+                              (_) => _buildDummyDoctorCard(
+                                label: 'Add IPD Wards',
+                                onTap: () => Get.to(const HospitalIpdScreen()),
+                              ),
+                            ),
+                          ),
+                  );
 
                 return Container(
                   height: 280,
@@ -199,6 +249,33 @@ class HospitalBookingScreen extends StatelessWidget {
       ],
     );
   }
+}
+
+Widget _buildDummyDoctorCard({required String label, required VoidCallback onTap}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 220,
+      margin: const EdgeInsets.only(right: 16, bottom: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.grey[200],
+        border: Border.all(color: Colors.grey.shade300, width: 1.5),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_circle_outline, color: Colors.grey[400], size: 40),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class DoctorOrBedCard extends StatelessWidget {

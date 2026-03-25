@@ -24,7 +24,7 @@ class OtherServicePreviewDetailsScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(right: 20.0,left: 20,bottom: 30,top: 10),
           child: PositiveCustomBtn(onTap: () async {
-            await Get.find<BusinessProfileFullController>().createOtherProfileController();
+            // await Get.find<BusinessProfileFullController>().createOtherProfileController();
           }, title: "Create Profile"),
         ),
       ),

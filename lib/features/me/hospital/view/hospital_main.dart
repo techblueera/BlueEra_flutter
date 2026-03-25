@@ -9,11 +9,10 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:get/get.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class HospitalMain extends StatefulWidget {
-  const HospitalMain({
-    super.key,
-  });
+  const HospitalMain({super.key});
 
   @override
   State<HospitalMain> createState() => _HospitalMainState();
@@ -21,130 +20,136 @@ class HospitalMain extends StatefulWidget {
 
 class _HospitalMainState extends State<HospitalMain>
     with TickerProviderStateMixin, RouteAware {
-  TabController? _tabController;
+  late TabController _tabController;
   final hospitalServiceAiController =
       getOrPut(() => HospitalServiceAiController());
-  bool _lastHasWebsite = false;
-  Worker? _dataWorker;
+
+  bool _hasWebsite = false;
+
+  String get _websiteUrl =>
+      hospitalServiceAiController
+          .hospitalDataResModel
+          ?.value
+          .data
+          ?.contacts
+          ?.firstOrNull
+          ?.branch
+          ?.website ??
+      '';
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    hospitalServiceAiController.getHospitalFullDetailsController();
 
-    _lastHasWebsite = _hasWebsite;
-    _tabController = TabController(
-      length: _lastHasWebsite ? 3 : 2,
-      vsync: this,
-    );
-
-    // Listen for hospital data changes to rebuild tabs when website status changes
-    _dataWorker =
-        ever(hospitalServiceAiController.hospitalDataResModel!, (_) {
-      _rebuildTabsIfNeeded();
+    ever(hospitalServiceAiController.hospitalDataResModel!, (_) {
+      final newHasWebsite = _websiteUrl.isNotEmpty;
+      if (newHasWebsite != _hasWebsite) {
+        _hasWebsite = newHasWebsite;
+        final currentIndex = _tabController.index;
+        _tabController.dispose();
+        _tabController = TabController(
+          length: _hasWebsite ? 3 : 2,
+          vsync: this,
+          initialIndex: currentIndex.clamp(0, _hasWebsite ? 2 : 1),
+        );
+        if (mounted) setState(() {});
+      }
     });
-
-    apiCalling();
-  }
-
-  bool get _hasWebsite {
-    final contacts =
-        hospitalServiceAiController.hospitalDataResModel?.value.data?.contacts;
-    if (contacts == null || contacts.isEmpty) return false;
-    final website = contacts.first.branch?.website ?? '';
-    return website.isNotEmpty;
-  }
-
-  String get _websiteUrl {
-    final contacts =
-        hospitalServiceAiController.hospitalDataResModel?.value.data?.contacts;
-    if (contacts == null || contacts.isEmpty) return '';
-    return contacts.first.branch?.website ?? '';
-  }
-
-  void _rebuildTabsIfNeeded() {
-    final current = _hasWebsite;
-    if (current != _lastHasWebsite) {
-      _lastHasWebsite = current;
-      final oldIndex = _tabController?.index ?? 0;
-      _tabController?.dispose();
-      final newLength = current ? 3 : 2;
-      _tabController = TabController(
-        length: newLength,
-        vsync: this,
-        initialIndex: oldIndex.clamp(0, newLength - 1),
-      );
-      if (mounted) setState(() {});
-    }
-  }
-
-  apiCalling() async {
-    try {
-      await hospitalServiceAiController.getHospitalFullDetailsController();
-      setState(() {});
-    } on Exception {
-      // Handle error silently
-    }
   }
 
   @override
   void dispose() {
-    _dataWorker?.dispose();
-    _tabController?.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: AppColors.white,
-        body: Obx(() {
-          hospitalServiceAiController.hasHospitalCreated.value;
+      backgroundColor: AppColors.white,
+      body: SafeArea(
+          child: /*hospitalServiceAiController.hasHospitalCreated.value
+              ? */Column(
+            children: [
+              SizedBox(height: SizeConfig.size12),
+              TabBar(
+                controller: _tabController,
+                labelColor: AppColors.primaryColor,
+                unselectedLabelColor: Colors.grey[600],
+                indicatorColor: AppColors.primaryColor,
+                indicatorWeight: 4,
+                tabAlignment: TabAlignment.fill,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelStyle:
+                const TextStyle(fontWeight: FontWeight.w600),
+                tabs: [
+                  Tab(text: AppStrings.home.tr),
+                  if (_hasWebsite) const Tab(text: 'Website'),
+                  Tab(text: AppStrings.statistics.tr),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    HospitalHomeScreen(),
+                    if (_hasWebsite) CommonWebView( urlLink: _websiteUrl, urlTitle: '',hideAppBar: true,),
+                    ComingSoon(),
+                  ],
+                ),
+              ),
+            ],
+          )
+        /* : NoHospitalCreateScreen(),*/
+      ),
+    );
+  }
+}
 
-          final hasWebsite = _lastHasWebsite;
-          final tabCtrl = _tabController;
-          if (tabCtrl == null) return const SizedBox.shrink();
+class _HospitalWebView extends StatefulWidget {
+  final String url;
+  const _HospitalWebView({required this.url});
 
-          return SafeArea(
-            child: hospitalServiceAiController.hasHospitalCreated.value
-                ? Column(
-                    children: [
-                      SizedBox(
-                        height: SizeConfig.size12,
-                      ),
-                      TabBar(
-                        controller: tabCtrl,
-                        labelColor: AppColors.primaryColor,
-                        unselectedLabelColor: Colors.grey[600],
-                        indicatorColor: AppColors.primaryColor,
-                        indicatorWeight: 4,
-                        tabAlignment: TabAlignment.fill,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        labelStyle:
-                            const TextStyle(fontWeight: FontWeight.w600),
-                        tabs: [
-                          Tab(text: AppStrings.home.tr),
-                          if (hasWebsite) Tab(text: AppStrings.website.tr),
-                          Tab(text: AppStrings.statistics.tr),
-                        ],
-                      ),
-                      Expanded(
-                          child: TabBarView(
-                        controller: tabCtrl,
-                        children: [
-                          HospitalHomeScreen(),
-                          if (hasWebsite)
-                            CommonWebView(
-                              urlLink: _websiteUrl,
-                              urlTitle: '',
-                              hideAppBar: true,
-                            ),
-                          ComingSoon(),
-                        ],
-                      ))
-                    ],
-                  )
-                : NoHospitalCreateScreen(),
-          );
-        }));
+  @override
+  State<_HospitalWebView> createState() => _HospitalWebViewState();
+}
+
+class _HospitalWebViewState extends State<_HospitalWebView>
+    with AutomaticKeepAliveClientMixin {
+  late final WebViewController _webController;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final uri = Uri.tryParse(widget.url.startsWith('http')
+        ? widget.url
+        : 'https://${widget.url}');
+    _webController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (_) => setState(() => _isLoading = false),
+          onPageStarted: (_) => setState(() => _isLoading = true),
+        ),
+      )
+      ..loadRequest(uri ?? Uri.parse('about:blank'));
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Stack(
+      children: [
+        WebViewWidget(controller: _webController),
+        if (_isLoading)
+          const Center(child: CircularProgressIndicator()),
+      ],
+    );
   }
 }

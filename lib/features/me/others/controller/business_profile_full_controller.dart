@@ -21,6 +21,14 @@ class BusinessProfileFullController extends GetxController {
   var businessProfile = Rx<BusinessProfileData?>(null);
   RxBool hasProfile = false.obs;
 
+  String get website {
+    if (businessProfile.value == null) return "";
+    if (businessProfile.value?.contactUs != null && businessProfile.value!.contactUs!.isNotEmpty) {
+      return businessProfile.value!.contactUs!.first.websiteUrl ?? "";
+    }
+    return "";
+  }
+
   ///GENERATE VIA AI SCHOOL DETAILS....
   final searchController = TextEditingController();
   final websiteController = TextEditingController();
@@ -54,25 +62,34 @@ class BusinessProfileFullController extends GetxController {
 
   Future<void> getBusinessProfileFull() async {
     isLoading.value = true;
-    // try {
-      final response =
-          await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
+    try {
+      // Ensure ID is available — read from SharedPrefs first, then fallback to API
+      if (otherServiceIDGlobal.isEmpty) {
+        await getOtherServiceID();
+      }
+      if (otherServiceIDGlobal.isEmpty) {
+        final idResponse = await _repo.getBusinessProfileRepo();
+        if (idResponse.isSuccess) {
+          final id = idResponse.response?.data['data']['_id'] ?? '';
+          otherServiceIDGlobal = id;
+          if (id.isNotEmpty) await setOtherServiceID(id);
+        }
+      }
+      if (otherServiceIDGlobal.isEmpty) return;
+
+      // Always call the full profile API directly
+      final response = await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
       if (response != null && response.isSuccess) {
-        final model =
-            BusinessProfileFullModel.fromJson(response.response?.data);
-            // BusinessProfileFullModel.fromJson(response.response?.healthCareData);
+        final model = BusinessProfileFullModel.fromJson(response.response?.data);
         if (model.success == true && model.data != null) {
           businessProfile.value = model.data;
+          hasProfile.value = true;
         }
-      } else {
-        commonSnackBar(message: response?.message ?? "Failed to fetch profile");
       }
-    // } catch (e) {
-    //   print("Error fetching profile: $e");
-    //   // commonSnackBar(message: "Error: $e");
-    // } finally {
+    } catch (_) {
+    } finally {
       isLoading.value = false;
-    // }
+    }
   }
 
   uploadSchoolLogoOrBannerImage(
@@ -129,19 +146,20 @@ class BusinessProfileFullController extends GetxController {
     }
   }
 
-  Future<void> createOtherProfileController() async {
+  Future<void> createOtherProfileController({required Map<String,dynamic> reqParm}) async {
     // Logic for AI generation goes here
     try {
-      aiOtherServiceRes?.value.data?.locationReq = {
-        "name": searchController.text,
-        "type": "Point",
-        "coordinates": [lat.value, lng.value]
-      };
-      aiOtherServiceRes?.value.data?.profileName =
-          aiOtherServiceRes?.value.data?.name;
+      // aiOtherServiceRes?.value.data?.locationReq = {
+      //   "name": searchController.text,
+      //   "type": "Point",
+      //   "coordinates": [lat.value, lng.value]
+      // };
+      // aiOtherServiceRes?.value.data?.profileName =
+      //     aiOtherServiceRes?.value.data?.name;
 
       ResponseModel response = await _repo.createOtherBusinessProfileRepo(
-          reqBODY: (aiOtherServiceRes?.value.data ?? {}));
+          reqBODY:reqParm);
+          // reqBODY: (aiOtherServiceRes?.value.data ?? {}));
       if (response.isSuccess) {
         commonSnackBar(message: "Other service create successfully");
         createSchoolResponse.value =
@@ -158,9 +176,9 @@ class BusinessProfileFullController extends GetxController {
         await getBusinessProfileFull();
         // await controller.updateAboutInfo();
         await Future.delayed(Duration(milliseconds: 500));
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         createSchoolResponse.value =

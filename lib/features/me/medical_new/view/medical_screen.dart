@@ -34,7 +34,7 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
   final TextEditingController searchController = TextEditingController();
   final List<Tab> _tabs = [
     Tab(text: AppStrings.home.tr),
-    Tab(text: AppStrings.create.tr),
+    // Tab(text: AppStrings.create.tr),
     Tab(text: AppStrings.statistics.tr),
   ];
 
@@ -97,7 +97,7 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
                 // MyMedicalOrders(),
                 MedicalHomeScreen(businessId: businessId,),
                 // MyMedicalSuperCategoryScreen(),
-                MedicalCreateScreen(),
+                // MedicalCreateScreen(),
                 Center(child: CustomText(AppStrings.comingSoon))
               ]
             ),
