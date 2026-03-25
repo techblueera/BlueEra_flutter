@@ -7,7 +7,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/get_adress_details_model.dart';
 import 'package:BlueEra/features/common/Discover/view/self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -127,34 +126,37 @@ class _YourCartScreenState extends State<YourCartScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
               child: Column(
                 children: [
-                  _buildSelfPickUpCard(context),
+                  _buildDeliveryTypeCard(
+                    context,
+                    deliveryType: 'SELF',
+                    title: 'Self Pick-Up',
+                    accentColor: const Color(0xFFE6A800),
+                    bgGradientStart: const Color(0xFFFFFDF5),
+                    bgGradientEnd: const Color(0xFFFFF8E1),
+                    iconData: Icons.shopping_bag_outlined,
+                    iconBgColor: const Color(0xFFFFF0B3),
+                  ),
                   const SizedBox(height: 14),
-                  _CartCard(
+                  _buildDeliveryTypeCard(
+                    context,
+                    deliveryType: 'RIDER',
                     title: 'Book Rider',
-                    subtitle: '100 Items',
                     accentColor: const Color(0xFF1565C0),
                     bgGradientStart: const Color(0xFFF5FAFF),
                     bgGradientEnd: const Color(0xFFE3F2FD),
                     iconData: Icons.delivery_dining,
                     iconBgColor: const Color(0xFFBBDEFB),
-                    payPrice: '\u20B91,499',
-                    payOriginalPrice: '\u20B998,000',
-                    savePrice: '\u20B91,499',
-                    discountPercent: '50% Off',
                   ),
                   const SizedBox(height: 14),
-                  _CartCard(
+                  _buildDeliveryTypeCard(
+                    context,
+                    deliveryType: 'PARTNER',
                     title: 'Order Via Partner',
-                    subtitle: '100 Items',
                     accentColor: const Color(0xFFE65100),
                     bgGradientStart: const Color(0xFFFFFBF5),
                     bgGradientEnd: const Color(0xFFFFF3E0),
                     iconData: Icons.local_shipping_outlined,
                     iconBgColor: const Color(0xFFFFE0B2),
-                    payPrice: '\u20B91,499',
-                    payOriginalPrice: '\u20B998,000',
-                    savePrice: '\u20B91,499',
-                    discountPercent: '50% Off',
                   ),
                 ],
               ),
@@ -200,19 +202,28 @@ class _YourCartScreenState extends State<YourCartScreen> {
     });
   }
 
-  Widget _buildSelfPickUpCard(BuildContext context) {
+  Widget _buildDeliveryTypeCard(
+    BuildContext context, {
+    required String deliveryType,
+    required String title,
+    required Color accentColor,
+    required Color bgGradientStart,
+    required Color bgGradientEnd,
+    required IconData iconData,
+    required Color iconBgColor,
+  }) {
     final bool hasController =
         Get.isRegistered<GroceryCustomerController>();
 
     if (!hasController) {
       return _CartCard(
-        title: 'Self Pick-Up',
+        title: title,
         subtitle: '0 Shops - 0 Items',
-        accentColor: const Color(0xFFE6A800),
-        bgGradientStart: const Color(0xFFFFFDF5),
-        bgGradientEnd: const Color(0xFFFFF8E1),
-        iconData: Icons.shopping_bag_outlined,
-        iconBgColor: const Color(0xFFFFF0B3),
+        accentColor: accentColor,
+        bgGradientStart: bgGradientStart,
+        bgGradientEnd: bgGradientEnd,
+        iconData: iconData,
+        iconBgColor: iconBgColor,
         payPrice: '\u20B90',
         payOriginalPrice: '\u20B90',
         savePrice: '\u20B90',
@@ -220,7 +231,9 @@ class _YourCartScreenState extends State<YourCartScreen> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const SelfPickUpCartScreen()),
+            MaterialPageRoute(
+              builder: (_) => SelfPickUpCartScreen(deliveryType: deliveryType),
+            ),
           );
         },
       );
@@ -229,29 +242,21 @@ class _YourCartScreenState extends State<YourCartScreen> {
     final controller = Get.find<GroceryCustomerController>();
 
     return Obx(() {
-      // Group by business
-      final Map<String, List<ProductVariants>> grouped = {};
-      for (var variant in controller.selectedGroceriesVariants) {
-        final info = controller.cartBusinessInfo[variant.sId];
-        final businessId = info?['businessId'] ?? 'unknown';
-        grouped.putIfAbsent(businessId, () => []).add(variant);
-      }
-
-      final int shopCount = grouped.length;
-      final int totalItems = controller.totalItemsCount;
-      final double totalSellingPrice = controller.totalSellingPrice;
-      final double totalMRP = controller.totalMRP;
-      final double totalSavings = controller.totalSavings;
-      final double discountPct = controller.totalDiscountPercentage;
+      final int shopCount = controller.shopCountByDeliveryType(deliveryType);
+      final int totalItems = controller.itemsCountByDeliveryType(deliveryType);
+      final double totalSellingPrice = controller.totalSellingPriceByDeliveryType(deliveryType);
+      final double totalMRP = controller.totalMRPByDeliveryType(deliveryType);
+      final double totalSavings = controller.totalSavingsByDeliveryType(deliveryType);
+      final double discountPct = controller.totalDiscountPercentageByDeliveryType(deliveryType);
 
       return _CartCard(
-        title: 'Self Pick-Up',
+        title: title,
         subtitle: '$shopCount ${shopCount == 1 ? 'Shop' : 'Shops'} - $totalItems ${totalItems == 1 ? 'Item' : 'Items'}',
-        accentColor: const Color(0xFFE6A800),
-        bgGradientStart: const Color(0xFFFFFDF5),
-        bgGradientEnd: const Color(0xFFFFF8E1),
-        iconData: Icons.shopping_bag_outlined,
-        iconBgColor: const Color(0xFFFFF0B3),
+        accentColor: accentColor,
+        bgGradientStart: bgGradientStart,
+        bgGradientEnd: bgGradientEnd,
+        iconData: iconData,
+        iconBgColor: iconBgColor,
         payPrice: '\u20B9${totalSellingPrice.toStringAsFixed(0)}',
         payOriginalPrice: '\u20B9${totalMRP.toStringAsFixed(0)}',
         savePrice: '\u20B9${totalSavings.toStringAsFixed(0)}',
@@ -259,7 +264,9 @@ class _YourCartScreenState extends State<YourCartScreen> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const SelfPickUpCartScreen()),
+            MaterialPageRoute(
+              builder: (_) => SelfPickUpCartScreen(deliveryType: deliveryType),
+            ),
           );
         },
       );

@@ -81,7 +81,7 @@ class ChatViewRepo extends BaseService {
   Future<ResponseModel> checkChatConnectionApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
         checkChatConnection,
-        showProgress: true,
+        showProgress: false,
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }

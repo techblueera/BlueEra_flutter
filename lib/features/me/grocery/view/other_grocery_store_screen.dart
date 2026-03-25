@@ -124,7 +124,6 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                   right: 16,
                   bottom: 20,
                   child: GestureDetector(
-
                       onTap: () => Get.toNamed(
                           RouteHelper.getYourAddToCardScreenRoute(),
                           arguments: {
@@ -458,6 +457,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                         businessName: bDetails?.businessName,
                                         businessLogo: bDetails?.logo,
                                         businessAddress: bDetails?.address,
+                                        deliveryType: 'SELF',
                                       );
                                     }else{
                                       groceryCustomerController.removeFromCart(productVariants);

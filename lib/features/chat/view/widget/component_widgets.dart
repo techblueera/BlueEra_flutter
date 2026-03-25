@@ -296,6 +296,17 @@ Widget  ChatListTile({
             chatViewController.checkChatConnectionAndOpenChat(
               userId: senderId ?? '',
             );
+            //       chatViewController.openAnyOneChatFunction(
+            //               userId: senderId ?? '',
+            //               conversationId: conversationId,
+            //               type: type,
+            //               contactName: senderName,
+            //               contactNo: senderContactNo,
+            //               profileImage: senderProfileImage,
+            //               isFromContactList: false,
+            //               isWithProductSend:false,
+            //               isInitialMessage: false,
+            //             );
           }
         },
     child: Container(

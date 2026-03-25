@@ -34,6 +34,7 @@ import '../../../common/food/model/get_food_details_model.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
+import '../business_chat/widgets/rider_association_msg_card.dart';
 import '../business_chat/widgets/rider_details_msg_card.dart';
 import '../business_chat/widgets/rider_live_location_msg_card.dart';
 import '../business_chat/widgets/rider_request_msg_card.dart';
@@ -283,6 +284,9 @@ class _MessageCardState extends State<MessageCard>
         messageWidget = RiderLiveLocationMsgCard(message: widget.message, time: time,);
       case "selfpickup":
         messageWidget = SelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
+
+      case "rider_association":
+        messageWidget = RiderAssociationMsgCard(message: widget.message, time: time);
 
       default:
 

@@ -160,6 +160,39 @@ class BusinessInfo {
 }
 ```
 
+### 2.4 Rider Extra Data (New)
+
+The `metadata.riderExtra` object is included in rider_association messages. It contains additional rider details fetched via gRPC from the rider service at message creation time.
+
+```dart
+class RiderExtra {
+  final int associationCount;       // Total number of associations for this rider (all statuses)
+  final RiderAddress? address;      // Rider's registered home address
+  final RiderLocation? currentLocation; // Rider's last known GPS location
+}
+
+class RiderAddress {
+  final String streetAddress;       // e.g. "Tharamangalam, Tamil Nadu, India"
+  final String houseNo;
+  final String landmark;
+  final String pincode;
+  final String city;
+  final String state;
+  final bool locationPermission;
+  final GeoPoint? homeLocation;     // { type: "Point", coordinates: [lng, lat] }
+}
+
+class RiderLocation {
+  final String type;                // "Point"
+  final List<double>? coordinates;  // [longitude, latitude] — may be absent if location not shared
+}
+```
+
+**Usage notes:**
+- `associationCount` tells the business how many total associations the rider has (across all businesses and statuses). Useful for showing rider experience/activity.
+- `address` is the rider's registered home address from onboarding. May have `[0, 0]` coordinates if location permission was not granted.
+- `currentLocation.coordinates` may be missing or `[0, 0]` if the rider hasn't shared live location.
+
 ---
 
 ## 3. REST API Endpoints
@@ -616,7 +649,7 @@ Returns enriched data about all businesses (shops) associated with the requestin
 
 | Param | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `filter` | String | No | `all` | Service type filter: `grocery` (only shops with inventory), `all` (all associated shops). Future: `food`, `products`. |
+| `filter` | String | No | `all` | Service type filter: `grocery` (only shops with grocery inventory + enriched data), `food` (food-type shops), `healthcare` (healthcare-type shops), `all` (all shops, no enrichment data). |
 | `page` | Integer | No | `1` | Pagination page (1-indexed) |
 | `limit` | Integer | No | `10` | Results per page |
 | `latitude` | Number | No | — | Rider's current latitude. If omitted, fetched from Map Provider Service. |
@@ -639,6 +672,7 @@ GET /riders/associations/shops?filter=grocery&page=1&limit=10&latitude=21.2514&l
       "business": {
         "id": "69b79df28c0f463d91112cd5",
         "business_name": "Fresh Mart Grocery",
+        "type_of_business": "Grocery",
         "logo": "https://example.com/logo.png",
         "category_of_business": { "name": "Grocery" },
         "address": "123 MG Road, Raipur",
@@ -683,7 +717,7 @@ GET /riders/associations/shops?filter=grocery&page=1&limit=10&latitude=21.2514&l
 
 | Status | Message | When It Happens |
 |--------|---------|-----------------|
-| 400 | `"Invalid filter. Must be one of: grocery, all"` | Invalid filter query param |
+| 400 | `"Invalid filter. Must be one of: grocery, food, healthcare, all"` | Invalid filter query param |
 | 401 | `"Not authorized, no token"` | Missing or invalid Bearer token |
 | 500 | `"Internal server error"` | Unexpected server error |
 
@@ -692,7 +726,7 @@ GET /riders/associations/shops?filter=grocery&page=1&limit=10&latitude=21.2514&l
 | Field | Notes |
 |-------|-------|
 | `distance` | `null` if rider location is unavailable (no coords provided + Map Provider failure) |
-| `grocery` | `null` if Grocery Service gRPC call fails. Not present for non-grocery shop types (future). |
+| `grocery` | Only present when `filter=grocery`. `null` if Grocery Service gRPC call fails. Not included for `filter=all`, `food`, or `healthcare`. |
 | `grocery.totalProducts` | Count of unique `productVariant` IDs in the shop's inventory |
 | `grocery.parentCategories` | Top-level category breakdown with product counts per category |
 | `business` | Skipped entirely if Business Service gRPC call fails for that shop |
@@ -769,6 +803,23 @@ Listen for these events on the existing socket connection. These are emitted by 
           "category": "grocery",
           "contactNo": "9876543211"
         }
+      },
+      "riderExtra": {
+        "associationCount": 4,
+        "address": {
+          "streetAddress": "Tharamangalam, Tamil Nadu, India",
+          "houseNo": "",
+          "landmark": "Near bus stand",
+          "pincode": "636502",
+          "city": "Tharamangalam",
+          "state": "Tamil Nadu",
+          "locationPermission": false,
+          "homeLocation": { "type": "Point", "coordinates": [0, 0] }
+        },
+        "currentLocation": {
+          "type": "Point",
+          "coordinates": [78.0123, 11.5432]
+        }
       }
     },
     "created_at": "2026-03-21T10:30:00.000Z",
@@ -785,6 +836,7 @@ Listen for these events on the existing socket connection. These are emitted by 
 **Frontend action:**
 - If this conversation is currently open → render the new message in the chat
 - Update the chat list to show the new last message
+- Display rider's association count, address, and location from `metadata.riderExtra`
 - Optionally show an in-app toast/banner
 
 ### 4.2 `riderAssociationAccepted`
@@ -1082,6 +1134,23 @@ This is the message created when a new association request is sent. It lives in 
         "category": "grocery",
         "contactNo": "9876543211"
       }
+    },
+    "riderExtra": {
+      "associationCount": 4,
+      "address": {
+        "streetAddress": "Tharamangalam, Tamil Nadu, India",
+        "houseNo": "",
+        "landmark": "Near bus stand",
+        "pincode": "636502",
+        "city": "Tharamangalam",
+        "state": "Tamil Nadu",
+        "locationPermission": false,
+        "homeLocation": { "type": "Point", "coordinates": [0, 0] }
+      },
+      "currentLocation": {
+        "type": "Point",
+        "coordinates": [78.0123, 11.5432]
+      }
     }
   },
   "created_at": "2026-03-21T10:30:00.000Z"
@@ -1141,6 +1210,9 @@ When rendering messages in chat, check for `message_type === "rider_association"
 - Vehicle type (e.g. "Two Wheeler")
 - Contact number
 - Ratings (e.g. "4.5 ★ (120)")
+- Association count from `metadata.riderExtra.associationCount` (e.g. "4 associations")
+- Address from `metadata.riderExtra.address` (city, state, pincode)
+- Location from `metadata.riderExtra.currentLocation.coordinates` (if available)
 
 **Body — Business Section:**
 - Logo (or fallback avatar)

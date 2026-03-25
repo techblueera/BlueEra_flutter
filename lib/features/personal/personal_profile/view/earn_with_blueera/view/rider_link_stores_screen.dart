@@ -6,10 +6,10 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -18,6 +18,8 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../../chat/auth/controller/chat_view_controller.dart';
 
 /// Store listing screen for riders to browse and send link requests.
 /// Same layout as GroceryOrFoodStoresScreen but:
@@ -41,6 +43,7 @@ class RiderLinkStoresScreen extends StatefulWidget {
 
 class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
   final controller = getOrPut(() => NewStoreController());
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final ScrollController _scrollController = ScrollController();
 
   final List<Color> _cardColors = const [
@@ -156,20 +159,31 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
           final store = controller.allStore[index];
           final bgColor = _cardColors[index % _cardColors.length];
 
-          return _LinkStoreCard(
-            store: store,
-            bgColor: bgColor,
-            onSendRequest: () => _handleSendRequest(store),
-          );
+          return Obx(() {
+            final isPending = deliveryPartnerController
+                .pendingRequestUserIds
+                .contains(store.userId);
+            return _LinkStoreCard(
+              store: store,
+              bgColor: bgColor,
+              isPending: isPending,
+              onSendRequest: () => _handleSendRequest(store),
+            );
+          });
         },
       );
     });
   }
 
   void _handleSendRequest(GetAllStoreResModel store) {
-    // TODO: Call your link-request API here
-    commonSnackBar(
-      message: 'Request sent to ${store.businessName ?? 'store'}',
+    if (store.userId == null || store.userId!.isEmpty) return;
+    deliveryPartnerController.sendAssociationRequest(
+      targetUserId: store.userId!,
+    );
+    final chatViewController =
+    Get.find<ChatViewController>();
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: store.userId!,
     );
   }
 }
@@ -183,11 +197,13 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
 class _LinkStoreCard extends StatelessWidget {
   final GetAllStoreResModel store;
   final Color bgColor;
+  final bool isPending;
   final VoidCallback onSendRequest;
 
   const _LinkStoreCard({
     required this.store,
     required this.bgColor,
+    this.isPending = false,
     required this.onSendRequest,
   });
 
@@ -336,29 +352,38 @@ class _LinkStoreCard extends StatelessWidget {
           // ─── Send Request Button ───
           const Divider(height: 0.5, color: AppColors.greyE5),
           InkWell(
-            onTap: onSendRequest,
+            onTap: isPending ? null : onSendRequest,
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(10),
             ),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.vertical(
+              decoration: BoxDecoration(
+                color: isPending
+                    ? AppColors.greenShade.withValues(alpha: 0.1)
+                    : AppColors.white,
+                borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(10),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.send_rounded,
-                      size: 16, color: AppColors.primaryColor),
+                  Icon(
+                    isPending ? Icons.check_circle_outline : Icons.send_rounded,
+                    size: 16,
+                    color: isPending
+                        ? AppColors.greenShade
+                        : AppColors.primaryColor,
+                  ),
                   const SizedBox(width: 8),
                   CustomText(
-                    'Send Request',
+                    isPending ? 'Request Sent' : 'Send Request',
                     fontSize: SizeConfig.medium,
-                    color: AppColors.primaryColor,
+                    color: isPending
+                        ? AppColors.greenShade
+                        : AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ],
