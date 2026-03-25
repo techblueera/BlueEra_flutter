@@ -10,7 +10,6 @@ import 'package:BlueEra/features/me/hospital/view/gallery/hospital_photos_screen
 import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_contact_us.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/ipd/hospital_ipd_screen.dart';
-import 'package:BlueEra/features/me/hospital/view/ipd/ipd_ward_list_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/opd/hospital_opd_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/hospital_emergency_care_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/other_facilities/hospital_other_facilities_screen.dart';
@@ -36,8 +35,7 @@ class HospitalUpdateScreen extends StatelessWidget {
     ServiceMenuItem(
       title:AppStrings.ipdTitle,
       icon: AppIconAssets.ipd,
-      page: () => const IpdWardListScreen(departmentId: '',),
-      // page: () => const HospitalIpdScreen(),
+      page: () => const HospitalIpdScreen(),
     ),
     ServiceMenuItem(
       title:AppStrings.emergencyCare,

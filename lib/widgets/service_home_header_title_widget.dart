@@ -32,7 +32,7 @@ mainAxisAlignment: MainAxisAlignment.start,
             const SizedBox(height: 10),
             ExpandableText(
               text: description,
-              trimLines: 4,
+              trimLines: 2,
               isReadMoreNewLine: false,
               expandMode: ExpandMode.dialog,
               style: TextStyle(

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
 
@@ -89,6 +90,8 @@ class OtherBranchContactController extends GetxController {
             message: response.response?.data['message'] ??
                 "Branch details added successfully");
         await getBranchDetailsController();
+        _refreshHomeScreen();
+        Get.back();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -98,6 +101,12 @@ class OtherBranchContactController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _refreshHomeScreen() {
+    try {
+      Get.find<BusinessProfileFullController>().getBusinessProfileFull();
+    } catch (_) {}
   }
 
   RxList<SchoolContactUsData>? schoolContactUsData =
@@ -122,7 +131,7 @@ class OtherBranchContactController extends GetxController {
         getSchoolContactUsResponse.value =
             ApiResponse.complete(schoolContactUsModel);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        // commonSnackBar(message: AppStrings.somethingWentWrong);
         getSchoolContactUsResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
@@ -162,8 +171,8 @@ class OtherBranchContactController extends GetxController {
         commonSnackBar(
             message:
                 response.response?.data["message"] ?? AppStrings.successful);
-
         await getBranchDetailsController();
+        _refreshHomeScreen();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -195,6 +204,7 @@ class OtherBranchContactController extends GetxController {
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
         await getBranchDetailsController();
+        _refreshHomeScreen();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         updateSchoolContactInfoResponse.value =
@@ -221,6 +231,7 @@ class OtherBranchContactController extends GetxController {
             message:
                 response.response?.data['message'] ?? AppStrings.successful);
         await getBranchDetailsController();
+        _refreshHomeScreen();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -241,6 +252,7 @@ class OtherBranchContactController extends GetxController {
             message:
                 response.response?.data['message'] ?? AppStrings.successful);
         await getBranchDetailsController();
+        _refreshHomeScreen();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -269,6 +281,7 @@ class OtherBranchContactController extends GetxController {
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
         await getBranchDetailsController();
+        _refreshHomeScreen();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         updateSchoolContactInfoResponse.value =

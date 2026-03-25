@@ -455,11 +455,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           AppConstants.SUPPORT_SERVICES) {
         return const OthersMain();
       }
-      // else if(businessCategoryGlobal.toUpperCase() ==
-      //     AppConstants.MEDICAL_EDUCATION_INSTITUTIONS.toUpperCase()){
-      //   return const MedicalScreen(fromBottomNavBar: true);
-      // }
-
       return const MedicalScreen(fromBottomNavBar: true);
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {

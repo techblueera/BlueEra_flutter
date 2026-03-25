@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hospital/view/about_us/hospital_about_us.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
@@ -161,10 +162,22 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
           ),
 
           // --- FORM SECTION ---
-          ServiceHomeHeaderTitleWidget(
-            title: controller.hospitalDataResModel?.value.data?.name ?? "",
-            description:
-                controller.hospitalDataResModel?.value.data?.description ?? "",
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ServiceHomeHeaderTitleWidget(
+                  title: controller.hospitalDataResModel?.value.data?.name ?? "",
+                  description:
+                      controller.hospitalDataResModel?.value.data?.description ?? "",
+                ),
+              ),
+              if (!widget.isReadOnly)
+                IconButton(
+                  onPressed: () => Get.to(const HospitalAboutUsScreen()),
+                  icon: const Icon(Icons.edit_outlined, size: 20),
+                ),
+            ],
           ),
         ],
       ),

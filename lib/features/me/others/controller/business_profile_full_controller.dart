@@ -65,7 +65,7 @@ class BusinessProfileFullController extends GetxController {
           businessProfile.value = model.data;
         }
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to fetch profile");
+        // commonSnackBar(message: response?.message ?? "Failed to fetch profile");
       }
     // } catch (e) {
     //   print("Error fetching profile: $e");
@@ -129,19 +129,20 @@ class BusinessProfileFullController extends GetxController {
     }
   }
 
-  Future<void> createOtherProfileController() async {
+  Future<void> createOtherProfileController({required Map<String,dynamic> reqParm}) async {
     // Logic for AI generation goes here
     try {
-      aiOtherServiceRes?.value.data?.locationReq = {
-        "name": searchController.text,
-        "type": "Point",
-        "coordinates": [lat.value, lng.value]
-      };
-      aiOtherServiceRes?.value.data?.profileName =
-          aiOtherServiceRes?.value.data?.name;
+      // aiOtherServiceRes?.value.data?.locationReq = {
+      //   "name": searchController.text,
+      //   "type": "Point",
+      //   "coordinates": [lat.value, lng.value]
+      // };
+      // aiOtherServiceRes?.value.data?.profileName =
+      //     aiOtherServiceRes?.value.data?.name;
 
       ResponseModel response = await _repo.createOtherBusinessProfileRepo(
-          reqBODY: (aiOtherServiceRes?.value.data ?? {}));
+          reqBODY:reqParm);
+          // reqBODY: (aiOtherServiceRes?.value.data ?? {}));
       if (response.isSuccess) {
         commonSnackBar(message: "Other service create successfully");
         createSchoolResponse.value =
@@ -158,9 +159,9 @@ class BusinessProfileFullController extends GetxController {
         await getBusinessProfileFull();
         // await controller.updateAboutInfo();
         await Future.delayed(Duration(milliseconds: 500));
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         createSchoolResponse.value =

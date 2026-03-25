@@ -134,15 +134,12 @@ class HospitalServiceAiController extends GetxController {
         aiHospitalResModel?.value = HospitalAiDetailsResModel.fromJson(data);
 
         Get.to(HospitalServicePreview());
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
-      commonSnackBar(message: e.toString());
     }
   }
 
-  Future<void> createHospitalServiceController(  {required Map<String, dynamic>? reqData}) async {
+  Future<void> createHospitalServiceController({required Map<String,dynamic> reqData}) async {
     try {
       aiHospitalResModel?.value.data?.category = businessCategoryGlobal;
       ResponseModel response = await hospitalServiceRepo.createHospitalRepo(
@@ -165,12 +162,10 @@ class HospitalServiceAiController extends GetxController {
         //     route.settings.name ==
         //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
       hasHospitalCreated.value = false;
 
-      commonSnackBar(message: e.toString());
     }
   }
 
@@ -267,11 +262,9 @@ class HospitalServiceAiController extends GetxController {
         if (response.isSuccess) {
           commonSnackBar(message: "Added Successfully");
         } else {
-          commonSnackBar(message: AppStrings.somethingWentWrong);
         }
       }
     } on Exception {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
 
       // TODO
     }
@@ -327,12 +320,10 @@ class HospitalServiceAiController extends GetxController {
       } else {
         hasMore.value = false;
         error.value = res.message ?? AppStrings.somethingWentWrong;
-        commonSnackBar(message: error.value);
       }
     } catch (e) {
       hasMore.value = false;
       error.value = e.toString();
-      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;

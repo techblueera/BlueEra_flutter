@@ -277,7 +277,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                 }
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.ERROR) {
-                  return CustomText(AppStrings.somethingWentWrong);
+                  return Center(child: CustomText(AppStrings.noDataFound));
                 }
                 return SizedBox();
               }),

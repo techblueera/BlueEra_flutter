@@ -28,6 +28,7 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
+import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
@@ -346,6 +347,19 @@ class AuthController extends GetxController {
               " ApiKeys.category_Of_Business = ${reqData[ApiKeys.category_Of_Business]}");
           String typeOfBusiness =
               reqData[ApiKeys.type_of_business].toString().toUpperCase();
+          Map<String, dynamic> reqBody = {
+            ApiKeys.business_name: reqData[ApiKeys.business_name],
+            ApiKeys.business_location: reqData[ApiKeys.business_location],
+            ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
+            ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
+            ApiKeys.date_of_incorporation:
+                reqData[ApiKeys.date_of_incorporation],
+            ApiKeys.category_Of_Business: reqData[ApiKeys.category_Of_Business],
+            ApiKeys.sub_category_Of_Business:
+                reqData[ApiKeys.sub_category_Of_Business],
+            ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
+            ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
+          };
 
           ///FOR SCHOOL....
           if (typeOfBusiness == BusinessType.Siksha.name.toUpperCase()) {
@@ -360,41 +374,24 @@ class AuthController extends GetxController {
                   .toUpperCase() ==
               AppConstants.DIAGNOSTIC_TESTING_CENTERSWith_.toUpperCase()) {
             final controller = getOrPut(() => LabServiceAiController());
-            await controller.createLabServiceController(reqData: {
-              ApiKeys.business_name: reqData[ApiKeys.business_name],
-              ApiKeys.business_location: reqData[ApiKeys.business_location],
-              ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
-              ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
-              ApiKeys.date_of_incorporation:
-                  reqData[ApiKeys.date_of_incorporation],
-              ApiKeys.category_Of_Business:
-                  reqData[ApiKeys.category_Of_Business],
-              ApiKeys.sub_category_Of_Business:
-                  reqData[ApiKeys.sub_category_Of_Business],
-              ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
-              ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
-            });
-          }
-
-          else if (reqData[ApiKeys.category_Of_Business]
+            await controller.createLabServiceController(reqData: reqBody);
+          } else if ((reqData[ApiKeys.category_Of_Business]
+                      .toString()
+                      .toUpperCase() ==
+                  AppConstants.HOSPITALS_SECTOR.toUpperCase()) ||
+              (reqData[ApiKeys.category_Of_Business].toString().toUpperCase() ==
+                  "ALTERNATIVE_WELLNESS") ||
+              (reqData[ApiKeys.category_Of_Business].toString().toUpperCase() ==
+                  "CLINIC_DOCTORS")) {
+            final controller = getOrPut(() => HospitalServiceAiController());
+            await controller.createHospitalServiceController(reqData: reqBody);
+          } else if ((reqData[ApiKeys.category_Of_Business]
                   .toString()
                   .toUpperCase() ==
-              AppConstants.HOSPITALS_SECTOR.toUpperCase()) {
-            final controller = getOrPut(() => HospitalServiceAiController());
-            await controller.createHospitalServiceController(reqData: {
-              ApiKeys.business_name: reqData[ApiKeys.business_name],
-              ApiKeys.business_location: reqData[ApiKeys.business_location],
-              ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
-              ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
-              ApiKeys.date_of_incorporation:
-                  reqData[ApiKeys.date_of_incorporation],
-              ApiKeys.category_Of_Business:
-                  reqData[ApiKeys.category_Of_Business],
-              ApiKeys.sub_category_Of_Business:
-                  reqData[ApiKeys.sub_category_Of_Business],
-              ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
-              ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
-            });
+              "SUPPORT_SERVICES")) {
+            final controller = getOrPut(() => BusinessProfileFullController());
+            reqBody['profileName'] = reqData[ApiKeys.business_name];
+            await controller.createOtherProfileController(reqParm: reqBody);
           }
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 

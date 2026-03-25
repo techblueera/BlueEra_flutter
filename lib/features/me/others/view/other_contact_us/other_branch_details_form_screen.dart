@@ -105,18 +105,18 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
               // Reactive Submit Button
               Obx(() => CustomBtn(
                     isLoading: controller.isLoading.value,
-                    onTap: controller.isFormValid.value
-                        ? () => controller.submitBranchDetails(
+                    onTap: /*controller.isFormValid.value
+                        ?*/ () => controller.submitBranchDetails(
                               branchName: branchNameController.text,
                               website: websiteController.text,
                               address: addressController.text,
                               department: titleController.text,
                               email: emailController.text,
                               phone: phoneController.text,
-                            )
-                        : null, // Button disabled if form invalid
+                            ),
+                        // : null, // Button disabled if form invalid
                     title: "Submit",
-                    isValidate: controller.isFormValid.value,
+                    // isValidate: controller.isFormValid.value,
                   )),
             ],
           ),

@@ -17,7 +17,11 @@ import 'package:BlueEra/features/me/medical_new/model/medical_home_response_mode
 import 'package:BlueEra/features/me/medical_new/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical_new/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_gallery/medical_gallery_list_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_inventory_category_screen.dart';
+import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_contact_edit_screen.dart';
+import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_level2_category_screen.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -30,7 +34,6 @@ import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 /// Static 6 categories for "Update Your Medical Products"
@@ -57,11 +60,15 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   bool _isLoading = true;
   late final MedicalGalleryController _galleryController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController());
+  late final MedicalController _medicalController;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     _galleryController = Get.put(MedicalGalleryController());
+    _medicalController = getOrPut(() => MedicalController());
+    _medicalController.fetchGroceryNestedCategory();
     _fetchData();
   }
 
@@ -105,8 +112,9 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(profile),
-              // SizedBox(height: SizeConfig.size10),
-              // _buildUploadPrescription(),
+              SizedBox(height: SizeConfig.size10),
+              _buildBulkUploadSection(),
+              SizedBox(height: SizeConfig.size10),
               if (popularProducts.isNotEmpty) ...[
                 SizedBox(height: SizeConfig.size10),
                 _buildPopularProducts(popularProducts),
@@ -573,23 +581,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     List<CategoryWithProducts> apiCategories,
   ) {
     return InkWell(
-      onTap: () {
-        // Find the matching API category by key
-        final apiCat = apiCategories.cast<CategoryWithProducts?>().firstWhere(
-              (c) => c?.key == category['key'],
-              orElse: () => null,
-            );
-
-        if (apiCat == null || apiCat.children == null || apiCat.children!.isEmpty) {
-          commonSnackBar(message: 'No data found');
-          return;
-        }
-
-        Get.to(() => MedicalInventoryCategoryScreen(
-              title: apiCat.name ?? category['title'] ?? '',
-              children: apiCat.children!,
-            ));
-      },
+      onTap: () => _onCategoryTap(category),
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: EdgeInsets.all(6),
@@ -627,11 +619,139 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   }
 
   // ─────────────────────────────────────────────
+  // BULK UPLOAD (from create screen)
+  // ─────────────────────────────────────────────
+  Future<void> _pickAndSnapSearch({required ImageSource source}) async {
+    try {
+      final List<XFile> images;
+      if (source == ImageSource.gallery) {
+        images = await _picker.pickMultiImage(limit: 5);
+      } else {
+        final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+        images = photo != null ? [photo] : [];
+      }
+      if (images.isEmpty) return;
+      await _medicalController.snapSearch(
+        imagePaths: images.map((e) => e.path).toList(),
+      );
+    } catch (e) {
+      debugPrint('Image pick error: $e');
+    }
+  }
+
+  MedicalNestedCategoryModel? _findApiCategory(String staticKey) {
+    for (final level0 in _medicalController.medicalNestedCategoryList) {
+      if (_keysMatch(level0.key, staticKey)) return level0;
+      for (final level1 in (level0.children ?? <MedicalNestedCategoryModel>[])) {
+        if (_keysMatch(level1.key, staticKey)) return level1;
+      }
+    }
+    return null;
+  }
+
+  bool _keysMatch(String? apiKey, String staticKey) {
+    if (apiKey == null) return false;
+    return apiKey.toUpperCase().replaceAll(' ', '_') ==
+        staticKey.toUpperCase().replaceAll(' ', '_');
+  }
+
+  void _onCategoryTap(Map<String, String> category) {
+    final apiCategory = _findApiCategory(category['key']!);
+    if (apiCategory == null) {
+      commonSnackBar(message: 'Category not available yet');
+      return;
+    }
+    final level2Children = apiCategory.children ?? [];
+    if (level2Children.isNotEmpty) {
+      Get.to(() => MedicalLevel2CategoryScreen(
+            title: category['title']!.replaceAll('\n', ' '),
+            level2Categories: level2Children,
+          ));
+    }
+  }
+
+  Widget _buildBulkUploadSection() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              "Bulk Upload Shop Product Photos",
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            SizedBox(height: 10),
+            Obx(() => _medicalController.isSnapSearchLoading.value
+                ? SizedBox(
+                    height: 100,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : Row(
+                    children: [
+                      _uploadMediaWidget(
+                        imagePath: 'assets/category/medical/medical_upload_photo_med.png',
+                        title: 'Upload Photo',
+                        onTap: () => _pickAndSnapSearch(source: ImageSource.camera),
+                      ),
+                      SizedBox(width: 7),
+                      _uploadMediaWidget(
+                        imagePath: 'assets/category/medical/medical_upload_photo.png',
+                        title: 'Upload List',
+                        onTap: () => _pickAndSnapSearch(source: ImageSource.gallery),
+                      ),
+                    ],
+                  )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _uploadMediaWidget({
+    required String imagePath,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: Get.width,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(imagePath, fit: BoxFit.contain),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 5),
+                child: CustomText(
+                  title,
+                  fontSize: SizeConfig.small,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
   // GALLERY (ss9) - Grid with Add More → full gallery screen
   // ─────────────────────────────────────────────
   Widget _buildGallerySection() {
     return Obx(() {
-      // Collect all images from gallery controller
       final allImages = <String>[];
       for (final entry in _galleryController.galleryList) {
         allImages.addAll(entry.imageUrls ?? []);
@@ -661,62 +781,81 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                 ],
               ),
               SizedBox(height: 12),
-              if (allImages.isNotEmpty)
-                StaggeredGrid.count(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 6,
-                  crossAxisSpacing: 6,
-                  children: List.generate(
-                    allImages.length > 9 ? 9 : allImages.length,
-                    (index) => StaggeredGridTile.count(
-                      crossAxisCellCount: index == 0 ? 2 : 1,
-                      mainAxisCellCount: index == 0 ? 2 : 1,
-                      child: InkWell(
-                        onTap: () => navigatePushTo(
-                          context,
-                          ImageViewScreen(
-                            subTitle: AppStrings.imageViewer,
-                            appBarTitle: AppStrings.imageViewer,
-                            imageUrls: allImages,
-                            initialIndex: index,
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            allImages[index],
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey[200],
-                              child: Icon(Icons.broken_image, color: Colors.grey),
-                            ),
-                          ),
-                        ),
-                      ),
+              if (allImages.isEmpty)
+                GestureDetector(
+                  onTap: () => Get.to(() => MedicalGalleryListScreen()),
+                  child: Container(
+                    height: 140,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_photo_alternate_outlined,
+                            color: Colors.grey.shade400, size: 36),
+                        SizedBox(height: 8),
+                        Text('Add Photos',
+                            style: TextStyle(
+                                color: Colors.grey.shade500, fontSize: 13)),
+                      ],
                     ),
                   ),
                 )
               else
-                // Empty: 6-slot placeholder grid
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: 6,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 6,
-                    mainAxisSpacing: 6,
-                  ),
-                  itemBuilder: (_, i) => InkWell(
-                    onTap: () => Get.to(() => MedicalGalleryListScreen()),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Icon(Icons.add_photo_alternate_outlined,
-                          color: Colors.grey.shade400, size: 30),
+                _buildGalleryGrid(allImages),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildGalleryGrid(List<String> images) {
+    final display = images.length > 4 ? images.sublist(0, 4) : images;
+    final extra = images.length > 4 ? images.length - 4 : 0;
+    const double height = 220;
+    const double gap = 4;
+
+    void openViewer(int index) => navigatePushTo(
+          context,
+          ImageViewScreen(
+            subTitle: AppStrings.imageViewer,
+            appBarTitle: AppStrings.imageViewer,
+            imageUrls: images,
+            initialIndex: index,
+          ),
+        );
+
+    Widget imgTile(int index, {bool showOverlay = false}) {
+      return GestureDetector(
+        onTap: () => openViewer(index),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.network(
+                display[index],
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.broken_image),
+                ),
+              ),
+              if (showOverlay && extra > 0)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '+$extra',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -724,7 +863,64 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
           ),
         ),
       );
-    });
+    }
+
+    // 1 image
+    if (display.length == 1) {
+      return SizedBox(height: height, width: double.infinity, child: imgTile(0));
+    }
+
+    // 2 images — side by side
+    if (display.length == 2) {
+      return SizedBox(
+        height: height,
+        child: Row(children: [
+          Expanded(child: imgTile(0)),
+          SizedBox(width: gap),
+          Expanded(child: imgTile(1)),
+        ]),
+      );
+    }
+
+    // 3 images — 1 large left, 2 stacked right
+    if (display.length == 3) {
+      return SizedBox(
+        height: height,
+        child: Row(children: [
+          Expanded(child: imgTile(0)),
+          SizedBox(width: gap),
+          Expanded(
+            child: Column(children: [
+              Expanded(child: imgTile(1)),
+              SizedBox(height: gap),
+              Expanded(child: imgTile(2)),
+            ]),
+          ),
+        ]),
+      );
+    }
+
+    // 4+ images — 2×2 grid, +N overlay on last cell
+    return SizedBox(
+      height: height,
+      child: Column(children: [
+        Expanded(
+          child: Row(children: [
+            Expanded(child: imgTile(0)),
+            SizedBox(width: gap),
+            Expanded(child: imgTile(1)),
+          ]),
+        ),
+        SizedBox(height: gap),
+        Expanded(
+          child: Row(children: [
+            Expanded(child: imgTile(2)),
+            SizedBox(width: gap),
+            Expanded(child: imgTile(3, showOverlay: extra > 0)),
+          ]),
+        ),
+      ]),
+    );
   }
 
   // ─────────────────────────────────────────────
@@ -747,8 +943,23 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 6),
-                  child: ServiceHomeTitleWidget(title: AppStrings.contactUs),
+                  padding: const EdgeInsets.only(top: 8, left: 6, right: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ServiceHomeTitleWidget(title: AppStrings.contactUs),
+                      IconButton(
+                        onPressed: () => Get.to(() => MedicalContactEditScreen(
+                              profile: profile,
+                              businessController: _businessController,
+                              businessId: widget.businessId,
+                            )),
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 10),
                 Container(
