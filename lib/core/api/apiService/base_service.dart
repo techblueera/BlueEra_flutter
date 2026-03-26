@@ -204,6 +204,23 @@ abstract class BaseService {
   final String requestForPersonalChat = 'chat-service/connections/request';
   final String updateMessageOrderStatus = 'chat-service/chat/order-status';
 
+  // ── E2E Encryption API (Phase 1–4) ──────────────────────────────────────
+  // Phase 1: Protocol versioning
+  String e2eCapability(String userId) => 'chat-service/protocol/capability/$userId';
+
+  // Phase 2: Key infrastructure
+  final String e2eKeysRegister = 'chat-service/keys/register';
+  final String e2eKeysOpks     = 'chat-service/keys/opks';
+  String e2eKeysBundle(String userId) => 'chat-service/keys/bundle/$userId';
+  String e2eKeysDevice(String deviceId) => 'chat-service/keys/device/$deviceId';
+
+  // Phase 3: Encrypted media
+  final String e2eEncryptedMediaUploadUrl = 'chat-service/encrypted-media/upload-url';
+
+  // Phase 4: Sync engine
+  final String e2eSyncMessages = 'chat-service/sync/messages';
+  final String e2eSyncAck      = 'chat-service/sync/ack';
+
   /// Shorts-feed service
   final String feedPersonalized = "videofeed-service/feeds/personalized";
   final String feedTrending = "videofeed-service/feeds/trending";

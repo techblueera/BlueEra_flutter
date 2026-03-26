@@ -2078,6 +2078,20 @@ class ChatEmitEvents {
   static const update_data = "update_data";
   static const newSelfPickupOrderReceived = "newSelfPickupOrderReceived";
   static const selfPickupOrderReady = "selfPickupOrderReady";
+
+  // ── E2E Encryption Events (Phase 1–4) ─────────────────────────────────────
+  // Events this client EMITS → server
+  static const e2eMessageSend       = "message:send";         // Phase 3: send encrypted msg
+  static const e2eMessageAck        = "message:ack";          // Phase 3: delivery ACK
+  static const e2eMessageSyncComplete = "message:sync-complete"; // Phase 4: cursor advance
+
+  // Events this client RECEIVES ← server
+  static const e2eProtocolResolved      = "protocol:resolved";       // Phase 1
+  static const e2eProtocolUpgrade       = "protocol:upgrade_available"; // Phase 1
+  static const e2ePrekeyLow             = "prekey:low";              // Phase 2
+  static const e2eMessageNew            = "message:new";             // Phase 3
+  static const e2eMessageStatus         = "message:status";          // Phase 3
+  static const e2eSyncComplete          = "sync:complete";           // Phase 4
 }
 
 class LiveTrackEmitEvents {

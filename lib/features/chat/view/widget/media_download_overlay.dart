@@ -137,10 +137,15 @@ class _MediaDownloadOverlayState extends State<MediaDownloadOverlay> {
   Widget build(BuildContext context) {
     // If sent by me or already downloaded, show normal media
     if (!widget.isReceived || _state == MediaDownloadState.downloaded) {
-      return GestureDetector(
-        onTap: (widget.openOnTap && _localPath != null) ? _openFile : null,
-        child: widget.child,
-      );
+      // When openOnTap is true and file is available, open it on tap.
+      // Otherwise, return child directly so the parent's onTap works.
+      if (widget.openOnTap && _localPath != null) {
+        return GestureDetector(
+          onTap: _openFile,
+          child: widget.child,
+        );
+      }
+      return widget.child;
     }
 
     // Not downloaded or downloading — show blurred overlay
