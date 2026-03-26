@@ -30,7 +30,7 @@ class SelfPickupCommonCartUi extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => SelfPickUpCartScreen(deliveryType: 'SELF'),
+                  builder: (_) => SelfPickUpCartScreen(),
                 ),
               );
             },

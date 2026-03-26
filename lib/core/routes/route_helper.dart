@@ -483,8 +483,8 @@ class RouteHelper {
   static String getGroceryCartScreenRoute() =>
       RouteConstant.groceryCartScreen;
 
-  static String getYourAddToCardScreenRoute() =>
-      RouteConstant.yourAddToCardScreen;
+  // static String getYourAddToCardScreenRoute() =>
+  //     RouteConstant.yourAddToCardScreen;
 
   // static String getRiderProfileStatusScreenRoute() =>
   //     RouteConstant.RiderProfileStatusScreen;
@@ -1538,11 +1538,13 @@ class RouteHelper {
       case RouteConstant.otherGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = args[ApiKeys.userId] as String;
+        final String visitBusinessId = args[ApiKeys.businessId] as String;
         final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
         final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
         return MaterialPageRoute(
             builder: (_) => OtherGroceryProductsScreen(
                 userId: userId,
+                visitBusinessId: visitBusinessId,
                 argArrGroceryCatKey: argArrGroceryCatKey,
                 argArrGroceryCatName: argArrGroceryCatName,
             ),
@@ -1577,12 +1579,12 @@ class RouteHelper {
                 isDeliveredByRider: argIsDeliveredByRider
             ),
             settings: RouteSettings(name: getGroceryCartScreenRoute()));
-      case RouteConstant.yourAddToCardScreen:
-
-        return MaterialPageRoute(
-            builder: (_) => YourCartScreen(
-            ),
-            settings: RouteSettings(name: getYourAddToCardScreenRoute()));
+      // case RouteConstant.yourAddToCardScreen:
+      //
+      //   return MaterialPageRoute(
+      //       builder: (_) => YourCartScreen(
+      //       ),
+      //       settings: RouteSettings(name: getYourAddToCardScreenRoute()));
       //   case RouteConstant.RiderProfileStatusScreen:
       //     return MaterialPageRoute(
       //       builder: (_) => RiderProfileStatusScreen(screeName: '', isAllComplete: false: ''lStepsCompleted: null,),
@@ -1909,11 +1911,11 @@ class RouteHelper {
           builder: (_) => const CallRoomScreen(),
           settings: const RouteSettings(name: '/CallRoomScreen'),
         );
-      case RouteConstant.yourCartScreen:
-        return MaterialPageRoute(
-          builder: (_) => const YourCartScreen(),
-          settings: RouteSettings(name: RouteHelper.getYourCartScreenRoute()),
-        );
+      // case RouteConstant.yourCartScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const YourCartScreen(),
+      //     settings: RouteSettings(name: RouteHelper.getYourCartScreenRoute()),
+      //   );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

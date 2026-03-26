@@ -193,7 +193,7 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
 
             return  GroceryProductCard(
                 groceryProducts: groceryProducts,
-                isMyGroceryStore: widget.userId == userId
+                bId: businessId
             );
           },
         )

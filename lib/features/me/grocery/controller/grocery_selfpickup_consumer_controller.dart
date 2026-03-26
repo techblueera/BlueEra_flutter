@@ -31,7 +31,7 @@ import '../../../../core/routes/route_constant.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 
-class GroceryCustomerController extends GetxController {
+class GrocerySelfPickupConsumerController extends GetxController {
   Rx<ApiResponse> groceryCategoryOfChildrenResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> userGroceryCategoryResponse =
@@ -79,14 +79,15 @@ class GroceryCustomerController extends GetxController {
   var cartBusinessInfo = <String, Map<String, String>>{}.obs;
 
   // Map to store delivery type for each variant ID: { "variant_id": "SELF" | "RIDER" | "PARTNER" }
-  var cartDeliveryType = <String, String>{}.obs;
+  // var cartDeliveryType = <String, String>{}.obs;
 
   // --- Actions ---
   void addToCart(
       ProductVariants variant,
       {String? productId, String? inventoryId,
       String? businessId, String? businessName, String? businessLogo, String? businessAddress,
-      String? deliveryType}) {
+      // String? deliveryType
+      }) {
     if (variant.sId == null) return;
 
     if (cartQuantities.containsKey(variant.sId)) {
@@ -108,9 +109,9 @@ class GroceryCustomerController extends GetxController {
           'address': businessAddress ?? '',
         };
       }
-      if (deliveryType != null) {
-        cartDeliveryType[variant.sId!] = deliveryType;
-      }
+      // if (deliveryType != null) {
+      //   cartDeliveryType[variant.sId!] = deliveryType;
+      // }
     }
   }
 
@@ -127,7 +128,7 @@ class GroceryCustomerController extends GetxController {
       cartProductIds.remove(variant.sId);
       cartInventoryIds.remove(variant.sId);
       cartBusinessInfo.remove(variant.sId);
-      cartDeliveryType.remove(variant.sId);
+      // cartDeliveryType.remove(variant.sId);
       selectedGroceriesVariants.removeWhere((v) => v.sId == variant.sId);
     }
   }
@@ -186,68 +187,68 @@ class GroceryCustomerController extends GetxController {
 
   // --- Filtered getters by delivery type ---
 
-  List<ProductVariants> variantsByDeliveryType(String type) {
-    return selectedGroceriesVariants
-        .where((v) => cartDeliveryType[v.sId] == type)
-        .toList();
-  }
+  // List<ProductVariants> variantsByDeliveryType(String type) {
+  //   return selectedGroceriesVariants
+  //       .where((v) => cartDeliveryType[v.sId] == type)
+  //       .toList();
+  // }
+  //
+  // int itemsCountByDeliveryType(String type) {
+  //   int count = 0;
+  //   for (var v in variantsByDeliveryType(type)) {
+  //     count += cartQuantities[v.sId] ?? 0;
+  //   }
+  //   return count;
+  // }
+  //
+  // double totalMRPByDeliveryType(String type) {
+  //   double total = 0;
+  //   for (var v in variantsByDeliveryType(type)) {
+  //     int qty = cartQuantities[v.sId] ?? 0;
+  //     double mrp = double.tryParse(v.pricing?.first.mrp.toString() ?? '0') ?? 0;
+  //     total += (mrp * qty);
+  //   }
+  //   return total;
+  // }
+  //
+  // double totalSellingPriceByDeliveryType(String type) {
+  //   double total = 0;
+  //   for (var v in variantsByDeliveryType(type)) {
+  //     int qty = cartQuantities[v.sId] ?? 0;
+  //     double sp = double.tryParse(v.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
+  //     total += (sp * qty);
+  //   }
+  //   return total;
+  // }
+  //
+  // double totalSavingsByDeliveryType(String type) =>
+  //     totalMRPByDeliveryType(type) - totalSellingPriceByDeliveryType(type);
+  //
+  // double totalDiscountPercentageByDeliveryType(String type) {
+  //   double mrp = totalMRPByDeliveryType(type);
+  //   if (mrp == 0) return 0.0;
+  //   return (totalSavingsByDeliveryType(type) / mrp) * 100;
+  // }
+  //
+  // int shopCountByDeliveryType(String type) {
+  //   final Set<String> businessIds = {};
+  //   for (var v in variantsByDeliveryType(type)) {
+  //     final info = cartBusinessInfo[v.sId];
+  //     final businessId = info?['businessId'] ?? 'unknown';
+  //     businessIds.add(businessId);
+  //   }
+  //   return businessIds.length;
+  // }
 
-  int itemsCountByDeliveryType(String type) {
-    int count = 0;
-    for (var v in variantsByDeliveryType(type)) {
-      count += cartQuantities[v.sId] ?? 0;
-    }
-    return count;
-  }
-
-  double totalMRPByDeliveryType(String type) {
-    double total = 0;
-    for (var v in variantsByDeliveryType(type)) {
-      int qty = cartQuantities[v.sId] ?? 0;
-      double mrp = double.tryParse(v.pricing?.first.mrp.toString() ?? '0') ?? 0;
-      total += (mrp * qty);
-    }
-    return total;
-  }
-
-  double totalSellingPriceByDeliveryType(String type) {
-    double total = 0;
-    for (var v in variantsByDeliveryType(type)) {
-      int qty = cartQuantities[v.sId] ?? 0;
-      double sp = double.tryParse(v.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
-      total += (sp * qty);
-    }
-    return total;
-  }
-
-  double totalSavingsByDeliveryType(String type) =>
-      totalMRPByDeliveryType(type) - totalSellingPriceByDeliveryType(type);
-
-  double totalDiscountPercentageByDeliveryType(String type) {
-    double mrp = totalMRPByDeliveryType(type);
-    if (mrp == 0) return 0.0;
-    return (totalSavingsByDeliveryType(type) / mrp) * 100;
-  }
-
-  int shopCountByDeliveryType(String type) {
-    final Set<String> businessIds = {};
-    for (var v in variantsByDeliveryType(type)) {
-      final info = cartBusinessInfo[v.sId];
-      final businessId = info?['businessId'] ?? 'unknown';
-      businessIds.add(businessId);
-    }
-    return businessIds.length;
-  }
-
-  Map<String, List<ProductVariants>> groupByBusinessForDeliveryType(String type) {
-    final Map<String, List<ProductVariants>> grouped = {};
-    for (var variant in variantsByDeliveryType(type)) {
-      final info = cartBusinessInfo[variant.sId];
-      final businessId = info?['businessId'] ?? 'unknown';
-      grouped.putIfAbsent(businessId, () => []).add(variant);
-    }
-    return grouped;
-  }
+  // Map<String, List<ProductVariants>> groupByBusinessForDeliveryType(String type) {
+  //   final Map<String, List<ProductVariants>> grouped = {};
+  //   for (var variant in variantsByDeliveryType(type)) {
+  //     final info = cartBusinessInfo[variant.sId];
+  //     final businessId = info?['businessId'] ?? 'unknown';
+  //     grouped.putIfAbsent(businessId, () => []).add(variant);
+  //   }
+  //   return grouped;
+  // }
 
   RxList<Riders> arrRiders = <Riders>[].obs;
 

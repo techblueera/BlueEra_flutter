@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_bill_details.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -27,7 +27,7 @@ class GroceryCartScreen extends StatefulWidget {
 }
 
 class _GroceryCartScreenState extends State<GroceryCartScreen> {
-  final controller = getOrPut(() => GroceryCustomerController());
+  final controller = getOrPut(() => GrocerySelfPickupConsumerController());
   late bool _isDeliveredByRiderFlow;
 
   @override

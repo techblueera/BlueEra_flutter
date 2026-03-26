@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_product_card.dart';
@@ -28,12 +28,14 @@ import '../../../../../widgets/local_assets.dart';
 
 class OtherGroceryProductsScreen extends StatefulWidget {
   final String userId;
+  final String visitBusinessId;
   final String argArrGroceryCatKey;
   final String argArrGroceryCatName;
 
   OtherGroceryProductsScreen({
     super.key,
     required this.userId,
+    required this.visitBusinessId,
     required this.argArrGroceryCatKey,
     required this.argArrGroceryCatName,
   });
@@ -44,7 +46,7 @@ class OtherGroceryProductsScreen extends StatefulWidget {
 
 class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen> {
   final controller = getOrPut(() => GroceryController());
-  final groceryCustomerController = getOrPut(() => GroceryCustomerController());
+  final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final ScrollController scrollController = ScrollController();
   final TextEditingController searchController = TextEditingController();
   late String _userId;
@@ -60,7 +62,7 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
           groceryCatKey: widget.argArrGroceryCatKey
       ).then((response) {
         controller.selectedGroceryData.value = controller.groceryNestedCategoryWithInventoryList.first;
-        getGroceryProducts();
+        fetchGroceryProducts();
       });
     });
   }
@@ -70,7 +72,7 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
         scrollController.position.maxScrollExtent - 200 &&
         !controller.isGroceryDataLoadingMore.value &&
         controller.groceryDataHasMore) {
-      getGroceryProducts(isLoadMore: true);
+      fetchGroceryProducts(isLoadMore: true);
     }
   }
 
@@ -80,7 +82,7 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
     super.dispose();
   }
 
-  void getGroceryProducts({bool isLoadMore = false}) {
+  void fetchGroceryProducts({bool isLoadMore = false}) {
     final String categoryId = controller.selectedGroceryData.value?.sId ?? '';
 
     controller.fetchGroceryProducts(
@@ -181,7 +183,7 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
           return;
         }
         controller.selectedGroceryData.value = selected;
-        getGroceryProducts();
+        fetchGroceryProducts();
       },
     );
   }
@@ -207,7 +209,7 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
               unSelectedBorderColor: AppColors.greyE5,
               onTabSelected: (index, label) {
                 controller.selectedHorizontalTabIndex.value = index;
-                controller.fetchGroceryCategoryProducts();
+                fetchGroceryProducts();
               },
             );
           },),
@@ -246,7 +248,7 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
 
                 return GroceryProductCard(
                     groceryProducts: groceryProducts,
-                    isMyGroceryStore: widget.userId == userId
+                    bId: widget.visitBusinessId
                 );
               },
             ) : Padding(

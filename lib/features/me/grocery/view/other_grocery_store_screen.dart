@@ -14,7 +14,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
@@ -51,7 +51,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
-  final groceryCustomerController = getOrPut(() => GroceryCustomerController());
+  final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
 
   @override
   void initState() {
@@ -409,7 +409,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                                         businessName: bDetails?.businessName,
                                         businessLogo: bDetails?.logo,
                                         businessAddress: bDetails?.address,
-                                        deliveryType: 'SELF',
+                                        // deliveryType: 'SELF',
                                       );
                                     }else{
                                       groceryCustomerController.removeFromCart(productVariants);
@@ -543,6 +543,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                     RouteHelper.getOtherGroceryProductsScreenRoute(),
                     arguments: {
                       ApiKeys.userId: details?.userId,
+                      ApiKeys.businessId: details?.id,
                       ApiKeys.argArrGroceryCatKey: _categoryItem.key,
                       ApiKeys.argArrGroceryCatName: _categoryItem.name,
                     },

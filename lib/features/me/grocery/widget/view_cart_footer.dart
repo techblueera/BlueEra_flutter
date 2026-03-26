@@ -4,7 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 
 class ViewCartFooter extends StatelessWidget {
@@ -12,7 +12,7 @@ class ViewCartFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<GroceryCustomerController>();
+    final controller = Get.find<GrocerySelfPickupConsumerController>();
 
     return Obx(() {
       final int itemCount = controller.selectedGroceriesVariants.length;

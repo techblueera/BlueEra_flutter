@@ -1,44 +1,43 @@
 import 'dart:ui';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-
 import 'package:BlueEra/features/me/grocery/model/my_grocery_products_response.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/inner_shadow.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/api/model/images.dart';
 
 class GroceryProductCard extends StatelessWidget {
   final Products groceryProducts;
-  final bool isMyGroceryStore;
+  final String bId;
 
   GroceryProductCard({
     Key? key,
     required this.groceryProducts,
-    required this.isMyGroceryStore,
+    required this.bId,
   }) : super(key: key);
 
   final groceryController = Get.find<GroceryController>();
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
 
+  bool get isMyGroceryStore => bId == businessId;
 
   @override
   Widget build(BuildContext context) {
+
     return InkWell(
       onTap: () {
         Images? productImage;
@@ -319,8 +318,8 @@ class GroceryProductCard extends StatelessWidget {
     required ProductVariants variant,
     required String productImage,
   }) {
-    final GroceryCustomerController? _groceryCustomerController =
-    !isMyGroceryStore ? Get.find<GroceryCustomerController>() : null;
+    final GrocerySelfPickupConsumerController? _groceryCustomerController =
+    !isMyGroceryStore ? Get.find<GrocerySelfPickupConsumerController>() : null;
 
     final price = groceryController.getPriceDetails(variant.pricing);
 
@@ -407,6 +406,8 @@ class GroceryProductCard extends StatelessWidget {
 
             // Add / Remove Button
             Obx(() {
+              final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+
               final bool isAdded = _groceryCustomerController?.selectedGroceriesVariants
                   .any((v) => v.sId == variant.sId) ?? false;
 
@@ -434,7 +435,11 @@ class GroceryProductCard extends StatelessWidget {
                         variant,
                         productId: variant.sId,
                         inventoryId: groceryProducts.sId,
-                        deliveryType: 'RIDER',
+                        businessId: bId,
+                        businessName: bDetails?.businessName,
+                        businessLogo: bDetails?.logo,
+                        businessAddress: bDetails?.address,
+                        // deliveryType: 'SELF',
                       );
                     }
                   },

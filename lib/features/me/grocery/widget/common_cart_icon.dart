@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class CommonCartIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Accessing the grocery controller
-    final controller = Get.find<GroceryCustomerController>();
+    final controller = Get.find<GrocerySelfPickupConsumerController>();
 
     return Obx(() {
       final int itemCount = controller.selectedGroceriesVariants.length;
@@ -34,9 +34,11 @@ class CommonCartIcon extends StatelessWidget {
       }
 
       return InkWell(
-        onTap: () => Get.toNamed(
-            RouteHelper.getYourAddToCardScreenRoute(),
-        ),
+        onTap: () {
+        //   Get.toNamed(
+        //     RouteHelper.getYourAddToCardScreenRoute(),
+        // );
+        },
         child: Padding(
           padding: const EdgeInsets.only(right: 20.0),
           child: Stack(

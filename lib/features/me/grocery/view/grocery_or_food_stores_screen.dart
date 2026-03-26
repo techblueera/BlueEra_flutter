@@ -9,7 +9,7 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
 import 'package:BlueEra/features/me/grocery/widget/store_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -40,7 +40,7 @@ class GroceryOrFoodStoresScreen extends StatefulWidget {
 class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
   final controller = getOrPut(() => NewStoreController());
   final groceryController = getOrPut(() => GroceryController());
-  final groceryCustomerController = getOrPut(() => GroceryCustomerController());
+  final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final foodCustomerListingScreen = getOrPut(() => FoodCustomerController());
   final ScrollController storesScrollController = ScrollController();
   late List<OnboardingCategoryModel> _arrCategories;
@@ -78,7 +78,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
   dispose(){
     super.dispose();
     deleteIfRegistered<GroceryController>();
-    deleteIfRegistered<GroceryCustomerController>();
+    deleteIfRegistered<GrocerySelfPickupConsumerController>();
   }
 
   void _onLoadMore(){
@@ -102,7 +102,7 @@ class _GroceryOrFoodStoresScreenState extends State<GroceryOrFoodStoresScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => SelfPickUpCartScreen(deliveryType: 'SELF'),
+              builder: (_) => SelfPickUpCartScreen(),
             ),
           );
         },

@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
@@ -41,7 +41,7 @@ class GroceryCustomerListingScreen extends StatefulWidget {
 }
 
 class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScreen> {
-  final controller = getOrPut(() => GroceryCustomerController());
+  final controller = getOrPut(() => GrocerySelfPickupConsumerController());
   final ScrollController scrollController = ScrollController();
 
   @override
@@ -360,7 +360,7 @@ class _GroceryCustomerListingScreenState extends State<GroceryCustomerListingScr
                         onAdd: (variant) {
                           controller.addToCart(
                               variant,
-                              productId: variant.sId, inventoryId: groceryProductData.sId, deliveryType: 'RIDER');
+                              productId: variant.sId, inventoryId: groceryProductData.sId);
                         },
                       );
                     },

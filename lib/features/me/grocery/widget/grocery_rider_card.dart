@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_customer_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -19,7 +19,7 @@ class GroceryRiderCard extends StatelessWidget {
 
   GroceryRiderCard({super.key, required this.rider, required this.orderId});
 
-  final controller = getOrPut(() => GroceryCustomerController());
+  final controller = getOrPut(() => GrocerySelfPickupConsumerController());
 
   @override
   Widget build(BuildContext context) {
