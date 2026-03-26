@@ -122,7 +122,7 @@ class OtherBranchContactController extends GetxController {
   Future<void> getBranchDetailsController() async {
     // 1. Check if data is already loaded OR if it's currently loading
     // Logic for AI generation goes here
-    try {
+    // try {
       schoolContactUsData?.clear();
       ResponseModel response = await OtherRepo().getOtherServiceContactRepo();
 
@@ -139,12 +139,12 @@ class OtherBranchContactController extends GetxController {
         getSchoolContactUsResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-      getSchoolContactUsResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-    }
+    // } on Exception catch (e) {
+    //   logs("ERROR ${e}");
+    //   // TODO
+    //   getSchoolContactUsResponse.value =
+    //       ApiResponse.error(AppStrings.somethingWentWrong);
+    // }
   }
 
   ///Only Department Validation

@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 SchoolContactUsResModel schoolContactUsResModelFromJson(String str) => SchoolContactUsResModel.fromJson(json.decode(str));
 String schoolContactUsResModelToJson(SchoolContactUsResModel data) => json.encode(data.toJson());
 class SchoolContactUsResModel {
@@ -47,7 +49,7 @@ class SchoolContactUsData {
     if (json['departments'] != null) {
       departments = [];
       json['departments'].forEach((v) {
-        departments?.add(Departments.fromJson(v));
+        departments?.add(OtherProfileDepartments.fromJson(v));
       });
     }
     schoolId = json['schoolId'];
@@ -57,7 +59,7 @@ class SchoolContactUsData {
   }
   Branch? branch;
   String? id;
-  List<Departments>? departments;
+  List<OtherProfileDepartments>? departments;
   String? schoolId;
   String? createdAt;
   String? updatedAt;
@@ -125,11 +127,11 @@ class Branch {
       this.website,});
 
   Branch.fromJson(dynamic json) {
-    location = json['location'] != null ? Location.fromJson(json['location']) : null;
+    location = json['location'] != null ? SchoolLocation.fromJson(json['location']) : null;
     name = json['name'];
     website = json['website'];
   }
-  Location? location;
+  SchoolLocation? location;
   String? name;
   String? website;
 
@@ -145,19 +147,22 @@ class Branch {
 
 }
 
-Location locationFromJson(String str) => Location.fromJson(json.decode(str));
-String locationToJson(Location data) => json.encode(data.toJson());
-class Location {
-  Location({
+SchoolLocation locationFromJson(String str) => SchoolLocation.fromJson(json.decode(str));
+String locationToJson(SchoolLocation data) => json.encode(data.toJson());
+class SchoolLocation {
+  SchoolLocation({
       this.name,
       this.coordinates,});
 
-  Location.fromJson(dynamic json) {
+  SchoolLocation.fromJson(dynamic json) {
     name = json['name'];
-    coordinates = json['coordinates'] != null ? json['coordinates'].cast<int>() : [];
+    // coordinates = json['coordinates'] != null ? json['coordinates'] : [];
+    coordinates= (json['coordinates'] as List)
+        .map((e) => (e as num).toDouble())
+        .toList();
   }
   String? name;
-  List<int>? coordinates;
+  List<double>? coordinates;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

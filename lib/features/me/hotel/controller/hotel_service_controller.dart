@@ -136,7 +136,57 @@ class HotelServiceController extends GetxController {
     }
   }
 
-  Future<void> createHotelServiceController() async {
+  Future<void> createHotelServiceController({required Map<String,dynamic> reqParm}) async {
+    try {
+      // AiHotelData data = aiHotelResModel?.value.data ?? AiHotelData();
+      // final reqData = {
+      //   ApiKeys.businessId: businessId,
+      //   "name": data.appMetadata?.appName,
+      //   "description": data.screens?.aboutProperty?.description ?? "",
+      //   "website": data.screens?.contactUs?.website ?? "",
+      //   "address": {
+      //     "city": cityName.value,
+      //     "state": stateName.value,
+      //     "pincode": pinCodeName.value
+      //   },
+      //   "location": {
+      //     "name": hotelAddress.value,
+      //     "type": "Point",
+      //     "coordinates": [lat.value, lng.value]
+      //   },
+      //   "bus_station_location": {
+      //     "name": busStationName.value,
+      //     "type": "Point",
+      //     "coordinates": [busStationLat.value, busStationLng.value]
+      //   },
+      //   "category": businessCategoryGlobal
+      // };
+
+      ResponseModel response =
+          await HotelServiceRepo().createHotelServiceRepo(reqBody: reqParm);
+      if (response.isSuccess) {
+        hotelAddress.value = "";
+        String? hotelID = response.response?.data['data']['_id'];
+        if (hotelID != null && hotelID.isNotEmpty) {
+          await setHotelID(hotelID);
+        } else {
+          await setHotelID("");
+        }
+        await getHotelID();
+        commonSnackBar(message: response.response?.data['message']);
+
+        Get.until((route) =>
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      commonSnackBar(message: e.toString());
+    }
+  }
+/*
+  Future<void> createHotelServiceController_() async {
     try {
       AiHotelData data = aiHotelResModel?.value.data ?? AiHotelData();
       final reqData = {
@@ -185,4 +235,5 @@ class HotelServiceController extends GetxController {
       commonSnackBar(message: e.toString());
     }
   }
+*/
 }

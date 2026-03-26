@@ -19,5 +19,10 @@ Doctor summary (to see all details, run flutter doctor -v):
 
 
 
+BusinessType.Service
 
-
+[log] Business Type    : BusinessType.Service
+[log] Category Name    : Beauty & Personal Care
+[log] Category Slug Id  : BEAUTY_PERSONAL_CARE
+[log] sub category Name : Bridal Makeup & Mehndi Artists
+[log] sub category Slug Id : 68ce990beac48e6b0d497266

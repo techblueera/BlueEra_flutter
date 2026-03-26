@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hospital/controller/hospital_branch_contact_
 import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_branch_only_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_contact_us/hospital_department_only_screen.dart';
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -141,8 +142,8 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
                               shrinkWrap: true,
                               physics: NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
-                                Departments contactData =
-                                    data.departments?[index] ?? Departments();
+                                OtherProfileDepartments contactData =
+                                    data.departments?[index] ?? OtherProfileDepartments();
                                 return Container(
                                   padding: EdgeInsets.all(8),
                                   margin: EdgeInsets.only(bottom: 12),

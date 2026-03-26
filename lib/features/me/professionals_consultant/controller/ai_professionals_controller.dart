@@ -81,7 +81,29 @@ class AiProfessionalsController extends GetxController {
     }
   }
 
-  Future<void> createServiceController() async {
+  Future<void> createServiceController({required Map<String,dynamic> reqParm}) async {
+    try {
+      ResponseModel response = await _repo.createProfessionalsRepo(
+          bodyREQ: reqParm);
+      if (response.isSuccess) {
+        createProfProfileResponse.value = ApiResponse.complete(aiServiceRes);
+        await professionalsFullDetailsController();
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
+      } else {
+        // commonSnackBar(message: AppStrings.somethingWentWrong);
+        createProfProfileResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception {
+      // TODO
+      createProfProfileResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+/*
+  Future<void> createServiceController_() async {
     try {
       ResponseModel response = await _repo.createProfessionalsRepo(
           bodyREQ: aiServiceRes?.value.data);
@@ -102,6 +124,7 @@ class AiProfessionalsController extends GetxController {
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
+*/
 
   // --- Basic Profile Fields ---
   var selectedImage = Rxn<File>();

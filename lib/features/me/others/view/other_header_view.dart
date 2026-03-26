@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -49,69 +49,57 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return CommonCardWidget(
-      padding: 0,
-      cardMargin: 10,
+    final profile = widget.schoolAboutUsController.businessProfile.value?.profile;
+
+    return Container(
+      color: AppColors.white,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
-            height: size.height * 0.21,
+            height: size.height * 0.22,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
                 // Banner Image
-                if (widget.schoolAboutUsController.businessProfile.value
-                        ?.profile?.coverUrl?.isNotEmpty ??
-                    false)
-                  GestureDetector(
-                    onTap: () => null,
-                    // onTap: () => _pickImage(true),
-                    child: Container(
-                      width: double.infinity,
-                      height: size.height * 0.17,
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[100],
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10)),
-                        image: _bannerImage != null
-                            ? DecorationImage(
-                                image: FileImage(_bannerImage ?? File("")),
-                                fit: BoxFit.cover)
-                            : DecorationImage(
-                                image: NetworkImage((widget
-                                            .schoolAboutUsController
-                                            .businessProfile
-                                            .value
-                                            ?.profile
-                                            ?.coverUrl
-                                            ?.isNotEmpty ??
-                                        false)
-                                    ? (widget
-                                            .schoolAboutUsController
-                                            .businessProfile
-                                            .value
-                                            ?.profile
-                                            ?.coverUrl ??
-                                        "")
-                                    : ""),
-                                fit: BoxFit.cover),
-                      ),
-                    ),
+                Container(
+                  width: double.infinity,
+                  height: size.height * 0.17,
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey[50],
                   ),
+                  child: _bannerImage != null
+                      ? Image.file(_bannerImage!, fit: BoxFit.cover)
+                      : (profile?.coverUrl?.isNotEmpty ?? false)
+                          ? CachedNetworkImage(
+                              imageUrl: profile!.coverUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                            )
+                          : const Center(child: Icon(Icons.image, color: Colors.grey, size: 40)),
+                ),
+
+                // Edit Banner Button
                 Positioned(
-                  right: 20,
-                  top: 10,
+                  right: 12,
+                  top: 12,
                   child: InkWell(
                     onTap: () => _pickImage(true),
                     child: Container(
-                        width: 30,
-                        height: 30,
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.edit_banner_icon,
-                        )),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                      ),
+                      child: const LocalAssets(
+                        imagePath: AppIconAssets.edit_banner_icon,
+                        height: 20,
+                        width: 20,
+                      ),
+                    ),
                   ),
                 ),
 
@@ -122,120 +110,65 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
                   child: GestureDetector(
                     onTap: () => _pickImage(false),
                     child: Container(
-                      width: 100,
-                      height: 100,
+                      width: 90,
+                      height: 90,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
+                        border: Border.all(color: Colors.white, width: 3),
                         boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 10)
+                          BoxShadow(color: Colors.black12, blurRadius: 8, spreadRadius: 2)
                         ],
-                        image: _logoImage != null
-                            ? DecorationImage(
-                                image: FileImage(_logoImage ?? File("")),
-                                fit: BoxFit.cover)
-                            : DecorationImage(
-                                image: NetworkImage((widget
-                                            .schoolAboutUsController
-                                            .businessProfile
-                                            .value
-                                            ?.profile
-                                            ?.logoUrl
-                                            ?.isNotEmpty ??
-                                        false)
-                                    ? (widget
-                                            .schoolAboutUsController
-                                            .businessProfile
-                                            .value
-                                            ?.profile
-                                            ?.logoUrl ??
-                                        "")
-                                    : ""),
-                                fit: BoxFit.cover),
+                      ),
+                      child: ClipOval(
+                        child: _logoImage != null
+                            ? Image.file(_logoImage!, fit: BoxFit.cover)
+                            : (profile?.logoUrl?.isNotEmpty ?? false)
+                                ? CachedNetworkImage(
+                                    imageUrl: profile!.logoUrl!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                    errorWidget: (context, url, error) => const Icon(Icons.business, size: 40, color: Colors.grey),
+                                  )
+                                : const Center(child: Icon(Icons.add_a_photo, color: Colors.grey, size: 30)),
                       ),
                     ),
                   ),
                 ),
+
+                // Edit Logo Button
                 Positioned(
-                    bottom: 10,
-                    left: 90,
-                    child: InkWell(
-                      onTap: () => _pickImage(false),
-                      child: Container(
-                          width: 25,
-                          height: 25,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            // color: AppColors.red00,
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.3),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 15,
-                          )),
-                    ))
+                  bottom: 5,
+                  left: 85,
+                  child: InkWell(
+                    onTap: () => _pickImage(false),
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryColor,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
+          
           ServiceHomeHeaderTitleWidget(
-            title:
-            widget.schoolAboutUsController.businessProfile.value
-                ?.profile?.profileName??
-                "",
-            description:widget.schoolAboutUsController.businessProfile.value
-                ?.profile?.description ??
+            title: profile?.profileName ?? "",
+            description: profile?.description ??
                 widget.schoolAboutUsController.businessProfile.value
                     ?.aboutOrganisation?.firstOrNull?.description ??
-                "",
+                "N/A",
           ),
-          // // --- FORM SECTION ---
-          // ServiceHomeHeaderTitleWidget(
-          //   title:
-          //   widget.schoolAboutUsController.schoolDetailsData?.value.name ??
-          //       "",
-          //   description: widget.schoolAboutUsController.schoolDetailsData?.value
-          //       .aboutId?.visionAndMission ??
-          //       "",
-          // ),
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(
-          //     horizontal: 12.0,
-          //   ),
-          //   child: Column(
-          //     crossAxisAlignment: CrossAxisAlignment.start,
-          //     children: [
-          //       const SizedBox(height: 10),
-          //       CustomText(
-          //           widget.schoolAboutUsController.businessProfile.value
-          //               ?.profile?.profileName,
-          //           fontSize: 18,
-          //           maxLines: 1,
-          //           overflow: TextOverflow.ellipsis,
-          //           fontWeight: FontWeight.bold),
-          //       const SizedBox(height: 10),
-          //       ExpandableText(
-          //         text: widget.schoolAboutUsController.businessProfile.value
-          //                 ?.profile?.description ??
-          //             widget.schoolAboutUsController.businessProfile.value
-          //                 ?.aboutOrganisation?.firstOrNull?.description ??
-          //             "",
-          //         trimLines: 4,
-          //         isReadMoreNewLine: false,
-          //         expandMode: ExpandMode.dialog,
-          //         style: TextStyle(
-          //           color: AppColors.secondaryTextColor,
-          //           fontSize: SizeConfig.large,
-          //           fontWeight: FontWeight.w400,
-          //           fontFamily: AppConstants.OpenSans,
-          //         ),
-          //       ),
-          //       // const SizedBox(height: 10),
-          //     ],
-          //   ),
-          // ),
+
         ],
       ),
     );

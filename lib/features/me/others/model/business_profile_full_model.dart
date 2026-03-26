@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class BusinessProfileFullModel {
   bool? success;
   BusinessProfileData? data;
@@ -29,7 +31,7 @@ class BusinessProfileData {
   List<Gallery>? gallery;
   List<dynamic>? termsAndConditions;
   Timings? timings;
-  List<ContactUs>? contactUs;
+  List<ContactUsOtherProfile>? contactUs;
 
   BusinessProfileData({
     this.profile,
@@ -90,9 +92,9 @@ class BusinessProfileData {
     }
     timings = json['timings'] != null ? new Timings.fromJson(json['timings']) : null;
     if (json['contactUs'] != null) {
-      contactUs = <ContactUs>[];
+      contactUs = <ContactUsOtherProfile>[];
       json['contactUs'].forEach((v) {
-        contactUs!.add(new ContactUs.fromJson(v));
+        contactUs!.add(new ContactUsOtherProfile.fromJson(v));
       });
     }
   }
@@ -191,17 +193,20 @@ class Profile {
 
 class Location {
   String? address;
+  String? name;
   List<double>? coordinates;
 
-  Location({this.address, this.coordinates});
+  Location({this.name,this.address, this.coordinates});
 
   Location.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
     address = json['address'];
     coordinates = json['coordinates'].cast<double>();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['name'] = this.name;
     data['address'] = this.address;
     data['coordinates'] = this.coordinates;
     return data;
@@ -626,7 +631,123 @@ class DayTiming {
   }
 }
 
-class ContactUs {
+ContactUsOtherProfile contactUsFromJson(String str) => ContactUsOtherProfile.fromJson(json.decode(str));
+String contactUsToJson(ContactUsOtherProfile data) => json.encode(data.toJson());
+class ContactUsOtherProfile {
+  ContactUsOtherProfile({
+    this.branch,
+    this.id,
+    this.departments,
+    this.businessProfile,
+    this.createdAt,
+    this.updatedAt,
+    this.v,});
+
+  ContactUsOtherProfile.fromJson(dynamic json) {
+    branch = json['branch'] != null ? OtherProfileBranch.fromJson(json['branch']) : null;
+    id = json['_id'];
+    if (json['departments'] != null) {
+      departments = [];
+      json['departments'].forEach((v) {
+        departments?.add(OtherProfileDepartments.fromJson(v));
+      });
+    }
+    businessProfile = json['businessProfile'];
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    v = json['__v'];
+  }
+  OtherProfileBranch? branch;
+  String? id;
+  List<OtherProfileDepartments>? departments;
+  String? businessProfile;
+  String? createdAt;
+  String? updatedAt;
+  int? v;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    if (branch != null) {
+      map['branch'] = branch?.toJson();
+    }
+    map['_id'] = id;
+    if (departments != null) {
+      map['departments'] = departments?.map((v) => v.toJson()).toList();
+    }
+    map['businessProfile'] = businessProfile;
+    map['createdAt'] = createdAt;
+    map['updatedAt'] = updatedAt;
+    map['__v'] = v;
+    return map;
+  }
+
+}
+
+OtherProfileDepartments departmentsFromJson(String str) => OtherProfileDepartments.fromJson(json.decode(str));
+String departmentsToJson(OtherProfileDepartments data) => json.encode(data.toJson());
+class OtherProfileDepartments {
+  OtherProfileDepartments({
+    this.department,
+    this.role,
+    this.email,
+    this.phone,
+    this.id,});
+
+  OtherProfileDepartments.fromJson(dynamic json) {
+    department = json['department'];
+    role = json['role'];
+    email = json['email'];
+    phone = json['phone'];
+    id = json['_id'];
+  }
+  String? department;
+  String? role;
+  String? email;
+  String? phone;
+  String? id;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['department'] = department;
+    map['role'] = role;
+    map['email'] = email;
+    map['phone'] = phone;
+    map['_id'] = id;
+    return map;
+  }
+
+}
+
+OtherProfileBranch branchFromJson(String str) => OtherProfileBranch.fromJson(json.decode(str));
+String branchToJson(OtherProfileBranch data) => json.encode(data.toJson());
+class OtherProfileBranch {
+  OtherProfileBranch({
+    this.location,
+    this.name,
+    this.website,});
+
+  OtherProfileBranch.fromJson(dynamic json) {
+    location = json['location'] != null ? Location.fromJson(json['location']) : null;
+    name = json['name'];
+    website = json['website'];
+  }
+  Location? location;
+  String? name;
+  String? website;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    if (location != null) {
+      map['location'] = location?.toJson();
+    }
+    map['name'] = name;
+    map['website'] = website;
+    return map;
+  }
+
+}
+
+/*class ContactUs {
   String? sId;
   String? businessProfileId;
   String? name;
@@ -678,4 +799,4 @@ class ContactUs {
     data['createdAt'] = this.createdAt;
     return data;
   }
-}
+}*/
