@@ -37,10 +37,12 @@ class SchoolHomeScreen extends StatelessWidget {
             SchoolHeaderView(schoolAboutUsController: schoolAboutUsController,isEdit: true,),
             DirectorCard(
               schoolAboutUsController: schoolAboutUsController,
+              isEdit: true,
             ),
             SchoolManagementSection(
               managementData: schoolAboutUsController
                   .schoolDetailsData?.value.aboutId?.management,
+              isEdit: true,
             ),
             SchoolCourseSection(
               courses:
@@ -51,6 +53,7 @@ class SchoolHomeScreen extends StatelessWidget {
               campusLife:
                   schoolAboutUsController.schoolDetailsData?.value.campusLife ??
                       [],
+              isEdit: true,
             ),
             InkWell(
               onTap: () {

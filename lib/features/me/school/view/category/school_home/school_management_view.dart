@@ -13,12 +13,67 @@ import '../../../../../../core/api/model/school_about_us_model.dart';
 
 class SchoolManagementSection extends StatelessWidget {
   final List<Management>? managementData;
+  final bool isEdit;
 
-  const SchoolManagementSection({super.key, required this.managementData});
+  const SchoolManagementSection(
+      {super.key, required this.managementData, this.isEdit = false});
 
   @override
   Widget build(BuildContext context) {
-    if (managementData?.isEmpty ?? false) return const SizedBox.shrink();
+    if (managementData == null || managementData!.isEmpty) {
+      return CommonCardWidget(
+        padding: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ServiceHomeTitleWidget(title: AppStrings.managementTrust),
+                  if (isEdit)
+                    IconButton(
+                      onPressed: () => Get.to(ManagementAndTrust()),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                    ),
+                ],
+              ),
+            ),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.groups_outlined,
+                      size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  CustomText(
+                    AppStrings.noDataFound.tr,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  if (isEdit) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => Get.to(ManagementAndTrust()),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text("Add"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryColor,
+                        side: BorderSide(color: AppColors.primaryColor),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return CommonCardWidget(
       padding: 0,
       child: Column(
@@ -33,25 +88,33 @@ class SchoolManagementSection extends StatelessWidget {
                 ServiceHomeTitleWidget(
                   title: AppStrings.managementTrust,
                 ),
-                if ((managementData?.length ?? 0) > 5)
-                  InkWell(
-                    onTap: () {
-                      Get.to(ManagementAndTrust());
-                    },
-                    child: const CustomText(
-                      AppStrings.viewAll,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                Row(
+                  children: [
+                    if ((managementData?.length ?? 0) > 5)
+                      InkWell(
+                        onTap: () {
+                          Get.to(ManagementAndTrust());
+                        },
+                        child: const CustomText(
+                          AppStrings.viewAll,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    if (isEdit)
+                      IconButton(
+                        onPressed: () => Get.to(ManagementAndTrust()),
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
 
           Container(
             height: 200,
-            padding: EdgeInsets.symmetric(horizontal: 5),
-            // Height for the horizontal cards
+            padding: const EdgeInsets.symmetric(horizontal: 5),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: (managementData?.length ?? 0) > 5
@@ -69,7 +132,6 @@ class SchoolManagementSection extends StatelessWidget {
     );
   }
 
-  // Individual Card for the horizontal list (image_f29c49.jpg style)
   Widget _buildManagementCard(Management person) {
     return Container(
       width: 160,
@@ -83,7 +145,6 @@ class SchoolManagementSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
             Expanded(
               flex: 2,
               child: ClipRRect(
@@ -95,14 +156,14 @@ class SchoolManagementSection extends StatelessWidget {
                         height: 110,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                errorBuilder: (context,error,stack){
-                          return LocalAssets(imagePath: AppIconAssets.place_holder_image);
-                },
-                )
-                    : SizedBox.shrink(),
+                        errorBuilder: (context, error, stack) {
+                          return LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image);
+                        },
+                      )
+                    : const SizedBox.shrink(),
               ),
             ),
-            // Text Content
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),

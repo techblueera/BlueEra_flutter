@@ -74,11 +74,12 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
                         ? DecorationImage(
                             image: FileImage(_bannerImage ?? File("")),
                             fit: BoxFit.cover)
-                        : DecorationImage(
-                            image: NetworkImage(widget.schoolAboutUsController
-                                    .schoolDetailsData?.value.bannerUrl ??
-                                ""),
-                            fit: BoxFit.cover),
+                        : (widget.schoolAboutUsController.schoolDetailsData?.value.bannerUrl?.isNotEmpty ?? false)
+                            ? DecorationImage(
+                                image: NetworkImage(widget.schoolAboutUsController
+                                    .schoolDetailsData!.value.bannerUrl!),
+                                fit: BoxFit.cover)
+                            : null,
                   ),
                 ),
                 if (widget.isEdit ?? false)
@@ -116,14 +117,15 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
                             ? DecorationImage(
                                 image: FileImage(_logoImage ?? File("")),
                                 fit: BoxFit.cover)
-                            : DecorationImage(
-                                image: NetworkImage(widget
+                            : (widget.schoolAboutUsController.schoolDetailsData?.value.logo?.isNotEmpty ?? false)
+                                ? DecorationImage(
+                                    image: NetworkImage(widget
                                         .schoolAboutUsController
-                                        .schoolDetailsData
-                                        ?.value
-                                        .logo ??
-                                    ""),
-                                fit: BoxFit.cover),
+                                        .schoolDetailsData!
+                                        .value
+                                        .logo!),
+                                    fit: BoxFit.cover)
+                                : null,
                       ),
                     ),
                   ),
