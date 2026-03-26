@@ -985,24 +985,77 @@ class ChatViewController extends GetxController {
   // E2E ENCRYPTION — Phase 1-4 Integration
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Called once after login to:
-  ///  1. Init the SQLite E2E database
-  ///  2. Register Signal Protocol keys with the server (if not done yet)
-  ///  3. Connect socket with E2E capabilities
+  /// E2E initialization — matches web tester's autoRegisterE2EKeys() flow:
+  ///  1. Init SQLite database
+  ///  2. Generate NaCl keys if needed
+  ///  3. Revoke stale old devices (web tester does this!)
+  ///  4. Verify server has our device's keys, register if missing
   Future<void> initializeE2E() async {
     try {
-      // 1. Init local database
+      // Step 1: Init local database
       await E2ELocalDbService().init();
+      if (kDebugMode) print('[E2E-INIT] ═══ E2E Initialization Start ═══');
 
-      // 2. Register keys if this is a new device
-      final isRegistered = await _e2eKeyService.isRegistered();
-      if (!isRegistered) {
-        await _e2eKeyService.registerKeys();
+      final myDeviceId = await _e2eKeyService.getOrCreateDeviceId();
+      if (kDebugMode) print('[E2E-INIT] deviceId: $myDeviceId');
+
+      // Step 2: Ensure NaCl keys exist locally
+      final hasLocalKeys = await _e2eKeyService.isRegistered();
+      if (kDebugMode) print('[E2E-INIT] Local NaCl v2 keys: $hasLocalKeys');
+
+      // Step 3: Check server for our device
+      final myUserId = userId; // global from shared_preference_utils
+      if (myUserId.isEmpty) {
+        if (kDebugMode) print('[E2E-INIT] No userId yet — skipping registration');
+        return;
       }
 
-      if (kDebugMode) print('[E2E] Initialization complete');
+      final existingBundles = await E2ERepo().getPrekeyBundles(myUserId);
+      final serverHasOurDevice = existingBundles.any((b) => b.deviceId == myDeviceId);
+      if (kDebugMode) {
+        print('[E2E-INIT] Server has ${existingBundles.length} devices for us');
+        print('[E2E-INIT] Server has OUR device ($myDeviceId): $serverHasOurDevice');
+        for (final b in existingBundles) {
+          print('[E2E-INIT]   device: ${b.deviceId} ${b.deviceId == myDeviceId ? "(THIS DEVICE)" : ""}');
+        }
+      }
+
+      if (hasLocalKeys && serverHasOurDevice) {
+        // Everything is good — keys exist locally AND on server
+        if (kDebugMode) print('[E2E-INIT] ✓ Keys already registered on server');
+      } else {
+        // Need to register — either no local keys or server doesn't have ours
+        if (kDebugMode) print('[E2E-INIT] Registration needed (local=$hasLocalKeys, server=$serverHasOurDevice)');
+
+        // Step 3a: Revoke stale old devices first (matching web tester!)
+        // This prevents senders from encrypting for stale identity keys
+        for (final bundle in existingBundles) {
+          if (bundle.deviceId != myDeviceId) {
+            if (kDebugMode) print('[E2E-INIT] Revoking stale device: ${bundle.deviceId}');
+            try {
+              await E2ERepo().revokeDevice(bundle.deviceId);
+            } catch (e) {
+              if (kDebugMode) print('[E2E-INIT]   Revoke failed (non-fatal): $e');
+            }
+          }
+        }
+
+        // Step 3b: Register our keys
+        if (kDebugMode) print('[E2E-INIT] Registering keys...');
+        final success = await _e2eKeyService.registerKeys();
+        if (kDebugMode) print('[E2E-INIT] Registration: ${success ? "✓ SUCCESS" : "✘ FAILED"}');
+
+        if (success) {
+          // Step 3c: Verify registration by fetching our bundle back
+          final verifyBundles = await E2ERepo().getPrekeyBundles(myUserId);
+          final verified = verifyBundles.any((b) => b.deviceId == myDeviceId);
+          if (kDebugMode) print('[E2E-INIT] Server verification: ${verified ? "✓ CONFIRMED" : "✘ NOT FOUND"}');
+        }
+      }
+
+      if (kDebugMode) print('[E2E-INIT] ═══ E2E Initialization Complete ═══');
     } catch (e) {
-      if (kDebugMode) print('[E2E] initializeE2E error: $e');
+      if (kDebugMode) print('[E2E-INIT] ✘ Error: $e');
     }
   }
 
@@ -1119,19 +1172,29 @@ class ChatViewController extends GetxController {
   /// [mediaFiles] — optional list of {file, mimeType} for media attachments.
   ///
   /// Falls back to the plain `messageReceived` event if E2E is not active.
-  Future<void> sendE2EMessage({
+  /// Returns true if E2E send succeeded, false if it failed (caller should fallback to plain).
+  Future<bool> sendE2EMessage({
     required String conversationId,
     required String recipientUserId,
     required String text,
     List<Map<String, dynamic>>? mediaFiles, // [{file: File, mimeType: String}]
   }) async {
     try {
+      if (kDebugMode) {
+        print('[E2E-SEND] ═══════════════════════════════════════');
+        print('[E2E-SEND] conversationId: $conversationId');
+        print('[E2E-SEND] recipientUserId: $recipientUserId');
+        print('[E2E-SEND] text: "${text.substring(0, text.length.clamp(0, 100))}"');
+        print('[E2E-SEND] mediaFiles: ${mediaFiles?.length ?? 0}');
+      }
+
       // Phase 3 media: upload encrypted files first
       final mediaMetaList = <EncryptedMediaMetadata>[];
       final encryptedMediaRefs = <Map<String, dynamic>>[];
 
       if (mediaFiles != null) {
         for (final m in mediaFiles) {
+          if (kDebugMode) print('[E2E-SEND] Uploading encrypted media: ${m['mimeType']}');
           final meta = await _e2eMedia.uploadEncryptedMedia(
             file:     m['file'],
             mimeType: m['mimeType'],
@@ -1143,25 +1206,37 @@ class ChatViewController extends GetxController {
               'mime_type': meta.mimeType,
               'size':      meta.size,
             });
+            if (kDebugMode) print('[E2E-SEND]   ✓ Media uploaded: ${meta.s3Key}');
+          } else {
+            if (kDebugMode) print('[E2E-SEND]   ✘ Media upload failed');
           }
         }
       }
 
-      // Build plaintext JSON payload (Signal Protocol will encrypt this)
+      // Build plaintext JSON payload
       final payload = E2EMessagePayload(
         text:  text,
         media: mediaMetaList.isNotEmpty ? mediaMetaList : null,
       );
+      final payloadJson = payload.toJsonString();
+      if (kDebugMode) print('[E2E-SEND] Payload JSON: ${payloadJson.substring(0, payloadJson.length.clamp(0, 150))}');
 
       // Encrypt for each recipient device
       final ciphertextEntries = await _e2eSessions.encryptForRecipient(
         recipientUserId: recipientUserId,
-        plaintextJson:   payload.toJsonString(),
+        plaintextJson:   payloadJson,
       );
 
       if (ciphertextEntries.isEmpty) {
-        if (kDebugMode) print('[E2E] No ciphertext entries — no session established');
-        return;
+        if (kDebugMode) print('[E2E-SEND] ✘ No ciphertext entries — recipient has no E2E keys, falling back to plain');
+        return false;
+      }
+
+      if (kDebugMode) {
+        print('[E2E-SEND] Emitting message:send with ${ciphertextEntries.length} ciphertext entries');
+        for (final e in ciphertextEntries) {
+          print('[E2E-SEND]   deviceId=${e.deviceId}, bodyLen=${e.body.length}');
+        }
       }
 
       // Emit message:send
@@ -1172,6 +1247,8 @@ class ChatViewController extends GetxController {
             .toList(),
         encryptedMediaRefs: encryptedMediaRefs.isNotEmpty ? encryptedMediaRefs : null,
       );
+
+      if (kDebugMode) print('[E2E-SEND] ✓ message:send emitted successfully');
 
       // Optimistic UI update
       final optimistic = EncryptedMessageLocal(
@@ -1189,8 +1266,11 @@ class ChatViewController extends GetxController {
 
       // Track conversation for future syncs
       await _e2eSync.trackConversation(conversationId);
+      if (kDebugMode) print('[E2E-SEND] ═══════════════════════════════════════');
+      return true;
     } catch (e) {
       if (kDebugMode) print('[E2E] sendE2EMessage error: $e');
+      return false;
     }
   }
 
@@ -1207,7 +1287,6 @@ class ChatViewController extends GetxController {
   /// Convert an [EncryptedMessageLocal] to a [Messages] object for UI rendering
   /// in the existing MessageCard widget.
   Messages e2eMessageToMessages(EncryptedMessageLocal e2eMsg) {
-    print("ksdhcksjdcnsdc ${e2eMsg.toMap()}");
 
     return Messages(
       id: e2eMsg.messageId,
@@ -1995,14 +2074,13 @@ class ChatViewController extends GetxController {
        await startLiveLocationTracking(labelToDuration(params[ApiKeys.live_location_validity]));
       }
 
-      // ── E2E: Route to encrypted send path when E2E is active ──────────
+      // ── E2E: Route to encrypted send path if BOTH sides support E2E ──
       final msgType = params[ApiKeys.message_type]?.toString() ?? '';
       final e2eSupportedTypes = ['text', 'image', 'video', 'document'];
       if (e2eActive.value &&
           userOpenUserId.value.isNotEmpty &&
           e2eSupportedTypes.contains(msgType)) {
         final text = params[ApiKeys.message]?.toString() ?? '';
-        // Build media file list from sendFiles with proper MIME detection
         List<Map<String, dynamic>>? mediaFiles;
         if (sendFiles != null && sendFiles.isNotEmpty) {
           mediaFiles = sendFiles.map((f) {
@@ -2015,17 +2093,21 @@ class ChatViewController extends GetxController {
           }).toList();
         }
         if (text.isNotEmpty || (mediaFiles != null && mediaFiles.isNotEmpty)) {
-          await sendE2EMessage(
+          final e2eSuccess = await sendE2EMessage(
             conversationId:  params[ApiKeys.conversation_id],
             recipientUserId: userOpenUserId.value,
             text:            text,
             mediaFiles:      mediaFiles,
           );
-          clearMessageControllerCommon();
-          return true;
+          if (e2eSuccess) {
+            clearMessageControllerCommon();
+            return true;
+          }
+          // E2E failed (recipient has no keys) — fall through to plain text below
+          if (kDebugMode) print('[E2E] Recipient has no E2E keys — sending as plain text');
         }
       }
-      // ── End E2E routing ────────────────────────────────────────────────
+      // ── End E2E routing (falls through to plain text if E2E failed) ──
 
       clearMessageControllerCommon();
 

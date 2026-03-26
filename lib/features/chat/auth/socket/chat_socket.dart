@@ -218,10 +218,9 @@ class ChatSocketService {
       'conversation_id': conversationId,
       'type':            'e2e',
       'ciphertext':      ciphertextEntries,
+      // Always include encrypted_media (empty array for text-only) — matches web tester
+      'encrypted_media': encryptedMediaRefs ?? [],
     };
-    if (encryptedMediaRefs != null && encryptedMediaRefs.isNotEmpty) {
-      payload['encrypted_media'] = encryptedMediaRefs;
-    }
     emitEvent(ChatEmitEvents.e2eMessageSend, payload);
   }
 

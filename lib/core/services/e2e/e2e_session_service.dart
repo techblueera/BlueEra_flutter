@@ -38,29 +38,42 @@ class E2ESessionService {
 
     // Get my private key (raw 32 bytes)
     final myPrivateKey = await _getMyPrivateKey();
+    final myPublicKey = await _getMyPublicKey();
+
+    if (kDebugMode) {
+      print('[E2E-ENCRYPT] ═══════════════════════════════════════');
+      print('[E2E-ENCRYPT] recipientUserId: $recipientUserId');
+      print('[E2E-ENCRYPT] plaintext: ${plaintextJson.substring(0, plaintextJson.length.clamp(0, 100))}...');
+      print('[E2E-ENCRYPT] myPublicKey: ${base64Encode(myPublicKey)}');
+    }
 
     // Get recipient's bundles (one per device)
     List<PrekeyBundle> bundles;
     if (_sessionCache.containsKey(recipientUserId)) {
       bundles = _sessionCache[recipientUserId]!;
+      if (kDebugMode) print('[E2E-ENCRYPT] Using ${bundles.length} CACHED bundles');
     } else {
       bundles = await _repo.getPrekeyBundles(recipientUserId);
       if (bundles.isNotEmpty) {
         _sessionCache[recipientUserId] = bundles;
       }
+      if (kDebugMode) print('[E2E-ENCRYPT] Fetched ${bundles.length} bundles from server');
     }
 
     if (bundles.isEmpty) {
-      if (kDebugMode) print('[E2E] No bundles for $recipientUserId');
+      if (kDebugMode) print('[E2E-ENCRYPT] ✘ No bundles for $recipientUserId — cannot encrypt');
       return entries;
     }
 
     final messageBytes = Uint8List.fromList(utf8.encode(plaintextJson));
 
-    for (final bundle in bundles) {
+    for (int i = 0; i < bundles.length; i++) {
+      final bundle = bundles[i];
       try {
-        // Recipient's identity public key (raw 32 bytes)
         final recipientPubBytes = _decodeKey32(bundle.identityKey);
+        if (kDebugMode) {
+          print('[E2E-ENCRYPT] Encrypting for bundle[$i]: deviceId=${bundle.deviceId}, pubKey=${bundle.identityKey.substring(0, 20)}... (${recipientPubBytes.length} bytes)');
+        }
         final encrypted = _naclBoxEncrypt(
           message: messageBytes,
           theirPublicKey: recipientPubBytes,
@@ -70,15 +83,16 @@ class E2ESessionService {
           deviceId: bundle.deviceId,
           body: base64Encode(encrypted),
         ));
+        if (kDebugMode) print('[E2E-ENCRYPT]   ✓ Encrypted: ${encrypted.length} bytes (nonce=24 + cipher=${encrypted.length - 24})');
       } catch (e) {
-        if (kDebugMode) print('[E2E] encrypt error for device ${bundle.deviceId}: $e');
+        if (kDebugMode) print('[E2E-ENCRYPT]   ✘ FAILED for device ${bundle.deviceId}: $e');
       }
     }
 
     // Also encrypt for own devices (so sender can read own messages)
     final myDeviceId = await _keyService.getOrCreateDeviceId();
-    final myPublicKey = await _getMyPublicKey();
     try {
+      if (kDebugMode) print('[E2E-ENCRYPT] Self-encrypting for own device: $myDeviceId');
       final selfEncrypted = _naclBoxEncrypt(
         message: messageBytes,
         theirPublicKey: myPublicKey,
@@ -88,10 +102,15 @@ class E2ESessionService {
         deviceId: myDeviceId,
         body: base64Encode(selfEncrypted),
       ));
+      if (kDebugMode) print('[E2E-ENCRYPT]   ✓ Self-encrypted: ${selfEncrypted.length} bytes');
     } catch (e) {
-      if (kDebugMode) print('[E2E] self-encrypt error: $e');
+      if (kDebugMode) print('[E2E-ENCRYPT]   ✘ Self-encrypt FAILED: $e');
     }
 
+    if (kDebugMode) {
+      print('[E2E-ENCRYPT] Total ciphertext entries: ${entries.length}');
+      print('[E2E-ENCRYPT] ═══════════════════════════════════════');
+    }
     return entries;
   }
 
@@ -289,21 +308,14 @@ class E2ESessionService {
 
   // ─── Key helpers ──────────────────────────────────────────────────────────
 
-  /// Get my raw 32-byte Curve25519 private key from secure storage.
+  /// Get my raw 32-byte Curve25519 private key.
   Future<Uint8List> _getMyPrivateKey() async {
-    final ikp = await _keyService.getIdentityKeyPair();
-    return Uint8List.fromList(ikp.getPrivateKey().serialize());
+    return await _keyService.getPrivateKey();
   }
 
   /// Get my raw 32-byte Curve25519 public key.
   Future<Uint8List> _getMyPublicKey() async {
-    final ikp = await _keyService.getIdentityKeyPair();
-    final serialized = ikp.getPublicKey().publicKey.serialize();
-    // Strip 0x05 Signal prefix if present
-    if (serialized.length == 33 && serialized[0] == 0x05) {
-      return Uint8List.fromList(serialized.sublist(1));
-    }
-    return Uint8List.fromList(serialized);
+    return await _keyService.getPublicKey();
   }
 
   /// Decode a base64 public key to raw 32 bytes.
