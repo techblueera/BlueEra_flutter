@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -23,8 +24,8 @@ class BusinessProfileFullController extends GetxController {
 
   String get website {
     if (businessProfile.value == null) return "";
-    if (businessProfile.value?.contactUs != null && businessProfile.value!.contactUs!.isNotEmpty) {
-      return businessProfile.value!.contactUs!.first.websiteUrl ?? "";
+    if (businessProfile.value?.contactUs != null && (businessProfile.value?.contactUs?.isNotEmpty??false)) {
+      return businessProfile.value?.contactUs?.firstOrNull?.branch?.website ?? "";
     }
     return "";
   }
@@ -63,10 +64,11 @@ class BusinessProfileFullController extends GetxController {
   Future<void> getBusinessProfileFull() async {
     isLoading.value = true;
     try {
+      logs("otherServiceIDGlobal= ${otherServiceIDGlobal.isEmpty}");
       // Ensure ID is available — read from SharedPrefs first, then fallback to API
-      if (otherServiceIDGlobal.isEmpty) {
-        await getOtherServiceID();
-      }
+      // if (otherServiceIDGlobal.isEmpty) {
+      //   await getOtherServiceID();
+      // }
       if (otherServiceIDGlobal.isEmpty) {
         final idResponse = await _repo.getBusinessProfileRepo();
         if (idResponse.isSuccess) {

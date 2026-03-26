@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_branch_contact_controller.dart';
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -10,7 +11,7 @@ import 'package:get/get.dart';
 import '../../../../../../core/api/model/school_contact_us_res_model.dart';
 
 class HospitalDepartmentOnlyScreen extends StatefulWidget {
-  final Departments? contactInfo;
+  final OtherProfileDepartments? contactInfo;
   final bool? isContactInfoEdit;
   final String? branchId;
 

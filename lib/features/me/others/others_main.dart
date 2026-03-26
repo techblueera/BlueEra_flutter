@@ -25,7 +25,7 @@ class _OthersMainState extends State<OthersMain>
     final contacts = controller.businessProfile.value?.contactUs;
     if (contacts == null) return '';
     for (final c in contacts) {
-      final url = c.websiteUrl ?? '';
+      final url = c.branch?.website ?? '';
       if (url.isNotEmpty) return url;
     }
     return '';

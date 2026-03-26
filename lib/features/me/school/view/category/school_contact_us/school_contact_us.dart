@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_only_screen.dart';
@@ -140,8 +141,8 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                               shrinkWrap: true,
                               physics: NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
-                                Departments contactData =
-                                    data.departments?[index] ?? Departments();
+                                OtherProfileDepartments contactData =
+                                    data.departments?[index] ?? OtherProfileDepartments();
                                 return Container(
                                   padding: EdgeInsets.all(8),
                                   margin: EdgeInsets.only(bottom: 12),

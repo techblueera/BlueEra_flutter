@@ -27,8 +27,10 @@ import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
@@ -275,6 +277,24 @@ class AuthController extends GetxController {
           final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];
           final dobMap = jsonDecode(dobJsonString);
 
+          ///FOR PROFESSIONAL....
+          if (reqData?['profileType'] == "PROFESSIONAL") {
+            final controller = getOrPut(() => AiProfessionalsController());
+
+            Map<String, dynamic> data = {
+              "name": reqData?['name'],
+              "email": reqData?['email'],
+              "gender": reqData?['gender'],
+              "profileType": reqData?['profileType'],
+              "profession": reqData?['profession'],
+              "designation": reqData?['designation'],
+              "pincode": reqData?['pincode'],
+              "address": reqData?['address'],
+            };
+
+            await controller.createServiceController(reqParm: data);
+          }
+
           Get.offNamedUntil(
             RouteHelper.getAddBioViaAiScreenRoute(),
             arguments: {
@@ -386,12 +406,31 @@ class AuthController extends GetxController {
             final controller = getOrPut(() => HospitalServiceAiController());
             await controller.createHospitalServiceController(reqData: reqBody);
           } else if ((reqData[ApiKeys.category_Of_Business]
-                  .toString()
-                  .toUpperCase() ==
-              "SUPPORT_SERVICES")) {
+                      .toString()
+                      .toUpperCase() ==
+                  "SUPPORT_SERVICES") ||
+              (typeOfBusiness == BusinessType.Service.name.toUpperCase())) {
             final controller = getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData[ApiKeys.business_name];
             await controller.createOtherProfileController(reqParm: reqBody);
+          } else if ((typeOfBusiness ==
+              BusinessType.Motel.name.toUpperCase())) {
+            final controller = getOrPut(() => HotelServiceController());
+            final reqDataParm = {
+              ApiKeys.businessId: businessId,
+              "name": reqData[ApiKeys.business_name],
+              "description": "",
+              "website": "",
+              "address": {"city": "", "state": '', "pincode": ''},
+              "location": reqData[ApiKeys.business_location],
+              "bus_station_location": {
+                "name": "",
+                "type": "Point",
+                "coordinates": []
+              },
+              "category": businessCategoryGlobal
+            };
+            controller.createHotelServiceController(reqParm: reqDataParm);
           }
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 

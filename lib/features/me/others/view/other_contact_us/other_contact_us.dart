@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Departments;
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_department_only_screen.dart';
@@ -20,8 +21,7 @@ import '../../../../../../../../core/constants/app_colors.dart';
 import '../../../../../../../../widgets/custom_text_cm.dart';
 
 class OtherContactUs extends StatefulWidget {
-  const OtherContactUs({super.key});
-
+  const OtherContactUs({super.key,});
   @override
   State<OtherContactUs> createState() => _OtherContactUsState();
 }
@@ -142,8 +142,8 @@ class _OtherContactUsState extends State<OtherContactUs> {
                               shrinkWrap: true,
                               physics: NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
-                                Departments contactData =
-                                    data.departments?[index] ?? Departments();
+                                OtherProfileDepartments contactData =
+                                    data.departments?[index] ?? OtherProfileDepartments();
                                 return Container(
                                   padding: EdgeInsets.all(8),
                                   margin: EdgeInsets.only(bottom: 12),

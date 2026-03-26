@@ -136,7 +136,7 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
               commonSnackBar(message: "State name is required");
               return;
             }
-            await controller.createHotelServiceController();
+            // await controller.createHotelServiceController();
           },
           title: "Create Hotel",
         ),

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -5,20 +6,19 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
+import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
 import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
 import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/others/view/other_header_view.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
-import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
-import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 import 'package:BlueEra/features/me/others/widget/other_product_widget.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -28,7 +28,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class BusinessProfileFullScreen extends StatefulWidget {
   BusinessProfileFullScreen({super.key});
@@ -44,11 +43,9 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.getBusinessProfileFull();
-      contactController.getBranchDetailsController();
     });
   }
 
@@ -62,31 +59,27 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         }
         final data = controller.businessProfile.value;
         if (data == null) {
-          return const Center(child: CircularProgressIndicator());
+          return CustomText("Add Data");
         }
 
         return CustomScrollView(
           slivers: [
-            // 1. Header Image
             SliverAppBar(
-              expandedHeight: Get.height * 0.38,
+              expandedHeight:(controller.businessProfile.value?.profile?.description?.isNotEmpty??false)? Get.height * 0.35: Get.height * 0.30,
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  color: AppColors.appBackgroundColor,
-                  child: OtherHeaderView(
-                    schoolAboutUsController: controller,
-                  ),
+                background: OtherHeaderView(
+                  schoolAboutUsController: controller,
                 ),
                 collapseMode: CollapseMode.parallax,
               ),
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ///"Our Staffs"
+                    /// "Our Staffs"
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
@@ -111,8 +104,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    ///PRODUCT....
-
+                    /// PRODUCT
                     CommonCardWidget(
                         cardMargin: 0,
                         padding: 10,
@@ -127,14 +119,13 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         )),
                     const SizedBox(height: 20),
 
-                    ///"Our Organisation"
+                    /// "Our Organisation"
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
                       child: Column(
                         children: [
                           _buildSectionTitle("Our Organisation", onSeeAll: () {
-                            // Get.to(AboutOrganization());
                             Get.to(OthersAboutUs());
                           }),
                           const SizedBox(height: 10),
@@ -147,6 +138,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                     ),
                     const SizedBox(height: 20),
 
+                    /// "Our Blogs"
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
@@ -244,15 +236,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       );
                     }),
 
-                    // // Testimonials (Management messages?)
-                    // if (data.management != null &&
-                    //     data.management!.isNotEmpty) ...[
-                    //   _buildSectionTitle("Testimonials"),
-                    //   const SizedBox(height: 10),
-                    //   _buildTestimonials(data.management!),
-                    //   const SizedBox(height: 20),
-                    // ],
-                    // Contact Us
+                    /// Contact Us
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
@@ -262,33 +246,23 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             Get.to(OtherContactUs());
                           }),
                           const SizedBox(height: 10),
-                          Obx(() {
-                            final contacts = contactController.schoolContactUsData;
-                            if (contacts == null || contacts.isEmpty) {
-                              return _buildContactEmptyCard(onTap: () => Get.to(OtherContactUs()));
-                            }
-                            return _buildContactUs(contacts);
-                          }),
+                          _buildContactUs(data.contactUs?.firstOrNull ?? ContactUsOtherProfile()),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    // Map Placeholder
+
+                    /// Map Section
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: BusinessLocationWidget(
-                          locationText: data.profile?.location?.address,
-                          latitude: double.parse(data.profile?.location?.coordinates?[0]
-                                  .toString() ??
-                              "0.0"),
-                          longitude: double.parse(data.profile?.location?.coordinates?[1]
-                                  .toString() ??
-                              "0.0"),
+                          locationText: data.contactUs?.firstOrNull?.branch?.location?.name,
+                          latitude: double.parse(data.contactUs?.firstOrNull?.branch?.location?.coordinates?[0].toString() ?? "0.0"),
+                          longitude: double.parse(data.contactUs?.firstOrNull?.branch?.location?.coordinates?[1].toString() ?? "0.0"),
                           businessName: data.profile?.profileName ?? "",
                           padding: 10,
                           isTitleShow: true),
                     ),
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -298,10 +272,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       }),
     );
   }
-
-
-
-
 
   Widget _buildOrgEmptyCard({required VoidCallback onTap}) {
     return Container(
@@ -359,91 +329,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-  Widget _buildContactEmptyCard({required VoidCallback onTap}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.contact_phone_outlined, size: 48, color: Colors.grey[350]),
-          const SizedBox(height: 12),
-          CustomText(
-            'No Contact Info Added',
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
-          ),
-          const SizedBox(height: 6),
-          CustomText(
-            'Add phone, email and website so customers can reach you',
-            fontSize: 12,
-            color: AppColors.secondaryTextColor,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: onTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.add, color: Colors.white, size: 18),
-                      SizedBox(width: 6),
-                      CustomText(
-                        'Add Contact',
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: onTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primaryColor),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.edit_outlined, color: AppColors.primaryColor, size: 16),
-                      SizedBox(width: 6),
-                      CustomText(
-                        'Edit',
-                        color: AppColors.primaryColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptySectionCard({
     required String title,
     required String icon,
@@ -460,22 +345,13 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // CustomText(
-        //   title,
-        //   fontSize: 18,
-        //   fontWeight: FontWeight.bold,
-        // ),
-        ServiceHomeTitleWidget(
-          title:title
-        ),
+        ServiceHomeTitleWidget(title: title),
         if (onSeeAll != null)
           InkWell(
             onTap: onSeeAll,
             child: const CustomText(
               "Add / Edit",
-              // "View All",
               color: AppColors.primaryColor,
-              // fontWeight: FontWeight.bold,
             ),
           ),
       ],
@@ -502,7 +378,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
               children: [
                 Expanded(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(8),
                         topLeft: Radius.circular(8)),
                     child: CachedNetworkImage(
@@ -679,7 +555,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-
   Widget _buildGallery(List<Gallery> galleryList, BuildContext context) {
     final List<String> allImages = [];
     for (var g in galleryList) {
@@ -741,12 +616,10 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       );
     }
 
-    // 1 image — full width
     if (display.length == 1) {
       return SizedBox(height: height, width: double.infinity, child: imgTile(0));
     }
 
-    // 2 images — side by side
     if (display.length == 2) {
       return SizedBox(
         height: height,
@@ -760,7 +633,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       );
     }
 
-    // 3 images — 1 large left, 2 stacked right
     if (display.length == 3) {
       return SizedBox(
         height: height,
@@ -782,7 +654,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       );
     }
 
-    // 4+ images — 2×2 grid with +N overlay on last cell
     return SizedBox(
       height: height,
       child: Column(
@@ -811,14 +682,9 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-
-
-
-  Widget _buildContactUs(List<SchoolContactUsData> contacts) {
-    if (contacts.isEmpty) return const SizedBox.shrink();
-    final data = contacts.first;
-    final branch = data.branch;
-    final firstDept = data.departments?.isNotEmpty == true ? data.departments!.first : null;
+  Widget _buildContactUs(ContactUsOtherProfile contacts) {
+    final branch = contacts.branch;
+    final firstDept = contacts.departments?.isNotEmpty == true ? contacts.departments!.first : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -847,7 +713,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(OtherBranchOnlyScreen(schoolContactUsData: data)),
+                    onTap: () => Get.to(OtherBranchOnlyScreen(schoolContactUsData: SchoolContactUsData(id: contacts.id,branch: Branch(name: contacts.branch?.name,location:SchoolLocation(name: contacts.branch!.location?.name ,coordinates:  contacts.branch!.location?.coordinates??[]),website: contacts.branch?.website),departments: contacts.departments??[] ,schoolId: contacts.id,v:contacts.v ))),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -936,4 +802,3 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 }
-

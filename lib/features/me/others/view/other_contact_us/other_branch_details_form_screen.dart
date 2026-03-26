@@ -1,5 +1,8 @@
+import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -67,11 +70,29 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
               CommonLocationSearchField(
                 controller: addressController,
                 title: "Location",
-                onSelected: (placeId, lat, lng, address) {
+                onSelected: (placeId, lat, lng, address) async {
                   addressController.text = address;
-                  controller.selectedLat = lat;
-                  controller.selectedLng = lng;
-                  _triggerValidation();
+
+                  try {
+                    final detailsResponse = await PlaceRepo()
+                        .getCompletePlaceDetails(placeId: placeId);
+                    final detailsData = detailsResponse.response?.data;
+                    final placeDetails =
+                    PlaceDetailsResponse.fromJson(detailsData);
+                    logs("detailsData=== ${detailsData}");
+                    logs("placeDetails.result?.geometry?.location?.lat??0.0=== ${placeDetails.result?.geometry?.location?.lat??0.0}");
+                    logs("placeDetails.result?.geometry?.location?.lng??0.0=== ${placeDetails.result?.geometry?.location?.lng??0.0}");
+                    controller.selectedLat = placeDetails.result?.geometry?.location?.lat??0.0;
+                    controller.selectedLng = placeDetails.result?.geometry?.location?.lng??0.0;
+
+
+                  } catch (e) {
+                    print("Error fetching place details: $e");
+                  }
+
+
+
+                _triggerValidation();
                 },
               ),
 
@@ -116,7 +137,7 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
                             ),
                         // : null, // Button disabled if form invalid
                     title: "Submit",
-                    // isValidate: controller.isFormValid.value,
+                    isValidate: true
                   )),
             ],
           ),
