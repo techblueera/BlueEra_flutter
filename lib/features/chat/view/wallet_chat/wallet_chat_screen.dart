@@ -173,10 +173,11 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
                 )
               : _buildWalletAppBar(context),
           body: Obx(() {
+            final _e2eLen = chatViewController.e2eMessages.length;
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
               List<Messages> messages =
-                  chatViewController.getListOfMessageData ?? [];
+                  chatViewController.getMergedMessages();
               messages.sort((a, b) {
                 final dateA =
                     (a.createdAt != null && a.createdAt!.isNotEmpty)

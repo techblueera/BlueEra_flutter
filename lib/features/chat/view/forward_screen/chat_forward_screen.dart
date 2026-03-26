@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -205,13 +204,29 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
               if(chatViewController.selectedUserIds.isNotEmpty){
                 if(widget.sharedFiles!=null||widget.sharedText!=null){
                   if (widget.sharedText != null) {
-                    List<String?> userIds= chatViewController.selectedChatList.map((e)=>e?.sender?.id).toList();
-                    Map<String, dynamic> data = {
-                      ApiKeys.other_user_id: jsonEncode(userIds),
-                      ApiKeys.message: "${widget.sharedText}",
-                      ApiKeys.message_type: "text",
-                    };
+                    // Send E2E per-recipient if possible, else plain text
+                    for (final chat in chatViewController.selectedChatList) {
+                      final recipientId = chat?.sender?.id ?? '';
+                      final convId = chat?.conversationId ?? '';
+                      if (recipientId.isEmpty) continue;
+
+                      if (chatViewController.e2eActive.value && convId.isNotEmpty) {
+                        final e2eSuccess = await chatViewController.sendE2EMessage(
+                          conversationId: convId,
+                          recipientUserId: recipientId,
+                          text: "${widget.sharedText}",
+                        );
+                        if (e2eSuccess) continue;
+                      }
+                      // Fallback to plain text
+                      Map<String, dynamic> data = {
+                        ApiKeys.conversation_id: convId,
+                        ApiKeys.other_user_id: recipientId,
+                        ApiKeys.message: "${widget.sharedText}",
+                        ApiKeys.message_type: "text",
+                      };
                       await chatViewController.sendMessage(data);
+                    }
                     chatViewController.emitEvent(
                         ChatEmitEvents.ChatList,
                         {ApiKeys.type: AppConstants.personal_Chat_Type});
