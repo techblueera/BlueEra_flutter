@@ -101,31 +101,23 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                   contactNo: widget.contactNo, conversationId: widget.conversationId),
           body: Obx(() {
 
+            // Also observe E2E messages for reactivity
+            final _ = chatViewController.e2eMessages.length;
+
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
-              final rawMessages =
-                  chatViewController.getListOfMessageData ?? [];
+              // Use merged messages (plain + E2E) with deduplication + sorting
+              final mergedRaw = chatViewController.getMergedMessages();
 
               // Deduplicate by message ID before rendering
               final seen = <String>{};
               final deduped = <Messages>[];
-              for (final m in rawMessages) {
+              for (final m in mergedRaw) {
                 final key = m.id ?? '';
                 if (key.isEmpty || seen.add(key)) {
                   deduped.add(m);
                 }
               }
-
-              // Sort once (not on every frame)
-              deduped.sort((a, b) {
-                final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
-                    ? DateTime.parse(a.createdAt!).toLocal()
-                    : DateTime.fromMillisecondsSinceEpoch(0);
-                final dateB = (b.createdAt != null && b.createdAt!.isNotEmpty)
-                    ? DateTime.parse(b.createdAt!).toLocal()
-                    : DateTime.fromMillisecondsSinceEpoch(0);
-                return dateA.compareTo(dateB);
-              });
 
               final messages = deduped;
               return SafeArea(
@@ -135,6 +127,31 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                     Obx(() => chatThemeController.chatBackground()),
                     Column(
                       children: [
+                        // E2E encryption banner
+                        if (chatViewController.e2eActive.value)
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                            margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3CD),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.lock, size: 12, color: Colors.amber[800]),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Messages are end-to-end encrypted',
+                                    style: TextStyle(fontSize: 11, color: Colors.amber[900]),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         Expanded(
                           child: (messages.isEmpty)
                               ? Center(
