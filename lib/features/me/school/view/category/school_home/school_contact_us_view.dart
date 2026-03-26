@@ -45,6 +45,36 @@ class ContactUsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
+            if (contacts.isEmpty)
+              Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    Icon(Icons.contact_phone_outlined,
+                        size: 48, color: Colors.grey.shade400),
+                    const SizedBox(height: 8),
+                    CustomText(
+                      AppStrings.noDataFound.tr,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    if (isEdit) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => Get.to(SchoolContactUs()),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text("Add"),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primaryColor,
+                          side: BorderSide(color: AppColors.primaryColor),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
             // Loop through the contact list from JSON
             ...contacts.map((contactData) {
               return Container(

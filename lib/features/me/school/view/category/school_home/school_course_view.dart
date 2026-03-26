@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/add_more_course_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/acadamic_cours_and_programs.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -16,18 +17,70 @@ class SchoolCourseSection extends StatelessWidget {
   final List<Courses> courses;
   final bool isEdit;
 
-   SchoolCourseSection({super.key, required this.courses, required this.isEdit});
+  const SchoolCourseSection(
+      {super.key, required this.courses, required this.isEdit});
 
   @override
   Widget build(BuildContext context) {
-    if (courses.isEmpty) return const SizedBox.shrink();
+    if (courses.isEmpty) {
+      return CommonCardWidget(
+        padding: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ServiceHomeTitleWidget(title: AppStrings.coursesPrograms),
+                  if (isEdit)
+                    IconButton(
+                      onPressed: () => Get.to(AddMoreCourseScreen()),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                    ),
+                ],
+              ),
+            ),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.school_outlined,
+                      size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  CustomText(
+                    AppStrings.noDataFound.tr,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  if (isEdit) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => Get.to(AddMoreCourseScreen()),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text("Add"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryColor,
+                        side: BorderSide(color: AppColors.primaryColor),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return CommonCardWidget(
       padding: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with "View All"
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
             child: Row(
@@ -36,23 +89,33 @@ class SchoolCourseSection extends StatelessWidget {
                 ServiceHomeTitleWidget(
                   title: AppStrings.coursesPrograms,
                 ),
-                if (courses.length > 5)
-                  InkWell(
-                    onTap: () {
-                      Get.to(CourseListScreen(isEdit: isEdit,));
-                    },
-                    child: const CustomText(
-                      AppStrings.viewAll,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
+                Row(
+                  children: [
+                    if (courses.length > 5)
+                      InkWell(
+                        onTap: () {
+                          Get.to(CourseListScreen(isEdit: isEdit));
+                        },
+                        child: const CustomText(
+                          AppStrings.viewAll,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    if (isEdit)
+                      IconButton(
+                        onPressed: () =>
+                            Get.to(CourseListScreen(isEdit: isEdit)),
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
 
           // Horizontal List of Course Cards
           SizedBox(
-            height: 160, // Adjusted for the badges and pricing
+            height: 160,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -70,10 +133,10 @@ class SchoolCourseSection extends StatelessWidget {
 
   Widget _buildCourseCard(Courses course) {
     return Container(
-      width: 280, // Card width based on image_02899d.jpg
+      width: 280,
       child: Card(
         elevation: 0,
-        margin: EdgeInsets.only(bottom: 10, right: 10),
+        margin: const EdgeInsets.only(bottom: 10, right: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: Colors.grey.shade200),
@@ -81,25 +144,18 @@ class SchoolCourseSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Course Thumbnail (Using a placeholder or a static image from your project)
-
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 2. Course Name
                   CustomText(
                     course.name ?? "N/A",
                     fontWeight: FontWeight.bold,
-                    // fontSize: 16,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-
-                  // 3. Short Description
-
                   ExpandableText(
                     text: course.description ?? "",
                     trimLines: 4,
@@ -113,8 +169,6 @@ class SchoolCourseSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // 4. Badges (Eligibility & Duration)
                   Row(
                     children: [
                       _buildBadge(course.eligibility ?? "N/A",
@@ -128,12 +182,10 @@ class SchoolCourseSection extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-
-                  // 5. Pricing
                   CustomText(
-                      "₹${formatNumber(course.courseFees?.yearly ?? 0)}/${AppStrings.years.tr}",
-                      fontWeight: FontWeight.bold,
-                     ),
+                    "₹${formatNumber(course.courseFees?.yearly ?? 0)}/${AppStrings.years.tr}",
+                    fontWeight: FontWeight.bold,
+                  ),
                 ],
               ),
             ),

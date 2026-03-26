@@ -12,27 +12,19 @@ import '../../../../../../core/api/model/school_details_res_model.dart';
 
 class CampusPhotoGallery extends StatelessWidget {
   final List<CampusLife> campusLife;
+  final bool isEdit;
 
-  const CampusPhotoGallery({super.key, required this.campusLife});
+  const CampusPhotoGallery(
+      {super.key, required this.campusLife, this.isEdit = false});
 
   @override
   Widget build(BuildContext context) {
-    // 1. Extract and flatten all image URLs from all categories
-    List<String> allImages = [];
+    final List<String> allImages = [];
     for (var item in campusLife) {
-      if (item.images != null) {
-        for (Images img in item.images ?? []) {
-          if (img.url != null) {
-            allImages.add(img.url ?? "");
-          }
-        }
+      for (Images img in item.images ?? []) {
+        if (img.url != null) allImages.add(img.url!);
       }
     }
-
-    // 2. Limit to max 6 images
-    final displayImages = allImages.take(6).toList();
-
-    if (displayImages.isEmpty) return const SizedBox.shrink();
 
     return Card(
       margin: const EdgeInsets.all(10),
@@ -46,75 +38,193 @@ class CampusPhotoGallery extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ServiceHomeTitleWidget(
-                  title: AppStrings.photo,
-                ),
-                if (displayImages.length > 6)
-                  InkWell(
-                    onTap: () {
-                      Get.to(CampusLifeListingScreen());
-                    },
-                    child:  CustomText(AppStrings.viewAll,
-                        color: AppColors.primaryColor,),
+                ServiceHomeTitleWidget(title: AppStrings.photo),
+                if (isEdit)
+                  IconButton(
+                    onPressed: () => Get.to(CampusLifeListingScreen()),
+                    icon: Icon(
+                      allImages.isEmpty
+                          ? Icons.add_circle_outline
+                          : Icons.edit_outlined,
+                      size: 20,
+                    ),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-
-            // 3. Grid Display (image_0d01ab.jpg style)
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: displayImages.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, // 3 images per row
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1, // Square images
-              ),
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: (){
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: "",
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: allImages,
-                        initialIndex: index,
-                      ),
-                    );
-                  },
-                  child: ClipRRect(
+            if (allImages.isEmpty)
+              GestureDetector(
+                onTap: isEdit ? () => Get.to(CampusLifeListingScreen()) : null,
+                child: Container(
+                  height: 160,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      displayImages[index],
-                      fit: BoxFit.cover,
-                      // Error handling for broken URLs
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                    border:
+                        Border.all(color: Colors.grey.shade300, width: 1.5),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.photo_library_outlined,
+                          color: Colors.grey[400], size: 48),
+                      const SizedBox(height: 8),
+                      CustomText(
+                        AppStrings.noDataFound.tr,
+                        color: AppColors.secondaryTextColor,
                       ),
-                      // Loading placeholder
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey.shade100,
-                          child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2)),
-                        );
-                      },
+                      if (isEdit) ...[
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () => Get.to(CampusLifeListingScreen()),
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text("Add"),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primaryColor,
+                            side: BorderSide(color: AppColors.primaryColor),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              )
+            else
+              _buildGalleryLayout(context, allImages),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGalleryLayout(BuildContext context, List<String> images) {
+    final display = images.length > 4 ? images.sublist(0, 4) : images;
+    final extra = images.length > 4 ? images.length - 4 : 0;
+
+    void openViewer(int index) => navigatePushTo(
+          context,
+          ImageViewScreen(
+            subTitle: AppStrings.imageViewer,
+            appBarTitle: AppStrings.imageViewer,
+            imageUrls: images,
+            initialIndex: index,
+          ),
+        );
+
+    Widget imgTile(int index, {bool showOverlay = false}) {
+      return GestureDetector(
+        onTap: () => openViewer(index),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.network(
+                display[index],
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.broken_image),
+                ),
+              ),
+              if (showOverlay && extra > 0)
+                Container(
+                  color: Colors.black.withOpacity(0.5),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '+$extra',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                );
-              },
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    const double height = 220;
+    const double gap = 4;
+
+    // 1 image — full width
+    if (display.length == 1) {
+      return SizedBox(
+        height: height,
+        width: double.infinity,
+        child: imgTile(0),
+      );
+    }
+
+    // 2 images — side by side
+    if (display.length == 2) {
+      return SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            Expanded(child: imgTile(0)),
+            const SizedBox(width: gap),
+            Expanded(child: imgTile(1)),
+          ],
+        ),
+      );
+    }
+
+    // 3 images — 1 large left, 2 stacked right
+    if (display.length == 3) {
+      return SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            Expanded(child: imgTile(0)),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(child: imgTile(1)),
+                  const SizedBox(height: gap),
+                  Expanded(child: imgTile(2)),
+                ],
+              ),
             ),
           ],
         ),
+      );
+    }
+
+    // 4+ images — 2×2 grid (with +N overlay on last cell)
+    return SizedBox(
+      height: height,
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: imgTile(0)),
+                const SizedBox(width: gap),
+                Expanded(child: imgTile(1)),
+              ],
+            ),
+          ),
+          const SizedBox(height: gap),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: imgTile(2)),
+                const SizedBox(width: gap),
+                Expanded(child: imgTile(3, showOverlay: extra > 0)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

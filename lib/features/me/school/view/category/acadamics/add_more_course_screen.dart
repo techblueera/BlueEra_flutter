@@ -24,7 +24,9 @@ class AddMoreCourseScreen extends StatefulWidget {
 }
 
 class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
-  final courseController = Get.find<CourseController>();
+  final courseController = Get.isRegistered<CourseController>()
+      ? Get.find<CourseController>()
+      : Get.put(CourseController());
 
   final courseNameEditController = TextEditingController();
 
