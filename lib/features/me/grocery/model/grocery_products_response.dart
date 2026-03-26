@@ -1,14 +1,13 @@
-import '../../../../core/api/model/images.dart';
 import 'grocery_product_model.dart';
 
 
-class MyGroceryProductsModel {
+class GroceryProductsModel {
   List<Data>? data;
   Pagination? pagination;
 
-  MyGroceryProductsModel({this.data, this.pagination});
+  GroceryProductsModel({this.data, this.pagination});
 
-  MyGroceryProductsModel.fromJson(Map<String, dynamic> json) {
+  GroceryProductsModel.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
@@ -57,7 +56,7 @@ class Category {
   String? name;
   int? productVariantCount;
   String? image;
-  List<Products>? products;
+  List<GroceryProductData>? products;
   String? lastUpdate;
 
   Category({this.sId, this.name, this.productVariantCount, this.image, this.products});
@@ -68,9 +67,9 @@ class Category {
     productVariantCount = json['productVariantCount'];
     image = json['image'];
     if (json['products'] != null) {
-      products = <Products>[];
+      products = <GroceryProductData>[];
       json['products'].forEach((v) {
-        products!.add(new Products.fromJson(v));
+        products!.add(new GroceryProductData.fromJson(v));
       });
     }
     lastUpdate = json['lastUpdate'];
@@ -86,61 +85,6 @@ class Category {
       data['products'] = this.products!.map((v) => v.toJson()).toList();
     }
     data['lastUpdate'] = this.lastUpdate;
-    return data;
-  }
-}
-
-class Products {
-  String? sId;
-  String? name;
-  String? description;
-  String? brand;
-  List<Images>? images;
-  List<ProductVariants>? variants;
-  String? lastInventoryAddedOrUpdated;
-
-  Products(
-      {this.sId,
-        this.name,
-        this.description,
-        this.brand,
-        this.images,
-        this.variants,
-        this.lastInventoryAddedOrUpdated});
-
-  Products.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    description = json['description'];
-    brand = json['brand'];
-    if (json['images'] != null) {
-      images = <Images>[];
-      json['images'].forEach((v) {
-        images!.add(new Images.fromJson(v));
-      });
-    }
-    if (json['variants'] != null) {
-      variants = <ProductVariants>[];
-      json['variants'].forEach((v) {
-        variants!.add(new ProductVariants.fromJson(v));
-      });
-    }
-    lastInventoryAddedOrUpdated = json['lastInventoryAddedOrUpdated'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['brand'] = this.brand;
-    if (this.images != null) {
-      data['images'] = this.images!.map((v) => v.toJson()).toList();
-    }
-    if (this.variants != null) {
-      data['variants'] = this.variants!.map((v) => v.toJson()).toList();
-    }
-    data['lastInventoryAddedOrUpdated'] = this.lastInventoryAddedOrUpdated;
     return data;
   }
 }

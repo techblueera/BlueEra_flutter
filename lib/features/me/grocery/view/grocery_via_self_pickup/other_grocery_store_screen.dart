@@ -33,7 +33,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import '../../../../../core/constants/app_colors.dart';
+import '../../../../../../core/constants/app_colors.dart';
 
 class OtherGroceryStoreScreen extends StatefulWidget {
   final String visitBusinessId;
@@ -536,8 +536,6 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 iconHeight: SizeConfig.size60,
                 boxShadow: [],
                 onTap: (_categoryItem) {
-
-
 
                   Get.toNamed(
                     RouteHelper.getOtherGroceryProductsScreenRoute(),

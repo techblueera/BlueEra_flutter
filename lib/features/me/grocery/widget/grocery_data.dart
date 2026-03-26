@@ -5,69 +5,69 @@ import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 
 class GroceryData {
 
-  /// Super Grocery Categories
-  static const List<CollapsibleGridModel> grocerySuperCategories = [
-    CollapsibleGridModel(
-        name: AppStrings.labelGroceryCooking,
-        slugId: GroceryConstant.GROCERY_COOKING,
-        icon: AppImageAssets.groceryItemsColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelDairyBeverages,
-        slugId: GroceryConstant.DAIRY_BEVERAGES,
-        icon: AppImageAssets.dairyFrozenItemsColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelVegetablesFruit,
-        slugId: GroceryConstant.VEGETABLES_FRUIT,
-        icon: AppImageAssets.vegetablesColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelPersonalBabyCare,
-        slugId: GroceryConstant.PERSONAL_BABY_CARE,
-        icon: AppImageAssets.beautyHealthCareColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelKitchenDining,
-        slugId: GroceryConstant.KITCHEN_DINING,
-        icon: AppImageAssets.crockeryColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelCleaningMaintenance,
-        slugId: GroceryConstant.CLEANING_MAINTENANCE,
-        icon: AppImageAssets.cleaningMaintenanceColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelElectronicsAppliances,
-        slugId: GroceryConstant.ELECTRONICS_APPLIANCES,
-        icon: AppImageAssets.fruitsColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelUtilityOrganisers,
-        slugId: GroceryConstant.UTILITY_ORGANISERS,
-        icon: AppImageAssets.bakeryNamkeenItemsColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelHomeFurnishingDecor,
-        slugId: GroceryConstant.HOME_FURNISHING_DECOR,
-        icon: AppImageAssets.homeEssentialsColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelPackagedFood,
-        slugId: GroceryConstant.PACKAGED_FOOD,
-        icon: AppImageAssets.cleaningMaintenanceColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelStationerySports,
-        slugId: GroceryConstant.STATIONERY_SPORTS,
-        icon: AppImageAssets.stationaryColorful,
-    ),
-    CollapsibleGridModel(
-        name: AppStrings.labelGiftingSeasonal,
-        slugId: GroceryConstant.GIFTING_SEASONAL,
-        icon: AppImageAssets.cleaningMaintenanceColorful,
-    ),
-  ];
+  // /// Super Grocery Categories
+  // static const List<CollapsibleGridModel> grocerySuperCategories = [
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelGroceryCooking,
+  //       slugId: GroceryConstant.GROCERY_COOKING,
+  //       icon: AppImageAssets.groceryItemsColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelDairyBeverages,
+  //       slugId: GroceryConstant.DAIRY_BEVERAGES,
+  //       icon: AppImageAssets.dairyFrozenItemsColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelVegetablesFruit,
+  //       slugId: GroceryConstant.VEGETABLES_FRUIT,
+  //       icon: AppImageAssets.vegetablesColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelPersonalBabyCare,
+  //       slugId: GroceryConstant.PERSONAL_BABY_CARE,
+  //       icon: AppImageAssets.beautyHealthCareColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelKitchenDining,
+  //       slugId: GroceryConstant.KITCHEN_DINING,
+  //       icon: AppImageAssets.crockeryColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelCleaningMaintenance,
+  //       slugId: GroceryConstant.CLEANING_MAINTENANCE,
+  //       icon: AppImageAssets.cleaningMaintenanceColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelElectronicsAppliances,
+  //       slugId: GroceryConstant.ELECTRONICS_APPLIANCES,
+  //       icon: AppImageAssets.fruitsColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelUtilityOrganisers,
+  //       slugId: GroceryConstant.UTILITY_ORGANISERS,
+  //       icon: AppImageAssets.bakeryNamkeenItemsColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelHomeFurnishingDecor,
+  //       slugId: GroceryConstant.HOME_FURNISHING_DECOR,
+  //       icon: AppImageAssets.homeEssentialsColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelPackagedFood,
+  //       slugId: GroceryConstant.PACKAGED_FOOD,
+  //       icon: AppImageAssets.cleaningMaintenanceColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelStationerySports,
+  //       slugId: GroceryConstant.STATIONERY_SPORTS,
+  //       icon: AppImageAssets.stationaryColorful,
+  //   ),
+  //   CollapsibleGridModel(
+  //       name: AppStrings.labelGiftingSeasonal,
+  //       slugId: GroceryConstant.GIFTING_SEASONAL,
+  //       icon: AppImageAssets.cleaningMaintenanceColorful,
+  //   ),
+  // ];
 
   // static const List<CollapsibleGridModel> grocerySuperCategories = [
   //   CollapsibleGridModel(

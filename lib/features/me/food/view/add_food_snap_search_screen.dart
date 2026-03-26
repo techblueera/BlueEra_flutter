@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -14,6 +15,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -88,22 +90,20 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
               final config = controller.foodSnapSearchPhotos[index];
               final String title = config['title']!;
               final String placeholder = config['image']!;
+              final String icon = config['icon']!;
 
               return Obx(() {
                 final File? capturedFile = controller.foodSnapSearchImagesMap[title];
                 final bool hasImage = capturedFile != null;
-
-                // Check if ANY image is selected in the entire map
-                final bool isAnyImageSelected = controller.foodSnapSearchImagesMap.values.any((v) => v != null);
-
-                // A slot is "Blocked" if something else is selected but NOT this specific slot
+                final bool isAnyImageSelected =
+                controller.foodSnapSearchImagesMap.values.any((v) => v != null);
                 final bool isBlocked = isAnyImageSelected && !hasImage;
 
                 return Column(
                   children: [
                     InkWell(
                       onTap: isBlocked
-                          ? null // Make unclickable if another slot is already filled
+                          ? null
                           : hasImage
                           ? () => navigatePushTo(
                         context,
@@ -114,47 +114,121 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
                         ),
                       )
                           : () => controller.addImagesBySlot(title),
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10.0),
-                            child: Container(
-                              height: 180,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: hasImage ? AppColors.primaryColor : AppColors.greyE5,
-                                  width: hasImage ? 2 : 1,
+                      child: Opacity(
+                        opacity: isBlocked ? 0.5 : 1.0,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: SizedBox(
+                            height: 180,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+
+                                // ── Background ─────────────────────────────────
+                                hasImage
+                                    ? Image.file(capturedFile, fit: BoxFit.cover)
+                                    : Image.asset(placeholder, fit: BoxFit.cover),
+
+                                // ── Border overlay ──────────────────────────────
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: hasImage
+                                          ? AppColors.primaryColor
+                                          : AppColors.greyE5,
+                                      width: hasImage ? 2 : 1,
+                                    ),
+                                  ),
                                 ),
-                                image: DecorationImage(
-                                  image: (hasImage
-                                      ? FileImage(capturedFile)
-                                      : AssetImage(placeholder)) as ImageProvider,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+
+                                // ── Dark blur + center pill (empty state only) ──
+                                if (!hasImage) ...[
+                                  Positioned.fill(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: AppColors.black.withValues(alpha: 0.6),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(10.0),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.white.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: AppColors.white.withValues(alpha: 0.1),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                LocalAssets(
+                                                  imagePath: icon,
+                                                  height: 18,
+                                                  width: 18,
+                                                  boxFix: BoxFit.scaleDown,
+                                                  imgColor: AppColors.white,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                CustomText(
+                                                  title,
+                                                  fontSize: SizeConfig.small,
+                                                  color: AppColors.white,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+
+                                // ── Close button (image selected) ───────────────
+                                if (hasImage)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      onTap: () => controller.removeImageBySlot(title),
+                                      child: CircleAvatar(
+                                        radius: 12,
+                                        backgroundColor: Colors.red.withValues(alpha: 0.8),
+                                        child: const Icon(
+                                          Icons.close,
+                                          size: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          // Close button only appears on the active image
-                          if (hasImage)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: () => controller.removeImageBySlot(title),
-                                child: CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.red.withValues(alpha: 0.8),
-                                  child: const Icon(Icons.close, size: 14, color: Colors.white),
-                                ),
-                              ),
-                            ),
-                        ],
+                        ),
                       ),
                     ),
+
                     const SizedBox(height: 8),
+
                     CustomText(
                       title,
                       fontSize: 12,

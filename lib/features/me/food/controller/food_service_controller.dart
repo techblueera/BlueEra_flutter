@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -54,12 +55,14 @@ class FoodServiceController extends GetxController {
   FoodProductSnapSearchData? productSnapSearchData;
   List<Map<String, String>> foodSnapSearchPhotos = [
     {
-      'title': 'Upload Photo',
-      'image': AppImageAssets.groceryImageFirst
+      'title': 'Upload Grocery List',
+      'icon': AppIconAssets.cameraAddOutlineIcon,
+      'image': AppImageAssets.groceryImageFirst,
     },
     {
-      'title': 'Upload Menu',
-      'image': AppImageAssets.groceryImageSecond
+      'title': 'Search Manually',
+      'icon': AppIconAssets.search,
+      'image': AppImageAssets.groceryImageSecond,
     },
   ];
   RxMap<String, File?> foodSnapSearchImagesMap = <String, File?>{}.obs;

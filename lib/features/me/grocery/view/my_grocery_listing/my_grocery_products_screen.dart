@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -173,14 +174,16 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
         ),
       )
           : controller.groceryProductsList.isNotEmpty
-          ?
-      ListView.builder(
+          ? MasonryGridView.count(
           itemCount: controller.groceryProductsList.length +
               (controller.isGroceryDataLoadingMore.value ? 1 : 0),
           controller: scrollController,
           padding: EdgeInsets.only(
               bottom: SizeConfig.size15 + kBottomNavigationBarHeight
           ),
+        crossAxisCount: 2,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
           itemBuilder: (BuildContext context, int index) {
             if (index >= controller.groceryProductsList.length) {
               return const Padding(
@@ -193,7 +196,8 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
 
             return  GroceryProductCard(
                 groceryProducts: groceryProducts,
-                bId: businessId
+                flowType: GroceryCardFlowType.myStore,
+                bId: businessId,
             );
           },
         )

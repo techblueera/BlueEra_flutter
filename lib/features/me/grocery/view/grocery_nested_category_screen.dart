@@ -6,8 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
-import 'package:BlueEra/widgets/collapsible_grid_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -19,69 +18,81 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 
 class GroceryNestedCategoryScreen extends StatefulWidget {
-  final List<CollapsibleGridModel> argArrGrocerySuperCat;
+  final List<GroceryNestedCategoryModel> argArrGrocerySuperCat;
   final String argArrGroceryCatKey;
   final String argArrGroceryCatName;
-  final bool isMyGrocery;
+  // final bool isMyGrocery;
 
   const GroceryNestedCategoryScreen(
       {super.key,
       required this.argArrGrocerySuperCat,
       required this.argArrGroceryCatKey,
       required this.argArrGroceryCatName,
-      required this.isMyGrocery});
+      // required this.isMyGrocery
+      });
 
   @override
-  State<GroceryNestedCategoryScreen> createState() => _GroceryNestedCategoryScreenState();
+  State<GroceryNestedCategoryScreen> createState() =>
+      _GroceryNestedCategoryScreenState();
 }
 
-class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScreen>
-    with SingleTickerProviderStateMixin {
+class _GroceryNestedCategoryScreenState
+    extends State<GroceryNestedCategoryScreen> {
   final TextEditingController searchController = TextEditingController();
-  final _groceryController = getOrPut(() => GroceryController());
-  final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
-  late bool _isMyGrocery;
+  // final _groceryController = getOrPut(() => GroceryController());
+  // final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
+  // late bool _isMyGrocery;
+
   late String _argArrGroceryCatName;
   late String _argArrGroceryCatKey;
-  late List<CollapsibleGridModel> _argArrGrocerySuperCat;
+  late List<GroceryNestedCategoryModel> _argArrGrocerySuperCat;
+  List<GroceryNestedCategoryModel> _filteredChildren = [];
 
   @override
   void initState() {
-    groceryCustomerController.resetController();
     _argArrGrocerySuperCat = widget.argArrGrocerySuperCat;
-    _isMyGrocery = widget.isMyGrocery;
+    // _isMyGrocery = widget.isMyGrocery;
     _argArrGroceryCatName = widget.argArrGroceryCatName;
-    updateGroceryCategory(widget.argArrGroceryCatKey);
+    _argArrGroceryCatKey = widget.argArrGroceryCatKey;
+    _applyFilter(_argArrGroceryCatKey);
+    // updateGroceryCategory(widget.argArrGroceryCatKey);
     super.initState();
   }
 
   @override
-  dispose(){
+  dispose() {
     deleteIfRegistered<GroceryController>();
     super.dispose();
   }
 
-  void updateGroceryCategory(String incomingKey) {
-    _argArrGroceryCatKey = incomingKey;
-    _groceryController.fetchGroceryNestedCategory(_argArrGroceryCatKey);
+  void _applyFilter(String key) {
+    final match = _argArrGrocerySuperCat.firstWhereOrNull(
+          (cat) => cat.key == key,
+    );
+    _argArrGroceryCatKey = key;
+    _filteredChildren = match?.children ?? [];
+    setState(() {});
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-            isCustomTitleWidget: () => PopupMenuButton<CollapsibleGridModel>(
+            isCustomTitleWidget: () => PopupMenuButton<GroceryNestedCategoryModel>(
                   offset: const Offset(0, 30),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                  onSelected: (CollapsibleGridModel value) {
+                  onSelected: (GroceryNestedCategoryModel value) {
                     setState(() {
-                      _argArrGroceryCatName = value.name;
+                      _argArrGroceryCatName = value.name ?? '';
                     });
 
-                    // Categories Dairy, Beverages, vegetables, fruit
-                    updateGroceryCategory(value.slugId);
+                    _argArrGroceryCatKey = value.key ?? '';
+                    _applyFilter(value.key ?? '');
+
+                    // updateGroceryCategory(value.slugId);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -106,26 +117,26 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                   ),
                   itemBuilder: (BuildContext context) {
                     return _argArrGrocerySuperCat.map((choice) {
-                      return PopupMenuItem<CollapsibleGridModel>(
+                      return PopupMenuItem<GroceryNestedCategoryModel>(
                         value: choice,
                         child: Row(
                           children: [
-                            (isNetworkImage(choice.icon))
+                            (isNetworkImage(choice.image))
                                 ? SvgPicture.network(
-                                    choice.icon ?? '',
+                                    choice.image ?? '',
                                     width: SizeConfig.size20,
                                     height: SizeConfig.size20,
                                     fit: BoxFit.contain,
                                   )
                                 : LocalAssets(
-                                    imagePath: choice.icon ?? '',
+                                    imagePath: choice.image ?? '',
                                     width: SizeConfig.size20,
                                     height: SizeConfig.size20,
                                     boxFix: BoxFit.contain,
                                   ),
                             SizedBox(width: SizeConfig.size8),
                             CustomText(
-                              choice.name.tr,
+                              choice.name?.tr,
                               color: choice == _argArrGroceryCatKey
                                   ? Colors.green
                                   : Colors.black,
@@ -140,9 +151,8 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                   },
                 )),
         body: SafeArea(
-            child: Obx(() => _groceryController
-                    .groceryNestedCategoryLoading.value
-                ? Center(child: CircularProgressIndicator())
+            child: _filteredChildren.isEmpty
+                ? const Center(child: Text('No subcategories found.'))
                 : MasonryGridView.count(
               crossAxisCount: 2,
               crossAxisSpacing: 6,
@@ -153,20 +163,20 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                 top: SizeConfig.size15,
                 bottom: SizeConfig.size30,
               ),
-              itemCount:
-              _groceryController.groceryNestedCategoryList.length,
+              itemCount: _filteredChildren.length,
               itemBuilder: (context, index) {
-                var item = _groceryController
-                    .groceryNestedCategoryList[index];
+                var item = _filteredChildren[index];
 
                 return InkWell(
                   onTap: () {
-                    final route = _isMyGrocery
-                        ? RouteHelper.getGroceryProductsSelectionScreenRoute()
-                        : RouteHelper.getGroceryCustomerListingScreenRoute();
+                    // final route = _isMyGrocery
+                    //     ? RouteHelper
+                    //     .getGroceryProductsSelectionScreenRoute()
+                    //     : RouteHelper
+                    //     .getGroceryCustomerListingScreenRoute();
 
                     Get.toNamed(
-                      route,
+                      RouteHelper.getGroceryProductsSelectionScreenRoute(),
                       arguments: {
                         ApiKeys.argGroceries: item.children,
                         // ApiKeys.argSelectedGroceryData: clickedLevel2Model,
@@ -186,8 +196,7 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                           borderRadius: BorderRadius.circular(10),
                           child: Container(
                             decoration: BoxDecoration(
-                              borderRadius:
-                              BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(10),
                               color: AppColors.whiteFE,
                             ),
                             child: CachedNetworkImage(
@@ -195,19 +204,18 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                               height: SizeConfig.size120,
                               width: double.maxFinite,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) =>
-                                  SizedBox(
-                                      height: SizeConfig.size120,
-                                      width: SizeConfig.size120,
-                                      child: LocalAssets(
-                                        imagePath: AppIconAssets
-                                            .place_holder_image,
-                                        boxFix: BoxFit.cover,
-                                      )),
-                              errorWidget: (context, url, error) =>
-                                  LocalAssets(
+                              placeholder: (context, url) => SizedBox(
+                                  height: SizeConfig.size120,
+                                  width: SizeConfig.size120,
+                                  child: LocalAssets(
                                     imagePath: AppIconAssets
                                         .place_holder_image,
+                                    boxFix: BoxFit.cover,
+                                  )),
+                              errorWidget: (context, url, error) =>
+                                  LocalAssets(
+                                    imagePath:
+                                    AppIconAssets.place_holder_image,
                                     boxFix: BoxFit.cover,
                                   ),
                             ),
@@ -252,9 +260,122 @@ class _GroceryNestedCategoryScreenState extends State<GroceryNestedCategoryScree
                   ),
                 );
               },
-            ))
+            )
+
+                // Obx(() => _groceryController.groceryNestedCategoryLoading.value
+                //     ? Center(child: CircularProgressIndicator())
+                //     : MasonryGridView.count(
+                //         crossAxisCount: 2,
+                //         crossAxisSpacing: 6,
+                //         mainAxisSpacing: 6,
+                //         padding: EdgeInsets.only(
+                //           left: SizeConfig.size8,
+                //           right: SizeConfig.size8,
+                //           top: SizeConfig.size15,
+                //           bottom: SizeConfig.size30,
+                //         ),
+                //         itemCount:
+                //             _groceryController.groceryNestedCategoryList.length,
+                //         itemBuilder: (context, index) {
+                //           var item = _groceryController
+                //               .groceryNestedCategoryList[index];
+                //
+                //           return InkWell(
+                //             onTap: () {
+                //               final route = _isMyGrocery
+                //                   ? RouteHelper
+                //                       .getGroceryProductsSelectionScreenRoute()
+                //                   : RouteHelper
+                //                       .getGroceryCustomerListingScreenRoute();
+                //
+                //               Get.toNamed(
+                //                 route,
+                //                 arguments: {
+                //                   ApiKeys.argGroceries: item.children,
+                //                   // ApiKeys.argSelectedGroceryData: clickedLevel2Model,
+                //                 },
+                //               );
+                //             },
+                //             borderRadius: BorderRadius.circular(10),
+                //             child: CustomFormCard(
+                //               padding: EdgeInsets.all(
+                //                 SizeConfig.size10,
+                //               ),
+                //               child: Column(
+                //                 crossAxisAlignment: CrossAxisAlignment.start,
+                //                 mainAxisAlignment: MainAxisAlignment.start,
+                //                 children: [
+                //                   ClipRRect(
+                //                     borderRadius: BorderRadius.circular(10),
+                //                     child: Container(
+                //                       decoration: BoxDecoration(
+                //                         borderRadius: BorderRadius.circular(10),
+                //                         color: AppColors.whiteFE,
+                //                       ),
+                //                       child: CachedNetworkImage(
+                //                         imageUrl: item.image ?? '',
+                //                         height: SizeConfig.size120,
+                //                         width: double.maxFinite,
+                //                         fit: BoxFit.cover,
+                //                         placeholder: (context, url) => SizedBox(
+                //                             height: SizeConfig.size120,
+                //                             width: SizeConfig.size120,
+                //                             child: LocalAssets(
+                //                               imagePath: AppIconAssets
+                //                                   .place_holder_image,
+                //                               boxFix: BoxFit.cover,
+                //                             )),
+                //                         errorWidget: (context, url, error) =>
+                //                             LocalAssets(
+                //                           imagePath:
+                //                               AppIconAssets.place_holder_image,
+                //                           boxFix: BoxFit.cover,
+                //                         ),
+                //                       ),
+                //                     ),
+                //                   ),
+                //                   SizedBox(height: SizeConfig.size10),
+                //                   CustomText(item.name,
+                //                       fontSize: SizeConfig.large,
+                //                       fontWeight: FontWeight.w600,
+                //                       color: AppColors.mainTextColor,
+                //                       maxLines: 1,
+                //                       overflow: TextOverflow.ellipsis),
+                //                   SizedBox(height: SizeConfig.size8),
+                //                   CustomText(
+                //                       item.children
+                //                           ?.map((e) => e.name)
+                //                           .toList()
+                //                           .join(', '),
+                //                       fontSize: SizeConfig.small,
+                //                       fontWeight: FontWeight.w400,
+                //                       color: AppColors.secondaryTextColor,
+                //                       maxLines: 1,
+                //                       overflow: TextOverflow.ellipsis),
+                //                   SizedBox(height: SizeConfig.size10),
+                //                   Container(
+                //                     padding: EdgeInsets.symmetric(
+                //                         horizontal: SizeConfig.size6,
+                //                         vertical: SizeConfig.size4),
+                //                     decoration: BoxDecoration(
+                //                         borderRadius:
+                //                             BorderRadius.circular(4.0),
+                //                         color: AppColors.boxBg),
+                //                     child: CustomText(
+                //                       '${item.children?.length} Category',
+                //                       fontSize: SizeConfig.small,
+                //                       fontWeight: FontWeight.w600,
+                //                       color: AppColors.secondaryTextColor,
+                //                     ),
+                //                   )
+                //                 ],
+                //               ),
+                //             ),
+                //           );
+                //         },
+                //       ))
+        ));
 
 
-            ));
   }
 }

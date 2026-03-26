@@ -2,232 +2,299 @@ import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/features/me/grocery/model/my_grocery_products_response.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import '../../../../../core/api/model/images.dart';
 
+enum GroceryCardFlowType { myStore, selfPickup, rider }
+
 class GroceryProductCard extends StatelessWidget {
-  final Products groceryProducts;
-  final String bId;
+  final GroceryProductData groceryProducts;
+  final GroceryCardFlowType flowType;
+  final String? bId; // only needed for selfPickup flow
 
   GroceryProductCard({
     Key? key,
     required this.groceryProducts,
-    required this.bId,
+    required this.flowType,
+    this.bId,
   }) : super(key: key);
 
-  final groceryController = Get.find<GroceryController>();
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  GroceryController get _groceryController => getOrPut(() => GroceryController());
+  ViewBusinessDetailsController get _viewBusinessDetailsController =>
+      getOrPut(() => ViewBusinessDetailsController());
 
-  bool get isMyGroceryStore => bId == businessId;
+  List<ProductVariants> get _variants {
+    Images? productImage;
+    if (groceryProducts.images != null && groceryProducts.images!.isNotEmpty) {
+      productImage = groceryProducts.images![0];
+    }
+    final variants = groceryProducts.variants ?? [];
+    for (final variant in variants) {
+      if (productImage != null) {
+        if (variant.images == null) {
+          variant.images = [productImage];
+        } else if (variant.images!.isEmpty) {
+          variant.images!.add(productImage);
+        }
+      }
+    }
+    return variants;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final price = _groceryController.getPriceDetails(
+      groceryProducts.variants?.isNotEmpty == true
+          ? groceryProducts.variants![0].pricing
+          : null,
+    );
+    final imageUrl = groceryProducts.images?.isNotEmpty == true
+        ? groceryProducts.images![0].url ?? ''
+        : '';
 
     return InkWell(
-      onTap: () {
-        Images? productImage;
-        if (groceryProducts.images != null && groceryProducts.images!.isNotEmpty) {
-          productImage = groceryProducts.images![0];
-        }
-
-        final variants = groceryProducts.variants ?? [];
-
-        for (final variant in variants) {
-          if (productImage != null) {
-            if (variant.images == null) {
-              variant.images = [productImage];
-            } else if (variant.images!.isEmpty) {
-              variant.images!.add(productImage);
-            }
-          }
-        }
-
-        // ✅ Bottom sheet instead of navigation
-        _showVariantsBottomSheet(
-            Get.context!,
-            variants,
-        );
-      },
-      // onTap: (){
-      //
-      //     Images? productImage;
-      //     if (groceryProducts.images != null && groceryProducts.images!.isNotEmpty) {
-      //       productImage = groceryProducts.images![0];
-      //     }
-      //
-      //     final variants = groceryProducts.variants ?? [];
-      //
-      //     for (final variant in variants) {
-      //       if (productImage != null) {
-      //         if (variant.images == null) {
-      //           variant.images = [productImage]; // Initialize with parent image
-      //         } else if (variant.images!.isEmpty) {
-      //           variant.images!.add(productImage); // Add parent image to empty list
-      //         }
-      //       }
-      //     }
-      //
-      //
-      //   Get.toNamed(RouteHelper.getMyGroceryVariantScreenRoute(),
-      //     arguments: {
-      //       ApiKeys.argVariants: variants,
-      //       ApiKeys.argIsMyGroceryStore: isMyGroceryStore,
-      //       ApiKeys.argIsShowInGrid: true
-      //     },
-      //   );
-      // },
+      onTap: () => _showVariantsBottomSheet(Get.context!, _variants),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        height: SizeConfig.size130,
-        padding: EdgeInsets.only(bottom: 5.0),
         decoration: BoxDecoration(
-          color: Colors.transparent,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: AppColors.shadowColor,
-          //     blurRadius: 1.4,
-          //     offset: const Offset(0, 0.7),
-          //   ),
-          // ],
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Grocery Category Image
+            // ── Image + badges ────────────────────────────────────────
             Stack(
               children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: (groceryProducts.images != null &&
-                          groceryProducts.images!.isNotEmpty &&
-                          groceryProducts.images![0].url != null)
-                          ? CustomImageSlideshow(
-                        isLoading: false,
-                        height: SizeConfig.size130,
-                        width: SizeConfig.size140,
-                        imagePaths: [groceryProducts.images![0].url!],
-                        borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-                        boxFit: BoxFit.contain,
-                      )
-                          : LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        height: SizeConfig.size130,
-                        width: SizeConfig.size180,
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                  child: SizedBox(
+                    height: SizeConfig.size140,
+                    width: double.infinity,
+                    child: imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover,
+                            ),
+                          )
+                        : LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                  ),
+                ),
+
+                // "+N Variants" badge — bottom-right
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.blackMite,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: CustomText(
+                          '+${groceryProducts.variants?.length ?? 0} Variants',
+                          fontSize: SizeConfig.extraSmall,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.whiteFE,
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-                Positioned(
-                    bottom: 10.0,
-                    right: 10.0,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(6.0),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                        child: Container(
-                          padding: EdgeInsets.all(5.0),
-                          decoration: BoxDecoration(
-                              color: AppColors.blackMite,
-                              borderRadius: BorderRadius.circular(6.0),
-                          ),
-                          child: CustomText(
-                              '+${groceryProducts.variants?.length??0} Variants',
-                              fontSize: SizeConfig.extraSmall,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.whiteFE
-                          ),
-                        ),
+                // 3-dot menu — top-right (myStore only)
+                if (flowType == GroceryCardFlowType.myStore)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.blackMite,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    )
-                )
+                      child: Icon(
+                        Icons.more_vert,
+                        size: 18,
+                        color: AppColors.whiteFE,
+                      ),
+                    ),
+                  ),
               ],
             ),
-            SizedBox(width: SizeConfig.size6),
 
-            /// Product Details
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    top: 8.0,
-                    bottom: 8,
-                    right: 10
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Title + 3-dot menu
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: CustomText(
-                              groceryProducts.name ?? '',
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.mainTextColor,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2
+            // ── Details ───────────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 9.0,
+                vertical: SizeConfig.size6,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name
+                  CustomText(
+                    groceryProducts.name ?? '',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: SizeConfig.size6),
+
+                  // Veg dot + quantity badge
+                  Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.green00, width: 1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        padding: const EdgeInsets.all(3.5),
+                        child: Container(
+                          height: 7,
+                          width: 7,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(7),
+                            color: AppColors.green00,
                           ),
                         ),
-                        if(isMyGroceryStore)
-                        Icon(
-                          Icons.more_vert,
-                          size: 20,
-                          color: Colors.grey.shade700,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(width: 0.5, color: AppColors.greyE5),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-
-                    /// Price Row
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: CustomText(
-                          'Last Update: ',
-                          fontSize: SizeConfig.extraSmall,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        child: CustomText(
+                          '${groceryProducts.variants?[0].quantity ?? ''}',
+                          fontSize: 11,
+                          color: AppColors.secondaryTextColor,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: SizeConfig.size4),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size6),
 
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: CustomText(
-                          formatDate(groceryProducts.lastInventoryAddedOrUpdated ?? DateTime.now().toIso8601String()),
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondaryTextColor
-                      ),
-                    ),
+                  // Price
+                  PriceRow(
+                    sellingPrice: '${price.sellingRange}',
+                    mrp: '${price.mrpRange}',
+                    discount: '${price.discountRange}',
+                  ),
+                  SizedBox(height: SizeConfig.size8),
 
-                  ],
-                ),
+                  // Action button
+                  if (flowType == GroceryCardFlowType.myStore)
+                    _buildEditButton(onTap: () {})
+                  else
+                    _buildCardAddButton(),
+                ],
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildCardAddButton() {
+    return Obx(() {
+      final bool isAdded;
+      if (flowType == GroceryCardFlowType.selfPickup) {
+        final ctrl = Get.find<GrocerySelfPickupConsumerController>();
+        isAdded = groceryProducts.variants?.any(
+              (v) => ctrl.selectedGroceriesVariants.any((s) => s.sId == v.sId),
+            ) ??
+            false;
+      } else {
+        final ctrl = Get.find<GroceryRiderConsumerController>();
+        isAdded = groceryProducts.variants?.any(
+              (v) => ctrl.selectedGroceriesVariants.any((s) => s.sId == v.sId),
+            ) ??
+            false;
+      }
+
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        width: double.infinity,
+        height: SizeConfig.size30,
+        decoration: BoxDecoration(
+          color: isAdded
+              ? AppColors.green00.withValues(alpha: 0.08)
+              : AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isAdded ? AppColors.green00 : AppColors.primaryColor,
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _showVariantsBottomSheet(Get.context!, _variants),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                child: Icon(
+                  isAdded ? Icons.check : Icons.add,
+                  key: ValueKey(isAdded),
+                  size: 12,
+                  color: isAdded ? AppColors.green00 : AppColors.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 3),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: CustomText(
+                  isAdded ? 'ADDED' : 'ADD',
+                  key: ValueKey(isAdded),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isAdded ? AppColors.green00 : AppColors.primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   void _showVariantsBottomSheet(
@@ -318,10 +385,17 @@ class GroceryProductCard extends StatelessWidget {
     required ProductVariants variant,
     required String productImage,
   }) {
-    final GrocerySelfPickupConsumerController? _groceryCustomerController =
-    !isMyGroceryStore ? Get.find<GrocerySelfPickupConsumerController>() : null;
+    final GrocerySelfPickupConsumerController? _selfPickupController =
+        flowType == GroceryCardFlowType.selfPickup
+            ? Get.find<GrocerySelfPickupConsumerController>()
+            : null;
 
-    final price = groceryController.getPriceDetails(variant.pricing);
+    final GroceryRiderConsumerController? _riderController =
+        flowType == GroceryCardFlowType.rider
+            ? Get.find<GroceryRiderConsumerController>()
+            : null;
+
+    final price = _groceryController.getPriceDetails(variant.pricing);
 
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -393,7 +467,7 @@ class GroceryProductCard extends StatelessWidget {
           SizedBox(width: SizeConfig.size10),
 
 
-          if(!isMyGroceryStore)...[
+          if(flowType == GroceryCardFlowType.selfPickup || flowType == GroceryCardFlowType.rider)...[
             // Dashed Divider
             DashedBorderContainer(
               borderColor: AppColors.greyE5,
@@ -406,10 +480,15 @@ class GroceryProductCard extends StatelessWidget {
 
             // Add / Remove Button
             Obx(() {
-              final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+              final bDetails = _viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
 
-              final bool isAdded = _groceryCustomerController?.selectedGroceriesVariants
-                  .any((v) => v.sId == variant.sId) ?? false;
+              final bool isAdded = flowType == GroceryCardFlowType.selfPickup
+                  ? (_selfPickupController?.selectedGroceriesVariants
+                          .any((v) => v.sId == variant.sId) ??
+                      false)
+                  : (_riderController?.selectedGroceriesVariants
+                          .any((v) => v.sId == variant.sId) ??
+                      false);
 
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
@@ -428,19 +507,30 @@ class GroceryProductCard extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
                   onTap: () {
-                    if (isAdded) {
-                      _groceryCustomerController?.removeFromCart(variant);
+                    if (flowType == GroceryCardFlowType.selfPickup) {
+                      if (isAdded) {
+                        _selfPickupController?.removeFromCart(variant);
+                      } else {
+                        _selfPickupController?.addToCart(
+                          variant,
+                          productId: variant.sId,
+                          inventoryId: groceryProducts.sId,
+                          businessId: bId,
+                          businessName: bDetails?.businessName,
+                          businessLogo: bDetails?.logo,
+                          businessAddress: bDetails?.address,
+                        );
+                      }
                     } else {
-                      _groceryCustomerController?.addToCart(
-                        variant,
-                        productId: variant.sId,
-                        inventoryId: groceryProducts.sId,
-                        businessId: bId,
-                        businessName: bDetails?.businessName,
-                        businessLogo: bDetails?.logo,
-                        businessAddress: bDetails?.address,
-                        // deliveryType: 'SELF',
-                      );
+                      if (isAdded) {
+                        _riderController?.removeFromCart(variant);
+                      } else {
+                        _riderController?.addToCart(
+                          variant,
+                          productId: variant.sId,
+                          inventoryId: groceryProducts.sId,
+                        );
+                      }
                     }
                   },
                   child: Row(
@@ -478,7 +568,7 @@ class GroceryProductCard extends StatelessWidget {
           ]
           else ...[
             SizedBox(width: SizeConfig.size10),
-            // ✅ OWNER VIEW: Edit Inventory / Manage
+            // OWNER VIEW: Edit Inventory / Manage
             _buildEditButton(
                 onTap: () {  }
             )
@@ -490,48 +580,37 @@ class GroceryProductCard extends StatelessWidget {
   }
 
   Widget _buildEditButton({required VoidCallback onTap}) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: SizeConfig.size70,
-          height: SizeConfig.size30,
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppColors.primaryColor,
-              width: 1,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        height: SizeConfig.size30,
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.primaryColor, width: 1),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.pen_line,
+              height: 14,
+              width: 14,
+              imgColor: AppColors.primaryColor,
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              LocalAssets(
-                imagePath: AppIconAssets.pen_line,
-                height: 14,
-                width: 14,
-                imgColor: AppColors.primaryColor,
-              ),
-              const SizedBox(width: 4),
-              CustomText(
-                'EDIT',
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
-            ],
-          ),
+            const SizedBox(width: 4),
+            CustomText(
+              'EDIT',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  String formatDate(String isoDate) {
-    final date = DateTime.parse(isoDate);
-    return DateFormat("d MMMM, yyyy").format(date);
   }
 
 }

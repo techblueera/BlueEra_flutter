@@ -6,13 +6,11 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/view/self_pickup_store_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/sliver_header_delegate.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
-import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/add_grocery_via_rider_category_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class ChooseDeliveryOptionsScreen extends StatefulWidget {
   final String optionId;
@@ -138,14 +136,7 @@ class _ChooseDeliveryOptionsScreenState extends State<ChooseDeliveryOptionsScree
             },
             body: (_selectedOptionId == 'SELF')
                 ? SelfPickupStoreScreen()
-                : (_selectedOptionId == 'RIDER')
-                ? RiderStoreScreen()
-                : FranchiseHome(
-                onBackPressed: (){
-                  _selectedOptionId = 'RIDER';
-                  setState(() {});
-                }
-            )
+                : AddGroceryViaRiderCategoryScreen()
         ),
       ),
     );

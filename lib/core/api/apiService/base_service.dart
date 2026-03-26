@@ -575,7 +575,8 @@ abstract class BaseService {
   String GroceryCategoryOfChildrenWithInventory(String key) => 'grocery-service/api/categories/key/$key/children/with-inventory';
   final String userSearchGroceryCategory = 'grocery-service/api/products/user/search';
   String createNewProductVariant(String productId) => 'grocery-service/api/products/$productId/variants';
-  final String myGroceryProducts = 'grocery-service/api/inventory/my-products';
+  final String groceryProducts = 'grocery-service/api/inventory/my-products';
+  final String globalGroceryProducts = 'grocery-service/api/inventory/public/global-grocery-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';
   final String categoryTree = 'food-service/api/categories/tree';
   final String createSymbolApi = 'chat-service/symbols';
@@ -587,6 +588,7 @@ abstract class BaseService {
   final String groceryBusinessProducts = 'grocery-service/api/inventory/business-products';
   final String publicGroceryBusinessProducts = 'grocery-service/api/inventory/public/business-products';
   final String grocerySnapSearch = 'grocery-service/api/smart-cart/snap-search';
+  final String grocerySnapSearchWithInventory = 'grocery-service/api/ai-inventory/snap-search';
   final String foodSnapSearch = 'food-service/api/smart-cart/snap-search';
   final String missingGroceryProductRequests = 'grocery-service/api/missing-product-requests/bulk';
   final String groceryNestedCategory = 'grocery-service/api/categories/nested';
