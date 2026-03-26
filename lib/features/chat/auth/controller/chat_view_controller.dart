@@ -2077,8 +2077,14 @@ class ChatViewController extends GetxController {
       // ── E2E: Route to encrypted send path if BOTH sides support E2E ──
       final msgType = params[ApiKeys.message_type]?.toString() ?? '';
       final e2eSupportedTypes = ['text', 'image', 'video', 'document'];
+      // Determine recipient: from open conversation OR from params (forward/share intent)
+      final recipientId = userOpenUserId.value.isNotEmpty
+          ? userOpenUserId.value
+          : (params[ApiKeys.other_user_id]?.toString() ?? '');
+      final convId = params[ApiKeys.conversation_id]?.toString() ?? '';
       if (e2eActive.value &&
-          userOpenUserId.value.isNotEmpty &&
+          recipientId.isNotEmpty &&
+          convId.isNotEmpty &&
           e2eSupportedTypes.contains(msgType)) {
         final text = params[ApiKeys.message]?.toString() ?? '';
         List<Map<String, dynamic>>? mediaFiles;
@@ -2094,8 +2100,8 @@ class ChatViewController extends GetxController {
         }
         if (text.isNotEmpty || (mediaFiles != null && mediaFiles.isNotEmpty)) {
           final e2eSuccess = await sendE2EMessage(
-            conversationId:  params[ApiKeys.conversation_id],
-            recipientUserId: userOpenUserId.value,
+            conversationId:  convId,
+            recipientUserId: recipientId,
             text:            text,
             mediaFiles:      mediaFiles,
           );

@@ -111,11 +111,11 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
               profileImage: widget.profileImage,
               contactNo: widget.contactNo, conversationId: widget.conversationId),
           body: Obx(() {
-
+            final _e2eLen = chatViewController.e2eMessages.length;
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
               List<Messages> messages =
-                  chatViewController.getListOfMessageData ?? [];
+                  chatViewController.getMergedMessages();
               messages.sort((a, b) {
                 final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
                     ? DateTime.parse(a.createdAt!).toLocal()

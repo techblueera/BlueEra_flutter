@@ -124,12 +124,13 @@ class EncryptedMediaRef {
       );
 }
 
-/// Metadata embedded INSIDE the Signal Protocol ciphertext for a media message.
-/// Only the recipient can decrypt this (server never sees file_key or iv).
+/// Metadata embedded INSIDE the NaCl box ciphertext for a media message.
+/// Only the recipient can decrypt this (server never sees file_key).
+/// Matches web tester format: { s3_key, file_key, mime_type, name, size }
 class EncryptedMediaMetadata {
   final String s3Key;
-  final String fileKey; // Base64 AES-256 key
-  final String iv;      // Base64 GCM nonce (12 bytes)
+  final String fileKey; // Base64, 32-byte NaCl secretbox key
+  final String iv;      // Unused for NaCl (nonce is prepended to blob), kept for compat
   final String mimeType;
   final String? fileName;
   final int? size;
@@ -137,7 +138,7 @@ class EncryptedMediaMetadata {
   const EncryptedMediaMetadata({
     required this.s3Key,
     required this.fileKey,
-    required this.iv,
+    this.iv = '',
     required this.mimeType,
     this.fileName,
     this.size,
@@ -146,19 +147,18 @@ class EncryptedMediaMetadata {
   Map<String, dynamic> toJson() => {
         's3_key': s3Key,
         'file_key': fileKey,
-        'iv': iv,
         'mime_type': mimeType,
-        if (fileName != null) 'file_name': fileName,
+        if (fileName != null) 'name': fileName,
         if (size != null) 'size': size,
       };
 
   factory EncryptedMediaMetadata.fromJson(Map<String, dynamic> json) =>
       EncryptedMediaMetadata(
-        s3Key: json['s3_key'],
-        fileKey: json['file_key'],
-        iv: json['iv'],
-        mimeType: json['mime_type'],
-        fileName: json['file_name'],
+        s3Key: json['s3_key'] ?? '',
+        fileKey: json['file_key'] ?? '',
+        iv: json['iv'] ?? '',
+        mimeType: json['mime_type'] ?? 'application/octet-stream',
+        fileName: json['name'] ?? json['file_name'],
         size: json['size'],
       );
 }
