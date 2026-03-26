@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -72,35 +74,84 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                           var item = foodServiceController.foodSnapSearchPhotos[index];
                           return InkWell(
                             onTap: ()=> Get.toNamed(RouteHelper.getAddFoodSnapSearchScreenRoute()),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                          color: AppColors.greyE5
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: Container(
+                                height: SizeConfig.size180,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: AppColors.greyE5),
+                                    image: DecorationImage(
+                                      image: AssetImage(
+                                        item['image']!,
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                ),
+                                child: Stack(
+                                  children: [
+
+                                    Positioned.fill(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: AppColors.black.withValues(alpha: 0.6)
+                                              )
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    child: LocalAssets(
-                                      imagePath: item['image']!,
-                                      height: SizeConfig.size180,
-                                      width: double.infinity,
-                                      boxFix: BoxFit.cover,
+
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(10.0),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                            child: Container(
+                                              padding: EdgeInsets.all(10.0),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.white.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(10),
+                                                border: Border.all(
+                                                    color: AppColors.white.withValues(alpha: 0.1
+                                                    )
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  LocalAssets(
+                                                    imagePath: item['icon']!,
+                                                    height: 18,
+                                                    width: 18,
+                                                    boxFix: BoxFit.scaleDown,
+                                                    imgColor: AppColors.white,
+                                                  ),
+                                                  SizedBox(width: 6),
+                                                  CustomText(
+                                                    item['title']!,
+                                                    fontSize: SizeConfig.small,
+                                                    color: AppColors.white,
+                                                    fontWeight: FontWeight.w400,
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                SizedBox(height: SizeConfig.size6),
-                                CustomText(
-                                    item['title']!,
-                                    fontSize: SizeConfig.small,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400
-                                ),
-                              ],
+                              ),
                             ),
                           );
                         },

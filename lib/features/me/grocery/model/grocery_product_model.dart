@@ -45,6 +45,7 @@ class GroceryProductData {
   String? updatedAt;
   int? iV;
   List<ProductVariants>? variants;
+  String? lastInventoryAddedOrUpdated;
 
   GroceryProductData(
       {this.sId,
@@ -60,7 +61,8 @@ class GroceryProductData {
         this.createdAt,
         this.updatedAt,
         this.iV,
-        this.variants});
+        this.variants,
+        this.lastInventoryAddedOrUpdated});
 
   GroceryProductData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -68,7 +70,7 @@ class GroceryProductData {
     description = json['description'];
     brand = json['brand'];
     category = json['category'];
-    tags = json['tags'].cast<String>();
+    tags = (json['tags'] as List?)?.cast<String>() ?? [];
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
@@ -87,6 +89,7 @@ class GroceryProductData {
         variants!.add(new ProductVariants.fromJson(v));
       });
     }
+    lastInventoryAddedOrUpdated = json['lastInventoryAddedOrUpdated'];
   }
 
   Map<String, dynamic> toJson() {
@@ -109,6 +112,7 @@ class GroceryProductData {
     if (this.variants != null) {
       data['variants'] = this.variants!.map((v) => v.toJson()).toList();
     }
+    data['lastInventoryAddedOrUpdated'] = this.lastInventoryAddedOrUpdated;
     return data;
   }
 
@@ -127,6 +131,7 @@ class GroceryProductData {
     String? updatedAt,
     int? iV,
     List<ProductVariants>? variants,
+    String? lastInventoryAddedOrUpdated,
   }) {
     return GroceryProductData(
       sId: sId ?? this.sId,
@@ -143,6 +148,7 @@ class GroceryProductData {
       updatedAt: updatedAt ?? this.updatedAt,
       iV: iV ?? this.iV,
       variants: variants ?? this.variants,
+      lastInventoryAddedOrUpdated: lastInventoryAddedOrUpdated ?? this.lastInventoryAddedOrUpdated,
     );
   }
 

@@ -63,11 +63,24 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  ///FETCH My GROCERIES SERVICES....
-  Future<ResponseModel> fetchMyGroceryProductsRepo(
+  ///FETCH GROCERIES PRODUCTS (SELF AND OTHER)....
+  Future<ResponseModel> fetchGroceryProductsRepo(
       {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
-      myGroceryProducts,
+      groceryProducts,
+      showProgress: false,
+      params: queryParam,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///FETCH GLOBAL GROCERIES PRODUCTS ....
+  Future<ResponseModel> fetchGlobalGroceryProductsRepo(
+      {Map<String, dynamic>? queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      globalGroceryProducts,
       showProgress: false,
       params: queryParam,
       onError: (error) {},
@@ -340,6 +353,20 @@ class GroceryRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       placeBulkGroceryOrder,
       params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// GROCERY SNAP SEARCH WITH INVENTORY ...
+  Future<ResponseModel> fetchGrocerySnapSearchWithInventoryRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      grocerySnapSearchWithInventory,
+      params: params,
+      isMultipart: true,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

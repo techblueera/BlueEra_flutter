@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -12,7 +13,7 @@ class ViewCartFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<GrocerySelfPickupConsumerController>();
+    final controller = Get.find<GroceryRiderConsumerController>();
 
     return Obx(() {
       final int itemCount = controller.selectedGroceriesVariants.length;
@@ -53,7 +54,6 @@ class ViewCartFooter extends StatelessWidget {
                   onTap: () {
                     Get.toNamed(
                       RouteHelper.getGroceryCartScreenRoute(),
-                      arguments: {ApiKeys.argIsDeliveredByRider: true},
                     );
                   },
                   isValidate: true,

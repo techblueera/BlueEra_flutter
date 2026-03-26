@@ -1,30 +1,20 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_product_card.dart';
-import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/size_config.dart';
-import '../../../../../widgets/common_back_app_bar.dart';
-import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../../widgets/local_assets.dart';
+import '../../../../../../core/constants/app_colors.dart';
+import '../../../../../../core/constants/size_config.dart';
+import '../../../../../../widgets/common_back_app_bar.dart';
+import '../../../../../../widgets/custom_text_cm.dart';
 
 class OtherGroceryProductsScreen extends StatefulWidget {
   final String userId;
@@ -229,13 +219,16 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
               ),
             )
                 : controller.groceryProductsList.isNotEmpty
-                ?  ListView.builder(
+                ? MasonryGridView.count(
               itemCount: controller.groceryProductsList.length +
                   (controller.isGroceryDataLoadingMore.value ? 1 : 0),
               controller: scrollController,
               padding: EdgeInsets.only(
                   bottom: SizeConfig.size15 + kBottomNavigationBarHeight
               ),
+              crossAxisCount: 2,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
               itemBuilder: (BuildContext context, int index) {
                 if (index >= controller.groceryProductsList.length) {
                   return const Padding(
@@ -248,7 +241,8 @@ class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen>
 
                 return GroceryProductCard(
                     groceryProducts: groceryProducts,
-                    bId: widget.visitBusinessId
+                    flowType: GroceryCardFlowType.selfPickup,
+                    bId: widget.visitBusinessId,
                 );
               },
             ) : Padding(

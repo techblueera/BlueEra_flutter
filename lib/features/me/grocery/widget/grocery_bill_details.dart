@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -12,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GroceryBillDetails extends StatelessWidget {
-  final GrocerySelfPickupConsumerController controller;
+  final GroceryRiderConsumerController controller;
 
   const GroceryBillDetails({
     super.key,

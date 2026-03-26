@@ -6,6 +6,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/add_grocery_via_rider_category_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
             );
             // Get.to(()=> SelfPickupStoreScreen());
           }else if(_selectedOptionId == 'RIDER'){
-            Get.to(()=> RiderStoreScreen());
+            Get.to(()=> AddGroceryViaRiderCategoryScreen());
             }
           // else{
           //   Get.to(()=> FranchiseHome(

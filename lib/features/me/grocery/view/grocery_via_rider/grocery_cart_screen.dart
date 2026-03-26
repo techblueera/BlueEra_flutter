@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_bill_details.dart';
@@ -19,21 +20,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GroceryCartScreen extends StatefulWidget {
-  final bool isDeliveredByRider;
-  const GroceryCartScreen({super.key, required this.isDeliveredByRider});
+  const GroceryCartScreen({super.key});
 
   @override
   State<GroceryCartScreen> createState() => _GroceryCartScreenState();
 }
 
 class _GroceryCartScreenState extends State<GroceryCartScreen> {
-  final controller = getOrPut(() => GrocerySelfPickupConsumerController());
-  late bool _isDeliveredByRiderFlow;
+  final controller = Get.find<GroceryRiderConsumerController>();
 
   @override
   initState(){
     super.initState();
-    _isDeliveredByRiderFlow = widget.isDeliveredByRider;
   }
 
   @override
@@ -87,16 +85,9 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                         children: [
                           PositiveCustomBtn(
                               onTap: () {
-                                if(_isDeliveredByRiderFlow){
-                                  Get.until((route) =>
-                                  route.settings.name ==
-                                      RouteHelper.getGroceryNestedCategoryScreenRoute());
-                                }else{
-                                  Get.until((route) =>
-                                  route.settings.name ==
-                                      RouteHelper.getOtherGroceryStoreScreenRoute());
-                                }
-
+                                Get.until((route) =>
+                                route.settings.name ==
+                                    RouteHelper.getGroceryNestedCategoryScreenRoute());
                               },
                               height: SizeConfig.size30,
                               width: SizeConfig.size100,
@@ -110,8 +101,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                               borderColor: AppColors.secondaryTextColor,
                           ),
                           SizedBox(width: SizeConfig.paddingXSL),
-                          _isDeliveredByRiderFlow
-                              ? Obx(()=> CustomBtn(
+                           CustomBtn(
                             onTap: ()=> controller.addGroceryOrderApi(),
                             height: SizeConfig.size30,
                             width: SizeConfig.size100,
@@ -120,16 +110,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                                 : 'Buy Now',
                             bgColor: AppColors.primaryColor,
                             isLoading: controller.isAddGroceryOrderLoading.value,
-                          ))
-                          : CustomBtn(
-                            onTap: (){
-                             controller.placeBulkGroceryOrderApi();
-                            },
-                            height: SizeConfig.size30,
-                            width: SizeConfig.size100,
-                            title: 'Buy Now',
-                            bgColor: AppColors.primaryColor,
-                          ),
+                          )
                         ],
                       )
                     ],
