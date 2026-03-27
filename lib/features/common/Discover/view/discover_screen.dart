@@ -228,8 +228,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 _sliverGap(),
 
                 /// Restaurant
-                _sliverCard(child: RestaurantNearMeCardWidget()),
-                _sliverGap(),
+                // _sliverCard(child: RestaurantNearMeCardWidget()),
+                // _sliverGap(),
 
                 /// Education Service
                 _sliverCard(child: EducationServiceCardWidget()),
