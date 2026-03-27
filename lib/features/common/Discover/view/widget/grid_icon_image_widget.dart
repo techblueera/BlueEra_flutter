@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class GridIconImageWidget<T> extends StatelessWidget {
   final List<T>? items;
@@ -20,25 +19,25 @@ class GridIconImageWidget<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MasonryGridView.count(
-      crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      primary: false,
-      shrinkWrap: true,
-      itemCount: items?.length,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        var item = items?[index];
-        return CommonServiceCard(
-          service: item,
-          getName: (item) => getName(item as T),
-          getIcon: (item) => getIcon(item as T),
-          iconHeight: SizeConfig.size60,
-          onTap: (item) => onTap(item as T),
-        );
-      },
-    );
+    final list = items ?? [];
+    return LayoutBuilder(builder: (context, constraints) {
+      const double spacing = 6;
+      final double itemWidth =
+          (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+      return Wrap(
+        spacing: spacing,
+        runSpacing: spacing,
+        children: list.map((item) => SizedBox(
+          width: itemWidth,
+          child: CommonServiceCard(
+            service: item,
+            getName: (i) => getName(i as T),
+            getIcon: (i) => getIcon(i as T),
+            iconHeight: SizeConfig.size60,
+            onTap: (i) => onTap(i as T),
+          ),
+        )).toList(),
+      );
+    });
   }
 }

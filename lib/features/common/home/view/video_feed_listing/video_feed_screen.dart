@@ -73,7 +73,6 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
               currentIndex.value = index;
 
               controller.updateCurrentIndex(index);
-              controller.disposeDistantVideos(index);
 
               // Pagination — trigger when 3 items from end
               if (index >= controller.videos.length - 3 &&

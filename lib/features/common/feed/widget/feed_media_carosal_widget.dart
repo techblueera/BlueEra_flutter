@@ -65,13 +65,6 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
   void initState() {
     super.initState();
     _orientationCache = {};
-    for (var url in widget.mediaUrls) {
-      _getImageOrientation(url).then((orientation) {
-        setState(() {
-          _orientationCache[url] = orientation;
-        });
-      });
-    }
     _audioPlayer = AudioPlayer();
     _initializeAudio();
     _setupAnimations();
@@ -196,7 +189,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
         child: Stack(
           children: [
             PageView.builder(
-              itemCount: _orientationCache.length,
+              itemCount: widget.mediaUrls.length,
               // itemCount: widget.mediaUrls.length,
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemBuilder: (context, index) {

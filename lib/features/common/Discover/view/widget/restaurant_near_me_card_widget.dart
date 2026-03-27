@@ -10,7 +10,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/common_se
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:get/get.dart';
 
 class RestaurantNearMeCardWidget extends StatelessWidget {

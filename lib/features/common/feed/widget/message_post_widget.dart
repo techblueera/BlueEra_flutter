@@ -86,13 +86,24 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
   late String natureOfPost;
   String languageCode = 'en';
   ShortFeedItem? videoData;
+  late FeedTranslationController transController;
 
   @override
   void initState() {
     super.initState();
     videoData = getVideoData(widget.post!);
-
     updateData();
+    transController = Get.put(
+      FeedTranslationController(),
+      tag: _post.id.toString(),
+    );
+    transController.loadText(_post.title?.trim() ?? "", subTitle.trim());
+  }
+
+  @override
+  void dispose() {
+    Get.delete<FeedTranslationController>(tag: _post.id.toString());
+    super.dispose();
   }
 
   @override
@@ -109,20 +120,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     natureOfPost = _post.natureOfPost ?? '';
   }
 
-  // final transController = Get.put(FeedTranslationController(), );
   @override
   Widget build(BuildContext context) {
-// Use Get.put with a unique tag for each post
-    final transController = Get.put(
-      FeedTranslationController(),
-      tag: _post.id.toString(),
-    );
-
-    // Initialize data BEFORE returning the widget tree
-    // Use a check to prevent overwriting if the widget rebuilds
-    if (transController.originalText.isEmpty) {
-      transController.loadText(_post.title?.trim() ?? "", subTitle.trim());
-    }
     return IgnorePointer(
       ignoring: widget.isRepost == true ? true : false,
       child: InkWell(

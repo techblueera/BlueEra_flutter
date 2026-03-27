@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:BlueEra/core/services/screen_service.dart';
-import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -12,7 +11,6 @@ class SimplePriorityVideoManager extends GetxController {
   final Map<String, int> playCount = {};
   RxBool showReplayOverlay = false.obs;
 
-  // Simple tracking
   final RxMap<String, double> visibleVideos = <String, double>{}.obs;
   final RxMap<String, String> videoUrls = <String, String>{}.obs;
   final RxBool isScrolling = false.obs;
@@ -20,8 +18,11 @@ class SimplePriorityVideoManager extends GetxController {
   Timer? _playDelayTimer;
   String? _currentPriorityVideo;
 
-  VideoPlayerController? get controller => _controller;
+  // Token = videoId of the most recent playVideo call.
+  // After every await, if token changed → a newer video was requested → abort.
+  String? _playToken;
 
+  VideoPlayerController? get controller => _controller;
 
   void updateVideoVisibility(
       String videoId, String videoUrl, double visibilityFraction) {
@@ -37,10 +38,7 @@ class SimplePriorityVideoManager extends GetxController {
       _checkAndPlayTopVideo();
     }
     if (currentIndex.value != videoId.hashCode) {
-      playCount[videoId] = 0; // reset video count
-    }
-    if (currentIndex.value != videoId.hashCode) {
-      playCount[videoId] = 0; // reset video count
+      playCount[videoId] = 0;
     }
   }
 
@@ -50,10 +48,8 @@ class SimplePriorityVideoManager extends GetxController {
       return;
     }
 
-    // Find video with highest visibility
     String? topVideoId;
     double maxVisibility = 0;
-
     visibleVideos.forEach((videoId, visibility) {
       if (visibility > maxVisibility) {
         maxVisibility = visibility;
@@ -72,123 +68,88 @@ class SimplePriorityVideoManager extends GetxController {
     _playDelayTimer = Timer(const Duration(milliseconds: 600), () {
       if (!isScrolling.value && _currentPriorityVideo == videoId) {
         playVideo(videoId);
-        _scheduleVideoView(videoId);
-        // Future.delayed(const Duration(seconds: 5), () {
-        //   // videoView(videoId: videoController.videoFeedItem!.video!.id ?? '0');
-        // });
       }
     });
   }
 
-  void _scheduleVideoView(String videoId) {
-    if (Get.isRegistered<VideoController>()) {
-    } else {}
-    // Future.delayed(const Duration(seconds: 5), () {
-    //   videoController?.videoView(videoId: videoId);
-    // });
-  }
-
-  // _scheduleVideoView();
-
   Future<void> playVideo(String videoId) async {
     final videoUrl = videoUrls[videoId];
-    if (videoUrl == null) {
-      print('Video URL not found for: $videoId');
+    if (videoUrl == null) return;
+
+    // Set this call's token. Any older in-flight call will detect the mismatch
+    // after its next await and self-abort without creating a controller.
+    final token = videoId;
+    _playToken = token;
+
+    // Capture and clear the shared controller reference immediately so a
+    // concurrent call that runs next won't try to dispose the same instance.
+    final oldController = _controller;
+    _controller = null;
+
+    // Dispose the previous controller (local reference — safe to await)
+    if (oldController != null) {
+      await oldController.pause();
+      await oldController.dispose();
+    }
+
+    // Token check: did a newer playVideo call come in while we were disposing?
+    if (_playToken != token) return;
+
+    showReplayOverlay.value = false;
+
+    // Create and initialize new controller as a local variable (not yet shared)
+    final newController = VideoPlayerController.networkUrl(
+      Uri.parse(videoUrl),
+      videoPlayerOptions:
+          VideoPlayerOptions(mixWithOthers: true, allowBackgroundPlayback: true),
+    );
+
+    try {
+      await newController.initialize();
+    } catch (e) {
+      debugPrint('Error initializing video $videoId: $e');
+      await newController.dispose();
+      currentIndex.value = -1;
       return;
     }
 
-    print('Playing video: $videoId with URL: $videoUrl');
-
-    try {
-      // Dispose previous controller
-      if (_controller != null) {
-        await _controller!.pause();
-        await _controller!.dispose();
-        _controller = null;
-      }
-
-      // videoUrl.toLowerCase().endsWith('.m3u8');
-      showReplayOverlay = false.obs;
-      // Create new controller
-      _controller = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-        videoPlayerOptions: VideoPlayerOptions(
-            mixWithOthers: true, allowBackgroundPlayback: true),
-        // videoPlayerOptions: isHls
-        //     ? VideoPlayerOptions(
-        //     mixWithOthers: true,
-        //     allowBackgroundPlayback: true
-        // )
-        //     : null,
-      );
-      await _controller!.initialize();
-      playCount[videoId] = 0;
-      _controller?.addListener(() {
-        final controller = _controller;
-        if (controller == null) return;
-
-        final position = controller.value.position;
-        final duration = controller.value.duration;
-
-        if (duration.inMilliseconds == 0) return;
-
-        if (position >= duration) {
-          final count = playCount[videoId] ?? 0;
-
-          if (count < 1) {
-            // Replay once
-            playCount[videoId] = count + 1;
-            controller.seekTo(Duration.zero);
-            controller.play();
-          } else {
-            // Stop & show overlay
-            controller.pause();
-            showReplayOverlay.value = true;
-          }
-        }
-      });
-
-      /*  _controller?.addListener(() {
-
-        final controller = _controller;
-        if (controller == null) return;
-
-        final position = controller.value.position;
-        final duration = controller.value.duration;
-
-        if (duration.inMilliseconds == 0) return; // avoid division crash
-
-        if (position >= duration) {
-          final count = playCount[videoId] ?? 0;
-
-          if (count < 1) {
-            // Play again (2 total plays → count 0,1)
-            playCount[videoId] = count + 1;
-            controller.seekTo(Duration.zero);
-            controller.play();
-          } else {
-            controller.pause();
-          }
-        }
-      });*/
-
-      // Set properties
-      // await _controller!.setLooping(true);
-      await _controller!.setVolume(isMuted.value ? 0 : 1);
-
-      // Play only if still the priority video
-      if (_currentPriorityVideo == videoId && !isScrolling.value) {
-        await _controller!.play();
-        currentIndex.value = videoId.hashCode;
-        print('Video started playing: $videoId');
-        ScreenService.keepOn();
-      }
-
-      update();
-    } catch (e) {
-      print('Error playing video $videoId: $e');
-      currentIndex.value = -1;
+    // Token check: did a newer call come in while we were initializing?
+    if (_playToken != token) {
+      // This controller is stale — dispose it and let the newer call handle UI
+      await newController.dispose();
+      return;
     }
+
+    // Safe to make it the shared controller now
+    _controller = newController;
+    playCount[videoId] = 0;
+
+    _controller!.addListener(() {
+      final ctrl = _controller;
+      if (ctrl == null) return;
+
+      final position = ctrl.value.position;
+      final duration = ctrl.value.duration;
+      if (duration.inMilliseconds == 0) return;
+
+      if (position >= duration) {
+        final count = playCount[videoId] ?? 0;
+        if (count < 1) {
+          playCount[videoId] = count + 1;
+          ctrl.seekTo(Duration.zero);
+          ctrl.play();
+        } else {
+          ctrl.pause();
+          showReplayOverlay.value = true;
+        }
+      }
+    });
+
+    await _controller!.setVolume(isMuted.value ? 0 : 1);
+    await _controller!.play();
+    currentIndex.value = videoId.hashCode;
+    ScreenService.keepOn();
+    update();
   }
 
   Future<void> _pauseCurrentVideo() async {
@@ -214,6 +175,7 @@ class SimplePriorityVideoManager extends GetxController {
 
   @override
   void onClose() {
+    _playToken = null;
     _controller?.pause();
     _controller?.dispose();
     _scrollStopTimer?.cancel();

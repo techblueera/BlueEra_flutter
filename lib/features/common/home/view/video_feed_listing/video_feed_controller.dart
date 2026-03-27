@@ -17,6 +17,8 @@ class VideoFeedController extends GetxController {
   int _page = 1;
   int _currentIndex = 0;
   String _feedId = '';
+  // Tracks URLs currently holding a precache ref — prevents double-counting on every scroll
+  final Set<String> _precachedUrls = {};
 
   @override
   void onInit() {
@@ -32,6 +34,7 @@ class VideoFeedController extends GetxController {
     _page = 1;
     _feedId = '';
     _currentIndex = 0;
+    _precachedUrls.clear();
   }
 
   /// Load initial data
@@ -46,18 +49,8 @@ class VideoFeedController extends GetxController {
     video.isLiked = !video.isLiked;
     video.likes_count += video.isLiked ? 1 : -1;
 
-    videos[index] = video; // 🔥 forces UI update
+    videos[index] = video; // forces UI update
   }
-  // final ValueNotifier<List<VideoPost>> videosNotifier = ValueNotifier([]);
-  //
-  // /// Toggle like for a given video index
-  // void toggleLike(int index) {
-  //   final list = [...videosNotifier.value];
-  //   final v = list[index];
-  //   v.isLiked = !v.isLiked;
-  //   v.likes_count += v.isLiked ? 1 : -1;
-  //   videosNotifier.value = list;
-  // }
 
   Future<void> fetchVideos({bool loadMore = false, required String feedId}) async {
     if (loadMore) {
@@ -120,53 +113,55 @@ class VideoFeedController extends GetxController {
     }
   }
 
-  // ✅ Update current index for better precaching
   void updateCurrentIndex(int index) {
     _currentIndex = index;
     _precacheVideosAroundIndex(index);
   }
 
-  // ✅ Improved precaching - only cache videos around current position
+  // Precache videos around current position using diff-based ref counting.
+  // Each URL gets exactly ONE precache ref regardless of how many times this runs,
+  // which prevents graphics buffer exhaustion (BLASTBufferQueue crash).
   void _precacheVideosAroundIndex(int currentIndex) {
-    // Precache: current, next 2, and previous 1 video
     final indicesToCache = [
-      currentIndex - 1, // Previous
-      currentIndex,     // Current
-      currentIndex + 1, // Next
-      currentIndex + 2, // Next + 1
+      currentIndex - 1,
+      currentIndex,
+      currentIndex + 1,
+      currentIndex + 2,
     ];
 
+    final newUrls = <String>{};
     for (int i in indicesToCache) {
       if (i >= 0 && i < videos.length) {
         final url = videos[i].videoUrl;
-        if (url.isNotEmpty) {
-     try{
-       VideoCacheManager().getController(url);
-     }
-         catch (e){
-
-         }
-        }
+        if (url.isNotEmpty) newUrls.add(url);
       }
     }
-  }
 
-  // ✅ Clean up videos that are far from current index
-  void disposeDistantVideos(int currentIndex) {
-    for (int i = 0; i < videos.length; i++) {
-      // Dispose videos that are more than 3 positions away
-      if ((i < currentIndex - 3 || i > currentIndex + 3)) {
-        final url = videos[i].videoUrl;
-        if (url.isNotEmpty) {
-          VideoCacheManager().releaseController(url);
-        }
+    // Acquire ref only for URLs not already precached
+    for (final url in newUrls) {
+      if (!_precachedUrls.contains(url)) {
+        try {
+          VideoCacheManager().getController(url);
+        } catch (_) {}
       }
     }
+
+    // Release ref for URLs that left the precache window
+    for (final url in _precachedUrls) {
+      if (!newUrls.contains(url)) {
+        VideoCacheManager().releaseController(url);
+      }
+    }
+
+    _precachedUrls
+      ..clear()
+      ..addAll(newUrls);
   }
 
   @override
   void onClose() {
     VideoCacheManager().disposeAll();
+    _precachedUrls.clear();
     super.onClose();
   }
 }

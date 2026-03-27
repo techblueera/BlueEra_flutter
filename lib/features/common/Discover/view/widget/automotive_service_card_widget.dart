@@ -7,7 +7,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 
 class AutomotiveServiceCardWidget extends StatelessWidget {
   const AutomotiveServiceCardWidget({super.key});
@@ -24,26 +24,28 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
           titleWidget(AppStrings.automotiveShowroom),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
-            child: MasonryGridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-              padding: EdgeInsets.zero,
-              primary: false,
-              shrinkWrap: true,
-              itemCount: automotiveServiceItemsCategories.length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var item = automotiveServiceItemsCategories[index];
-                return CommonServiceCard(
-                  service: item,
-                  getName: (item) => item.name,
-                  getIcon: (item) => item.icon??"",
-                  onTap: (item) =>  commonSnackBar(message: "Coming Soon..."),
-                );
-              },
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double spacing = 6;
+              const int columns = 3;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: automotiveServiceItemsCategories.map((item) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: CommonServiceCard(
+                      service: item,
+                      getName: (i) => i.name,
+                      getIcon: (i) => i.icon ?? "",
+                      onTap: (i) => commonSnackBar(message: "Coming Soon..."),
+                    ),
+                  );
+                }).toList(),
+              );
+            }),
           ),
 
         ],

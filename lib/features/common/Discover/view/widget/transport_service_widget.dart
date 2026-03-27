@@ -11,7 +11,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:get/get.dart';
 
 class TransportServiceWidget extends StatelessWidget {
@@ -122,32 +122,31 @@ class TransportServiceWidget extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal:18.0),
-              child: MasonryGridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-                padding: EdgeInsets.zero,
-                primary: false,
-                shrinkWrap: true,
-                itemCount: transportItemsCategories.length,
-                physics: NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  var item = transportItemsCategories[index];
-                  return CommonServiceCard(
-                    service: item,
-                    getName: (item) => item.name,
-                    getIcon: (item) => item.icon ?? "",
-                    // iconHeight: SizeConfig.size60,
-                    flex: 1,
-                    onTap: (_) {
-                      Get.to(() => BookTransportMain(
-                            vehicleType: item.slugId,
-                          ));
-                    },
-                  );
-                },
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+              child: LayoutBuilder(builder: (context, constraints) {
+                const double spacing = 6;
+                const int columns = 3;
+                final double itemWidth =
+                    (constraints.maxWidth - spacing * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: transportItemsCategories.map((item) {
+                    return SizedBox(
+                      width: itemWidth,
+                      child: CommonServiceCard(
+                        service: item,
+                        getName: (i) => i.name,
+                        getIcon: (i) => i.icon ?? "",
+                        flex: 1,
+                        onTap: (_) {
+                          Get.to(() => BookTransportMain(vehicleType: item.slugId));
+                        },
+                      ),
+                    );
+                  }).toList(),
+                );
+              }),
             ),
 
           ],

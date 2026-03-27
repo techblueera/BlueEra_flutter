@@ -54,12 +54,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _qrWidgetKey = GlobalKey();
+  late final EmergencyProfileController emergencyController;
 
   @override
   void initState() {
+    super.initState();
     userLat = LocationService.lat;
     userLng = LocationService.lng;
-    super.initState();
+
+    // Register controllers here not in build
+    emergencyController = getOrPut(() => EmergencyProfileController());
+
   }
 
   @override
@@ -239,7 +244,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 child: Builder(
                   key: _qrWidgetKey,
                   builder: (_) {
-                    getOrPut(() => EmergencyProfileController());
                     return EmergencyQrWidget(key: ValueKey('emergency_qr'));
                   },
                 ),
@@ -249,25 +253,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               SliverPadding(
                 padding: EdgeInsets.only(bottom: 100),
                 sliver: SliverToBoxAdapter(
-                  child: Builder(
-                    builder: (_) {
-                      final emergencyController =
-                          getOrPut(() => EmergencyProfileController());
-                      return Obx(() {
-                        if (!emergencyController.hasEmergencyData.value) {
-                          return const SizedBox.shrink();
-                        }
-                        return Column(
-                          children: [
-                            SizedBox(height: SizeConfig.size8),
-                            QrDesignOptionsWidget(
-                              userName: emergencyController.fullName.value,
-                            ),
-                          ],
-                        );
-                      });
-                    },
-                  ),
+                  child: Obx(() {
+                    if (!emergencyController.hasEmergencyData.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      children: [
+                        SizedBox(height: SizeConfig.size8),
+                        QrDesignOptionsWidget(
+                          userName: emergencyController.fullName.value,
+                        ),
+                      ],
+                    );
+                  }),
                 ),
               ),
             ],

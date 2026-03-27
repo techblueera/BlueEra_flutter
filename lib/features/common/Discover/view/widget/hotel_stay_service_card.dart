@@ -8,7 +8,7 @@ import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:get/get.dart';
 
 class HotelStayServiceCard extends StatelessWidget {
@@ -36,85 +36,80 @@ class HotelStayServiceCard extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal:18.0),
-            child: MasonryGridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              padding: EdgeInsets.zero,
-              primary: false,
-              shrinkWrap: true,
-              itemCount: stayItemsCategories.length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var item = stayItemsCategories[index];
-                return InkWell(
-                  onTap: (){
-                    Get.to(() => AllStayServiceScreen(
-                        stayCategories: stayItemsCategories,
-                        selectedStayCategory: item));
-                  },
-                  child: AspectRatio(
-                    aspectRatio: 1.0, // Adjusted for a more square look like the design
-                    child: Container(
-                      margin: EdgeInsets.zero,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20), // Increased for smoother look
-                        border: Border.all(color: const Color(0xffDDE2EE), width: 1.0),
-                      ),
-                      // Use ClipRRect so the children don't bleed over the rounded border
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Column(
-                          children: [
-                            // 1. Top Section: Icon with soft background
-                            Expanded(
-                              flex: 3,
-                              child: Container(
-                                width: double.infinity,
-                                color: item.colorCode, // The soft blue tint from your image
-                                child: LocalAssets(imagePath: item.icon ?? ""),
-                              ),
-                            ),
-
-                            // 2. Bottom Section: Text with solid background
-                            Container(
-                              width: double.infinity,
-                              color: AppColors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  CustomText(
-                                    item.name,
-                                    textAlign: TextAlign.center,
-                                    color: AppColors.mainTextColor, // White text looks better on Red
-                                    fontWeight: FontWeight.w500,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double spacing = 12;
+              const int columns = 2;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: stayItemsCategories.map((item) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: InkWell(
+                      onTap: () {
+                        Get.to(() => AllStayServiceScreen(
+                            stayCategories: stayItemsCategories,
+                            selectedStayCategory: item));
+                      },
+                      child: AspectRatio(
+                        aspectRatio: 1.0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xffDDE2EE), width: 1.0),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Container(
+                                    width: double.infinity,
+                                    color: item.colorCode,
+                                    child: LocalAssets(imagePath: item.icon ?? ""),
                                   ),
-                                  // If you want the "Premium Rooms" subtitle from image 2:
-                                  if (item.subtitle != null) ...[
-                                    const SizedBox(height: 2),
-                                    CustomText(
-                                      item.subtitle??"N/A",
-                                      fontSize: SizeConfig.small,
-                                      color:AppColors.secondaryTextColor,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ],
-                              ),
+                                ),
+                                Container(
+                                  width: double.infinity,
+                                  color: AppColors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CustomText(
+                                        item.name,
+                                        textAlign: TextAlign.center,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.w500,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (item.subtitle != null) ...[
+                                        const SizedBox(height: 2),
+                                        CustomText(
+                                          item.subtitle ?? "N/A",
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.secondaryTextColor,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-
-              },
-            ),
+                  );
+                }).toList(),
+              );
+            }),
           ),
         ],
       ),
