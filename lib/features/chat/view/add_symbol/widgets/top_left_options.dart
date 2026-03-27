@@ -1,10 +1,5 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../../../../widgets/common_box_shadow.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
 import '../../contacts/view/be_available_contacts_list.dart';
 
@@ -13,8 +8,6 @@ class TopLeftOptions extends StatefulWidget {
 
   @override
   State<TopLeftOptions> createState() => _TopLeftOptionsState();
-
-
 }
 
 class _TopLeftOptionsState extends State<TopLeftOptions> {
@@ -26,193 +19,306 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: SizeConfig.size20),
-          _durationSelector(c),
-          SizedBox(height: SizeConfig.size20),
-          _visibilitySelector(c),
+          const SizedBox(height: 20),
+          _buildDivider(),
+          const SizedBox(height: 20),
+          _durationSelector(),
+          const SizedBox(height: 20),
+          _buildDivider(),
+          const SizedBox(height: 20),
+          _visibilitySelector(),
         ],
       );
     });
   }
 
-  Widget _durationSelector(AddChatSymbolController c) {
-    return _commonSelectorBox(
-      title: "Set Symbol Duration in Days",
-      child: SizedBox(
-        height: 42,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: 7,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (_, index) {
-            return Obx(() {
-              final day = index + 1;
-              final selected = c.selectedDays.value == day;
-              return GestureDetector(
-                onTap: () => c.selectedDays.value = day,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  margin:
-                  const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: selected ? Colors.blue : Colors.white10,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selected ? Colors.blue : AppColors.greyE5,
-                    ),
-                  ),
-                  child: Center(
-                    child: CustomText(
-                      "$day",
-                      color: selected ? AppColors.white : AppColors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              );
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget dropItem(IconData icon, String text) {
-    return Row(
+  Widget _durationSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.black),
-        const SizedBox(width: 8),
-        Text(text, style: const TextStyle(color: AppColors.black)),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF667EEA).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.timer_outlined,
+                  size: 16, color: Color(0xFF667EEA)),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Duration',
+              style: TextStyle(
+                color: Color(0xFF2D3142),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${c.selectedDays.value} ${c.selectedDays.value == 1 ? 'day' : 'days'}',
+              style: const TextStyle(
+                color: Color(0xFF667EEA),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 40,
+          child: Row(
+            children: List.generate(7, (index) {
+              final day = index + 1;
+              return Expanded(
+                child: Obx(() {
+                  final selected = c.selectedDays.value == day;
+                  return GestureDetector(
+                    onTap: () => c.selectedDays.value = day,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: EdgeInsets.only(right: index < 6 ? 8 : 0),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? const Color(0xFF667EEA)
+                            : const Color(0xFFF3F4F8),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: selected
+                            ? [
+                                BoxShadow(
+                                  color:
+                                      const Color(0xFF667EEA).withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: Center(
+                        child: Text(
+                          "$day",
+                          style: TextStyle(
+                            color: selected
+                                ? Colors.white
+                                : const Color(0xFF2D3142).withOpacity(0.6),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              );
+            }),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _visibilitySelector(AddChatSymbolController c) {
-    return _commonSelectorBox(
-      title: "Choose Symbol Privacy",
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(width: 1, color: AppColors.greyE5),
-              boxShadow: [AppShadows.textFieldShadow],
+  Widget _visibilitySelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF11998E).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.visibility_rounded,
+                  size: 16, color: Color(0xFF11998E)),
             ),
-            margin: EdgeInsets.symmetric(vertical: 6),
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<PostVisibility>(
-                value: c.visibility.value,
-                dropdownColor: Colors.white,
-                isDense: true,
-                isExpanded: false,
-                icon: Icon(Icons.arrow_drop_down, color: AppColors.grayText),
-                items: [
-                  DropdownMenuItem(
-                    value: PostVisibility.public,
-                    child: dropItem(Icons.public, "Public"),
-                  ),
-                  DropdownMenuItem(
-                    value: PostVisibility.private,
-                    child: dropItem(Icons.lock, "Private"),
-                  ),
-                  DropdownMenuItem(
-                    value: PostVisibility.custom,
-                    child: dropItem(Icons.people, "Custom"),
-                  ),
-                ],
-                onChanged: (val) {
-                  if (val != null) c.visibility.value = val;
-                },
+            const SizedBox(width: 10),
+            const Text(
+              'Privacy',
+              style: TextStyle(
+                color: Color(0xFF2D3142),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-          SizedBox(height: SizeConfig.size4,),
-          if( c.visibility.value == PostVisibility.custom)
-            Obx(() {
-              return Column(crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          ],
+        ),
+        const SizedBox(height: 14),
 
-                  SizedBox(
-                    height: SizeConfig.size8,
-                  ),
-                  CustomText(
-                    "${c.onExceptContactSelectedList.length} Contact Excepted",
-                    color: AppColors.black,
-                    fontSize: 14,
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size10,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Get.to(() =>
-                          BeAvailableContactsList(preSelectedUsers: c
-                              .onExceptContactSelectedList,
-                            maxSelectionCount: 5,
-                            tagPersonsSelection: true,
-                            isFromAddMember: true,
-                            onSelectedPersons: (selectedPersonsList) {
-                              c.onExceptContactSelectedList.value =
-                                  selectedPersonsList;
-                            },
-                          ));
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: AppColors.primaryColor
+        // Segmented privacy control
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F8),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: [
+              _privacyChip(
+                icon: Icons.public_rounded,
+                label: 'Public',
+                value: PostVisibility.public,
+              ),
+              _privacyChip(
+                icon: Icons.lock_rounded,
+                label: 'Private',
+                value: PostVisibility.private,
+              ),
+              _privacyChip(
+                icon: Icons.people_rounded,
+                label: 'Custom',
+                value: PostVisibility.custom,
+              ),
+            ],
+          ),
+        ),
+
+        // Custom contacts section
+        if (c.visibility.value == PostVisibility.custom) ...[
+          const SizedBox(height: 14),
+          Obx(() {
+            return Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF11998E).withOpacity(0.15),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${c.onExceptContactSelectedList.length} contact${c.onExceptContactSelectedList.length == 1 ? '' : 's'} excluded',
+                        style: TextStyle(
+                          color: const Color(0xFF2D3142).withOpacity(0.6),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Center(
-                        child: CustomText(
-                          "Choose Except Contacts", color: AppColors.white,
-                          fontWeight: FontWeight.w600,),
+                      GestureDetector(
+                        onTap: () {
+                          Get.to(() => BeAvailableContactsList(
+                                preSelectedUsers:
+                                    c.onExceptContactSelectedList,
+                                maxSelectionCount: 5,
+                                tagPersonsSelection: true,
+                                isFromAddMember: true,
+                                onSelectedPersons: (selectedPersonsList) {
+                                  c.onExceptContactSelectedList.value =
+                                      selectedPersonsList;
+                                },
+                              ));
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF11998E),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.person_add_rounded,
+                                  size: 14, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text(
+                                'Choose',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size4,
+                    ],
                   ),
                 ],
-              );
-            })
+              ),
+            );
+          }),
         ],
-      ),
+      ],
     );
   }
 
-  // common box decoration
-  BoxDecoration get _box =>
-      BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(width: 1, color: AppColors.greyE5),
-        boxShadow: [AppShadows.textFieldShadow],
-      );
-
-  Widget _commonSelectorBox({
-    required String title,
-    required Widget child,
+  Widget _privacyChip({
+    required IconData icon,
+    required String label,
+    required PostVisibility value,
   }) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
-      decoration: _box.copyWith(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            title,
+    return Expanded(
+      child: Obx(() {
+        final isSelected = c.visibility.value == value;
+        return GestureDetector(
+          onTap: () => c.visibility.value = value,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 15,
+                  color: isSelected
+                      ? const Color(0xFF11998E)
+                      : const Color(0xFF2D3142).withOpacity(0.4),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? const Color(0xFF2D3142)
+                        : const Color(0xFF2D3142).withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: SizeConfig.size8),
-          child,
-        ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.transparent,
+            const Color(0xFF2D3142).withOpacity(0.08),
+            Colors.transparent,
+          ],
+        ),
       ),
     );
   }

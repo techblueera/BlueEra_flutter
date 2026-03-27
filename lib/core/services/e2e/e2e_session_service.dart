@@ -23,8 +23,14 @@ class E2ESessionService {
   final _repo       = E2ERepo();
 
   // Short-lived session cache: maps recipientUserId → list of bundles.
-  // Cleared on invalidateStore() or when decryption fails.
+  // Used ONLY for encryption (send path). Cleared on invalidateStore().
   final Map<String, List<PrekeyBundle>> _sessionCache = {};
+
+  // Identity key cache for decryption: maps userId → list of known identity keys (base64).
+  // Populated from bundle fetches (send) and reused for decrypt to avoid consuming OPKs.
+  // OPKs are consumed by GET /keys/bundle/:userId, which is designed for sender key exchange.
+  // For decryption we only need the sender's identity public key, not a full bundle.
+  final Map<String, List<String>> _identityKeyCache = {};
 
   // ─── Encrypt ──────────────────────────────────────────────────────────────
 
@@ -56,6 +62,9 @@ class E2ESessionService {
       bundles = await _repo.getPrekeyBundles(recipientUserId);
       if (bundles.isNotEmpty) {
         _sessionCache[recipientUserId] = bundles;
+        // Also cache identity keys for future decryption (avoids OPK-consuming bundle fetch)
+        _identityKeyCache[recipientUserId] =
+            bundles.map((b) => b.identityKey).toList();
       }
       if (kDebugMode) print('[E2E-ENCRYPT] Fetched ${bundles.length} bundles from server');
     }
@@ -117,8 +126,12 @@ class E2ESessionService {
   // ─── Decrypt ──────────────────────────────────────────────────────────────
 
   /// Decrypt a message received from [senderUserId].
-  /// [senderDeviceId] is used to find the sender's identity key from bundles.
+  /// [senderDeviceId] is used for debug logging.
   /// [ciphertextBase64] is base64(nonce_24 + ciphertext_with_mac).
+  ///
+  /// Decryption strategy (avoids OPK consumption):
+  ///  1. Try cached identity keys first (from prior encrypt/decrypt calls)
+  ///  2. Fetch fresh bundles from server as last resort (consumes 1 OPK)
   Future<String?> decryptMessage({
     required String senderUserId,
     required String senderDeviceId,
@@ -134,81 +147,59 @@ class E2ESessionService {
         print('[E2E-DECRYPT] senderUserId: $senderUserId');
         print('[E2E-DECRYPT] senderDeviceId: $senderDeviceId');
         print('[E2E-DECRYPT] ciphertext length: ${ciphertextFull.length} bytes');
-        print('[E2E-DECRYPT] ciphertext preview: ${ciphertextBase64.substring(0, ciphertextBase64.length.clamp(0, 60))}...');
         print('[E2E-DECRYPT] myPublicKey: ${base64Encode(myPublicKey)}');
-        print('[E2E-DECRYPT] myPrivateKey length: ${myPrivateKey.length}');
       }
 
-      // Try decryption using sender's bundles (try all bundles)
-      List<PrekeyBundle> senderBundles;
-      if (_sessionCache.containsKey(senderUserId)) {
-        senderBundles = _sessionCache[senderUserId]!;
-        if (kDebugMode) print('[E2E-DECRYPT] Using ${senderBundles.length} CACHED bundles');
-      } else {
-        senderBundles = await _repo.getPrekeyBundles(senderUserId);
-        if (senderBundles.isNotEmpty) {
-          _sessionCache[senderUserId] = senderBundles;
-        }
-        if (kDebugMode) print('[E2E-DECRYPT] Fetched ${senderBundles.length} bundles from server');
+      // --- Attempt 1: Try cached identity keys (no network call) ---
+      final cachedKeys = _identityKeyCache[senderUserId];
+      if (cachedKeys != null && cachedKeys.isNotEmpty) {
+        if (kDebugMode) print('[E2E-DECRYPT] Trying ${cachedKeys.length} CACHED identity keys');
+        final result = _tryDecryptWithKeys(
+          ciphertextFull: ciphertextFull,
+          identityKeysBase64: cachedKeys,
+          myPrivateKey: myPrivateKey,
+          label: 'cached',
+        );
+        if (result != null) return result;
       }
 
-      // Try each bundle's identity key for decryption
-      for (int i = 0; i < senderBundles.length; i++) {
-        final bundle = senderBundles[i];
-        if (kDebugMode) {
-          print('[E2E-DECRYPT] Trying bundle[$i]: deviceId=${bundle.deviceId}, identityKey=${bundle.identityKey.substring(0, 20)}...');
-        }
-        try {
-          final senderPubBytes = _decodeKey32(bundle.identityKey);
-          if (kDebugMode) print('[E2E-DECRYPT]   senderPubKey decoded: ${senderPubBytes.length} bytes');
-          final plaintext = _naclBoxDecrypt(
-            encryptedWithNonce: ciphertextFull,
-            theirPublicKey: senderPubBytes,
-            myPrivateKey: myPrivateKey,
-          );
-          if (plaintext != null) {
-            final decoded = utf8.decode(plaintext);
-            if (kDebugMode) print('[E2E-DECRYPT]   SUCCESS! Decrypted ${decoded.length} chars: ${decoded.substring(0, decoded.length.clamp(0, 100))}');
-            return decoded;
-          } else {
-            if (kDebugMode) print('[E2E-DECRYPT]   FAILED — nacl.box.open returned null');
-          }
-        } catch (e) {
-          if (kDebugMode) print('[E2E-DECRYPT]   EXCEPTION: $e');
+      // --- Attempt 2: Try identity keys from session cache (already fetched for encryption) ---
+      final sessionBundles = _sessionCache[senderUserId];
+      if (sessionBundles != null && sessionBundles.isNotEmpty) {
+        final sessionKeys = sessionBundles.map((b) => b.identityKey).toList();
+        if (kDebugMode) print('[E2E-DECRYPT] Trying ${sessionKeys.length} session-cached keys');
+        final result = _tryDecryptWithKeys(
+          ciphertextFull: ciphertextFull,
+          identityKeysBase64: sessionKeys,
+          myPrivateKey: myPrivateKey,
+          label: 'session',
+        );
+        if (result != null) {
+          // Update identity key cache
+          _identityKeyCache[senderUserId] = sessionKeys;
+          return result;
         }
       }
 
-      // If no bundle worked, try with fresh bundles
-      if (kDebugMode) print('[E2E-DECRYPT] All cached bundles failed — fetching fresh for $senderUserId');
+      // --- Attempt 3: Fetch fresh bundles from server (consumes 1 OPK — last resort) ---
+      if (kDebugMode) print('[E2E-DECRYPT] All cached keys failed — fetching fresh bundles for $senderUserId');
       _sessionCache.remove(senderUserId);
+      _identityKeyCache.remove(senderUserId);
+
       final freshBundles = await _repo.getPrekeyBundles(senderUserId);
       if (freshBundles.isNotEmpty) {
         _sessionCache[senderUserId] = freshBundles;
-      }
-      if (kDebugMode) print('[E2E-DECRYPT] Fresh bundles: ${freshBundles.length}');
+        final freshKeys = freshBundles.map((b) => b.identityKey).toList();
+        _identityKeyCache[senderUserId] = freshKeys;
 
-      for (int i = 0; i < freshBundles.length; i++) {
-        final bundle = freshBundles[i];
-        if (kDebugMode) {
-          print('[E2E-DECRYPT] Trying fresh bundle[$i]: deviceId=${bundle.deviceId}, identityKey=${bundle.identityKey.substring(0, 20)}...');
-        }
-        try {
-          final senderPubBytes = _decodeKey32(bundle.identityKey);
-          final plaintext = _naclBoxDecrypt(
-            encryptedWithNonce: ciphertextFull,
-            theirPublicKey: senderPubBytes,
-            myPrivateKey: myPrivateKey,
-          );
-          if (plaintext != null) {
-            final decoded = utf8.decode(plaintext);
-            if (kDebugMode) print('[E2E-DECRYPT]   SUCCESS! Decrypted: ${decoded.substring(0, decoded.length.clamp(0, 100))}');
-            return decoded;
-          } else {
-            if (kDebugMode) print('[E2E-DECRYPT]   FAILED — nacl.box.open returned null');
-          }
-        } catch (e) {
-          if (kDebugMode) print('[E2E-DECRYPT]   EXCEPTION: $e');
-        }
+        if (kDebugMode) print('[E2E-DECRYPT] Fresh bundles: ${freshBundles.length}');
+        final result = _tryDecryptWithKeys(
+          ciphertextFull: ciphertextFull,
+          identityKeysBase64: freshKeys,
+          myPrivateKey: myPrivateKey,
+          label: 'fresh',
+        );
+        if (result != null) return result;
       }
 
       if (kDebugMode) {
@@ -227,6 +218,39 @@ class E2ESessionService {
       }
       return null;
     }
+  }
+
+  /// Try decryption with a list of candidate identity keys.
+  /// Returns the decoded plaintext on success, null on failure.
+  String? _tryDecryptWithKeys({
+    required Uint8List ciphertextFull,
+    required List<String> identityKeysBase64,
+    required Uint8List myPrivateKey,
+    required String label,
+  }) {
+    for (int i = 0; i < identityKeysBase64.length; i++) {
+      try {
+        final senderPubBytes = _decodeKey32(identityKeysBase64[i]);
+        if (kDebugMode) {
+          print('[E2E-DECRYPT] Trying $label key[$i]: ${identityKeysBase64[i].substring(0, 20)}... (${senderPubBytes.length} bytes)');
+        }
+        final plaintext = _naclBoxDecrypt(
+          encryptedWithNonce: ciphertextFull,
+          theirPublicKey: senderPubBytes,
+          myPrivateKey: myPrivateKey,
+        );
+        if (plaintext != null) {
+          final decoded = utf8.decode(plaintext);
+          if (kDebugMode) print('[E2E-DECRYPT]   SUCCESS! Decrypted ${decoded.length} chars');
+          return decoded;
+        } else {
+          if (kDebugMode) print('[E2E-DECRYPT]   FAILED — nacl.box.open returned null');
+        }
+      } catch (e) {
+        if (kDebugMode) print('[E2E-DECRYPT]   EXCEPTION: $e');
+      }
+    }
+    return null;
   }
 
   // ─── Session helpers ──────────────────────────────────────────────────────
@@ -248,6 +272,7 @@ class E2ESessionService {
 
   void invalidateStore() {
     _sessionCache.clear();
+    _identityKeyCache.clear();
   }
 
   // ─── NaCl Box primitives ──────────────────────────────────────────────────

@@ -40,6 +40,7 @@ import '../symbol_view/symbol_view_images.dart';
 import 'common_ai_chat_topics.dart';
 import 'chat_shortcut_service.dart';
 import 'common_delete_message.dart';
+import '../media_view_page/conversation_media_page.dart';
 
 Widget timeAndReadInfoWidget({required Messages message,
   required bool isMyMessage,
@@ -1364,15 +1365,15 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ? null
         : [
       // E2E encryption indicator
-      Obx(() => chatViewController.e2eActive.value
-          ? Tooltip(
-              message: 'End-to-end encrypted',
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Icon(Icons.lock, color: Colors.green, size: SizeConfig.size16),
-              ),
-            )
-          : const SizedBox.shrink()),
+      // Obx(() => chatViewController.e2eActive.value
+      //     ? Tooltip(
+      //         message: 'End-to-end encrypted',
+      //         child: Padding(
+      //           padding: const EdgeInsets.symmetric(horizontal: 4),
+      //           child: Icon(Icons.lock, color: Colors.green, size: SizeConfig.size16),
+      //         ),
+      //       )
+      //     : const SizedBox.shrink()),
       SizedBox(width: SizeConfig.size8),
       if(isGroupAppBar == null&&isFromAiChat!=true)
         Builder(
@@ -1517,8 +1518,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 // TODO: Handle report
               } else if(value == "block"){
                 // TODO: Handle block
-              } else if(value == "media_files"){
-                // TODO: Navigate to media & files
+              } else if(value == "media_docs"){
+                Get.to(() => ConversationMediaPage(
+                  conversationId: conversationId ?? '',
+                  contactName: name ?? 'Chat',
+                  initialTab: 0,
+                ));
               } else if(value == "chat_theme"){
                 Get.to(() => ChatBackgroundScreen());
               } else if(value == "add_shortcut"){

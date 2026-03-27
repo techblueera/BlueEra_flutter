@@ -165,17 +165,25 @@ class E2EKeyService {
       final identityKeyPub  = base64Encode(pubKey);
       final signedPrekeyPub = spk['pub']!;
 
-      // Sign the signed prekey public key with identity private key (Ed25519)
+      // Sign the signed prekey public key with identity private key (Ed25519).
+      // Use the SAME seed for both the X25519 key pair and the Ed25519 signing key.
+      // The X25519 private key IS the seed from PrivateKey.generate(), so
+      // SigningKey(seed:) derives a consistent Ed25519 key pair from it.
+      // We also send the Ed25519 verify key so the server can validate the signature
+      // without needing to convert between X25519 and Ed25519 key spaces.
       final identityPrivKey = await getPrivateKey();
       final signingKey = SigningKey(seed: identityPrivKey);
       final signedMsg = signingKey.sign(base64Decode(signedPrekeyPub));
       final signedPrekeySig = base64Encode(signedMsg.signature.asTypedList);
+      // Ed25519 verify key derived from the same seed — included for server-side verification
+      final signingVerifyKey = base64Encode(Uint8List.fromList(signingKey.verifyKey.asTypedList));
 
       if (kDebugMode) {
         print('[E2E-REG] Registering keys:');
         print('[E2E-REG]   deviceId: $deviceId');
         print('[E2E-REG]   identityKey: ${identityKeyPub.substring(0, 20)}... (${base64Decode(identityKeyPub).length} bytes)');
         print('[E2E-REG]   signedPrekey: ${signedPrekeyPub.substring(0, 20)}... (${base64Decode(signedPrekeyPub).length} bytes)');
+        print('[E2E-REG]   signingVerifyKey: ${signingVerifyKey.substring(0, 20)}... (${base64Decode(signingVerifyKey).length} bytes)');
         print('[E2E-REG]   OPKs: ${opks.length}, first keyId: ${opks.first.keyId}');
       }
 
@@ -185,6 +193,7 @@ class E2EKeyService {
         signedPrekey:           signedPrekeyPub,
         signedPrekeySignature:  signedPrekeySig,
         signedPrekeyId:         int.parse(spk['id']!),
+        signingVerifyKey:       signingVerifyKey,
         oneTimePrekeys:         opks
             .map((o) => OneTimePrekey(keyId: o.keyId, publicKey: o.publicKeyBase64))
             .toList(),

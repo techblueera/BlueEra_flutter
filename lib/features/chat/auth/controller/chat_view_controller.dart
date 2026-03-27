@@ -28,6 +28,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/services/chat_media_storage_service.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../personal/personal_profile/model/check_chat_connection_model.dart';
@@ -92,6 +93,12 @@ class ChatViewController extends GetxController {
 
   /// Whether the server resolved this connection as E2E-capable.
   RxBool e2eActive = false.obs;
+
+  /// Whether the user has scrolled up away from the bottom of the chat.
+  RxBool isUserScrolledUp = false.obs;
+
+  /// Count of new messages that arrived while the user was scrolled up.
+  RxInt unreadNewMessageCount = 0.obs;
 
   /// Guard flag: prevents infinite prekey:low → replenish retry loops.
   /// Reset on new socket connection. See doc section 6.4.
@@ -820,6 +827,9 @@ class ChatViewController extends GetxController {
                 deduped.add(m);
               }
             }
+            // Resolve local file paths for already-downloaded media
+            // so images/videos show instantly from local storage
+            await _resolveLocalMediaPaths(deduped);
             getListOfMessageResponse.value = ApiResponse.complete(deduped);
             scrollDown();
             // saveMessagesByConversationId REPLACES the full list — this is
@@ -835,7 +845,7 @@ class ChatViewController extends GetxController {
               ApiResponse.complete(parsedData.messages);
         }
       });
-      chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) async {
 
         Messages? message;
         if (data['message'] != null) {
@@ -884,6 +894,8 @@ class ChatViewController extends GetxController {
           return;
         }
 
+        // Resolve local file paths for media so it shows from local storage instantly
+        await _resolveLocalMediaPaths([message]);
         getListOfMessageData?.add(message);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
@@ -1014,47 +1026,25 @@ class ChatViewController extends GetxController {
         return;
       }
 
-      final existingBundles = await E2ERepo().getPrekeyBundles(myUserId);
-      final serverHasOurDevice = existingBundles.any((b) => b.deviceId == myDeviceId);
+      // Use capability endpoint (no OPK consumption) instead of getPrekeyBundles
+      // which consumes a one-time prekey on every call.
+      final capability = await E2ERepo().getCapability(myUserId);
+      final serverHasE2E = capability?.protocol == E2EProtocol.e2e;
       if (kDebugMode) {
-        print('[E2E-INIT] Server has ${existingBundles.length} devices for us');
-        print('[E2E-INIT] Server has OUR device ($myDeviceId): $serverHasOurDevice');
-        for (final b in existingBundles) {
-          print('[E2E-INIT]   device: ${b.deviceId} ${b.deviceId == myDeviceId ? "(THIS DEVICE)" : ""}');
-        }
+        print('[E2E-INIT] Server capability for us: ${capability?.protocol}');
       }
 
-      if (hasLocalKeys && serverHasOurDevice) {
+      if (hasLocalKeys && serverHasE2E) {
         // Everything is good — keys exist locally AND on server
         if (kDebugMode) print('[E2E-INIT] ✓ Keys already registered on server');
       } else {
         // Need to register — either no local keys or server doesn't have ours
-        if (kDebugMode) print('[E2E-INIT] Registration needed (local=$hasLocalKeys, server=$serverHasOurDevice)');
+        if (kDebugMode) print('[E2E-INIT] Registration needed (local=$hasLocalKeys, serverE2E=$serverHasE2E)');
 
-        // Step 3a: Revoke stale old devices first (matching web tester!)
-        // This prevents senders from encrypting for stale identity keys
-        for (final bundle in existingBundles) {
-          if (bundle.deviceId != myDeviceId) {
-            if (kDebugMode) print('[E2E-INIT] Revoking stale device: ${bundle.deviceId}');
-            try {
-              await E2ERepo().revokeDevice(bundle.deviceId);
-            } catch (e) {
-              if (kDebugMode) print('[E2E-INIT]   Revoke failed (non-fatal): $e');
-            }
-          }
-        }
-
-        // Step 3b: Register our keys
+        // Register our keys (server handles device replacement)
         if (kDebugMode) print('[E2E-INIT] Registering keys...');
         final success = await _e2eKeyService.registerKeys();
         if (kDebugMode) print('[E2E-INIT] Registration: ${success ? "✓ SUCCESS" : "✘ FAILED"}');
-
-        if (success) {
-          // Step 3c: Verify registration by fetching our bundle back
-          final verifyBundles = await E2ERepo().getPrekeyBundles(myUserId);
-          final verified = verifyBundles.any((b) => b.deviceId == myDeviceId);
-          if (kDebugMode) print('[E2E-INIT] Server verification: ${verified ? "✓ CONFIRMED" : "✘ NOT FOUND"}');
-        }
       }
 
       if (kDebugMode) print('[E2E-INIT] ═══ E2E Initialization Complete ═══');
@@ -1135,7 +1125,7 @@ class ChatViewController extends GetxController {
           m.messageId == messageId || (m.status == 'sending' && m.seqNum == -1));
       if (idx != -1) {
         final old = e2eMessages[idx];
-        e2eMessages[idx] = EncryptedMessageLocal(
+        final confirmed = EncryptedMessageLocal(
           messageId:      messageId,
           conversationId: old.conversationId,
           seqNum:         seqNum ?? old.seqNum,
@@ -1147,6 +1137,15 @@ class ChatViewController extends GetxController {
           status:         status,
           createdAt:      old.createdAt,
         );
+        e2eMessages[idx] = confirmed;
+
+        // Persist to SQLite: replace the optimistic temp-ID entry with the real one.
+        // If the old messageId was a temp ID (optimistic), delete it first.
+        final db = E2ELocalDbService();
+        if (old.messageId != messageId) {
+          await db.deleteMessage(old.messageId);
+        }
+        await db.upsertMessage(confirmed);
       }
     });
 
@@ -1254,7 +1253,7 @@ class ChatViewController extends GetxController {
 
       if (kDebugMode) print('[E2E-SEND] ✓ message:send emitted successfully');
 
-      // Optimistic UI update
+      // Optimistic UI update — also persist to SQLite so message survives navigation
       final optimistic = EncryptedMessageLocal(
         messageId:      DateTime.now().millisecondsSinceEpoch.toString(),
         conversationId: conversationId,
@@ -1265,6 +1264,7 @@ class ChatViewController extends GetxController {
         status:         'sending',
         createdAt:      DateTime.now(),
       );
+      await E2ELocalDbService().upsertMessage(optimistic);
       e2eMessages.add(optimistic);
       scrollDown();
 
@@ -1307,34 +1307,48 @@ class ChatViewController extends GetxController {
   }
 
   /// Get merged message list: combines plain messages and E2E messages for display.
+  /// Returns a deduplicated, sorted list ready for rendering.
   List<Messages> getMergedMessages() {
     final plainMessages = getListOfMessageData ?? [];
     if (!e2eActive.value || e2eMessages.isEmpty) return plainMessages;
 
-    // Convert E2E messages to Messages format
-    final e2eConverted = e2eMessages.map(e2eMessageToMessages).toList();
+    // Single-pass merge + dedup using a Set for O(1) lookups
+    final seen = <String>{};
+    final merged = <Messages>[];
 
-    // Merge and deduplicate
-    final merged = <Messages>[...plainMessages];
-    final existingIds = plainMessages.map((m) => m.id).whereType<String>().toSet();
-    for (final m in e2eConverted) {
-      if (m.id != null && !existingIds.contains(m.id)) {
+    for (final m in plainMessages) {
+      final key = m.id ?? '';
+      if (key.isEmpty || seen.add(key)) {
         merged.add(m);
       }
     }
 
-    // Sort by created_at
+    for (final e2eMsg in e2eMessages) {
+      final converted = e2eMessageToMessages(e2eMsg);
+      final key = converted.id ?? '';
+      if (key.isEmpty || seen.add(key)) {
+        merged.add(converted);
+      }
+    }
+
+    // Sort by created_at — parse once per item using milliseconds for fast comparison
     merged.sort((a, b) {
-      final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
-          ? DateTime.parse(a.createdAt!).toLocal()
-          : DateTime.fromMillisecondsSinceEpoch(0);
-      final dateB = (b.createdAt != null && b.createdAt!.isNotEmpty)
-          ? DateTime.parse(b.createdAt!).toLocal()
-          : DateTime.fromMillisecondsSinceEpoch(0);
-      return dateA.compareTo(dateB);
+      final msA = _parseCreatedAtMs(a.createdAt);
+      final msB = _parseCreatedAtMs(b.createdAt);
+      return msA.compareTo(msB);
     });
 
     return merged;
+  }
+
+  /// Fast date parser — returns epoch millis, avoids creating DateTime objects in sort.
+  int _parseCreatedAtMs(String? createdAt) {
+    if (createdAt == null || createdAt.isEmpty) return 0;
+    try {
+      return DateTime.parse(createdAt).millisecondsSinceEpoch;
+    } catch (_) {
+      return 0;
+    }
   }
 
   /// Check if a recipient supports E2E (GET /protocol/capability/:userId).
@@ -1565,15 +1579,44 @@ class ChatViewController extends GetxController {
       openedConversation.add(conversationId);
     }
   }
-  Future<void> scrollDown() async {
+  /// Check if the scroll position is near the bottom (within 150px).
+  bool get _isNearBottom {
+    if (!scrollController.hasClients) return true;
+    if (scrollController.positions.length != 1) return true;
+    // In a reversed list, minScrollExtent is the bottom (newest messages)
+    return scrollController.offset <= 150;
+  }
+
+  /// Scroll to bottom if user is near bottom, otherwise increment unread badge.
+  Future<void> scrollDown({bool force = false}) async {
     await Future.delayed(const Duration(milliseconds: 100));
 
     if (!scrollController.hasClients) return;
     if (scrollController.positions.length != 1) return;
 
+    if (force || _isNearBottom) {
+      unreadNewMessageCount.value = 0;
+      isUserScrolledUp.value = false;
+      scrollController.animateTo(
+        scrollController.position.minScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else {
+      // User is reading old messages — don't interrupt, just show badge
+      unreadNewMessageCount.value++;
+    }
+  }
+
+  /// Force scroll to bottom and clear badge — called from scroll-to-bottom FAB.
+  void jumpToBottom() {
+    if (!scrollController.hasClients) return;
+    if (scrollController.positions.length != 1) return;
+    unreadNewMessageCount.value = 0;
+    isUserScrolledUp.value = false;
     scrollController.animateTo(
       scrollController.position.minScrollExtent,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
     );
   }
@@ -1592,6 +1635,8 @@ class ChatViewController extends GetxController {
         deduped.add(m);
       }
     }
+    // Resolve local file paths for already-downloaded media
+    await _resolveLocalMediaPaths(deduped);
     getListOfMessageResponse.value = ApiResponse.complete(deduped);
     scrollDown();
     return deduped;
@@ -2166,9 +2211,11 @@ class ChatViewController extends GetxController {
       if (replyMessage?.value?.id != null) {
         replyMessage?.value = Messages();
       }
-      if (sendFiles != null &&
+      final isVideoSend = sendFiles != null &&
           sendFiles.isNotEmpty &&
-          params[ApiKeys.message_type] == 'video') {
+          params[ApiKeys.message_type] == 'video';
+
+      if (isVideoSend) {
         sendLoadingFile.value = Messages(
             sendLoadingFile: sendFiles,
             myMessage: true,
@@ -2180,14 +2227,12 @@ class ChatViewController extends GetxController {
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
       if (responseModel.isSuccess) {
-        if (sendFiles != null &&
-            sendFiles.isNotEmpty &&
-            params[ApiKeys.message_type] == 'video') {
+        // For video: swap loading placeholder with real message in a single update
+        if (isVideoSend) {
           if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
             getListOfMessageData!.removeLast();
           }
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
+          // Don't reassign getListOfMessageResponse here — batch with the add below
         }
 
         final data = responseModel.response?.data;
@@ -2199,6 +2244,7 @@ class ChatViewController extends GetxController {
           if (!alreadyExists) {
             getListOfMessageData?.add(message);
           }
+          // Single rebuild: removes loading placeholder + adds real message at once
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
@@ -2879,6 +2925,40 @@ class ChatViewController extends GetxController {
     // }
   }
 
+  /// Resolve remote URLs to local file paths for media messages.
+  /// For each message with media URLs, checks if the file was already downloaded
+  /// locally and replaces the remote URL with the local path so widgets show
+  /// the file instantly without network loading.
+  Future<void> _resolveLocalMediaPaths(List<Messages> messages) async {
+    final mediaTypes = {'image', 'video', 'audio', 'document'};
+    for (final msg in messages) {
+      if (msg.url == null || msg.url!.isEmpty) continue;
+      if (!mediaTypes.contains(msg.messageType)) continue;
+      for (final media in msg.url!) {
+        final url = media.url;
+        if (url == null || url.isEmpty || !url.contains('http')) continue;
+        final localFile = await ChatMediaStorageService.findExistingFile(
+          url: url,
+          messageType: msg.messageType ?? 'image',
+          fileName: media.name,
+        );
+        if (localFile != null) {
+          media.url = localFile.path;
+        }
+      }
+    }
+  }
+
+  /// Remove the uploading placeholder card from the message list.
+  void _removeUploadingPlaceholder() {
+    if (sendLoadingFile.value.sendLoadingFile != null) {
+      getListOfMessageData?.remove(sendLoadingFile.value);
+      getListOfMessageResponse.value =
+          ApiResponse.complete(getListOfMessageData);
+      sendLoadingFile.value = Messages();
+    }
+  }
+
   Future<void> generateUploadUrlsApi({
     required Map<String, dynamic> params,
     required List<File> listFile,
@@ -2891,10 +2971,10 @@ class ChatViewController extends GetxController {
   }) async {
     try {
       VideoUploadProgress.value = "0";
-      final connectivityResult = await NetworkUtils.isConnected();
+
+      // Show uploading card immediately so the user sees progress right away
       if (listFile.isNotEmpty &&
-          messageType == 'video' &&
-          (!connectivityResult) &&
+          (messageType == 'video' || messageType == 'image') &&
           isPendingMessage == null) {
         final now = DateTime.now().toUtc();
         final isoTime = now.toIso8601String();
@@ -2907,12 +2987,15 @@ class ChatViewController extends GetxController {
         getListOfMessageData?.add(sendLoadingFile.value);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
+        scrollDown();
       }
+
       ResponseModel responseModel =
           await ChatViewRepo().generateUploadUrlsApi(params);
       clearMessageControllerCommon();
 
       if (!responseModel.isSuccess) {
+        _removeUploadingPlaceholder();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         return;
@@ -2957,6 +3040,7 @@ class ChatViewController extends GetxController {
           messagePayload, listFile, isPendingMessage, messageId);
       generateUploadUrlResponse.value = ApiResponse.complete(uploadModel);
     } catch (e) {
+      _removeUploadingPlaceholder();
       clearMessageControllerCommon();
       if (e == "Something went wrong") {
         final now = DateTime.now().toUtc();

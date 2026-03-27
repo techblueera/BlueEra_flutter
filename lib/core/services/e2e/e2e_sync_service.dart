@@ -25,6 +25,12 @@ class E2ESyncService {
 
   bool _syncInProgress = false;
 
+  // In-memory dedup guard for message:new events.
+  // The server sends one event per registered device to the same socket.
+  // Without this, rapid duplicate events can be double-processed before the
+  // first DB insert completes.
+  final Set<String> _processedE2EMessageIds = {};
+
   // ─── Sync All Conversations ────────────────────────────────────────────────
 
   /// Triggered on socket reconnect or app resume.
@@ -158,9 +164,21 @@ class E2ESyncService {
       final msg = EncryptedMessageLocal.fromServerJson(data);
       if (kDebugMode) print('[E2E] Parsed message: id=${msg.messageId}, conv=${msg.conversationId}, sender=${msg.senderId}, hasCipher=${msg.ciphertext != null}');
 
-      // Dedup guard
+      // In-memory dedup guard — prevents double-processing of multi-device events
+      // that arrive before the first DB insert completes.
+      if (_processedE2EMessageIds.contains(msg.messageId)) {
+        if (kDebugMode) print('[E2E] Message ${msg.messageId} already being processed — skipping (multi-device dedup)');
+        return null;
+      }
+      _processedE2EMessageIds.add(msg.messageId);
+      // Keep set bounded to prevent memory leak
+      if (_processedE2EMessageIds.length > 500) {
+        _processedE2EMessageIds.remove(_processedE2EMessageIds.first);
+      }
+
+      // DB dedup guard
       if (await _db.messageExists(msg.messageId)) {
-        if (kDebugMode) print('[E2E] Message ${msg.messageId} already exists — skipping');
+        if (kDebugMode) print('[E2E] Message ${msg.messageId} already exists in DB — skipping');
         return null;
       }
 

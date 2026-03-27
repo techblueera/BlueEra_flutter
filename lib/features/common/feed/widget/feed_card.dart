@@ -363,6 +363,9 @@ void showShareOptionsDialog(String shareUrl) {
               }
             },
           ),
+          SizedBox(
+            height: 18,
+          )
         ],
       ),
     ),
