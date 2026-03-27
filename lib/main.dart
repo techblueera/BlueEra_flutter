@@ -259,57 +259,53 @@ void _setupOverlayListener() {
 void callMain() => call_entry.callMainImpl();
 
 Future<void> main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
-  /// Check for shared media early (before heavy init) for instant share screen
-  try {
-    pendingSharedMedia = await ShareHandlerPlatform.instance.getInitialSharedMedia();
-  } catch (_) {}
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHASE 1 -- Critical path: only what's needed for the first frame
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.prod);
+  /// Env config + Firebase + Hive in parallel
+  await Future.wait<void>([
+    projectKeys(environmentType: AppConstants.prod),
+    firebaseInitializeApp(),
+    Hive.initFlutter(),
+  ]);
 
-  if (kDebugMode) {
-    debugPrintKeys();
-  }
+  if (kDebugMode) debugPrintKeys();
 
-  await firebaseInitializeApp();
-  await getDeviceInfo();
-  // HttpOverrides.global = MyHttpOverrides();
-  /// Hive Database
-  await Hive.initFlutter();
-  final localizationService = LocalizationService();
-  await localizationService.init();
   if (Platform.isIOS) {
     clearSecureStorageIfFreshInstall();
   }
-  Get.put(AuthController());
 
-  ///GET LOGIN USER DATA...
+  /// Localization (needs Hive, so runs after Hive.initFlutter)
+  final localizationService = LocalizationService();
+  await localizationService.init();
+
+  final box = Hive.box('translations');
+  final savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
+  await localizationService.loadTranslations(savedLangCode);
+  Get.addTranslations(localizationService.keys);
+  final locale = Locale(savedLangCode);
+
+  /// Auth + user data (needed to decide which screen to show)
+  Get.put(AuthController());
   await getUserLoginStatus();
   await getUserLoginData();
-  await getChannelData();
-  await getServiceProviderStatusUtils();
-  await getEarnServiceCreatedStatusUtils();
 
+  /// Controllers needed at first frame
   unFocus();
   Get.put(NavigationHelperController());
   Get.put(GlobalMessageService());
+  Get.put(AppMaintenanceController());
 
-  /// Register CallController early so it's available for push notification handlers
-  /// (incoming call notifications can arrive before user navigates to chat)
+  /// CallController -- must be before runApp for cold-start call handling
   if (!Get.isRegistered<CallController>()) {
     Get.put(CallController(), permanent: true);
   }
 
-  /// Listen for messages from the floating overlay (hangup / expand)
-  _setupOverlayListener();
-
-  /// Check if app was launched by accepting an incoming call from killed state.
-  /// Must run BEFORE runApp() so launchedForCall is true at first build.
+  /// Check if app was launched by accepting an incoming call from killed state
   try {
-
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
     if (activeCalls is List && activeCalls.isNotEmpty) {
       final extra = Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
@@ -317,110 +313,88 @@ Future<void> main() async {
       final accepted = activeCalls[0]['accepted'] == true;
       if (operation == 'incoming_call' && accepted) {
         final callController = getOrPut(() => CallController());
-        // Initialize call state from notification extras (sets remoteUserId, callType, etc.)
         callController.initStateFromCallKitExtra(extra);
-        // Mark as handled so CallKit listener doesn't fire acceptCall again
         CallController.setKilledStateAcceptHandled();
-        // Mark as cold-start call so UI shows CallRoomScreen and navigates
-        // to home when call ends
         CallController.markColdStartCall();
-        bool isVideoCalling=extra['callType']=='video_call';
-        callController.acceptCall(callIdParams: extra['callId'], roomIdParams: extra['roomId'],isVideoCall: isVideoCalling);
-         // FlutterCallkitIncoming.endCall(activeCalls[0]['id']);
+        bool isVideoCalling = extra['callType'] == 'video_call';
+        callController.acceptCall(
+          callIdParams: extra['callId'],
+          roomIdParams: extra['roomId'],
+          isVideoCall: isVideoCalling,
+        );
       }
-
     }
-
   } catch (_) {}
-  PackageInfo? packageInfo = await PackageInfo.fromPlatform();
-  appVersion = packageInfo.version;
 
-  ///INIT FIREBASE NOTIFICATION...
-  await AppNotificationHandler().firebaseNotificationSetup();
-
-  ///APP ORIENTATIONS....
+  /// App orientation
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  /// Initialize Home Feed Cache Service
-  await HiveServices.init();
+  /// Lifecycle observer
+  WidgetsBinding.instance.addObserver(AppLifecycleHandler());
 
-  /// Initialize Home Cache Service
-  await HomeCacheService.init();
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LAUNCH APP -- first frame renders immediately
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Initialize Address Cache Service
-  await AddressCacheService.init();
-
-  /// initializeMappls Map
-
-
-  // await OnesignalService().initialize();
-
-  await localizationService.preloadCachedLanguages();
-
-  // Load saved language code (default: 'en')
-  final box = Hive.box('translations');
-  final savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
-
-  // Load that language’s translations if not already loaded
-  // await localizationService.refreshTranslations(savedLangCode);
-
-  await localizationService.loadTranslations(savedLangCode);
-
-  // Register translations with GetX
-  Get.addTranslations(localizationService.keys);
-
-  // Set saved locale before app starts
-  final locale = Locale(savedLangCode);
-
-  final handler = AppLifecycleHandler();
-  WidgetsBinding.instance.addObserver(handler);
-
-  // 🔄 Check if app version changed
-  await checkAppVersionAndResetIfNeeded();
-  if (kDebugMode) {
-    await resetLanguageLocalization();
-  }
-  // await Hive.openBox('translations');
-  //
-  // // Load saved language from Hive or fallback to English
-  // final box = Hive.box('translations');
-  // final langCode = box.get('selectedLanguage') ?? 'en';
-
-  // await LocalizationService().loadTranslations(langCode);
-  // // Open boxes for language and localization
-  await Hive.openBox('languageBox');
-  await Hive.openBox('localizationBox');
-  Get.put(AppMaintenanceController());
-
-  Get.put(LanguageListController());
   if (kReleaseMode) {
-    // firebaseCrashServiceInit();
+    FlutterError.onError =
+        FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+
     runZonedGuarded<Future<void>>(() async {
-      WidgetsFlutterBinding.ensureInitialized();
-
-      // Forward Flutter framework errors to Crashlytics
-      FlutterError.onError =
-          FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-      // Forward uncaught async or platform errors
-      PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        return true;
-      };
-
-      runApp(MyApp(
-        initialLocale: locale,
-      ));
+      runApp(MyApp(initialLocale: locale));
+      _initDeferred(localizationService);
     }, (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     });
   } else {
-    runApp(MyApp(
-      initialLocale: locale,
-    ));
+    runApp(MyApp(initialLocale: locale));
+    _initDeferred(localizationService);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 2 -- Deferred: heavy work that doesn't affect the first frame
+// ═══════════════════════════════════════════════════════════════════════════
+
+Future<void> _initDeferred(LocalizationService localizationService) async {
+  /// Fire-and-forget parallel batch -- none of these block the UI
+  await Future.wait<void>([
+    getDeviceInfo(),
+    getChannelData(),
+    getServiceProviderStatusUtils(),
+    getEarnServiceCreatedStatusUtils(),
+    HiveServices.init(),
+    HomeCacheService.init(),
+    AddressCacheService.init(),
+    PackageInfo.fromPlatform().then((info) => appVersion = info.version),
+    Hive.openBox('languageBox').then((_) {}),
+    Hive.openBox('localizationBox').then((_) {}),
+  ]);
+
+  /// Notification setup (depends on Firebase, which is already initialized)
+  AppNotificationHandler().firebaseNotificationSetup();
+
+  /// Share handler -- check if app was launched via share intent
+  try {
+    pendingSharedMedia = await ShareHandlerPlatform.instance.getInitialSharedMedia();
+  } catch (_) {}
+
+  /// Overlay listener for floating call window
+  _setupOverlayListener();
+
+  /// Language & version checks
+  Get.put(LanguageListController());
+  await localizationService.preloadCachedLanguages();
+  await checkAppVersionAndResetIfNeeded();
+  if (kDebugMode) {
+    await resetLanguageLocalization();
   }
 }
 
@@ -494,14 +468,14 @@ class _MyAppState extends State<MyApp> {
               // Safe null handling:
               if (child != null) child,
               const GlobalMessage(),
-              // WhatsApp-style ongoing call overlay — shown above app bar
+              // WhatsApp-style ongoing call overlay -- shown above app bar
               const OngoingCallOverlay(),
             ],
           );
         },
         home: Obx(() {
           print("CallController.launchedForCall.value ${CallController.launchedForCall.value}");
-          // Call accepted from killed state — show ONLY the call screen
+          // Call accepted from killed state -- show ONLY the call screen
           if (CallController.launchedForCall.value) {
             return const CallActivityRoomScreen();
           }

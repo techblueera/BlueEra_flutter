@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:pinenacl/ed25519.dart';
 import 'package:pinenacl/x25519.dart';
 import 'package:uuid/uuid.dart';
 
@@ -83,11 +84,11 @@ class E2EKeyService {
       }
     }
 
-    // Generate fresh NaCl key pair — matches nacl.box.keyPair() in JS
+    // Generate fresh NaCl key pair in background isolate — matches nacl.box.keyPair() in JS
     if (kDebugMode) print('[E2E] Generating fresh NaCl Curve25519 key pair');
-    final keyPair = PrivateKey.generate();
-    _privateKey = Uint8List.fromList(keyPair.asTypedList);
-    _publicKey  = Uint8List.fromList(keyPair.publicKey.asTypedList);
+    final keys = await compute(_generateKeyPairInIsolate, null);
+    _privateKey = keys[0];
+    _publicKey  = keys[1];
 
     await Future.wait([
       _secure.write(key: _kIdentityPub,  value: base64Encode(_publicKey!)),
@@ -111,10 +112,10 @@ class E2EKeyService {
       }
     }
 
-    // Generate using pinenacl
-    final kp = PrivateKey.generate();
-    final pub  = base64Encode(Uint8List.fromList(kp.publicKey.asTypedList));
-    final priv = base64Encode(Uint8List.fromList(kp.asTypedList));
+    // Generate using pinenacl in background isolate
+    final keys = await compute(_generateKeyPairInIsolate, null);
+    final pub  = base64Encode(keys[1]);
+    final priv = base64Encode(keys[0]);
     const id   = '1';
 
     await Future.wait([
@@ -128,21 +129,23 @@ class E2EKeyService {
   // ─── One-Time Prekeys (OPKs) ───────────────────────────────────────────────
 
   /// Generate [count] OPKs using pinenacl, persist to SQLite.
+  /// Key generation runs in a background isolate to avoid ANR on the main thread.
   Future<List<OPKRecord>> generateAndStoreOPKs({
     required int startId,
     int count = 100,
   }) async {
-    final records = <OPKRecord>[];
-    for (int i = 0; i < count; i++) {
-      final kp = PrivateKey.generate();
-      final opk = OPKRecord(
-        keyId:            startId + i,
-        publicKeyBase64:  base64Encode(Uint8List.fromList(kp.publicKey.asTypedList)),
-        privateKeyBase64: base64Encode(Uint8List.fromList(kp.asTypedList)),
-        uploaded: false,
-      );
-      records.add(opk);
-    }
+    final rawKeys = await compute(
+      _generateOPKsInIsolate,
+      _OPKGenParams(startId: startId, count: count),
+    );
+    final records = rawKeys
+        .map((r) => OPKRecord(
+              keyId: r.keyId,
+              publicKeyBase64: r.publicKeyBase64,
+              privateKeyBase64: r.privateKeyBase64,
+              uploaded: false,
+            ))
+        .toList();
     await _db.insertOPKs(records);
     return records;
   }
@@ -161,8 +164,12 @@ class E2EKeyService {
 
       final identityKeyPub  = base64Encode(pubKey);
       final signedPrekeyPub = spk['pub']!;
-      // Web tester uses the signed prekey PUBLIC key as the signature too
-      final signedPrekeySig = spk['pub']!;
+
+      // Sign the signed prekey public key with identity private key (Ed25519)
+      final identityPrivKey = await getPrivateKey();
+      final signingKey = SigningKey(seed: identityPrivKey);
+      final signedMsg = signingKey.sign(base64Decode(signedPrekeyPub));
+      final signedPrekeySig = base64Encode(signedMsg.signature.asTypedList);
 
       if (kDebugMode) {
         print('[E2E-REG] Registering keys:');
@@ -285,4 +292,47 @@ class _NaclKeyPair {
   final Uint8List publicKey;
   final Uint8List privateKey;
   const _NaclKeyPair({required this.publicKey, required this.privateKey});
+}
+
+// ─── Background isolate helpers for OPK generation ─────────────────────────
+
+class _OPKGenParams {
+  final int startId;
+  final int count;
+  const _OPKGenParams({required this.startId, required this.count});
+}
+
+class _OPKGenResult {
+  final int keyId;
+  final String publicKeyBase64;
+  final String privateKeyBase64;
+  const _OPKGenResult({
+    required this.keyId,
+    required this.publicKeyBase64,
+    required this.privateKeyBase64,
+  });
+}
+
+/// Top-level function for compute() — generates a single NaCl key pair off the main thread.
+/// Returns [privateKey, publicKey] as raw 32-byte Uint8Lists.
+List<Uint8List> _generateKeyPairInIsolate(void _) {
+  final kp = PrivateKey.generate();
+  return [
+    Uint8List.fromList(kp.asTypedList),
+    Uint8List.fromList(kp.publicKey.asTypedList),
+  ];
+}
+
+/// Top-level function for compute() — runs batch NaCl key generation off the main thread.
+List<_OPKGenResult> _generateOPKsInIsolate(_OPKGenParams params) {
+  final results = <_OPKGenResult>[];
+  for (int i = 0; i < params.count; i++) {
+    final kp = PrivateKey.generate();
+    results.add(_OPKGenResult(
+      keyId: params.startId + i,
+      publicKeyBase64: base64Encode(Uint8List.fromList(kp.publicKey.asTypedList)),
+      privateKeyBase64: base64Encode(Uint8List.fromList(kp.asTypedList)),
+    ));
+  }
+  return results;
 }

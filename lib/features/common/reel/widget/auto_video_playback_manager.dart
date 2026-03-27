@@ -197,6 +197,22 @@ class SimplePriorityVideoManager extends GetxController {
     ScreenService.keepOff();
   }
 
+  /// Pause playback and release the video controller to free GPU/MediaCodec resources.
+  /// Called when switching away from the Home tab.
+  Future<void> pauseAndRelease() async {
+    _playDelayTimer?.cancel();
+    _currentPriorityVideo = null;
+    visibleVideos.clear();
+    if (_controller != null) {
+      await _controller!.pause();
+      await _controller!.dispose();
+      _controller = null;
+    }
+    currentIndex.value = -1;
+    ScreenService.keepOff();
+    update();
+  }
+
   void removeVideo(String videoId) {
     visibleVideos.remove(videoId);
     videoUrls.remove(videoId);
