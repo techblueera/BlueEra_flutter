@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:flutter/foundation.dart';
+import 'package:BlueEra/core/services/chat_local_storage_logger.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
@@ -20,6 +20,9 @@ class LocalStorageHelper {
   // ── Cached box references (avoid repeated openBox calls) ──
   Box<String>? _conversationBox;
   Box<String>? _userImagesBox;
+  Box<String>? _messagesBox;
+  Box<String>? _chatListBox;
+  Box<String>? _contactsBox;
 
   // ── Cached app documents directory ──
   Directory? _appDocDir;
@@ -45,6 +48,34 @@ class LocalStorageHelper {
     return _userImagesBox!;
   }
 
+  Future<Box<String>> get _messagesBoxRef async {
+    if (_messagesBox != null && _messagesBox!.isOpen) return _messagesBox!;
+    _messagesBox = Hive.isBoxOpen('messagesBox')
+        ? Hive.box<String>('messagesBox')
+        : await Hive.openBox<String>('messagesBox');
+    return _messagesBox!;
+  }
+
+  Future<Box<String>> get _chatListBoxRef async {
+    if (_chatListBox != null && _chatListBox!.isOpen) return _chatListBox!;
+    _chatListBox = Hive.isBoxOpen('chatListJsonBox')
+        ? Hive.box<String>('chatListJsonBox')
+        : await Hive.openBox<String>('chatListJsonBox');
+    return _chatListBox!;
+  }
+
+  Future<Box<String>> get _contactsBoxRef async {
+    if (_contactsBox != null && _contactsBox!.isOpen) return _contactsBox!;
+    _contactsBox = Hive.isBoxOpen('contactsBox')
+        ? Hive.box<String>('contactsBox')
+        : await Hive.openBox<String>('contactsBox');
+    return _contactsBox!;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONVERSATION TRACKING
+  // ═══════════════════════════════════════════════════════════════════════════
+
   Future<void> putConversation(String newMessage) async {
     final box = await _conversationBoxRef;
 
@@ -56,7 +87,7 @@ class LocalStorageHelper {
         final decoded = jsonDecode(jsonString) as List<dynamic>;
         conversationList = decoded.cast<String>();
       } catch (e) {
-        debugPrint("Error decoding openedConversationList: $e");
+        ChatStorageLogger.error('putConversation', 'Error decoding openedConversationList', error: e);
       }
     }
 
@@ -76,10 +107,374 @@ class LocalStorageHelper {
       final decoded = jsonDecode(jsonString) as List<dynamic>;
       return decoded.cast<String>();
     } catch (e) {
-      debugPrint("Error decoding openedConversationList: $e");
+      ChatStorageLogger.error('getConversation', 'Error decoding openedConversationList', error: e);
       return [];
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CHAT LIST PERSISTENCE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Save chat list for a given type (PERSONAL_CHAT, BUSINESS_CHAT, GROUP).
+  /// Stores as JSON in chatListJsonBox with key = "{type}_chat_list".
+  Future<void> saveChatList(List<ChatList?> chats, String type) async {
+    if (type.isEmpty) {
+      ChatStorageLogger.warn('saveChatList', 'Empty type, skipping save');
+      return;
+    }
+    try {
+      final box = await _chatListBoxRef;
+      final key = '${type}_chat_list';
+
+      // Filter out nulls and convert to JSON
+      final nonNullChats = chats.whereType<ChatList>().toList();
+      final jsonList = nonNullChats.map((c) => c.toJson()).toList();
+      final encoded = jsonEncode(jsonList);
+
+      await box.put(key, encoded);
+      ChatStorageLogger.chatListSaved(type, nonNullChats.length);
+    } catch (e, stack) {
+      ChatStorageLogger.error('saveChatList', 'Failed to save chat list',
+          error: e, stack: stack, data: {'type': type});
+    }
+  }
+
+  /// Retrieve cached chat list for a given type.
+  Future<List<ChatList>> getChatListFromLocal(String type) async {
+    if (type.isEmpty) return [];
+    try {
+      final box = await _chatListBoxRef;
+      final key = '${type}_chat_list';
+      final jsonString = box.get(key);
+
+      if (jsonString == null || jsonString.isEmpty) {
+        ChatStorageLogger.chatListEmpty(type);
+        return [];
+      }
+
+      final decoded = jsonDecode(jsonString) as List<dynamic>;
+      final chatList = decoded
+          .map((item) => ChatList.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      ChatStorageLogger.chatListLoaded(type, chatList.length);
+      return chatList;
+    } catch (e, stack) {
+      ChatStorageLogger.error('getChatListFromLocal', 'Failed to load chat list',
+          error: e, stack: stack, data: {'type': type});
+      return [];
+    }
+  }
+
+  /// Retrieve all cached chat lists (all types).
+  Future<Map<String, List<ChatList>>> getAllChatListsFromLocal() async {
+    final result = <String, List<ChatList>>{};
+    try {
+      const types = [
+        AppConstants.personal_Chat_Type,
+        AppConstants.business_Chat_Type,
+        AppConstants.group_Chat_Type,
+      ];
+
+      for (final type in types) {
+        final chats = await getChatListFromLocal(type);
+        if (chats.isNotEmpty) {
+          result[type] = chats;
+        }
+      }
+
+      ChatStorageLogger.info('getAllChatLists',
+          'Loaded ${result.length} chat types from cache',
+          data: result.map((k, v) => MapEntry(k, v.length)));
+    } catch (e, stack) {
+      ChatStorageLogger.error('getAllChatLists', 'Failed to load all chat lists',
+          error: e, stack: stack);
+    }
+    return result;
+  }
+
+  /// Search all cached chat lists for a conversation with a specific userId.
+  /// Returns the matching ChatList or null if not found.
+  Future<ChatList?> findChatByUserId(String userId) async {
+    if (userId.isEmpty) return null;
+    try {
+      final allChats = await getAllChatListsFromLocal();
+      for (final chats in allChats.values) {
+        for (final chat in chats) {
+          if (chat.sender?.id == userId) {
+            ChatStorageLogger.info('findChatByUserId',
+                'Found cached conversation for user',
+                data: {'userId': userId, 'conversationId': chat.conversationId});
+            return chat;
+          }
+        }
+      }
+      ChatStorageLogger.info('findChatByUserId',
+          'No cached conversation found for user',
+          data: {'userId': userId});
+    } catch (e, stack) {
+      ChatStorageLogger.error('findChatByUserId', 'Failed to search cached chats',
+          error: e, stack: stack, data: {'userId': userId});
+    }
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONTACTS PERSISTENCE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Save synced contacts API response to Hive.
+  Future<void> saveContacts(Map<String, dynamic> data) async {
+    try {
+      final box = await _contactsBoxRef;
+      await box.put('synced_contacts', jsonEncode(data));
+      ChatStorageLogger.success('saveContacts', 'Contacts saved to Hive');
+    } catch (e, stack) {
+      ChatStorageLogger.error('saveContacts', 'Failed to save contacts',
+          error: e, stack: stack);
+    }
+  }
+
+  /// Load cached contacts from Hive. Returns null if no cache.
+  Future<Map<String, dynamic>?> getContacts() async {
+    try {
+      final box = await _contactsBoxRef;
+      final jsonString = box.get('synced_contacts');
+      if (jsonString == null || jsonString.isEmpty) {
+        ChatStorageLogger.info('getContacts', 'No cached contacts found');
+        return null;
+      }
+      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+      ChatStorageLogger.success('getContacts', 'Contacts loaded from Hive');
+      return decoded;
+    } catch (e, stack) {
+      ChatStorageLogger.error('getContacts', 'Failed to load contacts',
+          error: e, stack: stack);
+      return null;
+    }
+  }
+
+  /// Check if contacts are cached in Hive.
+  Future<bool> hasContacts() async {
+    try {
+      final box = await _contactsBoxRef;
+      final data = box.get('synced_contacts');
+      return data != null && data.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MESSAGE PERSISTENCE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Bulk-save (replace) all messages for a conversation.
+  /// Called when server responds with authoritative message data.
+  Future<void> saveMessagesByConversationId(
+      String conversationId, List<Messages> messages) async {
+    if (conversationId.isEmpty) {
+      ChatStorageLogger.warn('saveMessages', 'Empty conversationId, skipping');
+      return;
+    }
+    try {
+      final box = await _messagesBoxRef;
+
+      // Preserve any local pending messages that aren't in the server response
+      final existing = await _getRawMessages(conversationId, box);
+      final pendingMessages = existing
+          .where((m) => m['sendStatus'] == 'pending')
+          .toList();
+
+      // Build server message ID set for dedup
+      final serverIds = <String>{};
+      for (final m in messages) {
+        if (m.id != null && m.id!.isNotEmpty) serverIds.add(m.id!);
+      }
+
+      // Filter pending that aren't in server response (still truly pending)
+      final survivingPending = pendingMessages
+          .where((m) => !serverIds.contains(m['_id']?.toString()))
+          .toList();
+
+      // Convert server messages to JSON (skip File objects that can't serialize)
+      final jsonList = messages.map((m) => _messageToStorableJson(m)).toList();
+
+      // Prepend surviving pending messages
+      if (survivingPending.isNotEmpty) {
+        jsonList.insertAll(0, survivingPending);
+        ChatStorageLogger.info('saveMessages',
+            'Preserved ${survivingPending.length} pending messages',
+            data: {'conversationId': conversationId});
+      }
+
+      await box.put(conversationId, jsonEncode(jsonList));
+      ChatStorageLogger.messagesSaved(conversationId, jsonList.length);
+    } catch (e, stack) {
+      ChatStorageLogger.error('saveMessages', 'Failed to save messages',
+          error: e, stack: stack, data: {'conversationId': conversationId});
+    }
+  }
+
+  /// Append a single message to the local conversation cache.
+  Future<void> saveSingleMessageToConversationId(
+      String conversationId,
+      Messages newMessage, {
+        String sendStatus = "",
+      }) async {
+    if (conversationId.isEmpty) {
+      ChatStorageLogger.warn('saveSingleMessage', 'Empty conversationId, skipping');
+      return;
+    }
+    try {
+      final box = await _messagesBoxRef;
+      final existing = await _getRawMessages(conversationId, box);
+
+      // Check for duplicate by ID
+      final msgId = newMessage.id ?? '';
+      if (msgId.isNotEmpty) {
+        final alreadyExists = existing.any((m) => m['_id']?.toString() == msgId);
+        if (alreadyExists) {
+          ChatStorageLogger.info('saveSingleMessage',
+              'Message already cached, skipping duplicate',
+              data: {'messageId': msgId});
+          return;
+        }
+      }
+
+      // Convert to storable JSON
+      final msgJson = _messageToStorableJson(newMessage);
+
+      // Override sendStatus if specified
+      if (sendStatus.isNotEmpty) {
+        msgJson['sendStatus'] = sendStatus;
+      }
+
+      existing.add(msgJson);
+      await box.put(conversationId, jsonEncode(existing));
+
+      ChatStorageLogger.singleMessageSaved(
+          conversationId, msgId, sendStatus);
+    } catch (e, stack) {
+      ChatStorageLogger.error('saveSingleMessage', 'Failed to save message',
+          error: e, stack: stack, data: {'conversationId': conversationId});
+    }
+  }
+
+  /// Get all unsent (pending) messages for a conversation.
+  /// Returns raw JSON maps so the controller can access sendPendingMsgParams.
+  Future<List<Map<String, dynamic>>> getUnsentMessages(String conversationId) async {
+    if (conversationId.isEmpty) return [];
+    try {
+      final box = await _messagesBoxRef;
+      final messages = await _getRawMessages(conversationId, box);
+
+      final pending = messages
+          .where((m) => m['sendStatus'] == 'pending')
+          .toList();
+
+      ChatStorageLogger.pendingFound(conversationId, pending.length);
+      return pending;
+    } catch (e, stack) {
+      ChatStorageLogger.error('getUnsent', 'Failed to get unsent messages',
+          error: e, stack: stack, data: {'conversationId': conversationId});
+      return [];
+    }
+  }
+
+  /// Mark a pending message as sent and optionally replace its temp ID.
+  Future<void> markMessageAsSent(String conversationId, String messageId) async {
+    if (conversationId.isEmpty || messageId.isEmpty) return;
+    try {
+      final box = await _messagesBoxRef;
+      final messages = await _getRawMessages(conversationId, box);
+
+      bool found = false;
+      for (int i = 0; i < messages.length; i++) {
+        if (messages[i]['_id']?.toString() == messageId) {
+          messages[i]['sendStatus'] = '';
+          // Clear retry params once sent
+          messages[i].remove('sendPendingMsgParams');
+          messages[i].remove('pendingFilePaths');
+          found = true;
+          break;
+        }
+      }
+
+      if (found) {
+        await box.put(conversationId, jsonEncode(messages));
+        ChatStorageLogger.messageSentMarked(conversationId, messageId);
+      } else {
+        ChatStorageLogger.warn('markSent',
+            'Message not found in local cache',
+            data: {'conversationId': conversationId, 'messageId': messageId});
+      }
+    } catch (e, stack) {
+      ChatStorageLogger.error('markSent', 'Failed to mark message as sent',
+          error: e, stack: stack,
+          data: {'conversationId': conversationId, 'messageId': messageId});
+    }
+  }
+
+  /// Load all cached messages for a conversation as Messages objects.
+  Future<List<Messages>> getMessagesByConversationId(String conversationId) async {
+    if (conversationId.isEmpty) return [];
+    try {
+      final box = await _messagesBoxRef;
+      final rawList = await _getRawMessages(conversationId, box);
+
+      if (rawList.isEmpty) {
+        ChatStorageLogger.messagesEmpty(conversationId);
+        return [];
+      }
+
+      final messages = rawList
+          .map((json) {
+            try {
+              return Messages.fromJson(json);
+            } catch (e) {
+              ChatStorageLogger.warn('loadMessages',
+                  'Skipping malformed message',
+                  data: {'id': json['_id'], 'error': e.toString()});
+              return null;
+            }
+          })
+          .whereType<Messages>()
+          .toList();
+
+      ChatStorageLogger.messagesLoaded(conversationId, messages.length);
+      return messages;
+    } catch (e, stack) {
+      ChatStorageLogger.error('loadMessages', 'Failed to load messages',
+          error: e, stack: stack, data: {'conversationId': conversationId});
+      return [];
+    }
+  }
+
+  /// Load only media messages (image, video, audio, document) for a conversation.
+  Future<List<Messages>> getMediaMessagesByConversationId(String conversationId) async {
+    if (conversationId.isEmpty) return [];
+    try {
+      final allMessages = await getMessagesByConversationId(conversationId);
+      const mediaTypes = {'image', 'video', 'audio', 'document'};
+
+      final mediaMessages = allMessages
+          .where((m) => mediaTypes.contains(m.messageType))
+          .toList();
+
+      ChatStorageLogger.mediaMessagesLoaded(conversationId, mediaMessages.length);
+      return mediaMessages;
+    } catch (e, stack) {
+      ChatStorageLogger.error('loadMediaMessages', 'Failed to load media messages',
+          error: e, stack: stack, data: {'conversationId': conversationId});
+      return [];
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // USER IMAGE CACHING
+  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<String> _downloadAndSaveImage(String imageUrl, String userId) async {
     try {
@@ -120,15 +515,11 @@ class LocalStorageHelper {
         }
       }
     } catch (e) {
-      debugPrint('Failed to download/compress image: $e');
+      ChatStorageLogger.error('downloadImage', 'Failed to download/compress image',
+          error: e, data: {'userId': userId});
     }
 
     return '';
-  }
-
-
-  Future<void> saveChatList(List<ChatList?> chats, String type) async {
-    return;
   }
 
   Future<String> getOrDownloadUserImage(String url, String userId) async {
@@ -155,44 +546,53 @@ class LocalStorageHelper {
     return url;
   }
 
-  Future<List<ChatList>> getChatListFromLocal(String type) async {
-    return [];
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INTERNAL HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Read raw JSON message list from Hive box.
+  Future<List<Map<String, dynamic>>> _getRawMessages(
+      String conversationId, Box<String> box) async {
+    final jsonString = box.get(conversationId);
+    if (jsonString == null || jsonString.isEmpty) return [];
+
+    try {
+      final decoded = jsonDecode(jsonString) as List<dynamic>;
+      return decoded
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    } catch (e) {
+      ChatStorageLogger.error('_getRawMessages', 'Corrupted cache, returning empty',
+          error: e, data: {'conversationId': conversationId});
+      return [];
+    }
   }
 
-  Future<Map<String, List<ChatList>>> getAllChatListsFromLocal() async {
-    return {};
+  /// Convert a Messages object to a JSON map safe for Hive storage.
+  /// Strips non-serializable fields like File objects.
+  Map<String, dynamic> _messageToStorableJson(Messages m) {
+    final json = m.toJson();
+    // Remove File objects that can't be JSON-encoded
+    json.remove('sendLoadingFile');
+    // Ensure nested objects are serializable
+    if (json['parentMessage'] != null && json['parentMessage'] is! Map) {
+      try {
+        json['parentMessage'] = (json['parentMessage'] as dynamic).toJson();
+      } catch (_) {
+        json.remove('parentMessage');
+      }
+    }
+    if (json['conversation'] != null && json['conversation'] is! Map) {
+      try {
+        json['conversation'] = (json['conversation'] as dynamic).toJson();
+      } catch (_) {
+        json.remove('conversation');
+      }
+    }
+    return json;
   }
-
-
-  Future<void> saveMessagesByConversationId(String conversationId, List<Messages> messages) async {
-    return;
-  }
-
-  Future<void> saveSingleMessageToConversationId(
-      String conversationId,
-      Messages newMessage, {
-        String sendStatus = "",
-      }) async {
-    return;
-  }
-
-  Future<List<Map<String, dynamic>>> getUnsentMessages(String conversationId) async {
-    return [];
-  }
-
-  Future<void> markMessageAsSent(String conversationId, String messageId) async {
-    return;
-  }
-
-  Future<List<Messages>> getMessagesByConversationId(String conversationId) async {
-    return [];
-  }
-
-  Future<List<Messages>> getMediaMessagesByConversationId(String conversationId) async {
-    return [];
-  }
-
 }
+
 class AiChatLocalStorage {
   static const String _boxName = "aiChatBox";
 
@@ -275,6 +675,7 @@ class AiChatLocalStorage {
     }
   }
 }
+
 class UserImageStorage {
   static const _boxName = "userImagesBox";
 

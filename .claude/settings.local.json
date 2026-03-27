@@ -24,7 +24,14 @@
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
       "Bash(grep -E \"\\\\.\\(dart\\)$\")",
-      "Bash(dart run:*)"
+      "Bash(dart run:*)",
+      "Bash(flutter devices:*)",
+      "Bash(flutter run:*)",
+      "Bash(pkill -f \"flutter run\")",
+      "Bash(flutter build:*)",
+      "Bash(flutter install:*)",
+      "Bash(adb:*)",
+      "Bash(export PATH=\"$PATH:$HOME/Library/Android/sdk/platform-tools\")"
     ]
   }
 }

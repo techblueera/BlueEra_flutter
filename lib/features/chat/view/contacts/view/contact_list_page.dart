@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -12,12 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/foundation.dart'; // for compute
 
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
-import '../../../../../core/constants/shared_preference_utils.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../auth/controller/chat_view_controller.dart';
@@ -47,12 +44,21 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    // if (widget.from == "group") {
-      chatViewController.loadGroupConnections();
-    // } else {
-      _loadContactsFromStorage();
-    // }
+    chatViewController.loadGroupConnections();
+    // uploadContacts handles: memory check → Hive cache → API (in that order)
+    _loadContacts();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _loadContacts() async {
+    // If data already in memory, uploadContacts will return immediately
+    // If not, it checks Hive, then falls back to API
+    if (chatViewController.contactsListModel?.value.data == null) {
+      await _fetchAndUploadContacts();
+    } else {
+      chatViewController.viewContactsListResponse.value =
+          ApiResponse.complete(chatViewController.contactsListModel?.value);
+    }
   }
 
   @override
@@ -122,20 +128,7 @@ class _ContactsPageState extends State<ContactsPage> {
     }).toList();
   }
 
-  Future<void> _loadContactsFromStorage() async {
-    String? storedData = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.saved_contacts);
-    if (storedData != null) {
-      Map<String, dynamic> decoded =
-          await compute(jsonDecode, storedData) as Map<String, dynamic>;
-      chatViewController.loadContactsFromLocalStorage(decoded);
-    } else {
-      await _refreshContacts();
-    }
-  }
-
-// This is the isolate function → runs in background
-  List<Map<String, String>> formatContactsInIsolate(
+  List<Map<String, String>> _formatContacts(
       List<Map<String, dynamic>> rawContacts) {
     return rawContacts
         .where((c) => (c["phones"] as List).isNotEmpty)
@@ -146,16 +139,15 @@ class _ContactsPageState extends State<ContactsPage> {
         .toList();
   }
 
-  Future<void> _refreshContacts() async {
+  /// Fetch phone contacts and send to API (first time or refresh).
+  Future<void> _fetchAndUploadContacts({bool forceRefresh = false}) async {
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
-      List<Contact> contacts =
-      await FlutterContacts.getContacts(
+      List<Contact> contacts = await FlutterContacts.getContacts(
         withProperties: true,
-        withAccounts: true, // REQUIRED for newer Android
+        withAccounts: true,
       );
 
-      // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
         return {
           "displayName": c.displayName,
@@ -163,16 +155,20 @@ class _ContactsPageState extends State<ContactsPage> {
         };
       }).toList();
 
-      // Compute in isolate
       List<Map<String, String>> formattedContacts =
-          await formatContactsInIsolate(rawContacts);
-      // await compute(formatContactsInIsolate, rawContacts);
+          _formatContacts(rawContacts);
 
-      chatViewController.uploadContacts(formattedContacts);
+      if (forceRefresh) {
+        // Refresh button: always call API
+        await chatViewController.refreshContacts(formattedContacts);
+      } else {
+        // First load: checks memory → Hive → API
+        await chatViewController.uploadContacts(formattedContacts);
+      }
     } else {
       PermissionStatus newStatus = await Permission.contacts.request();
       if (newStatus.isGranted) {
-        return _refreshContacts();
+        return _fetchAndUploadContacts(forceRefresh: forceRefresh);
       } else if (newStatus.isPermanentlyDenied) {
         _showPermissionDialog();
       } else {
@@ -231,7 +227,7 @@ class _ContactsPageState extends State<ContactsPage> {
             if (isGroupMode) {
               chatViewController.loadGroupConnections();
             } else {
-              _refreshContacts();
+              _fetchAndUploadContacts(forceRefresh: true);
             }
           },
         ),
@@ -540,11 +536,24 @@ class _ExistingContactTile extends StatelessWidget {
           if (userId.isNotEmpty) onSelect(userId);
         } else {
           if (contact?.id != null) {
-
-            chatViewController.checkChatConnectionAndOpenChat(
-              userId: contact!.id!,
-              isFromContactList: true,
-            );
+            // If conversationId is available, open directly without API call
+            if ((contact!.conversationId ?? '').isNotEmpty) {
+              chatViewController.openChatFromChatList(
+                userId: contact!.id!,
+                conversationId: contact!.conversationId!,
+                type: (contact!.accountType == 'BUSINESS')
+                    ? 'business'
+                    : 'personal',
+                contactName: contact!.name,
+                contactNo: contact!.contactNo,
+                profileImage: contact!.profileImage?.toString(),
+              );
+            } else {
+              chatViewController.checkChatConnectionAndOpenChat(
+                userId: contact!.id!,
+                isFromContactList: true,
+              );
+            }
           }
         }
       },

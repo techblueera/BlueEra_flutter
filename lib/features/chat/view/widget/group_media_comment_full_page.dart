@@ -23,6 +23,7 @@ import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/getMediaMsgCommentsModel.dart';
 
 import '../chat_screen_new.dart';
+import 'chat_cached_image.dart';
 import 'component_widgets.dart';
 import 'media_message_full_view.dart';
 class GroupVideoCommentsPage extends StatefulWidget {
@@ -341,7 +342,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: (widget.message.url?.first.url?.contains('http')??false)?
-                            Image.network(widget.message.url?.first.url ?? '',
+                            ChatCachedImage(url: widget.message.url?.first.url ?? '',
                                 height: 250, width: 252, fit: BoxFit.cover):
                             Image.file(File(widget.message.url?.first.url ?? ''),
                                 height: 250, width: 252,

@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -110,6 +111,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
+    _initializeChatMediaFolders();
     checkByRiderCall();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
@@ -234,6 +236,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _handleSharedMedia();
     });
     // groupChatViewController.connectSocket();
+  }
+
+  /// Pre-create BlueEra media folders and request storage permissions early.
+  void _initializeChatMediaFolders() {
+    ChatMediaStorageService.initializeMediaFolders();
+    if (Platform.isIOS) {
+      ChatMediaStorageService.requestPhotoLibraryPermission();
+    }
   }
 
   void _handleSharedMedia() {

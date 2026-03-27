@@ -279,6 +279,7 @@ Future<void> main() async {
   // HttpOverrides.global = MyHttpOverrides();
   /// Hive Database
   await Hive.initFlutter();
+
   final localizationService = LocalizationService();
   await localizationService.init();
   if (Platform.isIOS) {

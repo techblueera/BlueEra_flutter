@@ -971,8 +971,12 @@ class ChatViewController extends GetxController {
       // ── E2E: Register socket callbacks ──────────────────────────────────
       _registerE2ESocketCallbacks();
     }
-    openedConversation.value = await localStorageHelper.getConversation();
-    await loadAllChatListFromLocal();
+    try {
+      openedConversation.value = await localStorageHelper.getConversation();
+      await loadAllChatListFromLocal();
+    } catch (e) {
+      debugPrint('connectSocket local storage init error: $e');
+    }
     // final connectivityResult = await NetworkUtils.isConnected();
     // if (connectivityResult) {
     //   await loadChatListFromLocal(AppConstants.personal_Chat_Type);
@@ -1770,16 +1774,20 @@ class ChatViewController extends GetxController {
     }
     if (event == ChatEmitEvents.ChatList) {
       final type = data[ApiKeys.type];
-      List<ChatList> localChats =
-          await localStorageHelper.getChatListFromLocal(type);
-      if (!localChats.isEmpty) {
-        loadChatListWithType(
-            chatListModel: GetChatListModel(
-          type: type,
-          success: true,
-          chatList: localChats,
-          archived: [],
-        ));
+      try {
+        List<ChatList> localChats =
+            await localStorageHelper.getChatListFromLocal(type);
+        if (localChats.isNotEmpty) {
+          loadChatListWithType(
+              chatListModel: GetChatListModel(
+            type: type,
+            success: true,
+            chatList: List<ChatList?>.from(localChats),
+            archived: [],
+          ));
+        }
+      } catch (e) {
+        debugPrint('emitEvent getChatListFromLocal error: $e');
       }
 
       Map<String, dynamic> dataParams = {ApiKeys.type: data[ApiKeys.type]};
@@ -1792,16 +1800,20 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> loadAllChatListFromLocal() async {
-    final allChats = await localStorageHelper.getAllChatListsFromLocal();
+    try {
+      final allChats = await localStorageHelper.getAllChatListsFromLocal();
 
-    for (final entry in allChats.entries) {
-      loadChatListWithType(
-          chatListModel: GetChatListModel(
-        type: entry.key,
-        success: true,
-        chatList: entry.value,
-        archived: [],
-      ));
+      for (final entry in allChats.entries) {
+        loadChatListWithType(
+            chatListModel: GetChatListModel(
+          type: entry.key,
+          success: true,
+          chatList: List<ChatList?>.from(entry.value),
+          archived: [],
+        ));
+      }
+    } catch (e) {
+      debugPrint('loadAllChatListFromLocal error: $e');
     }
   }
 
@@ -1819,35 +1831,69 @@ class ChatViewController extends GetxController {
     viewContactsListResponse.value = ApiResponse.complete(value);
   }
 
+  /// Upload contacts to API and save response to Hive.
+  /// If data already exists in memory, skip API call.
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
-    // try {
-
     contactListParamsData = params;
-    if (contactsListModel?.value.data == null) {
-      ResponseModel responseModel =
-          await ChatViewRepo().getConnectionsSync(params);
 
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
+    // Already loaded in memory — skip everything
+    if (contactsListModel?.value.data != null) {
+      viewContactsListResponse.value =
+          ApiResponse.complete(contactsListModel?.value);
+      return;
+    }
 
+    // Try Hive cache first
+    final cached = await localStorageHelper.getContacts();
+    if (cached != null) {
+      contactsListModel?.value = ContactListModel.fromJson(cached);
+      viewContactsListResponse.value =
+          ApiResponse.complete(contactsListModel?.value);
+      return;
+    }
 
-        await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.saved_contacts,
-          json.encode(data),
-        );
-        contactsListModel?.value = ContactListModel.fromJson(data);
-        viewContactsListResponse.value = ApiResponse.complete(responseModel);
+    // No cache — call API
+    ResponseModel responseModel =
+        await ChatViewRepo().getConnectionsSync(params);
+
+    if (responseModel.isSuccess) {
+      final data = responseModel.response?.data;
+
+      // Save to Hive
+      await localStorageHelper.saveContacts(data);
+      contactsListModel?.value = ContactListModel.fromJson(data);
+      viewContactsListResponse.value = ApiResponse.complete(responseModel);
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+    }
+  }
+
+  /// Force refresh contacts from API (called by refresh button).
+  Future<void> refreshContacts(List<Map<String, dynamic>> params) async {
+    contactListParamsData = params;
+    viewContactsListResponse.value = ApiResponse.initial('Initial');
+
+    ResponseModel responseModel =
+        await ChatViewRepo().getConnectionsSync(params);
+
+    if (responseModel.isSuccess) {
+      final data = responseModel.response?.data;
+
+      // Update Hive cache
+      await localStorageHelper.saveContacts(data);
+      contactsListModel?.value = ContactListModel.fromJson(data);
+      viewContactsListResponse.value = ApiResponse.complete(responseModel);
+    } else {
+      // Fallback to existing data if available
+      if (contactsListModel?.value.data != null) {
+        viewContactsListResponse.value =
+            ApiResponse.complete(contactsListModel?.value);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } else {
-      viewContactsListResponse.value = ApiResponse.error('');
     }
-
-    // } catch (e) {
-    //   viewContactsListResponse.value = ApiResponse.error('error');
-    // }
   }
 
   Future<void> setContact(String type,List<Map<String, dynamic>> params)async{
@@ -2330,6 +2376,31 @@ class ChatViewController extends GetxController {
           message: responseModel.message ?? AppStrings.somethingWentWrong);
     }
   }
+  /// Open a chat directly from the chat list without an API call.
+  /// All required data is already available from the ChatList object.
+  Future<void> openChatFromChatList({
+    required String userId,
+    required String conversationId,
+    required String type,
+    String? contactName,
+    String? contactNo,
+    String? profileImage,
+  }) async {
+    businessTabIndexSelected.value = 0;
+    await getLocalConversation(
+        conversationId, userId, userId, contactName ?? '');
+
+    _navigateToChatScreen(
+      type: type,
+      userId: userId,
+      conversationId: conversationId,
+      profileImage: profileImage ?? '',
+      contactName: contactName ?? '',
+      contactNo: contactNo ?? '',
+      isFromContactList: false,
+    );
+  }
+
   Future<void> checkChatConnectionAndOpenChat(
       {required String userId,bool? isFromContactList,
         bool? isWithProductSend,
@@ -2360,63 +2431,159 @@ class ChatViewController extends GetxController {
         await sendProductMessages(shareProductParams ?? {});
       }
 
-      if (type == AppConstants.business_Chat_Type) {
-        if (isFromContactList != null && isFromContactList) {
-          Get.off(
-                () => BusinessChatScreenUpdated(
-              type: type,
-              isInitialMessage: conversationId=='',
-              userId: userId,
-              conversationId: conversationId,
-              profileImage: profileImage,
-              name: contactName,
-              contactNo: contactNo,
-            ),
-          );
-        } else {
-          Get.to(
-                () => BusinessChatScreenUpdated(
-              type: type,
-              isInitialMessage: conversationId=='',
-              userId: userId,
-              conversationId: conversationId,
-              profileImage: profileImage,
-              name: contactName,
-              contactNo: contactNo,
-            ),
-          );
-        }
-      } else {
-        if (isFromContactList != null && isFromContactList) {
-          Get.off(
-                () => PersonalChatScreen(
-              type: type,
-              isInitialMessage: conversationId=='',
-              userId: userId,
-              conversationId: conversationId,
-              profileImage: profileImage,
-              name: contactName,
-              contactNo: contactNo,
-            ),
-          );
-        } else {
-          Get.to(
-                () => PersonalChatScreen(
-              type: type,
-              isInitialMessage: conversationId=='',
-              userId: userId,
-              conversationId: conversationId,
-              profileImage: profileImage,
-              name: contactName,
-              contactNo: contactNo,
-            ),
-          );
-        }
-      }
-
+      _navigateToChatScreen(
+        type: type,
+        userId: userId,
+        conversationId: conversationId,
+        profileImage: profileImage,
+        contactName: contactName,
+        contactNo: contactNo,
+        isFromContactList: isFromContactList,
+      );
     } else {
-      commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      // Offline fallback: try to open from local cache
+      final opened = await _tryOpenChatFromLocalCache(
+        userId: userId,
+        isFromContactList: isFromContactList,
+      );
+      if (!opened) {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    }
+  }
+
+  /// Try to open a chat from locally cached chat list data.
+  /// Returns true if a cached conversation was found and opened.
+  Future<bool> _tryOpenChatFromLocalCache({
+    required String userId,
+    bool? isFromContactList,
+  }) async {
+    // First search in-memory chat lists (already loaded)
+    ChatList? cachedChat = _findChatInMemory(userId);
+
+    // If not in memory, search Hive cache
+    cachedChat ??= await localStorageHelper.findChatByUserId(userId);
+
+    if (cachedChat == null || (cachedChat.conversationId ?? '').isEmpty) {
+      return false;
+    }
+
+    final conversationId = cachedChat.conversationId ?? '';
+    final contactName = cachedChat.sender?.name ?? '';
+    final profileImage = cachedChat.sender?.profileImage ?? '';
+    final contactNo = cachedChat.sender?.contactNo ?? '';
+    final chatPersonUserId = cachedChat.sender?.id ?? '';
+
+    businessTabIndexSelected.value = 0;
+
+    // Load cached messages for instant display (no server fetch)
+    getListOfMessageResponse.value = ApiResponse.initial('Initial');
+    await loadOfflineMessages(conversationId);
+    listenUserNewMessages(conversationId: conversationId, userId: chatPersonUserId);
+
+    // Determine type from cached data — default to personal
+    String type = AppConstants.personal_Chat_Type;
+    if (cachedChat.isGroup == true) {
+      type = AppConstants.group_Chat_Type;
+    } else {
+      // Check in-memory business chat list
+      final businessChats = getBusinessChatListModel?.value.chatList ?? [];
+      final isBusiness = businessChats.any(
+              (c) => c?.conversationId == conversationId);
+      if (isBusiness) type = AppConstants.business_Chat_Type;
+    }
+
+    _navigateToChatScreen(
+      type: type,
+      userId: userId,
+      conversationId: conversationId,
+      profileImage: profileImage,
+      contactName: contactName,
+      contactNo: contactNo,
+      isFromContactList: isFromContactList,
+    );
+    return true;
+  }
+
+  /// Search in-memory chat lists for a conversation with this userId.
+  ChatList? _findChatInMemory(String userId) {
+    final allLists = [
+      getPersonalChatListModel?.value.chatList,
+      getBusinessChatListModel?.value.chatList,
+      getGroupChatListModel?.value.chatList,
+    ];
+    for (final chatList in allLists) {
+      if (chatList == null) continue;
+      for (final chat in chatList) {
+        if (chat?.sender?.id == userId) return chat;
+      }
+    }
+    return null;
+  }
+
+  /// Navigate to the appropriate chat screen (personal or business).
+  void _navigateToChatScreen({
+    required String type,
+    required String userId,
+    required String conversationId,
+    required String profileImage,
+    required String contactName,
+    required String contactNo,
+    bool? isFromContactList,
+  }) {
+    if (type == AppConstants.business_Chat_Type) {
+      if (isFromContactList != null && isFromContactList) {
+        Get.off(
+              () => BusinessChatScreenUpdated(
+            type: type,
+            isInitialMessage: conversationId=='',
+            userId: userId,
+            conversationId: conversationId,
+            profileImage: profileImage,
+            name: contactName,
+            contactNo: contactNo,
+          ),
+        );
+      } else {
+        Get.to(
+              () => BusinessChatScreenUpdated(
+            type: type,
+            isInitialMessage: conversationId=='',
+            userId: userId,
+            conversationId: conversationId,
+            profileImage: profileImage,
+            name: contactName,
+            contactNo: contactNo,
+          ),
+        );
+      }
+    } else {
+      if (isFromContactList != null && isFromContactList) {
+        Get.off(
+              () => PersonalChatScreen(
+            type: type,
+            isInitialMessage: conversationId=='',
+            userId: userId,
+            conversationId: conversationId,
+            profileImage: profileImage,
+            name: contactName,
+            contactNo: contactNo,
+          ),
+        );
+      } else {
+        Get.to(
+              () => PersonalChatScreen(
+            type: type,
+            isInitialMessage: conversationId=='',
+            userId: userId,
+            conversationId: conversationId,
+            profileImage: profileImage,
+            name: contactName,
+            contactNo: contactNo,
+          ),
+        );
+      }
     }
   }
   Future<Map<String,dynamic>?> checkChatConnection(Map<String, dynamic> params) async {
