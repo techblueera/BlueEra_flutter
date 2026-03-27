@@ -333,7 +333,7 @@ class AuthController extends GetxController {
   RxBool isAddBusinessUserLoading = false.obs;
 
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
-    try {
+    // try {
       isAddBusinessUserLoading.value = true;
       ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
           bodyRequest: reqData, showProgress: false);
@@ -416,13 +416,25 @@ class AuthController extends GetxController {
           } else if ((typeOfBusiness ==
               BusinessType.Motel.name.toUpperCase())) {
             final controller = getOrPut(() => HotelServiceController());
+
+
+            final locationMap = jsonDecode(reqData[ApiKeys.business_location]);
+            final lat = locationMap[ApiKeys.lat];
+            final lon = locationMap[ApiKeys.lon];
+
             final reqDataParm = {
               ApiKeys.businessId: businessId,
               "name": reqData[ApiKeys.business_name],
               "description": "",
               "website": "",
               "address": {"city": "", "state": '', "pincode": ''},
-              "location": reqData[ApiKeys.business_location],
+              "location": {
+                "name": "",
+                "type": "Point",
+                "coordinates": [lat, lon]
+
+            // "coordinates": [reqData[ApiKeys.business_location]['lat'],reqData[ApiKeys.business_location]['lon'],]
+              },
               "bus_station_location": {
                 "name": "",
                 "type": "Point",
@@ -443,13 +455,13 @@ class AuthController extends GetxController {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      logs("ERRPR $e");
-      addUserResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isAddBusinessUserLoading.value = false;
-    }
+    // } catch (e) {
+    //   logs("ERRPR $e");
+    //   addUserResponse = ApiResponse.error('error');
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    // } finally {
+    //   isAddBusinessUserLoading.value = false;
+    // }
   }
 
   List<CategoryData> businessCategories = [];
@@ -672,6 +684,7 @@ class AuthController extends GetxController {
   Future<void> createGuestAccountUserController(
       {required Map<String, dynamic> reqData}) async {
     try {
+      // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWM2NmQ0ZmI2OWQ3YzJhMzU5ODg2ZDciLCJfaWQiOnsiX2lkIjoiNjljNjZkNGYyYjRmMTc5MTJmYTA0ZTNhIiwiaWQiOiI2OWM2NmQ0ZjJiNGYxNzkxMmZhMDRlM2EiLCJhY2NvdW50X3R5cGUiOiJHVUVTVCIsImNvbnRhY3Rfbm8iOiIwMDU1MDAwMDAwIiwiYnVzaW5lc3NfaWQiOm51bGwsIm5hbWUiOiJHdWVzdDAwMDAiLCJwcm9maWxlX2ltYWdlIjoiIn0sImlhdCI6MTc3NDYxMTc5MSwiZXhwIjoxNzkwMTYzNzkxfQ.TZUxK7P3W139h_tNeKGjW0nDuhADd9-6_xvFEk6Idro
       ResponseModel response =
           await AuthRepo().createGuestAccountRepo(params: reqData);
       if (response.isSuccess) {

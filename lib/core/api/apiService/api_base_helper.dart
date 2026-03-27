@@ -26,7 +26,6 @@ class AuthManager {
     if (isLoggingOut) return;
 commonSnackBar(message: response?.data["message"]);
     isLoggingOut = true;
-
     await SharedPreferenceUtils.clearPreference();
 
     getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());

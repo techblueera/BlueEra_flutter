@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -49,8 +50,8 @@ class _CreateBusinessAccountNewStepTwoState
   final cityController = TextEditingController();
   final picCodeController = TextEditingController();
   ContactType? selectedType = ContactType.Mobile;
-  final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController  = getOrPut(() => ViewBusinessDetailsController());
+
   bool isFormValid = false;
   final locationController = Get.put(LocationController());
   GoogleMapController? mapController;
