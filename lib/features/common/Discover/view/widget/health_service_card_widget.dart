@@ -44,7 +44,6 @@ class HealthServiceCardWidget extends StatelessWidget {
               height: SizeConfig.size124,
               child: ListView.builder(
                 padding: EdgeInsets.zero,
-                shrinkWrap: true,
                 primary: false,
                 itemCount: healthCareList.length,
                 scrollDirection: Axis.horizontal,

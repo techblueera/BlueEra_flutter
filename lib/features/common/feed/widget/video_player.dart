@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String? videoUrl;
@@ -21,48 +22,67 @@ class VideoPlayerWidget extends StatefulWidget {
 }
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _showOverlay = false;
+  bool _isInitializing = false;
+  bool _userTappedPlay = false;
 
   @override
-  void initState() {
-    super.initState();
-    _initializeController();
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
-  void _initializeController() {
+  Future<void> _initializeAndPlay() async {
+    if (_isInitializing || _controller != null) return;
+    _isInitializing = true;
+
+    VideoPlayerController controller;
     if (widget.videoFile != null) {
-      _controller = VideoPlayerController.file(widget.videoFile!);
+      controller = VideoPlayerController.file(widget.videoFile!);
     } else if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
-
-
-      // Create new controller
-      _controller = VideoPlayerController.networkUrl(
+      controller = VideoPlayerController.networkUrl(
         Uri.parse(widget.videoUrl!),
         videoPlayerOptions: isHlsUrl(widget.videoUrl!)
             ? VideoPlayerOptions(mixWithOthers: true)
             : null,
       );
+    } else {
+      _isInitializing = false;
+      return;
     }
 
-    _controller
-      ..initialize().then((_) => setState(() {}))
-      ..setLooping(true)
-      ..play();
+    _controller = controller;
+    if (mounted) setState(() {});
+
+    await controller.initialize();
+
+    if (!mounted) {
+      controller.dispose();
+      return;
+    }
+
+    _isInitializing = false;
+    controller.setLooping(true);
+    controller.play();
+    setState(() {});
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void _disposeController() {
+    _controller?.dispose();
+    _controller = null;
+    _isInitializing = false;
+    _userTappedPlay = false;
   }
 
   void _togglePlayPause() {
+    final ctrl = _controller;
+    if (ctrl == null || !ctrl.value.isInitialized) return;
     setState(() {
-      if (_controller.value.isPlaying) {
-        _controller.pause();
+      if (ctrl.value.isPlaying) {
+        ctrl.pause();
       } else {
-        _controller.play();
+        ctrl.play();
       }
       _showOverlay = true;
       Future.delayed(const Duration(milliseconds: 1000), () {
@@ -73,39 +93,63 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _controller.value.isInitialized
-        ? GestureDetector(
-            onTap: _togglePlayPause,
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(10)),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  VideoPlayer(_controller),
-                  if (_showOverlay || !_controller.value.isPlaying)
-                    AnimatedOpacity(
-                      opacity: 1.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8.0),
-                          color: AppColors.blackCC,
-                        ),
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(
-                          _controller.value.isPlaying
-                              ? Icons.pause_outlined
-                              : Icons.play_arrow_outlined,
-                          size: SizeConfig.size40,
-                          color: Colors.white,
-                        ),
-                      ),
+    final ctrl = _controller;
+    final isReady = ctrl != null && ctrl.value.isInitialized;
+
+    return VisibilityDetector(
+      key: Key('vp_${widget.videoUrl ?? widget.videoFile?.path ?? hashCode}'),
+      onVisibilityChanged: (info) {
+        // Dispose controller when completely scrolled out of view
+        if (info.visibleFraction == 0 && _controller != null) {
+          setState(() => _disposeController());
+        }
+      },
+      child: GestureDetector(
+        onTap: () {
+          if (!_userTappedPlay) {
+            setState(() => _userTappedPlay = true);
+            _initializeAndPlay();
+          } else {
+            _togglePlayPause();
+          }
+        },
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Video or black background
+              if (isReady)
+                VideoPlayer(ctrl)
+              else
+                Container(color: Colors.black),
+
+              // Overlay: spinner while initializing, play/pause icon otherwise
+              if (_isInitializing)
+                const CircularProgressIndicator(color: Colors.white)
+              else if (!isReady || _showOverlay || !ctrl!.value.isPlaying)
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: AppColors.blackCC,
                     ),
-                ],
-              ),
-            ),
-          )
-        : const Center(child: CircularProgressIndicator());
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      isReady && ctrl!.value.isPlaying
+                          ? Icons.pause_outlined
+                          : Icons.play_arrow_outlined,
+                      size: SizeConfig.size40,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

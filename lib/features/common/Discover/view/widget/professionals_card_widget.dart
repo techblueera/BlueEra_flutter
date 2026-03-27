@@ -8,7 +8,7 @@ import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:get/get.dart';
 
 class ProfessionalsCardWidget extends StatelessWidget {
@@ -43,34 +43,34 @@ class ProfessionalsCardWidget extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
-            child: MasonryGridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-              padding: EdgeInsets.zero,
-              primary: false,
-              shrinkWrap: true,
-              itemCount: individualOnboardingConsultationList.take(6).length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var categoryItem = individualOnboardingConsultationList[index];
-                return CommonServiceCard(
-                  service: categoryItem,
-                  getName: (item) => item.name,
-                  getIcon: (item) => item.icon ?? '',
-                  iconHeight: SizeConfig.size80,
-                  onTap: (item) {
-                    var categoryItem = individualOnboardingConsultationList[index];
-
-                    Get.to(() => AllProfessionConsultantScreen(
-                        professionalConsultantCategories:
-                        individualOnboardingConsultationList,
-                        selectedProfessionConsultantData: categoryItem));
-                  },
-                );
-              },
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double spacing = 6;
+              const int columns = 3;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: individualOnboardingConsultationList.take(6).map((categoryItem) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: CommonServiceCard(
+                      service: categoryItem,
+                      getName: (item) => item.name,
+                      getIcon: (item) => item.icon ?? '',
+                      iconHeight: SizeConfig.size80,
+                      onTap: (item) {
+                        Get.to(() => AllProfessionConsultantScreen(
+                            professionalConsultantCategories:
+                                individualOnboardingConsultationList,
+                            selectedProfessionConsultantData: item));
+                      },
+                    ),
+                  );
+                }).toList(),
+              );
+            }),
           ),
         ],
       ),

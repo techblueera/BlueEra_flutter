@@ -6,7 +6,7 @@ import 'package:BlueEra/features/common/Discover/view/all_education_service_scre
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:get/get.dart';
 
 class EducationServiceCardWidget extends StatelessWidget {
@@ -24,34 +24,35 @@ class EducationServiceCardWidget extends StatelessWidget {
           titleWidget("Education Training & Sectors"),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
-            child: MasonryGridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              padding: EdgeInsets.zero,
-              primary: false,
-              shrinkWrap: true,
-              itemCount: businessOnboardingEducationTrainingCategories.length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var item = businessOnboardingEducationTrainingCategories[index];
-
-                return CommonServiceCard(
-                  service: item,
-                  flex: 2,
-                  getName: (item) => (item.name),
-                  getIcon: (item) => (item.icon ?? ""),
-                  iconHeight: SizeConfig.size60,
-                  onTap: (item) {
-                    Get.to(() => AllEducationServiceScreen(
-                        professionalConsultantCategories:
-                            businessOnboardingEducationTrainingCategories,
-                        selectedProfessionConsultantData: item));
-                  },
-                );
-              },
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double spacing = 12;
+              const int columns = 3;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: businessOnboardingEducationTrainingCategories.map((item) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: CommonServiceCard(
+                      service: item,
+                      flex: 2,
+                      getName: (i) => i.name,
+                      getIcon: (i) => i.icon ?? "",
+                      iconHeight: SizeConfig.size60,
+                      onTap: (i) {
+                        Get.to(() => AllEducationServiceScreen(
+                            professionalConsultantCategories:
+                                businessOnboardingEducationTrainingCategories,
+                            selectedProfessionConsultantData: i));
+                      },
+                    ),
+                  );
+                }).toList(),
+              );
+            }),
           ),
         ],
       ),

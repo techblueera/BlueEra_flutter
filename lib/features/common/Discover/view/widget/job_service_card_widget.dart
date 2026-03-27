@@ -8,7 +8,7 @@ import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_scree
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:get/get.dart';
 
 class JobServiceCardWidget extends StatelessWidget {
@@ -26,36 +26,34 @@ class JobServiceCardWidget extends StatelessWidget {
           titleWidget("Job Near Me"),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
-            child: MasonryGridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              padding: EdgeInsets.zero,
-              primary: false,
-              shrinkWrap: true,
-              itemCount: jobCategories.length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var item = jobCategories[index];
-
-                return CommonServiceCard(
-                  service: item,
-                  flex: 2,
-                  getName: (item) => (item.name),
-                  getIcon: (item) => (item.icon ?? ""),
-                  iconHeight: SizeConfig.size60,
-                  onTap: (item) {
-                    Widget dest =
-                    isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
-
-                    Get.to(() => dest);
-
-
-                  },
-                );
-              },
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double spacing = 12;
+              const int columns = 3;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: jobCategories.map((item) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: CommonServiceCard(
+                      service: item,
+                      flex: 2,
+                      getName: (i) => i.name,
+                      getIcon: (i) => i.icon ?? "",
+                      iconHeight: SizeConfig.size60,
+                      onTap: (i) {
+                        final Widget dest =
+                            isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
+                        Get.to(() => dest);
+                      },
+                    ),
+                  );
+                }).toList(),
+              );
+            }),
           ),
         ],
       ),

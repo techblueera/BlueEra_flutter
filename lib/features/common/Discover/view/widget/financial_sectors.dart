@@ -34,7 +34,6 @@ class FinancialSectors extends StatelessWidget {
               height: SizeConfig.size124,
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                shrinkWrap: true,
                 primary: false,
                 itemCount: financeCategories.length,
                 scrollDirection: Axis.horizontal,
