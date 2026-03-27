@@ -1,5 +1,6 @@
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 import '../../../../../core/constants/app_colors.dart';
@@ -178,8 +179,11 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                       title: "Amount You Can Invest(In Rupees) ?",
                       textEditController: controller.investmentController,
                       hintText: "Enter amount",
+                      maxLength: 12,
                       keyBoardType: TextInputType.number,
                     ),
+
+                  
                     SizedBox(height: SizeConfig.paddingM),
 
                     CustomText(

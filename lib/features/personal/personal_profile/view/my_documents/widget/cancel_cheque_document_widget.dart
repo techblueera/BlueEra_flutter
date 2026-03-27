@@ -95,7 +95,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(width: SizeConfig.size8),
+                    SizedBox(width: SizeConfig.size3),
                     Expanded(
                       child: CommonImageUploadTile(
                         title: 'Cancel Cheque Back',

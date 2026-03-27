@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class SocialContactUsScreen extends StatefulWidget {
@@ -21,8 +22,7 @@ class SocialContactUsScreen extends StatefulWidget {
   final SocialContactUsData? profile;
 
   @override
-  State<SocialContactUsScreen> createState() =>
-      _SocialContactUsScreenState();
+  State<SocialContactUsScreen> createState() => _SocialContactUsScreenState();
 }
 
 class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
@@ -42,8 +42,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
   void initState() {
     super.initState();
     apiCalling();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _triggerValidation());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _triggerValidation());
   }
 
   @override
@@ -75,28 +74,21 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
       body: Obx(() {
         if (controller.contactUsData.value != null) {
           branchNameController = TextEditingController(
-              text:
-                  controller.contactUsData.value?.data?.name ?? "");
+              text: controller.contactUsData.value?.data?.name ?? "");
           websiteController = TextEditingController(
-              text: controller.contactUsData.value?.data?.websiteUrl ??
-                  "");
+              text: controller.contactUsData.value?.data?.websiteUrl ?? "");
           addressController = TextEditingController(
-              text: controller
-                      .contactUsData.value?.data?.location?.name ??
-                  "");
+              text: controller.contactUsData.value?.data?.location?.name ?? "");
           emailController = TextEditingController(
-              text:
-                  controller.contactUsData.value?.data?.email ?? "");
+              text: controller.contactUsData.value?.data?.email ?? "");
           phoneController = TextEditingController(
-              text: controller.contactUsData.value?.data?.phoneNo ??
-                  "");
+              text: controller.contactUsData.value?.data?.phoneNo ?? "");
 
-          if (controller.contactUsData.value?.data?.location !=
-              null) {
-            controller.selectedLat = controller
-                .contactUsData.value?.data?.location?.coordinates![0];
-            controller.selectedLng = controller
-                .contactUsData.value?.data?.location?.coordinates![1];
+          if (controller.contactUsData.value?.data?.location != null) {
+            controller.selectedLat =
+                controller.contactUsData.value?.data?.location?.coordinates![0];
+            controller.selectedLng =
+                controller.contactUsData.value?.data?.location?.coordinates![1];
           }
         }
         return SingleChildScrollView(
@@ -107,12 +99,10 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor
-                      .withValues(alpha: 0.06),
+                  color: AppColors.primaryColor.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: AppColors.primaryColor
-                          .withValues(alpha: 0.15)),
+                      color: AppColors.primaryColor.withValues(alpha: 0.15)),
                 ),
                 child: Row(
                   children: [
@@ -144,13 +134,12 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.1),
+                              color:
+                                  AppColors.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(Icons.person_outline,
-                                color: AppColors.primaryColor,
-                                size: 20),
+                                color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
                           CustomText("Personal Info",
@@ -191,13 +180,12 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.1),
+                              color:
+                                  AppColors.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(Icons.phone_outlined,
-                                color: AppColors.primaryColor,
-                                size: 20),
+                                color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
                           CustomText("Contact Details",
@@ -217,8 +205,30 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                         textEditController: phoneController,
                         hintText: "+91 1234567890",
                         title: AppStrings.phoneNumber,
-                        maxLength: 10,
+                        maxLength: 13,
                         keyBoardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[+0-9]')),
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            int plusCount =
+                                '+'.allMatches(newValue.text).length;
+
+                            if (plusCount > 1) {
+                              return oldValue;
+                            }
+                            if (newValue.text.contains('+') &&
+                                newValue.text.indexOf('+') != 0) {
+                              return oldValue;
+                            }
+                            if (oldValue.text.contains('+') &&
+                                newValue.text.contains('+') &&
+                                newValue.text.indexOf('+') !=
+                                    oldValue.text.indexOf('+')) {
+                              return oldValue;
+                            }
+                            return newValue;
+                          }),
+                        ],
                         onChange: (_) => _triggerValidation(),
                       ),
                     ],
@@ -240,13 +250,12 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.1),
+                              color:
+                                  AppColors.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(Icons.location_on_outlined,
-                                color: AppColors.primaryColor,
-                                size: 20),
+                                color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
                           CustomText(AppStrings.location,
@@ -259,33 +268,22 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                         controller: addressController,
                         title: AppStrings.location,
                         isShowLeading: false,
-                        onSelected:
-                            (placeId, lat, lng, address) async {
+                        onSelected: (placeId, lat, lng, address) async {
                           addressController.text = address;
                           try {
                             final detailsResponse = await PlaceRepo()
-                                .getCompletePlaceDetails(
-                                    placeId: placeId);
-                            final detailsData =
-                                detailsResponse.response?.data;
+                                .getCompletePlaceDetails(placeId: placeId);
+                            final detailsData = detailsResponse.response?.data;
                             final placeDetails =
-                                PlaceDetailsResponse.fromJson(
-                                    detailsData);
-                            controller.selectedLat = placeDetails
-                                    .result
-                                    ?.geometry
-                                    ?.location
-                                    ?.lat ??
-                                0.0;
-                            controller.selectedLng = placeDetails
-                                    .result
-                                    ?.geometry
-                                    ?.location
-                                    ?.lng ??
-                                0.0;
+                                PlaceDetailsResponse.fromJson(detailsData);
+                            controller.selectedLat =
+                                placeDetails.result?.geometry?.location?.lat ??
+                                    0.0;
+                            controller.selectedLng =
+                                placeDetails.result?.geometry?.location?.lng ??
+                                    0.0;
                           } catch (e) {
-                            debugPrint(
-                                "Error fetching place details: $e");
+                            debugPrint("Error fetching place details: $e");
                           }
                           _triggerValidation();
                         },
@@ -308,9 +306,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                               phone: phoneController.text,
                             )
                         : null,
-                    title: isEdit
-                        ? AppStrings.update.tr
-                        : AppStrings.submit.tr,
+                    title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
                     isValidate: controller.isFormValid.value,
                   )),
               SizedBox(height: SizeConfig.size20),
