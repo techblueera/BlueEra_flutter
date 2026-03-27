@@ -103,6 +103,40 @@ class ChatMediaStorageService {
     return dir;
   }
 
+  /// Pre-create all media folders and request necessary permissions.
+  /// Call this once at app startup (e.g. from BottomNavigationBar initState).
+  static Future<void> initializeMediaFolders() async {
+    try {
+      // Request storage permission for Android < 10
+      if (Platform.isAndroid) {
+        final sdk = await _androidSdk();
+        if (sdk < 29) {
+          await _requestLegacyStoragePermission();
+        }
+      }
+
+      // Create all media sub-folders
+      const types = ['image', 'video', 'audio', 'document'];
+      for (final type in types) {
+        final dir = await _mediaRoot(type);
+        if (!await dir.exists()) {
+          await dir.create(recursive: true);
+          debugPrint('ChatMediaStorage: created ${dir.path}');
+        }
+      }
+      debugPrint('ChatMediaStorage: all media folders ready');
+    } catch (e) {
+      debugPrint('ChatMediaStorage: folder init error: $e');
+    }
+  }
+
+  /// Request photo library access on iOS (for saving to Camera Roll).
+  static Future<bool> requestPhotoLibraryPermission() async {
+    if (!Platform.isIOS) return true;
+    final status = await Permission.photos.request();
+    return status.isGranted || status.isLimited;
+  }
+
   // ─── Permissions ───
 
   /// Request legacy storage permission for Android < 10.

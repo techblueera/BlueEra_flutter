@@ -293,20 +293,14 @@ Widget  ChatListTile({
           if (isForwardUI == true) {
             selectChatListCard();
           } else {
-            chatViewController.checkChatConnectionAndOpenChat(
-              userId: senderId ?? '',
+            chatViewController.openChatFromChatList(
+              userId: senderId,
+              conversationId: conversationId,
+              type: type,
+              contactName: senderName,
+              contactNo: senderContactNo,
+              profileImage: senderProfileImage,
             );
-            //       chatViewController.openAnyOneChatFunction(
-            //               userId: senderId ?? '',
-            //               conversationId: conversationId,
-            //               type: type,
-            //               contactName: senderName,
-            //               contactNo: senderContactNo,
-            //               profileImage: senderProfileImage,
-            //               isFromContactList: false,
-            //               isWithProductSend:false,
-            //               isInitialMessage: false,
-            //             );
           }
         },
     child: Container(

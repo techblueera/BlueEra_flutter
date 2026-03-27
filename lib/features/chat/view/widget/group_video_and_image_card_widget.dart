@@ -8,6 +8,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
+import 'chat_cached_image.dart';
 import 'component_widgets.dart';
 import 'custom_video_player.dart';
 import 'group_media_comment_full_page.dart';
@@ -308,11 +309,11 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
                                 width: 2)),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: (path.url!.contains('http'))?
-                          Image.network(path.url ?? '',
-                              height: SizeConfig.screenHeight*0.33,  width: SizeConfig.screenWidth*0.72, fit: BoxFit.cover):
-                          Image.file(File(path.url ?? ''),
-                              height: 250,  width: SizeConfig.screenWidth*0.7, fit: BoxFit.cover),
+                          child: ChatCachedImage(
+                              url: path.url ?? '',
+                              height: SizeConfig.screenHeight*0.33,
+                              width: SizeConfig.screenWidth*0.72,
+                              fit: BoxFit.cover),
                         ),
                       ),
                       Positioned(
@@ -446,10 +447,9 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
                                   ? ChatCustomVideoPlayer(
                                 videoUrl: paths[index].url ?? '',
                               )
-                                  :((paths[index].url ?? '').contains('http'))? Image.network(paths[index].url ?? '',
-                                  fit: BoxFit.cover):
-                              Image.file(File(paths[index].url ?? ''),
-                                  height: 250, width: 252, fit: BoxFit.cover),
+                                  : ChatCachedImage(
+                                  url: paths[index].url ?? '',
+                                  fit: BoxFit.cover),
                             ),
                             if (showOverlay)
                               Container(
