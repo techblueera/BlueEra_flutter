@@ -16,13 +16,36 @@ class SimplePriorityVideoManager extends GetxController {
   final RxBool isScrolling = false.obs;
   Timer? _scrollStopTimer;
   Timer? _playDelayTimer;
+  Timer? _warmupTimer;
   String? _currentPriorityVideo;
+
+  // Startup warmup guard: prevents ExoPlayer initialization during heavy
+  // startup rendering/JIT work, which can block the Android main thread → ANR.
+  bool _isWarmedUp = false;
 
   // Token = videoId of the most recent playVideo call.
   // After every await, if token changed → a newer video was requested → abort.
   String? _playToken;
 
   VideoPlayerController? get controller => _controller;
+
+  @override
+  void onInit() {
+    // Allow video auto-play only after 4 seconds from first feed render.
+    // This prevents ExoPlayer initialization from competing with startup
+    // rendering, which blocks the Android main thread → ANR on slow devices.
+    _warmupTimer = Timer(const Duration(seconds: 4), () {
+      _isWarmedUp = true;
+      _warmupTimer = null;
+      // If a priority video was already identified during warmup, play it now.
+      if (_currentPriorityVideo != null) {
+        _scheduleVideoPlay(_currentPriorityVideo!);
+      } else {
+        _checkAndPlayTopVideo();
+      }
+    });
+    super.onInit();
+  }
 
   void updateVideoVisibility(
       String videoId, String videoUrl, double visibilityFraction) {
@@ -64,8 +87,9 @@ class SimplePriorityVideoManager extends GetxController {
   }
 
   void _scheduleVideoPlay(String videoId) {
+    if (!_isWarmedUp) return; // Defer until warmup completes
     _playDelayTimer?.cancel();
-    _playDelayTimer = Timer(const Duration(milliseconds: 600), () {
+    _playDelayTimer = Timer(const Duration(milliseconds: 800), () {
       if (!isScrolling.value && _currentPriorityVideo == videoId) {
         playVideo(videoId);
       }
@@ -105,7 +129,10 @@ class SimplePriorityVideoManager extends GetxController {
     );
 
     try {
-      await newController.initialize();
+      await newController.initialize().timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => throw Exception('VideoPlayer init timeout'),
+      );
     } catch (e) {
       debugPrint('Error initializing video $videoId: $e');
       await newController.dispose();
@@ -180,6 +207,7 @@ class SimplePriorityVideoManager extends GetxController {
     _controller?.dispose();
     _scrollStopTimer?.cancel();
     _playDelayTimer?.cancel();
+    _warmupTimer?.cancel();
     isMuted.dispose();
     ScreenService.keepOff();
     super.onClose();

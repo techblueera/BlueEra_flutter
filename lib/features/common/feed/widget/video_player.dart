@@ -24,17 +24,18 @@ class VideoPlayerWidget extends StatefulWidget {
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   VideoPlayerController? _controller;
   bool _showOverlay = false;
-  bool _isInitialized = false;
+  bool _isInitializing = false;
+  bool _userTappedPlay = false;
 
   @override
-  void initState() {
-    super.initState();
-    // Do NOT initialize here — wait until visible on screen
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
-  void _initializeController() {
-    if (_isInitialized) return;
-    _isInitialized = true;
+  Future<void> _initializeAndPlay() async {
+    if (_isInitializing || _controller != null) return;
+    _isInitializing = true;
 
     VideoPlayerController controller;
     if (widget.videoFile != null) {
@@ -47,28 +48,36 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             : null,
       );
     } else {
+      _isInitializing = false;
       return;
     }
 
     _controller = controller;
-    controller.initialize().then((_) {
-      if (mounted) {
-        controller.setLooping(true);
-        controller.play();
-        setState(() {});
-      }
-    });
+    if (mounted) setState(() {});
+
+    await controller.initialize();
+
+    if (!mounted) {
+      controller.dispose();
+      return;
+    }
+
+    _isInitializing = false;
+    controller.setLooping(true);
+    controller.play();
+    setState(() {});
   }
 
-  @override
-  void dispose() {
+  void _disposeController() {
     _controller?.dispose();
-    super.dispose();
+    _controller = null;
+    _isInitializing = false;
+    _userTappedPlay = false;
   }
 
   void _togglePlayPause() {
     final ctrl = _controller;
-    if (ctrl == null) return;
+    if (ctrl == null || !ctrl.value.isInitialized) return;
     setState(() {
       if (ctrl.value.isPlaying) {
         ctrl.pause();
@@ -88,46 +97,59 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     final isReady = ctrl != null && ctrl.value.isInitialized;
 
     return VisibilityDetector(
-      key: Key('video_player_${widget.videoUrl ?? widget.videoFile?.path ?? hashCode}'),
+      key: Key('vp_${widget.videoUrl ?? widget.videoFile?.path ?? hashCode}'),
       onVisibilityChanged: (info) {
-        if (info.visibleFraction > 0.5) {
-          _initializeController();
+        // Dispose controller when completely scrolled out of view
+        if (info.visibleFraction == 0 && _controller != null) {
+          setState(() => _disposeController());
         }
       },
-      child: isReady
-          ? GestureDetector(
-              onTap: _togglePlayPause,
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(10)),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    VideoPlayer(ctrl),
-                    if (_showOverlay || !ctrl.value.isPlaying)
-                      AnimatedOpacity(
-                        opacity: 1.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8.0),
-                            color: AppColors.blackCC,
-                          ),
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(
-                            ctrl.value.isPlaying
-                                ? Icons.pause_outlined
-                                : Icons.play_arrow_outlined,
-                            size: SizeConfig.size40,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
+      child: GestureDetector(
+        onTap: () {
+          if (!_userTappedPlay) {
+            setState(() => _userTappedPlay = true);
+            _initializeAndPlay();
+          } else {
+            _togglePlayPause();
+          }
+        },
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Video or black background
+              if (isReady)
+                VideoPlayer(ctrl)
+              else
+                Container(color: Colors.black),
+
+              // Overlay: spinner while initializing, play/pause icon otherwise
+              if (_isInitializing)
+                const CircularProgressIndicator(color: Colors.white)
+              else if (!isReady || _showOverlay || !ctrl!.value.isPlaying)
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: AppColors.blackCC,
+                    ),
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      isReady && ctrl!.value.isPlaying
+                          ? Icons.pause_outlined
+                          : Icons.play_arrow_outlined,
+                      size: SizeConfig.size40,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            )
-          : const Center(child: CircularProgressIndicator()),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
