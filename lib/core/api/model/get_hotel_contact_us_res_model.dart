@@ -33,12 +33,13 @@ HotelContactUsData dataFromJson(String str) => HotelContactUsData.fromJson(json.
 String dataToJson(HotelContactUsData data) => json.encode(data.toJson());
 class HotelContactUsData {
   HotelContactUsData({
-      this.id, 
-      this.businessId, 
-      this.type, 
-      this.email, 
-      this.phone, 
-      this.address, 
+      this.id,
+      this.businessId,
+      this.type,
+      this.email,
+      this.phone,
+      this.address,
+      this.website,
       this.v,});
 
   HotelContactUsData.fromJson(dynamic json) {
@@ -48,6 +49,7 @@ class HotelContactUsData {
     email = json['email'];
     phone = json['phone'];
     address = json['address'];
+    website = json['website'];
     v = json['__v'];
   }
   String? id;
@@ -56,6 +58,7 @@ class HotelContactUsData {
   String? email;
   String? phone;
   String? address;
+  String? website;
   int? v;
 
   Map<String, dynamic> toJson() {
@@ -66,6 +69,7 @@ class HotelContactUsData {
     map['email'] = email;
     map['phone'] = phone;
     map['address'] = address;
+    map['website'] = website;
     map['__v'] = v;
     return map;
   }

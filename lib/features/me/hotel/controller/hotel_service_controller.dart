@@ -173,11 +173,11 @@ class HotelServiceController extends GetxController {
           await setHotelID("");
         }
         await getHotelID();
-        commonSnackBar(message: response.response?.data['message']);
-
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
+        // commonSnackBar(message: response.response?.data['message']);
+        //
+        // Get.until((route) =>
+        //     route.settings.name ==
+        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

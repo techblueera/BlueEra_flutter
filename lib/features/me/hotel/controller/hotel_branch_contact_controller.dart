@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/model/get_hotel_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
@@ -64,7 +65,8 @@ class HotelBranchContactController extends GetxController {
         "type": "reception",
         "email": email,
         "phone": phone,
-        "address": address
+        "address": address,
+        "website": website,
       };
 
       ResponseModel response =
@@ -75,6 +77,9 @@ class HotelBranchContactController extends GetxController {
                 "Branch details added successfully");
         Get.back();
         await getBranchDetailsController();
+        try {
+          Get.find<HotelDetailController>().loadHotelData();
+        } catch (_) {}
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -111,7 +116,8 @@ class HotelBranchContactController extends GetxController {
         "type": "reception",
         "email": email,
         "phone": phone,
-        "address": address
+        "address": address,
+        "website": website,
       };
 
       ResponseModel response =
@@ -122,6 +128,9 @@ class HotelBranchContactController extends GetxController {
                 "Branch details update successfully");
         Get.back();
         await getBranchDetailsController();
+        try {
+          Get.find<HotelDetailController>().loadHotelData();
+        } catch (_) {}
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
@@ -294,6 +295,9 @@ class RoomDetailController extends GetxController {
         commonSnackBar(message: response.response?.data['message']);
         getHotelRoomDetails(roomTYPE: type);
         resetForm();
+        try {
+          Get.find<HotelDetailController>().loadHotelData();
+        } catch (_) {}
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

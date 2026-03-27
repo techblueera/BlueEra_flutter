@@ -1,11 +1,10 @@
 import 'package:BlueEra/core/api/model/hotel_details_home_res_model.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class HotelHomeGalleryWidget extends StatelessWidget {
   final List<Photos>? photos;
@@ -14,80 +13,208 @@ class HotelHomeGalleryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Consolidate all imageReferences into a single List<String>
-    final List<String> allImages = photos
-            ?.expand((photo) => photo.imageReferences ?? <String>[])
+    final List<String> all = photos
+            ?.expand((p) => p.imageReferences ?? <String>[])
             .toList() ??
         [];
 
-    if (allImages.isEmpty) return const SizedBox.shrink();
+    if (all.isEmpty) return const SizedBox.shrink();
 
-    return CommonCardWidget(
-      padding: 10,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final count = all.length;
+
+    // ── 1 image: full-width card ──────────────────────────────────────────
+    if (count == 1) {
+      return _tap(context, 0, all,
+          child: _img(all[0],
+              height: 220,
+              radius: BorderRadius.circular(12)));
+    }
+
+    // ── 2 images: side by side ────────────────────────────────────────────
+    if (count == 2) {
+      return Row(
         children: [
-          ServiceHomeTitleWidget(
-            title: AppStrings.gallery,
+          Expanded(
+            child: _tap(context, 0, all,
+                child: _img(all[0],
+                    height: 180,
+                    radius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
+                    ))),
           ),
-          const SizedBox(height: 16),
-          StaggeredGrid.count(
-            crossAxisCount: 4, // Total grid columns
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            children: List.generate(
-                allImages.length > 10 ? 10 : allImages.length, (index) {
-              // Logic to replicate the pattern in your image:
-              // Large Vertical (index 0), Two small (index 1,2), Large Horizontal (index 3)...
-              int crossAxisCellCount = 2;
-              num mainAxisCellCount = 2;
-
-              if (index % 6 == 0 || index % 6 == 5) {
-                // Large Vertical Tiles
-                crossAxisCellCount = 2;
-                mainAxisCellCount = 3;
-              } else if (index % 6 == 3) {
-                // Large Full-Width Horizontal Tile
-                crossAxisCellCount = 4;
-                mainAxisCellCount = 2;
-              } else {
-                // Standard Small Squares
-                crossAxisCellCount = 2;
-                mainAxisCellCount = 1.5;
-              }
-
-              return StaggeredGridTile.count(
-                crossAxisCellCount: crossAxisCellCount,
-                mainAxisCellCount: mainAxisCellCount,
-                child: InkWell(
-                  onTap: () {
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: AppStrings.imageViewer,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: allImages,
-                        initialIndex: index,
-                      ),
-                    );
-                  },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      allImages[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image)),
-                    ),
-                  ),
-                ),
-              );
-            }),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _tap(context, 1, all,
+                child: _img(all[1],
+                    height: 180,
+                    radius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ))),
           ),
         ],
+      );
+    }
+
+    // ── 3 images: 1 big left + 2 vertical right ───────────────────────────
+    if (count == 3) {
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: _tap(context, 0, all,
+                  child: _img(all[0],
+                      height: double.infinity,
+                      radius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomLeft: Radius.circular(12),
+                      ))),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: _tap(context, 1, all,
+                        child: _img(all[1],
+                            height: double.infinity,
+                            radius: const BorderRadius.only(
+                              topRight: Radius.circular(12),
+                            ))),
+                  ),
+                  const SizedBox(height: 4),
+                  Expanded(
+                    child: _tap(context, 2, all,
+                        child: _img(all[2],
+                            height: double.infinity,
+                            radius: const BorderRadius.only(
+                              bottomRight: Radius.circular(12),
+                            ))),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ── 4 images: 2×2 grid ────────────────────────────────────────────────
+    if (count == 4) {
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 4,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+          childAspectRatio: 1.3,
+        ),
+        itemBuilder: (context, index) => _tap(context, index, all,
+            child: _img(all[index],
+                height: double.infinity,
+                radius: _corner(index))),
+      );
+    }
+
+    // ── 5+ images: 2×2 + +n overlay ──────────────────────────────────────
+    const visible = 4;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: visible,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+        childAspectRatio: 1.3,
+      ),
+      itemBuilder: (context, index) {
+        final isLast = index == visible - 1;
+        return _tap(context, index, all,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _img(all[index],
+                    height: double.infinity, radius: _corner(index)),
+                if (isLast)
+                  ClipRRect(
+                    borderRadius: _corner(index),
+                    child: Container(
+                      color: Colors.black54,
+                      alignment: Alignment.center,
+                      child: Text(
+                        '+${count - visible}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ));
+      },
+    );
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  Widget _tap(BuildContext context, int index, List<String> all,
+      {required Widget child}) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ImageViewScreen(
+            subTitle: AppStrings.imageViewer,
+            appBarTitle: AppStrings.imageViewer,
+            imageUrls: all,
+            initialIndex: index,
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _img(String url,
+      {double? height, required BorderRadius radius}) {
+    return ClipRRect(
+      borderRadius: radius,
+      child: CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: height,
+        placeholder: (context, _) => LocalAssets(
+          imagePath: AppIconAssets.place_holder_image,
+          boxFix: BoxFit.cover,
+        ),
+        errorWidget: (context, _, __) => LocalAssets(
+          imagePath: AppIconAssets.place_holder_image,
+          boxFix: BoxFit.cover,
+        ),
       ),
     );
+  }
+
+  BorderRadius _corner(int index) {
+    switch (index) {
+      case 0:
+        return const BorderRadius.only(topLeft: Radius.circular(12));
+      case 1:
+        return const BorderRadius.only(topRight: Radius.circular(12));
+      case 2:
+        return const BorderRadius.only(bottomLeft: Radius.circular(12));
+      default:
+        return const BorderRadius.only(bottomRight: Radius.circular(12));
+    }
   }
 }

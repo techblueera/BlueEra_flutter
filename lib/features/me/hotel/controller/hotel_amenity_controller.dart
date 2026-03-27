@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
 
@@ -74,6 +75,9 @@ class HotelAmenityController extends GetxController {
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
+        try {
+          Get.find<HotelDetailController>().loadHotelData();
+        } catch (_) {}
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

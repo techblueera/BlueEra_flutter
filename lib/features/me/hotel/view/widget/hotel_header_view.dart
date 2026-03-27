@@ -54,10 +54,11 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
       cardMargin: 10,
       child: Column(
         mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
-            height: size.height * 0.21,
+         height: size.height * 0.21,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
