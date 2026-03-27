@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-
 import '../../../../../../core/constants/app_enum.dart';
 import '../../../../../../core/constants/app_strings.dart';
 import '../../../../../../core/constants/size_config.dart';
@@ -10,7 +9,6 @@ import '../../../../../../widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
 import '../../../../../common/auth/model/adminvideo_model.dart';
 import '../../../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-
 
 class AppTutorialScreen extends StatefulWidget {
   const AppTutorialScreen({super.key});
@@ -22,6 +20,13 @@ class AppTutorialScreen extends StatefulWidget {
 class _AppTutorialScreenState extends State<AppTutorialScreen> {
   final bottomBarController = Get.find<BottomBarController>();
 
+  int? _currentlyPlayingIndex;
+  void _onVideoPlay(int index) {
+    setState(() {
+      _currentlyPlayingIndex = index;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -31,9 +36,9 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    appBar: CommonBackAppBar(
-      title: "App Tutorial",
-    ),
+      appBar: CommonBackAppBar(
+        title: "App Tutorial",
+      ),
       body: Obx(() {
         if (bottomBarController.adminVideoLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -55,8 +60,12 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: TutorialVideoCard(
+                key: ValueKey(index),
                 videoItem: bottomBarController.adminVideos[index],
                 videoType: VideoType.latest,
+                index: index,
+                currentlyPlayingIndex: _currentlyPlayingIndex,
+                onVideoPlay: _onVideoPlay,
               ),
             );
           },
@@ -69,11 +78,17 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
 class TutorialVideoCard extends StatefulWidget {
   final AdminVideo videoItem;
   final VideoType videoType;
+  final int index;
+  final int? currentlyPlayingIndex;
+  final ValueChanged<int> onVideoPlay;
 
   const TutorialVideoCard({
     super.key,
     required this.videoItem,
     required this.videoType,
+    required this.index,
+    required this.currentlyPlayingIndex,
+    required this.onVideoPlay,
   });
 
   @override
@@ -87,17 +102,32 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
   bool _isExpanded = false;
   double _speed = 1.0;
 
+  bool get _isActivePlayer => widget.currentlyPlayingIndex == widget.index;
+
   @override
   void initState() {
     super.initState();
+    _initVideo();
+  }
 
+  void _initVideo() {
     final url = widget.videoItem.videoUrls?.first.url ?? '';
-
     _controller = VideoPlayerController.network(url)
       ..initialize().then((_) {
         if (!mounted) return;
         setState(() => _initialized = true);
-      })..setLooping(true);
+      })
+      ..setLooping(true);
+  }
+
+  @override
+  void didUpdateWidget(TutorialVideoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!_isActivePlayer && (_controller?.value.isPlaying ?? false)) {
+      _controller?.pause();
+      setState(() {});
+    }
   }
 
   @override
@@ -174,8 +204,6 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
     );
   }
 
-  /// ================= VIDEO UI (UNCHANGED) =================
-
   Widget _videoContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,29 +220,26 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
               children: [
                 _initialized
                     ? AspectRatio(
-                  aspectRatio: _controller!.value.aspectRatio,
-                  child: VideoPlayer(_controller!),
-                )
+                        aspectRatio: _controller!.value.aspectRatio,
+                        child: VideoPlayer(_controller!),
+                      )
                     : Image.network(
-                  widget.videoItem.thumbnailUrl ?? '',
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 180,
-                    color: Colors.grey.shade300,
-                  ),
-                ),
-
-                if (!_controller!.value.isPlaying && !_showControls)
+                        widget.videoItem.thumbnailUrl ?? '',
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 180,
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                if (!(_controller?.value.isPlaying ?? false) && !_showControls)
                   const Icon(
                     Icons.play_circle_fill,
                     size: 56,
                     color: Colors.white,
                   ),
-
                 if (_showControls && _initialized) _controls(),
-
                 if (_showControls && _initialized)
                   Positioned(
                     bottom: 8,
@@ -249,9 +274,7 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
             ),
           ),
         ),
-
         const SizedBox(height: 8),
-
         CustomText(
           widget.videoItem.description ?? '',
           fontSize: SizeConfig.small,
@@ -260,8 +283,6 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
       ],
     );
   }
-
-  /// ================= CONTROLS (UNCHANGED) =================
 
   Widget _controls() {
     return Column(
@@ -297,31 +318,32 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
   /// ================= HELPERS =================
 
   void _togglePlayPause() {
-    setState(() {
-      _controller!.value.isPlaying
-          ? _controller!.pause()
-          : _controller!.play();
-    });
+    if (_controller == null) return;
+
+    if (_controller!.value.isPlaying) {
+      _controller!.pause();
+      setState(() {});
+    } else {
+      widget.onVideoPlay(widget.index);
+      _controller!.play();
+      setState(() {});
+    }
   }
 
   void _seekForward() {
-    _controller!.seekTo(
+    _controller?.seekTo(
       _controller!.value.position + const Duration(seconds: 10),
     );
-
-    Future.delayed(Duration(seconds: 1),(){setState(() {
-      setState(() {
-      });
-    });});
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) setState(() {});
+    });
   }
 
   void _seekBack() {
-    final pos =
-        _controller!.value.position - const Duration(seconds: 10);
-    _controller!.seekTo(pos > Duration.zero ? pos : Duration.zero);
-    Future.delayed(Duration(seconds: 1),(){setState(() {
-      setState(() {
-      });
-    });});
+    final pos = _controller!.value.position - const Duration(seconds: 10);
+    _controller?.seekTo(pos > Duration.zero ? pos : Duration.zero);
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) setState(() {});
+    });
   }
 }
