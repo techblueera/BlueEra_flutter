@@ -183,8 +183,6 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-
-    chatThemeController.isMessageSelectionActive;
     return Stack(
       children: [
         Container(

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
 import '../orders_chat/order_chat_screen.dart';
@@ -56,55 +57,34 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     }
   }
   Widget _buildUploadingSingleMedia(List<File> path, String time, bool isReceiveMsg,
-      ThemeData theme, String userId, String conversation,Messages message)
-  {
-    int displayCount = path.length > 4 ? 4 : path.length;
-    return Center(
-      child: Container(
-        child: Align(
-          alignment: isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-          child: Column(
-            crossAxisAlignment:
-            isReceiveMsg ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-            children: [
-              Container(
-                width: 254,
-                height: 252,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: isReceiveMsg
-                      ? chatThemeController.receiveMessageBgColor.value
-                      : chatThemeController.myMessageBgColor.value,
-                ),
-                padding: EdgeInsets.all(3),
-                child: Column(
-                  children: [
-                    (path.length==1)?
-                    SizedBox(
-                      height:216,
-                      //         final isVideo =
-                      //         path[index].path.toLowerCase().endsWith('.mp4');
+      ThemeData theme, String userId, String conversation, Messages message) {
+    final chatViewController = Get.find<ChatViewController>();
+    final int displayCount = path.length > 4 ? 4 : path.length;
 
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: (path[0].path.toLowerCase().endsWith('.mp4'))
-                            ? ChatVideoMessage(
-                          message: message,
-                          conversation: conversation,
-                          userId: userId,
-                          videoUrl: MessageMediaUrl(),
-                          time: time,
-                          views: 0,
-                          likes: 0,
-                          comments: 0,
-                          isReceiveMsg: isReceiveMsg,
-                          isFromFile: true,
-                          filePath: path[0],
-                        )
-                            : Image.file(path[0],
-                            fit: BoxFit.cover),
+    return Align(
+      alignment: isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+      child: Container(
+        width: 254,
+        height: 252,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: isReceiveMsg
+              ? chatThemeController.receiveMessageBgColor.value
+              : chatThemeController.myMessageBgColor.value,
+        ),
+        padding: const EdgeInsets.all(3),
+        child: Column(
+          children: [
+            Expanded(
+              child: (path.length == 1)
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: _buildUploadingMediaItem(
+                        file: path[0],
+                        chatViewController: chatViewController,
                       ),
-                    ):GridView.builder(
+                    )
+                  : GridView.builder(
                       itemCount: displayCount,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -116,75 +96,140 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                         childAspectRatio: 1.5,
                       ),
                       itemBuilder: (context, index) {
-                        final isVideo =
-                        path[index].path.toLowerCase().endsWith('.mp4');
                         final showOverlay = path.length > 4 && index == 3;
-
-                        return GestureDetector(
-
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: isVideo
-                                    ? ChatVideoMessage(
-                                  message: message,
-                                  conversation: conversation,
-                                  userId: userId,
-                                  videoUrl: MessageMediaUrl(),
-                                  time: time,
-                                  views: 0,
-                                  likes: 0,
-                                  comments: 0,
-                                  isReceiveMsg: isReceiveMsg,
-                                  isFromFile: true,
-                                  filePath: path[index],
-                                )
-                                    : Image.file(path[index],
-                                    fit: BoxFit.cover),
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: _buildUploadingMediaItem(
+                                file: path[index],
+                                chatViewController: chatViewController,
                               ),
-                              if (showOverlay)
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '+${path.length - 4}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                            ),
+                            if (showOverlay)
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '+${path.length - 4}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                            ],
-                          ),
+                              ),
+                          ],
                         );
                       },
                     ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        timeAndReadInfoWidget(message: message,isMyMessage: message.myMessage??false,time: time,timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,indicateColor:message.messageRead==1?Colors.blue:Colors.grey),
-                        const SizedBox(
-                          width: 11,
-                        )
-                      ],
-                    ),
-                  ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                timeAndReadInfoWidget(
+                  message: message,
+                  isMyMessage: message.myMessage ?? false,
+                  time: time,
+                  timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,
+                  indicateColor: message.messageRead == 1 ? Colors.blue : Colors.grey,
+                ),
+                const SizedBox(width: 11),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds a single uploading media item — shows thumbnail with blur overlay + progress.
+  /// For videos: shows first frame thumbnail (via Image.file) with blur + progress.
+  /// For images: shows the image with blur + progress.
+  Widget _buildUploadingMediaItem({
+    required File file,
+    required ChatViewController chatViewController,
+  }) {
+    final isVideo = file.path.toLowerCase().endsWith('.mp4');
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Thumbnail: for images show the file directly, for videos show a dark placeholder
+        if (isVideo)
+          Container(color: Colors.black87)
+        else
+          Image.file(file, fit: BoxFit.cover),
+
+        // Blur overlay
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: isVideo ? 0.6 : 0.45),
+          ),
+        ),
+
+        // Upload progress indicator
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Video icon for video files
+              if (isVideo)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: Icon(Icons.videocam_rounded, color: Colors.white70, size: 32),
+                ),
+
+              // Circular progress with percentage
+              Obx(() {
+                final progressStr = chatViewController.VideoUploadProgress.value;
+                final progressVal = double.tryParse(progressStr) ?? 0;
+                return SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CircularProgressIndicator(
+                        value: progressVal > 0 ? progressVal / 100 : null,
+                        strokeWidth: 3,
+                        backgroundColor: Colors.white24,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                      Center(
+                        child: Text(
+                          progressVal > 0 ? '${progressVal.toInt()}%' : '',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+
+              const SizedBox(height: 8),
+              const Text(
+                'Sending...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -380,6 +425,7 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                                 borderRadius: BorderRadius.circular(10),
                                 child: isVideo ?? false
                                     ? ChatCustomVideoPlayer(
+                                  key: ValueKey('vp_${paths[index].url ?? ''}'),
                                   videoUrl: paths[index].url ?? '',
                                 )
                                     : ChatCachedImage(

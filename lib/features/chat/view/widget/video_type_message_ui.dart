@@ -55,7 +55,7 @@ class _ChatVideoMessageState extends State<ChatVideoMessage> {
                       width: 2
                   )
               ),
-              child: ChatCustomVideoPlayer(videoUrl: widget.videoUrl?.url??'',filePath: widget.filePath,isFromFile: widget.isFromFile,),
+              child: ChatCustomVideoPlayer(key: ValueKey('vp_${widget.videoUrl?.url ?? widget.filePath?.path ?? ''}'), videoUrl: widget.videoUrl?.url??'',filePath: widget.filePath,isFromFile: widget.isFromFile,),
             ),
             // (widget.isFromFile==true)?SizedBox():Positioned(
             //   bottom: 0,

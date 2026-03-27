@@ -78,34 +78,24 @@ class MessageCard extends StatefulWidget {
 class _MessageCardState extends State<MessageCard>
     with SingleTickerProviderStateMixin {
   double _dragOffset = 0;
-  late AnimationController _shakeController;
-  late Animation<double> _shakeAnimation;
+  AnimationController? _shakeController;
   final _messageKey = GlobalKey();
 
   final chatViewController = Get.find<ChatViewController>();
-
   final chatThemeController = Get.find<ChatThemeController>();
 
-  @override
-  void initState() {
-    super.initState();
-    _shakeController = AnimationController(
+  /// Lazily create the shake animation only when needed (swipe-to-reply).
+  AnimationController get shakeController {
+    _shakeController ??= AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-
-    _shakeAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0, end: 5), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 5, end: -5), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: -5, end: 5), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 5, end: 0), weight: 1),
-    ]).animate(
-        CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut));
+    return _shakeController!;
   }
 
   @override
   void dispose() {
-    _shakeController.dispose();
+    _shakeController?.dispose();
     super.dispose();
   }
 
@@ -310,7 +300,7 @@ class _MessageCardState extends State<MessageCard>
         Align(
           alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
           child: AnimatedBuilder(
-            animation: _shakeController,
+            animation: _shakeController ?? const AlwaysStoppedAnimation(0),
             builder: (context, child) {
               return Transform.translate(
                 offset: Offset(_dragOffset, 0),

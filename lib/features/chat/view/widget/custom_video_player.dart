@@ -26,17 +26,23 @@ class ChatCustomVideoPlayer extends StatefulWidget {
   State<ChatCustomVideoPlayer> createState() => _ChatCustomVideoPlayerState();
 }
 
-class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
+class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer>
+    with AutomaticKeepAliveClientMixin {
   late VideoPlayerController _controller;
   bool _initialized = false;
   final chatViewController = Get.find<ChatViewController>();
   bool _hasError = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
+    _initController();
+  }
 
-    late Future<void> initFuture;
-
+  void _initController() {
     if (!widget.videoUrl.contains('http')) {
       _controller = VideoPlayerController.file(File(widget.videoUrl));
     } else if (widget.isFromFile == true && widget.filePath != null) {
@@ -45,9 +51,7 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
       _controller = VideoPlayerController.network(widget.videoUrl);
     }
 
-    initFuture = _controller.initialize();
-
-    initFuture.then((_) {
+    _controller.initialize().then((_) {
       if (!mounted) return;
       setState(() {
         _initialized = true;
@@ -62,7 +66,6 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
     });
   }
 
-
   @override
   void dispose() {
     _controller.dispose();
@@ -72,6 +75,7 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
     return Container(
       child: Align(
         alignment: Alignment.center,

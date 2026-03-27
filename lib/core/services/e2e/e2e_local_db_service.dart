@@ -135,6 +135,15 @@ class E2ELocalDbService {
     return rows.map(EncryptedMessageLocal.fromMap).toList();
   }
 
+  /// Delete a message by its ID (used to remove optimistic temp-ID entries).
+  Future<void> deleteMessage(String messageId) async {
+    await _database.delete(
+      'e2e_messages',
+      where: 'message_id = ?',
+      whereArgs: [messageId],
+    );
+  }
+
   /// Check if a message already exists (dedup guard during sync).
   Future<bool> messageExists(String messageId) async {
     final rows = await _database.query(

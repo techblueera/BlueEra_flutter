@@ -38,6 +38,7 @@ class E2ERepo extends BaseService {
     required String signedPrekey,
     required String signedPrekeySignature,
     required int signedPrekeyId,
+    String? signingVerifyKey,
     required List<OneTimePrekey> oneTimePrekeys,
   }) async {
     try {
@@ -47,18 +48,22 @@ class E2ERepo extends BaseService {
         print('[E2E-REG] signedPrekey=${signedPrekey.substring(0, 20)}... (${signedPrekey.length} chars)');
         print('[E2E-REG] OPK count: ${oneTimePrekeys.length}');
       }
-      final response = await ApiBaseHelper().postHTTP(
-        e2eKeysRegister,
-        isMultipart: false,
-        showProgress: false,
-        params: {
+      final params = <String, dynamic>{
           'deviceId':              deviceId,
           'identityKey':           identityKey,
           'signedPrekey':          signedPrekey,
           'signedPrekeySignature': signedPrekeySignature,
           'signedPrekeyId':        signedPrekeyId,
           'oneTimePrekeys':        oneTimePrekeys.map((k) => k.toJson()).toList(),
-        },
+      };
+      if (signingVerifyKey != null) {
+        params['signingVerifyKey'] = signingVerifyKey;
+      }
+      final response = await ApiBaseHelper().postHTTP(
+        e2eKeysRegister,
+        isMultipart: false,
+        showProgress: false,
+        params: params,
         onError: (e) { if (kDebugMode) print('[E2E-REG] Server error: $e'); },
         onSuccess: (_) { if (kDebugMode) print('[E2E-REG] Server accepted keys'); },
       );

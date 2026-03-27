@@ -1354,8 +1354,7 @@ List<PopupMenuEntry<String>> popPupMenuForPersonalChat() {
     {'title': "Report", "slud_id": 'report'},
     {'title': "Block", "slud_id": 'block'},
     {'title': "Clear Chat", "slud_id": 'clear_chat'},
-    {'title': "Media ", "slud_id": 'media'},
-    {'title': "Docs ", "slud_id": 'docs'},
+    {'title': "Media & Docs", "slud_id": 'media_docs'},
     {'title': "Chat Theme", "slud_id": 'chat_theme'},
     {'title': "Add Shortcut", "slud_id": 'add_shortcut'},
   ];
