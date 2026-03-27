@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -46,6 +47,13 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
+              HttpsTextField(
+                controller: websiteController,
+                hintText: "https://yourwebsite.com",
+                title: AppStrings.website,
+                onChange: (_) => _triggerValidation(),
+              ),
+              SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
                 title:  AppStrings.location.tr,

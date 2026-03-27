@@ -136,6 +136,15 @@ class _HotelContactUsState extends State<HotelContactUs> {
                                   SizedBox(
                                     height: SizeConfig.size5,
                                   ),
+                                  if ((contactData.website ?? "").isNotEmpty)
+                                    iconTextRow(
+                                        iconName: AppIconAssets.website_click,
+                                        value: contactData.website ?? "",
+                                        isPrimary: true),
+                                  if ((contactData.website ?? "").isNotEmpty)
+                                    SizedBox(
+                                      height: SizeConfig.size5,
+                                    ),
                                   iconTextRow(
                                       iconName: AppIconAssets.email,
                                       value: contactData.email ?? ""),

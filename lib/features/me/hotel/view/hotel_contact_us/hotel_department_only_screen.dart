@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/get_hotel_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -27,6 +28,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
   final schoolAboutUsController = Get.find<HotelBranchContactController>();
 
   final titleController = TextEditingController();
+  final websiteController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
@@ -37,6 +39,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
 
     if (widget.isContactInfoEdit ?? false) {
       // titleController.text = widget.contactInfo?.department ?? "";
+      websiteController.text = widget.contactInfo?.website ?? "";
       emailController.text = widget.contactInfo?.email ?? "";
       phoneController.text = widget.contactInfo?.phone ?? "";
       addressController.text = widget.contactInfo?.address ?? "";
@@ -70,6 +73,13 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              HttpsTextField(
+                controller: websiteController,
+                hintText: "https://yourwebsite.com",
+                title: AppStrings.website,
+                onChange: (_) => _runValidation(),
+              ),
+              SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
                 title: AppStrings.location,
@@ -105,7 +115,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                           phone: phoneController.text,
                           contactID: widget.branchId ?? "",
                           branchName: '',
-                          website: '',
+                          website: websiteController.text,
                           department: '');
 
                     },

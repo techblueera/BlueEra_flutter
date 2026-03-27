@@ -54,7 +54,9 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
           slivers: [
             // 1. Header Image
             SliverAppBar(
-              expandedHeight: Get.height * 0.35,
+              expandedHeight: (controller.hotelData.value?.profile
+                  ?.description?.isNotEmpty??false)?Get.height * 0.35:Get.height * 0.28,
+
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: AppColors.appBackgroundColor,

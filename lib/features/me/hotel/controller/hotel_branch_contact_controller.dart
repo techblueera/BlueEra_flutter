@@ -65,7 +65,8 @@ class HotelBranchContactController extends GetxController {
         "type": "reception",
         "email": email,
         "phone": phone,
-        "address": address
+        "address": address,
+        "website": website,
       };
 
       ResponseModel response =
@@ -115,7 +116,8 @@ class HotelBranchContactController extends GetxController {
         "type": "reception",
         "email": email,
         "phone": phone,
-        "address": address
+        "address": address,
+        "website": website,
       };
 
       ResponseModel response =

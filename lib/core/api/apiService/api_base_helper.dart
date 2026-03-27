@@ -19,7 +19,19 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' as getxObj;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+class AuthManager {
+  static bool isLoggingOut = false;
 
+  static Future<void> handleLogout(Response<dynamic>? response) async {
+    if (isLoggingOut) return;
+commonSnackBar(message: response?.data["message"]);
+    isLoggingOut = true;
+
+    await SharedPreferenceUtils.clearPreference();
+
+    getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+  }
+}
 class ApiBaseHelper {
   static int numberOfReq = 0;
   static bool showProgressDialog = true;
@@ -96,13 +108,6 @@ class ApiBaseHelper {
 
               logs("AUTH TOKEN===> ${options.headers[ApiKeys.authorization]}");
             }
-            // if (options.path==("ai/create-school")) {
-            //   options.baseUrl = baseUrl2;
-            //   // Remove the dummy header so it doesn't get sent to the server
-            //   options.headers.remove("create-school");
-            // } else {
-            //   options.baseUrl = baseUrl1;
-            // }
             options.headers[ApiKeys.contentType] = "application/json";
             return requestInterceptor(options, handler);
           },
@@ -144,13 +149,16 @@ class ApiBaseHelper {
 
             // showProgressDialog = true;
             final response = err.response;
-            // Decrement the request count and hide the loader if no pending requests
-            if (response != null &&
-                // status code for unauthorized usually 401
-                response.statusCode == 401) {
-              await SharedPreferenceUtils.clearPreference();
-              getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+            if (response?.statusCode == 401) {
+              await AuthManager.handleLogout(response);
             }
+            // Decrement the request count and hide the loader if no pending requests
+            // if (response != null &&
+            //     // status code for unauthorized usually 401
+            //     response.statusCode == 401) {
+            //   await SharedPreferenceUtils.clearPreference();
+            //   getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+            // }
             return handler.next(err);
           },
         ),
