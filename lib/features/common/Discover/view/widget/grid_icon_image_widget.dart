@@ -31,10 +31,10 @@ class GridIconImageWidget<T> extends StatelessWidget {
           width: itemWidth,
           child: CommonServiceCard(
             service: item,
-            getName: (i) => getName(i as T),
-            getIcon: (i) => getIcon(i as T),
+            getName: (i) => getName(i),
+            getIcon: (i) => getIcon(i),
             iconHeight: SizeConfig.size60,
-            onTap: (i) => onTap(i as T),
+            onTap: (i) => onTap(i),
           ),
         )).toList(),
       );

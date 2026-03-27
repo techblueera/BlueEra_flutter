@@ -218,11 +218,15 @@ class AppImageAssets {
   static String capitalMarket = "${imgPath}capital_market.png";
   static String dataSector = "${imgPath}data_sector.png";
   static String advisorySector = "${imgPath}advisory_sector.png";
+  static const String foodItemsDiscover = "${imgPath}food_items_discover.png";
+  static const String groceryItemsDiscover = "${imgPath}grocery_items_discover.png";
+  static const String homeMadeFoodDiscover = "${imgPath}home_made_food_discover.png";
+
 
   /// colorful icons(grocery)
   static const groceryIconPath = AppConstants.baseGroceryAssetsPath;
 
-  static const String groceryItemsColorful = "${groceryIconPath}grocery_items_colorful.png";
+  // static const String groceryItemsColorful = "${groceryIconPath}grocery_items_colorful.png";
   static const String vegetablesColorful = "${groceryIconPath}vegetables_colorful.png";
   static const String fruitsColorful = "${groceryIconPath}fruits_colorful.png";
   static const String bakeryNamkeenItemsColorful = "${groceryIconPath}bakery_colorful.png";

@@ -4549,18 +4549,18 @@ final List<CollapsibleGridModel> cloudKitchenHomeMadeFood = [
 const List<CollapsibleGridModel> groceryOrFoodCategories = [
   CollapsibleGridModel(
     name: 'Grocery & Stationary',
-    slugId: 'GROCERY_STATIONARY',
-    icon: AppImageAssets.groceryItemsColorful,
+    slugId: AppConstants.grocery,
+    icon: AppImageAssets.groceryItemsDiscover,
   ),
   CollapsibleGridModel(
     name: 'Food & Restaurant',
-    slugId: 'FOOD_RESTAURANT',
-    icon: AppImageAssets.dairyFrozenItemsColorful,
+    slugId: AppConstants.food,
+    icon: AppImageAssets.foodItemsDiscover,
   ),
   CollapsibleGridModel(
-    name: AppStrings.homeMadeFoodItems,
+    name: 'Home Made Food',
     slugId: "HOME_MADE_FOOD",
-    icon: AppImageAssets.homeMadeFoodBanner,
+    icon: AppImageAssets.homeMadeFoodDiscover,
   ),
 ];
 

@@ -3,8 +3,9 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_made_food_new_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/choose_deliivery_option_dialog.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/choose_food_option_dialog.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/grid_icon_image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -35,10 +36,12 @@ class GroceryFoodCardWidget extends StatelessWidget {
                 getName: (item) => item.name,
                 getIcon: (item) => item.icon,
                 onTap: (item) {
-                  if (item.slugId == "HOME_MADE_FOOD") {
-                    Get.to(() => HomeMadeFoodScreen());
+                  if (item.slugId == AppConstants.grocery) {
+                    _chooseDeliveryOption(item.slugId);
+                  } else if (item.slugId == AppConstants.food) {
+                    _chooseFoodOption();
                   } else {
-                    chooseDeliveryOption(item.slugId);
+                    Get.to(() => const HomeMadeFoodNewScreen());
                   }
                 },
               ),
@@ -47,11 +50,16 @@ class GroceryFoodCardWidget extends StatelessWidget {
         ));
   }
 
-  void chooseDeliveryOption(String slugId) {
+  void _chooseDeliveryOption(String slugId) {
     Get.dialog(
-      ChooseDeliveryOptionDialog(
-        proceedWith: slugId,
-      ),
+      ChooseDeliveryOptionDialog(proceedWith: slugId),
+      barrierDismissible: false,
+    );
+  }
+
+  void _chooseFoodOption() {
+    Get.dialog(
+      const ChooseFoodOptionDialog(),
       barrierDismissible: false,
     );
   }
