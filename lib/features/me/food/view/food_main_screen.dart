@@ -6,8 +6,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
@@ -32,16 +34,28 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
   final TextEditingController searchController = TextEditingController();
-  final List<Tab> _tabs = [
-    Tab(text: AppStrings.home.tr),
-    Tab(text: AppStrings.website.tr),
-    Tab(text: AppStrings.statistics.tr),
-  ];
+  final _viewBusinessController =
+      Get.find<ViewBusinessDetailsController>();
+  bool _hasWebsite = false;
+
+  String get _websiteUrl =>
+      _viewBusinessController
+          .businessProfileDetails.value?.data?.websiteUrl ??
+      '';
+
+  int get _tabCount => _hasWebsite ? 3 : 2;
+
+  List<Tab> get _tabs => [
+        Tab(text: AppStrings.home.tr),
+        if (_hasWebsite) Tab(text: AppStrings.website.tr),
+        Tab(text: AppStrings.statistics.tr),
+      ];
 
   @override
   void initState() {
-    _tabController = TabController(length: 3, vsync: this);
     super.initState();
+    _hasWebsite = _websiteUrl.isNotEmpty;
+    _tabController = TabController(length: _tabCount, vsync: this);
   }
 
   @override
@@ -50,53 +64,77 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     super.dispose();
   }
 
+  void _syncWebsiteTab() {
+    final newHasWebsite = _websiteUrl.isNotEmpty;
+    if (newHasWebsite == _hasWebsite) return;
+
+    _hasWebsite = newHasWebsite;
+    final currentIndex = _tabController.index;
+    _tabController.dispose();
+    _tabController = TabController(
+      length: _tabCount,
+      vsync: this,
+      initialIndex: currentIndex.clamp(0, _tabCount - 1),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppColors.white,
         body: SafeArea(
-            child:NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverAppBar(
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    floating: true,   // appear on scroll up
-                    snap: true,       // instantly snap down
-                    pinned: false,    // don't keep the header fixed
-                    automaticallyImplyLeading: false,
-                    flexibleSpace: Padding(
-                      padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-                      child: _buildHeader(context), // your header row
-                    ),
-                    expandedHeight: SizeConfig.size70,
-                  ),
+            child: Obx(() {
+              // Access the reactive value to subscribe, then sync tabs
+              _viewBusinessController.businessProfileDetails.value;
+              _syncWebsiteTab();
 
-                  SliverPersistentHeader(
-                    pinned: true,   // TabBar should always stay visible
-                    delegate: TabBarDelegate(
-                      TabBar(
-                        controller: _tabController,
-                        labelColor: AppColors.primaryColor,
-                        unselectedLabelColor: Colors.grey[600],
-                        indicatorColor: Colors.blue,
-                        indicatorWeight: 2,
-                        labelStyle: TextStyle(fontWeight: FontWeight.w600),
-                        tabs: _tabs,
+              return NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    SliverAppBar(
+                      backgroundColor: Colors.white,
+                      elevation: 0,
+                      floating: true,
+                      snap: true,
+                      pinned: false,
+                      automaticallyImplyLeading: false,
+                      flexibleSpace: Padding(
+                        padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
+                        child: _buildHeader(context),
+                      ),
+                      expandedHeight: SizeConfig.size70,
+                    ),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: TabBarDelegate(
+                        TabBar(
+                          controller: _tabController,
+                          labelColor: AppColors.primaryColor,
+                          unselectedLabelColor: Colors.grey[600],
+                          indicatorColor: Colors.blue,
+                          indicatorWeight: 2,
+                          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                          tabs: _tabs,
+                        ),
                       ),
                     ),
-                  ),
-                ];
-              },
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  RestaurantHomeScreen(),
-                  ComingSoon(),
-                  ComingSoon(),
-                ],
-              ),
-                )
+                  ];
+                },
+                body: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    RestaurantHomeScreen(),
+                    if (_hasWebsite)
+                      CommonWebView(
+                        urlLink: _websiteUrl,
+                        urlTitle: '',
+                        hideAppBar: true,
+                      ),
+                    ComingSoon(),
+                  ],
+                ),
+              );
+            }),
         ));
   }
 

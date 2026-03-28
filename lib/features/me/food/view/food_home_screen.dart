@@ -24,6 +24,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/common_se
 import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -130,8 +131,12 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 ///FOOD MENU...
                 _buildMenuCategories(controller.foodMenuNestedCategory),
 
+                /// Business Live Photos
+                CommonBusinessLivePhoto(
+                  controller: viewBusinessDetailsController,
+                ),
+
                 /// Gallery
-                SizedBox(height: 10.0),
                 CommonGalleryCard(
                   gallery: data.gallery
                       ?.expand((g) => g.imageUrls ?? [])
@@ -144,14 +149,15 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   isRestaurantGallery: true
                 ),
 
-                SizedBox(height: 10.0),
+
+                // ── 11. Contact & Map ──
                 BusinessContactMapCard(
                   businessProfileDetails: businessProfileDetails,
                 ),
 
                 // ── 11. QR Code ──
                 BusinessQrCodeWidget(
-                  data:       businessProfileDetails,
+                  data:  businessProfileDetails,
                   onDownload: () {
                     // downloadQrCode();
                   },

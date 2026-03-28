@@ -21,7 +21,6 @@ import 'package:BlueEra/features/business/widgets/business_availability_widget.d
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_hours_sheet_content.dart';
-import 'package:BlueEra/features/business/widgets/business_website_url_widget.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
@@ -137,12 +136,16 @@ class BusinessProfileHeaderView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
+
+          // ── Name ──
           CustomText(details?.businessName,
               fontSize: 20,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               fontWeight: FontWeight.bold),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+
+          // ── Category + Rating + Dietary (inline) ──
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -156,7 +159,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
               const SizedBox(width: 5),
               CommonRatingRow(
                 rating: double.tryParse(
-                    details?.avg_rating.toString() ?? '0.0') ??
+                        details?.avg_rating.toString() ?? '0.0') ??
                     0.0,
                 reviews: details?.total_ratings?.toInt() ?? 0,
               ),
@@ -164,7 +167,63 @@ class BusinessProfileHeaderView extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Distance + locality row
+          // ── Location info block ──
+          _buildLocationInfoBlock(context),
+          const SizedBox(height: 10),
+
+          // ── Website ──
+          if (hasWebsite)
+            InkWell(
+              onTap: () => launchURL(details!.websiteUrl!),
+              child: Row(
+                children: [
+                  Icon(Icons.link_rounded,
+                      size: 14, color: AppColors.primaryColor),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: CustomText(
+                      details?.websiteUrl,
+                      fontSize: 12,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w500,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            _buildInlineAdd(
+              icon: Icons.link_rounded,
+              label: 'Add Website',
+              onTap: () => _openEditSheet(context),
+            ),
+          const SizedBox(height: 10),
+
+          // ── Availability + Restaurant type ──
+          _buildQuickInfoRow(context, hasAvailability),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationInfoBlock(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Distance + locality
           Row(
             children: [
               Icon(Icons.near_me_rounded,
@@ -182,12 +241,10 @@ class BusinessProfileHeaderView extends StatelessWidget {
               if (_hasAddress) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: CustomText(
-                    '|',
-                    fontSize: 11,
-                    color: AppColors.secondaryTextColor
-                        .withValues(alpha: 0.4),
-                  ),
+                  child: CustomText('|',
+                      fontSize: 11,
+                      color: AppColors.secondaryTextColor
+                          .withValues(alpha: 0.4)),
                 ),
                 Expanded(
                   child: CustomText(
@@ -199,94 +256,83 @@ class BusinessProfileHeaderView extends StatelessWidget {
                   ),
                 ),
               ],
+              if (!_hasAddress)
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _openAddressEditSheet(context),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: CustomText(
+                        '+ ${AppStrings.addAddress.tr}',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 10),
-
-          // Availability display (when data exists)
-          if (hasAvailability) ...[
-            BusinessAvailabilityWidget(
-              hasAvailability: true,
-              schedule: details?.availability?.schedule,
-              onEditTap: () => _openBusinessHoursEditSheet(context),
-              onAddTap: () => _openBusinessHoursEditSheet(context),
-            ),
-            const SizedBox(height: 10),
-          ],
-
-          // Website display (when data exists)
-          if (hasWebsite) ...[
-            WebsiteUrlWidget(websiteUrl: details?.websiteUrl),
-            const SizedBox(height: 10),
-          ],
-
-          // Action chips row for missing info
-          if (!_hasAddress || !hasAvailability || !hasWebsite ||
-              (isRestaurantProfile && !_hasDietaryType))
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (isRestaurantProfile && !_hasDietaryType)
-                  _buildActionChip(
-                    icon: Icons.restaurant_outlined,
-                    label: 'Add Restaurant Type',
-                    onTap: () => _openDietaryTypeSheet(context),
-                  ),
-                if (!_hasAddress)
-                  _buildActionChip(
-                    icon: Icons.location_on_outlined,
-                    label: AppStrings.addAddress.tr,
-                    onTap: () => _openAddressEditSheet(context),
-                  ),
-                if (!hasAvailability)
-                  _buildActionChip(
-                    icon: Icons.calendar_today_outlined,
-                    label: 'Add Visiting Days',
-                    onTap: () => _openBusinessHoursEditSheet(context),
-                  ),
-                if (!hasWebsite)
-                  _buildActionChip(
-                    icon: Icons.link_rounded,
-                    label: 'Add Website',
-                    onTap: () => _openEditSheet(context),
-                  ),
-              ],
-            ),
         ],
       ),
     );
   }
 
-  bool get _hasAddress =>
-      details?.address != null && details!.address!.trim().isNotEmpty;
+  Widget _buildQuickInfoRow(BuildContext context, bool hasAvailability) {
+    final List<Widget> items = [];
 
-  Widget _buildActionChip({
+    // Availability
+    if (hasAvailability) {
+      items.add(Expanded(
+        child: BusinessAvailabilityWidget(
+          hasAvailability: true,
+          schedule: details?.availability?.schedule,
+          onEditTap: () => _openBusinessHoursEditSheet(context),
+          onAddTap: () => _openBusinessHoursEditSheet(context),
+        ),
+      ));
+    } else {
+      items.add(_buildInlineAdd(
+        icon: Icons.calendar_today_outlined,
+        label: 'Add Visiting Days',
+        onTap: () => _openBusinessHoursEditSheet(context),
+      ));
+    }
+
+    // Restaurant type (only for restaurant profiles)
+    if (isRestaurantProfile && !_hasDietaryType) {
+      items.add(const SizedBox(width: 10));
+      items.add(_buildInlineAdd(
+        icon: Icons.restaurant_outlined,
+        label: 'Add Type',
+        onTap: () => _openDietaryTypeSheet(context),
+      ));
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items,
+    );
+  }
+
+  Widget _buildInlineAdd({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8,
-          vertical: SizeConfig.size6,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.skyBlueFF),
-        ),
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: AppColors.primaryColor),
-            SizedBox(width: SizeConfig.size6),
+            Icon(icon, size: 13, color: AppColors.primaryColor),
+            const SizedBox(width: 3),
             CustomText(
               label,
-              fontSize: SizeConfig.small,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
             ),
@@ -295,6 +341,11 @@ class BusinessProfileHeaderView extends StatelessWidget {
       ),
     );
   }
+
+  bool get _hasAddress =>
+      details?.address != null && details!.address!.trim().isNotEmpty;
+
+
 
   bool get _hasDietaryType =>
       details?.dietaryType != null && details!.dietaryType!.trim().isNotEmpty;

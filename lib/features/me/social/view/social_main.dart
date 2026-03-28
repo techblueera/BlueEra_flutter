@@ -11,7 +11,6 @@ import 'package:BlueEra/widgets/profile_avatar_widget.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class SocialMainScreen extends StatefulWidget {
   const SocialMainScreen({
