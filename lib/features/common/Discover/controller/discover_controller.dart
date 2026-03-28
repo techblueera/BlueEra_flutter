@@ -653,37 +653,54 @@ class DiscoverController extends GetxController {
     }
   }
 
-  Future<String?> getCurrentPostCode() async {
+  /// Reverse-geocode the given lat/lng to extract the postal code.
+  Future<String?> getPostCodeFromCoordinates(double lat, double lng) async {
     try {
-      // 1️⃣ Check & request permission
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        return placemarks.first.postalCode;
+      }
+      return null;
+    } catch (e) {
+      print("Post code from coordinates error: $e");
+      return null;
+    }
+  }
+
+  /// Get pincode from the selected "from" location, falling back to current location.
+  Future<String> _getFromLocationPincode() async {
+    // Try selected from-location first
+    if (selectedFromLat?.value != null &&
+        selectedFromLat!.value != 0.0 &&
+        selectedFromLong?.value != null &&
+        selectedFromLong!.value != 0.0) {
+      final pincode = await getPostCodeFromCoordinates(
+        selectedFromLat!.value,
+        selectedFromLong!.value,
+      );
+      if (pincode != null && pincode.isNotEmpty) return pincode;
+    }
+    // Fallback to current location
+    try {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied ||
             permission == LocationPermission.deniedForever) {
-          return null;
+          return '';
         }
       }
-
-      // 2️⃣ Get current position
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-
-      // 3️⃣ Reverse geocode
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      final pincode = await getPostCodeFromCoordinates(
         position.latitude,
         position.longitude,
       );
-
-      if (placemarks.isNotEmpty) {
-        return placemarks.first.postalCode;
-      }
-
-      return null;
+      return pincode ?? '';
     } catch (e) {
-      print("Post code error: $e");
-      return null;
+      print("Current location post code error: $e");
+      return '';
     }
   }
 
@@ -693,29 +710,23 @@ class DiscoverController extends GetxController {
         selectedToLat?.value != 0.0 &&
         selectedToLong?.value != 0.0) {
       findRiderDetailsLoading.value = true;
+
+      String pincode = '';
       if (selectedHorizontalTab.value == 0 ||
-          selectedHorizontalTab.value == 1) {}
+          selectedHorizontalTab.value == 1) {
+        pincode = await _getFromLocationPincode();
+      }
+
       Map<String, dynamic> queryParams = {
-        ApiKeys.orderFor: "InCity",
-        ApiKeys.pickupLatitude: 23.266686,
-        ApiKeys.pickupLongitude: 77.459075,
-        ApiKeys.dropLatitude: 23.266686,
-        ApiKeys.dropLongitude: 77.459075,
-        ApiKeys.range_in_km: 5,
-        if (selectedHorizontalTab.value == 0 ||
-            selectedHorizontalTab.value == 1)
-          ApiKeys.pincode: "462023",
+        ApiKeys.orderFor : await getOrderTypeString(),
+        ApiKeys.pickupLatitude : selectedFromLat?.value,
+        ApiKeys.pickupLongitude : selectedFromLong?.value,
+        ApiKeys.dropLatitude : selectedToLat?.value,
+        ApiKeys.dropLongitude : selectedToLong?.value,
+        ApiKeys.range_in_km: 20,
+        if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
+          ApiKeys.pincode: pincode,
       };
-      // Map<String, dynamic> queryParams = {
-      //   ApiKeys.orderFor : getOrderTypeString(),
-      //   ApiKeys.pickupLatitude : selectedFromLat?.value,
-      //   ApiKeys.pickupLongitude : selectedFromLong?.value,
-      //   ApiKeys.dropLatitude : selectedToLat?.value,
-      //   ApiKeys.dropLongitude : selectedToLong?.value,
-      //   ApiKeys.range_in_km: 5,
-      //   if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
-      //     ApiKeys.pincode: postCodeData??'',
-      // };
       final response = await DiscoverRepo().getBookingRidersApi(
         queryParams: queryParams,
       );

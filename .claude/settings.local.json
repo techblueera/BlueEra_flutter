@@ -31,7 +31,8 @@
       "Bash(flutter build:*)",
       "Bash(flutter install:*)",
       "Bash(adb:*)",
-      "Bash(export PATH=\"$PATH:$HOME/Library/Android/sdk/platform-tools\")"
+      "Bash(export PATH=\"$PATH:$HOME/Library/Android/sdk/platform-tools\")",
+      "Bash(git log:*)"
     ]
   }
 }
