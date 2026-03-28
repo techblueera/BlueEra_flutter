@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/all_food_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_food_home_screen.dart';
+import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -361,7 +361,10 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
   Widget _buildKnownLovedCard(FoodData restaurant) {
     final profile = restaurant.businessProfile;
     return InkWell(
-      onTap: () => Get.to(() => DiscoverFoodHomeScreen(foodData: restaurant)),
+      onTap: () {
+        if (restaurant.businessProfile?.id == null) return;
+        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
+      },
       child: SizedBox(
         width: 150,
         child: Column(
@@ -539,7 +542,10 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
   Widget _buildRestaurantCard(FoodData restaurant) {
     final profile = restaurant.businessProfile;
     return InkWell(
-      onTap: () => Get.to(() => DiscoverFoodHomeScreen(foodData: restaurant)),
+      onTap: () {
+        if (restaurant.businessProfile?.id == null) return;
+        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
+      },
       child: Container(
         color: AppColors.white,
         padding: EdgeInsets.symmetric(

@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_food_home_screen.dart';
+import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -209,7 +209,8 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
   Widget selfProfessionCard(FoodData service) {
     return InkWell(
       onTap: () {
-        Get.to(DiscoverFoodHomeScreen(foodData: service,));
+        if (service.businessProfile?.id == null) return;
+        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: service.businessProfile!.id!));
       },
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),

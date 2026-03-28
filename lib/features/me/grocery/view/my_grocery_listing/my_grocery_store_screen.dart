@@ -37,10 +37,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   final viewBusinessDetailsController =
         Get.find<ViewBusinessDetailsController>();
   BusinessProfileDetails? businessProfileDetails;
+
   @override
   void initState() {
-    // controller.fetchMyGroceryCategoryWithVariants();
-    // controller.fetchGroceryBusinessProductsRepo();
     businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
     controller.fetchAllGroceryData(userId, otherStore: false);
     super.initState();
@@ -65,12 +64,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
             ),
             child: Column(
               children: [
-                CustomFormCard(
-                  padding: EdgeInsets.zero,
-                  child: BusinessProfileHeaderView(
-                    details: businessProfileDetails,
-                    controller: viewBusinessDetailsController,
-                  ),
+                BusinessProfileHeaderView(
+                  details: businessProfileDetails,
+                  controller: viewBusinessDetailsController,
                 ),
 
                 // --- 2. Top Selling Products (Reactive) ---

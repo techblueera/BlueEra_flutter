@@ -22,6 +22,7 @@ class LocationService extends GetxService {
     final gps = await Geolocator.isLocationServiceEnabled();
     return permission.isGranted && gps;
   }
+
   static Future<String> getAddressUsingLatLng({required double latitude,required double longitude})async{
     final placeMarks = await placemarkFromCoordinates(latitude, longitude);
 
@@ -308,4 +309,18 @@ class LocationService extends GetxService {
 
   }
 
+}
+
+
+String getLocalityAddress(String? address) {
+  if (address == null || address.isEmpty) return 'N/A';
+  final parts = address
+      .split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  if (parts.length >= 2) {
+    return '${parts[parts.length - 2]}, ${parts[parts.length - 1]}';
+  }
+  return address;
 }

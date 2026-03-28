@@ -81,6 +81,7 @@ class FoodRepo extends BaseService {
   Future<ResponseModel> getHomeFoodByIdRepo({required String businessProfile}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${home}$businessProfile",
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

@@ -20,6 +20,7 @@ class CommonGalleryCard extends StatelessWidget {
   final VoidCallback onAddTap;
   final String emptyTitle;
   final String addButtonLabel;
+  final bool isRestaurantGallery;
 
   const CommonGalleryCard({
     super.key,
@@ -28,6 +29,7 @@ class CommonGalleryCard extends StatelessWidget {
     required this.onAddTap,
     this.emptyTitle = 'You Have Not Post Any Photo',
     this.addButtonLabel = 'Add Photo',
+    this.isRestaurantGallery = false
   });
 
   @override
@@ -43,7 +45,10 @@ class CommonGalleryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CustomText(AppStrings.gallery.tr,
+              CustomText(
+                  !isRestaurantGallery
+                      ? AppStrings.gallery.tr
+                      : 'Upload Menu Card & ${AppStrings.gallery.tr}',
                   fontSize: 20, fontWeight: FontWeight.bold),
               if (hasGallery)
                 InkWell(

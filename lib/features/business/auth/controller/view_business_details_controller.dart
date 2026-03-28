@@ -282,8 +282,6 @@ class ViewBusinessDetailsController extends GetxController {
       ResponseModel responseModel =
           await BusinessProfileRepo().updateBusinessProfileDetails(params);
 
-      // ResponseModel responseModel =
-      //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
         commonSnackBar(message: "${responseModel.message}");
 

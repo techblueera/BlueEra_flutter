@@ -49,7 +49,7 @@ class FoodData {
     if (json['restaurantSpecials'] != null) {
       restaurantSpecials = [];
       json['restaurantSpecials'].forEach((v) {
-        // restaurantSpecials?.add(Dynamic.fromJson(v));
+        restaurantSpecials?.add(RestaurantSpecial.fromJson(v));
       });
     }
     if (json['gallery'] != null) {
@@ -62,7 +62,7 @@ class FoodData {
   }
   BusinessProfileDetails? businessProfileDetails;
   List<GroceryNestedCategoryModel>? foodMenu;
-  List<dynamic>? restaurantSpecials;
+  List<RestaurantSpecial>? restaurantSpecials;
   List<FoodGallery>? gallery;
   FoodContact? contact;
 
@@ -355,7 +355,37 @@ class SubSubCategories {
 
 }
 
+class RestaurantSpecial {
+  RestaurantSpecial({
+    this.id,
+    this.name,
+    this.description,
+    this.image,
+    this.rating,
+  });
 
+  RestaurantSpecial.fromJson(dynamic json) {
+    id = json['_id'];
+    name = json['name'];
+    description = json['description'];
+    image = json['image'];
+    rating = json['rating'];
+  }
 
+  String? id;
+  String? name;
+  String? description;
+  String? image;
+  num? rating;
 
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['_id'] = id;
+    map['name'] = name;
+    map['description'] = description;
+    map['image'] = image;
+    map['rating'] = rating;
+    return map;
+  }
+}
 

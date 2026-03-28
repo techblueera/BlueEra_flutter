@@ -11,6 +11,7 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/widgets/business_common_gallery_card.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/business/widgets/career_job_widget.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/business/widgets/business_header_view.dart';
@@ -92,7 +93,9 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                 const SizedBox(height: 10),
 
                 // ── 4. Business Stats ──
-                _buildBusinessStats(data),
+                BusinessStats(details: data),
+                // _buildBusinessStats(data),
+
                 const SizedBox(height: 10),
 
                 // ── 5. Top Selling Product ──
@@ -207,122 +210,9 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
   //  3. PROFILE HEADER
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildProfileHeader(BusinessProfileDetails data) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: CustomFormCard(
-          padding: EdgeInsets.zero,
-          child: BusinessProfileHeaderView(
-            details: data,
-            controller: viewBusinessDetailsController,
-          )
-      ),
-    );
-  }
-
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  //  4. BUSINESS STATS
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildBusinessStats(BusinessProfileDetails? details) {
-    String formatCount(dynamic value) {
-      if (value == null) return '0';
-      final count = (value is String) ? (int.tryParse(value) ?? 0) : (value as num).toInt();
-      if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
-      if (count >= 1000)    return '${(count / 1000).toStringAsFixed(count % 1000 == 0 ? 0 : 1)}k';
-      return count.toString();
-    }
-
-    String formatDate(String? isoDate) {
-      if (isoDate == null) return '--';
-      try {
-        final date = DateTime.parse(isoDate);
-        return '${date.day}/${date.month}/${date.year}';
-      } catch (_) {
-        return '--';
-      }
-    }
-
-    Widget buildStat({required String label, required String value, IconData? icon, Color? iconColor}) {
-      return Row(
-        children: [
-          CustomText('$label: ', fontSize: SizeConfig.small, fontWeight: FontWeight.w400, color: AppColors.secondaryTextColor),
-          if (icon != null) ...[
-            Icon(icon, size: 13, color: iconColor ?? AppColors.mainTextColor),
-            SizedBox(width: SizeConfig.size2),
-          ],
-          CustomText(value, fontSize: SizeConfig.small, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
-        ],
-      );
-    }
-
-    Widget verticalDivider() {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-        child: VerticalDivider(color: AppColors.greyE5, thickness: 1, width: 1),
-      );
-    }
-
-    return CustomFormCard(
-      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-      padding: EdgeInsets.all(
-          SizeConfig.size12,
-      ),
-      border: Border.all(
-        color: AppColors.greyE5
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-
-            // ─── Rating + Views ───
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  buildStat(
-                    label: 'Rating',
-                    value: '${details?.avg_rating ?? '0.0'}',
-                    icon: Icons.star_rounded,
-                    iconColor: AppColors.rating,
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  buildStat(label: 'Views', value: formatCount(details?.total_views)),
-                ],
-              ),
-            ),
-
-            verticalDivider(),
-
-            // ─── Inquiries + Followers ───
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  buildStat(label: 'Inquiries', value: formatCount('25')),
-                  SizedBox(height: SizeConfig.size8),
-                  buildStat(label: 'Followers', value: formatCount(details?.total_followers)),
-                ],
-              ),
-            ),
-
-            verticalDivider(),
-
-            // ─── Joined ───
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomText('Joined', fontSize: SizeConfig.small, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
-                  SizedBox(height: SizeConfig.size4),
-                  CustomText(formatDate(details?.createdAt), fontSize: SizeConfig.small, fontWeight: FontWeight.w400, color: AppColors.secondaryTextColor),
-                ],
-              ),
-            ),
-
-          ],
-        ),
-      ),
+    return BusinessProfileHeaderView(
+      details: data,
+      controller: viewBusinessDetailsController,
     );
   }
 

@@ -19,6 +19,7 @@ class RestaurantController extends GetxController {
   var restaurantData = Rxn<FoodData>();
   var foodMenuNestedCategory = <GroceryNestedCategoryModel>[].obs;
   var allFoodItems = <Items>[].obs;
+  var restaurantSpecials = <RestaurantSpecial>[].obs;
 
   void fetchHomeData({required String businessId}) async {
     try {
@@ -32,6 +33,7 @@ class RestaurantController extends GetxController {
         restaurantData.value =
             FoodHomeResModel.fromJson(responseModel.response?.data).data;
         foodMenuNestedCategory.value = restaurantData.value?.foodMenu ?? [];
+        restaurantSpecials.value = restaurantData.value?.restaurantSpecials ?? [];
         _flattenItems();
 
         foodHomeDataResponse.value = ApiResponse.complete(responseModel);

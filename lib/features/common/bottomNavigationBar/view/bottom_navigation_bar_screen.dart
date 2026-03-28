@@ -442,7 +442,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Food.name.toUpperCase()) {
-      return const FoodMainScreen();
+      return const FoodMainScreen(fromBottomNavBar: true);
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Grocery.name.toUpperCase()) {
       return const GroceryScreen(fromBottomNavBar: true);
