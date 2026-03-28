@@ -205,7 +205,8 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
                   id: 'livePhotos',
                   builder: (controller) {
                     final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];
-                    final int count = apiPhotos.length;
+                    final int localCount = localPhotos.where((p) => p != null).length;
+                    final int count = apiPhotos.length > localCount ? apiPhotos.length : localCount;
                     final bool hasPhoto = count > 0;
 
                     /// ---------- BUTTON ACTION ----------
