@@ -26,7 +26,7 @@ class BusinessCommonSubCategoryWidget extends StatelessWidget {
 
     return Container(
       padding: padding ??
-          const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+          const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
       decoration: BoxDecoration(
         border: Border.all(
           color: borderColor ?? AppColors.secondaryTextColor,

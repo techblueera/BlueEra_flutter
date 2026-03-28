@@ -1,16 +1,17 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
-import 'package:BlueEra/core/api/model/new_food_home_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_food_home_screen.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -198,20 +199,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
-
-  String _getLocalityAddress(String? address) {
-    if (address == null || address.isEmpty) return 'N/A';
-    final parts = address
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (parts.length >= 2) {
-      return '${parts[parts.length - 2]}, ${parts[parts.length - 1]}';
-    }
-    return address;
-  }
-
   bool _isVeg(String subCategoryName) {
     final name = subCategoryName.toLowerCase();
     return !name.contains('non') &&
@@ -541,28 +528,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade700,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star_rounded,
-                                size: 13, color: Colors.white),
-                            const SizedBox(width: 2),
-                            CustomText(
-                              rating,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.white,
-                            ),
-                          ],
-                        ),
-                      ),
+                      RatingBadge(rating: rating)
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -602,7 +568,9 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                                   color: AppColors.primaryColor),
                               const SizedBox(width: 5),
                               CustomText(
-                                '4.3Km',
+                                '${calculateDistance(
+                                    store.businessLocation?.lat?.toDouble() ?? 0.0,
+                                    store.businessLocation?.lon?.toDouble() ?? 0.0)?.toStringAsFixed(2)} KM',
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primaryColor,
@@ -619,7 +587,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                               ),
                               Expanded(
                                 child: CustomText(
-                                  _getLocalityAddress(store.address),
+                                  getLocalityAddress(store.address),
                                   fontSize: 11,
                                   color: AppColors.secondaryTextColor,
                                   maxLines: 1,
@@ -662,6 +630,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                       ),
                     ],
                   ),
+
                 ],
               ),
             ),
@@ -672,16 +641,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   }
 
   void _navigateToDetail(GetAllStoreResModel store) {
-    final foodData = FoodData(
-      businessProfile: BusinessProfileDetails(
-        businessName: store.businessName,
-        logo: store.logo,
-        address: store.address,
-        avg_rating: store.avgRating,
-        total_ratings: int.tryParse(store.totalRatings ?? '0') ?? 0,
-        userId: store.userId,
-      ),
-    );
-    Get.to(() => DiscoverFoodHomeScreen(foodData: foodData));
+    if (store.id == null) return;
+    Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: store.id!));
   }
 }

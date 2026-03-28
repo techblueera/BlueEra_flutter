@@ -71,6 +71,7 @@ class BusinessProfileDetails {
       this.total_views,
       this.username,
       this.total_followers,
+      this.total_following,
       this.total_ratings,
       this.specification,
       this.avg_rating,
@@ -99,6 +100,7 @@ class BusinessProfileDetails {
     }
     total_views=json['total_views'];
     total_followers=json['total_followers'];
+    total_following=json['total_following'];
     is_following=json['is_following'];
     businessNumber = json['business_number'] != null
         ? new BusinessNumber.fromJson(json['business_number'])
@@ -136,6 +138,7 @@ class BusinessProfileDetails {
     specification = json['specification'];
     userContactNo = json['userContactNo'];
     availability = json['availability'] != null ? AvailabilityData.fromJson(json['availability']) : null;
+    dietaryType = json['dietaryType'];
   }
 
   DateOfIncorporation? dateOfIncorporation;
@@ -172,6 +175,7 @@ class BusinessProfileDetails {
   SubCategoryDetails? subCategoryDetails;
   int? total_views;
   int? total_followers;
+  int? total_following;
   BusinessNumber? businessNumber;
   String? category_other;
   String? username;
@@ -180,6 +184,7 @@ class BusinessProfileDetails {
   num? total_ratings;
   String? userContactNo;
   AvailabilityData? availability;
+  String? dietaryType;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -226,6 +231,7 @@ class BusinessProfileDetails {
     map['closing_time'] = closeTime;
     map['total_views']=total_views;
     map['total_followers']=total_followers;
+    map['total_following']=total_following;
     map['total_ratings']=total_ratings;
     map['avg_rating']=avg_rating;
     map['specification']=specification;
@@ -239,6 +245,7 @@ class BusinessProfileDetails {
       map['business_number'] = this.businessNumber!.toJson();
     }
     map['userContactNo']=userContactNo;
+    map['dietaryType']=dietaryType;
     if (availability != null) {
       map['availability'] = availability?.toJson();
     }

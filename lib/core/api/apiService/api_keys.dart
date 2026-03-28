@@ -414,6 +414,8 @@ class ApiKeys {
   static const serviceSubType = 'serviceSubType';
   static const discount = 'discount';
   static const veg_type = 'veg_type';
+  static const dietary_type = 'dietary_type';
+  static const dietaryType = 'dietaryType';
   static const calories = 'calories';
   static const variant = 'variant';
   static const messageId = 'messageId';

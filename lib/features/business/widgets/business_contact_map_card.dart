@@ -27,6 +27,7 @@ class BusinessContactMapCard extends StatelessWidget {
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
+      margin: EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
