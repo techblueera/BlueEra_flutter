@@ -112,7 +112,6 @@ class _CreateBusinessAccountNewStepTwoState
       } else {
         isFormValid = false;
       }
-      log('isFormValid-- $isFormValid');
     });
   }
 

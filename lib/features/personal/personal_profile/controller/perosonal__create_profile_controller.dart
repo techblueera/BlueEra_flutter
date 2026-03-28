@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -106,12 +108,18 @@ class PersonalCreateProfileController extends GetxController {
       );
 
       if (responseModel.isSuccess) {
+        GuestUserResModel guestUserResModel =
+        GuestUserResModel.fromJson(responseModel.response?.data);
         updateUserProfileResponse = ApiResponse.complete(responseModel);
         await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
         if(!isFromProfileOnly)
           {
             Get.back();
           }
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.authToken, guestUserResModel.token);
+        await getUserAuthToken();
+
         commonSnackBar(
             message: responseModel.response?.data?['message'] ??
                 "Update successfully");

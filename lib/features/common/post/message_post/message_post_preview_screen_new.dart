@@ -301,34 +301,40 @@ class _MessagePostPreviewScreenNewState
                               borderRadius: BorderRadius.circular(12)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+
                             children: [
-                              IgnorePointer(
-                                ignoring: true,
-                                child: msgPostController.isMsgPostEdit
-                                    ? Column(
-                                        children: [
-                                          CustomText(
-                                            AppStrings.natureOfPost,
-                                            fontSize: SizeConfig.medium,
-                                            fontWeight: FontWeight.w700,
-                                            color: AppColors.black,
-                                          ),
-                                          SizedBox(
-                                            height: SizeConfig.size10,
-                                          ),
-                                          CustomText(msgPostController
-                                                  .natureOfPostController
-                                                  .value
-                                                  .text
-                                                  .isNotEmpty
-                                              ? msgPostController
-                                                  .natureOfPostController
-                                                  .value
-                                                  .text
-                                              : AppStrings.notAvailable.tr),
-                                        ],
-                                      )
-                                    : CommonTextField(
+                              msgPostController.isMsgPostEdit
+                                  ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CustomText(
+                                          AppStrings.natureOfPost,
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.black,
+                                        ),
+                                        SizedBox(
+                                          height: SizeConfig.size10,
+                                        ),
+                                        CustomText(msgPostController
+                                                .natureOfPostController
+                                                .value
+                                                .text
+                                                .isNotEmpty
+                                            ? msgPostController
+                                                .natureOfPostController
+                                                .value
+                                                .text
+                                            : AppStrings.notAvailable.tr),
+                                      ],
+                                    )
+                                  : IgnorePointer(
+                                      ignoring: msgPostController
+                                          .natureOfPostController
+                                          .value
+                                          .text
+                                          .isNotEmpty,
+                                      child: CommonTextField(
                                         title: AppStrings.natureOfPost,
                                         hintText: AppStrings.egFlower,
                                         maxLength: 50,
@@ -338,7 +344,7 @@ class _MessagePostPreviewScreenNewState
                                         textEditController: msgPostController
                                             .natureOfPostController.value,
                                       ),
-                              ),
+                                    ),
                               SizedBox(height: SizeConfig.size30),
 
                               // Action buttons

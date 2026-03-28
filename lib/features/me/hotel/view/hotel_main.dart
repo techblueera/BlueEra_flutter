@@ -90,43 +90,41 @@ class _HotelMainState extends State<HotelMain>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: hasHotel
-            ? Column(
+        child:Column(
+          children: [
+            SizedBox(height: SizeConfig.size12),
+            TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primaryColor,
+              unselectedLabelColor: Colors.grey[600],
+              indicatorColor: AppColors.primaryColor,
+              indicatorWeight: 4,
+              tabAlignment: TabAlignment.fill,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+              tabs: [
+                const Tab(text: "My Hotel"),
+                if (_hasWebsite) const Tab(text: "Website"),
+                const Tab(text: "Statics"),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
                 children: [
-                  SizedBox(height: SizeConfig.size12),
-                  TabBar(
-                    controller: _tabController,
-                    labelColor: AppColors.primaryColor,
-                    unselectedLabelColor: Colors.grey[600],
-                    indicatorColor: AppColors.primaryColor,
-                    indicatorWeight: 4,
-                    tabAlignment: TabAlignment.fill,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                    tabs: [
-                      const Tab(text: "My Hotel"),
-                      if (_hasWebsite) const Tab(text: "Website"),
-                      const Tab(text: "Statics"),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        HotelHomeDetailScreen(),
-                        if (_hasWebsite)
-                          CommonWebView(
-                            urlLink: _websiteUrl,
-                            urlTitle: '',
-                            hideAppBar: true,
-                          ),
-                        ComingSoon(),
-                      ],
+                  HotelHomeDetailScreen(),
+                  if (_hasWebsite)
+                    CommonWebView(
+                      urlLink: _websiteUrl,
+                      urlTitle: '',
+                      hideAppBar: true,
                     ),
-                  ),
+                  ComingSoon(),
                 ],
-              )
-            : NoHotelCreatedScreen(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

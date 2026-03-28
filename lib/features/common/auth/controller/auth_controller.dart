@@ -173,7 +173,7 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.authToken, data.token);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
-
+              // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWM3NzE2MGI2OWQ3YzJhMzU5ODkwMWMiLCJfaWQiOnsiX2lkIjoiNjljNzcxNjA0YjAzNjI0ZTBhNTEzYWQ1IiwiaWQiOiI2OWM3NzE2MDRiMDM2MjRlMGE1MTNhZDUiLCJhY2NvdW50X3R5cGUiOiJHVUVTVCIsImNvbnRhY3Rfbm8iOiIwMDEzMzAwMDAwIiwiYnVzaW5lc3NfaWQiOm51bGwsIm5hbWUiOiJHdWVzdDAwMDAiLCJwcm9maWxlX2ltYWdlIjoiIn0sImlhdCI6MTc3NDY3ODM2OCwiZXhwIjoxNzkwMjMwMzY4fQ.BQoIDhS442PXg92LoOLfl7Xi6IX65PanzhKAFI5Bx2A
               await getMobileNo();
               log('contact number -- $userMobileGlobal');
               await getUserLoginBusinessId();
@@ -1035,7 +1035,7 @@ class AuthController extends GetxController {
 
     for (var apiCategory in categoryData) {
       final String apiType = apiCategory.profileType ?? "";
-      log('apitype-- $apiType');
+      // log('apitype-- $apiType');
 
       switch (apiType) {
         case 'Social Profile':
@@ -1120,7 +1120,7 @@ class AuthController extends GetxController {
 
     for (var apiCategory in categoryData) {
       final String apiType = apiCategory.type ?? "";
-      log('apitype-- $apiType');
+      // log('apitype-- $apiType');
 
       switch (apiType) {
         case 'Service':
