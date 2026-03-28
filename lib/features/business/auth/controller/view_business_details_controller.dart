@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -176,65 +177,6 @@ class ViewBusinessDetailsController extends GetxController {
           businessProfileDetails.value?.data?.dateOfIncorporation?.year ?? 0;
       imagePath?.value = businessProfileDetails.value?.data?.logo ?? "";
       coverImage?.value = businessProfileDetails.value?.data?.coverimage ?? "";
-/*      selectedCategoryOfBusiness.value = CategoryData(
-          id: businessProfileDetails?.data?.categoryDetails?.id,
-          name: businessProfileDetails?.data?.categoryDetails?.name);
-      selectedSubCategoryOfBusinessNew.value = SubCategories(
-          sId: businessProfileDetails?.data?.subCategoryDetails?.id,
-          name: businessProfileDetails?.data?.subCategoryDetails?.name);
-      selectedBusinessType?.value =
-          businessProfileDetails?.data?.typeOfBusiness == "Product"
-              ? BusinessType.Product
-              : businessProfileDetails?.data?.typeOfBusiness == "Service"
-                  ? BusinessType.Service
-                  : businessProfileDetails?.data?.typeOfBusiness == "Food"
-                      ? BusinessType.Food
-                      : businessProfileDetails?.data?.typeOfBusiness ==
-                              "Grocery"
-                          ? BusinessType.Grocery
-                          : businessProfileDetails?.data?.typeOfBusiness ==
-                                  "Manufacturing"
-                              ? BusinessType.Manufacturing
-                              : BusinessType.Both; // Default fallback*/
-
-/*
-      if (businessProfileDetails?.data?.typeOfBusiness ==
-          BusinessType.Product.name) {
-        selectedTypeOfBusiness.value = BusinessCategory(
-          title: "Product Sales: Shop/Store/Showroom",
-          subTitle:
-              "(e.g., Clothes, Electronics, Pharmacy, Toy, Beauty product)",
-          icon: AppIconAssets.product_sale,
-          type: BusinessType.Product.name,
-        );
-      } else if (businessProfileDetails?.data?.typeOfBusiness ==
-          BusinessType.Service.name) {
-        selectedTypeOfBusiness.value = BusinessCategory(
-          title: "Service Provider: Education/Hospital/Hotel etc.",
-          subTitle: "(Consulting Farm, Doctors, All Service providers)",
-          icon: AppIconAssets.service_provider,
-          type: BusinessType.Service.name,
-        );
-      } else if (businessProfileDetails?.data?.typeOfBusiness ==
-          BusinessType.Food.name) {
-        selectedTypeOfBusiness.value = BusinessCategory(
-          title: "Grocerie /Food /Restaurant/Beverage",
-          subTitle:
-              "All Kind of Cooking/Eatable Shops/Stall/Dairy\nRestaurants, Sweet Shops, Tea Stalls, Juice Centers",
-          icon: AppIconAssets.food_service,
-          type: BusinessType.Food.name,
-        );
-      } else {
-        selectedTypeOfBusiness.value = BusinessCategory(
-          title: "Others: Manufacturing Unit/Industry/Factory",
-          subTitle:
-              "If Your Business Is related to Manufacturing / create products Or other activity",
-          icon: AppIconAssets.other_type,
-          type: BusinessType
-              .Both.name, // (requires Flutter 3.7+, else use Icons.work)
-        );
-      }
-*/
 
       businessDescription.value =
           businessProfileDetails.value?.data?.businessDescription ?? "";
@@ -314,6 +256,12 @@ class ViewBusinessDetailsController extends GetxController {
       // ResponseModel responseModel =
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
+        GuestUserResModel guestUserResModel =
+        GuestUserResModel.fromJson(responseModel.response?.data);
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.authToken, guestUserResModel.token);
+        await getUserAuthToken();
+
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);
         viewBusinessProfile();
