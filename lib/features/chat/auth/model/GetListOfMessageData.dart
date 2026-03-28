@@ -117,7 +117,7 @@ class Messages {
         url?.add(MessageMediaUrl.fromJson(v));
       });
     }
-    id = json['_id'].toString();
+    id = json['_id']?.toString();
     message = json['message'];
     status = json['status'];
     messageType = json['message_type'];
@@ -141,25 +141,27 @@ class Messages {
     sharedContactProfileImage = json['shared_contact_profile_image'];
     sharedContactNumber = json['shared_contact_number'];
     forwardId = json['forward_id'];
-    replyId = json['reply_id'].toString();
-    statusId = json['status_id'].toString();
+    replyId = json['reply_id']?.toString();
+    statusId = json['status_id']?.toString();
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     docFileName = json['docFileName'];
-    senderId = json['senderId'].toString();
-    conversationId = json['conversation_id'].toString();
+    senderId = json['senderId']?.toString();
+    conversationId = json['conversation_id']?.toString();
     deleteForMe = json['delete_for_me'];
     sendStatus = json['sendStatus'];
-    sendPendingMsgParams = json['sendPendingMsgParams'];
+    sendPendingMsgParams = json['sendPendingMsgParams'] != null
+        ? Map<String, dynamic>.from(json['sendPendingMsgParams'])
+        : null;
     deleteFromEveryone = json['delete_from_everyone'];
     isSaveMessage = json['is_save_message'];
     myMessage = json['my_message'];
     userId = json['userId'];
     visible_to = json['visible_to'];
     pendingFilePaths = json['pendingFilePaths'];
-    likes_count = json['likes_count'].toString();
-    forwards_count = json['forwards_count'].toString();
-    replies_count = json['replies_count'].toString();
+    likes_count = json['likes_count']?.toString();
+    forwards_count = json['forwards_count']?.toString();
+    replies_count = json['replies_count']?.toString();
     is_liked = json['is_liked'];
     sender = json['sender'] != null ? Sender.fromJson(json['sender']) : null;
     seller = json['seller'] != null ? SellerDetails.fromJson(json['seller']) : null;

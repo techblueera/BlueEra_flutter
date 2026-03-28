@@ -786,6 +786,7 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+        log("skjdnsdjcnsjkc ${data}");
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -1450,6 +1451,37 @@ class ChatViewController extends GetxController {
     }
   }
 
+  /// Locally update the last message in all chat list models so the chat list
+  /// reflects the sent message immediately (without waiting for a server round-trip).
+  void _updateChatListLastMessage(
+    String? conversationId,
+    String? lastMessage,
+    String? lastMessageType,
+    String? updatedAt,
+  ) {
+    if (conversationId == null) return;
+
+    void _patchList(Rx<GetChatListModel>? model) {
+      final list = model?.value.chatList;
+      if (list == null) return;
+      for (final chat in list) {
+        if (chat?.conversationId == conversationId) {
+          chat?.lastMessage = lastMessage;
+          chat?.lastMessageType = lastMessageType;
+          if (updatedAt != null) chat?.updatedAt = updatedAt;
+          break;
+        }
+      }
+      model?.refresh();
+    }
+
+    _patchList(getPersonalChatListModel);
+    _patchList(getPersonalFilteredChatListModel);
+    _patchList(getBusinessChatListModel);
+    _patchList(getGroupChatListModel);
+    _patchList(getOrderChatListModel);
+  }
+
   void onSearchChatList(String searchQuery) {
     if (selectedChatTabIndex.value == 0) {
       List<ChatList?>? fullChatList =
@@ -1661,7 +1693,7 @@ class ChatViewController extends GetxController {
               ApiResponse.complete(getListOfMessageData);
           scrollDown();
           saveSingleMessageToLocal(
-              message.conversationId ?? '', message, params);
+              message.conversationId ?? '', message);
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(
               0,
@@ -2197,6 +2229,12 @@ class ChatViewController extends GetxController {
             mediaFiles:      mediaFiles,
           );
           if (e2eSuccess) {
+            _updateChatListLastMessage(
+              convId,
+              text,
+              msgType,
+              DateTime.now().toUtc().toIso8601String(),
+            );
             clearMessageControllerCommon();
             return true;
           }
@@ -2248,7 +2286,14 @@ class ChatViewController extends GetxController {
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
-              params[ApiKeys.conversation_id], message, params);
+              params[ApiKeys.conversation_id], message);
+          // Update chat list locally so last message is visible immediately
+          _updateChatListLastMessage(
+            params[ApiKeys.conversation_id],
+            message.message,
+            message.messageType,
+            message.updatedAt ?? message.createdAt,
+          );
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(
               0,
@@ -2819,7 +2864,7 @@ class ChatViewController extends GetxController {
           canPopBusiness.value = true;
         }
         scrollDown();
-        saveSingleMessageToLocal(message.conversationId ?? '', message, params);
+        saveSingleMessageToLocal(message.conversationId ?? '', message);
         emitEvent(ChatEmitEvents.ChatList,
             {ApiKeys.type: AppConstants.personal_Chat_Type},);
         clearMessageControllerCommon();
@@ -3119,7 +3164,7 @@ class ChatViewController extends GetxController {
                 ApiResponse.complete(getListOfMessageData);
             scrollDown();
             saveSingleMessageToLocal(
-                message.conversationId ?? '', message, params);
+                message.conversationId ?? '', message);
           }
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(

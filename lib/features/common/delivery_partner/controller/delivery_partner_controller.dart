@@ -1061,32 +1061,30 @@ class DeliveryPartnerController extends GetxController {
   List<String> getFilteredVehicles(String userRole, List<String> allVehicles) {
     List<String> allowedTypes = [];
 
-    switch (userRole) {
-      case BIKE_RIDER:
-        allowedTypes = ["twoWheelerRider"];
-        break;
-
-      case AUTO_TAXI:
-        allowedTypes = ["autoTempo", "eRickshaw"];
-        break;
-
-      case CAR_TAXI:
-        allowedTypes = ["carMini", "carSedan", "suvCar", "miniBus"];
-        break;
-
-      case GOODS_TAXI:
-        allowedTypes = ["pickupGoods", "miniTruckGoods", "largeTruckGoods"];
-        break;
-
-      default:
-        // Return everything if no role matches, or empty list
-        return allVehicles;
-    }
+    // switch (userRole) {
+    //   case BIKE_RIDER:
+    //     allowedTypes = ["twoWheelerRider"];
+    //     break;
+    //
+    //   case AUTO_TAXI:
+    //     allowedTypes = ["autoTempo", "eRickshaw"];
+    //     break;
+    //
+    //   case CAR_TAXI:
+    //     allowedTypes = ["carMini", "carSedan", "suvCar", "miniBus"];
+    //     break;
+    //
+    //   case GOODS_TAXI:
+    //     allowedTypes = ["pickupGoods", "miniTruckGoods", "largeTruckGoods"];
+    //     break;
+    //
+    //   default:
+    //     // Return everything if no role matches, or empty list
+    //     return allVehicles;
+    // }
 
     // Filter the original API list to ensure we only show valid options that exist in backend
-    return allVehicles
-        .where((vehicle) => allowedTypes.contains(vehicle))
-        .toList();
+    return allVehicles;
   }
 
   checkStatusManageRoute() async {
