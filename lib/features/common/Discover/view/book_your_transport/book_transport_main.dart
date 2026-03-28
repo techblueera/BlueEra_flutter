@@ -567,7 +567,16 @@ VehicleData? getSelectedVehicleData(VehicleAllResponse response,
       case 0:
         return response.twoWheelerRider;
       case 1:
-        return response.carMini;
+        final miniUsers = response.carMini?.users ?? [];
+        final sedanUsers = response.carSedan?.users ?? [];
+        final miniFare = response.carMini?.fare;
+        final sedanFare = response.carSedan?.fare;
+        return VehicleData(
+          users: [...miniUsers, ...sedanUsers],
+          fare: (miniFare != null && sedanFare != null)
+              ? (miniFare < sedanFare ? miniFare : sedanFare)
+              : miniFare ?? sedanFare,
+        );
       case 2:
         return response.autoTempo;
       case 3:

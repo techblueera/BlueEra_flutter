@@ -65,7 +65,7 @@ class VehicleAllResponse {
 
 class VehicleData {
   List<RiderUser>? users;
-  int? fare;
+  double? fare;
 
   VehicleData({this.users, this.fare});
 
@@ -74,7 +74,7 @@ class VehicleData {
       users: (json['users'] as List?)
           ?.map((e) => RiderUser.fromJson(e))
           .toList(),
-      fare: json['fare'],
+      fare: double.tryParse(json['fare']?.toString() ?? ''),
     );
   }
 }
