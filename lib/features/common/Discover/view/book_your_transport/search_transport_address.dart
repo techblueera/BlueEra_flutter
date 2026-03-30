@@ -22,13 +22,16 @@ import '../../../../../core/constants/getx_utils.dart';
 import '../../../auth/controller/auth_controller.dart';
 import '../../../map/view/searchLocationScreen.dart';
 import '../../controller/discover_controller.dart';
+import 'book_transport_main.dart';
 
 class SearchTransportAddress extends StatefulWidget {
   final Function() onPlaceSelected;
+  final String? vehicleType;
 
   const SearchTransportAddress({
     Key? key,
     required this.onPlaceSelected,
+    this.vehicleType,
   }) : super(key: key);
 
   @override
@@ -39,21 +42,43 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   final authController = getOrPut(() => AuthController());
   GoogleMapController? mapController;
 
-
   final discoverController = getOrPut(() => DiscoverController());
   Set<Polyline> _polylines = {};
-
 
   LatLng? fromLatLng;
   LatLng? toLatLng;
 
+  LatLng get _currentLatLng {
+    final lat = LocationService.lat;
+    final lng = LocationService.lng;
+    if (lat != 0.0 && lng != 0.0) return LatLng(lat, lng);
+    return const LatLng(26.7836, 80.9013);
+  }
+
   @override
   void initState() {
     super.initState();
+    _setVehicleType();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setInitialCurrentLocation();
       authController.isSearchOpen.value = true;
     });
+  }
+
+  void _setVehicleType() {
+    if (widget.vehicleType != null) {
+      if (widget.vehicleType == "TWO_WHEELER") {
+        discoverController.selectedHorizontalTab.value = 0;
+        discoverController.selectedVehicleOptionIndex.value = 0;
+      } else if (widget.vehicleType == "PASSENGER") {
+        discoverController.selectedHorizontalTab.value = 0;
+        discoverController.selectedVehicleOptionIndex.value = 1;
+      } else if (widget.vehicleType == "GOODS") {
+        discoverController.selectedHorizontalTab.value = 3;
+      } else if (widget.vehicleType == "OUR_STATION") {
+        discoverController.selectedHorizontalTab.value = 1;
+      }
+    }
   }
 
   @override
@@ -68,7 +93,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         longitude: LocationService.lng,
       );
 
-      if (!mounted) return; // 🔥 add this
+      if (!mounted) return;
 
       discoverController.selectedFromLat?.value = LocationService.lat;
       discoverController.selectedFromLong?.value = LocationService.lng;
@@ -87,7 +112,6 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         ),
       );
 
-      // 🔥 SAFE camera move
       if (mapController != null) {
         await mapController!.animateCamera(
           CameraUpdate.newLatLngZoom(fromLatLng, 15),
@@ -98,7 +122,6 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     }
   }
 
-
   Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
 
@@ -106,10 +129,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
     try {
       await mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(LocationService.lat, LocationService.lng),
-          14.0,
-        ),
+        CameraUpdate.newLatLngZoom(_currentLatLng, 15.0),
       );
     } catch (e) {
       debugPrint("Error loading marker: $e");
@@ -159,7 +179,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       ),
     );
 
-    if (!mounted) return; // 🔥 VERY IMPORTANT
+    if (!mounted) return;
 
     if (result.points.isNotEmpty) {
       List<LatLng> routeCoords = result.points
@@ -181,9 +201,28 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
           ),
         );
       });
+
+      // Fit camera to show both markers
+      _fitBounds(start, end);
     }
   }
 
+  void _fitBounds(LatLng start, LatLng end) {
+    if (mapController == null) return;
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        start.latitude < end.latitude ? start.latitude : end.latitude,
+        start.longitude < end.longitude ? start.longitude : end.longitude,
+      ),
+      northeast: LatLng(
+        start.latitude > end.latitude ? start.latitude : end.latitude,
+        start.longitude > end.longitude ? start.longitude : end.longitude,
+      ),
+    );
+    mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 80),
+    );
+  }
 
   void _updateMarkersAndRoute() {
     discoverController.markers.clear();
@@ -225,7 +264,6 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         ),
       );
 
-      // Call your existing polyline (UNCHANGED)
       _getRoutePolyline(fromLatLng!, toLatLng!);
     }
     if (mounted) {
@@ -233,72 +271,119 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     }
   }
 
+  void _openSearchForPickup() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchLocationScreen(
+          onPlaceSelected: (lat, long, address) {
+            discoverController.selectedFromLat?.value = lat ?? 0;
+            discoverController.selectedFromLong?.value = long ?? 0;
+            discoverController.selectedFromAddress?.value = address ?? "";
+            discoverController.getBookingRidersApi();
+            onLocationsSelected(
+              LatLng(
+                discoverController.selectedFromLat?.value ?? 0.0,
+                discoverController.selectedFromLong?.value ?? 0.0,
+              ),
+              LatLng(
+                discoverController.selectedToLat?.value ?? 0,
+                discoverController.selectedToLong?.value ?? 0,
+              ),
+            );
+            _updateMarkersAndRoute();
+          },
+          fromScreen: '',
+        ),
+      ),
+    );
+  }
+
+  void _openSearchForDrop() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchLocationScreen(
+          onPlaceSelected: (lat, long, address) {
+            discoverController.selectedToLat?.value = lat ?? 0;
+            discoverController.selectedToLong?.value = long ?? 0;
+            discoverController.selectedToAddress?.value = address ?? "";
+            discoverController.getBookingRidersApi();
+            onLocationsSelected(
+              LatLng(
+                discoverController.selectedFromLat?.value ?? 0.0,
+                discoverController.selectedFromLong?.value ?? 0.0,
+              ),
+              LatLng(
+                discoverController.selectedToLat?.value ?? 0,
+                discoverController.selectedToLong?.value ?? 0,
+              ),
+            );
+            _updateMarkersAndRoute();
+          },
+          fromScreen: '',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // final appLocalizations = AppLocalizations.of(context);
-
     return Scaffold(
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
-      bottomSheet: _rideBookingBottomSheet(),
+      appBar: CommonBackAppBar(
+          buildCustomActionWidget: () => const DiscoverCartIcon()),
       body: Stack(
         children: [
-          SizedBox(
-            height: Get.height * 0.8,
+          /// Full-screen map
+          Positioned.fill(
             child: GoogleMap(
               onMapCreated: _onMapCreated,
               initialCameraPosition: CameraPosition(
-                target: LatLng(LocationService.lat, LocationService.lng),
-                zoom: 14.0,
+                target: _currentLatLng,
+                zoom: 15.0,
               ),
               myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              compassEnabled: false,
+              zoomControlsEnabled: false,
               markers: discoverController.markers,
               polylines: _polylines,
               onTap: (LatLng latLng) async {
-                // Case 1: From already selected → set To
+                // Case 1: From already selected -> set To
                 if (discoverController.selectedFromLat?.value != 0.0 &&
                     discoverController.selectedFromLong?.value != 0.0 &&
                     (discoverController.selectedToLat?.value == 0.0 ||
                         discoverController.selectedToLong?.value == 0.0)) {
-                  // Set TO location
                   discoverController.selectedToLat?.value = latLng.latitude;
                   discoverController.selectedToLong?.value = latLng.longitude;
-
                   toLatLng = latLng;
                 }
-                // Case 2: From not selected OR cleared → set From
+                // Case 2: From not selected -> set From
                 else if (discoverController.selectedFromLat?.value == 0.0 ||
                     discoverController.selectedFromLong?.value == 0.0) {
                   discoverController.selectedFromLat?.value = latLng.latitude;
                   discoverController.selectedFromLong?.value = latLng.longitude;
-
                   fromLatLng = latLng;
-
-                  // Clear old markers when new journey starts
                   discoverController.markers.clear();
                   _polylines.clear();
                 }
-                // Case 3: Both already selected → reset journey (Uber behaviour)
+                // Case 3: Both selected -> reset (Uber behaviour)
                 else {
-                  // Reset and make this new FROM
                   discoverController.selectedFromLat?.value = latLng.latitude;
                   discoverController.selectedFromLong?.value = latLng.longitude;
                   discoverController.selectedToLat?.value = 0.0;
                   discoverController.selectedToLong?.value = 0.0;
-
                   fromLatLng = latLng;
                   toLatLng = null;
-
                   discoverController.markers.clear();
                   _polylines.clear();
                 }
 
-                // Get address (your existing service)
                 String address = await LocationService.getAddressUsingLatLng(
                   latitude: latLng.latitude,
                   longitude: latLng.longitude,
                 );
 
-                // Update address text
                 if (toLatLng == latLng) {
                   discoverController.selectedToAddress?.value = address;
                 } else {
@@ -307,234 +392,238 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
                 _updateMarkersAndRoute();
               },
-// 🔥 ADD THIS LINE
             ),
           ),
+
+          /// My location button
           Positioned(
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: AppColors.white),
-                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-                margin: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                child: Column(
-                  spacing: 12,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SearchLocationScreen(
-                                  onPlaceSelected: (lat, long, address) {
-                                    discoverController.selectedFromLat?.value =
-                                        lat ?? 0;
-                                    discoverController.selectedFromLong?.value =
-                                        long ?? 0;
-                                    discoverController.selectedFromAddress
-                                        ?.value =
-                                        address ?? "";
-                                    discoverController.getBookingRidersApi();
-                                    onLocationsSelected(
-                                        LatLng(
-                                            discoverController.selectedFromLat
-                                                ?.value ??
-                                                0.0,
-                                            discoverController.selectedFromLong
-                                                ?.value ??
-                                                0.0),
-                                        LatLng(
-                                            discoverController.selectedToLat
-                                                ?.value ??
-                                                0,
-                                            discoverController.selectedToLong
-                                                ?.value ??
-                                                0));
-                                  },
-                                  fromScreen: '',
-                                ),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                LocalAssets(
-                                  imagePath: AppIconAssets
-                                      .transport_from_location,
-                                  height: 20,
-                                  width: 20,
-                                ),
-                                SizedBox(
-                                  width: 12,
-                                ),
-                                Expanded(
-                                  child: CustomText(
-                                    maxLines: 1,
-                                    overflow: TextOverflow.fade,
-                                    (discoverController
-                                        .selectedFromAddress?.value ==
-                                        '' ||
-                                        discoverController
-                                            .selectedFromAddress?.value ==
-                                            null)
-                                        ? "${LocationService.userCurrentAddress
-                                        .value.formattedAddress}"
-                                        : discoverController
-                                        .selectedFromAddress?.value,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: 12,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              // Clear FROM
-                              discoverController.selectedFromLat?.value = 0.0;
-                              discoverController.selectedFromLong?.value = 0.0;
-                              discoverController.selectedFromAddress?.value =
-                              "";
+            right: 16,
+            bottom: _bottomSheetHeight + 16,
+            child: FloatingActionButton.small(
+              heroTag: "search_my_location",
+              backgroundColor: AppColors.white,
+              onPressed: () {
+                mapController?.animateCamera(
+                  CameraUpdate.newLatLngZoom(_currentLatLng, 15.0),
+                );
+              },
+              child: Icon(Icons.my_location,
+                  color: AppColors.primaryColor, size: 20),
+            ),
+          ),
 
-                              fromLatLng = null;
-
-                              discoverController.markers.clear();
-                              _polylines.clear();
-
-                              // If TO exists, keep only red marker
-                              if (toLatLng != null) {
-                                discoverController.markers.add(
-                                  Marker(
-                                    markerId: const MarkerId("to"),
-                                    position: toLatLng!,
-                                    icon: BitmapDescriptor.defaultMarkerWithHue(
-                                      BitmapDescriptor.hueRed,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              setState(() {});
-                            },
-                            child:
-                            LocalAssets(imagePath: AppIconAssets.close_black),
-                          )
-                        ],
-                      ),
-                    ),
-                    // SizedBox(height: 10,),
-                    Container(
-                      height: 1,
-                      width: double.infinity,
-                      color: AppColors.whiteE5,
-                    ),
-                    // SizedBox(height: 10,),
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SearchLocationScreen(
-                                  onPlaceSelected: (lat, long, address) {
-                                    discoverController.selectedToLat?.value =
-                                        lat ?? 0;
-
-                                    discoverController.selectedToLong?.value =
-                                        long ?? 0;
-                                    discoverController.selectedToAddress
-                                        ?.value =
-                                        address ?? "";
-                                    discoverController.getBookingRidersApi();
-                                    onLocationsSelected(
-                                        LatLng(
-                                            discoverController.selectedFromLat
-                                                ?.value ??
-                                                0.0,
-                                            discoverController.selectedFromLong
-                                                ?.value ??
-                                                0.0),
-                                        LatLng(
-                                            discoverController.selectedToLat
-                                                ?.value ??
-                                                0,
-                                            discoverController.selectedToLong
-                                                ?.value ??
-                                                0));
-                                  },
-                                  fromScreen: '',
-                                ),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                LocalAssets(
-                                  imagePath: AppIconAssets.location_new,
-                                  imgColor: AppColors.red00,
-                                  height: 20,
-                                  width: 20,
-                                ),
-                                SizedBox(
-                                  width: 12,
-                                ),
-                                Expanded(
-                                  child: CustomText(
-                                    (discoverController.selectedToAddress
-                                        ?.value ==
-                                        '' ||
-                                        discoverController
-                                            .selectedToAddress?.value ==
-                                            null)
-                                        ? "Select Drop Location"
-                                        : discoverController
-                                        .selectedToAddress?.value,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: 12,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              // Clear TO
-                              discoverController.selectedToLat?.value = 0.0;
-                              discoverController.selectedToLong?.value = 0.0;
-                              discoverController.selectedToAddress?.value = "";
-
-                              toLatLng = null;
-
-                              _polylines.clear(); // remove route
-
-                              // Keep only FROM marker
-                              _updateMarkersAndRoute();
-                            },
-                            child:
-                            LocalAssets(imagePath: AppIconAssets.close_black),
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
+          /// Address input card at top (Uber style)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
                 ),
-              ))
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      /// Location icons column
+                      Column(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Container(
+                            width: 2,
+                            height: 30,
+                            color: AppColors.grayText.withOpacity(0.3),
+                          ),
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: AppColors.red00,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+
+                      /// Address fields
+                      Expanded(
+                        child: Column(
+                          children: [
+                            /// Pickup field
+                            InkWell(
+                              onTap: _openSearchForPickup,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.greyE4,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Obx(() => CustomText(
+                                            (discoverController
+                                                            .selectedFromAddress
+                                                            ?.value ==
+                                                        '' ||
+                                                    discoverController
+                                                            .selectedFromAddress
+                                                            ?.value ==
+                                                        null)
+                                                ? "${LocationService.userCurrentAddress.value.formattedAddress}"
+                                                : discoverController
+                                                    .selectedFromAddress?.value,
+                                            fontSize: 13,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            fontWeight: FontWeight.w500,
+                                          )),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        discoverController
+                                            .selectedFromLat?.value = 0.0;
+                                        discoverController
+                                            .selectedFromLong?.value = 0.0;
+                                        discoverController
+                                            .selectedFromAddress?.value = "";
+                                        fromLatLng = null;
+                                        discoverController.markers.clear();
+                                        _polylines.clear();
+                                        if (toLatLng != null) {
+                                          discoverController.markers.add(
+                                            Marker(
+                                              markerId: const MarkerId("to"),
+                                              position: toLatLng!,
+                                              icon: BitmapDescriptor
+                                                  .defaultMarkerWithHue(
+                                                BitmapDescriptor.hueRed,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        setState(() {});
+                                      },
+                                      child: const Icon(Icons.close,
+                                          size: 18, color: AppColors.grayText),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            /// Drop field
+                            InkWell(
+                              onTap: _openSearchForDrop,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.greyE4,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Obx(() => CustomText(
+                                            (discoverController
+                                                            .selectedToAddress
+                                                            ?.value ==
+                                                        '' ||
+                                                    discoverController
+                                                            .selectedToAddress
+                                                            ?.value ==
+                                                        null)
+                                                ? "Where are you going?"
+                                                : discoverController
+                                                    .selectedToAddress?.value,
+                                            fontSize: 13,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            fontWeight: FontWeight.w500,
+                                            color: (discoverController
+                                                            .selectedToAddress
+                                                            ?.value ==
+                                                        '' ||
+                                                    discoverController
+                                                            .selectedToAddress
+                                                            ?.value ==
+                                                        null)
+                                                ? AppColors.grayText
+                                                : null,
+                                          )),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        discoverController
+                                            .selectedToLat?.value = 0.0;
+                                        discoverController
+                                            .selectedToLong?.value = 0.0;
+                                        discoverController
+                                            .selectedToAddress?.value = "";
+                                        toLatLng = null;
+                                        _polylines.clear();
+                                        _updateMarkersAndRoute();
+                                      },
+                                      child: const Icon(Icons.close,
+                                          size: 18, color: AppColors.grayText),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          /// Bottom sheet
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _rideBookingBottomSheet(),
+          ),
         ],
       ),
     );
+  }
+
+  double get _bottomSheetHeight {
+    if (discoverController.selectedHorizontalTab.value == 1 ||
+        discoverController.selectedHorizontalTab.value == 3) {
+      return 350;
+    }
+    return 100;
   }
 
   Widget _rideBookingBottomSheet() {
@@ -558,28 +647,40 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
           ],
         ),
         child: SingleChildScrollView(
-
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if(discoverController.selectedHorizontalTab
-                  .value == 1)
+              /// Drag handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.whiteE5,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              if (discoverController.selectedHorizontalTab.value == 1)
                 Obx(() {
-                  return Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const CustomText("Ride Type",
                           fontSize: 14, fontWeight: FontWeight.w600),
                       const SizedBox(height: 10),
 
                       /// Ride Type Buttons
-                      /// Ride Type Buttons
                       Row(
                         children: [
                           _selectableChip(
                             text: "One Way",
-                            isSelected: discoverController.selectedRideType
-                                .value == AppConstants.oneWay,
+                            isSelected:
+                                discoverController.selectedRideType.value ==
+                                    AppConstants.oneWay,
                             onTap: () {
                               discoverController.selectedRideType.value =
                                   AppConstants.oneWay;
@@ -588,8 +689,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           const SizedBox(width: 10),
                           _selectableChip(
                             text: "Round Trip",
-                            isSelected: discoverController.selectedRideType
-                                .value == AppConstants.roundTrip,
+                            isSelected:
+                                discoverController.selectedRideType.value ==
+                                    AppConstants.roundTrip,
                             onTap: () {
                               discoverController.selectedRideType.value =
                                   AppConstants.roundTrip;
@@ -598,8 +700,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           const SizedBox(width: 10),
                           _selectableChip(
                             text: "Sharing",
-                            isSelected: discoverController.selectedRideType
-                                .value == AppConstants.sharing,
+                            isSelected:
+                                discoverController.selectedRideType.value ==
+                                    AppConstants.sharing,
                             onTap: () {
                               discoverController.selectedRideType.value =
                                   AppConstants.sharing;
@@ -614,13 +717,13 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       const SizedBox(height: 10),
 
                       /// Booking For Buttons
-                      /// Booking For Buttons
                       Row(
                         children: [
                           _selectableChip(
                             text: "My Self",
-                            isSelected: discoverController.selectedBookingFor
-                                .value == AppConstants.mySelf,
+                            isSelected:
+                                discoverController.selectedBookingFor.value ==
+                                    AppConstants.mySelf,
                             onTap: () {
                               discoverController.selectedBookingFor.value =
                                   AppConstants.mySelf;
@@ -629,8 +732,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           const SizedBox(width: 10),
                           _selectableChip(
                             text: "My Friend",
-                            isSelected: discoverController.selectedBookingFor
-                                .value == AppConstants.myFriend,
+                            isSelected:
+                                discoverController.selectedBookingFor.value ==
+                                    AppConstants.myFriend,
                             onTap: () {
                               discoverController.selectedBookingFor.value =
                                   AppConstants.myFriend;
@@ -690,17 +794,16 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                     ],
                   );
                 }),
-              if(discoverController.selectedHorizontalTab
-                  .value == 3)
+              if (discoverController.selectedHorizontalTab.value == 3)
                 Obx(() {
-                  return Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
-                          textEditController: discoverController
-                              .receiversNameController,
+                          textEditController:
+                              discoverController.receiversNameController,
                           title: "Receiver's Name",
-                          hintText: "E.g. Ramesh"
-                      ),
+                          hintText: "E.g. Ramesh"),
                       const SizedBox(height: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -733,12 +836,10 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                   textEditController: discoverController
                                       .receiversNumberController,
                                   sIcon: IconButton(
-                                      onPressed: () {
-
-                                      },
+                                      onPressed: () {},
                                       icon: LocalAssets(
-                                        imagePath: AppIconAssets
-                                            .get_contacts_person,
+                                        imagePath:
+                                            AppIconAssets.get_contacts_person,
                                         height: 20,
                                         width: 20,
                                       )),
@@ -749,9 +850,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 16),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const CustomText("Parcel Details",
                               fontSize: 16, fontWeight: FontWeight.w600),
@@ -766,13 +867,13 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12.0, vertical: 18),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-
-                                      Row(mainAxisAlignment: MainAxisAlignment
-                                          .spaceBetween,
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           const CustomText("Parcel Details",
                                               fontSize: 16,
@@ -781,31 +882,38 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                               onTap: () {
                                                 Get.back();
                                               },
-                                              child: Icon(Icons.cancel_outlined,
-                                                color: AppColors.red,)),
+                                              child: Icon(
+                                                Icons.cancel_outlined,
+                                                color: AppColors.red,
+                                              )),
                                         ],
                                       ),
-                                      SizedBox(height: 16,),
+                                      SizedBox(
+                                        height: 16,
+                                      ),
                                       const CustomText("Category",
                                           fontSize: 14,
                                           fontWeight: FontWeight.w400),
-                                      SizedBox(height: 10,),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
                                       Obx(() {
                                         return CommonDropdown(
                                           items: [
-                                          "Document",
-                                          "Product",
-                                          "Others"
-                                        ],
+                                            "Document",
+                                            "Product",
+                                            "Others"
+                                          ],
                                           selectedValue: discoverController
                                               .selectedParcelCategory.value,
                                           hintText: "Choose Parcel Category",
                                           onChanged: (value) {
                                             discoverController
-                                                .selectedParcelCategory.value =
-                                                value ?? '';
+                                                .selectedParcelCategory
+                                                .value = value ?? '';
                                           },
-                                          displayValue: (value) => value,);
+                                          displayValue: (value) => value,
+                                        );
                                       }),
                                       const SizedBox(height: 16),
                                       CommonTextField(
@@ -823,20 +931,23 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                         textEditController: discoverController
                                             .parcelDescriptionController,
                                         title: "Description",
-                                        hintText: "E.g. Take this parcel with care",
+                                        hintText:
+                                            "E.g. Take this parcel with care",
                                         validator: (value) {
                                           return null;
                                         },
                                       ),
-                                      SizedBox(height: 26,),
+                                      SizedBox(
+                                        height: 26,
+                                      ),
                                       CustomBtn(
                                           isValidate: true,
                                           onTap: () {
                                             discoverController
                                                 .addParcelDetails();
                                             Get.back();
-                                          }, title: "Save"),
-
+                                          },
+                                          title: "Save"),
                                     ],
                                   ),
                                 ),
@@ -844,75 +955,107 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                             },
                             child: Row(
                               children: [
-                                Icon(Icons.add, color: AppColors.primaryColor,),
-                                const CustomText(" Add",
+                                Icon(
+                                  Icons.add,
+                                  color: AppColors.primaryColor,
+                                ),
+                                const CustomText(
+                                  " Add",
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryColor,),
+                                  color: AppColors.primaryColor,
+                                ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 10,),
-                      ...discoverController.parcelDetailsList.map((e) =>
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    color: AppColors.whiteE5
-                                )
-                            ),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 10),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
+                      SizedBox(
+                        height: 10,
+                      ),
+                      ...discoverController.parcelDetailsList
+                          .map((e) => Container(
+                                margin:
+                                    EdgeInsets.symmetric(vertical: 4),
+                                decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: AppColors.whiteE5)),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      CustomText(e.category, fontSize: 14,fontWeight: FontWeight.w600,),
                                       Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
                                         children: [
-
-                                          SizedBox(width: 8,),
-                                          InkWell(
-                                              onTap: () {
-                                                discoverController
-                                                    .removeParcelDetails(e);
-                                              },
-                                              child: Icon(Icons.delete,
-                                                color: AppColors.red,size: 22,))
+                                          CustomText(
+                                            e.category,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                width: 8,
+                                              ),
+                                              InkWell(
+                                                  onTap: () {
+                                                    discoverController
+                                                        .removeParcelDetails(
+                                                            e);
+                                                  },
+                                                  child: Icon(
+                                                    Icons.delete,
+                                                    color: AppColors.red,
+                                                    size: 22,
+                                                  ))
+                                            ],
+                                          ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 4,),
-                                  CustomText(e.weightKg, fontSize: 12,color: AppColors.secondaryTextColor),
-                                  SizedBox(height: 6,),
-                                  CustomText(e.description, fontSize: 12,color: AppColors.secondaryTextColor,),
-                                ]),
-                          )).toList()
-
-
+                                      SizedBox(
+                                        height: 4,
+                                      ),
+                                      CustomText(e.weightKg,
+                                          fontSize: 12,
+                                          color: AppColors
+                                              .secondaryTextColor),
+                                      SizedBox(
+                                        height: 6,
+                                      ),
+                                      CustomText(
+                                        e.description,
+                                        fontSize: 12,
+                                        color: AppColors
+                                            .secondaryTextColor,
+                                      ),
+                                    ]),
+                              ))
+                          .toList()
                     ],
                   );
                 }),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
 
               /// Submit Button
               CustomBtn(
                   isValidate:
-                  (discoverController.selectedFromLat?.value != 0.0 &&
-                      discoverController.selectedToLat?.value != 0.0),
+                      (discoverController.selectedFromLat?.value != 0.0 &&
+                          discoverController.selectedToLat?.value != 0.0),
                   onTap: () {
-                    Get.back();
-                    widget.onPlaceSelected();
+                    discoverController.getBookingRidersApi();
+                    Get.off(() => BookTransportMain(
+                          vehicleType: widget.vehicleType,
+                        ));
                   },
-                  title: "Submit"),
-              const SizedBox(height: 28),
+                  title: "Confirm Location"),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -925,7 +1068,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    final primary = AppColors.primaryColor; // or your primary color
+    final primary = AppColors.primaryColor;
 
     return GestureDetector(
       onTap: onTap,

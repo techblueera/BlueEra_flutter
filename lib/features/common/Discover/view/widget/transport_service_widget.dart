@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/book_transport_main.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -21,7 +21,9 @@ class TransportServiceWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Get.to(BookTransportMain());
+        Get.to(() => SearchTransportAddress(
+          onPlaceSelected: () {},
+        ));
       },
       child: CustomFormCard(
         color: AppColors.whiteFC,
@@ -140,7 +142,10 @@ class TransportServiceWidget extends StatelessWidget {
                         getIcon: (i) => i.icon ?? "",
                         flex: 1,
                         onTap: (_) {
-                          Get.to(() => BookTransportMain(vehicleType: item.slugId));
+                          Get.to(() => SearchTransportAddress(
+                            onPlaceSelected: () {},
+                            vehicleType: item.slugId,
+                          ));
                         },
                       ),
                     );

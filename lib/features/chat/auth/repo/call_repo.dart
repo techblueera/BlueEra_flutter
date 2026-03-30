@@ -1,79 +1,117 @@
-import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'dart:io';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/environment_config.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class CallRepo {
-  static const String _basePath = 'chat-service/call';
+  static const String _basePath = 'call';
+
+  /// Dedicated Dio instance for call service (https://call.blueera.ai/)
+  static Dio? _callDio;
+
+  static Dio get callDio {
+    if (_callDio == null) {
+      _callDio = Dio(BaseOptions(
+        baseUrl: callBaseUrl ?? '',
+        responseType: ResponseType.json,
+        receiveTimeout: const Duration(seconds: 60),
+        headers: {
+          ApiKeys.authorization: 'Bearer $authTokenGlobal',
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Device-Type': 'mobile',
+          'X-Device-OS':
+              '${Platform.operatingSystem} ${deviceOsVersionGlobal}',
+          'X-Browser-Name': AppConstants.appName,
+        },
+      ));
+
+      if (!kReleaseMode) {
+        _callDio!.interceptors.add(
+          LogInterceptor(
+            request: true,
+            error: true,
+            responseHeader: false,
+            requestHeader: false,
+          ),
+        );
+      }
+
+      _callDio!.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) async {
+            options.headers[ApiKeys.authorization] =
+                'Bearer $authTokenGlobal';
+            handler.next(options);
+          },
+        ),
+      );
+    }
+    return _callDio!;
+  }
+
+  Future<ResponseModel> _post(String path, Map<String, dynamic> params) async {
+    try {
+      final response = await callDio.post(path, data: params);
+      return ResponseModel(
+        statusCode: response.statusCode,
+        response: response,
+      );
+    } on DioException catch (e) {
+      return ResponseModel(
+        statusCode: e.response?.statusCode,
+        response: e.response,
+      );
+    }
+  }
+
+  Future<ResponseModel> _get(String path) async {
+    try {
+      final response = await callDio.get(path);
+      return ResponseModel(
+        statusCode: response.statusCode,
+        response: response,
+      );
+    } on DioException catch (e) {
+      return ResponseModel(
+        statusCode: e.response?.statusCode,
+        response: e.response,
+      );
+    }
+  }
 
   /// POST /call/initiate
   Future<ResponseModel> initiateCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/initiate',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/initiate', params);
   }
 
   /// POST /call/accept
   Future<ResponseModel> acceptCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/accept',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/accept', params);
   }
 
   /// POST /call/decline
   Future<ResponseModel> declineCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/decline',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/decline', params);
   }
 
   /// POST /call/cancel
   Future<ResponseModel> cancelCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/cancel',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/cancel', params);
   }
 
   /// POST /call/end
   Future<ResponseModel> endCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/end',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/end', params);
   }
 
   /// POST /call/join (group call)
   Future<ResponseModel> joinCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/join',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/join', params);
   }
 
   /// GET /call/history
@@ -86,52 +124,32 @@ class CallRepo {
     if (conversationId != null) {
       url += '&conversation_id=$conversationId';
     }
-    return await ApiBaseHelper().getHTTP(url);
+    return await _get(url);
   }
 
   /// POST /call/switch-type
   Future<ResponseModel> switchCallType(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/switch-type',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/switch-type', params);
   }
 
   /// POST /call/switch-type/respond
-  Future<ResponseModel> respondToSwitchType(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/switch-type/respond',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+  Future<ResponseModel> respondToSwitchType(
+      Map<String, dynamic> params) async {
+    return await _post('$_basePath/switch-type/respond', params);
   }
 
   /// POST /call/add-user
   Future<ResponseModel> addUserToCall(Map<String, dynamic> params) async {
-    return await ApiBaseHelper().postHTTP(
-      '$_basePath/add-user',
-      isMultipart: false,
-      showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
+    return await _post('$_basePath/add-user', params);
   }
 
   /// GET /call/active
   Future<ResponseModel> getActiveCall() async {
-    return await ApiBaseHelper().getHTTP('$_basePath/active');
+    return await _get('$_basePath/active');
   }
 
   /// GET /call/ice-servers
   Future<ResponseModel> getIceServers() async {
-    return await ApiBaseHelper().getHTTP('$_basePath/ice-servers');
+    return await _get('$_basePath/ice-servers');
   }
 }

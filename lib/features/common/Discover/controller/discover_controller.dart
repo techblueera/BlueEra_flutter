@@ -132,6 +132,7 @@ class DiscoverController extends GetxController {
   bool hasMoreRentalServiceData = true;
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
+  RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
   Rxn<OnboardingCategoryModel> selectedStayCategory =
       Rxn<OnboardingCategoryModel>();
   RxString selectedParcelCategory = "Document".obs;
@@ -170,7 +171,17 @@ class DiscoverController extends GetxController {
   }
 
   void onSelectRider(RiderUser rider) {
-    selectedRider.value = rider;
+    if (selectedRiders.any((r) => r.riderId == rider.riderId)) {
+      selectedRiders.removeWhere((r) => r.riderId == rider.riderId);
+    } else {
+      selectedRiders.add(rider);
+    }
+    // Keep selectedRider as the first selected for backward compatibility
+    if (selectedRiders.isNotEmpty) {
+      selectedRider.value = selectedRiders.first;
+    } else {
+      selectedRider.value = RiderUser();
+    }
   }
 
   /// Consultant Service
@@ -776,10 +787,10 @@ class DiscoverController extends GetxController {
     }
   }
 
-  Future<void> makeTransportBookOrderApi() async {
+  Future<bool> makeTransportBookOrderApi() async {
     bookRiderBtnLoading.value = true;
     Map<String, dynamic> params = {
-      ApiKeys.selectedRiders: [selectedRider.value.riderId],
+      ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
       ApiKeys.pickupLocation: {
         ApiKeys.address: "${selectedFromAddress?.value}",
         ApiKeys.latitude: selectedFromLat?.value,
@@ -818,9 +829,11 @@ class DiscoverController extends GetxController {
       commonSnackBar(
           message: response.message ??
               "Your Booking Request Send To Rider,Wait Rider Accept Soon");
+      return true;
     } else {
       bookRiderBtnLoading.value = false;
       commonSnackBar(message: response.message ?? "Unable to Book a Rider");
+      return false;
     }
   }
 
