@@ -11,34 +11,27 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 
 class StoreCard extends StatelessWidget {
   final GetAllStoreResModel store;
   final Color bgColor;
-  final bool isGroceryStore;
 
   const StoreCard({
     super.key,
     required this.store,
     required this.bgColor,
-    required this.isGroceryStore,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        if (isGroceryStore) {
-          Get.toNamed(RouteHelper.getOtherGroceryStoreScreenRoute(), arguments: {
-            ApiKeys.userId: store.userId,
-            ApiKeys.businessId: store.id,
-          });
-        } else {
-          Get.toNamed(RouteHelper.getOtherFoodStoreDetailsScreenRoute(), arguments: {
-            ApiKeys.businessId: store.id,
-          });
-        }
+        Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
+          ApiKeys.userId: store.userId,
+          ApiKeys.businessId: store.id,
+        });
       },
       child: Container(
         padding: EdgeInsets.zero,
@@ -93,45 +86,50 @@ class StoreCard extends StatelessWidget {
 
                   SizedBox(height: SizeConfig.paddingXSL),
 
-                  // --- Address & Distance Card ---
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 0.5),
-                      color: AppColors.white,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _buildIconContainer(AppIconAssets.location_outline),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                '${calculateDistanceKm(
-                                  LocationService.lat,
-                                  LocationService.lng,
-                                  store.businessLocation?.lat?.toDouble() ?? 0.0,
-                                  store.businessLocation?.lon?.toDouble() ?? 0.0,
-                                ).toStringAsFixed(2)} Km Away',
-                                fontSize: 13.0,
-                                color: AppColors.secondaryTextColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              SizedBox(height: SizeConfig.size4),
-                              CustomText(
-                                store.address ?? AppStrings.na,
-                                fontSize: 11.0,
-                                color: AppColors.secondaryTextColor,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ],
+                  // --- Address & Distance Card (Tappable) ---
+                  GestureDetector(
+                    onTap: () => _showMapBottomSheet(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(color: AppColors.greyE5, width: 0.5),
+                        color: AppColors.white,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _buildIconContainer(AppIconAssets.location_outline),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  '${calculateDistanceKm(
+                                    LocationService.lat,
+                                    LocationService.lng,
+                                    store.businessLocation?.lat?.toDouble() ?? 0.0,
+                                    store.businessLocation?.lon?.toDouble() ?? 0.0,
+                                  ).toStringAsFixed(2)} Km Away',
+                                  fontSize: 13.0,
+                                  color: AppColors.secondaryTextColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                SizedBox(height: SizeConfig.size4),
+                                CustomText(
+                                  store.address ?? AppStrings.na,
+                                  fontSize: 11.0,
+                                  color: AppColors.secondaryTextColor,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -273,6 +271,17 @@ class StoreCard extends StatelessWidget {
         height: 24,
         width: 20,
       ),
+    );
+  }
+
+  void _showMapBottomSheet(BuildContext context) {
+    RouteMapBottomSheet.show(
+      context: context,
+      destinationName: store.businessName ?? 'Store',
+      destinationAddress: store.address ?? '',
+      destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
+      destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
+      livePhotos: store.livePhotos,
     );
   }
 }

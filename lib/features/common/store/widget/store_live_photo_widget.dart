@@ -19,7 +19,7 @@ class StoreLivePhotoWidget extends StatelessWidget {
     required this.livePhotos,
     required this.onViewFullScreen,
     this.natureOfBusiness,
-    this.height = 190,
+    this.height = 240,
   }) : super(key: key);
 
   @override
@@ -47,7 +47,7 @@ class StoreLivePhotoWidget extends StatelessWidget {
     }
 
     if (livePhotos.length == 2) {
-      //  Two images side by side
+      // Two images side by side
       return Row(
         children: [
           Expanded(
@@ -69,39 +69,86 @@ class StoreLivePhotoWidget extends StatelessWidget {
       );
     }
 
-    //  Three or more images (existing layout)
-    return Row(
+    if (livePhotos.length == 3) {
+      // One large left + two stacked right
+      return Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(
+                  right: BorderSide(color: Colors.white, width: 1),
+                ),
+              ),
+              child: _buildImage(
+                index: 0,
+                height: height,
+                businessName: businessName,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                _buildImage(
+                  index: 1,
+                  height: height / 2 - 0.5,
+                  businessName: businessName,
+                ),
+                const SizedBox(height: 1),
+                _buildImage(
+                  index: 2,
+                  height: height / 2 - 0.5,
+                  businessName: businessName,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // 4+ images — 2x2 grid
+    return Column(
       children: [
-        Expanded(
-          child: Container(
-            decoration: const BoxDecoration(
-              border: Border(
-                right: BorderSide(color: Colors.white, width: 1),
+        Row(
+          children: [
+            Expanded(
+              child: _buildImage(
+                index: 0,
+                height: height / 2 - 0.5,
+                businessName: businessName,
               ),
             ),
-            child: _buildImage(
-              index: 0,
-              height: height,
-              businessName: businessName,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Column(
-            children: [
-              _buildImage(
+            const SizedBox(width: 1),
+            Expanded(
+              child: _buildImage(
                 index: 1,
-                height: height / 2 - 1,
+                height: height / 2 - 0.5,
                 businessName: businessName,
               ),
-              const SizedBox(height: 1),
-              _buildImage(
+            ),
+          ],
+        ),
+        const SizedBox(height: 1),
+        Row(
+          children: [
+            Expanded(
+              child: _buildImage(
                 index: 2,
-                height: height / 2 - 1,
+                height: height / 2 - 0.5,
                 businessName: businessName,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 1),
+            Expanded(
+              child: _buildImage(
+                index: 3,
+                height: height / 2 - 0.5,
+                businessName: businessName,
+              ),
+            ),
+          ],
         ),
       ],
     );

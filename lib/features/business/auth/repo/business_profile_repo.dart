@@ -74,6 +74,7 @@ class BusinessProfileRepo extends BaseService {
       Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().deleteHTTP(
         params: params,
+        showProgress: false,
         removeBusinessLivePhotos,
         onError: (error) {},
         onSuccess: (data) {});

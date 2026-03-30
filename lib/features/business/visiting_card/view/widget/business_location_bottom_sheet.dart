@@ -34,9 +34,14 @@ class _BusinessLocationBottomSheetState
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
   final locationController = Get.put(LocationController());
+
   bool isValidIndianPincode(String pin) {
     return pinRegex.hasMatch(pin.trim());
   }
+
+  bool get _hasValidLatLng =>
+      (viewBusinessDetailsController.addressLat?.value ?? 0.0) != 0.0 &&
+      (viewBusinessDetailsController.addressLong?.value ?? 0.0) != 0.0;
 
   @override
   void initState() {
@@ -49,14 +54,17 @@ class _BusinessLocationBottomSheetState
       fullBusinessAddressTextController.text = data.address ?? '';
       picCodeController.text = data.pincode?.toString() ?? '';
 
-      viewBusinessDetailsController.setStartLocation(
-          data.businessLocation?.lat?.toDouble(),
-          data.businessLocation?.lon?.toDouble(),
-          data.address ?? "");
+      final lat = data.businessLocation?.lat?.toDouble();
+      final lng = data.businessLocation?.lon?.toDouble();
 
-      if (fullBusinessAddressTextController.text.isEmpty &&
-          cityController.text.isEmpty &&
-          picCodeController.text.isEmpty) {
+      viewBusinessDetailsController.setStartLocation(
+          lat, lng, data.address ?? "");
+
+      final hasAddress = fullBusinessAddressTextController.text.isNotEmpty;
+      final hasLatLng = (lat != null && lat != 0.0) && (lng != null && lng != 0.0);
+
+      if (!hasAddress || !hasLatLng) {
+        // Address or lat/lng missing — fetch both from GPS
         WidgetsBinding.instance.addPostFrameCallback((_) {
           updateAddressFromLocation();
         });
@@ -69,13 +77,21 @@ class _BusinessLocationBottomSheetState
   Future<void> updateAddressFromLocation() async {
     final locationData = await locationController.checkPermissionAndSetData();
     if (locationData != null) {
+      final lat = double.tryParse(locationData.lat);
+      final lng = double.tryParse(locationData.long);
+
+      if (lat != null && lng != null && lat != 0.0 && lng != 0.0) {
+        viewBusinessDetailsController.addressLat?.value = lat;
+        viewBusinessDetailsController.addressLong?.value = lng;
+      }
+
       fullBusinessAddressTextController.text = locationData.fullAddress;
       cityController.text = locationData.city;
       picCodeController.text = locationData.pinCode;
-      viewBusinessDetailsController.addressLong?.value =
-          double.parse(locationData.long);
-      viewBusinessDetailsController.addressLat?.value =
-          double.parse(locationData.lat);
+
+      if (mounted) setState(() {});
+    } else {
+      commonSnackBar(message: 'Unable to fetch location. Please enable GPS and try again.');
     }
   }
 
@@ -165,42 +181,44 @@ class _BusinessLocationBottomSheetState
                 bgColor: AppColors.primaryColor,
                 radius: 10,
                 onTap:() {
-                  if ((viewBusinessDetailsController.addressLat?.value !=0.0) &&
-                  (viewBusinessDetailsController.addressLong?.value !=0.0)) {
-                  if (picCodeController.text.isNotEmpty&&pinRegex.hasMatch(picCodeController.text.trim())) {
-                    Map<String, dynamic> params = {
-                      ApiKeys.city_state_pincode: cityController.text,
-                      ApiKeys.address: fullBusinessAddressTextController.text,
-                      ApiKeys.pincode: picCodeController.text,
-
-                      "business_location": jsonEncode({
-                        ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
-                        ApiKeys.lon:
-                        viewBusinessDetailsController.addressLong?.value.toString(),
-                      }),
-                    };
-
-                    // Call controller to save
-                    viewBusinessDetailsController.updateBusinessDetails(params);
-                    if (!widget.isFromCreateUser) {
-                      Navigator.of(context).pop();
-                    } else {
-                      Get.offNamedUntil(
-                        RouteHelper.getBottomNavigationBarScreenRoute(),
-                            (route) => false,
-                      );
-                    }
-
-                  } else if(!pinRegex.hasMatch(picCodeController.text.trim())) {
-                  commonSnackBar(
-                     message:'Please Enter Valid Pin code');
-                   }else{
-                    commonSnackBar(
-                        message:AppStrings.pleaseEnterPinCode);
+                  if (fullBusinessAddressTextController.text.trim().isEmpty) {
+                    commonSnackBar(message: AppStrings.pleaseEnterAddress);
+                    return;
                   }
+
+                  if (!_hasValidLatLng) {
+                    commonSnackBar(message: 'Location not found. Please tap "Fetch Business Location" to update.');
+                    return;
+                  }
+
+                  if (picCodeController.text.trim().isEmpty) {
+                    commonSnackBar(message: AppStrings.pleaseEnterPinCode);
+                    return;
+                  }
+
+                  if (!pinRegex.hasMatch(picCodeController.text.trim())) {
+                    commonSnackBar(message: 'Please enter a valid pincode');
+                    return;
+                  }
+
+                  Map<String, dynamic> params = {
+                    ApiKeys.city_state_pincode: cityController.text,
+                    ApiKeys.address: fullBusinessAddressTextController.text,
+                    ApiKeys.pincode: picCodeController.text,
+                    ApiKeys.business_location: jsonEncode({
+                      ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
+                      ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+                    }),
+                  };
+
+                  viewBusinessDetailsController.updateBusinessDetails(params);
+                  if (!widget.isFromCreateUser) {
+                    Navigator.of(context).pop();
                   } else {
-                    commonSnackBar(
-                        message:AppStrings.pleaseEnterAddress);
+                    Get.offNamedUntil(
+                      RouteHelper.getBottomNavigationBarScreenRoute(),
+                          (route) => false,
+                    );
                   }
                 },
               ),

@@ -10,7 +10,10 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/business/widgets/business_header_view.dart';
+import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
+import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_stats.dart';
+import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
@@ -69,6 +72,10 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                   controller: viewBusinessDetailsController,
                 ),
 
+
+                // --- Business Stats ---
+                BusinessStats(details: businessProfileDetails),
+
                 // --- 2. Top Selling Products (Reactive) ---
                 Obx(() {
                   if (controller.fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL) {
@@ -83,10 +90,6 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                       : const SizedBox.shrink();
                 }),
 
-                SizedBox(
-                  height: SizeConfig.paddingM,
-                ),
-
                 Obx(() {
                   if (controller.fetchMyGroceryCategoryResponse.value.status == Status.INITIAL) {
                     return buildCategoryGridSkeleton();
@@ -94,12 +97,19 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                   return _categoryWithInventoryWidget();
                 }),
 
-                SizedBox(
-                  height: SizeConfig.paddingM,
+                // --- Business Live Photos ---
+                CommonBusinessLivePhoto(
+                  controller: viewBusinessDetailsController,
                 ),
 
+                // --- Contact & Map ---
                 BusinessContactMapCard(
                   businessProfileDetails: businessProfileDetails,
+                ),
+
+                // --- QR Code ---
+                BusinessQrCodeWidget(
+                  data: businessProfileDetails,
                 ),
 
                 SizedBox(
@@ -116,7 +126,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   Widget _topSellingProduct(){
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
-      margin: EdgeInsets.only(top: SizeConfig.paddingM),
+      margin: EdgeInsets.only(top: 10),
       color: AppColors.primaryColor.withValues(alpha: 0.1),
       child: Column(
         children: [
@@ -258,6 +268,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
+      margin: const EdgeInsets.only(top: 10),
       child: Column(
         children: [
           Row(

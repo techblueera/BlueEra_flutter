@@ -10,8 +10,8 @@ import 'package:BlueEra/features/common/Discover/view/widget/grid_icon_image_wid
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GroceryFoodCardWidget extends StatelessWidget {
-  const GroceryFoodCardWidget({super.key});
+class GroceryCardWidget extends StatelessWidget {
+  const GroceryCardWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,7 @@ class GroceryFoodCardWidget extends StatelessWidget {
 
   void _chooseDeliveryOption(String slugId) {
     Get.dialog(
-      ChooseDeliveryOptionDialog(proceedWith: slugId),
+      ChooseDeliveryOptionDialog(),
       barrierDismissible: false,
     );
   }

@@ -11,7 +11,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_common_gallery_card.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/business/widgets/business_header_view.dart';
+import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
@@ -80,21 +80,21 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   isRestaurantProfile: true
                 ),
 
-                const SizedBox(height: 10),
-
                 // ── 4. Business Stats ──
                 BusinessStats(details: businessProfileDetails),
 
                 ///Food Selection (Horizontal List)
                 if (controller.allFoodItems.isNotEmpty)
                   CustomFormCard(
-                    padding: EdgeInsets.zero,
+                    padding: EdgeInsets.symmetric(
+                      vertical: 10.0
+                    ),
                     margin: const EdgeInsets.only(top: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -119,13 +119,11 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                         ),
                         const SizedBox(height: 10),
                         _buildHorizontalFoodList(),
-                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
 
                 /// Restaurant Specials
-                const SizedBox(height: 10),
                 _buildRestaurantSpecials(),
 
                 ///FOOD MENU...
@@ -148,7 +146,6 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                   addButtonLabel: 'Add Photo',
                   isRestaurantGallery: true
                 ),
-
 
                 // ── 11. Contact & Map ──
                 BusinessContactMapCard(
@@ -425,7 +422,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
       return CustomFormCard(
         padding: EdgeInsets.zero,
-        margin: EdgeInsets.zero,
+        margin: EdgeInsets.only(top: 10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

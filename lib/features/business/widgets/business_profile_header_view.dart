@@ -62,7 +62,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
       padding: EdgeInsets.zero,
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      margin: const EdgeInsets.only(top: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -75,6 +75,9 @@ class BusinessProfileHeaderView extends StatelessWidget {
   }
 
   Widget _buildBannerSection(BuildContext context) {
+    final coverUrl = _coverImageUrl;
+    final profileUrl = controller.imagePath?.value ?? "";
+
     return SizedBox(
       height: 260,
       child: Stack(
@@ -88,18 +91,22 @@ class BusinessProfileHeaderView extends StatelessWidget {
             child: SizedBox(
               height: 210,
               width: double.infinity,
-              child: Image.network(
-                _coverImageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(),
-              ),
+              child: coverUrl.isNotEmpty
+                  ? Image.network(
+                      coverUrl,
+                      key: ValueKey(coverUrl),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox(),
+                    )
+                  : const SizedBox(),
             ),
           ),
           Positioned(
-            left: 20,
+            left: 16,
             top: 180,
             child: CommonProfileImage(
-              imagePath: controller.imagePath?.value ?? "",
+              key: ValueKey(profileUrl),
+              imagePath: profileUrl,
               onImageUpdate: _onProfileImageUpdate,
               dialogTitle: AppStrings.uploadBusinessLogo.tr,
             ),
@@ -172,38 +179,44 @@ class BusinessProfileHeaderView extends StatelessWidget {
           const SizedBox(height: 10),
 
           // ── Website ──
-          if (hasWebsite)
-            InkWell(
-              onTap: () => launchURL(details!.websiteUrl!),
-              child: Row(
-                children: [
-                  Icon(Icons.link_rounded,
-                      size: 14, color: AppColors.primaryColor),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: CustomText(
-                      details?.websiteUrl,
-                      fontSize: 12,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w500,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColors.primaryColor,
-                    ),
-                  ),
-                ],
+          if (!hasWebsite)
+            ...[
+              _buildInlineAdd(
+                icon: Icons.link_rounded,
+                label: 'Add Website',
+                onTap: () => _openEditSheet(context),
               ),
-            )
-          else
-            _buildInlineAdd(
-              icon: Icons.link_rounded,
-              label: 'Add Website',
-              onTap: () => _openEditSheet(context),
-            ),
-          const SizedBox(height: 10),
+              const SizedBox(height: 10),
+            ],
+
+          // else
+          // InkWell(
+          //   onTap: () => launchURL(details!.websiteUrl!),
+          //   child: Row(
+          //     children: [
+          //       Icon(Icons.link_rounded,
+          //           size: 14, color: AppColors.primaryColor),
+          //       const SizedBox(width: 4),
+          //       Flexible(
+          //         child: CustomText(
+          //           details?.websiteUrl,
+          //           fontSize: 12,
+          //           color: AppColors.primaryColor,
+          //           fontWeight: FontWeight.w500,
+          //           maxLines: 1,
+          //           overflow: TextOverflow.ellipsis,
+          //           decoration: TextDecoration.underline,
+          //           decorationColor: AppColors.primaryColor,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // )
+          //       const SizedBox(height: 10),
 
           // ── Availability + Restaurant type ──
+
+
           _buildQuickInfoRow(context, hasAvailability),
         ],
       ),

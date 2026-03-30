@@ -90,8 +90,8 @@ class BusinessProfileDetails {
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
     coverimage = json['coverPicture'];
-    categoryOfBusiness = json['category_Of_Business'];
-    natureOfBusiness = json['Nature_of_Business']=='false'?'':json['Nature_of_Business'];
+    categoryOfBusiness = json['category_Of_Business'] ?? json['category_of_business'];
+    natureOfBusiness = json['Nature_of_Business']=='false'? '' : json['Nature_of_Business'];
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
     livePhotos=json['live_photos'].cast<String>();
@@ -105,8 +105,6 @@ class BusinessProfileDetails {
     businessNumber = json['business_number'] != null
         ? new BusinessNumber.fromJson(json['business_number'])
         : null;
-
-
     if (json['owner_details'] != null&&json['owner_details'].isNotEmpty) {
       ownerDetails = [];
       json['owner_details'].forEach((v) {
@@ -121,12 +119,16 @@ class BusinessProfileDetails {
     userId = json['user_id'];
     businessDescription = json['business_description'];
     cityStatePincode = json['city_state_pincode'];
-    subCategoryOfBusiness = json['sub_category_Of_Business'];
+    subCategoryOfBusiness = json['sub_category_Of_Business'] ;
     websiteUrl = json['website_url'];
     openTime = json['opening_time'];
     closeTime = json['closing_time'];
     categoryDetails = json['category_details'] != null ? CategoryDetails.fromJson(json['category_details']) : null;
     subCategoryDetails = json['sub_category_details'] != null ? SubCategoryDetails.fromJson(json['sub_category_details']) : null;
+    // final categoryJson = json['category_details'] ?? json['category_of_business'];
+    // categoryDetails = categoryJson != null ? CategoryDetails.fromJson(categoryJson) : null;
+    // final subCategoryJson = json['sub_category_details'] ?? json['sub_category_of_business'];
+    // subCategoryDetails = subCategoryJson != null ? SubCategoryDetails.fromJson(subCategoryJson) : null;
     pincode = json['pincode'];
     username = json['username'];
     avg_rating = json['avg_rating'];
@@ -225,7 +227,7 @@ class BusinessProfileDetails {
     map['address'] = address;
     map['business_description'] = businessDescription;
     map['city_state_pincode'] = cityStatePincode;
-    map['sub_category_Of_Business'] = subCategoryOfBusiness;
+    map['sub_category_of_Business'] = subCategoryOfBusiness;
     map['website_url'] = websiteUrl;
     map['opening_time'] = openTime;
     map['closing_time'] = closeTime;

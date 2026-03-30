@@ -14,7 +14,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
-import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
+import 'package:BlueEra/features/common/store/view/new_store/products_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -487,7 +487,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
             productData: productStores,
             onTap: (c) {
               // Handle Store Logic
-              Get.to(() => BusinessStoreScreen(
+              Get.to(() => ProductsStoreScreen(
                 typeOfBusiness: AppConstants.product,
                 selectedStoreCategoryId: c.slugId,
                 selectedStoreCategoryName: c.name,

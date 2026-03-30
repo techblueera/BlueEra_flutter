@@ -1717,7 +1717,7 @@ const String PURE_VEG_RESTAURANT = "PURE_VEG_RESTAURANT";
 const String NON_VEG_RESTAURANT = "NON_VEG_RESTAURANT";
 const String ECONOMY_DHABA = "ECONOMY_DHABA";
 const String GARDEN_BUFFET_RESTAURANT = "GARDEN_BUFFET_RESTAURANT";
-const String CLOUD_KITCHEN = "CLOUD_KITCHEN ";
+const String CLOUD_KITCHEN = "CLOUD_KITCHEN";
 const String BREAKFAST_FAST_FOOD = "BREAKFAST_FAST_FOOD";
 const String SWEET_NAMKEEN_SHOP = "SWEET_NAMKEEN_SHOP";
 const String ICE_CREAM_CORNER = "ICE_CREAM_CORNER";
@@ -1742,13 +1742,18 @@ const String INDUSTRIAL_WHOLESALE = "INDUSTRIAL_WHOLESALE";
 const String AGRICULTURE_FARMING = "AGRICULTURE_FARMING";
 const String HOME_KITCHEN_UTENSILS = "HOME_KITCHEN_UTENSILS";
 const String HOME_APPLIANCES_STORE = "HOME_APPLIANCES_STORE";
+const String RELIGIOUS_AGRI_PETS = "RELIGIOUS_AGRI_PETS";
+const String HOME_APPLIANCES_KITCHEN = "HOME_APPLIANCES_KITCHEN";
+const String ELECTRONICS_MOBILE_STORE = "ELECTRONICS_MOBILE_STORE";
+const String FURNITURE_CONSTRUCTION = "FURNITURE_CONSTRUCTION";
+const String BEAUTY_WELLNESS = "BEAUTY_WELLNESS";
+const String BOOKS_TOYS_BABY = "BOOKS_TOYS_BABY";
 
 //
 const String BABY_PRODUCTS = "BABY_PRODUCTS";
 const String CELL_PHONES_ACCESSORIES = "CELL_PHONES_ACCESSORIES";
 const String MUSICAL_INSTRUMENTS = "MUSICAL_INSTRUMENTS";
 const String BOOKS_STATIONERY = "BOOKS_STATIONERY";
-const String TOOLS_AND_HOME_IMPROVEMENT = "TOOLS_HOME_IMPROVEMENT";
 const String TOYS_GAMES = "TOYS_GAMES";
 const String ARTS_CRAFTS_SEWING = "ARTS_CRAFTS_SEWING";
 const String CLOTHING_SHOWS_JEWELRY = "CLOTHING_SHOES_JEWELRY";
@@ -3223,113 +3228,69 @@ final List<OnboardingCategoryModel> findShoppingByContactCate = [
       businessType: BusinessType.Product),
 ];
 
+
+
 final List<OnboardingCategoryModel> businessProductStoreCategories = [
   OnboardingCategoryModel(
       // name: AppStrings.fashionLifestyle,
-      name: 'Fashion',
+      name: 'Fashion LifeStyle Store',
       slugId: FASHION_LIFESTYLE,
       icon: AppImageAssets.fashionLifestyle,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
       // name: AppStrings.electronicsAppliances,
-      name: 'Electronics',
-      slugId: ELECTRONICS_APPLIANCES_STORE,
+      name: 'Electronics Mobile Store',
+      slugId: ELECTRONICS_MOBILE_STORE,
       icon: AppImageAssets.electronicsApplianceStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      // name: AppStrings.automotiveStore,
-      name: 'Spare Parts',
-      slugId: AUTOMOTIVE_STORE_SHOWROOM,
-      icon: AppImageAssets.automotiveStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Construction',
-      slugId: CONSTRUCTION_HOME_ESSENTIALS,
-      icon: AppImageAssets.constructionHardware,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Appliances',
-      slugId: HOME_APPLIANCES_STORE,
-      icon: AppImageAssets.homeAppliances,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
       // name: AppStrings.furnitureHomeDecor,
-      name: 'Furniture',
-      slugId: FURNITURE_HOME_DECOR,
+      name: 'Furniture Construction Store',
+      slugId: FURNITURE_CONSTRUCTION,
       icon: AppImageAssets.furnitureHomeDecor,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Jewellery',
+      name: 'Jewellery Luxury Store',
       slugId: JEWELRY_LUXURY_STORE,
       icon: AppImageAssets.jewelleryLuxuryStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Cosmetics',
-      slugId: BEAUTY_COSMETICS,
+      name: 'Beauty Wellness Store',
+      slugId: BEAUTY_WELLNESS,
       icon: AppImageAssets.beautyAndCosmetics,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
       // name: AppStrings.booksStationaryGifts,
-      name: 'Stationery',
-      slugId: BOOKS_STATIONERY_GIFTS_STORE,
+      name: 'Books Toys & Baby Products',
+      slugId: BOOKS_TOYS_BABY,
       icon: AppImageAssets.booksStationary,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      // name: AppStrings.toysBabyProducts,
-      name: 'Toys',
-      slugId: TOYS_BABY_PRODUCTS_STORE,
-      icon: AppImageAssets.babyToysProductStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
       name: 'Home Kitchen',
-      slugId: HOME_APPLIANCES_STORE,
+      slugId: HOME_APPLIANCES_KITCHEN,
       icon: AppImageAssets.homeKitchenAndUtensils,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      // name: AppStrings.sportsFitness,
-      name: 'Sports',
+      name: 'Sports & Fitness Store',
       slugId: SPORTS_FITNESS_STORE,
       icon: AppImageAssets.sportsFitnessStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      // name: AppStrings.petSupplies,
-      name: 'Pets',
-      slugId: PET_SUPPLIES_STORE,
+      name: 'Religious, Agriculture & Pets',
+      slugId: RELIGIOUS_AGRI_PETS,
       icon: AppImageAssets.petSuppliesStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Religious',
-      slugId: RELIGIOUS_SPECIALTY,
-      icon: AppImageAssets.religiousAndSpeciality,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Packaging',
-      slugId: PACKAGING_DISPOSABLE,
-      icon: AppImageAssets.packagingAndDisposable,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Agriculture',
-      slugId: AGRICULTURE_FARMING,
-      icon: AppImageAssets.agricultureAndFarming,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Industrials',
+      name: 'Industrials Wholesale',
       slugId: INDUSTRIAL_WHOLESALE,
       icon: AppImageAssets.industrialWholesale,
       accountType: AppConstants.business,
@@ -3347,12 +3308,6 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       name: 'Electronics &\nGadgets',
       slugId: ELECTRONICS_APPLIANCES_STORE,
       icon: AppImageAssets.electronicsApplianceStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Fashion & Jewelry',
-      slugId: FASHION_LIFESTYLE,
-      icon: AppImageAssets.jewelleryLuxuryStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -3375,7 +3330,7 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
       name: 'Tools &\nHardware',
-      slugId: TOOLS_AND_HOME_IMPROVEMENT,
+      slugId: TOOLS_HOME_IMPROVEMENT,
       icon: AppImageAssets.constructionHardware,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
@@ -3416,12 +3371,6 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Books &\nStationery',
-      slugId: BOOKS_STATIONERY,
-      icon: AppImageAssets.booksStationary,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
       name: 'Pet\nCare',
       slugId: PET_SUPPLIES_STORE,
       icon: AppImageAssets.petSuppliesStore,
@@ -3431,12 +3380,6 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
       name: 'Sports &\nFitness',
       slugId: SPORTS_FITNESS_STORE,
       icon: AppImageAssets.sportsFitnessStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Tools &\nHardware',
-      slugId: TOOLS_AND_HOME_IMPROVEMENT,
-      icon: AppImageAssets.constructionHardware,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(

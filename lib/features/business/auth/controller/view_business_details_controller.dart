@@ -125,8 +125,8 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Method to set start location data
   void setStartLocation(double? lat, double? lng, String address) {
-    if (lat != null) addressLat?.value = lat;
-    if (lng != null) addressLong?.value = lng;
+    if (lat != null && lat!=0.0) addressLat?.value = lat;
+    if (lng != null && lng!=0.0) addressLong?.value = lng;
     businessAddress.value = address;
   }
 
