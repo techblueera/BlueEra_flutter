@@ -87,10 +87,6 @@ class _VisitingCardTwoState extends State<VisitingCardTwo> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [AppShadows.textFieldShadow],
-                    image: DecorationImage(
-                      image: AssetImage(AppIconAssets.visiting_bg),
-                      fit: BoxFit.cover,
-                    ),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),

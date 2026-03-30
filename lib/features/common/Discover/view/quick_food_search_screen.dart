@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/all_food_service_screen.dart';
-import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
+import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -363,7 +363,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return InkWell(
       onTap: () {
         if (restaurant.businessProfile?.id == null) return;
-        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
+        Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
       },
       child: SizedBox(
         width: 150,
@@ -544,7 +544,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return InkWell(
       onTap: () {
         if (restaurant.businessProfile?.id == null) return;
-        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
+        Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
       },
       child: Container(
         color: AppColors.white,

@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -20,34 +19,38 @@ import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
+import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/network_assets.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/constants/app_colors.dart';
 
-class OtherGroceryStoreScreen extends StatefulWidget {
+class VisitGroceryStoreScreen extends StatefulWidget {
   final String visitBusinessId;
   final String userId;
-  const OtherGroceryStoreScreen({
+  const VisitGroceryStoreScreen({
     super.key,
     required this.visitBusinessId,
     required this.userId});
 
   @override
-  State<OtherGroceryStoreScreen> createState() => _OtherGroceryStoreScreenState();
+  State<VisitGroceryStoreScreen> createState() => _VisitGroceryStoreScreenState();
 }
 
-class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
+class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
@@ -55,10 +58,22 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
 
   @override
   void initState() {
-    // groceryCustomerController.resetController();
+    super.initState();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllGroceryData(widget.userId, otherStore: true);
-    super.initState();
+    _trackBusinessStoreView(widget.visitBusinessId);
+  }
+
+  void _trackBusinessStoreView(String storeId) {
+    if (kReleaseMode && storeId.isNotEmpty) {
+      Future.microtask(() async {
+        try {
+          StoreRepo().businessByViewCountIDApi(businessId: storeId);
+        } catch (e) {
+          print("Failed to track view: $e");
+        }
+      });
+    }
   }
 
   @override
@@ -85,7 +100,17 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                     return buildBusinessHeaderSkeleton();
                   }
                   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                  return _groceryHeaderWidget(details);
+                  return Column(
+                    children: [
+                      VisitBusinessCommonHeader(
+                        details: details,
+                        onRated: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(widget.visitBusinessId),
+                      ),
+                      const SizedBox(height: 10),
+                      VisitBusinessStatsCard(details: details),
+                    ],
+                  );
                 }),
 
                 // --- 2. Top Selling Products (Independent) ---
@@ -113,13 +138,80 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
 
                 SizedBox(height: SizeConfig.paddingM),
 
-                // --- 4. Contact/Map Section (Depends on Profile) ---
+                // --- 4. Live Photos Section ---
+                Obx(() {
+                  if (viewBusinessDetailsController.isProfileLoading.value) {
+                    return const SizedBox.shrink();
+                  }
+                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                  if (details?.livePhotos != null &&
+                      details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
+                    return Padding(
+                      padding: EdgeInsets.only(top: SizeConfig.paddingM),
+                      child: CustomFormCard(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const CustomText(
+                              'Live Photos',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            const SizedBox(height: 10),
+                            StoreLivePhotoWidget(
+                              livePhotos: details.livePhotos!
+                                  .where((p) => p.trim().isNotEmpty)
+                                  .toList(),
+                              natureOfBusiness:
+                                  details.subCategoryDetails?.name ??
+                                      details.natureOfBusiness ??
+                                      'OTHER',
+                              onViewFullScreen: ({
+                                required int index,
+                                required List<String> storeImage,
+                                required String natureOfBusiness,
+                              }) {
+                                navigatePushTo(
+                                  context,
+                                  ImageViewScreen(
+                                    appBarTitle: details.businessName ?? '',
+                                    subTitle: natureOfBusiness,
+                                    imageUrls: storeImage,
+                                    initialIndex: index,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
+
+                SizedBox(height: SizeConfig.paddingM),
+
+                // --- 5. Contact/Map Section (Depends on Profile) ---
                 Obx(() {
                   if (viewBusinessDetailsController.isProfileLoading.value) {
                     return const SizedBox.shrink();
                   }
                   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
                   return _buildContactNdMapCard(details);
+                }),
+
+                // --- 6. QR Code ---
+                Obx(() {
+                  if (viewBusinessDetailsController.isProfileLoading.value) {
+                    return const SizedBox.shrink();
+                  }
+                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.paddingM),
+                    child: BusinessQrCodeWidget(data: details),
+                  );
                 }),
 
                 SizedBox(height: SizeConfig.size100),
@@ -132,169 +224,6 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
             selectedVariants: groceryCustomerController.selectedGroceriesVariants,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _groceryHeaderWidget(BusinessProfileDetails? details){
-    return CustomFormCard(
-    padding: EdgeInsets.zero,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Banner + Profile Image
-        Container(
-          height: 170,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Banner Image
-
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
-                child: Container(
-                  height: 130,
-                  width: double.infinity,
-                  color: AppColors.greyLite, // Background color for the "empty" state
-                  child: (details?.coverimage != null && details!.coverimage!.isNotEmpty)
-                      ? Image.network(
-                    details.coverimage!,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildErrorPlaceholder();
-                    },
-                  )
-                      : _buildErrorPlaceholder(), // Show icon if URL is null/empty
-                ),
-              ),
-
-              // Profile image overlapping banner bottom
-              Positioned(
-                left: 20,
-                top: 90, // makes it overlap smoothly
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: AppColors.white, width: 4),
-                  ),
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.white,
-                    child: details?.logo?.isNotEmpty == true
-                        ? ClipOval(
-                      child: NetWorkOcToAssets(imgUrl: details?.logo ?? "")
-                    )
-                        : LocalAssets(imagePath: AppIconAssets.user_out_line),
-                  ),
-                ),
-              ),
-
-              Positioned(
-                right: 5,
-                bottom: 10,
-                child: RatingBar.builder(
-                  initialRating: 0,
-                  minRating: 1,
-                  direction: Axis.horizontal,
-                  allowHalfRating: true,
-                  itemCount: 5,
-                  itemSize: 15, // Adjust size to match your UI
-                  unratedColor: AppColors.secondaryTextColor, // Matches the grey outlines in your image
-                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  itemBuilder: (context, _) => LocalAssets(
-                    imagePath: AppIconAssets.star_rounded,
-                    imgColor: Colors.amber, // Color when filled
-                  ),
-                  onRatingUpdate: (rating) {
-                    print(rating);
-                  },
-                ),
-              )
-
-            ],
-          ),
-        ),
-
-        // --- FORM SECTION ---
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12.0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              CustomText(details?.businessName,
-                  fontSize: 18,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.bold),
-              const SizedBox(height: 10),
-              ExpandableText(
-                text: details?.businessDescription ?? AppStrings.na,
-                trimLines: 4,
-                isReadMoreNewLine: false,
-                expandMode: ExpandMode.dialog,
-                style: TextStyle(
-                  color: AppColors.secondaryTextColor,
-                  fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: AppConstants.OpenSans,
-                ),
-              ),
-              const SizedBox(height: 10),
-              CommonRatingRow(
-                rating:
-                double.tryParse(details?.avg_rating.toString() ?? '0.0') ?? 0.0,
-                reviews: details?.total_ratings?.toInt() ?? 0,
-                distance: '${calculateDistanceKm(
-                  LocationService.lat,
-                  LocationService.lng,
-                  details?.businessLocation?.lat?.toDouble() ?? 0.0,
-                  details?.businessLocation?.lon?.toDouble() ?? 0.0,
-                ).toStringAsFixed(2)} Km Away',
-              ),
-
-              // const SizedBox(height: 10),
-              // CustomText(
-              //   "Monday – Friday: 9:00 AM – 6:00 PM",
-              //   color: AppColors.secondaryTextColor,
-              //   fontSize: SizeConfig.small,
-              //   fontWeight: FontWeight.w400,
-              // )
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 10),
-      ],
-    )
-
-    );
-  }
-
-  Widget _buildErrorPlaceholder() {
-    return Center(
-      child: LocalAssets(
-        imagePath: AppIconAssets.place_holder_image,
-        boxFix: BoxFit.cover,
-        height: 130,
-        width: double.infinity,
       ),
     );
   }
@@ -538,7 +467,7 @@ class _OtherGroceryStoreScreenState extends State<OtherGroceryStoreScreen> {
                 onTap: (_categoryItem) {
 
                   Get.toNamed(
-                    RouteHelper.getOtherGroceryProductsScreenRoute(),
+                    RouteHelper.getVisitGroceryProductsScreenRoute(),
                     arguments: {
                       ApiKeys.userId: details?.userId,
                       ApiKeys.businessId: details?.id,

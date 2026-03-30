@@ -13,8 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChooseDeliveryOptionDialog extends StatefulWidget {
-  final String proceedWith;
-  const ChooseDeliveryOptionDialog({super.key, required this.proceedWith});
+  const ChooseDeliveryOptionDialog({super.key});
 
   @override
   State<ChooseDeliveryOptionDialog> createState() => _ChooseDeliveryOptionDialogState();
@@ -111,10 +110,8 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
             _selectedOptionId = id;
           // });
           if(_selectedOptionId == 'SELF'){
-            bool isGrocery = widget.proceedWith == 'GROCERY_STATIONARY';
-            navigateToGroceryOrFoodStore(
-              categories: isGrocery ? groceriesCategories : businessOnboardingFoodsCategories,
-              isGrocery: isGrocery
+            navigateToGroceryStore(
+              categories: groceriesCategories,
             );
             // Get.to(()=> SelfPickupStoreScreen());
           }else if(_selectedOptionId == 'RIDER'){
@@ -189,13 +186,13 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
     );
   }
 
-  void navigateToGroceryOrFoodStore({
+  void navigateToGroceryStore({
     required List<OnboardingCategoryModel> categories,
     // required var categoryData,
     bool isGrocery = true,
   }) {
     Get.offNamed(
-      RouteHelper.getGroceryOrFoodStoresScreenRoute(),
+      RouteHelper.getGroceryStoresScreenRoute(),
       arguments: {
         ApiKeys.argCategories: categories,
         // ApiKeys.argCategoryData: categoryData,

@@ -116,6 +116,8 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
                         child: Text(
                           label,
                           textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           // Remove style here since AnimatedDefaultTextStyle handles it
                         ),
                       ),

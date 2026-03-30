@@ -12,7 +12,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_w
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/financial_sectors.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/find_service_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/grocery_food_card_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/grocery_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/health_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
@@ -180,7 +180,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 _sliverGap(SizeConfig.size8),
 
                 /// Grocery & Food
-                _sliverCard(child: GroceryFoodCardWidget()),
+                _sliverCard(child: GroceryCardWidget()),
                 _sliverGap(),
 
                 /// Medical / Healthcare Services

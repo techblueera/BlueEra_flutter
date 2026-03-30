@@ -28,8 +28,6 @@ class BusinessContactMapCard extends StatelessWidget {
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
       margin: EdgeInsets.only(
-          left: 8.0,
-          right: 8.0,
           top: 10.0
        ),
       child: Column(

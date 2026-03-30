@@ -14,7 +14,7 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/business/widgets/career_job_widget.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
-import 'package:BlueEra/features/business/widgets/business_header_view.dart';
+import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

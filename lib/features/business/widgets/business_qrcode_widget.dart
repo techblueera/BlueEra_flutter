@@ -28,6 +28,7 @@ class BusinessQrCodeWidget extends StatelessWidget {
 
     return CustomFormCard(
       padding: const EdgeInsets.all(10.0),
+      margin: const EdgeInsets.only(top: 10.0),
       child: Column(
         children: [
           const SizedBox(height: 14),

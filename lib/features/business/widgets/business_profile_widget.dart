@@ -1241,8 +1241,10 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
   }
 }
 
-Future<void> updateLocationDialog(BuildContext context,
-    BusinessProfileDetails? details, bool isFromMailScreen) {
+Future<void> updateLocationDialog(
+    BuildContext context,
+    BusinessProfileDetails? details,
+    bool isFromMailScreen) {
   return showDialog(
     context: context,
     builder: (context) {

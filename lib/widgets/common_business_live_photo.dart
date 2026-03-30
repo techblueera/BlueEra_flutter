@@ -18,7 +18,7 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CommonBusinessLivePhoto extends StatelessWidget {
+class CommonBusinessLivePhoto extends StatefulWidget {
   final ViewBusinessDetailsController controller;
 
   const CommonBusinessLivePhoto({
@@ -26,6 +26,12 @@ class CommonBusinessLivePhoto extends StatelessWidget {
     required this.controller,
   });
 
+  @override
+  State<CommonBusinessLivePhoto> createState() =>
+      _CommonBusinessLivePhotoState();
+}
+
+class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
   static const int _maxPhotos = 4;
 
   static const List<Map<String, String>> _slotConfig = [
@@ -34,6 +40,16 @@ class CommonBusinessLivePhoto extends StatelessWidget {
     {'label': 'Interior 1', 'image': 'office_image.png'},
     {'label': 'Interior 2', 'image': 'office_image.png'},
   ];
+
+  final Map<int, bool> _loadingSlots = {};
+
+  void _setLoading(int index, bool loading) {
+    setState(() {
+      _loadingSlots[index] = loading;
+    });
+  }
+
+  bool _isLoading(int index) => _loadingSlots[index] ?? false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +68,7 @@ class CommonBusinessLivePhoto extends StatelessWidget {
           GetBuilder<ViewBusinessDetailsController>(
             id: 'livePhotos',
             builder: (_) {
-              final photos = controller
+              final photos = widget.controller
                       .businessProfileDetails.value?.data?.livePhotos ??
                   [];
 
@@ -99,31 +115,37 @@ class CommonBusinessLivePhoto extends StatelessWidget {
     required List<String> allPhotos,
   }) {
     final bool hasPhoto = photoUrl != null;
+    final bool isLoading = _isLoading(index);
 
     return GestureDetector(
-      onTap: () async {
-        if (hasPhoto) {
-          navigatePushTo(
-            context,
-            ImageViewScreen(
-              appBarTitle: AppStrings.imageViewer,
-              subTitle: '',
-              imageUrls: allPhotos,
-              initialIndex: index,
-            ),
-          );
-        } else {
-          final imgStr =
-              await SelectProfilePictureDialog.pickFromCamera(
-            context,
-            cropAspectRatio: CropAspectRatio(width: 3, height: 4),
-          );
-          if (imgStr != null) {
-            await controller.saveBusinessImages(imgStr, controller);
-            controller.update(['livePhotos']);
-          }
-        }
-      },
+      onTap: isLoading
+          ? null
+          : () async {
+              if (hasPhoto) {
+                navigatePushTo(
+                  context,
+                  ImageViewScreen(
+                    appBarTitle: AppStrings.imageViewer,
+                    subTitle: '',
+                    imageUrls: allPhotos,
+                    initialIndex: index,
+                  ),
+                );
+              } else {
+                final imgStr =
+                    await SelectProfilePictureDialog.pickFromCamera(
+                  context,
+                  cropAspectRatio: CropAspectRatio(width: 3, height: 4),
+                );
+                if (imgStr != null) {
+                  _setLoading(index, true);
+                  await widget.controller
+                      .saveBusinessImages(imgStr, widget.controller);
+                  widget.controller.update(['livePhotos']);
+                  _setLoading(index, false);
+                }
+              }
+            },
       child: Stack(
         children: [
           // Base container
@@ -178,7 +200,7 @@ class CommonBusinessLivePhoto extends StatelessWidget {
           ),
 
           // Camera icon overlay for empty slots
-          if (!hasPhoto)
+          if (!hasPhoto && !isLoading)
             Positioned.fill(
               child: Center(
                 child: Container(
@@ -198,18 +220,20 @@ class CommonBusinessLivePhoto extends StatelessWidget {
             ),
 
           // Delete button for uploaded photos
-          if (hasPhoto)
+          if (hasPhoto && !isLoading)
             Positioned(
               top: 6,
               right: 6,
               child: GestureDetector(
                 onTap: () async {
+                  _setLoading(index, true);
                   final data = {ApiKeys.image_url: photoUrl};
-                  await controller.deleteLiveStoreImage(data);
-                  controller.businessProfileDetails.value?.data
+                  await widget.controller.deleteLiveStoreImage(data);
+                  widget.controller.businessProfileDetails.value?.data
                       ?.livePhotos
                       ?.removeAt(index);
-                  controller.update(['livePhotos']);
+                  widget.controller.update(['livePhotos']);
+                  _setLoading(index, false);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(4),
@@ -225,6 +249,27 @@ class CommonBusinessLivePhoto extends StatelessWidget {
                   ),
                   child: const Icon(Icons.close,
                       size: 14, color: Colors.grey),
+                ),
+              ),
+            ),
+
+          // Loading overlay
+          if (isLoading)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  child: const Center(
+                    child: SizedBox(
+                      height: 28,
+                      width: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
+import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
+import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -61,7 +62,23 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
-        title: 'Restaurant Near Me',
+        isCustomTitleWidget: () => Obx(() {
+          final categories = businessOnboardingFoodsCategories;
+          final idx = selectedCategoryIndex.value;
+          final name = (idx >= 0 && idx < categories.length)
+              ? categories[idx].name
+              : 'Restaurant Near Me';
+          return Text(
+            name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        }),
         buildCustomActionWidget: () => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -606,25 +623,19 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                         shadowColor:
                             AppColors.primaryColor.withValues(alpha: 0.3),
                         child: InkWell(
-                          onTap: () => _navigateToDetail(store),
+                          onTap: () => RouteMapBottomSheet.show(
+                            context: context,
+                            destinationName: store.businessName ?? 'Restaurant',
+                            destinationAddress: store.address ?? '',
+                            destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
+                            destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
+                            livePhotos: store.livePhotos,
+                          ),
                           borderRadius: BorderRadius.circular(22),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CustomText(
-                                  'View',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white,
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.arrow_forward_ios_rounded,
-                                    size: 10, color: Colors.white),
-                              ],
-                            ),
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(Icons.directions_rounded,
+                                size: 18, color: Colors.white),
                           ),
                         ),
                       ),
@@ -642,6 +653,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
 
   void _navigateToDetail(GetAllStoreResModel store) {
     if (store.id == null) return;
-    Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: store.id!));
+    Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: store.id!));
   }
 }

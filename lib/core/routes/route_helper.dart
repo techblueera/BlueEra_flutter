@@ -16,17 +16,17 @@ import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_product_selection_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_review_selection_screen.dart';
 import 'package:BlueEra/features/me/food/view/missing_food_itmes_screen.dart';
-import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
+import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_rider_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/all_grocery_product_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/other_grocery_product_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/visit_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/other_grocery_store_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_with_inventory_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
@@ -101,7 +101,7 @@ import 'package:BlueEra/features/me/grocery/view/add_grocery_variant_screen.dart
 import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_cart_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_confirm_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_or_food_stores_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_stores_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_products_selection_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
@@ -469,8 +469,8 @@ class RouteHelper {
   static String getMyGroceryProductsScreenRoute() =>
       RouteConstant.myGroceryProductsScreen;
 
-  static String getOtherGroceryProductsScreenRoute() =>
-      RouteConstant.otherGroceryProductsScreen;
+  static String getVisitGroceryProductsScreenRoute() =>
+      RouteConstant.visitGroceryProductsScreen;
 
   static String getAllGroceryCategorizeProductsScreenRoute() =>
       RouteConstant.allGroceryCategorizeProductsScreen;
@@ -558,8 +558,8 @@ class RouteHelper {
   static String getHospitalDepartmentsScreenRoute() =>
       RouteConstant.hospitalDepartmentsScreen;
 
-  static String getGroceryOrFoodStoresScreenRoute() =>
-      RouteConstant.groceryOrFoodStoresScreen;
+  static String getGroceryStoresScreenRoute() =>
+      RouteConstant.groceryStoresScreen;
 
   static String getAddGrocerySnapSearchScreenRoute() =>
       RouteConstant.addGrocerySnapSearchScreen;
@@ -576,11 +576,11 @@ class RouteHelper {
   static String getMissingFoodItemsScreenRoute() =>
       RouteConstant.missingFoodItemsScreen;
 
- static String getOtherGroceryStoreScreenRoute() =>
-      RouteConstant.otherGroceryStoreScreen;
+ static String getVisitGroceryStoreScreenRoute() =>
+      RouteConstant.visitGroceryStoreScreen;
 
   static String getOtherFoodStoreDetailsScreenRoute() =>
-      RouteConstant.otherFoodStoreDetailsScreen;
+      RouteConstant.visitFoodStoreDetailsScreen;
 
   static String getAddFoodSnapSearchScreenRoute() =>
       RouteConstant.addFoodSnapSearchScreen;
@@ -1540,20 +1540,20 @@ class RouteHelper {
                   arrGroceries: argGroceries
                 ),
             settings: RouteSettings(name: getMyGroceryProductsScreenRoute()));
-      case RouteConstant.otherGroceryProductsScreen:
+      case RouteConstant.visitGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = args[ApiKeys.userId] as String;
         final String visitBusinessId = args[ApiKeys.businessId] as String;
         final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
         final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
         return MaterialPageRoute(
-            builder: (_) => OtherGroceryProductsScreen(
+            builder: (_) => VisitGroceryProductsScreen(
                 userId: userId,
                 visitBusinessId: visitBusinessId,
                 argArrGroceryCatKey: argArrGroceryCatKey,
                 argArrGroceryCatName: argArrGroceryCatName,
             ),
-            settings: RouteSettings(name: getOtherGroceryProductsScreenRoute()));
+            settings: RouteSettings(name: getVisitGroceryProductsScreenRoute()));
       case RouteConstant.allGroceryCategorizeProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<GroceryNestedCategoryModel> argCategories = args[ApiKeys.argCategories] as List<GroceryNestedCategoryModel>;
@@ -1751,18 +1751,16 @@ class RouteHelper {
             settings: RouteSettings(name: getMedicalHomeScreenRoute())
         );
 
-       case RouteConstant.groceryOrFoodStoresScreen:
+       case RouteConstant.groceryStoresScreen:
               final args = settings.arguments as Map<String, dynamic>;
               final List<OnboardingCategoryModel> argCategories = args[ApiKeys.argCategories] as List<OnboardingCategoryModel>;
               // final OnboardingCategoryModel selectedGroceryCategoryData = args[ApiKeys.argCategoryData] as OnboardingCategoryModel;
-              final bool argIsGroceryStore = args[ApiKeys.argIsGroceryStore] as bool;
               return MaterialPageRoute(
-                  builder: (_) => GroceryOrFoodStoresScreen(
+                  builder: (_) => GroceryStoresScreen(
                       arrCategories: argCategories,
                       // selectedGroceryOrFoodCategory: selectedGroceryCategoryData,
-                      isGroceryStore: argIsGroceryStore,
                   ),
-                  settings: RouteSettings(name: getGroceryOrFoodStoresScreenRoute())
+                  settings: RouteSettings(name: getGroceryStoresScreenRoute())
               );
 
       case RouteConstant.addGrocerySnapSearchScreen:
@@ -1805,23 +1803,23 @@ class RouteHelper {
             settings: RouteSettings(name: getMissingFoodItemsScreenRoute())
         );
 
-      case RouteConstant.otherGroceryStoreScreen:
+      case RouteConstant.visitGroceryStoreScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String businessId = args[ApiKeys.businessId] as String;
         final String userId = args[ApiKeys.userId] as String;
         return MaterialPageRoute(
-            builder: (_) => OtherGroceryStoreScreen(
+            builder: (_) => VisitGroceryStoreScreen(
                 visitBusinessId: businessId,
                 userId: userId,
             ),
-            settings: RouteSettings(name: getOtherGroceryStoreScreenRoute())
+            settings: RouteSettings(name: getVisitGroceryStoreScreenRoute())
         );
 
-      case RouteConstant.otherFoodStoreDetailsScreen:
+      case RouteConstant.visitFoodStoreDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String businessId = args[ApiKeys.businessId] as String;
         return MaterialPageRoute(
-            builder: (_) => OtherFoodStoreDetailsScreen(
+            builder: (_) => VisitFoodStoreDetailsScreen(
               visitBusinessId: businessId,
             ),
             settings: RouteSettings(name: getOtherFoodStoreDetailsScreenRoute())

@@ -36,7 +36,7 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
     bool isGrocery = true,
   }) {
     Get.toNamed(
-      RouteHelper.getGroceryOrFoodStoresScreenRoute(),
+      RouteHelper.getGroceryStoresScreenRoute(),
       arguments: {
         ApiKeys.argCategories: categories,
         ApiKeys.argCategoryData: categoryData,

@@ -16,13 +16,13 @@ import '../../../../../../core/constants/size_config.dart';
 import '../../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
 
-class OtherGroceryProductsScreen extends StatefulWidget {
+class VisitGroceryProductsScreen extends StatefulWidget {
   final String userId;
   final String visitBusinessId;
   final String argArrGroceryCatKey;
   final String argArrGroceryCatName;
 
-  OtherGroceryProductsScreen({
+  VisitGroceryProductsScreen({
     super.key,
     required this.userId,
     required this.visitBusinessId,
@@ -31,10 +31,10 @@ class OtherGroceryProductsScreen extends StatefulWidget {
   });
 
   @override
-  State<OtherGroceryProductsScreen> createState() => _OtherGroceryProductsScreenState();
+  State<VisitGroceryProductsScreen> createState() => _VisitGroceryProductsScreenState();
 }
 
-class _OtherGroceryProductsScreenState extends State<OtherGroceryProductsScreen> {
+class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen> {
   final controller = getOrPut(() => GroceryController());
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final ScrollController scrollController = ScrollController();

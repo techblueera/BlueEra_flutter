@@ -7,15 +7,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_availability_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
@@ -27,38 +25,55 @@ import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/network_assets.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class OtherFoodStoreDetailsScreen extends StatefulWidget {
+class VisitFoodStoreDetailsScreen extends StatefulWidget {
   final String visitBusinessId;
 
-  const OtherFoodStoreDetailsScreen(
+  const VisitFoodStoreDetailsScreen(
       {super.key, required this.visitBusinessId});
 
   @override
-  State<OtherFoodStoreDetailsScreen> createState() =>
-      _OtherFoodStoreDetailsScreenState();
+  State<VisitFoodStoreDetailsScreen> createState() =>
+      _VisitFoodStoreDetailsScreenState();
 }
 
-class _OtherFoodStoreDetailsScreenState
-    extends State<OtherFoodStoreDetailsScreen> {
+class _VisitFoodStoreDetailsScreenState
+    extends State<VisitFoodStoreDetailsScreen> {
   final controller = getOrPut(() => RestaurantController());
   final foodCustomerController = getOrPut(() => FoodCustomerController());
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
 
   @override
   void initState() {
     super.initState();
+    viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchHomeData(businessId: widget.visitBusinessId);
+    _trackBusinessStoreView(widget.visitBusinessId);
+  }
+
+  void _trackBusinessStoreView(String visitBusinessId) {
+    if (kReleaseMode && visitBusinessId.isNotEmpty) {
+      Future.microtask(() async {
+        try {
+          StoreRepo().businessByViewCountIDApi(businessId: visitBusinessId);
+        } catch (e) {
+          print("Failed to track view: $e");
+        }
+      });
+    }
   }
 
   @override
@@ -77,10 +92,12 @@ class _OtherFoodStoreDetailsScreenState
           return Center(child: CustomText(AppStrings.noDataFound.tr));
         }
 
-        final details = data.businessProfileDetails;
+        final visitDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+        final details = visitDetails ?? data.businessProfileDetails;
 
         return RefreshIndicator(
           onRefresh: () async {
+            viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
             controller.fetchHomeData(businessId: widget.visitBusinessId);
           },
           child: SingleChildScrollView(
@@ -92,7 +109,15 @@ class _OtherFoodStoreDetailsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 /// Profile Header (Read-Only)
-                _buildProfileHeader(details),
+                VisitBusinessCommonHeader(
+                  details: details,
+                  onRated: () => viewBusinessDetailsController
+                      .viewBusinessProfileById(widget.visitBusinessId),
+                ),
+
+                /// Business Stats
+                const SizedBox(height: 10),
+                VisitBusinessStatsCard(details: details),
 
                 /// Offer Dish (Discount) — only when items exist
                 if (controller.allFoodItems.isNotEmpty) ...[
@@ -143,6 +168,50 @@ class _OtherFoodStoreDetailsScreenState
                   businessProfileDetails: details,
                 ),
 
+                /// Business Live Photos
+                if (details?.livePhotos != null &&
+                    details!.livePhotos!.any((p) => p.trim().isNotEmpty)) ...[
+                  const SizedBox(height: 10),
+                  CustomFormCard(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CustomText(
+                          'Live Photos',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        const SizedBox(height: 10),
+                        StoreLivePhotoWidget(
+                          livePhotos: details.livePhotos!
+                              .where((p) => p.trim().isNotEmpty)
+                              .toList(),
+                          natureOfBusiness:
+                              details.subCategoryDetails?.name ??
+                                  details.natureOfBusiness ??
+                                  'OTHER',
+                          onViewFullScreen: ({
+                            required int index,
+                            required List<String> storeImage,
+                            required String natureOfBusiness,
+                          }) {
+                            navigatePushTo(
+                              context,
+                              ImageViewScreen(
+                                appBarTitle: details.businessName ?? '',
+                                subTitle: natureOfBusiness,
+                                imageUrls: storeImage,
+                                initialIndex: index,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 /// Gallery
                 if (data.gallery?.isNotEmpty ?? false)
                   CustomFormCard(
@@ -165,6 +234,11 @@ class _OtherFoodStoreDetailsScreenState
 
                 const SizedBox(height: 10),
                 _buildContactAndMapCard(details),
+
+                /// QR Code
+                const SizedBox(height: 10),
+                BusinessQrCodeWidget(data: details),
+
                 const SizedBox(height: 100),
               ],
             ),
@@ -174,257 +248,6 @@ class _OtherFoodStoreDetailsScreenState
     );
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  //  PROFILE HEADER (View-Only)
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildProfileHeader(BusinessProfileDetails? details) {
-    final hasCover =
-        details?.coverimage != null && details!.coverimage!.isNotEmpty;
-    final hasAddress =
-        details?.address != null && details!.address!.trim().isNotEmpty;
-    final hasDietaryType = details?.dietaryType != null &&
-        details!.dietaryType!.trim().isNotEmpty;
-    final hasAvailability = details?.availability?.schedule != null;
-
-    return CustomFormCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Banner + Profile Image
-          SizedBox(
-            height: 200,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  ),
-                  child: SizedBox(
-                    height: 160,
-                    width: double.infinity,
-                    child: hasCover
-                        ? Image.network(
-                            details.coverimage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                _buildBannerPlaceholder(),
-                          )
-                        : _buildBannerPlaceholder(),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  top: 120,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border:
-                          Border.all(color: AppColors.white, width: 3),
-                    ),
-                    child: CircleAvatar(
-                      radius: 38,
-                      backgroundColor: AppColors.white,
-                      child: details?.logo?.isNotEmpty == true
-                          ? ClipOval(
-                              child: NetWorkOcToAssets(
-                                  imgUrl: details?.logo ?? ""))
-                          : LocalAssets(
-                              imagePath: AppIconAssets.user_out_line),
-                    ),
-                  ),
-                ),
-                // User rating bar
-                Positioned(
-                  right: 5,
-                  bottom: 10,
-                  child: RatingBar.builder(
-                    initialRating: 0,
-                    minRating: 1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    itemSize: 15,
-                    unratedColor: AppColors.secondaryTextColor,
-                    itemPadding:
-                        const EdgeInsets.symmetric(horizontal: 4.0),
-                    itemBuilder: (context, _) => LocalAssets(
-                      imagePath: AppIconAssets.star_rounded,
-                      imgColor: Colors.amber,
-                    ),
-                    onRatingUpdate: (rating) {
-                      // TODO: submit rating to API
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Details Section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                CustomText(details?.businessName,
-                    fontSize: 20,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold),
-                const SizedBox(height: 10),
-
-                // Dietary + SubCategory + Rating row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (hasDietaryType) ...[
-                      _buildDietaryIndicator(details.dietaryType!),
-                      const SizedBox(width: 6),
-                    ],
-                    if (details?.subCategoryDetails?.name != null)
-                      BusinessCommonSubCategoryWidget(
-                        label: details?.subCategoryDetails?.name,
-                      ),
-                    const SizedBox(width: 5),
-                    CommonRatingRow(
-                      rating: double.tryParse(
-                              details?.avg_rating.toString() ?? '0.0') ??
-                          0.0,
-                      reviews: details?.total_ratings?.toInt() ?? 0,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Distance + locality row
-                Row(
-                  children: [
-                    Icon(Icons.near_me_rounded,
-                        size: 14, color: AppColors.primaryColor),
-                    const SizedBox(width: 5),
-                    CustomText(
-                      '${calculateDistance(
-                        details?.businessLocation?.lat?.toDouble() ??
-                            0.0,
-                        details?.businessLocation?.lon?.toDouble() ??
-                            0.0,
-                      )?.toStringAsFixed(2) ?? '--'} KM',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryColor,
-                    ),
-                    if (hasAddress) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4),
-                        child: CustomText(
-                          '|',
-                          fontSize: 11,
-                          color: AppColors.secondaryTextColor
-                              .withValues(alpha: 0.4),
-                        ),
-                      ),
-                      Expanded(
-                        child: CustomText(
-                          getLocalityAddress(details.address),
-                          fontSize: 11,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Full address
-                if (hasAddress) ...[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.location_outline,
-                        imgColor: AppColors.secondaryTextColor,
-                      ),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: CustomText(details.address,
-                            fontSize: 12,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                ],
-
-                // Availability (view-only)
-                if (hasAvailability) ...[
-                  BusinessAvailabilityWidget(
-                    hasAvailability: true,
-                    schedule: details?.availability?.schedule,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBannerPlaceholder() {
-    return Container(
-      color: AppColors.greyLite,
-      child: Center(
-        child: LocalAssets(
-          imagePath: AppIconAssets.place_holder_image,
-          boxFix: BoxFit.cover,
-          height: 160,
-          width: double.infinity,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDietaryIndicator(String dietaryType) {
-    if (dietaryType == 'Both') {
-      return Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.orange, width: 1),
-          borderRadius: BorderRadius.circular(3),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3.5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 7, width: 7,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: AppColors.green00),
-            ),
-            const SizedBox(width: 4),
-            Container(
-              height: 7, width: 7,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: AppColors.red00),
-            ),
-          ],
-        ),
-      );
-    }
-    return FoodTypeIndicator(
-      isVegetarian: dietaryType == 'Veg',
-      size: 7,
-    );
-  }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  OFFER DISH (Horizontal List with Discount)

@@ -21,7 +21,7 @@
 // import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 // import 'package:BlueEra/features/common/store/view/new_store/all_food_store_screen.dart';
 // import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
-// import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
+// import 'package:BlueEra/features/common/store/view/new_store/products_store_screen.dart';
 // import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 // import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
 // import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
