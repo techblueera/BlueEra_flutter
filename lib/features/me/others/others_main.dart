@@ -85,7 +85,6 @@ class _OthersMainState extends State<OthersMain>
               tabs: [
                 const Tab(text: 'Others'),
                 if (_hasWebsite) const Tab(text: 'Website'),
-                // const Tab(text: 'Update'),
                 const Tab(text: 'Statistics'),
               ],
             ),
@@ -100,7 +99,6 @@ class _OthersMainState extends State<OthersMain>
                       urlTitle: '',
                       hideAppBar: true,
                     ),
-                  // const AddOthersServices(),
                   const Center(child: CustomText(AppStrings.comingSoon)),
                 ],
               ),

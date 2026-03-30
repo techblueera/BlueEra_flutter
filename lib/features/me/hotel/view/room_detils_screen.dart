@@ -98,21 +98,7 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            // Transform.scale(
-                            //   scale: 0.75, // Makes the switch smaller
-                            //   child: Switch(
-                            //     value: isEnabled ?? false,
-                            //     activeColor: AppColors.primaryColor,
-                            //     onChanged: (val) {
-                            //       controller.toggleRoom(keyId, val);
-                            //
-                            //       setState(() {});
-                            //       if (val) {
-                            //         Get.to(RoomListingScreen(roomType: keyId, roomName:  item['name'],));
-                            //       }
-                            //     },
-                            //   ),
-                            // ),
+
                           ],
                         ));
                   },

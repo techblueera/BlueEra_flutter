@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/me/hospital/model/hospita_ai_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_repo.dart';
-import 'package:BlueEra/features/me/hospital/view/hospital_service_preview.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,91 +56,16 @@ class HospitalServiceAiController extends GetxController {
     labAddress.value = "";
   }
 
-  Rx<HospitalAiDetailsResModel>? aiHospitalResModel =
-      HospitalAiDetailsResModel().obs;
 
 
-/*// Inside your HospitalServiceAiController
-  RxBool isaiResponseLoading = false.obs;
-
-  Future<void> aiHospitalFetchDetailsController() async {
-    String hospitalName = searchController.text;
-    labAddress.value = hospitalName;
-    String website = websiteController.text;
-
-    isaiResponseLoading.value = true;
-
-    // Create a timer that will trigger after 60 seconds
-    Timer timeoutTimer = Timer(const Duration(minutes: 1), () {
-      if (isaiResponseLoading.value) {
-        isaiResponseLoading.value = false;
-        Get.back(); // Close the dialog
-        commonSnackBar(message: "Request timed out. Please try again after some time.");
-      }
-    });
-
-    try {
-      ResponseModel response = await hospitalServiceRepo.aiHospitalFetchDetailsRepo(
-        reqBody: {
-          ApiKeys.name: hospitalName,
-          ApiKeys.url: website,
-          ApiKeys.address: hospitalName,
-        },
-      );
-
-      // If response comes back before 1 minute, cancel the timer
-      timeoutTimer.cancel();
-
-      if (response.isSuccess) {
-        final data = response.response?.data;
-        aiHospitalResModel?.value = HospitalAiDetailsResModel.fromJson(data);
-
-        isaiResponseLoading.value = false;
-        Get.back(); // Close the dialog
-        Get.to(HospitalServicePreview());
-      } else {
-        isaiResponseLoading.value = false;
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      timeoutTimer.cancel();
-      isaiResponseLoading.value = false;
-      commonSnackBar(message: e.toString());
-    }
-  }*/
 
 
     RxBool isaiResponseLoading=false.obs;
-  Future<void> aiHospitalFetchDetailsController() async {
-    String hospitalName = searchController.text;
-    labAddress.value = hospitalName;
-    String website = websiteController.text;
-    // Logic for AI generation goes here
-    Get.back();
-    try {
-      ResponseModel response =
-          await hospitalServiceRepo.aiHospitalFetchDetailsRepo(reqBody: {
-        ApiKeys.name: hospitalName,
-        ApiKeys.url: website,
-        ApiKeys.address: hospitalName,
-      });
-
-      if (response.isSuccess) {
-        final data = response.response?.data;
-        aiHospitalResModel?.value = HospitalAiDetailsResModel.fromJson(data);
-
-        Get.to(HospitalServicePreview());
-      }
-    } on Exception catch (e) {
-    }
-  }
 
   Future<void> createHospitalServiceController({required Map<String,dynamic> reqData}) async {
     try {
-      aiHospitalResModel?.value.data?.category = businessCategoryGlobal;
       ResponseModel response = await hospitalServiceRepo.createHospitalRepo(
           reqBody: {"aiOutput": reqData});
-          // reqBody: {"aiOutput": aiHospitalResModel?.value.data});
       if (response.isSuccess) {
         commonSnackBar(message: "Hospital Service Created successfully");
 
@@ -158,9 +79,6 @@ class HospitalServiceAiController extends GetxController {
         await getHospitalID();
         await Future.delayed(Duration(milliseconds: 200));
         hasHospitalCreated.value = true;
-        // Get.until((route) =>
-        //     route.settings.name ==
-        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
       }
     } on Exception catch (e) {

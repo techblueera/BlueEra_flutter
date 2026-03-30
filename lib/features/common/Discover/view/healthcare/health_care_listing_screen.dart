@@ -12,7 +12,7 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_profiles_list_screen.dart';
 import 'package:BlueEra/features/me/medical/view/nearest_pharmacies_list_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';

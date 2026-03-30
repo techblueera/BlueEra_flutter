@@ -9,8 +9,6 @@ import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
-import 'package:BlueEra/features/me/school/view/widget/school_not_create_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -32,7 +30,7 @@ class _SchoolMainState extends State<SchoolMain>
   @override
   void initState() {
     apiCalling();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }
 
@@ -72,41 +70,38 @@ class _SchoolMainState extends State<SchoolMain>
         backgroundColor: AppColors.white,
         body: Obx(() {
           return SafeArea(
-            child: controller.hasSchool.value
-                ? Column(
-                    children: [
-                      SizedBox(
-                        height: SizeConfig.size12,
-                      ),
-                      TabBar(
-                        controller: _tabController,
-                        labelColor: AppColors.mainTextColor,
-                        unselectedLabelColor: AppColors.secondaryTextColor,
-                        indicatorColor: AppColors.primaryColor,
-                        indicatorWeight: 4,
-                        tabAlignment: TabAlignment.fill,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        labelStyle: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontFamily: AppConstants.OpenSans),
-                        tabs: [
-                          Tab(text: AppStrings.home.tr),
-                          Tab(text: AppStrings.update.tr),
-                          Tab(text: AppStrings.statistics.tr),
-                        ],
-                      ),
-                      Expanded(
-                          child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          SchoolHomeScreen(),
-                          SchoolUpdateScreen(),
-                          SchoolStaticsScreen(),
-                        ],
-                      ))
-                    ],
-                  )
-                : SchoolNotCreateScreen(controller: controller),
+            child:Column(
+              children: [
+                SizedBox(
+                  height: SizeConfig.size12,
+                ),
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppColors.mainTextColor,
+                  unselectedLabelColor: AppColors.secondaryTextColor,
+                  indicatorColor: AppColors.primaryColor,
+                  indicatorWeight: 4,
+                  tabAlignment: TabAlignment.fill,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontFamily: AppConstants.OpenSans),
+                  tabs: [
+                    Tab(text: AppStrings.home.tr),
+                    // Tab(text: AppStrings.update.tr),
+                    Tab(text: AppStrings.statistics.tr),
+                  ],
+                ),
+                Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        SchoolHomeScreen(),
+                        SchoolStaticsScreen(),
+                      ],
+                    ))
+              ],
+            ),
           );
         }));
   }

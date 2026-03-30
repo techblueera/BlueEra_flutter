@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/me/social/controller/social_home_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';

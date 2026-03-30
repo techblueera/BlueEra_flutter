@@ -5,13 +5,10 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/me/professionals_consultant/model/ai_professionals_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/profession_service_offered_response.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_repo.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/profile_preview_screen.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,8 +17,6 @@ class AiProfessionalsController extends GetxController {
   ProfessionalsRepo _repo = ProfessionalsRepo();
   RxBool hasProfile = false.obs;
 
-  Rx<AiProfessionalsResModel>? aiServiceRes =
-      AiProfessionalsResModel().obs;
   Rx<ProfessionalProfileResModel>? getProfessionalServiceRes =
       ProfessionalProfileResModel().obs;
   Rx<ApiResponse> generateViaAIResponse =
@@ -35,25 +30,6 @@ class AiProfessionalsController extends GetxController {
   Rx<ApiResponse> updateServicesOfferedResponse =
       ApiResponse.initial('Initial').obs;
 
-  Future<void> aiGenerateServiceFetchController() async {
-    try {
-      ResponseModel response = await _repo.createAiProfessionalsRepo();
-      if (response.isSuccess) {
-        final data = response.response?.data;
-        aiServiceRes?.value = AiProfessionalsResModel.fromJson(data);
-        generateViaAIResponse.value = ApiResponse.complete(aiServiceRes);
-        Get.to(ProfilePreviewScreen());
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        generateViaAIResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
-    } on Exception {
-      // TODO
-      generateViaAIResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
 
   ///GET FULL PROFILE...
   Future<void> professionalsFullDetailsController({bool showProgress = true}) async {
@@ -65,7 +41,6 @@ class AiProfessionalsController extends GetxController {
         getProfessionalServiceRes?.value =
             ProfessionalProfileResModel.fromJson(data);
 
-        getFullProfessionalsResponse.value = ApiResponse.complete(aiServiceRes);
       } else {
         hasProfile.value = false;
 
@@ -86,11 +61,7 @@ class AiProfessionalsController extends GetxController {
       ResponseModel response = await _repo.createProfessionalsRepo(
           bodyREQ: reqParm);
       if (response.isSuccess) {
-        createProfProfileResponse.value = ApiResponse.complete(aiServiceRes);
         await professionalsFullDetailsController();
-        // Get.until((route) =>
-        //     route.settings.name ==
-        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         // commonSnackBar(message: AppStrings.somethingWentWrong);
         createProfProfileResponse.value =
@@ -102,29 +73,6 @@ class AiProfessionalsController extends GetxController {
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
-/*
-  Future<void> createServiceController_() async {
-    try {
-      ResponseModel response = await _repo.createProfessionalsRepo(
-          bodyREQ: aiServiceRes?.value.data);
-      if (response.isSuccess) {
-        createProfProfileResponse.value = ApiResponse.complete(aiServiceRes);
-        await professionalsFullDetailsController();
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        createProfProfileResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
-    } on Exception {
-      // TODO
-      createProfProfileResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
-*/
 
   // --- Basic Profile Fields ---
   var selectedImage = Rxn<File>();

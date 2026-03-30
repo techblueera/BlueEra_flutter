@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
-import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:get/get.dart';
 
 class LabProfileListItem {

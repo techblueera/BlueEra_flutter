@@ -4,15 +4,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class ProfessionalsRepo extends BaseService {
-  Future<dynamic> createAiProfessionalsRepo() async {
-    return await ApiBaseHelper().postHTTP(
-      aiProfessionals,
-      params: {},
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
+
 
   ///GET FULL PROFILE VIA USER ID...
   Future<dynamic> getByUserIdProfessionalsRepo(bool showProgress) async {

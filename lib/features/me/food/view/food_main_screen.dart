@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -7,7 +6,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -15,9 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class FoodMainScreen extends StatefulWidget {
   final bool? fromBottomNavBar;

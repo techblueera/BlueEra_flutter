@@ -1,12 +1,8 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/ai_hotel_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
-import 'package:BlueEra/features/me/hotel/view/ai_hotel_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -37,17 +33,6 @@ class HotelServiceController extends GetxController {
   RxString phoneNumber = "".obs;
   RxString hotelAddress = "".obs;
 
-  // Load existing data into controllers before opening Bottom Sheet
-  void prepareEditFields() {
-    final emergency =
-        aiHotelResModel?.value.data?.screens?.contactUs?.emergency;
-    policeController.text = emergency?.policeStation ?? "";
-    hospitalController.text = emergency?.hospital ?? "";
-    phoneController.text = emergency?.phone ?? "";
-    validateFields();
-    // Note: City/State/Pincode aren't in your original JSON,
-    // but we handle them for your custom fields
-  }
 
 // Reactive variable to track button state
   var isFormValid = false.obs;
@@ -64,19 +49,7 @@ class HotelServiceController extends GetxController {
     isFormValid.value = isValid;
   }
 
-  void updateEmergencyDetails() {
-    final emergency =
-        aiHotelResModel?.value.data?.screens?.contactUs?.emergency;
-    if (emergency != null) {
-      emergency.policeStation = policeController.text;
-      emergency.hospital = hospitalController.text;
-      emergency.phone = phoneController.text;
-      // Update local state and refresh UI
-      aiHotelResModel?.refresh();
-      Get.back(); // Close Bottom Sheet
-      commonSnackBar(message: "Success Contact details updated locally");
-    }
-  }
+
 
   clearAiGenerateFiled() {
     searchController.clear();
@@ -108,59 +81,9 @@ class HotelServiceController extends GetxController {
     super.onClose();
   }
 
-  Rx<AiHotelResModel>? aiHotelResModel = AiHotelResModel().obs;
-
-  Future<void> aiHotelFetchDetailsController() async {
-    String hotelName = searchController.text;
-    hotelAddress.value = searchController.text;
-    String website = websiteController.text;
-    // Logic for AI generation goes here
-    Get.back();
-    try {
-      ResponseModel response =
-          await HotelServiceRepo().aiHotelFetchDetailsRepo(reqBody: {
-        ApiKeys.name: hotelName,
-        ApiKeys.url: website,
-        ApiKeys.address: hotelName,
-      });
-      if (response.isSuccess) {
-        final data = response.response?.data;
-        aiHotelResModel?.value = AiHotelResModel.fromJson(data);
-
-        Get.to(HotelPreviewScreen());
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      commonSnackBar(message: e.toString());
-    }
-  }
-
   Future<void> createHotelServiceController({required Map<String,dynamic> reqParm}) async {
     try {
-      // AiHotelData data = aiHotelResModel?.value.data ?? AiHotelData();
-      // final reqData = {
-      //   ApiKeys.businessId: businessId,
-      //   "name": data.appMetadata?.appName,
-      //   "description": data.screens?.aboutProperty?.description ?? "",
-      //   "website": data.screens?.contactUs?.website ?? "",
-      //   "address": {
-      //     "city": cityName.value,
-      //     "state": stateName.value,
-      //     "pincode": pinCodeName.value
-      //   },
-      //   "location": {
-      //     "name": hotelAddress.value,
-      //     "type": "Point",
-      //     "coordinates": [lat.value, lng.value]
-      //   },
-      //   "bus_station_location": {
-      //     "name": busStationName.value,
-      //     "type": "Point",
-      //     "coordinates": [busStationLat.value, busStationLng.value]
-      //   },
-      //   "category": businessCategoryGlobal
-      // };
+
 
       ResponseModel response =
           await HotelServiceRepo().createHotelServiceRepo(reqBody: reqParm);
