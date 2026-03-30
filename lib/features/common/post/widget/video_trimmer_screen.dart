@@ -19,6 +19,7 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
   double endValue = 0.0;
   bool isSaving = false;
   bool isLoaded = false;
+  bool isPlaying = false;
 
   @override
   void initState() {
@@ -31,12 +32,19 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
     if (mounted) setState(() => isLoaded = true);
   }
 
+  Future<void> _toggleTrimPlayback() async {
+    final bool playingState = await _trimmer.videoPlaybackControl(
+      startValue: startValue,
+      endValue: endValue,
+    );
+    if (mounted) setState(() => isPlaying = playingState);
+  }
+
   Future<void> _saveTrimmedVideo() async {
     setState(() => isSaving = true);
 
     await _trimmer.saveTrimmedVideo(
-      videoFileName:
-          "trimmed_video_${DateTime.now().millisecondsSinceEpoch}",
+      videoFileName: "trimmed_video_${DateTime.now().millisecondsSinceEpoch}",
       startValue: startValue,
       endValue: endValue,
       onSave: (outputPath) {
@@ -88,26 +96,55 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
 
             // ─── VIDEO VIEWER ──────────────────────────────
             Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: const Color(0xFF1A1A2E),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: isLoaded
-                    ? VideoViewer(trimmer: _trimmer)
-                    : const Center(
-                        child: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFF667EEA)),
+              child: GestureDetector(
+                onTap: isLoaded && !isSaving ? _toggleTrimPlayback : null,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFF1A1A2E),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: isLoaded
+                      ? Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            VideoViewer(trimmer: _trimmer),
+                            AnimatedOpacity(
+                              opacity: isPlaying ? 0.0 : 1.0,
+                              duration: const Duration(milliseconds: 200),
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.play_arrow_rounded,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : const Center(
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF667EEA)),
+                            ),
                           ),
                         ),
-                      ),
+                ),
               ),
             ),
 
@@ -118,13 +155,11 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  // Instruction text
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.content_cut_rounded,
-                          size: 14,
-                          color: Colors.white.withValues(alpha: 0.5)),
+                          size: 14, color: Colors.white.withValues(alpha: 0.5)),
                       const SizedBox(width: 6),
                       Text(
                         'Drag handles to trim your video',
@@ -137,8 +172,6 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-
-                  // Trim viewer
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -149,9 +182,17 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
                       viewerHeight: 56,
                       viewerWidth: MediaQuery.of(context).size.width - 32,
                       maxVideoLength: const Duration(seconds: 150),
-                      onChangeStart: (value) => startValue = value,
-                      onChangeEnd: (value) => endValue = value,
-                      onChangePlaybackState: (isPlaying) {},
+                      onChangeStart: (value) {
+                        startValue = value;
+                        if (isPlaying) setState(() => isPlaying = false);
+                      },
+                      onChangeEnd: (value) {
+                        endValue = value;
+                        if (isPlaying) setState(() => isPlaying = false);
+                      },
+                      onChangePlaybackState: (playing) {
+                        if (mounted) setState(() => isPlaying = playing);
+                      },
                       durationTextStyle: const TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
@@ -160,10 +201,7 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
                       durationStyle: DurationStyle.FORMAT_MM_SS,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Max duration hint
                   Text(
                     'Max 2 min 30 sec',
                     style: TextStyle(
@@ -197,8 +235,8 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
                         ? []
                         : [
                             BoxShadow(
-                              color:
-                                  const Color(0xFF667EEA).withValues(alpha: 0.35),
+                              color: const Color(0xFF667EEA)
+                                  .withValues(alpha: 0.35),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
