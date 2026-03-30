@@ -24,8 +24,6 @@ class FacilityController extends GetxController {
   RxBool otherEnabled = false.obs;
   var others = <FacilityOther>[].obs;
 
-  // RxString laboratoryId = "698b225f2c44cc586fa1d5c2".obs;
-  // RxString userId = "696f13baead58417505a8851".obs;
 
   final List<TextEditingController> otherLabelCtrls = [];
   final List<TextEditingController> otherDetailsCtrls = [];

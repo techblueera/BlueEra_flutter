@@ -447,7 +447,8 @@ abstract class BaseService {
       '/notification-service/notifications/$notifyId';
   final String clearAllNotification = '/notification-service/notifications/all';
   final String notificationRead = 'notification-service/notifications/';
-  // https://be.blueera.ai/api/notification-service/notifications/6916f0b3bac49d8da4f347a4/read
+
+
 
   final String individualProfessions = 'user-service/individual-professions';
   final String deletePostCommentById = 'post-service/post/delete-comment/';
@@ -705,12 +706,7 @@ abstract class BaseService {
   final String getFaqs = 'earn-service/help-support/faqs';
   final String createQueries = 'earn-service/help-support/queries';
   final String mediaUploadUrlEarn = 'earn-service/s3/generate-upload-urls?';
-  // final String getMyReferralCode = 'wallet-service/referral/code';
-  // final String getMyReferralHistory = 'wallet-service/referral/history';
   String getQueriesById(String QueriesId) => 'earn-service/help-support/queries/$QueriesId';
-
-
-  final String aiProfessionals = 'ai-service/api/ai-professional/generate-ai';
   final String professionalsFull = 'earn-service/professional/full';
   final String professionalsUpdate= 'earn-service/professional/update';
   final String professionalsCertificate = 'earn-service/professional/certificate';
@@ -782,7 +778,6 @@ abstract class BaseService {
   final String medicalOrdersStatusMe = 'medical-service/orders/status/me';
   final String medicalOrdersMe = 'medical-service/orders/me';
 
-  final String aiLabsService = 'ai-service/api/ai-labs/generate-lab';
   final String  labServiceGallery= 'lab-service/gallery';
   final String  labServiceContactUs= 'lab-service/contact-us';
   final String  labServiceProcessResponse= 'lab-service/ai/process-response';
@@ -815,7 +810,6 @@ abstract class BaseService {
   ///HOSPITAL NEW...
   final String  aiCreateHospital= 'hospital-service/ai/create-hospital';
   final String  userSelfHospital= 'hospital-service/hospitals/user/hospitals';
-  final String  createAISearch= 'ai-service/api/ai-hospital/fetch-details';
   final String hospitalVisionMissionBase = 'hospital-service/vision-mission';
   final String hospitalVisionMissionByHospital= 'hospital-service/vision-mission/hospital/$hospitalIDGlobal';
   String hospitalVisionMissionById(String id) => 'hospital-service/vision-mission/$id';

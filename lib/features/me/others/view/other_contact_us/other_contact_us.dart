@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Departments;
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_department_only_screen.dart';

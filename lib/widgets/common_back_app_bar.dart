@@ -33,8 +33,6 @@ import '../features/business/visiting_card/view/business_own_profile_screen.dart
 import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
 import '../features/common/home/widgets/drawer.dart';
 import '../features/me/medical/view/widget/add_product_common_dialog.dart';
-import '../features/me/politician/widget/add_politician_activity_event.dart';
-import '../features/me/politician/widget/add_social_activity.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonBackAppBar(
@@ -1059,7 +1057,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isCreateButton ?? false)
           InkWell(
             onTap: () {
-              Get.to(() => SocialActivityForm());
+              // Get.to(() => SocialActivityForm());
             },
             child: Container(
               margin: EdgeInsets.only(right: 12),
@@ -1076,34 +1074,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if (isCreateEventBtn ?? false)
-          InkWell(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (_) => const AddPoliticianActivityEvent(),
-              );
-            },
-            child: Container(
-              width: 94,
-              height: 34,
-              // padding: EdgeInsets.all(10),
-              margin: EdgeInsets.only(right: 10),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primaryColor)),
-              child: Center(
-                child: CustomText(
-                  "Create Event",
-                  color: AppColors.primaryColor,
-                ),
-              ),
-            ),
-          ),
+
         if (isForwardUi ?? false)
           Row(
             children: [

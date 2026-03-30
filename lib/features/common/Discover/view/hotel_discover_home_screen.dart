@@ -1,28 +1,35 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
+import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HotelDiscoverHomeScreen extends StatefulWidget {
   final HotelServiceData data;
 
-  HotelDiscoverHomeScreen({super.key, required this.data});
+  const HotelDiscoverHomeScreen({super.key, required this.data});
 
   @override
   State<HotelDiscoverHomeScreen> createState() =>
@@ -32,7 +39,6 @@ class HotelDiscoverHomeScreen extends StatefulWidget {
 class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   var selectedRoomType = "";
 
-// Helper to clean up API strings (e.g., "standardRoom" -> "Standard Room")
   String _formatTypeName(String type) {
     if (type.isEmpty) return "";
     String result = type.replaceAllMapped(
@@ -47,10 +53,8 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
         [];
   }
 
-  // Get unique types dynamically from the data
   List<String> get dynamicRoomTypes {
     final rooms = widget.data.rooms ?? [];
-    // Extract types, remove nulls/empty, and get unique values
     return rooms
         .map((e) => e.type ?? "")
         .where((t) => t.isNotEmpty)
@@ -63,10 +67,9 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     profile = widget.data.profile;
     types = dynamicRoomTypes;
-    selectedRoomType = types.first;
+    selectedRoomType = types.isNotEmpty ? types.first : '';
     super.initState();
   }
 
@@ -80,389 +83,424 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
       bottomNavigationBar: profile?.businessId != userId
           ? SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 12.0, right: 12, bottom: 15, top: 10),
+                padding: EdgeInsets.only(
+                  left: SizeConfig.paddingS,
+                  right: SizeConfig.paddingS,
+                  bottom: 15,
+                  top: 10,
+                ),
                 child: Row(
                   children: [
                     Expanded(
                       child: PositiveCustomBtn(
-                          onTap: () async {
-                            final chatViewController =
-                                Get.find<ChatViewController>();
-                            chatViewController.checkChatConnectionAndOpenChat(
-                              userId: profile?.businessId ?? '',
-                            );
-                          },
-                          title: AppStrings.chat),
+                        onTap: () async {
+                          final chatViewController =
+                              Get.find<ChatViewController>();
+                          chatViewController.checkChatConnectionAndOpenChat(
+                            userId: profile?.businessId ?? '',
+                          );
+                        },
+                        title: AppStrings.chat,
+                      ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: PositiveCustomBtn(
-                          onTap: () {
-                            commonSnackBar(message: 'Coming Soon....');
-                          },
-                          title: AppStrings.bookInquiry),
+                        onTap: () {
+                          commonSnackBar(message: 'Coming Soon....');
+                        },
+                        title: AppStrings.bookInquiry,
+                      ),
                     ),
                   ],
                 ),
               ),
             )
           : null,
-      body: CustomScrollView(
-        slivers: [
-          // 1. Header Image
-          SliverAppBar(
-            expandedHeight: Get.height * 0.35,
-            leading: SizedBox.shrink(),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                color: AppColors.appBackgroundColor,
-                child: HotelHeaderViewDiscover(
-                  data: widget.data,
-                ),
-              ),
-              collapseMode: CollapseMode.parallax,
-            ),
-          ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Header ---
+            _buildHeader(),
+            SizedBox(height: SizeConfig.size16),
 
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CommonCardWidget(
-                    padding: 10,
-                    cardMargin: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ServiceHomeTitleWidget(
-                          title: AppStrings.chooseRoom,
-                        ),
-                        const SizedBox(height: 12),
+            ProfileImpressionStats(cardMargin: 0,),
 
-                        // Dynamic Category Chips
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: types.map((type) {
-                              bool isSelected = selectedRoomType == type;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedRoomType = type;
-                                  });
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 10),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primaryColor
-                                        : AppColors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    // Pill shape
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primaryColor
-                                          : AppColors.secondaryTextColor,
-                                    ),
-                                  ),
-                                  child: CustomText(
-                                    _formatTypeName(type),
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black87,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
+            // --- Choose Room ---
+            SizedBox(height: SizeConfig.size16),
+            _buildChooseRoom(),
 
-                        const SizedBox(height: 16),
-                        // Dynamic Room List
-                        SizedBox(
-                          height: 310,
-                          child: filteredRooms.isEmpty
-                              ? const Center(
-                                  child: CustomText(AppStrings.noRoomsAvailable))
-                              : ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: filteredRooms.length,
-                                  itemBuilder: (context, index) {
-                                    Rooms data = filteredRooms[index];
-                                    return _buildRoomCard(data);
-                                  },
-                                ),
-                        ),
-                        const SizedBox(height: 5),
-                      ],
-                    ),
-                  ),
+            // --- Gallery ---
+            SizedBox(height: SizeConfig.size16),
+            _buildGallerySection(),
 
-                  // 3. Gallery Section
-                  SizedBox(height: 24),
+            // --- Amenities ---
+            SizedBox(height: SizeConfig.size16),
+            _buildAmenitiesSection(),
 
-                  HotelHomeGalleryWidget(photos: profile?.photos),
-                  SizedBox(height: 24),
+            // --- Contact Us ---
+            SizedBox(height: SizeConfig.size16),
+            _buildContactCard(),
 
-                  // 4. Amenities Section
-                  CommonCardWidget(
-                    padding: 10,
-                    cardMargin: 0,
-                    child: SizedBox(
-                      width: Get.width,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(AppStrings.hotelAmenities,
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                          SizedBox(height: 15),
-                          _buildAmenities(profile?.amenities),
-                        ],
-                      ),
-                    ),
-                  ),
+            // --- Location Map ---
+            SizedBox(height: SizeConfig.size16),
+            _buildLocationSection(),
 
-                  // 5. Contact Section
-                  SizedBox(height: 20),
-                  _buildContactCard(profile),
-                  SizedBox(height: 20),
-
-                  BusinessLocationWidget(
-                      locationText: widget.data.profile?.location?.name,
-                      latitude: double.parse(widget
-                          .data.profile?.location?.coordinates?[0]
-                          .toString() ??
-                          "0.0"),
-                      longitude: double.parse(widget
-                          .data.profile?.location?.coordinates?[1]
-                          .toString() ??
-                          "0.0"),
-                      businessName: profile?.name ?? "",
-                      padding: 0,
-                      isTitleShow: true),
-                  SizedBox(height: 30),
-                ],
-              ),
-            ),
-          ),
-        ],
+            SizedBox(height: kBottomNavigationBarHeight + 30),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildContactCard(Profile? profile) {
+  // ─── HEADER ─────────────────────────────────────────────────────────
+
+  Widget _buildHeader() {
+    final size = MediaQuery.of(context).size;
+
     return CommonCardWidget(
-      // padding: 15,
+      padding: 0,
       cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ServiceHomeTitleWidget(
-            title:AppStrings.contactUs
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[200]!),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Banner + Logo
+          SizedBox(
+            height: size.height * 0.21,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                // Logo and Hotel Name
-                if (profile?.photos?.isNotEmpty ?? false) ...[
-                  Container(
+                // Banner
+                Container(
+                  width: double.infinity,
+                  height: size.height * 0.17,
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey[100],
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                    ),
+                  ),
+                  child: (profile?.coverUrl?.isNotEmpty ?? false)
+                      ? ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                          ),
+                          child: CachedNetworkImage(
+                            imageUrl: profile?.coverUrl ?? "",
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: size.height * 0.17,
+                            placeholder: (ctx, _) =>
+                                Container(color: Colors.blueGrey[100]),
+                            errorWidget: (ctx, _, __) => Container(
+                              color: Colors.blueGrey[100],
+                              child: Icon(Icons.image_outlined,
+                                  color: Colors.blueGrey[300], size: 40),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(Icons.image_outlined,
+                              color: Colors.blueGrey[300], size: 40),
+                        ),
+                ),
+
+                // Logo
+                Positioned(
+                  bottom: 0,
+                  left: 20,
+                  child: Container(
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      // color: Colors.white,
+                      color: Colors.white,
                       shape: BoxShape.circle,
-                      // border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: const [
                         BoxShadow(color: Colors.black12, blurRadius: 10)
                       ],
-                      image: DecorationImage(
-                          image: NetworkImage(
-                              profile?.photos?.first.imageReferences?.first ??
-                                  ''),
-                          fit: BoxFit.cover),
+                    ),
+                    child: ClipOval(
+                      child: (profile?.logoUrl?.isNotEmpty ?? false)
+                          ? CachedNetworkImage(
+                              imageUrl: profile?.logoUrl ?? "",
+                              fit: BoxFit.cover,
+                              placeholder: (ctx, _) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                              errorWidget: (ctx, _, __) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                            )
+                          : LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover,
+                            ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                ],
-                CustomText(profile?.name,
-                    fontSize: 18, fontWeight: FontWeight.bold),
-
-                const SizedBox(height: 5),
-                CustomText(
-                  profile?.description,
-                  color: AppColors.secondaryTextColor,
-                  fontSize: 12,
                 ),
-                const Divider(height: 30),
-
-                // Contact List
-                _contactItem(AppIconAssets.website_click,
-                    profile?.website ?? "", AppColors.primaryColor),
-                _contactItem(
-                    AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
-                _contactItem(
-                    AppIconAssets.email,
-                    profile?.contacts?.firstOrNull?.email ?? "N/A",
-                    AppColors.secondaryTextColor),
-                _contactItem(
-                    AppIconAssets.phone_outline,
-                    profile?.contacts?.firstOrNull?.phone ?? "N/A",
-                    AppColors.secondaryTextColor),
-                _contactItem(AppIconAssets.location_new,
-                    profile?.location?.name ?? "N/A", Colors.grey[700]!),
               ],
             ),
+          ),
+
+          // Name & Description
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  profile?.name ?? "",
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (profile?.description?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 4),
+                  ExpandableText(
+                    text: profile?.description ?? "",
+                    trimLines: 2,
+                    expandMode: ExpandMode.dialog,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Rating, Reviews & Distance
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+            child: _buildRatingDistanceRow(),
           ),
         ],
       ),
     );
   }
 
-  Widget _contactItem(String icon, String label, Color iconColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
+  Widget _buildRatingDistanceRow() {
+    final coords = profile?.location?.coordinates;
+    String? distanceText;
+
+    if (coords != null &&
+        coords.length >= 2 &&
+        LocationService.lat != 0.0 &&
+        LocationService.lng != 0.0) {
+      final hotelLat = coords[1].toDouble();
+      final hotelLng = coords[0].toDouble();
+      if (hotelLat != 0.0 && hotelLng != 0.0) {
+        final km = calculateDistanceKm(
+          LocationService.lat,
+          LocationService.lng,
+          hotelLat,
+          hotelLng,
+        );
+        distanceText = '${km.toStringAsFixed(1)} Km Away';
+      }
+    }
+
+    return CommonRatingRow(
+      rating: double.tryParse(profile?.rating?.toString() ?? '0') ?? 0.0,
+      reviews: profile?.reviews ?? 0,
+      distance: distanceText,
+    );
+  }
+
+  // ─── CHOOSE ROOM ───────────────────────────────────────────────────
+
+  Widget _buildChooseRoom() {
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LocalAssets(
-            imagePath: icon,
-            imgColor: iconColor,
-            width: 20,
-            height: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: CustomText(label, color: AppColors.mainTextColor)),
+          ServiceHomeTitleWidget(title: AppStrings.chooseRoom),
+          const SizedBox(height: 12),
+          if (types.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No rooms available",
+                imageSize: 60,
+              ),
+            )
+          else ...[
+            // Room type chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: types.map((type) {
+                  bool isSelected = selectedRoomType == type;
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedRoomType = type),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primaryColor
+                            : AppColors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primaryColor
+                              : AppColors.secondaryTextColor,
+                        ),
+                      ),
+                      child: CustomText(
+                        _formatTypeName(type),
+                        color: isSelected ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.normal,
+                        fontSize: SizeConfig.medium,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Room cards
+            SizedBox(
+              height: 310,
+              child: filteredRooms.isEmpty
+                  ? const Center(
+                      child: CustomText(AppStrings.noRoomsAvailable))
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: filteredRooms.length,
+                      itemBuilder: (context, index) {
+                        return _buildRoomCard(filteredRooms[index]);
+                      },
+                    ),
+            ),
+          ],
+          const SizedBox(height: 5),
         ],
       ),
     );
   }
 
   Widget _buildRoomCard(Rooms room) {
+    final imageUrl = room.images?.exteriorImages?.firstOrNull ?? '';
     return Container(
       width: 236,
       height: 303,
-      // Increased width to match the aspect ratio of your image
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20), // Softer rounded corners
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Stack(
         children: [
-          // 1. Background Image
+          // Background Image
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                room.images?.exteriorImages?.firstOrNull ?? '',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.hotel, size: 50, color: Colors.grey),
-                ),
-              ),
+              child: imageUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (ctx, _) => Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2)),
+                      ),
+                      errorWidget: (ctx, _, __) => Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.hotel,
+                            size: 50, color: Colors.grey),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.hotel,
+                          size: 50, color: Colors.grey),
+                    ),
             ),
           ),
 
-          // 2. Bottom Gradient Overlay (to make text readable)
+          // Bottom overlay
           Positioned(
-            // bottom: 0,
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Container(
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  borderRadius: BorderRadius.only(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),
                   ),
                 ),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 10.0, right: 10, bottom: 10),
+                  padding: const EdgeInsets.only(
+                      left: 10.0, right: 10, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Title and Stars
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              room.name ?? "N/A",
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                              maxLines: 1,
-                            ),
-                          ),
-
-                        ],
+                      CustomText(
+                        room.name ?? "N/A",
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-
-                      // Price
                       CustomText(
-                        "₹${room.pricePerDay}/day",
+                        "\u20B9${room.pricePerDay ?? 0}/day",
                         color: Colors.white,
                         fontSize: 16,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         fontWeight: FontWeight.w600,
                       ),
                       const SizedBox(height: 5),
-
-                      // Bed Type Info
-                      Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.bad,
-                            imgColor: Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          CustomText(
-                            room.bedType ?? "",
-                            color: Colors.white,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Occupancy Info
-                      Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.occupancy,
-                            imgColor: Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          CustomText(
-                            room.maxOccupancy ?? "",
-                            color: Colors.white,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                      if (room.bedType?.isNotEmpty ?? false)
+                        Row(
+                          children: [
+                            LocalAssets(
+                              imagePath: AppIconAssets.bad,
+                              imgColor: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            CustomText(
+                              room.bedType ?? "",
+                              color: Colors.white,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: SizeConfig.small,
+                            ),
+                          ],
+                        ),
+                      if (room.maxOccupancy?.isNotEmpty ?? false) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            LocalAssets(
+                              imagePath: AppIconAssets.occupancy,
+                              imgColor: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            CustomText(
+                              room.maxOccupancy ?? "",
+                              color: Colors.white,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: SizeConfig.small,
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -474,126 +512,387 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     );
   }
 
-  Widget _buildAmenities(Amenities? amen) {
-    if (amen == null) return SizedBox();
-    return Wrap(
-      spacing: 20,
+  // ─── GALLERY ────────────────────────────────────────────────────────
+
+  Widget _buildGallerySection() {
+    final allImages = profile?.photos
+            ?.expand((p) => p.imageReferences ?? <String>[])
+            .toList() ??
+        [];
+
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.gallery),
+          const SizedBox(height: 12),
+          if (allImages.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No photos available",
+                imageSize: 60,
+              ),
+            )
+          else
+            HotelHomeGalleryWidget(photos: profile?.photos),
+        ],
+      ),
+    );
+  }
+
+  // ─── AMENITIES ──────────────────────────────────────────────────────
+
+  Widget _buildAmenitiesSection() {
+    final amen = profile?.amenities;
+    final chips = <_AmenityItem>[];
+    if (amen?.freeWifi == true) chips.add(_AmenityItem(Icons.wifi, "Wifi"));
+    if (amen?.airConditioning == true)
+      chips.add(_AmenityItem(Icons.ac_unit, "AC"));
+    if (amen?.television == true) chips.add(_AmenityItem(Icons.tv, "TV"));
+    if (amen?.roomService == true)
+      chips.add(_AmenityItem(Icons.room_service, "Room Service"));
+    if (amen?.powerBackup == true)
+      chips.add(_AmenityItem(Icons.battery_charging_full_sharp, "Power Backup"));
+    if (amen?.balcony == true)
+      chips.add(_AmenityItem(Icons.balcony, "Balcony"));
+    if (amen?.attachedBathroom == true)
+      chips.add(_AmenityItem(Icons.bathroom, "Bathroom"));
+    if (amen?.wardrobe == true)
+      chips.add(_AmenityItem(Icons.devices_other, "Wardrobe"));
+    if (amen?.deskChair == true)
+      chips.add(_AmenityItem(Icons.chair, "Desk Chair"));
+    if (amen?.roomRefrigerators == true)
+      chips.add(_AmenityItem(Icons.kitchen, "Refrigerator"));
+    if (amen?.electricKettle == true)
+      chips.add(_AmenityItem(Icons.electric_bolt, "Electric Kettle"));
+
+    final displayChips = chips.length > 5 ? chips.sublist(0, 5) : chips;
+    final hasMore = chips.length > 5;
+
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.hotelAmenities),
+          SizedBox(height: SizeConfig.size12),
+          if (chips.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No amenities listed",
+                imageSize: 60,
+              ),
+            )
+          else
+            Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              children: [
+                ...displayChips.map((a) => _amenityChip(a.icon, a.label)),
+                if (hasMore)
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: CustomText(
+                            AppStrings.hotelAmenities.tr,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                          content: Wrap(
+                            spacing: 16,
+                            runSpacing: 12,
+                            children: chips
+                                .map((a) => _amenityChip(a.icon, a.label))
+                                .toList(),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: CustomText('Close',
+                                  color: AppColors.primaryColor),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xffEAF2FF),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color:
+                                AppColors.primaryColor.withValues(alpha: 0.1)),
+                      ),
+                      child: CustomText(
+                        '+${chips.length - 5} View More',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _amenityChip(IconData icon, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        if (amen.freeWifi ?? true) _amenityIcon(Icons.wifi, "Wifi"),
-        if (amen.airConditioning ?? true) _amenityIcon(Icons.ac_unit, "AC"),
-        if (amen.television ?? true) _amenityIcon(Icons.tv, "TV"),
-        if (amen.roomService ?? true)
-          _amenityIcon(Icons.room_service, "Room Service"),
-        if (amen.powerBackup ?? true)
-          _amenityIcon(Icons.battery_charging_full_sharp, "Power Bank"),
-        if (amen.balcony ?? true) _amenityIcon(Icons.balcony, "Balcony"),
-        if (amen.attachedBathroom ?? true)
-          _amenityIcon(Icons.bathroom, "Bathroom"),
-        if (amen.wardrobe ?? true)
-          _amenityIcon(Icons.devices_other, "wardrobe"),
-        if (amen.deskChair ?? true) _amenityIcon(Icons.chair, "Desk Chair"),
-        if (amen.roomRefrigerators ?? true)
-          _amenityIcon(Icons.cabin_sharp, "Room Refrigerators"),
-        if (amen.electricKettle ?? true)
-          _amenityIcon(Icons.electric_bolt, "Electric Kettle"),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.primaryColor, size: 22),
+        ),
+        const SizedBox(height: 4),
+        CustomText(label, fontSize: 11, textAlign: TextAlign.center),
       ],
     );
   }
 
-  Widget _amenityIcon(IconData icon, String label) {
-    return Padding(
-      padding: const EdgeInsets.all(3.0),
-      child: Column(
-        children: [
-          Icon(icon, color: AppColors.primaryColor),
-          CustomText(label, fontSize: 12),
-        ],
-      ),
-    );
-  }
-}
+  // ─── CONTACT US (clickable) ─────────────────────────────────────────
 
-class HotelHeaderViewDiscover extends StatefulWidget {
-  final HotelServiceData data;
+  Widget _buildContactCard() {
+    final contact = profile?.contacts?.firstOrNull;
+    final hasContact = (contact?.email?.isNotEmpty ?? false) ||
+        (contact?.phone?.isNotEmpty ?? false) ||
+        (profile?.website?.isNotEmpty ?? false) ||
+        (profile?.location?.name?.isNotEmpty ?? false);
 
-  const HotelHeaderViewDiscover({
-    super.key,
-    required this.data,
-  });
+    final firstImageUrl = profile?.photos
+        ?.expand((p) => p.imageReferences ?? <String>[])
+        .firstOrNull;
 
-  @override
-  State<HotelHeaderViewDiscover> createState() => _HotelHeaderViewState();
-}
-
-class _HotelHeaderViewState extends State<HotelHeaderViewDiscover> {
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return CommonCardWidget(
-      padding: 0,
-      cardMargin: 10,
+      padding: 10,
+      cardMargin: 0,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- HEADER SECTION (Banner & Logo) ---
-          SizedBox(
-            height: size.height * 0.21,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Banner Image
-                if (widget.data.profile?.photos?.isNotEmpty ?? false)
-                  GestureDetector(
-                    onTap: () => null,
-                    // onTap: () => _pickImage(true),
-                    child: Container(
-                      width: double.infinity,
-                      height: size.height * 0.17,
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[100],
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10)),
-                        image: DecorationImage(
-                            image: NetworkImage(
-                                (widget.data.profile?.coverUrl ?? "")),
-                            fit: BoxFit.cover),
+          ServiceHomeTitleWidget(title: AppStrings.contactUs),
+          const SizedBox(height: 12),
+          if (!hasContact && (profile?.name?.isEmpty ?? true))
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No contact details available",
+                imageSize: 60,
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Logo & Name
+                  Row(
+                    children: [
+                      if (firstImageUrl?.isNotEmpty ?? false)
+                        Container(
+                          width: 60,
+                          height: 60,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: firstImageUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (ctx, _) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                              errorWidget: (ctx, _, __) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: CustomText(
+                          profile?.name ?? '',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
+                  if (profile?.description?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 8),
+                    ExpandableText(text: profile?.description ?? ""),
+                  ],
+                  const Divider(height: 20),
 
-                // Logo Image
-                Positioned(
-                  bottom: 0,
-                  left: 20,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 10)
-                      ],
-                      image: DecorationImage(
-                          image: NetworkImage(
-                              (widget.data.profile?.logoUrl ?? "")),
-                          fit: BoxFit.cover),
+                  // Clickable contact items
+                  if (profile?.website?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.website_click,
+                      label: profile?.website ?? "",
+                      iconColor: AppColors.primaryColor,
+                      onTap: () => _launchUrl(profile?.website ?? ""),
                     ),
-                  ),
-                ),
-              ],
+                  if (contact?.email?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.email,
+                      label: contact?.email ?? "",
+                      iconColor: AppColors.secondaryTextColor,
+                      onTap: () => _launchEmail(contact?.email ?? ""),
+                    ),
+                  if (contact?.phone?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.phone_outline,
+                      label: contact?.phone ?? "",
+                      iconColor: AppColors.secondaryTextColor,
+                      onTap: () => _launchCaller(contact?.phone ?? ""),
+                    ),
+                  if (profile?.location?.name?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.location_new,
+                      label: profile?.location?.name ?? "",
+                      iconColor: Colors.grey[700]!,
+                    ),
+                ],
+              ),
             ),
-          ),
-
-          // --- FORM SECTION ---
-          ServiceHomeHeaderTitleWidget(
-            title: widget.data.profile?.name ?? "",
-            description: widget.data.profile?.description ?? "",
-          ),
         ],
       ),
     );
   }
+
+  Widget _contactItemClickable({
+    required String icon,
+    required String label,
+    required Color iconColor,
+    VoidCallback? onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            children: [
+              LocalAssets(
+                imagePath: icon,
+                imgColor: iconColor,
+                height: 20,
+                width: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: CustomText(
+                  label,
+                  color: onTap != null
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
+                  fontSize: SizeConfig.medium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (onTap != null)
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: AppColors.primaryColor,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── LOCATION ───────────────────────────────────────────────────────
+
+  Widget _buildLocationSection() {
+    final coords = profile?.location?.coordinates;
+    if (coords == null || coords.length < 2 || (coords[0] == 0.0 && coords[1] == 0.0)) {
+      return const SizedBox.shrink();
+    }
+
+    return BusinessLocationWidget(
+      locationText: profile?.location?.name,
+      latitude: coords[1].toDouble(),
+      longitude: coords[0].toDouble(),
+      businessName: profile?.name ?? "",
+      padding: 0,
+      isTitleShow: true,
+    );
+  }
+
+  // ─── LAUNCHERS ──────────────────────────────────────────────────────
+
+  void _launchCaller(String number) async {
+    final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');
+    final Uri launchUri = Uri(scheme: 'tel', path: cleanNumber);
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        commonSnackBar(message: "Could not open the dialer");
+      }
+    } catch (e) {
+      debugPrint("Error launching dialer: $e");
+    }
+  }
+
+  void _launchEmail(String email) async {
+    final Uri launchUri = Uri(scheme: 'mailto', path: email);
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        commonSnackBar(message: "Could not open email client");
+      }
+    } catch (e) {
+      debugPrint("Error launching email: $e");
+    }
+  }
+
+  void _launchUrl(String url) async {
+    try {
+      String finalUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        finalUrl = 'https://$url';
+      }
+      final uri = Uri.parse(finalUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        commonSnackBar(message: "Could not open the link");
+      }
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
+    }
+  }
+}
+
+class _AmenityItem {
+  final IconData icon;
+  final String label;
+  _AmenityItem(this.icon, this.label);
 }

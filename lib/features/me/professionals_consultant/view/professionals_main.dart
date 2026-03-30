@@ -2,11 +2,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professional_service_not_create_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_home_screen.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/update_professionals_service.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/profile_avatar_widget.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
@@ -75,13 +72,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     return Scaffold(
       backgroundColor: AppColors.white,
       body: Obx(() {
-        if (!controller.hasProfile.value) {
-          return SafeArea(
-            child: ProfessionalServiceNotCreateScreen(
-              controller: controller,
-            ),
-          );
-        }
+
 
         // Access reactive data to trigger rebuild
         controller.getProfessionalServiceRes?.value;

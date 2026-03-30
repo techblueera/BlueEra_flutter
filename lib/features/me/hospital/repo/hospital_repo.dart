@@ -4,13 +4,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class HospitalRepo extends BaseService {
-  ///GET AI LAB SERVICE DETAILS...
-  Future<ResponseModel> aiHospitalFetchDetailsRepo(
-      {required Map<String, dynamic> reqBody}) async {
-    final response = await ApiBaseHelper().postHTTP(createAISearch,showProgress: false,
-        params: reqBody, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
 
   Future<ResponseModel> createHospitalRepo(
       {required Map<String, dynamic> reqBody}) async {

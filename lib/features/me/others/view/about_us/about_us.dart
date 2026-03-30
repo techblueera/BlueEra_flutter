@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/view/about_us/about_organization.dart';
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_departments_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/department_model.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/hospital/view/opd/opd_doctor_list_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

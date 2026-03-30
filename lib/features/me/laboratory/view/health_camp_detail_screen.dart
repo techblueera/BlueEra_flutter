@@ -462,16 +462,6 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
     );
   }
 
-  Widget _dialogRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(label, fontWeight: FontWeight.bold, fontSize: 14),
-        const SizedBox(width: 8),
-        Expanded(child: CustomText(value, fontSize: 14)),
-      ],
-    );
-  }
 
   //
   // Widget _buildTestDiscountsSection(List<TestDiscount> discounts) {

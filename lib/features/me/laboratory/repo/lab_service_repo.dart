@@ -4,13 +4,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class LabServiceRepo extends BaseService {
-  ///GET AI LAB SERVICE DETAILS...
-  Future<ResponseModel> aiLabFetchDetailsRepo(
-      {required Map<String, dynamic> reqBody}) async {
-    final response = await ApiBaseHelper().postHTTP(aiLabsService,
-        params: reqBody, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
   /// LIST: Laboratory Profiles (paginated)
   Future<ResponseModel> listLaboratoryProfiles({
     required int page,

@@ -72,7 +72,6 @@ import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/map/view/searchLocationScreen.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/notification/view/notification_screen.dart';
-import 'package:BlueEra/features/common/onboarding/view/onboarding_slider_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_preview_screen.dart';
@@ -173,9 +172,6 @@ class RouteHelper {
       RouteObserver<PageRoute>();
 
   static String getMobileNumberLoginRoute() => RouteConstant.MobileNumberScreen;
-
-  static String getOnboardingSliderScreenRoute() =>
-      RouteConstant.OnboardingSliderScreen;
 
   // static String getOnboardingStartedScreenRoute() => RouteConstant.OnboardingStartedScreen;
 
@@ -631,12 +627,6 @@ class RouteHelper {
           builder: (_) => MobileNumberScreen(),
           settings:
               RouteSettings(name: RouteHelper.getMobileNumberLoginRoute()),
-        );
-      case RouteConstant.OnboardingSliderScreen:
-        return MaterialPageRoute(
-          builder: (_) => OnboardingSliderScreen(),
-          settings:
-              RouteSettings(name: RouteHelper.getOnboardingSliderScreenRoute()),
         );
       case RouteConstant.OtpPageScreen:
         final args = settings.arguments as Map<String, dynamic>;

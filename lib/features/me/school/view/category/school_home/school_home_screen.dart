@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
-import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_campus_photo_gallery_view.dart';

@@ -7,7 +7,6 @@ import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_mo
 import 'package:BlueEra/features/me/laboratory/repo/lab_full_details_repo.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_profile_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
-import 'package:BlueEra/features/me/laboratory/model/lab_full_details_res_model.dart';
 import 'package:get/get.dart';
 
 class LabFullDetailsController extends GetxController {

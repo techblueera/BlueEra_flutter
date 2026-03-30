@@ -898,7 +898,7 @@ class DiscoverController extends GetxController {
     } catch (e) {
       rentalServiceResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      // commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       if (isLoadMore) {
         isRentalServiceLoadingMore.value = false;
@@ -910,7 +910,7 @@ class DiscoverController extends GetxController {
 
   Future<void> fetchHotelServices(
       {required String category, bool isLoadMore = false}) async {
-    try {
+    // try {
       if (isLoadMore) {
         log('more rental data -- $hasMoreRentalServiceData');
         if (isRentalServiceLoadingMore.value || !hasMoreRentalServiceData) {
@@ -929,13 +929,8 @@ class DiscoverController extends GetxController {
       // String pinCode = LocationService.userCurrentAddress.value.postalCode;
 
       Map<String, dynamic> queryParams = {
-        // ApiKeys.city: city,
         ApiKeys.category: category,
-        // ApiKeys.state: state,
-        // ApiKeys.pincode: pinCode,
-        // ApiKeys.lat: lat,
-        // ApiKeys.lng: lng,
-        // ApiKeys.radius: kmRadius1500,
+
         ApiKeys.page: rentalServicePage,
         ApiKeys.limit: limit,
       };
@@ -972,17 +967,17 @@ class DiscoverController extends GetxController {
               message: response.message ?? AppStrings.somethingWentWrong);
         }
       }
-    } catch (e) {
-      rentalServiceResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (isLoadMore) {
-        isRentalServiceLoadingMore.value = false;
-      } else {
-        isRentalServiceLoading.value = false;
-      }
-    }
+    // } catch (e) {
+    //   rentalServiceResponse.value =
+    //       ApiResponse.error(AppStrings.somethingWentWrong);
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    // } finally {
+    //   if (isLoadMore) {
+    //     isRentalServiceLoadingMore.value = false;
+    //   } else {
+    //     isRentalServiceLoading.value = false;
+    //   }
+    // }
   }
 }
 

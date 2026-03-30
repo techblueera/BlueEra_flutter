@@ -4,7 +4,6 @@ class RouteConstant {
   static const String SplashScreen = "/SplashScreen";
   static const String AudioCallScreen = "/AudioCallScreen";
   static const String MobileNumberScreen = "/MobileNumberScreen";
-  static const String OnboardingSliderScreen = "/OnboardingSliderScreen";
   static const String OnboardingStartedScreen = "/OnboardingStartedScreen";
   static const String OtpPageScreen = "/OtpPageScreen";
   // static const String SelectAccountScreen = "/SelectAccountScreen";

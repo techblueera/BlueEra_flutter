@@ -12,10 +12,8 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/basic_profile_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_screen.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/pricing_engagement_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_contact_us_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_profile_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_service_offered.dart';
@@ -36,6 +34,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// ignore: must_be_immutable
 class ProfessionalsHomeScreen extends StatelessWidget {
   ProfessionalsHomeScreen({super.key});
 
@@ -47,7 +46,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
       getOrPut(() => PersonalCreateProfileController());
 
   // Dummy placeholder colors
-  static const _dummyBg = Color(0xFFF5F5F5);
   static const _dummyCardBg = Color(0xFFEEEEEE);
   static const _dummyTextColor = Color(0xFFBDBDBD);
   static const _dummyDarkText = Color(0xFF9E9E9E);
@@ -982,54 +980,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
   // TESTIMONIALS
   // ============================================================
 
-  Widget _buildTestimonialsSection() {
-    return CommonCardWidget(
-      cardMargin: 0,
-      padding: 10,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionHeader("Testimonials"),
-          _dummyOverlay(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: _dummyBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _dummyBorderColor),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.format_quote,
-                      size: 36, color: _dummyTextColor),
-                  const SizedBox(height: 12),
-                  _dummyTextLine(width: double.infinity, height: 8),
-                  const SizedBox(height: 6),
-                  _dummyTextLine(width: double.infinity, height: 8),
-                  const SizedBox(height: 6),
-                  _dummyTextLine(width: 200, height: 8),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: _dummyCardBg,
-                        child: Icon(Icons.person,
-                            size: 14, color: _dummyTextColor),
-                      ),
-                      const SizedBox(width: 8),
-                      _dummyTextLine(width: 80),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ============================================================
   // CONTACT US
@@ -1061,19 +1011,19 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if ((contact?.website ?? "").isNotEmpty)
+                  if ((contact.website ?? "").isNotEmpty)
                     _contactRow(AppIconAssets.website_click,
-                        contact!.website!,
+                        contact.website!,
                         isLink: true),
-                  if ((contact?.phone ?? "").isNotEmpty)
+                  if ((contact.phone ?? "").isNotEmpty)
                     _contactRow(
-                        AppIconAssets.phone_outline, contact!.phone!),
-                  if ((contact?.email ?? "").isNotEmpty)
+                        AppIconAssets.phone_outline, contact.phone!),
+                  if ((contact.email ?? "").isNotEmpty)
                     _contactRow(
-                        AppIconAssets.email, contact!.email!),
-                  if ((contact?.address ?? "").isNotEmpty)
+                        AppIconAssets.email, contact.email!),
+                  if ((contact.address ?? "").isNotEmpty)
                     _contactRow(AppIconAssets.location_new,
-                        contact!.address!,
+                        contact.address!,
                         color: AppColors.secondaryTextColor),
                 ],
               ),

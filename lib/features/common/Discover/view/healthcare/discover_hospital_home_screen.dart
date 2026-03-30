@@ -1,7 +1,7 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -13,14 +13,15 @@ import 'package:BlueEra/features/me/hospital/view/widget/hospital_contact_us_vie
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_department_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
-import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/profile_impression_stats.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -40,110 +41,144 @@ class _DiscoverHospitalHomeScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteE5,
-      bottomNavigationBar: Obx(() {
-        return controller.hospitalDataResModel?.value.data?.userId != userId
-            ? SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 12.0, right: 12, bottom: 15, top: 10),
-                  child: Row(
-                    children: [
-
-                      Expanded(
-                        child: PositiveCustomBtn(
-                            onTap: () {
-                              commonSnackBar(message: 'Coming Soon....');
-                            },
-                            title: AppStrings.bookInquiry),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : SizedBox.shrink();
-      }),
+      bottomNavigationBar: _buildBottomBar(),
       appBar: CommonBackAppBar(
         title: AppStrings.hospital,
-        buildCustomActionWidget: () => const DiscoverCartIcon(),
+        // buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ///HEADER VIEW...
-            HospitalHeaderView(
-              isReadOnly: true,
-            ),
-            EmergencyActionCard(),
-            HospitalBookingScreen(),
-            EmergencyCriticalCareView(),
+      body: RefreshIndicator(
+        color: AppColors.primaryColor,
+        onRefresh: () async {
+          await controller.getHospitalFullDetailsController();
+        },
+        child: Obx(() {
+          final data = controller.hospitalDataResModel?.value.data;
 
-            ManagementCardListWidget(),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: HospitalHomeGalleryWidget(
-                photos: controller.hospitalDataResModel?.value.data?.gallery,
-              ),
-            ),
+          if (data == null) {
+            return _buildFullEmptyState();
+          }
 
-            InkWell(
-              onTap: () {
-                Get.to(HospitalJobListingScreen(
-                  isReadOnly: true,
-                ));
-              },
-              child: cardViewWidget(title: AppStrings.jobVacancy.tr),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            HospitalContactUsView(
-              contacts:
-                  controller.hospitalDataResModel?.value.data?.contacts ?? [],
-              isReadOnly: true,
-            ),
-            SizedBox(
-              height: 10,
-            ),
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// HEADER
+                HospitalHeaderView(isReadOnly: true),
 
-            if ((controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?.isNotEmpty ?? false) &&
-                controller.hospitalDataResModel?.value.data?.contacts
-                        ?.firstOrNull?.branch?.location?.coordinates?[0] !=
-                    null &&
-                controller.hospitalDataResModel?.value.data?.contacts
-                        ?.firstOrNull?.branch?.location?.coordinates?[1] !=
-                    null &&
-                controller.hospitalDataResModel?.value.data?.contacts
-                        ?.firstOrNull?.branch?.location?.coordinates?[0] !=
-                    0.0 &&
-                controller.hospitalDataResModel?.value.data?.contacts
-                        ?.firstOrNull?.branch?.location?.coordinates?[1] !=
-                    0.0)
-              BusinessLocationWidget(
-                  locationText: controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.name,
-                  latitude: double.parse(controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?[1].toString() ?? "0.0"),
-                  longitude: double.parse(controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull?.branch?.location?.coordinates?[0].toString() ?? "0.0"),
-                  businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
-                  padding: 0,
-                  isTitleShow: true),
+                SizedBox(height: SizeConfig.paddingXS),
+                ProfileImpressionStats(),
+                SizedBox(height: SizeConfig.paddingXS),
 
-            SizedBox(
-              height: kBottomNavigationBarHeight + 10,
-            )
-          ],
+                /// EMERGENCY ACTION CARDS
+                _buildEmergencyActionCards(),
+
+                /// OPD / IPD DEPARTMENTS
+                _buildSectionWithEmptyCheck(
+                  hasData: data.departments?.isNotEmpty ?? false,
+                  icon: Icons.local_hospital_outlined,
+                  title: AppStrings.opdDoctors.tr,
+                  emptyMessage: "No departments available",
+                  child: HospitalBookingScreen(),
+                ),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// EMERGENCY & CRITICAL CARE
+                _buildSectionWithEmptyCheck(
+                  hasData: _hasEmergencyData(),
+                  icon: Icons.emergency_outlined,
+                  title: AppStrings.otherFacilities.tr,
+                  emptyMessage: "No emergency services listed",
+                  child: EmergencyCriticalCareView(),
+                ),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// MANAGEMENT
+                _buildSectionWithEmptyCheck(
+                  hasData: data.management?.isNotEmpty ?? false,
+                  icon: Icons.people_outline,
+                  title: AppStrings.managementTrust.tr,
+                  emptyMessage: "No management details available",
+                  child: ManagementCardListWidget(),
+                ),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// GALLERY
+                _buildGallerySection(),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// JOB VACANCY
+                _buildJobVacancyCard(),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// CONTACT US
+                _buildContactSection(),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// LOCATION MAP
+                _buildLocationSection(),
+
+                SizedBox(
+                    height: kBottomNavigationBarHeight + SizeConfig.paddingXSL),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  /// Full-screen empty state when no hospital data exists
+  Widget _buildFullEmptyState() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: const EmptyStateWidget(
+          message: "No hospital data found.\nPull down to refresh.",
         ),
       ),
     );
   }
-}
 
-class EmergencyActionCard extends StatelessWidget {
-  EmergencyActionCard({super.key});
+  /// Bottom navigation bar with Book/Inquiry button
+  Widget _buildBottomBar() {
+    return Obx(() {
+      return controller.hospitalDataResModel?.value.data?.userId != userId
+          ? SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: SizeConfig.paddingS,
+                  right: SizeConfig.paddingS,
+                  bottom: SizeConfig.paddingM,
+                  top: SizeConfig.paddingXSL,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PositiveCustomBtn(
+                        onTap: () {
+                          commonSnackBar(message: 'Coming Soon....');
+                        },
+                        title: AppStrings.bookInquiry,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : const SizedBox.shrink();
+    });
+  }
 
-  final controller = Get.find<HospitalServiceAiController>();
-
-  @override
-  Widget build(BuildContext context) {
-    // Extracting numbers for cleaner code
+  /// Emergency action cards (Call Now + Book Now)
+  Widget _buildEmergencyActionCards() {
     final emergencyNo = controller.hospitalDataResModel?.value.data
             ?.emergencyContactData?.emergencyNumber ??
         "";
@@ -151,45 +186,254 @@ class EmergencyActionCard extends StatelessWidget {
             ?.emergencyContactData?.appointmentNumber ??
         "";
 
+    if (emergencyNo.isEmpty && appointmentNo.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildActionCard(
-              icon: "assets/svg/call_24.svg",
-              // Your 24/7 Phone Icon
-              title: AppStrings.emergencyContact,
-              subtitle: "24/7 Immediate Help",
-              buttonText: AppStrings.callNow,
-              isEmergency: true,
-              phoneNo: emergencyNo,
-              onTap: () => _launchCaller(emergencyNo),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildActionCard(
-              icon: "assets/svg/support_helth.svg",
-              // Your Calendar Icon
-              title: AppStrings.appointmentNumber,
-              subtitle: "Schedule Your Visit Easily",
-              buttonText: "Book Now",
-              isEmergency: false,
-              phoneNo: appointmentNo,
-              onTap: () async {
-                final chatViewController = Get.find<ChatViewController>();
-                chatViewController.checkChatConnectionAndOpenChat(
-                  userId: controller.hospitalDataResModel?.value.data?.userId ?? '',
-                );
-              },
-            ),
-          ),
-        ],
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.paddingS,
+        vertical: SizeConfig.paddingXS,
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (emergencyNo.isNotEmpty)
+              Expanded(
+                child: _buildActionCard(
+                  icon: "assets/svg/call_24.svg",
+                  title: AppStrings.emergencyContact,
+                  subtitle: "24/7 Immediate Help",
+                  buttonText: AppStrings.callNow,
+                  isEmergency: true,
+                  phoneNo: emergencyNo,
+                  onTap: () => _launchCaller(emergencyNo),
+                ),
+              ),
+            if (emergencyNo.isNotEmpty && appointmentNo.isNotEmpty)
+              SizedBox(width: SizeConfig.paddingS),
+            if (appointmentNo.isNotEmpty)
+              Expanded(
+                child: _buildActionCard(
+                  icon: "assets/svg/support_helth.svg",
+                  title: AppStrings.appointmentNumber,
+                  subtitle: "Schedule Your Visit Easily",
+                  buttonText: "Book Now",
+                  isEmergency: false,
+                  phoneNo: appointmentNo,
+                  onTap: () async {
+                    final chatViewController = Get.find<ChatViewController>();
+                    chatViewController.checkChatConnectionAndOpenChat(
+                      userId:
+                          controller.hospitalDataResModel?.value.data?.userId ??
+                              '',
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
+  /// Section wrapper with empty state fallback
+  Widget _buildSectionWithEmptyCheck({
+    required bool hasData,
+    required IconData icon,
+    required String title,
+    required String emptyMessage,
+    required Widget child,
+  }) {
+    if (!hasData) {
+      return Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.paddingXSL,
+          vertical: SizeConfig.paddingXSmall,
+        ),
+        child: CommonCardWidget(
+          cardMargin: 0,
+          child: Column(
+            children: [
+              _sectionHeader(icon: icon, title: title),
+              SizedBox(height: SizeConfig.paddingM),
+              EmptyStateWidget(
+                message: emptyMessage,
+                imageSize: SizeConfig.size60,
+              ),
+              SizedBox(height: SizeConfig.paddingS),
+            ],
+          ),
+        ),
+      );
+    }
+    return child;
+  }
+
+  /// Section header row with icon and title
+  Widget _sectionHeader({required IconData icon, required String title}) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.primaryColor, size: SizeConfig.size20),
+        SizedBox(width: SizeConfig.paddingXS),
+        ServiceHomeTitleWidget(title: title),
+      ],
+    );
+  }
+
+  /// Gallery section with empty state
+  Widget _buildGallerySection() {
+    final gallery = controller.hospitalDataResModel?.value.data?.gallery;
+    final allImages =
+        gallery?.expand((photo) => photo.images ?? <String>[]).toList() ?? [];
+
+    if (allImages.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+        child: CommonCardWidget(
+          cardMargin: 0,
+          child: Column(
+            children: [
+              _sectionHeader(
+                icon: Icons.photo_library_outlined,
+                title: AppStrings.gallery.tr,
+              ),
+              SizedBox(height: SizeConfig.paddingM),
+              EmptyStateWidget(
+                message: "No photos available",
+                imageSize: SizeConfig.size60,
+              ),
+              SizedBox(height: SizeConfig.paddingS),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.all(SizeConfig.paddingXSL),
+      child: HospitalHomeGalleryWidget(
+        photos: gallery,
+      ),
+    );
+  }
+
+  /// Job vacancy card with icon and arrow
+  Widget _buildJobVacancyCard() {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.paddingXSL,
+        vertical: SizeConfig.paddingXSmall,
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          Get.to(HospitalJobListingScreen(isReadOnly: true));
+        },
+        child: CommonCardWidget(
+          cardMargin: 0,
+          child: Row(
+            children: [
+              Icon(
+                Icons.work_outline,
+                color: AppColors.primaryColor,
+                size: SizeConfig.size20,
+              ),
+              SizedBox(width: SizeConfig.paddingXS),
+              Expanded(
+                child: ServiceHomeTitleWidget(title: AppStrings.jobVacancy.tr),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.primaryColor,
+                size: SizeConfig.size16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Contact us section with empty state
+  Widget _buildContactSection() {
+    final contacts =
+        controller.hospitalDataResModel?.value.data?.contacts ?? [];
+
+    if (contacts.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+        child: CommonCardWidget(
+          cardMargin: 0,
+          child: Column(
+            children: [
+              _sectionHeader(
+                icon: Icons.phone_outlined,
+                title: AppStrings.contactUs.tr,
+              ),
+              SizedBox(height: SizeConfig.paddingM),
+              const EmptyStateWidget(
+                message: "No contact details available",
+              ),
+              SizedBox(height: SizeConfig.paddingS),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return HospitalContactUsView(
+      contacts: contacts,
+      isReadOnly: true,
+      description: controller.hospitalDataResModel?.value.data?.description,
+    );
+  }
+
+  /// Location section - only shown when valid coordinates exist
+  Widget _buildLocationSection() {
+    final contacts = controller.hospitalDataResModel?.value.data?.contacts;
+    final coordinates = contacts?.firstOrNull?.branch?.location?.coordinates;
+
+    if (coordinates == null ||
+        coordinates.length < 2 ||
+        coordinates[0] == 0.0 ||
+        coordinates[1] == 0.0) {
+      return const SizedBox.shrink();
+    }
+
+    return BusinessLocationWidget(
+      locationText: contacts?.firstOrNull?.branch?.location?.name,
+      latitude: double.tryParse(coordinates[1].toString()) ?? 0.0,
+      longitude: double.tryParse(coordinates[0].toString()) ?? 0.0,
+      businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
+      padding: 0,
+      isTitleShow: true,
+    );
+  }
+
+  /// Check if any emergency or facility data is available
+  bool _hasEmergencyData() {
+    final data = controller.hospitalDataResModel?.value.data;
+    final ec = data?.emergencyCare;
+    final of = data?.otherFacilities;
+
+    if (ec == null && of == null) return false;
+
+    return (ec?.emergencyCasualty ?? false) ||
+        (ec?.traumaCare ?? false) ||
+        (ec?.icu ?? false) ||
+        (ec?.ccu ?? false) ||
+        (ec?.nicu ?? false) ||
+        (ec?.picu ?? false) ||
+        (of?.ambulance ?? false) ||
+        (of?.bloodBank ?? false) ||
+        (of?.diagnosticDepartments ?? false) ||
+        (of?.medicalStore ?? false) ||
+        (of?.pmSwasthyaBimaYojana ?? false);
+  }
+
+  /// Action card for emergency/appointment
   Widget _buildActionCard({
     required String icon,
     required String title,
@@ -205,25 +449,14 @@ class EmergencyActionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // 1. Icon Section
           LocalAssets(imagePath: icon, height: 50, width: 50),
-          const SizedBox(height: 16),
-
-          // 2. Text Section
+          SizedBox(height: SizeConfig.paddingM),
           CustomText(
             title,
-            // fontSize: 16,
             color: AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 10),
-          // CustomText(
-          //   phoneNo,
-          //   color: Colors.grey.shade600,
-          // ),
-          // const SizedBox(height: 4),
-
-          // 3. Action Button
+          SizedBox(height: SizeConfig.paddingXSL),
           _buildCallButton(buttonText, isEmergency, onTap),
         ],
       ),
@@ -232,9 +465,13 @@ class EmergencyActionCard extends StatelessWidget {
 
   Widget _buildCallButton(String text, bool isEmergency, VoidCallback onTap) {
     return InkWell(
+      borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.paddingM,
+          vertical: SizeConfig.paddingXSL,
+        ),
         decoration: BoxDecoration(
           color: isEmergency ? const Color(0xFFC8554D) : Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -248,10 +485,10 @@ class EmergencyActionCard extends StatelessWidget {
             if (isEmergency)
               Icon(
                 Icons.phone,
-                size: 18,
-                color: isEmergency ? Colors.white : Colors.black54,
+                size: SizeConfig.size18,
+                color: Colors.white,
               ),
-            const SizedBox(width: 8),
+            if (isEmergency) SizedBox(width: SizeConfig.paddingXS),
             CustomText(
               text,
               color: isEmergency ? Colors.white : AppColors.primaryColor,
@@ -264,7 +501,6 @@ class EmergencyActionCard extends StatelessWidget {
   }
 
   void _launchCaller(String number) async {
-    // Remove any spaces or special characters from the string
     final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');
     final Uri launchUri = Uri(
       scheme: 'tel',
@@ -275,7 +511,6 @@ class EmergencyActionCard extends StatelessWidget {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
       } else {
-        // Handle the error if the dialer cannot be opened (e.g., on a Tablet without a SIM)
         commonSnackBar(
           message: "Error Could not open the dialer",
         );

@@ -10,7 +10,7 @@ import 'package:BlueEra/features/me/job_seekar/view/joob_seeker_personal_details
 import 'package:BlueEra/features/me/job_seekar/view/project_portfolio/job_seeker_portfolio_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/publication/job_seeker_publication_listing_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/skills/job_seeker_skill_view_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/sections/education_section.dart';
 import 'package:BlueEra/features/personal/resume/sections/experience_section.dart';

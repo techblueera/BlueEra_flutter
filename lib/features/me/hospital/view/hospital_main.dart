@@ -4,10 +4,9 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_home_screen.dart';
-import 'package:BlueEra/features/me/hospital/view/no_hospital_create_screen.dart';
+import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -70,8 +69,7 @@ class _HospitalMainState extends State<HospitalMain>
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
-          child: /*hospitalServiceAiController.hasHospitalCreated.value
-              ? */Column(
+          child: Column(
             children: [
               SizedBox(height: SizeConfig.size12),
               TabBar(
@@ -102,7 +100,6 @@ class _HospitalMainState extends State<HospitalMain>
               ),
             ],
           )
-        /* : NoHospitalCreateScreen(),*/
       ),
     );
   }
