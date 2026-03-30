@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/env.dart';
 import 'package:flutter/foundation.dart';
 
-String? baseUrl, razorpayKey,  chatSocketUrl, liveTrackSocket;
+String? baseUrl, razorpayKey, chatSocketUrl, liveTrackSocket, callBaseUrl;
 bool isProdEnvironment = false;
 String blueEraPostLink = "BlueEraPostLink";
 
@@ -54,18 +54,21 @@ Future<void> projectKeys({required String environmentType}) async {
     }
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
+    callBaseUrl = "https://call.blueera.ai/";
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
     baseUrl = Env.devBaseUrl;
     razorpayKey = Env.devRazorPayKey;
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
+    callBaseUrl = "https://call.blueera.ai/";
   } else if (environmentType == AppConstants.qa) {
     isProdEnvironment = false;
     baseUrl = Env.devBaseUrl;
     razorpayKey = Env.devRazorPayKey;
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
+    callBaseUrl = "https://call.blueera.ai/";
     // razorpayKey = "rzp_live_RYv0tzupV710iQ";
   }
   await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);

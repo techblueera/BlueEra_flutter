@@ -487,7 +487,7 @@ class AppNotificationHandler {
     // Handle ride order received
     if (operation == 'ride_order_received') {
       NotificationData rideNotification = NotificationData.fromJson(message.data);
-      showFullCallScreen(rideNotification);
+      // showFullCallScreen(rideNotification);
       return;
     }
 

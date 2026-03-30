@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
@@ -13,16 +12,19 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/services/location/location_service.dart';
+
+import '../../../../chat/auth/controller/call_controller.dart';
 import '../../controller/discover_controller.dart';
 import '../../model/get_booking_rider_model.dart';
 
 class BookTransportMain extends StatefulWidget {
-  const BookTransportMain({super.key,this.vehicleType});
-final String? vehicleType;
+  const BookTransportMain({super.key, this.vehicleType});
+
+  final String? vehicleType;
+
   @override
   State<BookTransportMain> createState() => _BookTransportMainState();
 }
@@ -76,91 +78,179 @@ class _BookTransportMainState extends State<BookTransportMain> {
       svgImage: AppIconAssets.transport_container,
     ),
   ];
-  GoogleMapController? mapController;
-  Set<Marker> _markers = {};
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-    try {
-      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 30)),
-        AppImageAssets.markerBlue,
-      );
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(26.7836, 80.9013),
-        icon: customIcon,
-      );
-
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      await mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(26.7836, 80.9013), 15.0),
-      );
-
-    } catch (e) {
-      debugPrint("Error loading marker: $e");
-    }
-  }
 
   get optionList =>
       discoverController.selectedHorizontalTab.value == 0
           ? inCityVehicleList
-          : discoverController.selectedHorizontalTab.value ==
-          3 ? inParcelVehicleList : inOutStationVehicleList;
+          : discoverController.selectedHorizontalTab.value == 3
+              ? inParcelVehicleList
+              : inOutStationVehicleList;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if(widget.vehicleType!=null){
-      if(widget.vehicleType=="TWO_WHEELER"){
-        discoverController.selectedHorizontalTab.value=0;
-        discoverController
-            .selectedVehicleOptionIndex
-            .value=0;
-      }
-      else if(widget.vehicleType=="PASSENGER"){
-        discoverController.selectedHorizontalTab.value=0;
-        discoverController
-            .selectedVehicleOptionIndex
-            .value=1;
-      }
-      else if(widget.vehicleType=="GOODS"){
-        discoverController.selectedHorizontalTab.value=3;
-      }
-      else if(widget.vehicleType=="OUR_STATION"){
-        discoverController.selectedHorizontalTab.value=1;
+    if (widget.vehicleType != null) {
+      if (widget.vehicleType == "TWO_WHEELER") {
+        discoverController.selectedHorizontalTab.value = 0;
+        discoverController.selectedVehicleOptionIndex.value = 0;
+      } else if (widget.vehicleType == "PASSENGER") {
+        discoverController.selectedHorizontalTab.value = 0;
+        discoverController.selectedVehicleOptionIndex.value = 1;
+      } else if (widget.vehicleType == "GOODS") {
+        discoverController.selectedHorizontalTab.value = 3;
+      } else if (widget.vehicleType == "OUR_STATION") {
+        discoverController.selectedHorizontalTab.value = 1;
       }
     }
-    discoverController.selectedFromLat?.value=LocationService.lat;
-    discoverController.selectedFromLong?.value=LocationService.lng;
   }
 
-  double? calculateDistance(double targetLat, double targetLng){
+  double? calculateDistance(double targetLat, double targetLng) {
     double userLat = LocationService.lat;
     double userLng = LocationService.lng;
-    if(userLat == 0.0 || userLng == 0.0) return null;
+    if (userLat == 0.0 || userLng == 0.0) return null;
     double distanceMeters = geo.Geolocator.distanceBetween(
       userLat,
       userLng,
       targetLat,
       targetLng,
     );
-
-    // Road factor ≈ 1.27 (very close to Google distance)
     const double roadFactor = 1.27;
-
     return (distanceMeters * roadFactor) / 1000;
   }
+
+  Future<void> _initiateCallToRider(RiderUser rider, CallType type) async {
+    if (!Get.isRegistered<CallController>()) {
+      Get.put(CallController());
+    }
+    final callController = Get.find<CallController>();
+
+    final success = await callController.initiateCall(
+      type: type,
+      otherUserId: rider.riderId,
+      userName: rider.name ?? 'Rider',
+      userImage: rider.profileImage ?? '',
+    );
+
+    if (success) {
+      Get.toNamed('/CallRoomScreen');
+    }
+  }
+
+  void _showCallOptionsSheet(RiderUser rider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                _callOptionTile(
+                  icon: Icons.call,
+                  iconColor: Colors.green,
+                  title: 'Voice Call',
+                  subtitle: 'Call encrypted no contact share',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _initiateCallToRider(rider, CallType.audio);
+                  },
+                ),
+                const SizedBox(height: 10),
+                _callOptionTile(
+                  icon: Icons.videocam,
+                  iconColor: Colors.blue,
+                  title: 'Video Call',
+                  subtitle: 'Video call encrypted no contact share',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _initiateCallToRider(rider, CallType.video);
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _callOptionTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.grayText)),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios,
+                size: 14, color: AppColors.grayText),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _editAddress() {
+    Get.off(() => SearchTransportAddress(
+          onPlaceSelected: () {},
+          vehicleType: widget.vehicleType,
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       return Scaffold(
-        appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+        appBar: CommonBackAppBar(),
         backgroundColor: AppColors.white,
         bottomNavigationBar: SafeArea(
           child: Padding(
@@ -168,351 +258,336 @@ class _BookTransportMainState extends State<BookTransportMain> {
             child: CustomBtn(
                 isLoading: discoverController.bookRiderBtnLoading.value,
                 height: 44,
-                isValidate: discoverController.selectedRider.value.riderId !=
-                    null,
-                onTap: () {
-                  discoverController.makeTransportBookOrderApi();
+                isValidate:
+                    discoverController.selectedRiders.isNotEmpty,
+                onTap: () async {
+                  final success =
+                      await discoverController.makeTransportBookOrderApi();
+                  if (success && discoverController.selectedRiders.isNotEmpty) {
+                    _showCallOptionsSheet(
+                        discoverController.selectedRiders.first);
+                  }
                 },
-                title: "Book"),
+                title: "@"),
           ),
         ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.blueLightShade,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    height: 500,
-                    child: GoogleMap(
-                      onMapCreated: _onMapCreated,
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(26.7836, 80.9013),
-                        zoom: 14.0,
-                      ),
-                      markers: _markers,
-                      myLocationEnabled: false,
-                      compassEnabled: false,
-                      rotateGesturesEnabled: true,
-                      tiltGesturesEnabled: true,
-                      zoomGesturesEnabled: true,
-                      scrollGesturesEnabled: true,
-                    ),
-                  ),
-                  Column(crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
 
-                      SizedBox(
-                        height: 450,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(10),
-                                topRight: Radius.circular(10)),
-                            color: AppColors.white
-                        ),
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: SizeConfig.size10,),
-                            Container(
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    AppShadows.bottomShadow
-                                  ],
-                                  color: AppColors.white
-
-                              ),
-                              padding: EdgeInsets.all(10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        LocalAssets(imagePath: AppIconAssets
-                                            .transport_from_location,),
-                                        SizedBox(height: SizeConfig.size4,),
-                                        LocalAssets(imagePath: AppIconAssets
-                                            .tranport_location_pointer,),
-                                        SizedBox(height: SizeConfig.size2,),
-                                        LocalAssets(
-                                          imagePath: AppIconAssets.location_new,
-                                          imgColor: AppColors.red00,
-                                        )
-                                      ],
-                                    ),
-                                  ),
-
-                                  /// ✅ FIXED HERE
-                                  Expanded(
-                                    child: Column(
-                                      spacing: 12,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    SearchTransportAddress(
-                                                      onPlaceSelected: () {
-                                                        discoverController
-                                                            .getBookingRidersApi();
-                                                      },
-
-                                                    ),
-                                              ),
-                                            );
-                                          },
-                                          child: CustomText(
-                                            (discoverController.selectedFromAddress
-                                                ?.value == '' ||
-                                                discoverController
-                                                    .selectedFromAddress
-                                                    ?.value == null)
-                                                ?
-                                            "${LocationService.userCurrentAddress.value.formattedAddress}"
-                                                : discoverController
-                                                .selectedFromAddress?.value,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        Container(
-                                          height: 1,
-                                          width: double.infinity,
-                                          color: AppColors.whiteE5,
-                                        ),
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    SearchTransportAddress(
-                                                      onPlaceSelected: () {
-
-                                                        discoverController
-                                                            .getBookingRidersApi();
-                                                      },
-                                                    ),
-                                              ),
-                                            );
-                                          },
-                                          child: CustomText(
-                                            (discoverController.selectedToAddress
-                                                ?.value == '' ||
-                                                discoverController.selectedToAddress
-                                                    ?.value == null) ?
-                                            "Select Drop Location" : discoverController
-                                                .selectedToAddress?.value,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  SizedBox(width: SizeConfig.size6,),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      boxShadow: [AppShadows.bottomShadow],
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: AppColors.white,
-                                    ),
-                                    padding: EdgeInsets.all(10),
-                                    child: LocalAssets(imagePath: AppIconAssets
-                                        .transport_location_exchange),
-                                  )
-                                ],
-                              ),
-
-                            ),
-                            SizedBox(height: SizeConfig.size14,),
-                            HorizontalTabSelector(tabs: ["One Way","Round Trip"],
-                                selectedIndex: 0,
-                                onTabSelected: (value,index){
-
-                                },
-                                labelBuilder: (value)=>value
-                            ),
-
-                            SizedBox(height: SizeConfig.size14,),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  for(int i = 0; i < optionList.length; i++)
-                                    InkWell(
-                                      borderRadius: BorderRadius.circular(10),
-                                      onTap: () {
-                                        discoverController
-                                            .selectedVehicleOptionIndex
-                                            .value = i;
-                                      },
-                                      child: Container(
-                                        height: 82,
-                                        width: 86,
-                                        margin: const EdgeInsets.only(right: 10),
-                                        decoration: BoxDecoration(
-                                            color: AppColors.white,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border:
-                                            Border.all(
-                                                color: discoverController
-                                                    .selectedVehicleOptionIndex
-                                                    .value == i ?
-                                                AppColors.primaryColor : AppColors
-                                                    .whiteE5)
-                                            ,
-                                            boxShadow: AppShadows.lightBottomShadow
-                                        ),
-
-                                        child: Stack(
-                                          children: [
-                                            Positioned(
-                                              bottom: 0,
-                                              right: 0,
-                                              left: 0,
-                                              child: Container(
-                                                // height: 0,
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius
-                                                      .circular(
-                                                      10),
-                                                  gradient: discoverController
-                                                      .selectedVehicleOptionIndex
-                                                      .value ==
-                                                      i ? LinearGradient(
-                                                    begin: Alignment.topCenter,
-                                                    end: Alignment.bottomCenter,
-                                                    colors: [
-                                                      AppColors.primaryColor
-                                                          .withOpacity(0.0),
-                                                      AppColors.primaryColor
-                                                          .withOpacity(0.2),
-                                                    ],
-                                                  ) : null,
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment
-                                                      .center,
-                                                  mainAxisAlignment: MainAxisAlignment
-                                                      .end,
-                                                  children: [
-                                                    Center(child: LocalAssets(
-                                                        imagePath: optionList[i]
-                                                            .svgImage)),
-                                                    const SizedBox(height: 2),
-                                                    CustomText(
-                                                      (optionList[i].charge != null)
-                                                          ? "₹${optionList[i]
-                                                          .charge}"
-                                                          : "${optionList[i].name}",
-                                                      textAlign: TextAlign.center,
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w600,),
-                                                    const SizedBox(height: 6),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: SizeConfig.size16,),
-                            CustomText("Choose Your Rider", fontSize: 16,
-                              fontWeight: FontWeight.w600,),
-                            SizedBox(height: SizeConfig.size16,),
-
-                            // for(int i = 0; i < optionList.length; i++)
-                            Obx(() {
-                              if (discoverController.bookingRiderListResponse.value
-                                  .status ==
-                                  Status.COMPLETE) {
-                                final VehicleAllResponse response =
-                                    discoverController.ridersDetailsList.value;
-
-                                final vehicleData = getSelectedVehicleData(
-                                  response,
-                                  discoverController.selectedHorizontalTab.value,
-                                  discoverController.selectedVehicleOptionIndex
-                                      .value,
-                                );
-
-                                final riders = vehicleData?.users ?? [];
-
-                                if (riders.isEmpty) {
-                                  return const Center(
-                                      child: Text("No riders available"));
-                                }
-
-                                return (discoverController.findRiderDetailsLoading
-                                    .value)
-                                    ?
-                                Center(child: CircularProgressIndicator(),)
-                                    : Column(
-                                  children: riders
-                                      .map((rider) => RiderCardWidget(rider: rider))
-                                      .toList(),
-                                );
-                              } else {
-                                if (discoverController.findRiderDetailsLoading
-                                    .value == true) {
-                                  return Center(child: CircularProgressIndicator());
-                                } else {
-                                  return Center(child: CustomText(
-                                      "Choose From And To Address"));
-                                }
-                              }
-                            }),
-                            SizedBox(
-                              height: SizeConfig.size30,
-                            ),
-
-
-                          ],
-                        ),
-                      )
+                /// Category tabs
+                HorizontalTabSelector(
+                    unSelectedBackgroundColor: AppColors.white,
+                    tabs: [
+                      'In City',
+                      "Out Station",
+                      "Hourly Rental",
+                      "Parcel / Goods"
                     ],
+                    selectedIndex:
+                        discoverController.selectedHorizontalTab.value,
+                    onTabSelected: (index, d) {
+                      discoverController.selectedHorizontalTab.value = index;
+                    },
+                    labelBuilder: (value) => value),
+
+                const SizedBox(height: 14),
+
+                /// Pickup & Drop address card (tap to edit)
+                InkWell(
+                  onTap: _editAddress,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [AppShadows.bottomShadow],
+                      color: AppColors.white,
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        /// Location icons
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              LocalAssets(
+                                imagePath:
+                                    AppIconAssets.transport_from_location,
+                              ),
+                              SizedBox(height: SizeConfig.size4),
+                              LocalAssets(
+                                imagePath:
+                                    AppIconAssets.tranport_location_pointer,
+                              ),
+                              SizedBox(height: SizeConfig.size2),
+                              LocalAssets(
+                                imagePath: AppIconAssets.location_new,
+                                imgColor: AppColors.red00,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        /// Addresses
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /// Pickup address
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomText(
+                                        (discoverController.selectedFromAddress
+                                                        ?.value ??
+                                                    '')
+                                                .isNotEmpty
+                                            ? discoverController
+                                                .selectedFromAddress?.value
+                                            : "Select Pickup",
+                                        fontSize: 13,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const Icon(Icons.edit_outlined,
+                                        size: 16, color: AppColors.grayText),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                height: 1,
+                                width: double.infinity,
+                                color: AppColors.whiteE5,
+                              ),
+
+                              /// Drop address
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomText(
+                                        (discoverController.selectedToAddress
+                                                        ?.value ??
+                                                    '')
+                                                .isNotEmpty
+                                            ? discoverController
+                                                .selectedToAddress?.value
+                                            : "Select Drop",
+                                        fontSize: 13,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const Icon(Icons.edit_outlined,
+                                        size: 16, color: AppColors.grayText),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(width: SizeConfig.size6),
+
+                        /// Swap button
+                        Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [AppShadows.bottomShadow],
+                            borderRadius: BorderRadius.circular(10),
+                            color: AppColors.white,
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: LocalAssets(
+                              imagePath:
+                                  AppIconAssets.transport_location_exchange),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
 
+                const SizedBox(height: 14),
 
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: HorizontalTabSelector(
-                  unSelectedBackgroundColor: AppColors.white,
-                  tabs: [
-                    'In City',
-                    "Out Station",
-                    "Hourly Rental",
-                    "Parcel / Goods"
+                /// One Way / Round Trip
+                HorizontalTabSelector(
+                    tabs: ["One Way", "Round Trip"],
+                    selectedIndex: 0,
+                    onTabSelected: (value, index) {},
+                    labelBuilder: (value) => value),
+
+                const SizedBox(height: 14),
+
+                /// Vehicle options
+                SizedBox(
+                  height: 82,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: optionList.length,
+                    itemBuilder: (context, i) {
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          discoverController
+                              .selectedVehicleOptionIndex.value = i;
+                        },
+                        child: Container(
+                          height: 82,
+                          width: 86,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: discoverController
+                                            .selectedVehicleOptionIndex
+                                            .value ==
+                                        i
+                                    ? AppColors.primaryColor
+                                    : AppColors.whiteE5),
+                            boxShadow: AppShadows.lightBottomShadow,
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                left: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    gradient: discoverController
+                                                .selectedVehicleOptionIndex
+                                                .value ==
+                                            i
+                                        ? LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              AppColors.primaryColor
+                                                  .withOpacity(0.0),
+                                              AppColors.primaryColor
+                                                  .withOpacity(0.2),
+                                            ],
+                                          )
+                                        : null,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Center(
+                                          child: LocalAssets(
+                                              imagePath:
+                                                  optionList[i].svgImage)),
+                                      const SizedBox(height: 2),
+                                      CustomText(
+                                        (optionList[i].charge != null)
+                                            ? "₹${optionList[i].charge}"
+                                            : "${optionList[i].name}",
+                                        textAlign: TextAlign.center,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      const SizedBox(height: 6),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: SizeConfig.size16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText("Choose Your Rider",
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                    if (discoverController.selectedRiders.length > 1)
+                      CustomText(
+                        "${discoverController.selectedRiders.length} selected",
+                        fontSize: 13,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                   ],
-                  selectedIndex: discoverController.selectedHorizontalTab
-                      .value,
-                  onTabSelected: (index, d) {
-                    discoverController.selectedHorizontalTab.value = index;
-                  },
-                  labelBuilder: (value) => value),
+                ),
+                SizedBox(height: SizeConfig.size16),
+
+                /// Rider list
+                Obx(() {
+                  if (discoverController
+                          .bookingRiderListResponse.value.status ==
+                      Status.COMPLETE) {
+                    final VehicleAllResponse response =
+                        discoverController.ridersDetailsList.value;
+
+                    final vehicleData = getSelectedVehicleData(
+                      response,
+                      discoverController.selectedHorizontalTab.value,
+                      discoverController.selectedVehicleOptionIndex.value,
+                    );
+
+                    final riders = vehicleData?.users ?? [];
+
+                    if (riders.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(child: Text("No riders available")),
+                      );
+                    }
+
+                    return (discoverController.findRiderDetailsLoading.value)
+                        ? const Padding(
+                            padding: EdgeInsets.all(24),
+                            child:
+                                Center(child: CircularProgressIndicator()),
+                          )
+                        : Column(
+                            children: riders
+                                .map((rider) =>
+                                    RiderCardWidget(rider: rider))
+                                .toList(),
+                          );
+                  } else {
+                    if (discoverController.findRiderDetailsLoading.value ==
+                        true) {
+                      return const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    } else {
+                      return const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(
+                            child: CustomText("Loading riders...")),
+                      );
+                    }
+                  }
+                }),
+                SizedBox(height: SizeConfig.size30),
+              ],
             ),
-          ],
+          ),
         ),
       );
     });
@@ -546,6 +621,7 @@ class TransportCategoryDetailsModel {
     };
   }
 }
+
 const ALL_VEHICLE_TYPES = [
   'twoWheelerRider',
   'autoTempo',
@@ -558,9 +634,12 @@ const ALL_VEHICLE_TYPES = [
   'miniTruckGoods',
   'largeTruckGoods',
 ];
-VehicleData? getSelectedVehicleData(VehicleAllResponse response,
-    int selectedTab,
-    int selectedIndex,) {
+
+VehicleData? getSelectedVehicleData(
+  VehicleAllResponse response,
+  int selectedTab,
+  int selectedIndex,
+) {
   // In City
   if (selectedTab == 0) {
     switch (selectedIndex) {
@@ -613,6 +692,8 @@ class RiderCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final discoverController = getOrPut(() => DiscoverController());
+    final bool isSelected = discoverController.selectedRiders
+        .any((r) => r.riderId == rider.riderId);
 
     return InkWell(
       onTap: () {
@@ -622,14 +703,36 @@ class RiderCardWidget extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: isSelected
+              ? AppColors.primaryColor.withOpacity(0.05)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color:
-          discoverController.selectedRider.value == rider ?
-          AppColors.primaryColor : AppColors.whiteE5),
+          border: Border.all(
+              color: isSelected
+                  ? AppColors.primaryColor
+                  : AppColors.whiteE5),
         ),
         child: Row(
           children: [
+            /// Selection indicator
+            Container(
+              width: 22,
+              height: 22,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? AppColors.primaryColor : AppColors.white,
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primaryColor
+                      : AppColors.grayText,
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: AppColors.white)
+                  : null,
+            ),
 
             /// Profile image
             ClipRRect(
@@ -679,12 +782,9 @@ class RiderCardWidget extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
-                      SizedBox(width: 6,),
+                      SizedBox(width: 6),
                       Container(
-                        // padding: const EdgeInsets.symmetric(
-                        //     horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          // color: AppColors.greyE4,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -705,8 +805,6 @@ class RiderCardWidget extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-
-                      /// Rating
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
@@ -716,7 +814,6 @@ class RiderCardWidget extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-
                             CustomText(
                               "${rider.vehicleInformation?.vehicleModelYear}",
                               fontSize: 12,
@@ -726,8 +823,6 @@ class RiderCardWidget extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-
-                      /// Vehicle name
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
@@ -737,7 +832,7 @@ class RiderCardWidget extends StatelessWidget {
                         ),
                         child: CustomText(
                           (rider.vehicleInformation?.vehicleName == null ||
-                              rider.vehicleInformation?.vehicleName == '')
+                                  rider.vehicleInformation?.vehicleName == '')
                               ? "N/A"
                               : rider.vehicleInformation?.vehicleName,
                           fontSize: 12,
@@ -763,7 +858,9 @@ class RiderCardWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 CustomText(
-                  discoverController.selectedHorizontalTab.value==1?"Fare":"Distance",
+                  discoverController.selectedHorizontalTab.value == 1
+                      ? "Fare"
+                      : "Distance",
                   fontSize: 12,
                   color: AppColors.grayText,
                   fontWeight: FontWeight.w600,
@@ -771,22 +868,23 @@ class RiderCardWidget extends StatelessWidget {
                 SizedBox(height: SizeConfig.size15),
                 Row(
                   children: [
-                    discoverController.selectedHorizontalTab.value==1?
-                    SizedBox():
-                    LocalAssets(imagePath: AppIconAssets.location_new),
+                    discoverController.selectedHorizontalTab.value == 1
+                        ? SizedBox()
+                        : LocalAssets(imagePath: AppIconAssets.location_new),
                     SizedBox(width: SizeConfig.size2),
-                    discoverController.selectedHorizontalTab.value==1? CustomText(
-                      '₹ 0.00',
-                      fontSize: 12,
-                      color: AppColors.grayText,
-                      fontWeight: FontWeight.w600,
-                    ):
-                    CustomText(
-                      rider.distance ?? '',
-                      fontSize: 12,
-                      color: AppColors.grayText,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    discoverController.selectedHorizontalTab.value == 1
+                        ? CustomText(
+                            '₹ 0.00',
+                            fontSize: 12,
+                            color: AppColors.grayText,
+                            fontWeight: FontWeight.w600,
+                          )
+                        : CustomText(
+                            rider.distance ?? '',
+                            fontSize: 12,
+                            color: AppColors.grayText,
+                            fontWeight: FontWeight.w600,
+                          ),
                   ],
                 )
               ],
