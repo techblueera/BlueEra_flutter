@@ -1,26 +1,33 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_service_card_home_view.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/hospital_emergency_care_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-// ignore: must_be_immutable
-class EmergencyCriticalCareView extends StatelessWidget {
+class EmergencyCriticalCareView extends StatefulWidget {
   final bool isReadOnly;
-  final controller = Get.find<HospitalServiceAiController>();
 
-  EmergencyCriticalCareView({this.isReadOnly = true});
-
-  // Example Data
-  List<Map<String, String>> services = [];
+  const EmergencyCriticalCareView({super.key, this.isReadOnly = true});
 
   @override
-  Widget build(BuildContext context) {
-    services = [
+  State<EmergencyCriticalCareView> createState() =>
+      _EmergencyCriticalCareViewState();
+}
+
+class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
+  final controller = Get.find<HospitalServiceAiController>();
+  static const int _maxVisibleItems = 4;
+  bool _isExpanded = false;
+
+  List<Map<String, String>> _buildServices() {
+    return [
       if (controller.hospitalDataResModel?.value.data?.emergencyCare
               ?.emergencyCasualty ??
           false)
@@ -98,10 +105,20 @@ class EmergencyCriticalCareView extends StatelessWidget {
           "desc": ""
         },
     ];
-    if (services.isEmpty && isReadOnly) return SizedBox.shrink();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final services = _buildServices();
+
+    if (services.isEmpty && widget.isReadOnly) return const SizedBox.shrink();
+
+    final bool hasMore = services.length > _maxVisibleItems;
+    final displayItems =
+        _isExpanded ? services : services.take(_maxVisibleItems).toList();
 
     return CommonCardWidget(
-      bgColor: Color(0xff0085FE).withOpacity(0.08),
+      bgColor: const Color(0xff0085FE).withOpacity(0.08),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -111,11 +128,13 @@ class EmergencyCriticalCareView extends StatelessWidget {
               ServiceHomeTitleWidget(
                 title: AppStrings.otherFacilities,
               ),
-              if (!isReadOnly)
+              if (!widget.isReadOnly)
                 IconButton(
                   onPressed: () => Get.to(const HospitalEmergencyCareScreen()),
                   icon: Icon(
-                    services.isEmpty ? Icons.add_circle_outline : Icons.edit_outlined,
+                    services.isEmpty
+                        ? Icons.add_circle_outline
+                        : Icons.edit_outlined,
                     size: 20,
                   ),
                 ),
@@ -141,17 +160,20 @@ class EmergencyCriticalCareView extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                          border: Border.all(
+                              color: Colors.grey.shade300, width: 1.5),
                         ),
                         child: index == 0
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.add_circle_outline, color: Colors.grey[400], size: 32),
+                                  Icon(Icons.add_circle_outline,
+                                      color: Colors.grey[400], size: 32),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Add Facilities',
-                                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                                    style: TextStyle(
+                                        color: Colors.grey[500], fontSize: 12),
                                   ),
                                 ],
                               )
@@ -164,7 +186,7 @@ class EmergencyCriticalCareView extends StatelessWidget {
                   shrinkWrap: true,
                   padding: EdgeInsets.zero,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: services.length,
+                  itemCount: displayItems.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
@@ -173,12 +195,45 @@ class EmergencyCriticalCareView extends StatelessWidget {
                   ),
                   itemBuilder: (context, index) {
                     return VerticalEmergencyServiceCard(
-                      title: services[index]['title']!,
-                      description: services[index]['desc']!,
-                      icon: services[index]['icon']!,
+                      title: displayItems[index]['title']!,
+                      description: displayItems[index]['desc']!,
+                      icon: displayItems[index]['icon']!,
                     );
                   },
                 ),
+          if (hasMore && services.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.only(top: SizeConfig.paddingS),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CustomText(
+                      _isExpanded
+                          ? "View Less"
+                          : "View More (${services.length - _maxVisibleItems})",
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.medium,
+                    ),
+                    SizedBox(width: SizeConfig.paddingXSmall),
+                    Icon(
+                      _isExpanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.primaryColor,
+                      size: SizeConfig.size20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

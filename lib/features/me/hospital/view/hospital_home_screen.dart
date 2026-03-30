@@ -74,6 +74,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         HospitalContactUsView(
           contacts: controller.hospitalDataResModel?.value.data?.contacts ?? [],
           isReadOnly: false,
+          description: controller.hospitalDataResModel?.value.data?.description,
         ),
         SizedBox(
           height: 10,
