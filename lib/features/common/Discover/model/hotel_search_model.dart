@@ -226,7 +226,7 @@ class Location {
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     type = json['type'];
-    coordinates = json['coordinates'].cast<double>();
+    coordinates = json['coordinates'] != null ? json['coordinates'].cast<double>() : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -567,9 +567,9 @@ class Images {
   Images({this.exteriorImages, this.washroomImages, this.amenityImages});
 
   Images.fromJson(Map<String, dynamic> json) {
-    exteriorImages = json['exteriorImages'].cast<String>();
-    washroomImages = json['washroomImages'].cast<String>();
-    amenityImages = json['amenityImages'].cast<String>();
+    exteriorImages = json['exteriorImages'] != null ? json['exteriorImages'].cast<String>() : [];
+    washroomImages = json['washroomImages'] != null ? json['washroomImages'].cast<String>() : [];
+    amenityImages = json['amenityImages'] != null ? json['amenityImages'].cast<String>() : [];
   }
 
   Map<String, dynamic> toJson() {

@@ -1,12 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/me/social/controller/social_home_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/profile_avatar_widget.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
@@ -58,15 +55,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
     }
   }
 
-  void _onProfileTap() {
-    if (isGuestUser()) {
-      createProfileScreen();
-    } else if (isIndividualUser()) {
-      navigatePushTo(context, PersonalProfileSetupNewScreen());
-    } else if (isBusinessUser()) {
-      navigatePushTo(context, BusinessOwnProfileScreen());
-    }
-  }
 
   @override
   void dispose() {

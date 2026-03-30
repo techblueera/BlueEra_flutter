@@ -97,33 +97,4 @@ class BloodTestEmptyState extends StatelessWidget {
     );
   }
 
-  void _openAddTestOption(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText("Select Test Category",
-                fontSize: 18, fontWeight: FontWeight.bold),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.biotech, color: Colors.blue),
-              title: const Text("Complete Blood Count (CBC)"),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.water_drop, color: Colors.red),
-              title: const Text("Blood Glucose / Sugar"),
-              onTap: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

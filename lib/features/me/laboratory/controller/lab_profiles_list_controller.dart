@@ -53,7 +53,7 @@ class LabProfileListItem {
   }
 }
 
-class LabProfilesListController extends GetxController {
+class   LabProfilesListController extends GetxController {
   final LabServiceRepo _repo = LabServiceRepo();
 
   final profiles = <LabProfileListItem>[].obs;
@@ -79,16 +79,14 @@ class LabProfilesListController extends GetxController {
   }
 
   Future<void> fetchMore() async {
-    if (!hasMore.value || isLoadingMore.value) return;
-    page += 1;
-    await _fetch(page, isLoadMore: true);
+    if (!hasMore.value || isLoadingMore.value || isLoading.value) return;
+    isLoadingMore.value = true;
+    await _fetch(page + 1, isLoadMore: true);
   }
 
   Future<void> _fetch(int p, {required bool isLoadMore}) async {
     try {
-      if (isLoadMore) {
-        isLoadingMore.value = true;
-      } else {
+      if (!isLoadMore) {
         isLoading.value = true;
       }
       error.value = '';
@@ -100,20 +98,24 @@ class LabProfilesListController extends GetxController {
         final List data = res.response?.data['data'] ?? [];
         final items =
             data.map((e) => LabProfileListItem.fromJson(e)).toList();
-        if (items.isEmpty) {
+        if (items.isEmpty || items.length < limit) {
           hasMore.value = false;
-        } else {
+        }
+        if (items.isNotEmpty) {
           profiles.addAll(items);
+          page = p;
         }
       } else {
-        hasMore.value = false;
         error.value = res.message ?? AppStrings.somethingWentWrong;
-        commonSnackBar(message: error.value);
+        if (!isLoadMore) {
+          commonSnackBar(message: error.value);
+        }
       }
     } catch (e) {
-      hasMore.value = false;
       error.value = e.toString();
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      if (!isLoadMore) {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;

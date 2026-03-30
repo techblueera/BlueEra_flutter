@@ -8,7 +8,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../../../core/api/model/school_contact_us_res_model.dart';
 
 class HospitalDepartmentOnlyScreen extends StatefulWidget {
   final OtherProfileDepartments? contactInfo;

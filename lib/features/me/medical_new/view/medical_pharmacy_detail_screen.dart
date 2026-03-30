@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_inventory_category_screen.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -93,6 +94,10 @@ class _MedicalPharmacyDetailScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(profile),
+              SizedBox(height: SizeConfig.size10),
+              ProfileImpressionStats(),
+              SizedBox(height: SizeConfig.size10),
+
               if (popularProducts.isNotEmpty) ...[
                 SizedBox(height: SizeConfig.size10),
                 _buildPopularProducts(popularProducts),

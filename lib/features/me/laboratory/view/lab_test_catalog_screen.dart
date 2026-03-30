@@ -6,7 +6,6 @@ import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -373,16 +372,4 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
     );
   }
 
-  Widget _pill(String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
-      ),
-      child: CustomText(text,
-          fontSize: SizeConfig.small, color: AppColors.primaryColor),
-    );
-  }
 }

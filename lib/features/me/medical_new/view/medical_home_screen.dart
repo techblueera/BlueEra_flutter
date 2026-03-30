@@ -21,6 +21,8 @@ import 'package:BlueEra/features/me/medical_new/controller/medical_controller.da
 import 'package:BlueEra/features/me/medical_new/view/medical_contact_edit_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_level2_category_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_super_category_screen.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
@@ -112,6 +114,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(profile),
+              SizedBox(height: SizeConfig.size10),
+              _buildAddProductsSection(),
               SizedBox(height: SizeConfig.size10),
               _buildBulkUploadSection(),
               SizedBox(height: SizeConfig.size10),
@@ -356,48 +360,104 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   }
 
   // ─────────────────────────────────────────────
-  // UPLOAD PRESCRIPTION
+  // ADD PRODUCTS SECTION
   // ─────────────────────────────────────────────
-  Widget _buildUploadPrescription() {
+  Widget _buildAddProductsSection() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: CommonCardWidget(
+        padding: 12,
         cardMargin: 0,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.upload_file, color: AppColors.primaryColor, size: 28),
-            SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Upload Prescription',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+            ServiceHomeTitleWidget(title: 'Add Medical Products'),
+            SizedBox(height: SizeConfig.size12),
+            Row(
+              children: [
+                Expanded(
+                  child: _addProductActionCard(
+                    icon: Icons.add_circle_outline,
+                    title: 'Add New\nProducts',
+                    subtitle: 'Browse categories & add',
                     color: AppColors.primaryColor,
+                    onTap: () => Get.toNamed(
+                      RouteHelper.getMedicalCategoryScreenRoute(),
+                    ),
                   ),
-                  CustomText(
-                    'Schedule Your Visit Early',
-                    fontSize: 11,
-                    color: AppColors.secondaryTextColor,
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: _addProductActionCard(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'My\nProducts',
+                    subtitle: 'View & manage listings',
+                    color: AppColors.green00,
+                    onTap: () => Get.to(
+                        () => const MyMedicalSuperCategoryScreen()),
                   ),
-                ],
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(Icons.phone, color: AppColors.primaryColor, size: 20),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _addProductActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            SizedBox(height: 10),
+            CustomText(
+              title,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+              maxLines: 2,
+            ),
+            SizedBox(height: 4),
+            CustomText(
+              subtitle,
+              fontSize: 11,
+              color: AppColors.secondaryTextColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // UPLOAD PRESCRIPTION
+  // ─────────────────────────────────────────────
 
   // ─────────────────────────────────────────────
   // POPULAR PRODUCTS (ss7)

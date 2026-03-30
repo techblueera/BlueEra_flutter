@@ -115,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
-          RouteHelper.getOnboardingSliderScreenRoute(),
+          RouteHelper.getMobileNumberLoginRoute(),
           (Route<dynamic> route) => false,
         );
       }

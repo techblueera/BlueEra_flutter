@@ -30,8 +30,9 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
   }
 
   void _onScroll() {
+    if (!_scrollController.hasClients) return;
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 100) {
+        _scrollController.position.maxScrollExtent - 200) {
       controller.fetchMore();
     }
   }
@@ -75,7 +76,6 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
           onRefresh: controller.fetchInitial,
           child: ListView.builder(
             controller: _scrollController,
-            // padding: EdgeInsets.all(SizeConfig.paddingM),
             itemCount: controller.profiles.length +
                 (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
@@ -170,13 +170,15 @@ class _LabCard extends StatelessWidget {
                           fontFamily: AppConstants.OpenSans,
                         ),
                       ),
-                    SizedBox(height: SizeConfig.size6),
-                    CustomText(
-                      "${AppStrings.openTime.tr}: ${item.fullDetails?.healthCamps?.firstOrNull?.startTime}",
-                      fontSize: SizeConfig.small,
-                      color: AppColors.green00,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    if (item.fullDetails?.healthCamps?.firstOrNull?.startTime != null) ...[
+                      SizedBox(height: SizeConfig.size6),
+                      CustomText(
+                        "${AppStrings.openTime.tr}: ${item.fullDetails?.healthCamps?.firstOrNull?.startTime}",
+                        fontSize: SizeConfig.small,
+                        color: AppColors.green00,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ],
                   ],
                 ),
               ),

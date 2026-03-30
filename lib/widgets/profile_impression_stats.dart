@@ -30,8 +30,8 @@ import 'package:get/get.dart';
 
 
 class ProfileImpressionStats extends StatefulWidget {
-
-  ProfileImpressionStats({super.key, });
+final double? cardMargin;
+  ProfileImpressionStats({super.key, this.cardMargin, });
 
   @override
   State<ProfileImpressionStats> createState() => _ProfileImpressionStatsState();
@@ -95,7 +95,7 @@ class _ProfileImpressionStatsState extends State<ProfileImpressionStats> {
       data = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
       return CustomFormCard(
-        margin: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        margin: EdgeInsets.symmetric(horizontal: widget.cardMargin??SizeConfig.size8),
         padding: EdgeInsets.all(SizeConfig.size12),
         border: Border.all(color: AppColors.greyE5),
         child: IntrinsicHeight(

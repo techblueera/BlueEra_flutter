@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../../features/personal/personal_profile/controller/languge_list_controller.dart';
-import 'getx_utils.dart';
 
 class SizeConfig {
   static late bool isTablet;

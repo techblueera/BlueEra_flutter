@@ -6,22 +6,28 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/discover_lab_gallery_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profiles_list_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/lab_header_view.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/lab_home_gallery_widget.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/empty_health_camp_widget.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/empty_health_camp_widget.dart';
+import 'package:BlueEra/widgets/common_rating_row.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DiscoverLabViewScreen extends StatefulWidget {
   final LabProfileListItem detailsData;
@@ -41,6 +47,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
     final galleries = d.fullDetails?.galleries ?? <Galleries>[];
     final contact = d.fullDetails?.contactInfo;
     final facility = d.fullDetails?.facility;
+
     return Scaffold(
       appBar: CommonBackAppBar(
         title: d.name,
@@ -48,109 +55,145 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       bottomNavigationBar: d.fullDetails?.profile?.userId != userId
           ? SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 12.0, right: 12, bottom: 15, top: 10),
+                padding: EdgeInsets.only(
+                  left: SizeConfig.paddingS,
+                  right: SizeConfig.paddingS,
+                  bottom: 15,
+                  top: 10,
+                ),
                 child: Row(
                   children: [
                     Expanded(
                       child: PositiveCustomBtn(
-                          onTap: () async {
-                            final chatViewController =
-                                Get.find<ChatViewController>();
-                            chatViewController.checkChatConnectionAndOpenChat(
-                              userId: d.fullDetails?.profile?.userId ?? '',
-                            );
-                          },
-                          title: AppStrings.chat),
+                        onTap: () async {
+                          final chatViewController =
+                              Get.find<ChatViewController>();
+                          chatViewController.checkChatConnectionAndOpenChat(
+                            userId: d.fullDetails?.profile?.userId ?? '',
+                          );
+                        },
+                        title: AppStrings.chat,
+                      ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: PositiveCustomBtn(
-                          onTap: () {
-                            commonSnackBar(message: 'Coming Soon....');
-                          },
-                          title: AppStrings.bookInquiry),
+                        onTap: () {
+                          commonSnackBar(message: 'Coming Soon....');
+                        },
+                        title: AppStrings.bookInquiry,
+                      ),
                     ),
                   ],
                 ),
               ),
             )
           : null,
-      body: LayoutBuilder(builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-        return SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              labViewHeader(d),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Header Section ---
+            _buildHeader(d),
+            SizedBox(height: SizeConfig.size16),
 
-              SizedBox(height: SizeConfig.size16),
-              CategorySelector(labID: d.id,),
+            ProfileImpressionStats(cardMargin: 0,),
+            // SizedBox(height: SizeConfig.paddingXS),
 
-              SizedBox(height: SizeConfig.size16),
-              EmptyHealthCampWidget(
-                isOwnProfile: false,
-                labId: d.id,
-              ),
+            SizedBox(height: SizeConfig.size16),
+            CategorySelector(labID: d.id),
 
-              SizedBox(height: SizeConfig.size16),
-              CommonCardWidget(
-                  padding: 10,
-                  cardMargin: 0,
-                  child: _popularServices(tests, profile)),
-              SizedBox(height: SizeConfig.size16),
-              CommonCardWidget(
-                  padding: 10, cardMargin: 0, child: _allServices(facility)),
-              SizedBox(height: SizeConfig.size16),
-              LabHomeGalleryWidget(photos: galleries),
-              // SizedBox(height: SizeConfig.size16),
-              _contact(contact, isWide, d.fullDetails?.profile),
-            ],
-          ),
-        );
-      }),
+            SizedBox(height: SizeConfig.size16),
+            EmptyHealthCampWidget(
+              isOwnProfile: false,
+              labId: d.id,
+            ),
+
+            // --- Popular Services ---
+            SizedBox(height: SizeConfig.size16),
+            _buildPopularServices(tests),
+
+            // --- Our All Services / Facilities ---
+            SizedBox(height: SizeConfig.size16),
+            _buildAllServices(facility),
+
+            // --- Gallery ---
+            SizedBox(height: SizeConfig.size16),
+            DiscoverLabGalleryWidget(galleries: galleries),
+
+            // --- Contact Us ---
+            SizedBox(height: SizeConfig.size16),
+            _buildContactCard(contact, profile),
+
+            // --- Location Map ---
+            SizedBox(height: SizeConfig.size16),
+            _buildLocationSection(contact, d.fullDetails?.profile),
+
+            SizedBox(height: kBottomNavigationBarHeight + 30),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget labViewHeader(LabProfileListItem data) {
-    Profile? profile = data.fullDetails?.profile;
+  // ─── HEADER ─────────────────────────────────────────────────────────
 
+  Widget _buildHeader(LabProfileListItem data) {
+    final profile = data.fullDetails?.profile;
     final size = MediaQuery.of(context).size;
 
     return CommonCardWidget(
       padding: 0,
       cardMargin: 0,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // --- HEADER SECTION (Banner & Logo) ---
+          // Banner + Logo
           SizedBox(
             height: size.height * 0.21,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Banner Image
-                if (profile?.coverUrl?.isNotEmpty ?? false)
-                  Container(
-                    width: double.infinity,
-                    height: size.height * 0.17,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[100],
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                      image: DecorationImage(
-                          image: NetworkImage(profile?.coverUrl ?? ""),
-                          fit: BoxFit.cover),
+                // Banner
+                Container(
+                  width: double.infinity,
+                  height: size.height * 0.17,
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey[100],
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
                     ),
                   ),
+                  child: (profile?.coverUrl?.isNotEmpty ?? false)
+                      ? ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                          ),
+                          child: CachedNetworkImage(
+                            imageUrl: profile?.coverUrl ?? "",
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: size.height * 0.17,
+                            placeholder: (ctx, _) => Container(
+                              color: Colors.blueGrey[100],
+                            ),
+                            errorWidget: (ctx, _, __) => Container(
+                              color: Colors.blueGrey[100],
+                              child: Icon(Icons.image_outlined,
+                                  color: Colors.blueGrey[300], size: 40),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(Icons.image_outlined,
+                              color: Colors.blueGrey[300], size: 40),
+                        ),
+                ),
 
-                // Logo Image
+                // Logo
                 Positioned(
                   bottom: 0,
                   left: 20,
@@ -161,12 +204,28 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(color: Colors.black12, blurRadius: 10)
                       ],
-                      image: DecorationImage(
-                          image: NetworkImage((profile?.coverUrl ?? "")),
-                          fit: BoxFit.cover),
+                    ),
+                    child: ClipOval(
+                      child: (profile?.coverUrl?.isNotEmpty ?? false)
+                          ? CachedNetworkImage(
+                              imageUrl: profile?.coverUrl ?? "",
+                              fit: BoxFit.cover,
+                              placeholder: (ctx, _) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                              errorWidget: (ctx, _, __) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                            )
+                          : LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover,
+                            ),
                     ),
                   ),
                 ),
@@ -174,81 +233,126 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
             ),
           ),
 
-          // --- FORM SECTION ---
+          // Name & Description
           ServiceHomeHeaderTitleWidget(
             title: profile?.name ?? "",
-            description: "",
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 12),
-            child: allServices(data.fullDetails?.facility, context),
+            description:  "",
           ),
 
+          // Rating, Reviews & Distance
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
+            child: _buildRatingDistanceRow(data),
+          ),
         ],
       ),
     );
   }
 
+  // ─── RATING & DISTANCE ROW ──────────────────────────────────────────
 
-  // Helper method for the styled pills
-  Widget _pill(String text, Color bgColor, {bool isBold = false}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: CustomText(
-        text,
-        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-        fontSize: 12,
+  Widget _buildRatingDistanceRow(LabProfileListItem data) {
+    final loc = data.fullDetails?.contactInfo?.location;
+    String? distanceText;
+
+    if (loc?.coordinates != null &&
+        (loc?.coordinates?.length ?? 0) >= 2 &&
+        LocationService.lat != 0.0 &&
+        LocationService.lng != 0.0) {
+      final labLat =
+          double.tryParse(loc!.coordinates![1].toString()) ?? 0.0;
+      final labLng =
+          double.tryParse(loc.coordinates![0].toString()) ?? 0.0;
+      if (labLat != 0.0 && labLng != 0.0) {
+        final km = calculateDistanceKm(
+          LocationService.lat,
+          LocationService.lng,
+          labLat,
+          labLng,
+        );
+        distanceText = '${km.toStringAsFixed(1)} Km Away';
+      }
+    }
+
+    return CommonRatingRow(
+      rating: 0.0,
+      reviews: 0,
+      distance: distanceText,
+    );
+  }
+
+  // ─── POPULAR SERVICES ───────────────────────────────────────────────
+
+  Widget _buildPopularServices(List<Tests> tests) {
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.ourPopularServices),
+          SizedBox(height: SizeConfig.size8),
+          if (tests.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No popular services available",
+                imageSize: 60,
+              ),
+            )
+          else
+            SizedBox(
+              height: 80,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: tests.length.clamp(0, 10),
+                separatorBuilder: (_, __) =>
+                    SizedBox(width: SizeConfig.size10),
+                itemBuilder: (_, i) {
+                  final t = tests[i];
+                  return Container(
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CustomText(
+                          t.testName ?? "",
+                          fontSize: SizeConfig.small,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        if ((t.customerPrice ?? 0) > 0) ...[
+                          const SizedBox(height: 4),
+                          CustomText(
+                            '\u20B9${t.customerPrice}',
+                            fontSize: SizeConfig.small,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _popularServices(List<Tests> tests, Profile? profile) {
-    if (tests.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ServiceHomeTitleWidget(
-          title: AppStrings.ourPopularServices,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        SizedBox(
-          height: 70,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (_, i) {
-              final t = tests[i];
-              return Container(
-                width: 140,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText(t.testName ?? "",
-                        fontSize: SizeConfig.small, maxLines: 2),
-                  ],
-                ),
-              );
-            },
-            separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-            itemCount: tests.length.clamp(0, 10),
-          ),
-        ),
-      ],
-    );
-  }
+  // ─── ALL SERVICES / FACILITIES ──────────────────────────────────────
 
-  Widget _allServices(Facility? facility) {
+  Widget _buildAllServices(Facility? facility) {
     final chips = <String>[];
     if (facility?.wheelchairAssistance == true)
       chips.add("Wheelchair Assistance");
@@ -259,146 +363,328 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
     if (facility?.homeSampleCollection == true)
       chips.add("Home Sample Collection");
     if (facility?.digitalReport == true) chips.add("Digital Report");
+
     final other = (facility?.other ?? [])
         .map((e) => e.label ?? '')
-        .where((e) => e.toString().isNotEmpty)
+        .where((e) => e.isNotEmpty)
         .toList();
-    return SizedBox(
-      width: Get.width,
+
+    final allChips = [...chips, ...other];
+
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ServiceHomeTitleWidget(
-            title: AppStrings.ourAllServices,
-          ),
+          ServiceHomeTitleWidget(title: AppStrings.ourAllServices),
           SizedBox(height: SizeConfig.size8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ...chips.map((c) => _chip(c)),
-              ...other.map((c) => _chip(c)),
-            ],
-          ),
+          if (allChips.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No services listed",
+                imageSize: 60,
+              ),
+            )
+          else
+            _buildChipsWithViewMore(allChips),
         ],
       ),
     );
   }
 
-  Widget _contact(ContactInfo? contact, bool isWide, Profile? data) {
-    final loc = contact?.location;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildChipsWithViewMore(List<String> allChips) {
+    final displayChips = allChips.length > 5 ? allChips.sublist(0, 5) : allChips;
+    final hasMore = allChips.length > 5;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        // 5. Contact Section
-        SizedBox(height: SizeConfig.size16),
-        _buildContactCard(contact, data ?? Profile()),
-        SizedBox(height: SizeConfig.size16),
-        BusinessLocationWidget(
-            locationText: "",
-            latitude: double.parse(loc?.coordinates?[1].toString() ?? "0.0"),
-            longitude: double.parse(loc?.coordinates?[0].toString() ?? "0.0"),
-            businessName: loc?.name ?? "",
-            padding: 0,
-            isTitleShow: true),
-        SizedBox(height: kBottomNavigationBarHeight + 30),
+        ...displayChips.map((c) => _serviceChip(c)),
+        if (hasMore)
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: CustomText(
+                    AppStrings.ourAllServices.tr,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                  content: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allChips.map((c) => _serviceChip(c)).toList(),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: CustomText('Close',
+                          color: AppColors.primaryColor),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xffEAF2FF),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1)),
+              ),
+              child: CustomText(
+                '+${allChips.length - 5} View More',
+                fontSize: SizeConfig.small,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _chip(String text) {
+  Widget _serviceChip(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xffEAF2FF),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.1)),
+        border:
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
       ),
       child: CustomText(text, fontSize: SizeConfig.small),
     );
   }
 
-  Widget _buildContactCard(ContactInfo? profile, Profile data) {
+  // ─── CONTACT US (clickable) ─────────────────────────────────────────
+
+  Widget _buildContactCard(ContactInfo? contact, Profile? profile) {
+    final hasContact = (contact?.email?.isNotEmpty ?? false) ||
+        (contact?.phoneNo?.isNotEmpty ?? false) ||
+        (contact?.websiteUrl?.isNotEmpty ?? false) ||
+        (contact?.location?.name?.isNotEmpty ?? false);
+
     return CommonCardWidget(
-      padding: 5,
+      padding: 10,
       cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 6),
-            child: ServiceHomeTitleWidget(
-              title: AppStrings.contactUs,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[200]!),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Logo and Hotel Name
-                if (data.coverUrl?.isNotEmpty ?? false)
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 10)
-                      ],
-                      image: DecorationImage(
-                          image: NetworkImage(data.coverUrl ?? ''),
-                          fit: BoxFit.cover),
-                    ),
+          ServiceHomeTitleWidget(title: AppStrings.contactUs),
+          const SizedBox(height: 12),
+          if (!hasContact && (profile?.name?.isEmpty ?? true))
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: "No contact details available",
+                imageSize: 60,
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Lab Logo & Name
+                  Row(
+                    children: [
+                      if (profile?.coverUrl?.isNotEmpty ?? false)
+                        Container(
+                          width: 60,
+                          height: 60,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: profile?.coverUrl ?? '',
+                              fit: BoxFit.cover,
+                              placeholder: (ctx, _) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                              errorWidget: (ctx, _, __) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              profile?.name ?? '',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                const SizedBox(height: 10),
-                CustomText(data.name,
-                    fontSize: 16, fontWeight: FontWeight.bold),
+                  if (profile?.description?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 8),
+                    ExpandableText(text: profile?.description ?? ""),
+                  ],
+                  const Divider(height: 20),
 
-                const SizedBox(height: 5),
-
-                ExpandableText(text:   data.description ?? "",),
-                const Divider(height: 15),
-
-                // Contact List
-                _contactItem(AppIconAssets.website_click,
-                    profile?.websiteUrl ?? "", AppColors.primaryColor),
-                _contactItem(
-                    AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
-                _contactItem(AppIconAssets.email, profile?.email ?? "",
-                    AppColors.secondaryTextColor),
-                _contactItem(AppIconAssets.phone_outline,
-                    profile?.phoneNo ?? "", AppColors.secondaryTextColor),
-                _contactItem(AppIconAssets.location_new,
-                    profile?.location?.name ?? "", Colors.grey[700]!),
-              ],
+                  // Clickable contact items
+                  if (contact?.websiteUrl?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.website_click,
+                      label: contact?.websiteUrl ?? "",
+                      iconColor: AppColors.primaryColor,
+                      onTap: () => _launchUrl(contact?.websiteUrl ?? ""),
+                    ),
+                  if (contact?.email?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.email,
+                      label: contact?.email ?? "",
+                      iconColor: AppColors.secondaryTextColor,
+                      onTap: () => _launchEmail(contact?.email ?? ""),
+                    ),
+                  if (contact?.phoneNo?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.phone_outline,
+                      label: contact?.phoneNo ?? "",
+                      iconColor: AppColors.secondaryTextColor,
+                      onTap: () => _launchCaller(contact?.phoneNo ?? ""),
+                    ),
+                  if (contact?.location?.name?.isNotEmpty ?? false)
+                    _contactItemClickable(
+                      icon: AppIconAssets.location_new,
+                      label: contact?.location?.name ?? "",
+                      iconColor: Colors.grey[700]!,
+                    ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _contactItem(String icon, String label, Color iconColor) {
+  Widget _contactItemClickable({
+    required String icon,
+    required String label,
+    required Color iconColor,
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: icon,
-            imgColor: iconColor,
-            height: 20,
-            width: 20,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            children: [
+              LocalAssets(
+                imagePath: icon,
+                imgColor: iconColor,
+                height: 20,
+                width: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: CustomText(
+                  label,
+                  color: onTap != null
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
+                  fontSize: SizeConfig.medium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(child: CustomText(label, color: AppColors.mainTextColor)),
-        ],
+        ),
       ),
     );
+  }
+
+  // ─── LOCATION ───────────────────────────────────────────────────────
+
+  Widget _buildLocationSection(ContactInfo? contact, Profile? profile) {
+    final loc = contact?.location;
+    final coordinates = loc?.coordinates;
+
+    if (coordinates == null ||
+        coordinates.length < 2 ||
+        coordinates[0] == 0.0 ||
+        coordinates[1] == 0.0) {
+      return const SizedBox.shrink();
+    }
+
+    return BusinessLocationWidget(
+      locationText: "",
+      latitude: double.tryParse(coordinates[1].toString()) ?? 0.0,
+      longitude: double.tryParse(coordinates[0].toString()) ?? 0.0,
+      businessName: loc?.name ?? "",
+      padding: 0,
+      isTitleShow: true,
+    );
+  }
+
+  // ─── LAUNCHERS ──────────────────────────────────────────────────────
+
+  void _launchCaller(String number) async {
+    final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');
+    final Uri launchUri = Uri(scheme: 'tel', path: cleanNumber);
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        commonSnackBar(message: "Could not open the dialer");
+      }
+    } catch (e) {
+      debugPrint("Error launching dialer: $e");
+    }
+  }
+
+  void _launchEmail(String email) async {
+    final Uri launchUri = Uri(scheme: 'mailto', path: email);
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        commonSnackBar(message: "Could not open email client");
+      }
+    } catch (e) {
+      debugPrint("Error launching email: $e");
+    }
+  }
+
+  void _launchUrl(String url) async {
+    try {
+      String finalUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        finalUrl = 'https://$url';
+      }
+      final uri = Uri.parse(finalUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        commonSnackBar(message: "Could not open the link");
+      }
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
+    }
   }
 }

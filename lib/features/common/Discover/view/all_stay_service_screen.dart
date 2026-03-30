@@ -287,9 +287,12 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   }
 
   Widget rentalServiceCard(RentalServiceData service) {
-    final distance = calculateDistance(
-        service.location?.coordinates?[1].toDouble() ?? 0.0,
-        service.location?.coordinates?[0].toDouble() ?? 0.0);
+    final rentalCoords = service.location?.coordinates;
+    final distanceData = (rentalCoords != null && rentalCoords.length >= 2)
+        ? calculateDistance(
+            rentalCoords[1].toDouble(),
+            rentalCoords[0].toDouble())
+        : null;
 
     return InkWell(
       onTap: () {
@@ -346,7 +349,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                         rating:
                             double.tryParse(service.rating.toString()) ?? 0.0,
                         reviews: service.reviews ?? 0,
-                        distance: '${distance?.toStringAsFixed(2)} KM',
+                        distance: distanceData != null ? '$distanceData KM' : '',
                       )
                     ],
                   )),
@@ -458,9 +461,12 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   }
 
   Widget hotelServiceCard(HotelServiceData service) {
-    final distance = calculateDistanceInt(
-        service.profile?.location?.coordinates?[1].toDouble() ?? 0.0,
-        service.profile?.location?.coordinates?[0].toDouble() ?? 0.0);
+    final coords = service.profile?.location?.coordinates;
+    final distance = (coords != null && coords.length >= 2)
+        ? calculateDistanceInt(
+            coords[1].toDouble(),
+            coords[0].toDouble())
+        : 0;
     List<String> allImages = service.profile?.photos
             ?.expand((photo) =>
                 photo.imageReferences ?? []) // Flatten all image lists

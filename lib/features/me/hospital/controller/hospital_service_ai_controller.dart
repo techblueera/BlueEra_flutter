@@ -81,7 +81,7 @@ class HospitalServiceAiController extends GetxController {
         hasHospitalCreated.value = true;
       } else {
       }
-    } on Exception catch (e) {
+    } on Exception {
       hasHospitalCreated.value = false;
 
     }
