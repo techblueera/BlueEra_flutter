@@ -1,11 +1,13 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -20,28 +22,18 @@ class SelfPickupStoreScreen extends StatefulWidget {
 }
 
 class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
+  final AuthController _authController = Get.find<AuthController>();
 
-  final List<String> targetSlugs = [
-    MULTI_CUISINE_RESTAURANTS,
-    PURE_VEG_RESTAURANT,
-    ECONOMY_DHABA,
-    SWEET_NAMKEEN_SHOP,
-    BREAKFAST_FAST_FOOD,
-    NON_VEG_RESTAURANT,
-  ];
-
-   void navigateToGroceryStore({
-    required List<OnboardingCategoryModel> categories,
-    required var categoryData,
+  void navigateToGroceryStore({
+    CategoryData? categoryData,
     bool isGrocery = true,
   }) {
+    final controller = getOrPut(() => NewStoreController());
+    if (categoryData != null) {
+      controller.selectedGroceryOrFoodCategoryData.value = categoryData;
+    }
     Get.toNamed(
       RouteHelper.getGroceryStoresScreenRoute(),
-      arguments: {
-        ApiKeys.argCategories: categories,
-        ApiKeys.argCategoryData: categoryData,
-        ApiKeys.argIsGroceryStore: isGrocery,
-      },
     );
   }
 
@@ -71,12 +63,11 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
                   SizedBox(height: SizeConfig.paddingXSL),
 
                   _buildCategoryGrid(
-                    items: groceriesCategories,
-                    getName: (categoryItem) => categoryItem.name,
-                    getIcon: (categoryItem) => categoryItem.icon,
+                    items: _authController.businessOnboardingGroceriesCategories,
+                    getName: (categoryItem) => categoryItem.name ?? '',
+                    getIcon: (categoryItem) => categoryItem.imageUrl ?? '',
                     onTap: (categoryItem) {
                       navigateToGroceryStore(
-                        categories: groceriesCategories,
                         categoryData: categoryItem,
                         isGrocery: true
                       );
@@ -107,15 +98,11 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
                   SizedBox(height: SizeConfig.paddingXSL),
 
                   _buildCategoryGrid(
-                    // items: businessOnboardingFoodsCategories
-                    //     .where((item) => targetSlugs.contains(item.slugId))
-                    //     .toList(),
-                    items: businessOnboardingFoodsCategories,
-                    getName: (item) => item.name,
-                    getIcon: (item) => item.icon,
+                    items: _authController.businessOnboardingFoodsCategories,
+                    getName: (item) => item.name ?? '',
+                    getIcon: (item) => item.imageUrl ?? '',
                     onTap: (categoryItem) {
                       navigateToGroceryStore(
-                          categories: businessOnboardingFoodsCategories,
                           categoryData: categoryItem,
                           isGrocery: false
                       );

@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -142,39 +143,12 @@ class StoreProductCard extends StatelessWidget {
 
                     // Price Row
                     // if (variants.isNotEmpty)
-                    Row(
-                        children: [
-                          CustomText(
-                            '₹${variants[0].sellingPrice}',
-                            fontWeight: FontWeight.w700,
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.primaryColor,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
-                          SizedBox(width: SizeConfig.size6),
-                          CustomText(
-                            ' ₹${variants[0].mrp}',
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400,
-                            decoration: TextDecoration.lineThrough,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
-                          if (discountProduct > 0)
-                            Padding(
-                              padding: EdgeInsets.only(left: SizeConfig.size6),
-                              child: CustomText(
-                                "${discountProduct}% ${AppStrings.off.tr}",
-                                fontSize: SizeConfig.small,
-                                color: AppColors.greenShade,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: AppConstants.OpenSans,
-                              ),
-                            ),
-                        ],
-                      ),
+                    PriceRow(
+                      sellingPrice: "₹${variants[0].sellingPrice}",
+                      mrp: "₹${variants[0].mrp}",
+                      discount: "${discountProduct}% ${AppStrings.off.tr}",
+                    ),
 
-                    SizedBox(height: SizeConfig.size5),
                     AttributeRows(attributeMap: uniqueAttributes),
 
                     SizedBox(height: SizeConfig.size8),

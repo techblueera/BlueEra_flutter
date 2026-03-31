@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
@@ -33,8 +34,6 @@ import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dar
 import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -54,6 +53,7 @@ class _VisitFoodStoreDetailsScreenState
     extends State<VisitFoodStoreDetailsScreen> {
   final controller = getOrPut(() => RestaurantController());
   final foodCustomerController = getOrPut(() => FoodCustomerController());
+  final storeController = getOrPut(() => NewStoreController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
 
   @override
@@ -61,19 +61,7 @@ class _VisitFoodStoreDetailsScreenState
     super.initState();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchHomeData(businessId: widget.visitBusinessId);
-    _trackBusinessStoreView(widget.visitBusinessId);
-  }
-
-  void _trackBusinessStoreView(String visitBusinessId) {
-    if (kReleaseMode && visitBusinessId.isNotEmpty) {
-      Future.microtask(() async {
-        try {
-          StoreRepo().businessByViewCountIDApi(businessId: visitBusinessId);
-        } catch (e) {
-          print("Failed to track view: $e");
-        }
-      });
-    }
+    storeController.trackStoreDetailView(widget.visitBusinessId);
   }
 
   @override

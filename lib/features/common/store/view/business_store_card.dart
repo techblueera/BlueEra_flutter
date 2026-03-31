@@ -150,38 +150,40 @@ class BusinessStoreCard extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: ds(4)),
-                      Row(
-                        children: [
-                          CustomText(
-                            '${
-                              getAllStoreResData?.subCategoryOfBusiness?.name ??
-                                  getAllStoreResData?.natureOfBusiness ??
-                                  'OTHER'
-                            } ',
-                              color: Colors.grey, fontSize: ds(12)
-                          ),
-                          Row(
-                            children: [
-                              LocalAssets(
-                                imagePath: AppIconAssets.star,
-                                height: 12,
-                                width: 12,
-                              ),
-                              CustomText(
-                                ' ${
-                                    (getAllStoreResData?.avgRating ?? 0) > 0
-                                      ? "(${getAllStoreResData?.avgRating})"
-                                      : "${AppStrings.no.tr} "
-                                }',
-                                color: AppColors.orangelite, fontSize: ds(12)
-                              ),
-                            ],
-                          ),
-                          CustomText(
-                            AppStrings.ratings,
-                              color: Colors.grey, fontSize: ds(12)
-                          ),
-                        ],
+                      FittedBox(
+                        child: Row(
+                          children: [
+                            CustomText(
+                              '${
+                                getAllStoreResData?.subCategoryOfBusiness?.name ??
+                                    getAllStoreResData?.natureOfBusiness ??
+                                    'OTHER'
+                              } ',
+                                color: Colors.grey, fontSize: ds(12)
+                            ),
+                            Row(
+                              children: [
+                                LocalAssets(
+                                  imagePath: AppIconAssets.star,
+                                  height: 12,
+                                  width: 12,
+                                ),
+                                CustomText(
+                                  ' ${
+                                      (getAllStoreResData?.avgRating ?? 0) > 0
+                                        ? "(${getAllStoreResData?.avgRating})"
+                                        : "${AppStrings.no.tr} "
+                                  }',
+                                  color: AppColors.orangelite, fontSize: ds(12)
+                                ),
+                              ],
+                            ),
+                            CustomText(
+                              AppStrings.ratings,
+                                color: Colors.grey, fontSize: ds(12)
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: ds(4)),
                       Wrap(
@@ -214,7 +216,7 @@ class BusinessStoreCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: CustomText(
-                              getAllStoreResData?.address ?? '',
+                              getLocalityAddress(getAllStoreResData?.address),
                               fontSize: 10,
                               color: AppColors.secondaryTextColor,
                             ),
@@ -227,11 +229,10 @@ class BusinessStoreCard extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: ds(10)),
 
           if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
           Padding(
-            padding: EdgeInsets.only(bottom: ds(6)),
+            padding: EdgeInsets.only(top: ds(10)),
             child: ExpandableText(
               text: "${getAllStoreResData?.businessDescription ?? ''}",
               trimLines: 3,
@@ -243,6 +244,8 @@ class BusinessStoreCard extends StatelessWidget {
               ),
             ),
           ),
+
+          SizedBox(height: ds(5)),
 
           if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
           Padding(

@@ -491,8 +491,8 @@ class ViewPersonalDetailsController extends GetxController {
   void partiallyForceToCreateService() {
     final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
-    individualSkillWorkList.any(
-      (service) => service.slugId == userProfessionGlobal,
+    Get.find<AuthController>().individualOnboardingSkillWorkList.any(
+      (service) => service.tagId == userProfessionGlobal,
     );
 
     if (viewProfileController.personalProfileDetails.value.isProfileCreated ==

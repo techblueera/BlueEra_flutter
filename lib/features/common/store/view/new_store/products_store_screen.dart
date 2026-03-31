@@ -1,33 +1,30 @@
-import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class ProductsStoreScreen extends StatefulWidget {
-  final String? typeOfBusiness;
-  final String? selectedStoreCategoryId;
-  final String? selectedStoreCategoryName;
+  final String? productCategoryName;
+  final String? productCategory;
 
   const ProductsStoreScreen({
     super.key,
-    this.typeOfBusiness,
-    this.selectedStoreCategoryId,
-    this.selectedStoreCategoryName,
+    this.productCategoryName,
+    this.productCategory,
   });
 
   @override
@@ -37,20 +34,24 @@ class ProductsStoreScreen extends StatefulWidget {
 class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   final controller = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
-  final List<OnboardingCategoryModel> _categories = businessProductStoreCategories;
-  final RxInt _selectedIndex = 0.obs;
+  final Rxn<SubCategories> _selectedSubCategory = Rxn<SubCategories>();
+  late final List<SubCategories> _subCategories;
 
   @override
   void initState() {
     super.initState();
-    controller.typeOfBusiness = widget.typeOfBusiness;
+    controller.typeOfBusiness = BusinessType.Product.name;
 
-    if (widget.selectedStoreCategoryId != null) {
-      controller.businessCategoryId = widget.selectedStoreCategoryId;
-      final idx = _categories.indexWhere((c) => c.slugId == widget.selectedStoreCategoryId);
-      if (idx >= 0) _selectedIndex.value = idx;
+    // Find the parent category and extract its subcategories
+    final categories = Get.find<AuthController>().businessOnboardingProductsCategories;
+    final parent = categories.firstWhereOrNull((c) => c.tagId == widget.productCategory);
+    _subCategories = parent?.subCategories ?? [];
+
+    if (_subCategories.isNotEmpty) {
+      _selectedSubCategory.value = _subCategories.first;
+      controller.businessCategoryId = _subCategories.first.sId;
     } else {
-      controller.businessCategoryId = _categories.first.slugId;
+      controller.businessCategoryId = widget.productCategory;
     }
 
     controller.getAllStoreNearBy();
@@ -71,25 +72,22 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     super.dispose();
   }
 
-  void _onCategoryTap(OnboardingCategoryModel item, int index) {
-    _selectedIndex.value = index;
-    controller.businessCategoryId = item.slugId;
+  void _onSubCategoryTap(SubCategories item, int index) {
+    _selectedSubCategory.value = item;
+    controller.businessCategoryId = item.sId;
     controller.getAllStoreNearBy();
   }
 
   @override
   Widget build(BuildContext context) {
     final width = SizeConfig.screenWidth;
-
     double dynamicSize(double base) => base * (width / 390);
 
     return Scaffold(
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () => Obx(() {
-          final idx = _selectedIndex.value;
-          final name = (idx >= 0 && idx < _categories.length)
-              ? _categories[idx].name
-              : 'Stores';
+          final name = _selectedSubCategory.value?.name ??
+              widget.productCategoryName ?? 'Stores';
           return Text(
             name,
             style: const TextStyle(
@@ -129,7 +127,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildCategoryList(),
+            if (_subCategories.isNotEmpty) _buildSubCategoryList(),
             SizedBox(width: SizeConfig.size6),
             Expanded(child: _buildStoreContent(dynamicSize)),
           ],
@@ -138,16 +136,14 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     );
   }
 
-  Widget _buildCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: _categories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
-      isSelected: (item) {
-        final idx = _categories.indexOf(item);
-        return _selectedIndex.value == idx;
-      },
-      onTap: _onCategoryTap,
+  Widget _buildSubCategoryList() {
+    return CommonGenericLeftSideCategoryList<SubCategories>(
+      items: _subCategories,
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => '',
+      isSelected: (item) =>
+          _selectedSubCategory.value?.sId == item.sId,
+      onTap: _onSubCategoryTap,
     );
   }
 
@@ -161,7 +157,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       if (controller.allStore.isEmpty) {
         return Center(
           child: EmptyStateWidget(
-            message: "No ${_categories[_selectedIndex.value].name} stores found",
+            message: "No ${_selectedSubCategory.value?.name ?? ''} stores found",
           ),
         );
       }
@@ -227,7 +223,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                   key: Key("business_$businessId"),
                   onVisibilityChanged: (info) {
                     if (info.visibleFraction >= 0.5 && businessId.isNotEmpty) {
-                      trackBusinessStoreView(businessId);
+                      controller.trackStoreListView(businessId);
                     }
                   },
                   child: Padding(
@@ -244,22 +240,5 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
         ],
       );
     });
-  }
-
-  final Set<String> _viewedBusinessIds = {};
-
-  void trackBusinessStoreView(String storeId) {
-    if (kReleaseMode) {
-      Future.microtask(() async {
-        try {
-          if (!_viewedBusinessIds.contains(storeId)) {
-            _viewedBusinessIds.add(storeId);
-            StoreRepo().businessByViewCountIDApi(businessId: storeId);
-          }
-        } catch (e) {
-          print("Failed to track view: $e");
-        }
-      });
-    }
   }
 }

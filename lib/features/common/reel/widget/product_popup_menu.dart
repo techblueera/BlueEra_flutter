@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/controller/channel_product_controller.dart';
@@ -50,7 +51,7 @@ class ProductPopUpMenu extends StatelessWidget {
           }
         },
         icon: Icon(Icons.more_vert, color: AppColors.white),
-        itemBuilder: (context) => popupProductMenuItems(),
+        itemBuilder: (context) => PopupMenuBuilders.popupProductMenuItems(),
       ),
     );
   }

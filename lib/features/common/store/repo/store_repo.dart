@@ -128,6 +128,17 @@ class StoreRepo extends BaseService {
     return response;
   }
 
+  /// Product Category Tree
+  Future<ResponseModel> getProductCategoryTree({required String group}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$productCategoryTree?group=$group",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Product Filter
   Future<ResponseModel> productFilterRepo({
     required Map<String, dynamic> queryParams

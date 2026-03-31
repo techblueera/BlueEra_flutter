@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -59,7 +60,7 @@ class FeedPopUpMenu extends StatelessWidget {
         }
       },
       icon: Icon(Icons.more_vert),
-      itemBuilder: (context) => popupPostMenuItems(post.is_reposted),
+      itemBuilder: (context) => PopupMenuBuilders.popupPostMenuItems(post.is_reposted),
     );
   }
 }

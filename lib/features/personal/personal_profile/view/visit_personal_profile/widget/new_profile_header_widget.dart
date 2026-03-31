@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -179,7 +180,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         }
                       },
                       icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                      itemBuilder: (context) => popupMenuVisitProfileItems(),
+                      itemBuilder: (context) => PopupMenuBuilders.popupMenuVisitProfileItems(),
                     ),
                   ],
                 ),

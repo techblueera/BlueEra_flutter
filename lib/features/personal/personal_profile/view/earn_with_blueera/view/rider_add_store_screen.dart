@@ -5,7 +5,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_link_stores_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -22,16 +23,16 @@ class RiderAddStoreScreen extends StatefulWidget {
 }
 
 class _RiderAddStoreScreenState extends State<RiderAddStoreScreen> {
+  final AuthController _authController = Get.find<AuthController>();
+
   void _navigateToLinkStores({
-    required List<OnboardingCategoryModel> categories,
-    required OnboardingCategoryModel selectedCategory,
+    required CategoryData selectedCategory,
     bool isGrocery = true,
   }) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => RiderLinkStoresScreen(
-          arrCategories: categories,
           selectedCategory: selectedCategory,
           isGroceryStore: isGrocery,
         ),
@@ -63,12 +64,11 @@ class _RiderAddStoreScreenState extends State<RiderAddStoreScreen> {
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
                     _buildCategoryGrid(
-                      items: groceriesCategories,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon ?? '',
+                      items: _authController.businessOnboardingGroceriesCategories,
+                      getName: (item) => item.name ?? '',
+                      getIcon: (item) => item.imageUrl ?? '',
                       onTap: (item) {
                         _navigateToLinkStores(
-                          categories: groceriesCategories,
                           selectedCategory: item,
                           isGrocery: true,
                         );
@@ -96,12 +96,11 @@ class _RiderAddStoreScreenState extends State<RiderAddStoreScreen> {
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
                     _buildCategoryGrid(
-                      items: businessOnboardingFoodsCategories,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon ?? '',
+                      items: _authController.businessOnboardingFoodsCategories,
+                      getName: (item) => item.name ?? '',
+                      getIcon: (item) => item.imageUrl ?? '',
                       onTap: (item) {
                         _navigateToLinkStores(
-                          categories: businessOnboardingFoodsCategories,
                           selectedCategory: item,
                           isGrocery: false,
                         );

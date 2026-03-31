@@ -1,12 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
-import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/store/view/new_store/all_business_products_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/products_store_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -48,14 +51,17 @@ class ShoppingCardWidget extends StatelessWidget {
                 return Wrap(
                   spacing: spacing,
                   runSpacing: spacing,
-                  children: businessProductsCategories.take(9).map((categoryItem) {
+                  children: Get.find<AuthController>().businessOnboardingProductsCategories.take(9).map((categoryItem) {
                     return SizedBox(
                       width: itemWidth,
                       child: CommonServiceCard(
                         service: categoryItem,
-                        getName: (item) => item.name,
-                        getIcon: (item) => item.icon ?? '',
-                        onTap: (item) => _showShoppingOptionDialog(context),
+                        getName: (item) => item.name ?? '',
+                        getIcon: (item) => getProductCategoryIcon(item.tagId),
+                        onTap: (item) => _showShoppingOptionDialog(
+                            context,
+                            categoryData: categoryItem
+                            ),
                       ),
                     );
                   }).toList(),
@@ -66,7 +72,7 @@ class ShoppingCardWidget extends StatelessWidget {
         ));
   }
 
-  void _showShoppingOptionDialog(BuildContext context) {
+  void _showShoppingOptionDialog(BuildContext context, {CategoryData? categoryData}) {
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -108,11 +114,10 @@ class ShoppingCardWidget extends StatelessWidget {
                 title: 'Browse Products',
                 subtitle: 'Search & explore products from local stores',
                 onTap: () {
-                  Get.back();
-                  Get.to(() => AllProductStoreScreen(
-                    isShowInGrid: true,
-                    productCategoryName: null,
-                    productCategory: null,
+                  // Get.back();
+                  Get.to(() => AllBusinessProductsScreen(
+                    productCategoryName: categoryData?.name,
+                    productCategory: categoryData?.tagId,
                   ));
                 },
               ),
@@ -124,11 +129,10 @@ class ShoppingCardWidget extends StatelessWidget {
                 title: 'Shop Via Store',
                 subtitle: 'Find nearby stores & browse their products',
                 onTap: () {
-                  Get.back();
+                  // Get.back();
                   Get.to(() => ProductsStoreScreen(
-                    typeOfBusiness: AppConstants.product,
-                    selectedStoreCategoryId: null,
-                    selectedStoreCategoryName: null,
+                    productCategoryName: categoryData?.name,
+                    productCategory: categoryData?.tagId,
                   ));
                 },
               ),

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
@@ -131,7 +132,7 @@ class PostAuthorHeader extends StatelessWidget {
                       onTapFunction(valueData: value, contextBuild: context);
                     },
                     icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                    itemBuilder: (context) => popupMenuVisitProfileActionItems(
+                    itemBuilder: (context) => PopupMenuBuilders.popupMenuVisitProfileActionItems(
                         isSavePost: (post?.isPostSavedLocal ?? false)),
                   ),
                 )
@@ -159,7 +160,7 @@ class PostAuthorHeader extends StatelessWidget {
                     },
                     icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
                     itemBuilder: (context) =>
-                        popupMenuVisitProfileActionItems(),
+                        PopupMenuBuilders.popupMenuVisitProfileActionItems(),
                   ),
                 )
               else

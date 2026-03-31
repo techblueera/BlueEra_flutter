@@ -12,6 +12,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
@@ -20,7 +21,6 @@ import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -32,7 +32,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -55,25 +54,14 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
+  final storeController = getOrPut(() => NewStoreController());
 
   @override
   void initState() {
     super.initState();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllGroceryData(widget.userId, otherStore: true);
-    _trackBusinessStoreView(widget.visitBusinessId);
-  }
-
-  void _trackBusinessStoreView(String storeId) {
-    if (kReleaseMode && storeId.isNotEmpty) {
-      Future.microtask(() async {
-        try {
-          StoreRepo().businessByViewCountIDApi(businessId: storeId);
-        } catch (e) {
-          print("Failed to track view: $e");
-        }
-      });
-    }
+    storeController.trackStoreDetailView(widget.visitBusinessId);
   }
 
   @override

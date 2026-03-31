@@ -8,7 +8,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -26,13 +27,11 @@ import '../../../../../chat/auth/controller/chat_view_controller.dart';
 ///  - No "Recently Visited" in the left sidebar
 ///  - Each store card has a "Send Request" button
 class RiderLinkStoresScreen extends StatefulWidget {
-  final List<OnboardingCategoryModel> arrCategories;
-  final OnboardingCategoryModel selectedCategory;
+  final CategoryData selectedCategory;
   final bool isGroceryStore;
 
   const RiderLinkStoresScreen({
     super.key,
-    required this.arrCategories,
     required this.selectedCategory,
     required this.isGroceryStore,
   });
@@ -44,7 +43,12 @@ class RiderLinkStoresScreen extends StatefulWidget {
 class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
   final controller = getOrPut(() => NewStoreController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final AuthController _authController = Get.find<AuthController>();
   final ScrollController _scrollController = ScrollController();
+
+  List<CategoryData> get _categories => widget.isGroceryStore
+      ? _authController.businessOnboardingGroceriesCategories
+      : _authController.businessOnboardingFoodsCategories;
 
   final List<Color> _cardColors = const [
     Color(0xFFFFFEF7),
@@ -60,7 +64,7 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
         widget.isGroceryStore ? BusinessType.Grocery.name : BusinessType.Food.name;
     controller.selectedGroceryOrFoodCategoryData.value = widget.selectedCategory;
     controller.businessCategoryId =
-        controller.selectedGroceryOrFoodCategoryData.value?.slugId;
+        controller.selectedGroceryOrFoodCategoryData.value?.tagId;
 
     controller.getAllStoreNearBy();
 
@@ -103,17 +107,17 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
   // ─── Left sidebar (NO "Recently Visited") ──────────────────────
 
   Widget _buildLeftCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: widget.arrCategories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
+    return CommonGenericLeftSideCategoryList<CategoryData>(
+      items: _categories,
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => item.imageUrl ?? '',
       isSelected: (item) {
-        return controller.selectedGroceryOrFoodCategoryData.value?.slugId ==
-            item.slugId;
+        return controller.selectedGroceryOrFoodCategoryData.value?.tagId ==
+            item.tagId;
       },
       onTap: (item, index) {
         controller.selectedGroceryOrFoodCategoryData.value = item;
-        controller.businessCategoryId = item.slugId;
+        controller.businessCategoryId = item.tagId;
         controller.getAllStoreNearBy();
       },
     );

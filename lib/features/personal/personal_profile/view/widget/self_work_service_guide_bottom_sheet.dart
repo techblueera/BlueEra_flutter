@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -28,7 +28,7 @@ class SelfWorkServiceGuideBottomSheet extends StatefulWidget {
 class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBottomSheet> {
   final authController = Get.find<AuthController>();
   int? selectedIndex;
-  OnboardingCategoryModel? selectedService;
+  ProfessionTypeData? selectedService;
 
   @override
   void initState() {
@@ -97,11 +97,11 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                 padding: EdgeInsets.zero,
                 primary: false,
                 shrinkWrap: true,
-                itemCount: individualSkillWorkList.length,
+                itemCount: Get.find<AuthController>().individualOnboardingSkillWorkList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: individualSkillWorkList[i],
-                  getName: (item) => item.name,
-                  getIcon: (item) => item.icon??'',
+                  service: Get.find<AuthController>().individualOnboardingSkillWorkList[i],
+                  getName: (item) => item.name ?? '',
+                  getIcon: (item) => getIndividualProfessionIcon(item.tagId),
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {
@@ -185,7 +185,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                if(isEarnServiceOpt=='true' && selectedService?.tagId == userProfessionGlobal){
                   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
                   return;
                 }
@@ -196,7 +196,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   onConfirm: ()=> Get.toNamed(
                     RouteHelper.getAddSelfServiceRoute(),
                     arguments: {
-                      ApiKeys.designation: selectedService?.slugId ?? OTHER,
+                      ApiKeys.designation: selectedService?.tagId ?? OTHER,
                       ApiKeys.serviceSubType: EarnServiceTypes.selfWork,
                     },
                   ),

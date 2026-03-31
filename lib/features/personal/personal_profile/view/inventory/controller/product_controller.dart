@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -206,10 +207,11 @@ class ProductController extends GetxController{
   /// Images used on Step 2 (second screen, preloaded + new)
   RxList<String> allProductImages = <String>[].obs;
 
-  final List<Map<String, String>> categoryDropdownList = businessProductsCategories.map((category) {
+  List<Map<String, String>> get categoryDropdownList =>
+      Get.find<AuthController>().businessOnboardingProductsCategories.map((category) {
     return {
-      'display': category.name,
-      'value': category.slugId,
+      'display': category.name ?? '',
+      'value': category.tagId ?? '',
     };
   }).toList();
   final Rxn<Map<String, String>> selectedProductCategory = Rxn<Map<String, String>>();

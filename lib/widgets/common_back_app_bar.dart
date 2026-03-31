@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/journey_status_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -487,7 +488,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       imgColor: AppColors.primaryColor,
                     ),
                   ),
-                  itemBuilder: (context) => popupMenuItems(),
+                  itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
                 ),
 
               if (isResumeCardButton ?? false)
@@ -500,7 +501,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       borderRadius: BorderRadius.circular(10)),
                   onSelected: (value) {},
                   icon: LocalAssets(imagePath: AppIconAssets.resumeCardIcon),
-                  itemBuilder: (context) => popupMenuResumeCardItems(),
+                  itemBuilder: (context) => PopupMenuBuilders.popupMenuResumeCardItems(),
                 ),
 
               if (isGuestLogout ?? false)
@@ -546,7 +547,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   icon: Icon(Icons.more_vert),
-                  itemBuilder: (context) => inventoryPopupMenuItems(),
+                  itemBuilder: (context) => PopupMenuBuilders.inventoryPopupMenuItems(),
                 ),
 
               if (isCustomTitleWidget != null)

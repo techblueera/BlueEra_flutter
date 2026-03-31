@@ -5,7 +5,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
@@ -21,14 +22,7 @@ import '../../../../core/constants/app_enum.dart';
 
 class GroceryStoresScreen extends StatefulWidget {
 
-  final List<OnboardingCategoryModel> arrCategories;
-  // final OnboardingCategoryModel selectedGroceryOrFoodCategory;
-
-  const GroceryStoresScreen(
-      { super.key,
-        required this.arrCategories,
-        // required this.selectedGroceryOrFoodCategory,
-        });
+  const GroceryStoresScreen({super.key});
 
   @override
   State<GroceryStoresScreen> createState() =>
@@ -42,8 +36,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final foodCustomerListingScreen = getOrPut(() => FoodCustomerController());
   final ScrollController storesScrollController = ScrollController();
-  late List<OnboardingCategoryModel> _arrCategories;
+  final AuthController _authController = Get.find<AuthController>();
   AnimationController? _shimmerController;
+
+  List<CategoryData> get _arrCategories => _authController.businessOnboardingGroceriesCategories;
   final List<Color> cardColors = [
     const Color(0xFFFFFEF7), // Soft Cream
     const Color(0xFFFFF9F3), // Pale Peach
@@ -61,13 +57,11 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
     controller.typeOfBusiness = BusinessType.Grocery.name;
 
-    _arrCategories = widget.arrCategories;
     if(controller.selectedGroceryOrFoodCategoryData.value != null){
-      controller.businessCategoryId = controller.selectedGroceryOrFoodCategoryData.value?.slugId;
+      controller.businessCategoryId = controller.selectedGroceryOrFoodCategoryData.value?.tagId;
     }
-    else{
-      // controller.businessCategoryId = 'RECENTLY_VISITED';
-      controller.businessCategoryId = _arrCategories.first.slugId;
+    else if (_arrCategories.isNotEmpty) {
+      controller.businessCategoryId = _arrCategories.first.tagId;
     }
 
 
@@ -176,17 +170,15 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     // );
     //
     // final fullList = [allItem, ..._arrCategories];
-    final fullList = _arrCategories;
-
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: fullList,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
+    return CommonGenericLeftSideCategoryList<CategoryData>(
+      items: _arrCategories,
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => item.imageUrl ?? '',
       isSelected: (item) {
         // if (item.slugId == 'RECENTLY_VISITED') {
         //   return controller.selectedGroceryOrFoodCategoryData.value == null;
         // }
-        return controller.selectedGroceryOrFoodCategoryData.value?.slugId == item.slugId;
+        return controller.selectedGroceryOrFoodCategoryData.value?.tagId == item.tagId;
       },
       onTap: (item, index) {
         // if (item.slugId == 'RECENTLY_VISITED') {
@@ -195,7 +187,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         //   controller.selectedGroceryOrFoodCategoryData.value = item;
         // }
         controller.selectedGroceryOrFoodCategoryData.value = item;
-        controller.businessCategoryId = item.slugId;
+        controller.businessCategoryId = item.tagId;
 
         // Single API Call (Clean & Shared)
         controller.getAllStoreNearBy();

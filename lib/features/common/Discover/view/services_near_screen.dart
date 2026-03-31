@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -442,9 +441,9 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
           serviceCategory: serviceData,
           onTap: (c) {
             Get.to(() => ProductsStoreScreen(
-              typeOfBusiness: AppConstants.service,
-              selectedStoreCategoryId: c.slugId,
-              selectedStoreCategoryName: c.name,
+              // typeOfBusiness: AppConstants.service,
+              // selectedStoreCategoryId: c.slugId,
+              // selectedStoreCategoryName: c.name,
             ));
           },
         );

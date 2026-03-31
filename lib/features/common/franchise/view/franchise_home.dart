@@ -10,9 +10,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/getx_utils.dart';
@@ -196,14 +197,14 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                 crossAxisCount: 3,
                                 crossAxisSpacing: 6,
                                 mainAxisSpacing: 6,
-                                itemCount: individualSkillWorkList
+                                itemCount: Get.find<AuthController>().individualOnboardingSkillWorkList
                                     .take(6)
                                     .length,
                                 physics: NeverScrollableScrollPhysics(),
                                 itemBuilder: (context, index) {
                                   var item =
-                                  individualSkillWorkList[index];
-                                  return _commonCard(icon: item.icon ?? '', text: item.name);
+                                  Get.find<AuthController>().individualOnboardingSkillWorkList[index];
+                                  return _commonCard(icon: getIndividualProfessionIcon(item.tagId), text: item.name ?? '');
                                 },
                                 padding: EdgeInsets.zero,
                                 shrinkWrap: true,
