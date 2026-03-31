@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -159,7 +160,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
             padding: EdgeInsets.zero,
             icon: Icon(Icons.more_vert,
                 color: AppColors.secondaryTextColor, size: 20),
-            itemBuilder: (_) => popupMenuVisitProfileItems(),
+            itemBuilder: (_) => PopupMenuBuilders.popupMenuVisitProfileItems(),
           ),
         ],
       ),

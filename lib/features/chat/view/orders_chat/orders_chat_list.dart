@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
@@ -61,7 +62,7 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                             borderRadius: BorderRadius.circular(10)),
                         onSelected: (value) {},
                         icon: SvgPicture.asset(AppIconAssets.mage_filter),
-                        itemBuilder: (context) => popupMenuOrderTabItems(),
+                        itemBuilder: (context) => PopupMenuBuilders.popupMenuOrderTabItems(),
                       ) : Padding(
                         padding: EdgeInsets.only(right: 8, top: 18),
                         child: InkWell(

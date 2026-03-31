@@ -6,8 +6,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
@@ -42,21 +40,27 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
   final controller = getOrPut(() => DiscoverController());
   final storeController = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
-  late ProviderType _providerType;
-  final RxnString _productCategory = RxnString();
+  final ProviderType _providerType = ProviderType.business;
 
-  List<CategoryData> get _categories => Get.find<AuthController>().businessOnboardingProductsCategories;
+  /// Selected level-1 category (left sidebar)
+  final Rxn<ProductNestedCategory> _selectedCategory = Rxn<ProductNestedCategory>();
+
+  /// Selected level-2 child (horizontal tab)
+  final Rxn<ProductNestedCategory> _selectedChild = Rxn<ProductNestedCategory>();
 
   @override
   void initState() {
     super.initState();
-    _providerType = ProviderType.business;
 
-    _productCategory.value = widget.productCategory ??
-        (_categories.isNotEmpty ? _categories.first.tagId : null);
-
-    storeController.selectedProductSubCategory.value = null;
-    _fetchSubCategoriesAndProducts();
+    // Single API call to fetch category tree
+    if (widget.productCategory != null) {
+      storeController.fetchProductCategoryTree(group: widget.productCategory!).then((_) {
+        final list = storeController.productCategoryTreeList;
+        if (list.isNotEmpty) {
+          _selectCategory(list.first);
+        }
+      });
+    }
 
     storesScrollController.addListener(_onLoadMore);
   }
@@ -68,40 +72,43 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
     super.dispose();
   }
 
-  void _onLoadMore() {
-    if (storesScrollController.position.pixels >=
-        storesScrollController.position.maxScrollExtent - 200) {
-      controller.getAllProductNearBy(
-        providerType: _providerType,
-        productCategory: storeController.selectedProductSubCategory.value?.key ?? _productCategory.value,
-        isLoadMore: true,
-      );
+  /// Select a level-1 category, auto-select its first child, and fetch products
+  void _selectCategory(ProductNestedCategory category) {
+    _selectedCategory.value = category;
+
+    if (category.children != null && category.children!.isNotEmpty) {
+      _selectedChild.value = category.children!.first;
+      _fetchProducts(category.children!.first.key ?? category.key);
+    } else {
+      _selectedChild.value = null;
+      _fetchProducts(category.key);
     }
   }
 
-  void _fetchSubCategoriesAndProducts() {
-    if (_productCategory.value == null) return;
-    storeController.fetchProductCategoryTree(group: _productCategory.value!).then((_) {
-      if (storeController.productCategoryTreeList.isNotEmpty) {
-        storeController.selectedProductSubCategory.value =
-            storeController.productCategoryTreeList.first;
-        controller.getAllProductNearBy(
-          providerType: _providerType,
-          productCategory: storeController.productCategoryTreeList.first.key,
-        );
-      } else {
-        controller.getAllProductNearBy(
-          providerType: _providerType,
-          productCategory: _productCategory.value,
-        );
-      }
-    });
+  /// Select a level-2 child tab and fetch products
+  void _selectChild(ProductNestedCategory child) {
+    _selectedChild.value = child;
+    _fetchProducts(child.key);
   }
 
-  void _onCategoryTap(CategoryData item, int index) {
-    _productCategory.value = item.tagId;
-    storeController.selectedProductSubCategory.value = null;
-    _fetchSubCategoriesAndProducts();
+  void _fetchProducts(String? productCategory) {
+    controller.getAllProductNearBy(
+      providerType: _providerType,
+      productCategory: productCategory,
+    );
+  }
+
+  void _onLoadMore() {
+    if (storesScrollController.position.pixels >=
+        storesScrollController.position.maxScrollExtent - 200) {
+      final key = _selectedChild.value?.key ??
+          _selectedCategory.value?.key;
+      controller.getAllProductNearBy(
+        providerType: _providerType,
+        productCategory: key,
+        isLoadMore: true,
+      );
+    }
   }
 
   @override
@@ -109,8 +116,8 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () => Obx(() {
-          final match = _categories.firstWhereOrNull((c) => c.tagId == _productCategory.value);
-          final name = match?.name ?? AppStrings.tab_product;
+          final name = _selectedCategory.value?.name ??
+              widget.productCategoryName ?? AppStrings.tab_product;
           return Text(
             name,
             style: const TextStyle(
@@ -147,56 +154,57 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
         },
       ),
       body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCategoryList(),
-            SizedBox(width: SizeConfig.size6),
-            Expanded(
-              child: Column(
-                children: [
-                  _buildSubCategoryTabs(),
-                  Expanded(child: _buildProductContent()),
-                ],
+        child: Obx(() {
+          if (storeController.isProductCategoryTreeLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCategoryList(),
+              SizedBox(width: SizeConfig.size6),
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildChildTabs(),
+                    Expanded(child: _buildProductContent()),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
     );
   }
 
+  /// Left sidebar: level-1 categories from API tree
   Widget _buildCategoryList() {
-    return CommonGenericLeftSideCategoryList<CategoryData>(
-      items: _categories,
-      getLabel: (item) => item.name ?? '',
-      getIcon: (item) => item.imageUrl ?? '',
-      isSelected: (item) => _productCategory.value == item.tagId,
-      onTap: _onCategoryTap,
-    );
+    return Obx(() {
+      final list = storeController.productCategoryTreeList;
+      if (list.isEmpty) return const SizedBox.shrink();
+
+      return CommonGenericLeftSideCategoryList<ProductNestedCategory>(
+        items: list,
+        getLabel: (item) => item.name ?? '',
+        getIcon: (item) => '',
+        isSelected: (item) => _selectedCategory.value?.sId == item.sId,
+        onTap: (item, index) => _selectCategory(item),
+      );
+    });
   }
 
-  Widget _buildSubCategoryTabs() {
+  /// Horizontal tabs: level-2 children of the selected category
+  Widget _buildChildTabs() {
     return Obx(() {
-      if (storeController.isProductCategoryTreeLoading.value) {
-        return Padding(
-          padding: EdgeInsets.all(SizeConfig.size8),
-          child: const SizedBox(
-            height: 30,
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ),
-        );
-      }
+      final children = _selectedCategory.value?.children ?? [];
+      if (children.isEmpty) return const SizedBox.shrink();
 
-      if (storeController.productCategoryTreeList.isEmpty) {
-        return const SizedBox.shrink();
-      }
-
-      final selected = storeController.selectedProductSubCategory.value;
+      final selected = _selectedChild.value;
       final selectedIdx = selected == null
           ? 0
-          : storeController.productCategoryTreeList
-                .indexWhere((c) => c.sId == selected.sId);
+          : children.indexWhere((c) => c.sId == selected.sId);
 
       return Padding(
         padding: EdgeInsets.only(
@@ -204,7 +212,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
           right: SizeConfig.size8,
         ),
         child: HorizontalTabSelector<ProductNestedCategory>(
-          tabs: storeController.productCategoryTreeList,
+          tabs: children,
           selectedIndex: selectedIdx < 0 ? 0 : selectedIdx,
           labelBuilder: (item) => item.name ?? '',
           horizontalPadding: 8,
@@ -213,14 +221,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
           horizontalMargin: 0,
           unSelectedBackgroundColor: AppColors.white,
           unSelectedBorderColor: AppColors.greyE5,
-          onTabSelected: (index, label) {
-            final subCategory = storeController.productCategoryTreeList[index];
-            storeController.selectedProductSubCategory.value = subCategory;
-            controller.getAllProductNearBy(
-              providerType: _providerType,
-              productCategory: subCategory.key ?? _productCategory.value,
-            );
-          },
+          onTabSelected: (index, label) => _selectChild(children[index]),
         ),
       );
     });
@@ -237,7 +238,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
       if (productList.isEmpty) {
         return Center(
           child: EmptyStateWidget(
-            message: 'No ${_categories.firstWhereOrNull((c) => c.tagId == _productCategory.value)?.name ?? ''} products found',
+            message: 'No ${_selectedChild.value?.name ?? _selectedCategory.value?.name ?? ''} products found',
           ),
         );
       }
@@ -245,7 +246,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Store count chip
+          // Product count chip
           Padding(
             padding: EdgeInsets.only(
               top: SizeConfig.paddingS,
