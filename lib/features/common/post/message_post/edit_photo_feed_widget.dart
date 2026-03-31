@@ -19,6 +19,12 @@ class PhotoListingWidget extends StatelessWidget {
       backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
         title: "Edit photo",
+        onBackTap: () {
+          Get.off(() => MessagePostPreviewScreenNew(
+                postVia: PostVia.profile,
+                isEdit: false,
+              ));
+        },
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -32,13 +38,14 @@ class PhotoListingWidget extends StatelessWidget {
                 final msgController = Get.find<MessagePostController>();
 
                 if (msgController.imagesList.length < 1) {
-                  commonSnackBar(message: "At least 1 photo or video is required");
+                  commonSnackBar(
+                      message: "At least 1 photo or video is required");
                   return;
                 }
                 Get.off(() => MessagePostPreviewScreenNew(
-                  postVia: PostVia.profile,
-                  isEdit: false,
-                ));
+                      postVia: PostVia.profile,
+                      isEdit: false,
+                    ));
               },
               title: "Next"),
         ),

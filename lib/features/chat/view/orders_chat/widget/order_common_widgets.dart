@@ -17,12 +17,11 @@ import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 
 class OrderCommonWidget {
-
   static Future<void> showEnterOrderValueDialog(
       BuildContext context, String businessId, Messages message) async {
     final orderController = Get.put(OrderNowController());
-    if(message.metadata?.price!=null){
-      orderController.orderValueController.text=message.metadata?.price??'';
+    if (message.metadata?.price != null) {
+      orderController.orderValueController.text = message.metadata?.price ?? '';
     }
     await showDialog(
       context: context,
@@ -44,12 +43,13 @@ class OrderCommonWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
-                        textEditController: orderController.orderValueController,
+                        textEditController:
+                            orderController.orderValueController,
                         keyBoardType: TextInputType.number,
                         title: AppStrings.totalOrderValue,
                         hintText: "E.g  ₹400",
                         regularExpression:
-                        RegularExpressionUtils.alphanumericPattern,
+                            RegularExpressionUtils.alphanumericPattern,
                         isValidate: true,
                         onChange: (value) {
                           setState(() {});
@@ -63,7 +63,7 @@ class OrderCommonWidget {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                AppColors.grayText.withOpacity(0.04),
+                                    AppColors.grayText.withOpacity(0.04),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -90,10 +90,13 @@ class OrderCommonWidget {
                               ),
                               onPressed: hasOrderValue
                                   ? () {
-                                Navigator.pop(context);
-                                OrderCommonWidget.showPickupOptionDialog(
-                                    context, businessId, message,);
-                              }
+                                      Navigator.pop(context);
+                                      OrderCommonWidget.showPickupOptionDialog(
+                                        context,
+                                        businessId,
+                                        message,
+                                      );
+                                    }
                                   : null,
                               child: const CustomText(
                                 AppStrings.next,
@@ -115,26 +118,30 @@ class OrderCommonWidget {
     );
   }
 
-
   static Future<void> showPickupOptionDialog(
       BuildContext context, String businessId, Messages message) async {
     Get.dialog(
-      ChoosePickupAndDeliveryOption(businessId:businessId,message: message,),
+      ChoosePickupAndDeliveryOption(
+        businessId: businessId,
+        message: message,
+      ),
       barrierDismissible: false,
     );
-
   }
 }
 
 class ChoosePickupAndDeliveryOption extends StatefulWidget {
-  const ChoosePickupAndDeliveryOption({super.key, required this.businessId, required this.message});
+  const ChoosePickupAndDeliveryOption(
+      {super.key, required this.businessId, required this.message});
   final String businessId;
   final Messages message;
   @override
-  State<ChoosePickupAndDeliveryOption> createState() => _ChoosePickupAndDeliveryOptionState();
+  State<ChoosePickupAndDeliveryOption> createState() =>
+      _ChoosePickupAndDeliveryOptionState();
 }
 
-class _ChoosePickupAndDeliveryOptionState extends State<ChoosePickupAndDeliveryOption> {
+class _ChoosePickupAndDeliveryOptionState
+    extends State<ChoosePickupAndDeliveryOption> {
   String _selectedOptionId = '';
 
   @override
@@ -165,21 +172,24 @@ class _ChoosePickupAndDeliveryOptionState extends State<ChoosePickupAndDeliveryO
                     color: AppColors.mainTextColor,
                   ),
                 ),
-                IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close))
+                IconButton(
+                    onPressed: () => Get.back(), icon: const Icon(Icons.close))
               ],
             ),
             const SizedBox(height: 10),
 
             // 2. Loop through the list to build options
-            ...chooseDeliveryOptions.map((option) => Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: _buildDeliveryOption(
-                id: option['id']!,
-                icon: option['icon']!,
-                title: option['title']!,
-                subtitle: option['subtitle']!,
-              ),
-            )).toList(),
+            ...chooseDeliveryOptions
+                .map((option) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _buildDeliveryOption(
+                        id: option['id']!,
+                        icon: option['icon']!,
+                        title: option['title']!,
+                        subtitle: option['subtitle']!,
+                      ),
+                    ))
+                .toList(),
 
             const SizedBox(height: 10),
 
@@ -189,19 +199,22 @@ class _ChoosePickupAndDeliveryOptionState extends State<ChoosePickupAndDeliveryO
               child: CustomBtn(
                 onTap: _selectedOptionId.isNotEmpty
                     ? () {
-    if (_selectedOptionId != "SELF") {
-    Get.back();
-    Get.to(()=>AddressListScreen(
-    message: widget.message,
-    businessId: widget.businessId,
-    ));
-
-    } else {
-    final orderController = Get.put(OrderNowController());
-    orderController.createSelfPickupOrder(widget.message.id, widget.message.seller?.id, widget.message.conversationId,);
-    Get.back();
-    }
-                }
+                        if (_selectedOptionId != "SELF") {
+                          Navigator.pop(context);
+                          Get.to(() => AddressListScreen(
+                                message: widget.message,
+                                businessId: widget.businessId,
+                              ));
+                        } else {
+                          final orderController = Get.put(OrderNowController());
+                          orderController.createSelfPickupOrder(
+                            widget.message.id,
+                            widget.message.seller?.id,
+                            widget.message.conversationId,
+                          );
+                          Navigator.pop(context);
+                        }
+                      }
                     : null,
                 title: AppStrings.next,
                 height: SizeConfig.size35,
@@ -258,7 +271,9 @@ class _ChoosePickupAndDeliveryOptionState extends State<ChoosePickupAndDeliveryO
                     title,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? AppColors.mainTextColor : AppColors.secondaryTextColor,
+                    color: isSelected
+                        ? AppColors.mainTextColor
+                        : AppColors.secondaryTextColor,
                   ),
                   const SizedBox(height: 4),
                   CustomText(

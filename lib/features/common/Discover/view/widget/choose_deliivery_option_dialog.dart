@@ -17,10 +17,12 @@ class ChooseDeliveryOptionDialog extends StatefulWidget {
   const ChooseDeliveryOptionDialog({super.key, required this.proceedWith});
 
   @override
-  State<ChooseDeliveryOptionDialog> createState() => _ChooseDeliveryOptionDialogState();
+  State<ChooseDeliveryOptionDialog> createState() =>
+      _ChooseDeliveryOptionDialogState();
 }
 
-class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog> {
+class _ChooseDeliveryOptionDialogState
+    extends State<ChooseDeliveryOptionDialog> {
   String _selectedOptionId = '';
 
   @override
@@ -32,10 +34,10 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
       insetPadding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         padding: const EdgeInsets.only(
-            top: 8,
-            left: 16,
-            right: 16,
-            bottom: 16,
+          top: 8,
+          left: 16,
+          right: 16,
+          bottom: 16,
         ),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -56,21 +58,24 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
                     color: AppColors.mainTextColor,
                   ),
                 ),
-                IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close))
+                IconButton(
+                    onPressed: () => Get.back(), icon: const Icon(Icons.close))
               ],
             ),
             const SizedBox(height: 10),
 
             // 2. Loop through the list to build options
-            ...chooseDeliveryOptions.map((option) => Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: _buildDeliveryOption(
-                id: option['id']!,
-                icon: option['icon']!,
-                title: option['title']!,
-                subtitle: option['subtitle']!,
-              ),
-            )).toList(),
+            ...chooseDeliveryOptions
+                .map((option) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _buildDeliveryOption(
+                        id: option['id']!,
+                        icon: option['icon']!,
+                        title: option['title']!,
+                        subtitle: option['subtitle']!,
+                      ),
+                    ))
+                .toList(),
 
             // const SizedBox(height: 10),
             //
@@ -87,7 +92,6 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
             //     isValidate: _selectedOptionId.isNotEmpty,
             //   ),
             // )
-
           ],
         ),
       ),
@@ -108,18 +112,20 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
       child: InkWell(
         onTap: () {
           // setState(() {
-            _selectedOptionId = id;
+          _selectedOptionId = id;
           // });
-          if(_selectedOptionId == 'SELF'){
+          if (_selectedOptionId == 'SELF') {
             bool isGrocery = widget.proceedWith == 'GROCERY_STATIONARY';
             navigateToGroceryOrFoodStore(
-              categories: isGrocery ? groceriesCategories : businessOnboardingFoodsCategories,
-              isGrocery: isGrocery
-            );
+                categories: isGrocery
+                    ? groceriesCategories
+                    : businessOnboardingFoodsCategories,
+                isGrocery: isGrocery);
             // Get.to(()=> SelfPickupStoreScreen());
-          }else if(_selectedOptionId == 'RIDER'){
-            Get.to(()=> AddGroceryViaRiderCategoryScreen());
-            }
+          } else if (_selectedOptionId == 'RIDER') {
+            Navigator.pop(context);
+            Get.to(() => AddGroceryViaRiderCategoryScreen());
+          }
           // else{
           //   Get.to(()=> FranchiseHome(
           //       // onBackPressed: (){
@@ -203,5 +209,4 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
       },
     );
   }
-
 }

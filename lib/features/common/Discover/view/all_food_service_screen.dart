@@ -29,42 +29,66 @@ class AllFoodServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
   final OnboardingCategoryModel? selectedProfessionConsultantData;
 
-  const AllFoodServiceScreen(
-      {super.key,
-      required this.professionalConsultantCategories,
-      this.selectedProfessionConsultantData});
+  const AllFoodServiceScreen({
+    super.key,
+    required this.professionalConsultantCategories,
+    this.selectedProfessionConsultantData,
+  });
 
   @override
-  State<AllFoodServiceScreen> createState() =>
-      _AllFoodServiceScreenState();
+  State<AllFoodServiceScreen> createState() => _AllFoodServiceScreenState();
 }
 
 class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
   final controller_ = getOrPut(() => DiscoverController());
   late List<OnboardingCategoryModel> _professionalConsultantCategories;
-  ScrollController scrollController = ScrollController();
+  late ScrollController scrollController;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
+    scrollController = ScrollController();
     _professionalConsultantCategories = widget.professionalConsultantCategories;
-    controller_.selectedFoodServiceData.value =
-        widget.selectedProfessionConsultantData;
-    controller_.fetchFoodRestaurantService();
+
+    // Reset and clear existing data before setting new category
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Clear existing data and reset loading state
+      controller_.foodRestaurantDataList.clear();
+      controller_.isFoodRestaurantLoading.value = true;
+      controller_.isEducationServiceLoadingMore.value = false;
+
+      // Set the selected category
+      controller_.selectedFoodServiceData.value =
+          widget.selectedProfessionConsultantData;
+
+      // Fetch new data for the selected category
+      controller_.fetchFoodRestaurantService();
+    });
 
     // Listener for Pagination
     scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-        controller_.fetchFoodRestaurantService(isLoadMore: true);
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200) {
+        if (!controller_.isFoodRestaurantLoadingMore.value &&
+            !controller_.isFoodRestaurantLoading.value) {
+          controller_.fetchFoodRestaurantService(isLoadMore: true);
+        }
       }
     });
   }
 
   @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+      appBar: CommonBackAppBar(
+        buildCustomActionWidget: () => const DiscoverCartIcon(),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -79,10 +103,11 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                   horizontal: SizeConfig.size10,
                 ),
                 decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(color: AppColors.greyE5, width: 1.2),
-                    boxShadow: [AppShadows.textFieldShadow]),
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: AppColors.greyE5, width: 1.2),
+                  boxShadow: [AppShadows.textFieldShadow],
+                ),
                 child: Row(
                   children: [
                     LocalAssets(
@@ -91,10 +116,12 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                       width: SizeConfig.size30,
                     ),
                     SizedBox(width: SizeConfig.size10),
-                    CustomText(AppStrings.bookViaBlueEraPartner,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400),
+                    CustomText(
+                      AppStrings.bookViaBlueEraPartner,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ],
                 ),
               ),
@@ -113,7 +140,7 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                   Expanded(child: rightContent()),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -139,17 +166,22 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
         if (item.slugId == 'ALL_OPTION') {
           return controller_.selectedFoodServiceData.value == null;
         }
-        return controller_.selectedFoodServiceData.value?.slugId ==
-            item.slugId;
+        return controller_.selectedFoodServiceData.value?.slugId == item.slugId;
       },
       onTap: (item, index) {
         controller_.selectedTabIndex.value = index;
+
+        // Clear existing data and show loading
+        controller_.foodRestaurantDataList.clear();
+        controller_.isFoodRestaurantLoading.value = true;
+        controller_.isEducationServiceLoadingMore.value = false;
 
         if (item.slugId == 'ALL_OPTION') {
           controller_.selectedFoodServiceData.value = null;
         } else {
           controller_.selectedFoodServiceData.value = item;
         }
+
         // Single API Call (Clean & Shared)
         controller_.fetchFoodRestaurantService();
       },
@@ -162,45 +194,45 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Expanded(
             child: Obx(() {
+              // Show loading only when initial load and no data
               if (controller_.isFoodRestaurantLoading.value &&
                   controller_.foodRestaurantDataList.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
               }
 
+              // Show empty state when no data found
               if (controller_.foodRestaurantDataList.isEmpty) {
                 return Center(
-                    child: EmptyStateWidget(message: "No services found"));
+                  child: EmptyStateWidget(message: "No services found"),
+                );
               }
 
               return ListView.builder(
-                  controller: scrollController,
-                  itemCount: controller_.foodRestaurantDataList.length +
-                      (controller_.isEducationServiceLoadingMore.value
-                          ? 1
-                          : 0),
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-                  itemBuilder: (context, index) {
-                    if (index ==
-                        controller_.foodRestaurantDataList.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    }
+                controller: scrollController,
+                itemCount: controller_.foodRestaurantDataList.length +
+                    (controller_.isEducationServiceLoadingMore.value ? 1 : 0),
+                shrinkWrap: true,
+                padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
+                itemBuilder: (context, index) {
+                  if (index == controller_.foodRestaurantDataList.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  }
 
-                    var service =
-                    controller_.foodRestaurantDataList[index];
-
-                    return selfProfessionCard(service);
-                  });
+                  var service = controller_.foodRestaurantDataList[index];
+                  return selfProfessionCard(service);
+                },
+              );
             }),
-          )
+          ),
         ],
       ),
     );
@@ -210,34 +242,36 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
     return InkWell(
       onTap: () {
         if (service.businessProfile?.id == null) return;
-        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: service.businessProfile!.id!));
+        Get.to(() => OtherFoodStoreDetailsScreen(
+              visitBusinessId: service.businessProfile!.id!,
+            ));
       },
       child: CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          margin: EdgeInsets.only(bottom: SizeConfig.size10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CachedAvatarWidget(
-                    imageUrl: service.businessProfile?.logo ?? '',
-                    size: SizeConfig.size40,
-                    borderColor: Colors.white,
-                    borderRadius: SizeConfig.size20,
-                  ),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(
-                      child: Column(
+        padding: EdgeInsets.all(SizeConfig.size10),
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CachedAvatarWidget(
+                  imageUrl: service.businessProfile?.logo ?? '',
+                  size: SizeConfig.size40,
+                  borderColor: Colors.white,
+                  borderRadius: SizeConfig.size20,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText( service.businessProfile?.businessName ?? 'N/A',
-                          // fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600),
-                      // SizedBox(height: SizeConfig.size6),
+                      CustomText(
+                        service.businessProfile?.businessName ?? 'N/A',
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                       CustomText(
                         service.businessProfile?.typeOfBusiness ?? 'N/A',
                         fontSize: SizeConfig.small,
@@ -245,38 +279,33 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                         overflow: TextOverflow.ellipsis,
                         color: AppColors.mainTextColor,
                       ),
-                      // CommonRatingRow(
-                      //   rating: double.tryParse(service.rating.toString()) ?? 0.0,
-                      //   reviews: service.reviewCount ?? 0,
-                      //   distance: '${service.distance ?? 0} KM',
-                      // )
                     ],
-                  )),
-                  // Icon(Icons.more_vert, color: AppColors.black)
-                ],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LocalAssets(imagePath: AppIconAssets.location_new),
-                  SizedBox(width: SizeConfig.size8),
-                  Expanded(
-                    child: CustomText(
-                      (service.businessProfile?.address?.isNotEmpty??false)?(service.businessProfile?.address??"N/A"):"N/A",
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                      maxLines: 2,
-                    ),
                   ),
-                ],
-              ),
-
-            ],
-          )),
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                LocalAssets(imagePath: AppIconAssets.location_new),
+                SizedBox(width: SizeConfig.size8),
+                Expanded(
+                  child: CustomText(
+                    (service.businessProfile?.address?.isNotEmpty ?? false)
+                        ? (service.businessProfile?.address ?? "N/A")
+                        : "N/A",
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
-
-
 }

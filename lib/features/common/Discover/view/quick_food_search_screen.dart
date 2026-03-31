@@ -10,6 +10,8 @@ import 'package:BlueEra/features/common/Discover/view/all_food_service_screen.da
 import 'package:BlueEra/features/me/food/view/other_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -115,7 +117,8 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  LocationService.userCurrentAddress.value.subLocality.isNotEmpty
+                  LocationService
+                          .userCurrentAddress.value.subLocality.isNotEmpty
                       ? LocationService.userCurrentAddress.value.subLocality
                       : 'Current Location',
                   fontWeight: FontWeight.w700,
@@ -152,7 +155,18 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
       ),
       child: InkWell(
         onTap: () {
-          // Navigate to search screen if available
+          final chat = ChatViewController.foodAiChatListSearchModule;
+          Get.to(() => AiCommonSearchScreen(
+                chatType: AppConstants.askFood_Chat_Type,
+                profileImage: chat?.sender?.profileImage,
+                name: chat?.sender?.name,
+                contactNo: chat?.sender?.contactNo,
+                conversationId: '',
+                userId: '',
+                businessId: '',
+                type: chat?.sender?.accountType,
+                isInitialMessage: false,
+              ));
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -221,8 +235,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
                 itemCount: categories.length,
-                separatorBuilder: (_, __) =>
-                    SizedBox(width: SizeConfig.size16),
+                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size16),
                 itemBuilder: (context, index) {
                   return _buildCategoryItem(categories[index]);
                 },
@@ -238,16 +251,25 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return InkWell(
       onTap: () {
         // Find matching onboarding category by name for navigation
-        final matchingCategory = businessOnboardingFoodsCategories
-            .firstWhereOrNull((c) =>
+        final matchingCategory =
+            businessOnboardingFoodsCategories.firstWhereOrNull((c) =>
                 c.name.replaceAll('\n', ' ').toLowerCase() ==
                 (category.name ?? '').toLowerCase());
+
+        // Clear any existing data before navigation to ensure fresh load
+        controller.foodRestaurantDataList.clear();
+        controller.isFoodRestaurantLoading.value = true;
+
         Get.to(() => AllFoodServiceScreen(
               professionalConsultantCategories:
                   businessOnboardingFoodsCategories,
               selectedProfessionConsultantData:
                   matchingCategory ?? businessOnboardingFoodsCategories.first,
-            ));
+            ))?.then((_) {
+          // Restore generic mapping when coming back
+          controller.selectedFoodServiceData.value = null;
+          controller.fetchFoodRestaurantService();
+        });
       },
       child: SizedBox(
         width: 70,
@@ -363,7 +385,8 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return InkWell(
       onTap: () {
         if (restaurant.businessProfile?.id == null) return;
-        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
+        Get.to(() => OtherFoodStoreDetailsScreen(
+            visitBusinessId: restaurant.businessProfile!.id!));
       },
       child: SizedBox(
         width: 150,
@@ -544,7 +567,8 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return InkWell(
       onTap: () {
         if (restaurant.businessProfile?.id == null) return;
-        Get.to(() => OtherFoodStoreDetailsScreen(visitBusinessId: restaurant.businessProfile!.id!));
+        Get.to(() => OtherFoodStoreDetailsScreen(
+            visitBusinessId: restaurant.businessProfile!.id!));
       },
       child: Container(
         color: AppColors.white,
