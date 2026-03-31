@@ -6,7 +6,10 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -14,58 +17,46 @@ import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class AllProductStoreScreen extends StatefulWidget {
-  final bool isShowInGrid;
-  final ProviderType? providerType;
+class AllBusinessProductsScreen extends StatefulWidget {
   final String? productCategoryName;
   final String? productCategory;
+  final bool isShowInGrid;
 
-  const AllProductStoreScreen({
+  const AllBusinessProductsScreen({
     super.key,
-    required this.isShowInGrid,
-    this.providerType,
     this.productCategoryName,
     this.productCategory,
+    this.isShowInGrid = true,
   });
 
   @override
-  State<AllProductStoreScreen> createState() => _AllProductStoreScreenState();
+  State<AllBusinessProductsScreen> createState() => _AllBusinessProductsScreenState();
 }
 
-class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
+class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
   final controller = getOrPut(() => DiscoverController());
+  final storeController = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
-  ProviderType? _providerType;
-  String? _productCategory;
-  String? _productCategoryName;
-  final List<OnboardingCategoryModel> _categories = businessProductsCategories;
-  final RxInt _selectedIndex = 0.obs;
+  late ProviderType _providerType;
+  final RxnString _productCategory = RxnString();
+
+  List<CategoryData> get _categories => Get.find<AuthController>().businessOnboardingProductsCategories;
 
   @override
   void initState() {
     super.initState();
-    _providerType = widget.providerType;
+    _providerType = ProviderType.business;
 
-    // Use passed category or default to first
-    if (widget.productCategory != null) {
-      _productCategory = widget.productCategory;
-      _productCategoryName = widget.productCategoryName;
-      // Find matching index
-      final idx = _categories.indexWhere((c) => c.slugId == _productCategory);
-      if (idx >= 0) _selectedIndex.value = idx;
-    } else {
-      _productCategory = _categories.first.slugId;
-      _productCategoryName = _categories.first.name;
-    }
+    _productCategory.value = widget.productCategory ??
+        (_categories.isNotEmpty ? _categories.first.tagId : null);
 
-    controller.getAllProductNearBy(
-      providerType: _providerType,
-      productCategory: _productCategory,
-    );
+    storeController.selectedProductSubCategory.value = null;
+    _fetchSubCategoriesAndProducts();
 
     storesScrollController.addListener(_onLoadMore);
   }
@@ -82,20 +73,35 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
         storesScrollController.position.maxScrollExtent - 200) {
       controller.getAllProductNearBy(
         providerType: _providerType,
-        productCategory: _productCategory,
+        productCategory: storeController.selectedProductSubCategory.value?.key ?? _productCategory.value,
         isLoadMore: true,
       );
     }
   }
 
-  void _onCategoryTap(OnboardingCategoryModel item, int index) {
-    _selectedIndex.value = index;
-    _productCategory = item.slugId;
-    _productCategoryName = item.name;
-    controller.getAllProductNearBy(
-      providerType: _providerType,
-      productCategory: _productCategory,
-    );
+  void _fetchSubCategoriesAndProducts() {
+    if (_productCategory.value == null) return;
+    storeController.fetchProductCategoryTree(group: _productCategory.value!).then((_) {
+      if (storeController.productCategoryTreeList.isNotEmpty) {
+        storeController.selectedProductSubCategory.value =
+            storeController.productCategoryTreeList.first;
+        controller.getAllProductNearBy(
+          providerType: _providerType,
+          productCategory: storeController.productCategoryTreeList.first.key,
+        );
+      } else {
+        controller.getAllProductNearBy(
+          providerType: _providerType,
+          productCategory: _productCategory.value,
+        );
+      }
+    });
+  }
+
+  void _onCategoryTap(CategoryData item, int index) {
+    _productCategory.value = item.tagId;
+    storeController.selectedProductSubCategory.value = null;
+    _fetchSubCategoriesAndProducts();
   }
 
   @override
@@ -103,10 +109,8 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () => Obx(() {
-          final idx = _selectedIndex.value;
-          final name = (idx >= 0 && idx < _categories.length)
-              ? _categories[idx].name
-              : AppStrings.tab_product;
+          final match = _categories.firstWhereOrNull((c) => c.tagId == _productCategory.value);
+          final name = match?.name ?? AppStrings.tab_product;
           return Text(
             name,
             style: const TextStyle(
@@ -148,7 +152,14 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
           children: [
             _buildCategoryList(),
             SizedBox(width: SizeConfig.size6),
-            Expanded(child: _buildProductContent()),
+            Expanded(
+              child: Column(
+                children: [
+                  _buildSubCategoryTabs(),
+                  Expanded(child: _buildProductContent()),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -156,16 +167,63 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
   }
 
   Widget _buildCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
+    return CommonGenericLeftSideCategoryList<CategoryData>(
       items: _categories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
-      isSelected: (item) {
-        final idx = _categories.indexOf(item);
-        return _selectedIndex.value == idx;
-      },
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => item.imageUrl ?? '',
+      isSelected: (item) => _productCategory.value == item.tagId,
       onTap: _onCategoryTap,
     );
+  }
+
+  Widget _buildSubCategoryTabs() {
+    return Obx(() {
+      if (storeController.isProductCategoryTreeLoading.value) {
+        return Padding(
+          padding: EdgeInsets.all(SizeConfig.size8),
+          child: const SizedBox(
+            height: 30,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+        );
+      }
+
+      if (storeController.productCategoryTreeList.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final selected = storeController.selectedProductSubCategory.value;
+      final selectedIdx = selected == null
+          ? 0
+          : storeController.productCategoryTreeList
+                .indexWhere((c) => c.sId == selected.sId);
+
+      return Padding(
+        padding: EdgeInsets.only(
+          top: SizeConfig.size8,
+          right: SizeConfig.size8,
+        ),
+        child: HorizontalTabSelector<ProductNestedCategory>(
+          tabs: storeController.productCategoryTreeList,
+          selectedIndex: selectedIdx < 0 ? 0 : selectedIdx,
+          labelBuilder: (item) => item.name ?? '',
+          horizontalPadding: 8,
+          verticalPadding: 6,
+          verticalMargin: 0,
+          horizontalMargin: 0,
+          unSelectedBackgroundColor: AppColors.white,
+          unSelectedBorderColor: AppColors.greyE5,
+          onTabSelected: (index, label) {
+            final subCategory = storeController.productCategoryTreeList[index];
+            storeController.selectedProductSubCategory.value = subCategory;
+            controller.getAllProductNearBy(
+              providerType: _providerType,
+              productCategory: subCategory.key ?? _productCategory.value,
+            );
+          },
+        ),
+      );
+    });
   }
 
   Widget _buildProductContent() {
@@ -179,9 +237,7 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
       if (productList.isEmpty) {
         return Center(
           child: EmptyStateWidget(
-            message: _productCategoryName == null
-                ? AppStrings.notFoundAnyProduct
-                : 'No $_productCategoryName products found',
+            message: 'No ${_categories.firstWhereOrNull((c) => c.tagId == _productCategory.value)?.name ?? ''} products found',
           ),
         );
       }

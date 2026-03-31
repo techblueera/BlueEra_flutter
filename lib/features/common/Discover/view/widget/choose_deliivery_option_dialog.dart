@@ -1,9 +1,7 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/add_grocery_via_rider_category_screen.dart';
@@ -110,9 +108,7 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
             _selectedOptionId = id;
           // });
           if(_selectedOptionId == 'SELF'){
-            navigateToGroceryStore(
-              categories: groceriesCategories,
-            );
+            navigateToGroceryStore();
             // Get.to(()=> SelfPickupStoreScreen());
           }else if(_selectedOptionId == 'RIDER'){
             Get.to(()=> AddGroceryViaRiderCategoryScreen());
@@ -186,18 +182,9 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
     );
   }
 
-  void navigateToGroceryStore({
-    required List<OnboardingCategoryModel> categories,
-    // required var categoryData,
-    bool isGrocery = true,
-  }) {
+  void navigateToGroceryStore() {
     Get.offNamed(
       RouteHelper.getGroceryStoresScreenRoute(),
-      arguments: {
-        ApiKeys.argCategories: categories,
-        // ApiKeys.argCategoryData: categoryData,
-        ApiKeys.argIsGroceryStore: isGrocery,
-      },
     );
   }
 

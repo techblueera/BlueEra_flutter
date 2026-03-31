@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/Discover/widget/generic_left_side_catego
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -28,12 +29,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
-import '../../../../core/constants/app_enum.dart';
 
 // ─── AllSelfProfessionScreen ───
 class AllSelfProfessionScreen extends StatefulWidget {
-  final List<OnboardingCategoryModel> selfEmployedCategories;
-  final OnboardingCategoryModel? selectedSelfProfessionData;
+  final List<ProfessionTypeData> selfEmployedCategories;
+  final ProfessionTypeData? selectedSelfProfessionData;
 
   const AllSelfProfessionScreen({
     super.key,
@@ -48,7 +48,7 @@ class AllSelfProfessionScreen extends StatefulWidget {
 
 class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   final controller = getOrPut(() => DiscoverController());
-  late List<OnboardingCategoryModel> _selfEmployedCategories;
+  late List<ProfessionTypeData> _selfEmployedCategories;
   final ScrollController scrollController = ScrollController();
   final String serviceSubType = EarnServiceTypes.selfWork.label;
   final String earnServiceType = AppConstants.service;
@@ -57,8 +57,14 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   void initState() {
     super.initState();
     _selfEmployedCategories = widget.selfEmployedCategories;
-    controller.selectedEarnServiceData.value =
-        widget.selectedSelfProfessionData;
+    final selected = widget.selectedSelfProfessionData;
+    controller.selectedEarnServiceData.value = selected != null
+        ? OnboardingCategoryModel(
+            name: selected.name ?? '',
+            slugId: selected.tagId ?? '',
+            accountType: AppConstants.individual,
+          )
+        : null;
     controller.fetchEarnServices(
         earnServiceType: earnServiceType, subType: serviceSubType);
     scrollController.addListener(() {
@@ -166,28 +172,32 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   }
 
   Widget leftCategoryList() {
-    final allItem = OnboardingCategoryModel(
+    final allItem = ProfessionTypeData(
       name: 'All',
-      slugId: 'ALL_OPTION',
-      icon: AppImageAssets.all,
-      individualType: IndividualProfileType.SELF_EMPLOYED,
-      accountType: AppConstants.individual,
+      tagId: 'ALL_OPTION',
+      imageUrl: AppImageAssets.all,
     );
     final fullList = [allItem, ..._selfEmployedCategories];
 
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
+    return CommonGenericLeftSideCategoryList<ProfessionTypeData>(
       items: fullList,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => getIndividualProfessionIcon(item.tagId).isNotEmpty
+          ? getIndividualProfessionIcon(item.tagId)
+          : item.imageUrl ?? '',
       isSelected: (item) {
-        if (item.slugId == 'ALL_OPTION')
+        if (item.tagId == 'ALL_OPTION')
           return controller.selectedEarnServiceData.value == null;
-        return controller.selectedEarnServiceData.value?.slugId == item.slugId;
+        return controller.selectedEarnServiceData.value?.slugId == item.tagId;
       },
       onTap: (item, index) {
         controller.selectedTabIndex.value = index;
         controller.selectedEarnServiceData.value =
-            item.slugId == 'ALL_OPTION' ? null : item;
+            item.tagId == 'ALL_OPTION' ? null : OnboardingCategoryModel(
+              name: item.name ?? '',
+              slugId: item.tagId ?? '',
+              accountType: AppConstants.individual,
+            );
         controller.fetchEarnServices(
             earnServiceType: earnServiceType, subType: serviceSubType);
       },

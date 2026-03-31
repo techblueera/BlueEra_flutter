@@ -41,6 +41,7 @@ class SchoolRepo extends BaseService {
   Future<ResponseModel> getSearchFoodRepo({required String reqParm}) async {
     final response = await ApiBaseHelper().getHTTP("food-service/api/home/category-page/${reqParm}",
         // params: reqParm,
+        showProgress: false,
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }

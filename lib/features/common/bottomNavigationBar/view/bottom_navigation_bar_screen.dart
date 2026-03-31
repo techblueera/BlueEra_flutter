@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
@@ -107,7 +108,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     //   _checkAndShowDialog();
     // }
     _checkAndFetchLocationData();
-    // _getAllBusinessCategories();
+    _getAllCategories();
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
@@ -179,9 +180,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     await LocationService.fetchLocation();
   }
 
-  // void _getAllBusinessCategories() {
-  //   bottomBarController.getAllCategories();
-  // }
+  void _getAllCategories() {
+    final authController = Get.find<AuthController>();
+    authController.getAllBusinessCategories();
+    authController.getAllIndividualProfession();
+  }
 
   void _initializeControllers() {
     if (!isGuestUser()) {

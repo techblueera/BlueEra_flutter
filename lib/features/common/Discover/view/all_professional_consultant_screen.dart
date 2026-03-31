@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/discover_profession
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -25,11 +26,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
-import '../../../../core/constants/app_enum.dart';
 
 class AllProfessionConsultantScreen extends StatefulWidget {
-  final List<OnboardingCategoryModel> professionalConsultantCategories;
-  final OnboardingCategoryModel? selectedProfessionConsultantData;
+  final List<ProfessionTypeData> professionalConsultantCategories;
+  final ProfessionTypeData? selectedProfessionConsultantData;
 
   const AllProfessionConsultantScreen(
       {super.key,
@@ -44,15 +44,21 @@ class AllProfessionConsultantScreen extends StatefulWidget {
 class _AllProfessionConsultantScreenState
     extends State<AllProfessionConsultantScreen> {
   final controller = getOrPut(() => DiscoverController());
-  late List<OnboardingCategoryModel> _professionalConsultantCategories;
+  late List<ProfessionTypeData> _professionalConsultantCategories;
   ScrollController scrollController = ScrollController();
 
   @override
   initState() {
     super.initState();
     _professionalConsultantCategories = widget.professionalConsultantCategories;
-    controller.selectedProfessionalConsultantData.value =
-        widget.selectedProfessionConsultantData;
+    final selected = widget.selectedProfessionConsultantData;
+    controller.selectedProfessionalConsultantData.value = selected != null
+        ? OnboardingCategoryModel(
+            name: selected.name ?? '',
+            slugId: selected.tagId ?? '',
+            accountType: AppConstants.individual,
+          )
+        : null;
     controller.fetchProfessionalConsultantServices();
 
     // Listener for Pagination
@@ -71,39 +77,72 @@ class _AllProfessionConsultantScreenState
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(
-              height: SizeConfig.paddingM,
-            ),
+            // ─── Book via BlueEra Partner Banner ───
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size10,
-                  horizontal: SizeConfig.size10,
-                ),
-                decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(color: AppColors.greyE5, width: 1.2),
-                    boxShadow: [AppShadows.textFieldShadow]),
-                child: Row(
-                  children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.franchiseIcon,
-                      height: SizeConfig.size30,
-                      width: SizeConfig.size30,
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+              child: InkWell(
+                onTap: () {},
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                      vertical: SizeConfig.size10,
+                      horizontal: SizeConfig.size12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.08),
+                        AppColors.primaryColor.withValues(alpha: 0.03),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
                     ),
-                    SizedBox(width: SizeConfig.size10),
-                    CustomText(AppStrings.bookViaBlueEraPartner,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400),
-                  ],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.primaryColor.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.franchiseIcon,
+                          height: SizeConfig.size20,
+                          width: SizeConfig.size20,
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              AppStrings.bookViaBlueEraPartner,
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            CustomText(
+                              'Verified professionals near you',
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded,
+                          size: 14, color: AppColors.primaryColor),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: SizeConfig.paddingXSL,
             ),
             Expanded(
               child: Row(
@@ -124,34 +163,38 @@ class _AllProfessionConsultantScreenState
   }
 
   Widget leftCategoryList() {
-    final allItem = OnboardingCategoryModel(
+    final allItem = ProfessionTypeData(
       name: 'All',
-      slugId: 'ALL_OPTION',
-      icon: AppImageAssets.all,
-      individualType: IndividualProfileType.PROFESSIONAL,
-      accountType: AppConstants.individual,
+      tagId: 'ALL_OPTION',
+      imageUrl: AppImageAssets.all,
     );
 
     final fullList = [allItem, ..._professionalConsultantCategories];
 
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
+    return CommonGenericLeftSideCategoryList<ProfessionTypeData>(
       items: fullList,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => getIndividualProfessionIcon(item.tagId).isNotEmpty
+          ? getIndividualProfessionIcon(item.tagId)
+          : item.imageUrl ?? '',
       isSelected: (item) {
-        if (item.slugId == 'ALL_OPTION') {
+        if (item.tagId == 'ALL_OPTION') {
           return controller.selectedProfessionalConsultantData.value == null;
         }
         return controller.selectedProfessionalConsultantData.value?.slugId ==
-            item.slugId;
+            item.tagId;
       },
       onTap: (item, index) {
         controller.selectedTabIndex.value = index;
 
-        if (item.slugId == 'ALL_OPTION') {
+        if (item.tagId == 'ALL_OPTION') {
           controller.selectedProfessionalConsultantData.value = null;
         } else {
-          controller.selectedProfessionalConsultantData.value = item;
+          controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
+            name: item.name ?? '',
+            slugId: item.tagId ?? '',
+            accountType: AppConstants.individual,
+          );
         }
         // Single API Call (Clean & Shared)
         controller.fetchProfessionalConsultantServices();
