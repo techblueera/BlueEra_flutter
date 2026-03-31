@@ -123,67 +123,67 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       child: Obx(() {
         final selectedIdx = selectedCategoryIndex.value;
         return ListView.builder(
-            padding: const EdgeInsets.only(top: 8, bottom: 20),
-            itemCount: _categories.length,
-            itemBuilder: (context, index) {
-              final isSelected = selectedIdx == index;
-              return GestureDetector(
-                onTap: () => selectedCategoryIndex.value = index,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primaryColor.withValues(alpha: 0.06)
-                        : Colors.transparent,
-                    border: Border(
-                      left: BorderSide(
-                        color: isSelected
-                            ? AppColors.primaryColor
-                            : Colors.transparent,
-                        width: 3,
-                      ),
+          padding: const EdgeInsets.only(top: 8, bottom: 20),
+          itemCount: _categories.length,
+          itemBuilder: (context, index) {
+            final isSelected = selectedIdx == index;
+            return GestureDetector(
+              onTap: () => selectedCategoryIndex.value = index,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primaryColor.withValues(alpha: 0.06)
+                      : Colors.transparent,
+                  border: Border(
+                    left: BorderSide(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : Colors.transparent,
+                      width: 3,
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSelected
-                              ? AppColors.primaryColor.withValues(alpha: 0.15)
-                              : AppColors.fillColor,
-                        ),
-                        child: Icon(
-                          _categoryIcons[index],
-                          size: 22,
-                          color: isSelected
-                              ? AppColors.primaryColor
-                              : AppColors.secondaryTextColor,
-                        ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? AppColors.primaryColor.withValues(alpha: 0.15)
+                            : AppColors.fillColor,
                       ),
-                      const SizedBox(height: 5),
-                      CustomText(
-                        _categories[index],
-                        fontSize: 10,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                      child: Icon(
+                        _categoryIcons[index],
+                        size: 22,
                         color: isSelected
                             ? AppColors.primaryColor
                             : AppColors.secondaryTextColor,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 5),
+                    CustomText(
+                      _categories[index],
+                      fontSize: 10,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : AppColors.secondaryTextColor,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              );
-            },
-          );
-        }),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 
@@ -206,42 +206,37 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       child: Obx(() {
         final selected = selectedFilterIndex.value;
         return ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(right: 8),
-            itemCount: _filterTabs.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              final isSelected = selected == index;
-              return GestureDetector(
-                onTap: () => selectedFilterIndex.value = index,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primaryColor
-                        : AppColors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primaryColor
-                          : AppColors.greyE5,
-                      width: 1,
-                    ),
-                  ),
-                  child: CustomText(
-                    _filterTabs[index],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.white
-                        : AppColors.mainTextColor,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: 8),
+          itemCount: _filterTabs.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final isSelected = selected == index;
+            return GestureDetector(
+              onTap: () => selectedFilterIndex.value = index,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primaryColor : AppColors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color:
+                        isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                    width: 1,
                   ),
                 ),
-              );
-            },
-          );
-        }),
+                child: CustomText(
+                  _filterTabs[index],
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? AppColors.white : AppColors.mainTextColor,
+                ),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 
