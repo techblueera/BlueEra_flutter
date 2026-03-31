@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -16,8 +15,8 @@ import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/services/location/location_service.dart';
 
-import '../../../../chat/auth/controller/call_controller.dart';
 import '../../controller/discover_controller.dart';
+import 'fare_call_queue_screen.dart';
 import '../../model/get_booking_rider_model.dart';
 
 class BookTransportMain extends StatefulWidget {
@@ -118,127 +117,6 @@ class _BookTransportMainState extends State<BookTransportMain> {
     return (distanceMeters * roadFactor) / 1000;
   }
 
-  Future<void> _initiateCallToRider(RiderUser rider, CallType type) async {
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController());
-    }
-    final callController = Get.find<CallController>();
-
-    final success = await callController.initiateCall(
-      type: type,
-      otherUserId: rider.riderId,
-      userName: rider.name ?? 'Rider',
-      userImage: rider.profileImage ?? '',
-    );
-
-    if (success) {
-      Get.toNamed('/CallRoomScreen');
-    }
-  }
-
-  void _showCallOptionsSheet(RiderUser rider) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                _callOptionTile(
-                  icon: Icons.call,
-                  iconColor: Colors.green,
-                  title: 'Voice Call',
-                  subtitle: 'Call encrypted no contact share',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _initiateCallToRider(rider, CallType.audio);
-                  },
-                ),
-                const SizedBox(height: 10),
-                _callOptionTile(
-                  icon: Icons.videocam,
-                  iconColor: Colors.blue,
-                  title: 'Video Call',
-                  subtitle: 'Video call encrypted no contact share',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _initiateCallToRider(rider, CallType.video);
-                  },
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _callOptionTile({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: TextStyle(
-                          fontSize: 12, color: AppColors.grayText)),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios,
-                size: 14, color: AppColors.grayText),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _editAddress() {
     Get.off(() => SearchTransportAddress(
           onPlaceSelected: () {},
@@ -264,11 +142,14 @@ class _BookTransportMainState extends State<BookTransportMain> {
                   final success =
                       await discoverController.makeTransportBookOrderApi();
                   if (success && discoverController.selectedRiders.isNotEmpty) {
-                    _showCallOptionsSheet(
-                        discoverController.selectedRiders.first);
+                    // Setup queue listeners and navigate to calling progress screen
+                    discoverController.setupFareCallQueueListeners();
+                    Get.to(() => FareCallQueueScreen(
+                          orderId: discoverController.fareCallOrderId.value,
+                        ));
                   }
                 },
-                title: "@"),
+                title: "Call to Rider"),
           ),
         ),
         body: SingleChildScrollView(

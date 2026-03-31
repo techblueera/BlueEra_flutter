@@ -48,7 +48,7 @@ class _OrderCardState extends State<OrderCard> {
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => DeliverPartnerOrdersController());
-    log("dskjnckjsncs ${widget.order.toJson()}");
+
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
       padding: EdgeInsets.all(SizeConfig.size10),

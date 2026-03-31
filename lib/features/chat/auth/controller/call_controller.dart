@@ -22,6 +22,7 @@ import '../../../../core/services/app_notification.dart';
 
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
+import '../repo/make_order_repo.dart';
 import '../service/call_activity_service.dart';
 import '../service/overlay_service.dart';
 import '../service/socket_keep_alive_service.dart';
@@ -57,6 +58,11 @@ class CallController extends GetxController {
   var conversationId = ''.obs;
   var isCaller = false.obs;
   var isGroupCall = false.obs;
+
+  // --- Fare-call ride state ---
+  var isFareCall = false.obs;
+  var fareCallOrderId = ''.obs;
+  var fareCallRideDetails = Rxn<Map<String, dynamic>>();
 
   // Media toggles
   var isMicOn = true.obs;
@@ -398,6 +404,26 @@ class CallController extends GetxController {
     remoteUserImage.value = callerImage.value;
     _remoteUserId = data['initiated_by'] ?? '';
     callStatus.value = CallStatus.ringing;
+
+    // Check if this is a fare-call (ride request via call)
+    final metadata = data['metadata'];
+    if (metadata != null && metadata['orderType'] == 'fare-call') {
+      isFareCall.value = true;
+      fareCallOrderId.value = metadata['orderId'] ?? '';
+      fareCallRideDetails.value = metadata['rideDetails'] != null
+          ? Map<String, dynamic>.from(metadata['rideDetails'])
+          : null;
+      debugPrint('[FARE_CALL] Incoming fare-call detected, orderId=${fareCallOrderId.value}');
+      // Navigate to rider order screen instead of regular call screen
+      if (Get.currentRoute != '/IncomingRiderOrderScreen') {
+        Get.toNamed('/IncomingRiderOrderScreen');
+      }
+      return;
+    }
+
+    isFareCall.value = false;
+    fareCallOrderId.value = '';
+    fareCallRideDetails.value = null;
 
     // Show incoming call screen via GetX navigation (avoid duplicate if push already opened it)
     if (Get.currentRoute != '/IncomingCallScreen') {
@@ -1646,6 +1672,45 @@ class CallController extends GetxController {
     } catch (_) {}
   }
 
+  // ==================== FARE-CALL RIDE ACTIONS ====================
+
+  /// Accept the ride from fare-call. Call stays active, order gets assigned.
+  Future<bool> acceptFareCallRide() async {
+    if (fareCallOrderId.value.isEmpty) return false;
+    debugPrint('[FARE_CALL] acceptFareCallRide → orderId=${fareCallOrderId.value}');
+    final repo = MakeOrderRepo();
+    final response = await repo.rideActionApi(
+      {'action': 'accept'},
+      fareCallOrderId.value,
+    );
+    if (response.isSuccess) {
+      debugPrint('[FARE_CALL] Ride accepted successfully');
+      return true;
+    } else {
+      commonSnackBar(message: response.message ?? 'Failed to accept ride');
+      return false;
+    }
+  }
+
+  /// Reject the ride from fare-call. Call ends, next rider gets called.
+  Future<bool> rejectFareCallRide() async {
+    if (fareCallOrderId.value.isEmpty) return false;
+    debugPrint('[FARE_CALL] rejectFareCallRide → orderId=${fareCallOrderId.value}');
+    final repo = MakeOrderRepo();
+    final response = await repo.rideActionApi(
+      {'action': 'reject'},
+      fareCallOrderId.value,
+    );
+    if (response.isSuccess) {
+      debugPrint('[FARE_CALL] Ride rejected, next rider will be called');
+      declineCall();
+      return true;
+    } else {
+      commonSnackBar(message: response.message ?? 'Failed to reject ride');
+      return false;
+    }
+  }
+
   void _cleanup() {
     // --- 1. Cancel all timers immediately ---
     _callTimer?.cancel();
@@ -1748,6 +1813,9 @@ class CallController extends GetxController {
     participantMediaState.clear();
     isSwitchTypePending.value = false;
     switchTypeRequestedBy.value = '';
+    isFareCall.value = false;
+    fareCallOrderId.value = '';
+    fareCallRideDetails.value = null;
   }
 
   // ==================== FLOATING OVERLAY ====================
@@ -1777,6 +1845,96 @@ class CallController extends GetxController {
 
   // ==================== CALLKIT ====================
 
+  /// Handle ride_order_received CallKit accept — parse payload, populate
+  /// state, and navigate to rider order screen.
+  void _handleRideOrderFromCallKit(Map<String, dynamic> extra) {
+    try {
+      final rawData = extra['rideNotificationData'];
+      if (rawData == null) {
+        // Minimal fallback — just open screen with orderId
+        final orderId = extra['orderId'] ?? '';
+        if (orderId.isNotEmpty) {
+          isFareCall.value = true;
+          fareCallOrderId.value = orderId;
+          fareCallRideDetails.value = {};
+          if (Get.currentRoute != '/IncomingRiderOrderScreen') {
+            Get.toNamed('/IncomingRiderOrderScreen');
+          }
+        }
+        return;
+      }
+
+      Map<String, dynamic> notifData;
+      if (rawData is String) {
+        notifData = jsonDecode(rawData);
+      } else {
+        notifData = Map<String, dynamic>.from(rawData);
+      }
+
+      // Parse the payload JSON string (same structure as message.data)
+      Map<String, dynamic> payload = {};
+      try {
+        final rawPayload = notifData['payload'];
+        if (rawPayload is String && rawPayload.isNotEmpty) {
+          payload = jsonDecode(rawPayload);
+        } else if (rawPayload is Map) {
+          payload = Map<String, dynamic>.from(rawPayload);
+        }
+      } catch (_) {}
+
+      final metadata = payload['metadata'] ?? {};
+      final pickupInfo = metadata['Pickup address'] ?? {};
+      final dropInfo = metadata['Delivered address'] ?? {};
+
+      double _toNum(dynamic v) {
+        if (v == null) return 0.0;
+        if (v is double) return v;
+        if (v is int) return v.toDouble();
+        if (v is String) return double.tryParse(v) ?? 0.0;
+        return 0.0;
+      }
+
+      final pickupLat = _toNum(pickupInfo['lat']);
+      final pickupLng = _toNum(pickupInfo['long']);
+      final dropLat = _toNum(dropInfo['lat']);
+      final dropLng = _toNum(dropInfo['long']);
+      final fare = _toNum(metadata['ridefare']);
+      final orderId = payload['orderId'] ?? metadata['Order_id'] ?? extra['orderId'] ?? '';
+      final customerName = notifData['senderName'] ?? notifData['title'] ?? 'Customer';
+      final customerImage = notifData['senderProfileImage'] ?? '';
+
+      isFareCall.value = true;
+      fareCallOrderId.value = orderId;
+      fareCallRideDetails.value = {
+        'pickup': {
+          'address': (pickupInfo['Address'] ?? '').toString().isNotEmpty
+              ? pickupInfo['Address']
+              : 'Pickup location',
+          'lat': pickupLat,
+          'lng': pickupLng,
+        },
+        'drop': {
+          'address': (dropInfo['Address'] ?? '').toString().isNotEmpty
+              ? dropInfo['Address']
+              : 'Drop location',
+          'lat': dropLat,
+          'lng': dropLng,
+        },
+        'fare': fare,
+        'distance': 0.0,
+        'modeOfPayment': 'postpaid',
+      };
+      callerName.value = customerName;
+      callerImage.value = customerImage;
+
+      if (Get.currentRoute != '/IncomingRiderOrderScreen') {
+        Get.toNamed('/IncomingRiderOrderScreen');
+      }
+    } catch (e) {
+      debugPrint('[FARE_CALL] _handleRideOrderFromCallKit error: $e');
+    }
+  }
+
   void _setupCallKitListeners() {
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       if (event == null) return;
@@ -1784,8 +1942,17 @@ class CallController extends GetxController {
       final extra =
           Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
 
-      // Only handle incoming_call events — skip ride orders and other types
       final operation = (extra['operation'] ?? '').toString();
+
+      // Handle ride_order_received — rider taps "View" from CallKit
+      if (operation == 'ride_order_received') {
+        if (event.event == Event.actionCallAccept) {
+          _handleRideOrderFromCallKit(extra);
+        }
+        return;
+      }
+
+      // Only handle incoming_call events for regular calls
       if (operation != 'incoming_call') return;
 
       switch (event.event) {
@@ -1797,6 +1964,14 @@ class CallController extends GetxController {
             break;
           }
           initStateFromCallKitExtra(extra);
+
+          // For fare-calls: navigate to rider order screen instead of normal call
+          if (isFareCall.value) {
+            if (Get.currentRoute != '/IncomingRiderOrderScreen') {
+              Get.toNamed('/IncomingRiderOrderScreen');
+            }
+          }
+
           acceptCall(
               callIdParams: extra['callId'], roomIdParams: extra['roomId']);
           // On Android: dismiss CallKit after 1s (CallActivity handles audio).
@@ -1863,6 +2038,19 @@ class CallController extends GetxController {
       }
       if (extra['roomId'] != null && extra['roomId'].toString().isNotEmpty) {
         roomId.value = extra['roomId'];
+      }
+
+      // Detect fare-call from push notification extra
+      if (extra['isFareCall'] == 'true') {
+        isFareCall.value = true;
+        fareCallOrderId.value = extra['fareCallOrderId'] ?? '';
+        try {
+          final rideJson = extra['fareCallRideDetails'];
+          if (rideJson is String && rideJson.isNotEmpty) {
+            fareCallRideDetails.value = Map<String, dynamic>.from(jsonDecode(rideJson));
+          }
+        } catch (_) {}
+        debugPrint('[FARE_CALL] Detected fare-call from push notification, orderId=${fareCallOrderId.value}');
       }
 
       // Connect socket if not connected (app may have been in background)

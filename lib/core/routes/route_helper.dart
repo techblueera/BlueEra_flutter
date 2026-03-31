@@ -4,6 +4,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
+import 'package:BlueEra/features/chat/view/call_screen/rider_call/incoming_rider_order_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
@@ -1914,6 +1915,11 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => const CallRoomScreen(),
           settings: const RouteSettings(name: '/CallRoomScreen'),
+        );
+      case RouteConstant.IncomingRiderOrderScreen:
+        return MaterialPageRoute(
+          builder: (_) => const IncomingRiderOrderScreen(),
+          settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
         );
       // case RouteConstant.yourCartScreen:
       //   return MaterialPageRoute(

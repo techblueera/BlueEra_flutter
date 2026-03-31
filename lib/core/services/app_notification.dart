@@ -484,10 +484,9 @@ class AppNotificationHandler {
   Future<void> showMsg(RemoteMessage message) async {
     final operation = (message.data['operation'] ?? '').toString().toLowerCase();
 
-    // Handle ride order received
+    // Handle ride order received — show IncomingRiderOrderScreen
     if (operation == 'ride_order_received') {
-      NotificationData rideNotification = NotificationData.fromJson(message.data);
-      // showFullCallScreen(rideNotification);
+      _showRiderOrderScreen(message.data);
       return;
     }
 
@@ -589,8 +588,14 @@ class AppNotificationHandler {
 
       log('_handleIncomingCallPush: callId=$callId, roomId=$roomId, type=$callType, caller=$callerName');
 
+      // Check if this is a fare-call (ride request via call)
+      final metadata = payload['metadata'];
+      final isFareCall = metadata != null && metadata['orderType'] == 'fare-call';
+
       showFlutterCallNotification(
-        desiginations: designation.isNotEmpty ? designation : 'Incoming Call',
+        desiginations: isFareCall
+            ? 'Ride Request'
+            : (designation.isNotEmpty ? designation : 'Incoming Call'),
         callSessionId: callId,
         callerName: callerName,
         callerImage: callerImage.isNotEmpty ? callerImage : null,
@@ -604,6 +609,9 @@ class AppNotificationHandler {
           'callId': callId,
           'roomId': roomId,
           'operation': 'incoming_call',
+          if (isFareCall) 'isFareCall': 'true',
+          if (isFareCall) 'fareCallOrderId': metadata['orderId'] ?? '',
+          if (isFareCall) 'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
         },
       );
     } catch (e, stack) {
@@ -621,6 +629,103 @@ class AppNotificationHandler {
       , distance: '${rideNotification.deliveryLong}',
       pickupAddress: '$pickupLocation', amount: '${rideNotification.metadata?.ridefare}', dropAddress: '$dropLocation',));
 
+  }
+
+  /// Handle ride_order_received notification — parse payload, populate
+  /// CallController with ride details, and navigate to IncomingRiderOrderScreen.
+  ///
+  /// Actual message.data structure:
+  /// ```
+  /// { senderName, senderId, payload: "{\"orderId\":\"...\",\"metadata\":{
+  ///     \"Order_id\":\"...\",
+  ///     \"Delivered address\":{\"Address\":\"...\",\"lat\":...,\"long\":...},
+  ///     \"Pickup address\":{\"Address\":\"...\",\"lat\":...,\"long\":...},
+  ///     \"owner details\":{\"userid\":\"...\",\"number\":\"...\"},
+  ///     \"ridefare\":54.488
+  ///   }}" }
+  /// ```
+  Future<void> _showRiderOrderScreen(Map<String, dynamic> data) async {
+    try {
+      // Parse the payload JSON string
+      Map<String, dynamic> payload = {};
+      try {
+        final rawPayload = data['payload'];
+        if (rawPayload is String && rawPayload.isNotEmpty) {
+          payload = jsonDecode(rawPayload);
+        } else if (rawPayload is Map) {
+          payload = Map<String, dynamic>.from(rawPayload);
+        }
+      } catch (e) {
+        log('_showRiderOrderScreen: payload parse error: $e');
+      }
+
+      final metadata = payload['metadata'] ?? {};
+      final pickupInfo = metadata['Pickup address'] ?? {};
+      final dropInfo = metadata['Delivered address'] ?? {};
+      final ownerInfo = metadata['owner details'] ?? {};
+
+      // Extract coordinates
+      final pickupLat = _parseDouble(pickupInfo['lat']);
+      final pickupLng = _parseDouble(pickupInfo['long']);
+      final dropLat = _parseDouble(dropInfo['lat']);
+      final dropLng = _parseDouble(dropInfo['long']);
+      final fare = _parseDouble(metadata['ridefare']);
+      final orderId = payload['orderId'] ?? metadata['Order_id'] ?? '';
+
+      // Addresses from payload
+      final pickupAddress = (pickupInfo['Address'] ?? '').toString();
+      final dropAddress = (dropInfo['Address'] ?? '').toString();
+
+      // Customer info
+      final customerName = data['senderName'] ?? data['title'] ?? 'Customer';
+      final customerImage = data['senderProfileImage'] ?? '';
+      final customerPhone = (ownerInfo['number'] ?? '').toString();
+
+      log('[RIDE_ORDER] orderId=$orderId, fare=$fare, pickup=$pickupAddress, drop=$dropAddress, customer=$customerName');
+
+      // Ensure CallController exists and set fare-call state
+      if (!Get.isRegistered<CallController>()) {
+        Get.put(CallController(), permanent: true);
+      }
+      final callController = Get.find<CallController>();
+
+      callController.isFareCall.value = true;
+      callController.fareCallOrderId.value = orderId;
+      callController.fareCallRideDetails.value = {
+        'pickup': {
+          'address': pickupAddress.isNotEmpty ? pickupAddress : 'Pickup location',
+          'lat': pickupLat,
+          'lng': pickupLng,
+        },
+        'drop': {
+          'address': dropAddress.isNotEmpty ? dropAddress : 'Drop location',
+          'lat': dropLat,
+          'lng': dropLng,
+        },
+        'fare': fare,
+        'distance': 0.0,
+        'modeOfPayment': 'postpaid',
+        'customerPhone': customerPhone,
+      };
+      callController.callerName.value = customerName;
+      callController.callerImage.value = customerImage;
+
+      // Navigate to IncomingRiderOrderScreen
+      if (Get.currentRoute != '/IncomingRiderOrderScreen') {
+        Get.toNamed('/IncomingRiderOrderScreen');
+      }
+    } catch (e, stack) {
+      log('_showRiderOrderScreen ERROR: $e');
+      log('Stack: $stack');
+    }
+  }
+
+  double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
@@ -646,10 +751,10 @@ class AppNotificationHandler {
       return "View Order you get address";
     }
   }
-  Future<void>  callShow({required String orderId,required double lat,required double lng })async{
+  Future<void>  callShow({required String orderId,required double lat,required double lng, Map<String, dynamic>? rideNotificationData })async{
     CallKitParams callKitParams = CallKitParams(
       id: "_currentUuid",
-      nameCaller: 'New Delivery Order',
+      nameCaller: 'New Ride Request',
       appName: 'Callkit',
       avatar: '',
       handle: "Drop Location : ${await getAddressFromLatLngAsString(lat:lat,lng:lng)}",
@@ -669,7 +774,11 @@ class AppNotificationHandler {
         callbackText: 'Chat',
       ),
       duration: 30000,
-      extra: <String, dynamic>{'orderId': '$orderId'},
+      extra: <String, dynamic>{
+        'orderId': '$orderId',
+        'operation': 'ride_order_received',
+        if (rideNotificationData != null) 'rideNotificationData': jsonEncode(rideNotificationData),
+      },
       headers: <String, dynamic>{'apiKey': 'Abc@123!', 'platform': 'flutter'},
       android:  AndroidParams(
           isImportant: true,

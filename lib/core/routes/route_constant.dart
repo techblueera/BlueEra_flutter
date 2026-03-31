@@ -185,4 +185,9 @@ class RouteConstant {
   static const String IncomingCallScreen = "/IncomingCallScreen";
   static const String ActiveCallScreen = "/ActiveCallScreen";
   static const String CallRoomScreen = "/CallRoomScreen";
+
+  // Rider call screens
+  static const String IncomingRiderOrderScreen = "/IncomingRiderOrderScreen";
+  static const String RiderPickupNavigationScreen = "/RiderPickupNavigationScreen";
+  static const String RiderRideNavigationScreen = "/RiderRideNavigationScreen";
 }

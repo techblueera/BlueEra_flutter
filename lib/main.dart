@@ -188,7 +188,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     AppNotificationHandler().callShow(
         orderId: '${rideNotification.metadata?.orderId}',
         lng: double.parse(rideNotification.deliveryLong.toString()),
-        lat: double.parse(rideNotification.deliveryLat.toString()));
+        lat: double.parse(rideNotification.deliveryLat.toString()),
+        rideNotificationData: message.data);
     return;
   }
 

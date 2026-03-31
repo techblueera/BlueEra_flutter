@@ -554,6 +554,8 @@ abstract class BaseService {
   String updateRideOrParcelOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
   String verifyPickupOtpRideOrParcel(String orderId) => 'rider-service/fare/orders/${orderId}/start';
   String completePickupRider(String orderId) => 'rider-service/fare/orders/${orderId}/complete';
+  String rideAction(String orderId) => 'rider-service/fare/orders/${orderId}/ride-action';
+  String cancelFareCallQueue(String orderId) => 'rider-service/fare/orders/${orderId}/cancel-queue';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
   String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
