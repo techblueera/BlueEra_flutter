@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -240,24 +241,30 @@ class SocialImageGrid extends StatelessWidget {
         isLandscape ? screenWidth * (mediaHeight / mediaWidth) : portraitHeight;
 
     final double aspectRatio = hasValidSize ? (mediaWidth / mediaHeight) : 1.0;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadiusValue),
-      child: AspectRatio(
-        aspectRatio: isLandscape ? aspectRatio : screenWidth / portraitHeight,
-        child: CachedNetworkImage(
-          imageUrl: urlLink,
-          width: screenWidth,
-          height: imageHeight,
-          fit: BoxFit.cover,
-          placeholder: (context, _) => Container(
-            color: Colors.grey[200],
-            alignment: Alignment.center,
-            child: const CircularProgressIndicator(strokeWidth: 2),
-          ),
-          errorWidget: (context, _, __) => Container(
-            color: Colors.grey[300],
-            alignment: Alignment.center,
-            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+    return InkWell(
+      onTap: (){
+        Get.to(() => ImageViewScreen(appBarTitle: 'Item Image', imageUrls: imageUrls, initialIndex: index));
+
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadiusValue),
+        child: AspectRatio(
+          aspectRatio: isLandscape ? aspectRatio : screenWidth / portraitHeight,
+          child: CachedNetworkImage(
+            imageUrl: urlLink,
+            width: screenWidth,
+            height: imageHeight,
+            fit: BoxFit.cover,
+            placeholder: (context, _) => Container(
+              color: Colors.grey[200],
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            ),
+            errorWidget: (context, _, __) => Container(
+              color: Colors.grey[300],
+              alignment: Alignment.center,
+              child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+            ),
           ),
         ),
       ),
@@ -267,22 +274,28 @@ class SocialImageGrid extends StatelessWidget {
   netWorkImage(
       {required String urlLink, required int index, double? heightImg}) {
 
-   return    Container(
-     color: Colors.black,
-     child: CachedNetworkImage(
-       imageUrl: urlLink,
-       fit: BoxFit.cover,
-       width: Get.width,
-       height: heightImg?.toDouble() ?? 300,
-       placeholder: (context, _) => Center(
-         child: LocalAssets(
+   return    InkWell(
+     onTap: (){
+       Get.to(() => ImageViewScreen(appBarTitle: 'Item Image', imageUrls: imageUrls, initialIndex: index));
+
+     },
+     child: Container(
+       color: Colors.black,
+       child: CachedNetworkImage(
+         imageUrl: urlLink,
+         fit: BoxFit.cover,
+         width: Get.width,
+         height: heightImg?.toDouble() ?? 300,
+         placeholder: (context, _) => Center(
+           child: LocalAssets(
+             imagePath: AppIconAssets.place_holder_image,
+             boxFix: BoxFit.cover,
+           ),
+         ),
+         errorWidget: (context, _, __) => LocalAssets(
            imagePath: AppIconAssets.place_holder_image,
            boxFix: BoxFit.cover,
          ),
-       ),
-       errorWidget: (context, _, __) => LocalAssets(
-         imagePath: AppIconAssets.place_holder_image,
-         boxFix: BoxFit.cover,
        ),
      ),
    );
