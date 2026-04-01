@@ -124,7 +124,6 @@ class ApiBaseHelper {
               );
             }
 
-            showProgressDialog = true;
             // Decrement the request count and hide the loader if no pending requests
             if (response.statusCode! >= 100 && response.statusCode! <= 199) {
               Logger.printLog(
@@ -146,7 +145,6 @@ class ApiBaseHelper {
               ProgressDialog.showProgressDialog(false);
             }
 
-            // showProgressDialog = true;
             final response = err.response;
             if (response?.statusCode == 401) {
               await AuthManager.handleLogout(response);

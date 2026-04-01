@@ -183,7 +183,7 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
   }
 
   void navigateToGroceryStore() {
-    Get.offNamed(
+    Get.toNamed(
       RouteHelper.getGroceryStoresScreenRoute(),
     );
   }
