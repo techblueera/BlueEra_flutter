@@ -73,7 +73,8 @@ class _AllProfessionConsultantScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+      appBar: CommonBackAppBar(
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -302,7 +303,7 @@ class _AllProfessionConsultantScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CachedAvatarWidget(
-                    imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
+                    imageUrl: service.userDetails?.profileImage ?? '',
                     size: SizeConfig.size40,
                     borderColor: Colors.white,
                     borderRadius: SizeConfig.size20,
@@ -313,13 +314,13 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.basicDetails?.fullName ?? 'User',
+                      CustomText(service.userDetails?.name ?? 'User',
                           // fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
                       // SizedBox(height: SizeConfig.size6),
                       CustomText(
-                        service.basicDetails?.shortTagline ?? 'User',
+                        service.basicDetails?.shortTagline ?? 'N/A',
                         fontSize: SizeConfig.small,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -393,7 +394,7 @@ class _AllProfessionConsultantScreenState
                 child: Row(
                   children: [
                     CustomText(
-                      "${service.pricing?.consultationMode}",
+                      "${service.pricing?.consultationMode??"N/A"}",
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       overflow: TextOverflow.ellipsis,

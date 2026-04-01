@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -22,12 +21,9 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/widgets/social_gallery_grid.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 
 // ─── AllSelfProfessionScreen ───
@@ -82,7 +78,8 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+      appBar: CommonBackAppBar(
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -514,299 +511,244 @@ class SelfProfessionScreenPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
+      appBar: CommonBackAppBar(),
       body: Stack(
         children: [
-          CustomScrollView(
-            slivers: [
-              // ─── Collapsible Hero AppBar ───
-              SliverAppBar(
-                expandedHeight: SizeConfig.size200,
-                pinned: true,
-                backgroundColor: AppColors.white,
-                leading: InkWell(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                        color: Colors.black38, shape: BoxShape.circle),
-                    child: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 18),
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
+          SingleChildScrollView(
+            padding: EdgeInsets.only(
+                bottom: 80 + MediaQuery.of(context).padding.bottom),
+            child: Column(
+              children: [
+                // ─── Profile Info Card ───
+                CustomFormCard(
+                  padding: EdgeInsets.all(15.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Cover image
-                      CachedNetworkImage(
-                        imageUrl:
-                            service.serviceMedia?.photos?.isNotEmpty == true
-                                ? service.serviceMedia!.photos!.first
-                                : service.profileImage ?? '',
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: Colors.grey[300]),
-                        errorWidget: (_, __, ___) => Container(
-                          color: AppColors.primaryColor.withValues(alpha: 0.1),
-                          child: Icon(Icons.person,
-                              size: 60, color: AppColors.primaryColor),
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Avatar
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: AppColors.primaryColor, width: 2),
+                            ),
+                            child: CachedAvatarWidget(
+                              imageUrl: service.profileImage ?? '',
+                              size: 64,
+                              borderColor: Colors.white,
+                              borderRadius: 32,
+                            ),
+                          ),
+                          SizedBox(width: SizeConfig.size12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomText(
+                                        service.name ?? 'Unknown',
+                                        fontSize: SizeConfig.large,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.mainTextColor,
+                                      ),
+                                    ),
+                                    // Profession chip
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size8,
+                                          vertical: SizeConfig.size3),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryColor
+                                            .withValues(alpha: 0.08),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                        border: Border.all(
+                                            color: AppColors.primaryColor
+                                                .withValues(alpha: 0.3)),
+                                      ),
+                                      child: CustomText(
+                                        service.profession ?? '',
+                                        fontSize: SizeConfig.small,
+                                        color: AppColors.primaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size6),
+                                CommonRatingRow(
+                                  rating: double.tryParse(
+                                          service.rating.toString()) ??
+                                      0.0,
+                                  reviews: service.reviewCount ?? 0,
+                                  distance: '${service.distance ?? 0} KM',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      // Gradient overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.6),
-                            ],
+
+                      // Bio
+                      if (service.bio?.isNotEmpty == true) ...[
+                        SizedBox(height: SizeConfig.size12),
+                        Divider(color: AppColors.greyE5, height: 1),
+                        SizedBox(height: SizeConfig.size12),
+                        ExpandableText(
+                          text: service.bio ?? '',
+                          trimLines: 3,
+                          expandMode: ExpandMode.dialog,
+                          style: TextStyle(
+                            color: AppColors.secondaryTextColor,
+                            fontFamily: AppConstants.OpenSans,
+                            fontWeight: FontWeight.w400,
+                            fontSize: SizeConfig.medium,
+                            height: 1.5,
                           ),
                         ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: SizeConfig.size8),
+
+                // ─── Quick Stats Row ───
+                CustomFormCard(
+                  padding: EdgeInsets.all(15.0),
+                  child: Row(
+                    children: [
+                      _buildStatItem(
+                        icon: Icons.currency_rupee_rounded,
+                        label: 'Price',
+                        value: priceDisplay,
+                        color: priceBadgeColor,
+                      ),
+                      _buildDivider(),
+                      _buildStatItem(
+                        icon: Icons.access_time_rounded,
+                        label: 'Opens',
+                        value: timingMap["start"] ?? '--',
+                        color: Colors.green,
+                      ),
+                      _buildDivider(),
+                      _buildStatItem(
+                        icon: Icons.access_time_filled_rounded,
+                        label: 'Closes',
+                        value: timingMap["end"] ?? '--',
+                        color: AppColors.redB4,
                       ),
                     ],
                   ),
                 ),
-              ),
 
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    // ─── Profile Info Card ───
-                    CustomFormCard(
-                      padding: EdgeInsets.all(15.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                SizedBox(height: SizeConfig.size8),
+
+                // ─── Service Description ───
+                if (service.service?.facilities?.isNotEmpty == true)
+                  _buildInfoCard(
+                    icon: Icons.description_outlined,
+                    title: 'Service Description',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(
+                        service.service!.facilities!.length,
+                        (index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6.0),
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Avatar
                               Container(
-                                padding: const EdgeInsets.all(3),
+                                margin: const EdgeInsets.only(
+                                    top: 7.0, right: 8.0),
+                                width: 5,
+                                height: 5,
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: AppColors.primaryColor, width: 2),
-                                ),
-                                child: CachedAvatarWidget(
-                                  imageUrl: service.profileImage ?? '',
-                                  size: 64,
-                                  borderColor: Colors.white,
-                                  borderRadius: 32,
-                                ),
+                                    color: AppColors.primaryColor,
+                                    shape: BoxShape.circle),
                               ),
-                              SizedBox(width: SizeConfig.size12),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: CustomText(
-                                            service.name ?? 'Unknown',
-                                            fontSize: SizeConfig.large,
-                                            fontWeight: FontWeight.w700,
-                                            color: AppColors.mainTextColor,
-                                          ),
-                                        ),
-                                        // Profession chip
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: SizeConfig.size8,
-                                              vertical: SizeConfig.size3),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryColor
-                                                .withValues(alpha: 0.08),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            border: Border.all(
-                                                color: AppColors.primaryColor
-                                                    .withValues(alpha: 0.3)),
-                                          ),
-                                          child: CustomText(
-                                            service.profession ?? '',
-                                            fontSize: SizeConfig.small,
-                                            color: AppColors.primaryColor,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: SizeConfig.size6),
-                                    CommonRatingRow(
-                                      rating: double.tryParse(
-                                              service.rating.toString()) ??
-                                          0.0,
-                                      reviews: service.reviewCount ?? 0,
-                                      distance: '${service.distance ?? 0} KM',
-                                    ),
-                                  ],
+                                child: CustomText(
+                                  service.service!.facilities![index],
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.secondaryTextColor,
                                 ),
                               ),
                             ],
                           ),
-
-                          // Bio
-                          if (service.bio?.isNotEmpty == true) ...[
-                            SizedBox(height: SizeConfig.size12),
-                            Divider(color: AppColors.greyE5, height: 1),
-                            SizedBox(height: SizeConfig.size12),
-                            ExpandableText(
-                              text: service.bio ?? '',
-                              trimLines: 3,
-                              expandMode: ExpandMode.dialog,
-                              style: TextStyle(
-                                color: AppColors.secondaryTextColor,
-                                fontFamily: AppConstants.OpenSans,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeConfig.medium,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    // ─── Quick Stats Row ───
-                    CustomFormCard(
-                      padding: EdgeInsets.all(15.0),
-                      child: Row(
-                        children: [
-                          _buildStatItem(
-                            icon: Icons.currency_rupee_rounded,
-                            label: 'Price',
-                            value: priceDisplay,
-                            color: priceBadgeColor,
-                          ),
-                          _buildDivider(),
-                          _buildStatItem(
-                            icon: Icons.access_time_rounded,
-                            label: 'Opens',
-                            value: timingMap["start"] ?? '--',
-                            color: Colors.green,
-                          ),
-                          _buildDivider(),
-                          _buildStatItem(
-                            icon: Icons.access_time_filled_rounded,
-                            label: 'Closes',
-                            value: timingMap["end"] ?? '--',
-                            color: AppColors.redB4,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    // ─── Service Description ───
-                    if (service.service?.facilities?.isNotEmpty == true)
-                      _buildInfoCard(
-                        icon: Icons.description_outlined,
-                        title: 'Service Description',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: List.generate(
-                            service.service!.facilities!.length,
-                            (index) => Padding(
-                              padding: const EdgeInsets.only(bottom: 6.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                        top: 7.0, right: 8.0),
-                                    width: 5,
-                                    height: 5,
-                                    decoration: BoxDecoration(
-                                        color: AppColors.primaryColor,
-                                        shape: BoxShape.circle),
-                                  ),
-                                  Expanded(
-                                    child: CustomText(
-                                      service.service!.facilities![index],
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.secondaryTextColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ),
                       ),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    // ─── Work Experience ───
-                    _buildInfoCard(
-                      icon: Icons.work_outline_rounded,
-                      title: 'Work Experience',
-                      child: service.experiences?.isNotEmpty == true
-                          ? CustomText(
-                              service.experiences![0],
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                            )
-                          : _buildEmptyState('No experience added yet'),
                     ),
+                  ),
 
-                    SizedBox(height: SizeConfig.size8),
+                SizedBox(height: SizeConfig.size8),
 
-                    // ─── Expertise ───
-                    if (service.skills?.isNotEmpty == true)
-                      _buildInfoCard(
-                        icon: Icons.star_outline_rounded,
-                        title: 'Expertise',
-                        child: Wrap(
-                          spacing: SizeConfig.size8,
-                          runSpacing: SizeConfig.size8,
-                          children: service.skills!
-                              .map((skill) => Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: SizeConfig.size10,
-                                        vertical: SizeConfig.size6),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryColor
-                                          .withValues(alpha: 0.06),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                          color: AppColors.primaryColor
-                                              .withValues(alpha: 0.2)),
-                                    ),
-                                    child: CustomText(skill,
-                                        fontSize: SizeConfig.small,
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.w500),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    // ─── Gallery ───
-                    if (service.serviceMedia?.photos?.isNotEmpty == true)
-                      _buildInfoCard(
-                        icon: Icons.photo_library_outlined,
-                        title: 'Gallery',
-                        child: _buildGallery(
-                            service.serviceMedia!.photos!, context),
-                      ),
-
-                    // Space for bottom button
-                    SizedBox(height: 80 + kBottomNavigationBarHeight),
-                  ],
+                // ─── Work Experience ───
+                _buildInfoCard(
+                  icon: Icons.work_outline_rounded,
+                  title: 'Work Experience',
+                  child: service.experiences?.isNotEmpty == true
+                      ? CustomText(
+                          service.experiences![0],
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondaryTextColor,
+                        )
+                      : _buildEmptyState('No experience added yet'),
                 ),
-              ),
-            ],
+
+                SizedBox(height: SizeConfig.size8),
+
+                // ─── Expertise ───
+                if (service.skills?.isNotEmpty == true)
+                  _buildInfoCard(
+                    icon: Icons.star_outline_rounded,
+                    title: 'Expertise',
+                    child: Wrap(
+                      spacing: SizeConfig.size8,
+                      runSpacing: SizeConfig.size8,
+                      children: service.skills!
+                          .map((skill) => Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: SizeConfig.size10,
+                                    vertical: SizeConfig.size6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                      color: AppColors.primaryColor
+                                          .withValues(alpha: 0.2)),
+                                ),
+                                child: CustomText(skill,
+                                    fontSize: SizeConfig.small,
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.w500),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+
+                SizedBox(height: SizeConfig.size8),
+
+                // ─── Gallery ───
+                if (service.serviceMedia?.photos?.isNotEmpty == true)
+                  _buildInfoCard(
+                    icon: Icons.photo_library_outlined,
+                    title: 'Gallery',
+                    child: SocialGalleryGrid(
+                      imageUrls: service.serviceMedia!.photos!,
+                    ),
+                  ),
+              ],
+            ),
           ),
 
           // ─── Fixed Bottom Button ───
@@ -922,74 +864,4 @@ class SelfProfessionScreenPreview extends StatelessWidget {
         fontWeight: FontWeight.w400);
   }
 
-  // ─── Gallery ───
-  Widget _buildGallery(List<String> galleryList, BuildContext context) {
-    final allImages = [...galleryList]..shuffle(Random());
-    if (allImages.isEmpty) return _buildEmptyState('No photos available');
-
-    return StaggeredGrid.count(
-      crossAxisCount: 4,
-      mainAxisSpacing: 6,
-      crossAxisSpacing: 6,
-      children:
-          List.generate(allImages.length > 10 ? 10 : allImages.length, (index) {
-        int crossAxisCellCount = 2;
-        num mainAxisCellCount = 2;
-        if (index % 6 == 0 || index % 6 == 5) {
-          crossAxisCellCount = 2;
-          mainAxisCellCount = 3;
-        } else if (index % 6 == 3) {
-          crossAxisCellCount = 4;
-          mainAxisCellCount = 2;
-        } else {
-          crossAxisCellCount = 2;
-          mainAxisCellCount = 1.5;
-        }
-
-        return StaggeredGridTile.count(
-          crossAxisCellCount: crossAxisCellCount,
-          mainAxisCellCount: mainAxisCellCount,
-          child: InkWell(
-            onTap: () => navigatePushTo(
-                context,
-                ImageViewScreen(
-                  subTitle: AppStrings.imageViewer,
-                  appBarTitle: AppStrings.imageViewer,
-                  imageUrls: allImages,
-                  initialIndex: index,
-                )),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: allImages[index],
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: Colors.grey[200]),
-                    errorWidget: (_, __, ___) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image)),
-                  ),
-                  // Subtle gradient on images
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.15)
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
 }

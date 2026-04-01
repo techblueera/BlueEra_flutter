@@ -59,7 +59,8 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+      appBar: CommonBackAppBar(
+      ),
       body: SafeArea(
         child: Column(
           children: [

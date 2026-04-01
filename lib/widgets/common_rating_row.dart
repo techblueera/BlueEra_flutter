@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -29,28 +30,35 @@ class CommonRatingRow extends StatelessWidget {
 
         // Rating Text
         CustomText(
-          rating != 0.0 ? "$rating " : 'N/A',
+          rating != 0.0 ? "${rating.toInt()} " : 'N/A',
           fontSize: SizeConfig.small,
           color: AppColors.yellow00,
         ),
         const SizedBox(width: 4),
 
         // Reviews Count
-        CustomText(
-          // Assuming formatNumberLikePost is a global utility function
-          "(${formatNumberLikePost(reviews)} reviews) ",
-          fontSize: SizeConfig.small,
-          color: AppColors.grey6D,
+        Flexible(
+          child: CustomText(
+            "(${formatNumberLikePost(reviews)} reviews) ",
+            fontSize: SizeConfig.small,
+            color: AppColors.grey6D,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
         ),
 
         // Optional Distance Section
         if (distance != null && distance!.isNotEmpty) ...[
           LocalAssets(imagePath: AppIconAssets.distanceLocation),
           const SizedBox(width: 2),
-          CustomText(
-            distance!,
-            fontSize: SizeConfig.small,
-            color: AppColors.black30,
+          Flexible(
+            child: CustomText(
+              "${(double.tryParse(distance!.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0).toInt()} km",
+              fontSize: SizeConfig.small,
+              color: AppColors.black30,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
         ],
       ],

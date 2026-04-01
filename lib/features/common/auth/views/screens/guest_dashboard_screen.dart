@@ -43,8 +43,8 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
               height: SizeConfig.size20,
             ),
             PositiveCustomBtn(
-                onTap: () {
-                  createProfileScreen();
+                onTap: () async {
+                 await createProfileScreen();
                 },
                 title: "Create Profile")
           ],

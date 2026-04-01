@@ -9,12 +9,19 @@ import 'package:http/http.dart' as http;
 
 class LanguageControllerNew extends GetxController {
   final languages = <LanguageModelNew>[].obs;
-  final box = Hive.box('translations');
+  late Box box;
   final selectedLang = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
+    _initBox();
+  }
+
+  Future<void> _initBox() async {
+    box = Hive.isBoxOpen('translations')
+        ? Hive.box('translations')
+        : await Hive.openBox('translations');
     loadLanguages();
   }
 

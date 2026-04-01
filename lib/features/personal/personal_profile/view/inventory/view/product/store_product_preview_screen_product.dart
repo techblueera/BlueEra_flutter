@@ -4,7 +4,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -12,18 +11,18 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -32,16 +31,15 @@ import 'package:get/get.dart';
 
 class StoreProductPreviewScreenProduct extends StatefulWidget {
   final ProductStore? productStore;
-  // final bool? isShowBusinessInfo;
   final String? id;
   final ProviderType? providerType;
 
-  const StoreProductPreviewScreenProduct(
-      { super.key,
-        required this.productStore,
-        // this.isShowBusinessInfo,
-        this.id,
-        this.providerType});
+  const StoreProductPreviewScreenProduct({
+    super.key,
+    required this.productStore,
+    this.id,
+    this.providerType,
+  });
 
   @override
   State<StoreProductPreviewScreenProduct> createState() =>
@@ -59,8 +57,8 @@ class _StoreProductPreviewScreenProductState
   @override
   void initState() {
     if (widget.productStore != null) {
-      // Check Who's prdouct
-      isOwnProduct = widget.productStore?.sellerClassification?.owner?.id == userId;
+      isOwnProduct =
+          widget.productStore?.sellerClassification?.owner?.id == userId;
 
       controller.step2Images.value =
           widget.productStore?.details?.media ?? [];
@@ -69,6 +67,7 @@ class _StoreProductPreviewScreenProductState
       controller.productDescriptionController.text =
           widget.productStore?.details?.description ?? '';
       controller.tags.value = widget.productStore?.details?.tags ?? [];
+
       List<ProductFeature> features =
           widget.productStore?.details?.addProductFeatures ?? [];
       if (features.isNotEmpty) {
@@ -77,7 +76,7 @@ class _StoreProductPreviewScreenProductState
               .add(TextEditingController(text: feature.title));
         }
       }
-      // controller.linkController.text = widget.productData?.product.details?.name??'';
+
       late List<AddMoreDetail> tempDetailsList =
           widget.productStore?.details?.addMoreDetails ?? [];
       controller.detailsList.value = tempDetailsList.map((spec) {
@@ -86,18 +85,12 @@ class _StoreProductPreviewScreenProductState
           details: spec.details,
         );
       }).toList();
+
       controller.mrpController.text =
           widget.productStore?.details?.mrpPerUnit.toString() ?? '0.0';
       controller.productWarrantyController.text =
           widget.productStore?.details?.productWarranty ?? '';
-      // controller.productExpiryDurationController.text = widget.productData?.product.details?.produ??'';
-      // controller.productExpiryDurationController.text = widget.productData?.product.details?.produ??'';
-      // List<String> userGuide = widget.productData.userGuide ?? [];
-      // if(userGuide.isNotEmpty){
-      //   for (final guideLine in userGuide) {
-      //     controller.userGuideLineControllers.add(TextEditingController(text: guideLine));
-      //   }
-      // }
+
       controller.listedProducts.clear();
       List<Variant> variants =
           widget.productStore?.sellerClassification?.variants ?? [];
@@ -105,7 +98,8 @@ class _StoreProductPreviewScreenProductState
         controller.listedProducts.value = widget
                 .productStore?.sellerClassification?.variants
                 .map((variant) {
-              return ProductListing(id: variant.id,
+              return ProductListing(
+                id: variant.id,
                 image: variant.mediaRelatedToVariant.isNotEmpty
                     ? variant.mediaRelatedToVariant
                     : [],
@@ -118,7 +112,7 @@ class _StoreProductPreviewScreenProductState
                 discount: variant.mrp > 0
                     ? (((variant.mrp - variant.sellingPrice) / variant.mrp) *
                             100)
-                        .toStringAsFixed(2)
+                        .toStringAsFixed(0)
                     : null,
               );
             }).toList() ??
@@ -139,14 +133,10 @@ class _StoreProductPreviewScreenProductState
       context: context,
       builder: (context) => AlertDialog(
         title: const CustomText(AppStrings.discardChanges),
-        content: const CustomText(
-            AppStrings.doYouReallyWantToGoBack
-        ),
+        content: const CustomText(AppStrings.doYouReallyWantToGoBack),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const CustomText(AppStrings.no),
           ),
           TextButton(
@@ -167,326 +157,79 @@ class _StoreProductPreviewScreenProductState
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: (widget.productStore != null) ? true : false,
+      canPop: widget.productStore != null,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-
         handleBackPress(context);
       },
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
+        appBar: CommonBackAppBar(
+          title: controller.productNameController.text.isNotEmpty
+              ? controller.productNameController.text
+              : AppStrings.productDetails,
+          onBackTap: () {
+            if (widget.productStore != null) {
+              Get.back();
+              return;
+            }
+            handleBackPress(context);
+          },
+        ),
+        bottomNavigationBar: _buildBottomBar(),
         body: SafeArea(
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  children: [
-                    Container(
-                        height: SizeConfig.size350,
-                        color: AppColors.white,
-                        child: Obx(
-                          () => Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              CarouselSlider.builder(
-                                carouselController: _carouselController,
-                                itemCount: controller.step2Images.length,
-                                options: CarouselOptions(
-                                  height: SizeConfig.size350,
-                                  viewportFraction: 1.0,
-                                  enlargeCenterPage: false,
-                                  enableInfiniteScroll: false,
-                                  autoPlay: true,
-                                  onPageChanged: (index, reason) {
-                                    setState(() => _currentIndex = index);
-                                  },
-                                ),
-                                itemBuilder: (context, index, realIdx) {
-                                  final imagePath = controller.step2Images[index];
-                                  final isNetwork = isNetworkImage(imagePath);
+                /// IMAGE CAROUSEL
+                _buildImageCarousel(),
 
-                                  return InkWell(
-                                    onTap: () {
-                                      navigatePushTo(
-                                        Get.context!,
-                                        ImageViewScreen(
-                                          subTitle: '',
-                                          appBarTitle: widget.productStore?.business_name?.capitalizeFirst ?? '',
-                                          imageUrls: controller.step2Images,
-                                          initialIndex: realIdx,
-                                        ),
-                                      );
-                                    },
-                                    child: isNetwork
-                                        ? CachedNetworkImage(
-                                      imageUrl: imagePath,
-                                      fit: BoxFit.contain,
-                                      width: double.infinity,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey[200],
-                                        child: const Center(
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
-                                      ),
-                                      errorWidget: (context, url, error) => Container(
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.broken_image),
-                                      ),
-                                    )
-                                        : Image.file(
-                                      File(imagePath),
-                                      fit: BoxFit.contain,
-                                      width: double.infinity,
-                                    ),
-                                  );
+                SizedBox(height: SizeConfig.paddingXS),
 
-                                },
-                              ),
-                              (controller.step2Images.length > 1)
-                                  ? Positioned(
-                                      bottom: 8,
-                                      left: 0,
-                                      right: 0,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: List.generate(
-                                            controller.step2Images.length,
-                                            (index) {
-                                          return AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 300),
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 4.0),
-                                            width:
-                                                _currentIndex == index ? 8 : 6,
-                                            height:
-                                                _currentIndex == index ? 8 : 6,
-                                            decoration: BoxDecoration(
-                                              color: _currentIndex == index
-                                                  ? AppColors.primaryColor
-                                                  : Colors.grey,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          );
-                                        }),
-                                      ),
-                                    )
-                                  : SizedBox(),
-                            ],
-                          ),
-                        )),
-                    Positioned(
-                      top: 15,
-                      left: 15,
-                      child: IconButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            if (widget.productStore != null) {
-                              Get.back();
-                              return;
-                            }
+                /// PRODUCT TITLE & PRICE
+                _buildProductInfoCard(),
 
-                            handleBackPress(context);
-                          },
-                          icon: LocalAssets(
-                            imagePath: AppIconAssets.back_arrow,
-                            height: SizeConfig.paddingL,
-                            width: SizeConfig.paddingL,
-                            imgColor: Colors.black,
-                          )),
-                    ),
-                  ],
-                ),
-                // if (widget.isShowBusinessInfo ?? false)
-                  if (widget.productStore != null &&
-                      widget.productStore?.business_name != null &&
-                      widget.productStore?.user_id != null)
-                    InkWell(
-                      onTap: (){
-                        final owner = widget.productStore?.sellerClassification?.owner;
-                        final ownerId = owner?.id ?? '';
-                        final screen = AppConstants.storeFeedScreen;
+                SizedBox(height: SizeConfig.paddingXS),
 
-                        if (owner == null) return;
+                /// SELLER INFO
+                if (widget.productStore != null &&
+                    widget.productStore?.business_name != null)
+                  _buildSellerCard(),
 
-                        final isBusiness = owner.type == ProviderType.business.title;
+                SizedBox(height: SizeConfig.paddingXS),
 
-                        final destination = isBusiness
-                            ? VisitBusinessProfileNew(
-                          businessId: ownerId,
-                          screenName: screen,
-                        )
-                            : NewVisitProfileScreen(
-                          authorId: ownerId,
-                          screenFromName: screen,
-                        );
+                /// VARIANTS
+                if (widget.productStore != null &&
+                    controller.listedProducts.isNotEmpty)
+                  _buildListedProducts(),
 
-                        Get.to(() => destination);
+                SizedBox(height: SizeConfig.paddingXS),
 
-                      },
-                      child: CustomFormCard(
-                        margin: EdgeInsets.only(
-                            left: SizeConfig.size15,
-                            right: SizeConfig.size15,
-                            top: SizeConfig.size15),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.grey,
-                              backgroundImage: widget
-                                          .productStore?.business_logo !=
-                                      null
-                                  ? NetworkImage(
-                                      widget.productStore?.business_logo ??
-                                          "")
-                                  : null,
-                              child: widget.productStore?.business_logo ==
-                                      null
-                                  ? CustomText(
-                                      getInitials(widget
-                                          .productStore?.business_name),
-                                      fontSize: SizeConfig.size18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(left: SizeConfig.size10),
-                                child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CustomText(
-                                        widget.productStore?.business_name
-                                                ?.capitalizeFirst ??
-                                            AppStrings.na,
-                                        fontSize: SizeConfig.large18,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.mainTextColor,
-                                        maxLines: 2,
-                                      ),
-                                      // SizedBox(
-                                      //   height: SizeConfig.size5,
-                                      // ),
-                                      CustomText(
-                                        widget.productStore?.category ??
-                                            AppStrings.na,
-                                        fontSize: SizeConfig.large,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppColors.mainTextColor,
-                                        maxLines: 1,
-                                      ),
-                                    ]),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                /// PRODUCT DESCRIPTION
+                _buildDescriptionSection(),
 
-                if (widget.productStore != null)
-                  if (controller.listedProducts.isNotEmpty)
-                    _buildListedProducts(),
-                /*   CustomFormCard(
-                  margin: EdgeInsets.all(SizeConfig.size15),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          controller.productNameController.text,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size12,
-                        ),
-                        Row(
-                          children: [
-                            CustomText(
-                              '₹00,000 ',
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.mainTextColor,
-                            ),
-                            SizedBox(
-                              width: SizeConfig.size8,
-                            ),
-                            CustomText(
-                              '50% Off ',
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                            CustomText(
-                              '₹00,000 ',
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ],
-                        )
-                      ]),
-                ),*/
-                CustomFormCard(
-                  margin: EdgeInsets.only(
-                      left: SizeConfig.size15,
-                      right: SizeConfig.size15,
-                      bottom: SizeConfig.size15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        'Here Is Your Product details',
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size10),
-                      _buildExpandableSection(
-                          title: AppStrings.productDetails,
-                          content: _buildProductDetailsContent(),
-                          initiallyExpanded: true),
-                      _buildExpandableSection(
-                          title: AppStrings.productFeatures,
-                          content: _buildProductFeaturesContent()),
-                      _buildExpandableSection(
-                          title: AppStrings.pricingWarranty,
-                          content: _buildPricingAndWarrantyContent()),
-                      if (widget.productStore == null)
-                        _buildExpandableSection(
-                            title: AppStrings.variant,
-                            content: _buildProductVariantContent()),
-                      SizedBox(height: SizeConfig.size20),
-                      if (widget.productStore == null)
+                SizedBox(height: SizeConfig.paddingXS),
 
-                        /// Submit
-                        CustomBtn(
-                          title: AppStrings.createVariantStartSelling,
-                          onTap: () {
-                            if (widget.productStore == null) {
-                              Get.toNamed(
-                                RouteHelper.getCreateVariantScreenRoute(),
-                                arguments: {
-                                  ApiKeys.controller: controller,
-                                  ApiKeys.id: widget.id,
-                                  ApiKeys.providerType: widget.providerType
-                                },
-                              );
-                            }
-                          },
-                          bgColor: AppColors.primaryColor,
-                          textColor: AppColors.white,
-                          height: SizeConfig.size40,
-                          radius: 10.0,
-                          // isLoading: addProductViaAiController.isLoading.value
-                        ),
-                    ],
-                  ),
-                ),
+                /// FEATURES
+                _buildFeaturesSection(),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// MORE DETAILS
+                _buildMoreDetailsSection(),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// PRICING & WARRANTY
+                _buildPricingSection(),
+
+                SizedBox(height: SizeConfig.paddingXS),
+
+                /// VARIANT OPTIONS (for new product creation)
+                if (widget.productStore == null) _buildVariantOptionsSection(),
+
+                SizedBox(height: SizeConfig.size100),
               ],
             ),
           ),
@@ -495,408 +238,546 @@ class _StoreProductPreviewScreenProductState
     );
   }
 
-  Widget _buildExpandableSection({
-    required String title,
-    required Widget content,
-    bool initiallyExpanded = false,
-  }) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.whiteE0),
-      ),
-      child: ExpansionTile(
-        initiallyExpanded: initiallyExpanded,
-        dense: true,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        collapsedShape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        title: CustomText(
-          title,
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mainTextColor,
-        ),
-        childrenPadding: EdgeInsets.only(
-            left: SizeConfig.size15,
-            right: SizeConfig.size15,
-            bottom: SizeConfig.size8),
-        children: [content],
-      ),
-    );
-  }
 
-  Widget _buildProductDetailsContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+
+
+
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // IMAGE CAROUSEL
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildImageCarousel() {
+    return Stack(
       children: [
-        // SizedBox(height: SizeConfig.size10),
-        // Row(
-        //   children: [
-        //     CustomText(
-        //       'Product Name: ',
-        //       fontSize: SizeConfig.medium,
-        //       fontWeight: FontWeight.w600,
-        //       color: AppColors.secondaryTextColor,
-        //     ),
-        //
-        //     Expanded(
-        //       child: CustomText(
-        //         controller.productNameController.text,
-        //         fontSize: SizeConfig.medium,
-        //         fontWeight: FontWeight.w400,
-        //         color: AppColors.secondaryTextColor,
-        //       ),
-        //     ),
-        //   ],
-        // ),
-        // SizedBox(height: SizeConfig.size10),
-        //
-        // Row(
-        //   crossAxisAlignment: CrossAxisAlignment.start,
-        //   children: [
-        //     CustomText(
-        //       'Brand: ',
-        //       fontSize: SizeConfig.medium,
-        //       fontWeight: FontWeight.w600,
-        //       color: AppColors.secondaryTextColor,
-        //     ),
-        //     Expanded(
-        //       child: CustomText(
-        //         '${controller.brandController.text}',
-        //         fontSize: SizeConfig.medium,
-        //         fontWeight: FontWeight.w400,
-        //         color: AppColors.secondaryTextColor,
-        //       ),
-        //     ),
-        //
-        //   ],
-        // ),
-
-        CustomText(
-          '${AppStrings.productDescription}: ',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w600,
-          color: AppColors.secondaryTextColor,
-        ),
-        SizedBox(height: SizeConfig.size3),
-        ExpandableText(
-          text: controller.productDescriptionController.text,
-          trimLines: 4,
-          style: TextStyle(
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w400,
-            color: AppColors.secondaryTextColor,
-            height: 1.5,
-          ),
-          expandMode: ExpandMode.dialog,
-          dialogTitle: AppStrings.productDescription,
-        ),
-
-        SizedBox(height: SizeConfig.size10),
-        (controller.tags.isNotEmpty)
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    '${AppStrings.tagsKeywords.tr}: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
+        Container(
+          height: SizeConfig.size350,
+          color: AppColors.white,
+          child: Obx(() {
+            if (controller.step2Images.isEmpty) {
+              return Container(
+                color: Colors.grey[200],
+                child: Center(
+                  child: Icon(Icons.image_not_supported_outlined,
+                      size: 60, color: Colors.grey[400]),
+                ),
+              );
+            }
+            return Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                CarouselSlider.builder(
+                  carouselController: _carouselController,
+                  itemCount: controller.step2Images.length,
+                  options: CarouselOptions(
+                    height: SizeConfig.size350,
+                    viewportFraction: 1.0,
+                    enlargeCenterPage: false,
+                    enableInfiniteScroll: false,
+                    autoPlay: true,
+                    onPageChanged: (index, reason) {
+                      setState(() => _currentIndex = index);
+                    },
                   ),
-                  SizedBox(height: SizeConfig.size3),
-                  CustomText(
-                    '${controller.tags.join(', ')}',
+                  itemBuilder: (context, index, realIdx) {
+                    final imagePath = controller.step2Images[index];
+                    final isNetwork = isNetworkImage(imagePath);
 
-                    /// Keyword/tegs
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                    height: 1.5,
+                    return InkWell(
+                      onTap: () {
+                        navigatePushTo(
+                          Get.context!,
+                          ImageViewScreen(
+                            subTitle: '',
+                            appBarTitle: widget.productStore?.business_name
+                                    ?.capitalizeFirst ??
+                                '',
+                            imageUrls: controller.step2Images,
+                            initialIndex: realIdx,
+                          ),
+                        );
+                      },
+                      child: isNetwork
+                          ? CachedNetworkImage(
+                              imageUrl: imagePath,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              placeholder: (_, __) => Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2),
+                                ),
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                color: Colors.grey[200],
+                                child: Icon(Icons.broken_image,
+                                    size: 40, color: Colors.grey[400]),
+                              ),
+                            )
+                          : Image.file(
+                              File(imagePath),
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                            ),
+                    );
+                  },
+                ),
+                if (controller.step2Images.length > 1)
+                  Positioned(
+                    bottom: 10,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.paddingS,
+                          vertical: SizeConfig.size4),
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: CustomText(
+                        "${_currentIndex + 1}/${controller.step2Images.length}",
+                        fontSize: SizeConfig.size12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ],
-              )
-            : SizedBox(),
+              ],
+            );
+          }),
+        ),
       ],
     );
   }
 
-  Widget _buildProductFeaturesContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (controller.featureControllers.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: List.generate(
-              controller.featureControllers.length,
-              (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 4.0),
+  // ─────────────────────────────────────────────────────────────────────────
+  // PRODUCT INFO CARD (Title, Price, Tags)
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildProductInfoCard() {
+    final name = controller.productNameController.text;
+    final firstVariant =
+        widget.productStore?.sellerClassification?.variants.firstOrNull;
+    final sellingPrice = firstVariant?.sellingPrice;
+    final mrp = firstVariant?.mrp;
+    final discount = (mrp != null && mrp > 0 && sellingPrice != null)
+        ? (((mrp - sellingPrice) / mrp) * 100).toInt()
+        : 0;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name
+            CustomText(
+              name.isNotEmpty ? name : "Untitled Product",
+              fontSize: SizeConfig.size18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              maxLines: 3,
+            ),
+
+            SizedBox(height: SizeConfig.paddingXS),
+
+            // Price row
+            if (sellingPrice != null) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CustomText(
+                    '₹$sellingPrice',
+                    fontSize: SizeConfig.size24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
+                  if (mrp != null && mrp != sellingPrice) ...[
+                    SizedBox(width: SizeConfig.paddingXS),
+                    CustomText(
+                      '₹$mrp',
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.secondaryTextColor,
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                    SizedBox(width: SizeConfig.paddingXS),
+                    if (discount > 0)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.paddingXS,
+                            vertical: SizeConfig.size2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: CustomText(
+                          "$discount% OFF",
+                          fontSize: SizeConfig.size12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ],
+
+            // Tags
+            if (controller.tags.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.paddingS),
+              Wrap(
+                spacing: SizeConfig.paddingXS,
+                runSpacing: SizeConfig.size4,
+                children: controller.tags
+                    .map(
+                      (tag) => Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.paddingXS,
+                            vertical: SizeConfig.size2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor
+                              .withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: CustomText(
+                          tag,
+                          fontSize: SizeConfig.size11,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SELLER CARD
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildSellerCard() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          final owner = widget.productStore?.sellerClassification?.owner;
+          if (owner == null) return;
+          final ownerId = owner.id;
+          final screen = AppConstants.storeFeedScreen;
+          final isBusiness = owner.type == ProviderType.business.title;
+          final destination = isBusiness
+              ? VisitBusinessProfileNew(
+                  businessId: ownerId, screenName: screen)
+              : NewVisitProfileScreen(
+                  authorId: ownerId, screenFromName: screen);
+          Get.to(() => destination);
+        },
+        child: CommonCardWidget(
+          cardMargin: 0,
+          child: Row(
+            children: [
+              // Seller avatar
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
+                backgroundImage:
+                    (widget.productStore?.business_logo ?? '').isNotEmpty
+                        ? NetworkImage(widget.productStore!.business_logo!)
+                        : null,
+                child: (widget.productStore?.business_logo ?? '').isEmpty
+                    ? CustomText(
+                        getInitials(widget.productStore?.business_name),
+                        fontSize: SizeConfig.size16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
+                      )
+                    : null,
+              ),
+              SizedBox(width: SizeConfig.paddingS),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      widget.productStore?.business_name?.capitalizeFirst ??
+                          AppStrings.na,
+                      fontSize: SizeConfig.size14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if ((widget.productStore?.category ?? '').isNotEmpty)
+                      CustomText(
+                        widget.productStore!.category!,
+                        fontSize: SizeConfig.size12,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios_rounded,
+                  size: SizeConfig.size16,
+                  color: AppColors.secondaryTextColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DESCRIPTION SECTION
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildDescriptionSection() {
+    final desc = controller.productDescriptionController.text;
+    if (desc.isEmpty) {
+      return _sectionCard(
+        icon: Icons.description_outlined,
+        title: AppStrings.productDescription,
+        child: const EmptyStateWidget(
+          message: "No description added.",
+          imageSize: 40,
+        ),
+      );
+    }
+    return _sectionCard(
+      icon: Icons.description_outlined,
+      title: AppStrings.productDescription,
+      child: ExpandableText(
+        text: desc,
+        trimLines: 4,
+        style: TextStyle(
+          fontSize: SizeConfig.size13,
+          color: AppColors.secondaryTextColor,
+          height: 1.5,
+        ),
+        expandMode: ExpandMode.dialog,
+        dialogTitle: AppStrings.productDescription,
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FEATURES SECTION
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildFeaturesSection() {
+    final hasFeatures = controller.featureControllers.isNotEmpty;
+    final hasLink = controller.linkController.text.isNotEmpty;
+
+    if (!hasFeatures && !hasLink) {
+      return _sectionCard(
+        icon: Icons.checklist_outlined,
+        title: AppStrings.productFeatures,
+        child: const EmptyStateWidget(
+          message: "No features added.",
+          imageSize: 40,
+        ),
+      );
+    }
+
+    return _sectionCard(
+      icon: Icons.checklist_outlined,
+      title: AppStrings.productFeatures,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasFeatures)
+            ...controller.featureControllers.map(
+              (fc) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                      width: 4.0,
-                      height: 4.0,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryTextColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    Icon(Icons.check_circle_outline,
+                        size: 16, color: Colors.green.shade600),
+                    SizedBox(width: SizeConfig.paddingXS),
                     Expanded(
                       child: CustomText(
-                        controller.featureControllers[index].text,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
+                        fc.text,
+                        fontSize: SizeConfig.size13,
                         color: AppColors.secondaryTextColor,
-                        // height: 1.2,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-        if (controller.linkController.text.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          if (hasLink) ...[
+            SizedBox(height: SizeConfig.paddingXS),
+            Row(
               children: [
-                CustomText(
-                  '${AppStrings.website}: ',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
+                Icon(Icons.link, size: 16, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.paddingXS),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => launchURL(controller.linkController.text),
+                    onTap: () =>
+                        launchURL(controller.linkController.text),
                     child: CustomText(
-                      '${controller.linkController.text}',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
+                      controller.linkController.text,
+                      fontSize: SizeConfig.size13,
                       color: AppColors.primaryColor,
+                      decoration: TextDecoration.underline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        if (controller.detailsList.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  '${AppStrings.moreDetails}: ',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                SizedBox(height: SizeConfig.size3),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(
-                    controller.detailsList.length, // number of items
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                            width: 4.0,
-                            height: 4.0,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondaryTextColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          Expanded(
-                            child: CustomText(
-                              '${controller.detailsList[index].title} - ${controller.detailsList[index].details}',
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                              // height: 1.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
-  Widget _buildPricingAndWarrantyContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        (controller.mrpController.text.isNotEmpty)
-            ? Padding(
-                padding: EdgeInsets.only(top: 10.0),
+  // ─────────────────────────────────────────────────────────────────────────
+  // MORE DETAILS SECTION
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildMoreDetailsSection() {
+    if (controller.detailsList.isEmpty) return const SizedBox.shrink();
+
+    return _sectionCard(
+      icon: Icons.info_outline,
+      title: AppStrings.moreDetails,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: controller.detailsList.map((detail) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: SizeConfig.size100,
+                  child: CustomText(
+                    detail.title ?? '',
+                    fontSize: SizeConfig.size13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ),
+                SizedBox(width: SizeConfig.paddingXS),
+                Expanded(
+                  child: CustomText(
+                    detail.details ?? '-',
+                    fontSize: SizeConfig.size13,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PRICING & WARRANTY SECTION
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildPricingSection() {
+    final hasMrp = controller.mrpController.text.isNotEmpty;
+    final hasWarranty = controller.productWarrantyController.text.isNotEmpty;
+    final hasExpiry =
+        controller.productExpiryDurationController.text.isNotEmpty;
+    final hasGuide = controller.userGuideLineControllers.isNotEmpty;
+
+    if (!hasMrp && !hasWarranty && !hasExpiry && !hasGuide) {
+      return const SizedBox.shrink();
+    }
+
+    return _sectionCard(
+      icon: Icons.sell_outlined,
+      title: AppStrings.pricingWarranty,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasMrp)
+            _infoRow(AppStrings.mrp.tr, "₹${controller.mrpController.text}"),
+          if (hasWarranty)
+            _infoRow(AppStrings.productWarranty.tr,
+                controller.productWarrantyController.text),
+          if (hasExpiry)
+            _infoRow(AppStrings.expiryTime.tr,
+                controller.productExpiryDurationController.text),
+          if (hasGuide) ...[
+            SizedBox(height: SizeConfig.paddingXS),
+            CustomText(
+              '${AppStrings.userGuidance.tr}:',
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+            SizedBox(height: SizeConfig.size4),
+            ...controller.userGuideLineControllers.map(
+              (gc) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                      '${AppStrings.mrp.tr}: ',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
+                    Container(
+                      margin: const EdgeInsets.only(top: 6, right: 8),
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondaryTextColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     Expanded(
                       child: CustomText(
-                        "₹${controller.mrpController.text}",
-                        // fontSize: SizeConfig.large,
-                        // fontWeight: FontWeight.w700,
-                        // color: AppColors.secondaryTextColor,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
+                        gc.text,
+                        fontSize: SizeConfig.size13,
                         color: AppColors.secondaryTextColor,
                       ),
                     ),
                   ],
                 ),
-              )
-            : SizedBox(),
-        if (controller.productWarrantyController.text.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0),
-            child: Row(
-              children: [
-                CustomText(
-                  '${AppStrings.productWarranty.tr}: ',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                Expanded(
-                  child: CustomText(
-                    "${controller.productWarrantyController.text}",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                    height: 1.5,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        if (controller.productExpiryDurationController.text.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0),
-            child: Row(
-              children: [
-                CustomText(
-                  '${AppStrings.expiryTime.tr}: ',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                Expanded(
-                  child: CustomText(
-                    "${controller.productExpiryDurationController.text}",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        if (controller.userGuideLineControllers.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  '${AppStrings.userGuidance.tr}: ',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                SizedBox(height: 3.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(
-                    controller.userGuideLineControllers.length,
-                    // number of items
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                            width: 4.0,
-                            height: 4.0,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondaryTextColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          Expanded(
-                            child: CustomText(
-                              controller.userGuideLineControllers[index].text,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-      ],
+          ],
+        ],
+      ),
     );
   }
 
-  Widget _buildProductVariantContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (controller.selectedColors.isNotEmpty) ...[
-          CustomText(
-            '${AppStrings.color.tr}: ',
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
-          SizedBox(height: 5.0),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: List.generate(
-              controller.selectedColors.length, // number of items
-              (i) {
-                final selected = controller.selectedColors[i];
+  // ─────────────────────────────────────────────────────────────────────────
+  // VARIANT OPTIONS (for product creation flow)
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildVariantOptionsSection() {
+    return _sectionCard(
+      icon: Icons.tune_outlined,
+      title: AppStrings.variant,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (controller.selectedColors.isNotEmpty) ...[
+            CustomText(
+              '${AppStrings.color.tr}:',
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+            SizedBox(height: SizeConfig.size4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.selectedColors.map((selected) {
                 return Container(
-                  padding: EdgeInsets.all(6.0),
-                  margin: EdgeInsets.only(bottom: 6.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.lightBlue,
-                    borderRadius: BorderRadius.circular(8.0),
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
                         width: 16,
@@ -904,135 +785,141 @@ class _StoreProductPreviewScreenProductState
                         decoration: BoxDecoration(
                           color: selected.color,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1),
+                          border: Border.all(color: Colors.grey.shade300),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${selected.name}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.secondaryTextColor,
-                        ),
+                      const SizedBox(width: 6),
+                      CustomText(
+                        selected.name,
+                        fontSize: SizeConfig.size12,
+                        color: AppColors.secondaryTextColor,
                       ),
                     ],
                   ),
                 );
-              },
+              }).toList(),
             ),
-          ),
-          SizedBox(height: SizeConfig.size10),
-        ],
-        if (controller.dynamicAttributes.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: controller.dynamicAttributes.entries.map((entry) {
-              final key = entry.key; // attribute name (e.g., "Size", "Pattern")
-              final values = entry.value; // list of values under this attribute
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Attribute title
-                  CustomText(
-                    '$key:',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  const SizedBox(height: 3.0),
-
-                  // Values
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: List.generate(
-                      values.length,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                              width: 4.0,
-                              height: 4.0,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryTextColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Expanded(
-                              child: CustomText(
-                                values[index],
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.secondaryTextColor,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+            SizedBox(height: SizeConfig.paddingS),
+          ],
+          if (controller.dynamicAttributes.isNotEmpty)
+            ...controller.dynamicAttributes.entries.map((entry) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: SizeConfig.paddingXS),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      '${entry.key}:',
+                      fontSize: SizeConfig.size13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
                     ),
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  // space between different attributes
-                ],
+                    SizedBox(height: SizeConfig.size4),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: entry.value
+                          .map(
+                            (val) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: CustomText(
+                                val,
+                                fontSize: SizeConfig.size12,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
               );
-            }).toList(),
-          )
-      ],
-    );
-  }
-
-  Widget _buildListedProducts() {
-    return CustomFormCard(
-      margin: EdgeInsets.only(
-        left: SizeConfig.size15,
-        right: SizeConfig.size15,
-        top: SizeConfig.size15,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            AppStrings.listedVariants,
-            fontSize: SizeConfig.large,
-            fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
-          ),
-          SizedBox(height: SizeConfig.size10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final crossAxisCount = 2;
-              final crossSpacing = 6.0;
-              final mainSpacing = 6.0;
-
-              final itemWidth = (constraints.maxWidth -
-                      ((crossAxisCount - 1) * crossSpacing)) /
-                  crossAxisCount;
-
-              return MasonryGridView.count(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: crossSpacing,
-                mainAxisSpacing: mainSpacing,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: controller.listedProducts.length,
-                itemBuilder: (context, index) {
-                  final product = controller.listedProducts[index];
-                  return ProductCard(product, width: itemWidth, index: index);
+            }),
+          SizedBox(height: SizeConfig.paddingS),
+          CustomBtn(
+            title: AppStrings.createVariantStartSelling,
+            onTap: () {
+              Get.toNamed(
+                RouteHelper.getCreateVariantScreenRoute(),
+                arguments: {
+                  ApiKeys.controller: controller,
+                  ApiKeys.id: widget.id,
+                  ApiKeys.providerType: widget.providerType,
                 },
               );
             },
+            bgColor: AppColors.primaryColor,
+            textColor: AppColors.white,
+            height: SizeConfig.size40,
+            radius: 10.0,
           ),
         ],
       ),
     );
-
   }
 
-  Widget ProductCard(
+  // ─────────────────────────────────────────────────────────────────────────
+  // LISTED VARIANTS GRID
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildListedProducts() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.style_outlined,
+                    size: SizeConfig.size20, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.paddingXS),
+                CustomText(
+                  AppStrings.listedVariants,
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.paddingS),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const crossAxisCount = 2;
+                const crossSpacing = 8.0;
+                const mainSpacing = 8.0;
+
+                final itemWidth = (constraints.maxWidth -
+                        ((crossAxisCount - 1) * crossSpacing)) /
+                    crossAxisCount;
+
+                return MasonryGridView.count(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: crossSpacing,
+                  mainAxisSpacing: mainSpacing,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.listedProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = controller.listedProducts[index];
+                    return _variantCard(product, width: itemWidth, index: index);
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _variantCard(
     ProductListing product, {
     required double width,
     required int index,
@@ -1042,187 +929,152 @@ class _StoreProductPreviewScreenProductState
 
       return GestureDetector(
         onTap: () {
-          // Toggle selection
           if (isSelected) {
-            controller.selectedVariantIndex.value = -1; // unselect
+            controller.selectedVariantIndex.value = -1;
             controller.step2Images.value =
                 widget.productStore?.details?.media ?? [];
           } else {
-            controller.selectedVariantIndex.value = index; // select
-            controller.step2Images.value = product.image; // variant photo
+            controller.selectedVariantIndex.value = index;
+            controller.step2Images.value = product.image;
           }
         },
         child: Container(
           width: width,
           decoration: BoxDecoration(
-            color: AppColors.whiteFE,
-            boxShadow: isSelected ? null : [AppShadows.cardShadow],
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                width: 1.5),
+              color: isSelected ? AppColors.primaryColor : Colors.grey.shade200,
+              width: isSelected ? 2 : 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image
+              // Image
               AspectRatio(
-                aspectRatio: 1.2, // square-ish image (adjust if needed)
+                aspectRatio: 1.2,
                 child: Stack(
                   children: [
-                    CustomImageSlideshow(
-                      isLoading: false,
-                      width: double.infinity,
-                      height: double.infinity,
-                      imagePaths: product.image,
-                      borderRadius: BorderRadius.circular(10),
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(9)),
+                      child: CustomImageSlideshow(
+                        isLoading: false,
+                        width: double.infinity,
+                        height: double.infinity,
+                        imagePaths: product.image,
+                        borderRadius: BorderRadius.zero,
+                      ),
                     ),
                     Positioned(
-                      top: 8,
-                      right: 8,
-                      child: _buildIconBox(InkWell(
+                      top: 6,
+                      right: 6,
+                      child: _iconButton(
+                        InkWell(
                           onTap: () => showSelectedVariantsDialog(
                               context, product.selectedVariants),
-                          child: Icon(Icons.remove_red_eye_outlined,
-                              color: Colors.white, size: 16))),
+                          child: const Icon(Icons.remove_red_eye_outlined,
+                              color: Colors.white, size: 14),
+                        ),
+                      ),
                     ),
+                    if (isSelected)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.check,
+                              color: Colors.white, size: 12),
+                        ),
+                      ),
                   ],
                 ),
               ),
 
-              // Product Details
+              // Details
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Product Name
                     CustomText(
                       product.name,
                       fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.small,
+                      fontSize: SizeConfig.size12,
                       color: AppColors.mainTextColor,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-
-                    // Price Row
+                    SizedBox(height: SizeConfig.size4),
                     Row(
                       children: [
                         CustomText(
                           '₹${product.price}',
                           fontWeight: FontWeight.w700,
-                          fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
+                          fontSize: SizeConfig.size13,
+                          color: AppColors.primaryColor,
                         ),
-                        const SizedBox(width: 8),
-                        CustomText(
-                          ' ₹${product.mrp}',
-                          fontSize: SizeConfig.small11,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                        CustomText(
-                          ' ${product.discount}% ${AppStrings.off.tr}',
-                          fontSize: SizeConfig.small11,
-                          color: Colors.green[600],
-                          fontWeight: FontWeight.w400,
+                        SizedBox(width: SizeConfig.size4),
+                        Flexible(
+                          child: CustomText(
+                            '₹${product.mrp}',
+                            fontSize: SizeConfig.size11,
+                            color: AppColors.secondaryTextColor,
+                            decoration: TextDecoration.lineThrough,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-
-                    // Status
-                    CustomText(
-                      AppStrings.activeProducts,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.small11,
-                      color: AppColors.primaryColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    if ((product.discount ?? '').isNotEmpty) ...[
+                      SizedBox(height: SizeConfig.size2),
+                      CustomText(
+                        '${product.discount}% ${AppStrings.off.tr}',
+                        fontSize: SizeConfig.size11,
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ],
                   ],
                 ),
               ),
 
-              if(!isOwnProduct)
-              InkWell(
-                onTap:
-                // (!isOwnProduct) ?
-                    () async {
-                  if (isGuestUser()) {
-                    createProfileScreen();
-                    return;
-                  }
-                  final chatViewController = Get.find<ChatViewController>();
-                  Map<String, dynamic> detas = {
-                    ApiKeys.user_id: widget.productStore?.user_id
-                  };
-                  Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                  if(userDetailsMap!=null){
-                    List<Map<String, String>> urlList =
-                    product.image.map((e) => {ApiKeys.url: e}).toList();
-                    final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                    final hasConversation = conversationId != null &&
-                        conversationId.toString().isNotEmpty &&
-                        conversationId.toString().toLowerCase() != 'null';
-                    Map<String, dynamic> data = {
-                      ApiKeys.product_id:"${product.id}",
-
-                      ApiKeys.price: "${product.price}",
-                      ApiKeys.discount: "${product.discount}",
-                      if (!hasConversation)
-                        ApiKeys.other_user_id:  userDetailsMap[ApiKeys.other_user_id]??
-                            ''
-                      else
-                        ApiKeys.conversation_id: (userDetailsMap[ApiKeys.conversation_id] ??
-                            ''),
-                      ApiKeys.message:
-                      "${product.name}",
-                      ApiKeys.message_type: AppConstants.product,
-                      ApiKeys.title: product.name,
-                      ApiKeys.variant : jsonEncode(product.selectedVariants),
-                      ApiKeys.mrp :product.mrp,
-                      ApiKeys.url: urlList,
-                    };
-                    chatViewController.checkChatConnectionAndOpenChat(
-                      userId: widget.productStore?.user_id ?? '',
-                      shareProductParams: data,
-                      isWithProductSend: true,
-                    );
-                  }
-
-                },
-                // : null,
-                child: Container(
-                  // width: Get.width,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size15,
-                      vertical: SizeConfig.size5),
-                  margin: EdgeInsets.only(
-                      top: SizeConfig.size5,
-                      left: SizeConfig.size15,
-                      right: SizeConfig.size15,
-                      bottom: SizeConfig.size8),
-                  child: CustomText(
-                    AppStrings.chat,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
+              // Chat button
+              if (!isOwnProduct)
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: SizeConfig.paddingXS,
+                    right: SizeConfig.paddingXS,
+                    bottom: SizeConfig.paddingXS,
                   ),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: AppColors.primaryColor)
-                      // color: (!isOwnProduct) ? AppColors.primaryColor : Colors.grey,
-                      // borderRadius: BorderRadius.circular(5),
-                      // border: Border.all(color: (!isOwnProduct) ? AppColors.primaryColor : Colors.grey)
+                  child: InkWell(
+                    onTap: () => _onChatWithVariant(product),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      width: double.infinity,
+                      padding:
+                          EdgeInsets.symmetric(vertical: SizeConfig.size4),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: CustomText(
+                        AppStrings.chat,
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.size12,
+                        color: AppColors.white,
+                      ),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -1230,17 +1082,161 @@ class _StoreProductPreviewScreenProductState
     });
   }
 
-  Widget _buildIconBox(Widget child) {
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOTTOM BAR
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget? _buildBottomBar() {
+    if (widget.productStore == null || isOwnProduct) return null;
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: SizeConfig.paddingS,
+          right: SizeConfig.paddingS,
+          bottom: SizeConfig.paddingM,
+          top: SizeConfig.paddingXSL,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: PositiveCustomBtn(
+                onTap: () {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+                    return;
+                  }
+                  final chatViewController = Get.find<ChatViewController>();
+                  chatViewController.checkChatConnectionAndOpenChat(
+                    userId: widget.productStore?.user_id ?? '',
+                  );
+                },
+                title: AppStrings.chat,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Widget _sectionCard({
+    required IconData icon,
+    required String title,
+    required Widget child,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon,
+                    size: SizeConfig.size20, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.paddingXS),
+                CustomText(
+                  title,
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.paddingS),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: SizeConfig.size100 + SizeConfig.size20,
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+          Expanded(
+            child: CustomText(
+              value.isNotEmpty ? value : '-',
+              fontSize: SizeConfig.size13,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _iconButton(Widget child) {
     return Container(
-      height: 25,
-      width: 25,
+      height: 24,
+      width: 24,
       decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow]),
+        color: Colors.black.withValues(alpha: 0.5),
+        shape: BoxShape.circle,
+      ),
       alignment: Alignment.center,
       child: child,
     );
+  }
+
+  void _onChatWithVariant(ProductListing product) async {
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final chatViewController = Get.find<ChatViewController>();
+    Map<String, dynamic> detas = {
+      ApiKeys.user_id: widget.productStore?.user_id
+    };
+    Map<String, dynamic>? userDetailsMap =
+        await chatViewController.checkChatConnection(detas);
+    if (userDetailsMap != null) {
+      List<Map<String, String>> urlList =
+          product.image.map((e) => {ApiKeys.url: e}).toList();
+      final conversationId = userDetailsMap[ApiKeys.conversation_id];
+      final hasConversation = conversationId != null &&
+          conversationId.toString().isNotEmpty &&
+          conversationId.toString().toLowerCase() != 'null';
+      Map<String, dynamic> data = {
+        ApiKeys.product_id: "${product.id}",
+        ApiKeys.price: "${product.price}",
+        ApiKeys.discount: "${product.discount}",
+        if (!hasConversation)
+          ApiKeys.other_user_id:
+              userDetailsMap[ApiKeys.other_user_id] ?? ''
+        else
+          ApiKeys.conversation_id:
+              userDetailsMap[ApiKeys.conversation_id] ?? '',
+        ApiKeys.message: "${product.name}",
+        ApiKeys.message_type: AppConstants.product,
+        ApiKeys.title: product.name,
+        ApiKeys.variant: jsonEncode(product.selectedVariants),
+        ApiKeys.mrp: product.mrp,
+        ApiKeys.url: urlList,
+      };
+      chatViewController.checkChatConnectionAndOpenChat(
+        userId: widget.productStore?.user_id ?? '',
+        shareProductParams: data,
+        isWithProductSend: true,
+      );
+    }
   }
 
   void showSelectedVariantsDialog(
@@ -1253,40 +1249,34 @@ class _StoreProductPreviewScreenProductState
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.only(
-                top: 8.0, left: 16.0, right: 16.0, bottom: 16.0),
+                top: 8, left: 16, right: 16, bottom: 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
                 Row(
                   children: [
-                    Expanded(
-                      child: const CustomText(
+                    const Expanded(
+                      child: CustomText(
                         AppStrings.selectedVariants,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(width: SizeConfig.size5),
                     IconButton(
                       onPressed: () => Get.back(),
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: AppColors.mainTextColor,
-                      ),
+                      icon: const Icon(Icons.close_rounded,
+                          color: AppColors.mainTextColor),
                     ),
                   ],
                 ),
-
-                // Variants list
                 if (selectedVariants != null && selectedVariants.isNotEmpty)
-                  buildVariantsList(selectedVariants)
+                  _buildVariantsList(selectedVariants)
                 else
                   const CustomText(
                     AppStrings.noVariantsSelected,
                     fontSize: 14,
-                    color: Colors.grey
+                    color: Colors.grey,
                   ),
               ],
             ),
@@ -1296,57 +1286,7 @@ class _StoreProductPreviewScreenProductState
     );
   }
 
-  Widget _buildVariantRow(String key, dynamic value) {
-    // Handle color variant specially
-    if (key == 'color' && value is Map<String, dynamic>) {
-      final color = SelectedColor.fromJson(value);
-
-      return Row(
-        children: [
-          CustomText(
-            "$key : ",
-            fontSize: SizeConfig.large,
-          ),
-          CustomText(
-            color.name,
-            fontSize: SizeConfig.medium,
-            color: AppColors.primaryColor,
-            fontWeight: FontWeight.w500,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(width: 6),
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: color.color,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.greyE5, width: 2.0),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Default text-only variant
-    return Row(
-      children: [
-        CustomText(
-          "$key : ",
-          fontSize: SizeConfig.large,
-        ),
-        CustomText(
-          "$value",
-          fontSize: SizeConfig.medium,
-          color: AppColors.primaryColor,
-          fontWeight: FontWeight.w500,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-
-  Widget buildVariantsList(Map<String, dynamic> selectedVariants) {
+  Widget _buildVariantsList(Map<String, dynamic> selectedVariants) {
     return Flexible(
       child: SingleChildScrollView(
         child: Column(
@@ -1366,6 +1306,47 @@ class _StoreProductPreviewScreenProductState
           }).toList(),
         ),
       ),
+    );
+  }
+
+  Widget _buildVariantRow(String key, dynamic value) {
+    if (key == 'color' && value is Map<String, dynamic>) {
+      final color = SelectedColor.fromJson(value);
+      return Row(
+        children: [
+          CustomText("$key : ", fontSize: SizeConfig.size14),
+          CustomText(
+            color.name,
+            fontSize: SizeConfig.size13,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(width: 6),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color.color,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.greyE5, width: 2),
+            ),
+          ),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        CustomText("$key : ", fontSize: SizeConfig.size14),
+        Flexible(
+          child: CustomText(
+            "$value",
+            fontSize: SizeConfig.size13,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w500,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

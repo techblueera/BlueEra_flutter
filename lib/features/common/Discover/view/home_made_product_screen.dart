@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 
 class HomeMadeProductScreen extends StatefulWidget {
   final bool isShowInGrid;
+
   const HomeMadeProductScreen({super.key, this.isShowInGrid = false});
 
   @override
@@ -30,31 +31,32 @@ class HomeMadeProductScreen extends StatefulWidget {
 
 class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
   final controller = getOrPut(() => DiscoverController());
-  final List<OnboardingCategoryModel> _homeMadeProductCategories = homeMadeProductCategories;
+  final List<OnboardingCategoryModel> _homeMadeProductCategories =
+      homeMadeProductCategories;
   ScrollController _scrollController = ScrollController();
-  ProviderType _providerType =  ProviderType.user;
+  ProviderType _providerType = ProviderType.user;
 
   @override
-  initState(){
+  initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       clearSelectedCategory();
       controller.getAllProductNearBy(
-          providerType: _providerType,
+        providerType: _providerType,
       );
 
       // Listener for Pagination
       _scrollController.addListener(() {
-        if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent) {
           controller.getAllProductNearBy(
-              providerType: _providerType,
-              isLoadMore: true);
+              providerType: _providerType, isLoadMore: true);
         }
       });
     });
   }
 
-  void clearSelectedCategory(){
+  void clearSelectedCategory() {
     controller.selectedEarnServiceData.value = null;
     controller.selectedTabIndex.value = 0;
   }
@@ -62,22 +64,18 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+      appBar: CommonBackAppBar(
+          buildCustomActionWidget: () => const DiscoverCartIcon()),
       body: SafeArea(
         child: Column(
           children: [
-
             SizedBox(
               height: SizeConfig.paddingM,
             ),
-
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
               child: InkWell(
-                onTap: () {
-
-                },
+                onTap: () {},
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.size10,
@@ -96,8 +94,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                         width: SizeConfig.size30,
                       ),
                       SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                          AppStrings.bookViaBlueEraPartner,
+                      CustomText(AppStrings.bookViaBlueEraPartner,
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400),
@@ -106,11 +103,9 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                 ),
               ),
             ),
-
             SizedBox(
               height: SizeConfig.paddingXSL,
             ),
-
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,9 +114,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                   SizedBox(
                     width: SizeConfig.size6,
                   ),
-                  Expanded(
-                      child: rightContent()
-                  ),
+                  Expanded(child: rightContent()),
                 ],
               ),
             )
@@ -136,7 +129,8 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
       items: _homeMadeProductCategories,
       getLabel: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
-      isSelected: (item)=> controller.selectedEarnServiceData.value?.slugId == item.slugId,
+      isSelected: (item) =>
+          controller.selectedEarnServiceData.value?.slugId == item.slugId,
       onTap: (item, index) {
         controller.selectedTabIndex.value = index;
         controller.selectedEarnServiceData.value = item;
@@ -147,123 +141,130 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
     );
   }
 
-
   Widget rightContent() {
-    return Obx(()=> Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HorizontalTabSelector<CategoryFilter>(
-            tabs: controller.filters,
-            selectedIndex: controller.filters.indexOf(controller.selectedFilter.value),
-            horizontalMargin: 0.0,
-            onTabSelected: (index, _) {
-              final selectedEnum = controller.filters[index];
+    return Obx(() => Padding(
+          padding: EdgeInsets.only(right: SizeConfig.size8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HorizontalTabSelector<CategoryFilter>(
+                tabs: controller.filters,
+                selectedIndex:
+                    controller.filters.indexOf(controller.selectedFilter.value),
+                horizontalMargin: 0.0,
+                onTabSelected: (index, _) {
+                  final selectedEnum = controller.filters[index];
 
-              if (controller.filters == selectedEnum) return;
+                  if (controller.filters == selectedEnum) return;
 
-              controller.selectedFilter.value = selectedEnum;
-              // controller.callApi();
-            },
-            labelBuilder: (r) => r.label,
-            unSelectedBackgroundColor: AppColors.white,
-          ),
-
-          SizedBox(
-            height: SizeConfig.size5,
-          ),
-
-          Expanded(
-            child: Obx(() {
-              if (controller.isProductDataFirstLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final productList = List<GetProductData>.from(controller.productDataList);
-
-              if (productList.isEmpty) {
-                return EmptyStateWidget(
-                  message: AppStrings.notFoundAnyProduct
-                );
-              }
-
-              return widget.isShowInGrid
-                  ? LayoutBuilder(
-                builder: (context, constraints) {
-                  final crossAxisCount = 2;
-                  final crossSpacing = 10.0;
-                  final mainSpacing = 10.0;
-
-                  final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
-                  final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
-
-                  final approximateItemHeight = SizeConfig.size265;
-
-                  final childAspectRatio = itemWidth / approximateItemHeight;
-
-                  return GridView.builder(
-                    controller: _scrollController,
-                    padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size8,
-                        vertical: SizeConfig.size15
-                    ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: crossSpacing,
-                      mainAxisSpacing: mainSpacing,
-                      childAspectRatio: childAspectRatio,
-                    ),
-                    itemCount: productList.length +
-                        (controller.isProductDataLoadingMore.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= productList.length) {
-                        return const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-
-                      final productData = productList[index];
-
-                      return StoreProductCard(
-                        productStore: productData.product,
-                        isShowInGrid: widget.isShowInGrid,
-                      );
-                    },
-                  );
+                  controller.selectedFilter.value = selectedEnum;
+                  // controller.callApi();
                 },
-              ) : ListView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.zero,
-                itemCount: productList.length +
-                    (controller.isProductDataLoadingMore.value ? 1 : 0),
-                itemBuilder: (context, index) {
-                  // Pagination Loader
-                  if (index >= productList.length) {
-                    return const Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
+                labelBuilder: (r) => r.label,
+                unSelectedBackgroundColor: AppColors.white,
+              ),
+              SizedBox(
+                height: SizeConfig.size5,
+              ),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isProductDataFirstLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
                   }
 
-                  final productData = productList[index];
+                  final productList =
+                      List<GetProductData>.from(controller.productDataList);
 
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 10.0),
-                    child: StoreProductCard(
-                      productStore: productData.product,
-                      isShowInGrid: widget.isShowInGrid,
-                    ),
-                  );
-                },
-              );
-            }),
-          )
+                  if (productList.isEmpty) {
+                    return EmptyStateWidget(
+                        message: AppStrings.notFoundAnyProduct);
+                  }
 
-        ],
-      ),
-    ));
+                  return widget.isShowInGrid
+                      ? LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount = 2;
+                            final crossSpacing = 10.0;
+                            final mainSpacing = 10.0;
+
+                            final totalHorizontalSpacing =
+                                (crossAxisCount - 1) * crossSpacing;
+                            final itemWidth = (constraints.maxWidth -
+                                    totalHorizontalSpacing) /
+                                crossAxisCount;
+
+                            final approximateItemHeight = SizeConfig.size265;
+
+                            final childAspectRatio =
+                                itemWidth / approximateItemHeight;
+
+                            return GridView.builder(
+                              controller: _scrollController,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size8,
+                                  vertical: SizeConfig.size15),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: crossSpacing,
+                                mainAxisSpacing: mainSpacing,
+                                childAspectRatio: childAspectRatio,
+                              ),
+                              itemCount: productList.length +
+                                  (controller.isProductDataLoadingMore.value
+                                      ? 1
+                                      : 0),
+                              itemBuilder: (context, index) {
+                                if (index >= productList.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(20),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
+                                  );
+                                }
+
+                                final productData = productList[index];
+
+                                return StoreProductCard(
+                                  productStore: productData.product,
+                                  isShowInGrid: widget.isShowInGrid,
+                                );
+                              },
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: EdgeInsets.zero,
+                          itemCount: productList.length +
+                              (controller.isProductDataLoadingMore.value
+                                  ? 1
+                                  : 0),
+                          itemBuilder: (context, index) {
+                            // Pagination Loader
+                            if (index >= productList.length) {
+                              return const Padding(
+                                padding: EdgeInsets.all(20),
+                                child:
+                                    Center(child: CircularProgressIndicator()),
+                              );
+                            }
+
+                            final productData = productList[index];
+
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 10.0),
+                              child: StoreProductCard(
+                                productStore: productData.product,
+                                isShowInGrid: widget.isShowInGrid,
+                              ),
+                            );
+                          },
+                        );
+                }),
+              )
+            ],
+          ),
+        ));
   }
-
 }

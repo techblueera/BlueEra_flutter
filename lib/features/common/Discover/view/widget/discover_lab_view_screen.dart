@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
+import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -125,9 +126,15 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
             // --- Contact Us ---
             SizedBox(height: SizeConfig.size16),
             _buildContactCard(contact, profile),
+            SizedBox(height: SizeConfig.paddingXS),
+
+            /// WEBSITE PREVIEW
+            WebsitePreviewCard(
+              url: contact?.websiteUrl ?? '',
+            ),
 
             // --- Location Map ---
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXS),
             _buildLocationSection(contact, d.fullDetails?.profile),
 
             SizedBox(height: kBottomNavigationBarHeight + 30),

@@ -597,7 +597,7 @@ String getInitials(String? name) {
       .toUpperCase();
 }
 
-void createProfileScreen() {
+Future createProfileScreen() async {
   // Get.toNamed(
   //   RouteHelper.getSelectAccountScreenRoute(),
   //   arguments: {ApiKeys.argMobileNumber: userMobileGlobal},

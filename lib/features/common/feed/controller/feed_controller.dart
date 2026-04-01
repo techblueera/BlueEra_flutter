@@ -1146,6 +1146,7 @@ class FeedController extends GetxController {
           feedResponse.value = ApiResponse.complete(homeFeedResponse);
         }
       } else {
+
         feedResponse.value = ApiResponse.error('Failed to load feed');
       }
     } catch (e) {

@@ -102,6 +102,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
   @override
   Widget build(BuildContext context) {
     return CommonCardWidget(
+      cardMargin: 0,
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(SizeConfig.size10),

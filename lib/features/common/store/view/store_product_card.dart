@@ -202,6 +202,7 @@ class StoreProductCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 10.0, bottom: 8, right: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     /// Title + 3-dot menu
                     Row(
@@ -224,7 +225,7 @@ class StoreProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                     SizedBox(height: SizeConfig.size5),
+                     SizedBox(height: SizeConfig.size4),
 
                     /// Price Row
                     FittedBox(
@@ -270,7 +271,7 @@ class StoreProductCard extends StatelessWidget {
 
                     AttributeRows(attributeMap: uniqueAttributes),
 
-                     SizedBox(height: SizeConfig.size8),
+                     SizedBox(height: SizeConfig.size4),
 
                     /// Shop + Location Row
                     InkWell(
@@ -319,7 +320,7 @@ class StoreProductCard extends StatelessWidget {
                       ),
                     ),
 
-                    SizedBox(height: SizeConfig.size10),
+                    SizedBox(height: SizeConfig.size4),
 
                     StoreKmAwayTextWidget(
                       lat: sellerClassification?.businessLocation?.latitude?.toDouble() ?? 0.0,
