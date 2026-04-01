@@ -8,6 +8,7 @@ class RiderOrdersDetailsModel {
     this.receiverUserId,
     this.status,
     this.orderFor,
+    this.orderType,
     this.modeOfPayment,
     this.assignedRider,
     this.retryCount,
@@ -38,6 +39,7 @@ class RiderOrdersDetailsModel {
     receiverUserId = json['receiverUserId'];
     status = json['status'];
     orderFor = json['orderFor'];
+    orderType = json['orderType'];
     modeOfPayment = json['modeOfPayment'];
     assignedRider = json['assignedRider'];
     retryCount = json['retryCount'];
@@ -87,6 +89,7 @@ class RiderOrdersDetailsModel {
   String? receiverUserId;
   String? status;
   String? orderFor;
+  String? orderType;
   String? modeOfPayment;
   String? assignedRider;
   int? retryCount;
@@ -124,6 +127,7 @@ class RiderOrdersDetailsModel {
     map['receiverUserId'] = receiverUserId;
     map['status'] = status;
     map['orderFor'] = orderFor;
+    map['orderType'] = orderType;
     map['modeOfPayment'] = modeOfPayment;
     map['assignedRider'] = assignedRider;
     map['retryCount'] = retryCount;

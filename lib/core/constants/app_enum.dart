@@ -980,6 +980,7 @@ enum DeliveryPartnerOrdersTab {
 enum PickUpTab {
   newOrder(AppStrings.newOrder),
   onGoing(AppStrings.onGoing),
+  orders(AppStrings.pickUpOrders),
   completed(AppStrings.completed),
   cancel(AppStrings.cancel),
   rejected(AppStrings.rejected);

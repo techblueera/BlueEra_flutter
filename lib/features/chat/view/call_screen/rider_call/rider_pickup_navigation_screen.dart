@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,7 +53,7 @@ class RiderPickupNavigationScreen extends StatefulWidget {
 }
 
 class _RiderPickupNavigationScreenState
-    extends State<RiderPickupNavigationScreen> {
+    extends State<RiderPickupNavigationScreen> with WidgetsBindingObserver {
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
@@ -76,12 +78,21 @@ class _RiderPickupNavigationScreenState
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _setupMarkers();
     _fetchRoute();
+    // Enable PiP auto-entry when user leaves the app
+    if (Platform.isAndroid) {
+      PipService.updatePipStatus(true);
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (Platform.isAndroid) {
+      PipService.updatePipStatus(false);
+    }
     _mapController?.dispose();
     for (final c in _otpControllers) {
       c.dispose();
@@ -90,6 +101,15 @@ class _RiderPickupNavigationScreenState
       f.dispose();
     }
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!Platform.isAndroid) return;
+    if (state == AppLifecycleState.inactive) {
+      // App going to background — enter PiP
+      PipService.enterPip();
+    }
   }
 
   void _setupMarkers() {

@@ -54,18 +54,8 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                   padding: EdgeInsets.only(right: SizeConfig.size14),
                   child: GestureDetector(
                     onTap: () {
-
-                      // FloatingController().show(
-                      //   canClose: true,
-                      //   child: OngoingRideCard(),
-                      //   context: context,
-                      //   onMaximize: () {
-                      //     FloatingController().hide();
-                      //   },
-                      // );
-
                       controller.selectedPickUp.value = tab;
-                      if(controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing&& controller.selectedPickUp.value != PickUpTab.rejected){
+                      if(controller.selectedPickUp.value != PickUpTab.orders && controller.selectedPickUp.value != PickUpTab.rejected){
                         controller.getRidersBookingOrders();
                       }else if(controller.selectedPickUp.value == PickUpTab.rejected){
                         controller.getRiderRejectOrderList();
@@ -97,6 +87,12 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
             Status.COMPLETE) {
           switch (controller.selectedPickUp.value) {
 
+            case PickUpTab.orders:
+              return _buildMergedOrderList(
+                onGoing: controller.onGoingOrders,
+                newOrders: controller.newOrders,
+              );
+
             case PickUpTab.newOrder:
               return _buildOrderList(controller.newOrders);
 
@@ -118,6 +114,55 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           );
         }
       }),
+    );
+  }
+
+  /// Merged view: ongoing orders on top, then new orders below.
+  Widget _buildMergedOrderList({
+    required List<RiderOrdersDetailsModel> onGoing,
+    required List<RiderOrdersDetailsModel> newOrders,
+  }) {
+    if (onGoing.isEmpty && newOrders.isEmpty) {
+      return Center(child: CustomText(AppStrings.noOrdersFound));
+    }
+
+    return ListView(
+      padding: EdgeInsets.only(
+        top: SizeConfig.size10,
+        bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+        left: SizeConfig.size15,
+        right: SizeConfig.size15,
+      ),
+      children: [
+        if (onGoing.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: CustomText(
+              'ONGOING',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          ...onGoing.map((order) => OrderCard(
+                order: order,
+                selectedPickUp: PickUpTab.onGoing,
+              )),
+        ],
+        if (newOrders.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: CustomText(
+              'NEW ORDERS',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          ...newOrders.map((order) => OrderCard(
+                order: order,
+                selectedPickUp: PickUpTab.newOrder,
+              )),
+        ],
+      ],
     );
   }
 

@@ -25,6 +25,8 @@ import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
 import '../../../me/laboratory/view/widgets/me_menu_card_design.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
+import '../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
+import '../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
 import 'delivery_pickup_shops_list.dart';
 
 class OrderCard extends StatefulWidget {
@@ -72,6 +74,7 @@ class _OrderCardState extends State<OrderCard> {
   Widget _buildHeaderSection(BuildContext context, DeliverPartnerOrdersController controller) {
     switch (widget.selectedPickUp) {
       case PickUpTab.newOrder:
+      case PickUpTab.orders:
         return _buildNewOrderHeader(context);
       case PickUpTab.onGoing:
         return _buildOnGoingOrderHeader(controller);
@@ -786,6 +789,7 @@ class _OrderCardState extends State<OrderCard> {
   Widget _buildActionSection(DeliverPartnerOrdersController controller) {
     switch (widget.selectedPickUp) {
       case PickUpTab.newOrder:
+      case PickUpTab.orders:
         return _buildNewOrderActions(controller);
       case PickUpTab.onGoing:
         return _buildOnGoingOrderActions(controller);
@@ -797,6 +801,7 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   Widget _buildNewOrderActions(DeliverPartnerOrdersController controller) {
+    final isFareCall = widget.order.orderType == 'fare-call';
     return Row(
       children: [
         _buildFareWidget(),
@@ -808,10 +813,14 @@ class _OrderCardState extends State<OrderCard> {
                 ||widget.order.orderFor==AppConstants.OutStation
                 ||widget.order.orderFor==AppConstants.HourlyRental
                 ||widget.order.orderFor==AppConstants.Parcel){
-              controller.updateRideOrParcelOrderStatusApi(
-                {ApiKeys.action:AppConstants.reject},
-                widget.order.id ?? "",
-              );
+              if (isFareCall) {
+                controller.rideAction(AppConstants.reject, widget.order.id ?? "");
+              } else {
+                controller.updateRideOrParcelOrderStatusApi(
+                  {ApiKeys.action:AppConstants.reject},
+                  widget.order.id ?? "",
+                );
+              }
             }else{
               _handleRejectOrder(controller);
             }
@@ -828,10 +837,14 @@ class _OrderCardState extends State<OrderCard> {
                 ||widget.order.orderFor==AppConstants.OutStation
                 ||widget.order.orderFor==AppConstants.HourlyRental
                 ||widget.order.orderFor==AppConstants.Parcel){
-              controller.updateRideOrParcelOrderStatusApi(
-                {ApiKeys.action:AppConstants.accept},
-                widget.order.id ?? "",
-              );
+              if (isFareCall) {
+                controller.rideAction(AppConstants.accept, widget.order.id ?? "");
+              } else {
+                controller.updateRideOrParcelOrderStatusApi(
+                  {ApiKeys.action:AppConstants.accept},
+                  widget.order.id ?? "",
+                );
+              }
             }else if(widget.order.orderFor?.toLowerCase()==AppConstants.grocery){
               Get.to(()=>DeliveryPickupShopsList(
                 order: widget.order,
@@ -851,11 +864,138 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
+  /// Navigate to the appropriate ride map screen based on OTP status
+  void _navigateToRideMap() {
+    final order = widget.order;
+    final pickupLat = order.pickupLocation?.location?.coordinates != null &&
+            order.pickupLocation!.location!.coordinates!.length >= 2
+        ? order.pickupLocation!.location!.coordinates![1].toDouble()
+        : 0.0;
+    final pickupLng = order.pickupLocation?.location?.coordinates != null &&
+            order.pickupLocation!.location!.coordinates!.length >= 2
+        ? order.pickupLocation!.location!.coordinates![0].toDouble()
+        : 0.0;
+    final dropLat = order.dropLocation?.location?.coordinates != null &&
+            order.dropLocation!.location!.coordinates!.length >= 2
+        ? order.dropLocation!.location!.coordinates![1].toDouble()
+        : 0.0;
+    final dropLng = order.dropLocation?.location?.coordinates != null &&
+            order.dropLocation!.location!.coordinates!.length >= 2
+        ? order.dropLocation!.location!.coordinates![0].toDouble()
+        : 0.0;
+
+    final customerName = order.user?.name ?? 'Customer';
+    final customerImage = order.user?.profileImage ?? '';
+    final fare = order.fare?.toDouble() ?? 0.0;
+    final distance = double.tryParse(order.distancePickupToDrop ?? '') ?? 0.0;
+    final paymentMethod = order.modeOfPayment ?? 'Cash';
+    final pickupAddress = order.dropLocation?.address ?? 'Pickup location';
+    final dropAddress = order.dropLocation?.address ?? 'Drop location';
+    final isPickedUp = order.status == 'picked-up' || order.status == 'completed';
+
+    if (isPickedUp) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => RiderRideNavigationScreen(
+            pickupLocation: pickupAddress,
+            dropLocation: dropAddress,
+            pickupLat: pickupLat,
+            pickupLng: pickupLng,
+            dropLat: dropLat,
+            dropLng: dropLng,
+            fareAmount: fare,
+            distanceKm: distance,
+            customerName: customerName,
+            customerImage: customerImage,
+            paymentMethod: paymentMethod,
+          ),
+        ),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => RiderPickupNavigationScreen(
+            pickupLocation: pickupAddress,
+            dropLocation: dropAddress,
+            pickupLat: pickupLat,
+            pickupLng: pickupLng,
+            dropLat: dropLat,
+            dropLng: dropLng,
+            fareAmount: fare,
+            distanceKm: distance,
+            customerName: customerName,
+            customerImage: customerImage,
+            otp: order.pickupOTP ?? '',
+            paymentMethod: paymentMethod,
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildViewRideOnMapButton() {
+    final isPickedUp = widget.order.status == 'picked-up' || widget.order.status == 'completed';
+    return GestureDetector(
+      onTap: _navigateToRideMap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+        decoration: BoxDecoration(
+          color: isPickedUp
+              ? const Color(0xFF4285F4).withValues(alpha: 0.08)
+              : const Color(0xFF00C853).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isPickedUp
+                ? const Color(0xFF4285F4).withValues(alpha: 0.2)
+                : const Color(0xFF00C853).withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.map_rounded,
+              size: 18,
+              color: isPickedUp ? const Color(0xFF4285F4) : const Color(0xFF00C853),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isPickedUp ? 'View Ride on Map' : 'Navigate to Pickup',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'OpenSans',
+                color: isPickedUp ? const Color(0xFF4285F4) : const Color(0xFF00C853),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: isPickedUp ? const Color(0xFF4285F4) : const Color(0xFF00C853),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildOnGoingOrderActions(DeliverPartnerOrdersController controller) {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // "View Ride on Map" button for ride orders
+        if (widget.order.orderFor == AppConstants.InCity ||
+            widget.order.orderFor == AppConstants.OutStation ||
+            widget.order.orderFor == AppConstants.HourlyRental ||
+            widget.order.orderFor == AppConstants.Parcel)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _buildViewRideOnMapButton(),
+          ),
+
         if(!(widget.order.orderFor==AppConstants.InCity
             ||widget.order.orderFor==AppConstants.OutStation
             ||widget.order.orderFor==AppConstants.HourlyRental
@@ -1154,12 +1294,14 @@ class _OrderCardState extends State<OrderCard> {
   // ============================================
   bool _shouldShowActions() {
     return widget.selectedPickUp == PickUpTab.newOrder ||
-        widget.selectedPickUp == PickUpTab.onGoing;
+        widget.selectedPickUp == PickUpTab.onGoing ||
+        widget.selectedPickUp == PickUpTab.orders;
   }
 
   bool _shouldShowContactNumber() {
     return widget.selectedPickUp == PickUpTab.newOrder ||
-        widget.selectedPickUp == PickUpTab.onGoing;
+        widget.selectedPickUp == PickUpTab.onGoing ||
+        widget.selectedPickUp == PickUpTab.orders;
   }
 
   // ============================================

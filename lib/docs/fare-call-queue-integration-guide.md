@@ -86,18 +86,28 @@ After placing a fare-call order, the customer's frontend should listen for these
 
 #### `ride:queue:calling`
 
-Emitted each time the system starts calling a new rider.
+Emitted each time the system starts calling a new rider. Includes WebRTC connection details so the customer app can auto-join the call room.
 
 ```json
 {
   "orderId": "ORD-1711900000000",
   "riderIndex": 0,
   "totalRiders": 3,
-  "riderId": "rider_user_id_1"
+  "riderId": "rider_user_id_1",
+  "call_id": "665a1b2c3d4e5f6789012345",
+  "room_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "conversation_id": "665a1b2c3d4e5f6789abcdef",
+  "ice_servers": [ ... ]
 }
 ```
 
-**UI suggestion:** Show a progress indicator like "Calling rider 1 of 3..."
+**IMPORTANT — Customer must auto-join the call:**
+1. On receiving this event, the customer app must join the WebRTC room using `room_id` and `call_id`
+2. Create a WebRTC peer connection using the provided `ice_servers`
+3. Send a `call:offer` via socket and exchange ICE candidates
+4. This is required because the call is initiated server-side, not by the customer tapping a button
+
+**UI suggestion:** Show a progress indicator like "Calling rider 1 of 3..." with the call connecting in the background.
 
 #### `ride:queue:accepted`
 
@@ -390,6 +400,9 @@ The `metadata.rideDetails` object available in `call:incoming` and `call:accepte
 | `distance` | number | Trip distance in km |
 | `orderFor` | string | Ride type: `InCity`, `OutStation`, `HourlyRental`, `Parcel` |
 | `modeOfPayment` | string | `prepaid` or `postpaid` |
+| `eta` | object/null | ETA from rider's current location to pickup |
+| `eta.distanceKm` | number | Road distance from rider to pickup in km (e.g., `4.2`) |
+| `eta.durationMin` | number | Estimated travel time in minutes (e.g., `8`) |
 
 ---
 

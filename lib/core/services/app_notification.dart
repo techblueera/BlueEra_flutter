@@ -484,17 +484,26 @@ class AppNotificationHandler {
   Future<void> showMsg(RemoteMessage message) async {
     final operation = (message.data['operation'] ?? '').toString().toLowerCase();
 
-    // Handle ride order received — show IncomingRiderOrderScreen
-    if (operation == 'ride_order_received') {
-      _showRiderOrderScreen(message.data);
+    // Handle fare-call incoming call — show IncomingRiderOrderScreen with ride details.
+    // Regular calls are handled by socket `call:incoming` in CallController.
+    if (operation == 'incoming_call') {
+      try {
+        final rawPayload = message.data['payload'];
+        Map<String, dynamic> payload = {};
+        if (rawPayload is String && rawPayload.isNotEmpty) {
+          payload = jsonDecode(rawPayload);
+        } else if (rawPayload is Map) {
+          payload = Map<String, dynamic>.from(rawPayload);
+        }
+        final metadata = payload['metadata'];
+        if (metadata != null && metadata['orderType'] == 'fare-call') {
+          _showRiderOrderScreen(message.data);
+          return;
+        }
+      } catch (_) {}
+      // Regular calls — socket handler takes care of it, skip FCM processing
       return;
     }
-
-    // Handle incoming call - show native call UI via CallKit
-    // if (operation == 'incoming_call') {
-    //   _handleIncomingCallPush(message);
-    //   return;
-    // }
 
     // Use the generic data-only renderer for all other notifications.
     // This reads channelId, channelName, channelImportance, style, imageUrl,
@@ -659,27 +668,62 @@ class AppNotificationHandler {
         log('_showRiderOrderScreen: payload parse error: $e');
       }
 
-      final metadata = payload['metadata'] ?? {};
-      final pickupInfo = metadata['Pickup address'] ?? {};
-      final dropInfo = metadata['Delivered address'] ?? {};
-      final ownerInfo = metadata['owner details'] ?? {};
+      Map? metadata = payload['metadata'] ;
+      if(metadata==null){
+        return;
+      }
 
-      // Extract coordinates
-      final pickupLat = _parseDouble(pickupInfo['lat']);
-      final pickupLng = _parseDouble(pickupInfo['long']);
-      final dropLat = _parseDouble(dropInfo['lat']);
-      final dropLng = _parseDouble(dropInfo['long']);
-      final fare = _parseDouble(metadata['ridefare']);
-      final orderId = payload['orderId'] ?? metadata['Order_id'] ?? '';
+      // Support both fare-call guide format (rideDetails) and legacy format
+      final rideDetails = metadata['rideDetails'];
+      final bool isGuideFormat = rideDetails != null;
 
-      // Addresses from payload
-      final pickupAddress = (pickupInfo['Address'] ?? '').toString();
-      final dropAddress = (dropInfo['Address'] ?? '').toString();
+      late final double pickupLat, pickupLng, dropLat, dropLng, fare, distance;
+      late final String pickupAddress, dropAddress, orderId, customerPhone, modeOfPayment, orderFor;
+      late final double etaDistanceKm, etaDurationMin;
+
+      if (isGuideFormat) {
+        // Guide format: metadata.rideDetails.pickup/drop/fare/distance/orderFor/modeOfPayment
+        final pickup = rideDetails['pickup'] ?? {};
+        final drop = rideDetails['drop'] ?? {};
+        pickupLat = _parseDouble(pickup['lat']);
+        pickupLng = _parseDouble(pickup['lng']);
+        dropLat = _parseDouble(drop['lat']);
+        dropLng = _parseDouble(drop['lng']);
+        pickupAddress = (pickup['address'] ?? '').toString();
+        dropAddress = (drop['address'] ?? '').toString();
+        fare = _parseDouble(rideDetails['fare']);
+        distance = _parseDouble(rideDetails['distance']);
+        orderId = metadata['orderId'] ?? payload['orderId'] ?? '';
+        modeOfPayment = (rideDetails['modeOfPayment'] ?? 'postpaid').toString();
+        orderFor = (rideDetails['orderFor'] ?? '').toString();
+        customerPhone = '';
+        final eta = rideDetails['eta'];
+        etaDistanceKm = _parseDouble(eta?['distanceKm']);
+        etaDurationMin = _parseDouble(eta?['durationMin']);
+      } else {
+        // Legacy format: metadata['Pickup address'], metadata['Delivered address'], etc.
+        final pickupInfo = metadata['Pickup address'] ?? {};
+        final dropInfo = metadata['Delivered address'] ?? {};
+        final ownerInfo = metadata['owner details'] ?? {};
+        pickupLat = _parseDouble(pickupInfo['lat']);
+        pickupLng = _parseDouble(pickupInfo['long']);
+        dropLat = _parseDouble(dropInfo['lat']);
+        dropLng = _parseDouble(dropInfo['long']);
+        pickupAddress = (pickupInfo['Address'] ?? '').toString();
+        dropAddress = (dropInfo['Address'] ?? '').toString();
+        fare = _parseDouble(metadata['ridefare']);
+        distance = 0.0;
+        orderId = payload['orderId'] ?? metadata['Order_id'] ?? '';
+        modeOfPayment = 'postpaid';
+        orderFor = '';
+        customerPhone = (ownerInfo['number'] ?? '').toString();
+        etaDistanceKm = 0.0;
+        etaDurationMin = 0.0;
+      }
 
       // Customer info
       final customerName = data['senderName'] ?? data['title'] ?? 'Customer';
       final customerImage = data['senderProfileImage'] ?? '';
-      final customerPhone = (ownerInfo['number'] ?? '').toString();
 
       log('[RIDE_ORDER] orderId=$orderId, fare=$fare, pickup=$pickupAddress, drop=$dropAddress, customer=$customerName');
 
@@ -689,8 +733,30 @@ class AppNotificationHandler {
       }
       final callController = Get.find<CallController>();
 
-      callController.isFareCall.value = true;
-      callController.fareCallOrderId.value = orderId;
+      // Extract call connection details from notification data/payload
+      final callId = payload['call_id'] ?? data['callId'] ?? data['notificationId'] ?? '';
+      final roomId = payload['room_id'] ?? data['roomId'] ?? '';
+      final ownerDetails = (metadata['owner details'] ?? {});
+      final senderId = data['senderId'] ?? ((ownerDetails is Map ? ownerDetails['userid'] : null) ?? '').toString();
+      final conversationId = data['conversationId'] ?? '';
+
+      log('[RIDE_ORDER] callId=$callId, roomId=$roomId, senderId=$senderId');
+
+      // Set call connection state so acceptCall() can establish WebRTC
+      callController.initStateFromCallKitExtra({
+        'senderId': senderId,
+        'conversationId': conversationId,
+        'callType': 'audio_call',
+        'callerName': customerName,
+        'callerImage': customerImage,
+        'callId': callId,
+        'roomId': roomId,
+        'operation': 'incoming_call',
+        'isFareCall': 'true',
+        'fareCallOrderId': orderId,
+      });
+
+      // Set fare-call ride details (initStateFromCallKitExtra doesn't handle these)
       callController.fareCallRideDetails.value = {
         'pickup': {
           'address': pickupAddress.isNotEmpty ? pickupAddress : 'Pickup location',
@@ -703,12 +769,15 @@ class AppNotificationHandler {
           'lng': dropLng,
         },
         'fare': fare,
-        'distance': 0.0,
-        'modeOfPayment': 'postpaid',
-        'customerPhone': customerPhone,
+        'distance': distance,
+        'modeOfPayment': modeOfPayment,
+        'orderFor': orderFor,
+        if (customerPhone.isNotEmpty) 'customerPhone': customerPhone,
+        if (etaDurationMin > 0) 'eta': {
+          'distanceKm': etaDistanceKm,
+          'durationMin': etaDurationMin,
+        },
       };
-      callController.callerName.value = customerName;
-      callController.callerImage.value = customerImage;
 
       // Navigate to IncomingRiderOrderScreen
       if (Get.currentRoute != '/IncomingRiderOrderScreen') {
