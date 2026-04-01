@@ -79,7 +79,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                 ),
                 Padding(
                   padding: EdgeInsets.only(
-                      top: SizeConfig.size5,
+                      top: SizeConfig.size10,
                       bottom: SizeConfig.size5,
                       left:widget.postFilteredType == PostType.otherChannelPosts? SizeConfig.size15: SizeConfig.size32,
                       right: SizeConfig.size5),
@@ -90,24 +90,13 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                       ViewFeedActionWidget(
                           iconPath: AppIconAssets.clock_new,
                           data: widget.postedAgo),
+                      SizedBox(width: SizeConfig.size12),
                       ViewFeedActionWidget(
                         iconPath: AppIconAssets.eye_new,
                         data:
                             formatNumberLikePost(widget.post?.viewsCount ?? 0),
                       ),
-                      // InkWell(
-                      //   onTap: () {
-                      //     if (isGuestUser()) {
-                      //       createProfileScreen();
-                      //     } else {
-                      //       widget.commentView();
-                      //     }
-                      //   },
-                      //   child: ViewFeedActionWidget(
-                      //       iconPath: AppIconAssets.comment_new,
-                      //       data: formatNumberLikePost(
-                      //           widget.post?.commentsCount ?? 0)),
-                      // ),
+                      SizedBox(width: SizeConfig.size12),
                       InkWell(
                         onTap: () {
                           if (isGuestUser()) {
@@ -115,16 +104,6 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                           } else {
                             widget.likeFeed();
                           }
-                          // if ((_post.likesCount ?? 0) < 1) {
-                          //   return;
-                          // }
-
-                          // showDialog(
-                          //   context: context,
-                          //   builder: (context) => PostLikeUserListDialog(
-                          //     postId: widget.post?.id ?? '',
-                          //   ),
-                          // );
                         },
                         child: Padding(
                           padding:
@@ -149,11 +128,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                               ),
                             ],
                           ),
-                        ) /*ViewFeedActionWidget(
-                                  iconPath: AppIconAssets.like_new,
-                                  data: formatNumberLikePost(
-                                      _post.likesCount ?? 0))*/
-                        ,
+                        ),
                       ),
 
 

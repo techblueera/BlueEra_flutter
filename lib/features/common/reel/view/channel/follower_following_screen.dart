@@ -124,7 +124,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                                 ),
                               )
                             : EmptyStateWidget(
-                                message: AppStrings.noFollow,
+                                message: AppStrings.noFollowing,
                                 imageSize: SizeConfig.size120,
                               )
                         : Center(child: CircularProgressIndicator()),
@@ -149,7 +149,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                                 ),
                               )
                             : EmptyStateWidget(
-                                message: AppStrings.noFollow,
+                                message: AppStrings.noFollowers,
                                 imageSize: SizeConfig.size120,
                               )
                         : Center(child: CircularProgressIndicator()),

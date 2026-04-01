@@ -197,6 +197,8 @@ class AppStrings {
   static const noVideoSelected = "noVideoSelected";
   static const follow = "follow";
   static const noFollow = "noFollow";
+  static const noFollowing = "No Following";
+  static const noFollowers = "No Followers";
 
   static const deleteDocument = "deleteDocument";
   static const profileVideo = "profileVideo";
@@ -3286,7 +3288,7 @@ class AppStrings {
   static const String bookYourTransport = "book_your_transport";
   static const String rentalService = "rental_service";
   static const String findServices = "find_services";
-  static const String financialSectors  = "Financial Sectors";
+  static const String financialSectors = "Financial Sectors";
   static const String automotiveShowroom = "automotive_showroom";
   static const String restaurantNearby = "restaurant_nearby";
   static const String findDreamJob = "find_dream_job";
@@ -3306,7 +3308,8 @@ class AppStrings {
   static const String ourPopularServices = "our_popular_services";
   static const String ourAllServices = "our_all_services";
   static const String reception = "reception";
-  static const String homeSampleCollectionAvailable = "home_sample_collection_available";
+  static const String homeSampleCollectionAvailable =
+      "home_sample_collection_available";
 
   static const String chooseRoom = "choose_room";
   static const String noRoomsAvailable = "no_rooms_available";
@@ -3446,7 +3449,6 @@ class AppStrings {
   static const String createNew = "create_new";
   static const String noActivitiesFound = "no_activities_found";
   static const String deleteActivityConfirm = "delete_activity_confirm";
-
 
   // Event Form & Actions
   static const String createEvent = "create_event";
@@ -3595,7 +3597,8 @@ class AppStrings {
   static const String descriptionOfJobRole = "description_of_job_role";
   static const String egCompanyName = "eg_company_name";
   static const String rolesResponsibilities = "roles_responsibilities";
-  static const String describeKeyResponsibilities = "describe_key_responsibilities";
+  static const String describeKeyResponsibilities =
+      "describe_key_responsibilities";
 
   /// JOB SEEKER RESUME OVERVIEW KEYS
   static const String myPortfolioResume = "my_portfolio_resume";
@@ -3617,5 +3620,5 @@ class AppStrings {
   static const String award = "award";
   static const String online_upi_payment = "online_upi_payment";
   static const String credit_card_payment = "credit_card_payment";
-  static const String  health_checkup_packages= "health_checkup_packages";
+  static const String health_checkup_packages = "health_checkup_packages";
 }

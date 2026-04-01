@@ -1266,9 +1266,10 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
   return entries;
 }
 
-List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
+List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted, {String? postType}) {
+  final isPoll = postType?.toUpperCase() == AppConstants.POLL_POST;
   final items = <Map<String, dynamic>>[
-    if ((is_reposted == null) || (is_reposted == false))
+    if ((is_reposted == null || is_reposted == false) && !isPoll)
       {'title': AppStrings.editPost, "slud_id": 'Edit Post'},
     {'title': AppStrings.deletePost, "slud_id": "Delete Post"},
   ];

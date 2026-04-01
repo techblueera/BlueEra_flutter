@@ -274,7 +274,7 @@ class MessagePostController extends GetxController {
       selectedType.value = MediaType.video;
 
       imagesList.value = [videoTriFile];
-      _generateThumbnail(videoTriFile);
+      generateThumbnail(videoTriFile);
 
       // Upload / Save / Play trimmed video here
     }
@@ -304,7 +304,7 @@ class MessagePostController extends GetxController {
 
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
 
-  Future<void> _generateThumbnail(File videoFile) async {
+  Future<void> generateThumbnail(File videoFile) async {
     final tempDir = await getTemporaryDirectory();
     final thumbPath = await VideoThumbnail.thumbnailFile(
       video: videoFile.path,

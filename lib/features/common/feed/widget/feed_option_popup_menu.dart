@@ -59,7 +59,7 @@ class FeedPopUpMenu extends StatelessWidget {
         }
       },
       icon: Icon(Icons.more_vert),
-      itemBuilder: (context) => popupPostMenuItems(post.is_reposted),
+      itemBuilder: (context) => popupPostMenuItems(post.is_reposted, postType: post.type),
     );
   }
 }
