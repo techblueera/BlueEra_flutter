@@ -67,12 +67,10 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
 
   @override
   Widget build(BuildContext context) {
-    print("djsclkdlkd ${userProfessionGlobal}");
       if(userProfessionGlobal == BIKE_RIDER ||
          userProfessionGlobal == GOODS_TAXI ||
          userProfessionGlobal == AUTO_TAXI||
-         userProfessionGlobal == CAR_TAXI_DRIVER||
-         userProfessionGlobal == DELIVERY_RIDER
+         userProfessionGlobal == CAR_TAXI_DRIVER
       ){
         return RiderServiceScreen(
             fromBottomNavBar: widget.fromBottomNavBar

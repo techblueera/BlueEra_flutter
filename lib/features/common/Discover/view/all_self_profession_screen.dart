@@ -7,7 +7,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
+import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -87,71 +88,10 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         child: Column(
           children: [
             // ─── Book via BlueEra Partner Banner ───
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
-              child: InkWell(
-                onTap: () {},
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.size10,
-                      horizontal: SizeConfig.size12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primaryColor.withValues(alpha: 0.08),
-                        AppColors.primaryColor.withValues(alpha: 0.03),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: AppColors.primaryColor.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.franchiseIcon,
-                          height: SizeConfig.size20,
-                          width: SizeConfig.size20,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              AppStrings.bookViaBlueEraPartner,
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            CustomText(
-                              'Verified professionals near you',
-                              fontSize: SizeConfig.small,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios_rounded,
-                          size: 14, color: AppColors.primaryColor),
-                    ],
-                  ),
-                ),
-              ),
+            BookViaBlueEraPartnerBanner(
+              onTap: () {
+                // your navigation here
+              },
             ),
 
             // ─── Main Content ───

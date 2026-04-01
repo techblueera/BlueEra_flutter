@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
+import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/home_made_food_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/food_item_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/food_item_bottom_sheet.dart';
@@ -225,7 +226,10 @@ class _FoodMenuManagementScreenState extends State<FoodMenuManagementScreen> {
                   children: [
                     _buildDietryIndicator(isFoodCreated: false),
                     const SizedBox(width: 4),
-                    _buildTag("Boiled"),
+                    FoodTypeOrCookingMethod(
+                        label: 'Boiled',
+                        icon: AppIconAssets.boiled,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -349,7 +353,10 @@ class _FoodMenuManagementScreenState extends State<FoodMenuManagementScreen> {
                     _buildDietryIndicator(isFoodCreated: true),
                     const SizedBox(width: 4),
                     if (item.cookingMethod.isNotEmpty)
-                      _buildTag(item.cookingMethod),
+                      FoodTypeOrCookingMethod(
+                          label: item.cookingMethod,
+                          icon: AppIconAssets.boiled,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -404,25 +411,4 @@ class _FoodMenuManagementScreenState extends State<FoodMenuManagementScreen> {
     );
   }
 
-  Widget _buildTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: AppColors.greyE5)),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.boiled,
-            imgColor: AppColors.secondaryTextColor,
-          ),
-          SizedBox(width: 4.0),
-          CustomText(label,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
-              fontSize: SizeConfig.extraSmall),
-        ],
-      ),
-    );
-  }
 }

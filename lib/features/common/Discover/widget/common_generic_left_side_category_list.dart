@@ -15,7 +15,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
   final double? width;
   final EdgeInsetsGeometry? padding;
 
-  const CommonGenericLeftSideCategoryList({
+  const  CommonGenericLeftSideCategoryList({
     super.key,
     required this.items,
     required this.getLabel,

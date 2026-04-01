@@ -3214,10 +3214,6 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
       slugId: HOME_MADE_PRODUCTS,
       icon: AppImageAssets.homeMadeProduct),
   CollapsibleGridModel(
-      name: 'Home Made\nFood Items',
-      slugId: HOME_MADE_FOOD,
-      icon: AppImageAssets.homeMadeFood),
-  CollapsibleGridModel(
       name: 'Rental\nServices',
       // name: AppStrings.rentalServices,
       slugId: RENTAL_SERVICES,

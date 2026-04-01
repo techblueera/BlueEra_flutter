@@ -6,7 +6,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
+import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
@@ -67,48 +68,10 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
         child: Column(
           children: [
 
-            SizedBox(
-              height: SizeConfig.paddingM,
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8),
-              child: InkWell(
-                onTap: () {
-
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size10,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 1.2),
-                      boxShadow: [AppShadows.textFieldShadow]),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.franchiseIcon,
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                          AppStrings.bookViaBlueEraPartner,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            SizedBox(
-              height: SizeConfig.paddingXSL,
+            BookViaBlueEraPartnerBanner(
+              onTap: () {
+                // your navigation here
+              },
             ),
 
             Expanded(

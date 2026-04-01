@@ -577,6 +577,11 @@ class ApiKeys {
   static const argArrGroceryCatName = 'argArrGroceryCatName';
   static const argArrGroceryCatKey = 'argArrGroceryCatKey';
   static const argArrGrocerySuperCategory = 'argArrGrocerySuperCategory';
+  static const argArrProductSuperCategory = 'argArrProductSuperCategory';
+  static const argArrProductCatKey = 'argArrProductCatKey';
+  static const argArrProductCatName = 'argArrProductCatName';
+  static const argProducts = 'argProducts';
+  static const argProductGroup = 'argProductGroup';
   static const medicalOtcChildren = 'medicalOtcItems';
   static const documentType = 'documentType';
   static const value = 'value';

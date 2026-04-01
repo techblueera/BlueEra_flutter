@@ -31,7 +31,14 @@ enum EarnServiceTypes {
 
 class EarnServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
-  const EarnServiceScreen({super.key, this.fromBottomNavBar = false});
+  final int initialTabIndex;
+  final int initialProductSubTab;
+  const EarnServiceScreen({
+    super.key,
+    this.fromBottomNavBar = false,
+    this.initialTabIndex = 0,
+    this.initialProductSubTab = 0,
+  });
 
   @override
   State<EarnServiceScreen> createState() => _EarnServiceScreenState();
@@ -60,7 +67,9 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
       }
 
       return EarnServiceDashboardView(
-          fromBottomNavBar: widget.fromBottomNavBar
+          fromBottomNavBar: widget.fromBottomNavBar,
+          initialTabIndex: widget.initialTabIndex,
+          initialProductSubTab: widget.initialProductSubTab,
       );
     });
   }

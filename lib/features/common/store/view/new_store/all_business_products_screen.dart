@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';

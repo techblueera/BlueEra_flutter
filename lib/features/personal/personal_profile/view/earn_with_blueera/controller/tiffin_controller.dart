@@ -50,7 +50,7 @@ class TiffinController extends GetxController {
 
   final formKey = GlobalKey<FormState>();
 
-  final foodTypeList = ['Veg', 'Non-Veg', 'Vegan', 'Eggetarian'].obs;
+  final foodTypeList = ['Veg', 'Non-Veg', 'Vegan'].obs;
   final cookingMethodList =
       ['Boiled', 'Fried', 'Grilled', 'Steamed', 'Baked'].obs;
   final startTimeList = generateFullDayTimeList().obs;

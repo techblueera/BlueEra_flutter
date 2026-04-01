@@ -14,11 +14,11 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 
-class StoreCard extends StatelessWidget {
+class GroceryStoreCard extends StatelessWidget {
   final GetAllStoreResModel store;
   final Color bgColor;
 
-  const StoreCard({
+  const GroceryStoreCard({
     super.key,
     required this.store,
     required this.bgColor,
