@@ -27,7 +27,8 @@ class CustomPollWidget extends StatefulWidget {
     required this.options,
     required this.postFilteredType,
     this.postedAgo,
-    this.message, this.postData,
+    this.message,
+    this.postData,
   });
 
   @override
@@ -131,7 +132,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                     ? SizeConfig.size15
                     : SizeConfig.size32,
                 right: SizeConfig.size15,
-                bottom: SizeConfig.size5),
+                bottom: SizeConfig.size8),
             child: InkWell(
               // onTap: hasVoted ? null : () => _handleVote(index),
               onTap: () {

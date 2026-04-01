@@ -5,8 +5,9 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
-import 'package:BlueEra/features/common/post/message_post/feed_video_preview_widget.dart';
+import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -77,7 +78,13 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       msgController.selectedType.value == MediaType.video;
 
                   return GestureDetector(
-                    onTap: isVideo ? () => openVideoPreview(file) : null,
+                    onTap: () {
+                      if (isVideo) {
+                        openVideoPreview(file);
+                      } else {
+                        openImageCrop(context, file, index);
+                      }
+                    },
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -205,6 +212,26 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
 
 }
 
-void openVideoPreview(File file) {
-  Get.to(VideoPreviewScreen(file: file));
+void openVideoPreview(File file) async {
+  final msgController = Get.find<MessagePostController>();
+  final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: file.path));
+
+  if (trimmedPath != null) {
+    print("✅ Re-Trimmed Video Path: $trimmedPath");
+    final videoTriFile = File(trimmedPath);
+
+    msgController.imagesList.value = [videoTriFile];
+    msgController.generateThumbnail(videoTriFile);
+  }
+}
+
+void openImageCrop(BuildContext context, File file, int index) async {
+  final msgController = Get.find<MessagePostController>();
+  String croppedPath = await SelectProfilePictureDialog.cropImage(context, file.path);
+  if (croppedPath.isNotEmpty) {
+    print("✅ Cropped Image Path: $croppedPath");
+    final croppedFile = File(croppedPath);
+    msgController.imagesList[index] = croppedFile;
+    msgController.imagesList.refresh();
+  }
 }
