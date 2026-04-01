@@ -7,30 +7,57 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/logger_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
+import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
+import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart' as getxObj;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 class AuthManager {
   static bool isLoggingOut = false;
 
   static Future<void> handleLogout(Response<dynamic>? response) async {
     if (isLoggingOut) return;
-commonSnackBar(message: response?.data["message"]);
+// commonSnackBar(message: response?.data["message"]);
     isLoggingOut = true;
+    // E2E: revoke device keys from server before clearing session
+    if (getxObj.Get.isRegistered<ChatViewController>()) {
+      await getxObj.Get.find<ChatViewController>().revokeE2EDevice();
+    }
+
+    deleteIfRegistered<ChatViewController>();
+    deleteIfRegistered<FeedController>();
+    deleteIfRegistered<LanguageControllerNew>();
+    lastHomeFetchTime = null;
     await SharedPreferenceUtils.clearPreference();
+    final LiveLocationService locationService = LiveLocationService();
+
+    locationService.stop();
+    await clearAllLocalDataOnLogout();
+
+    // Re-init localization Hive box after logout clears disk
+    await LocalizationService().init();
 
     getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
   }
 }
+
 class ApiBaseHelper {
   static int numberOfReq = 0;
   static bool showProgressDialog = true;
@@ -42,10 +69,12 @@ class ApiBaseHelper {
       headers: {
         ApiKeys.authorization: 'Bearer $authTokenGlobal',
         'Content-Type': 'application/json; charset=UTF-8',
-        'X-Device-Type': 'mobile', // Or 'desktop'
-        'X-Device-OS':
-            '${Platform.operatingSystem} ${deviceOsVersionGlobal}', // e.g., 'android 14'
-        'X-Browser-Name': AppConstants.appName, // Or your app name
+        'X-Device-Type': 'mobile',
+        // Or 'desktop'
+        'X-Device-OS': '${Platform.operatingSystem} ${deviceOsVersionGlobal}',
+        // e.g., 'android 14'
+        'X-Browser-Name': AppConstants.appName,
+        // Or your app name
       });
 
   static Dio createDio() {
@@ -124,7 +153,6 @@ class ApiBaseHelper {
               );
             }
 
-            showProgressDialog = true;
             // Decrement the request count and hide the loader if no pending requests
             if (response.statusCode! >= 100 && response.statusCode! <= 199) {
               Logger.printLog(
@@ -140,15 +168,18 @@ class ApiBaseHelper {
             return handler.next(response);
           },
           onError: (DioException err, handler) async {
-            logs("err==== ${err.response}");
+            logs("err====1  ${err.response}");
             numberOfReq--;
             if (numberOfReq == 0) {
               ProgressDialog.showProgressDialog(false);
             }
 
-            // showProgressDialog = true;
             final response = err.response;
+            logs("err==== response?.statusCode ${response?.statusCode.runtimeType}");
+
             if (response?.statusCode == 401) {
+              logs("ERROR CODE 401 ====");
+
               await AuthManager.handleLogout(response);
             }
             // Decrement the request count and hide the loader if no pending requests
@@ -656,149 +687,6 @@ class ApiBaseHelper {
       return null;
     }
   }
-
-  // Future<ResponseModel?> postChunkedVideoUpload(
-  //     String url, {
-  //       required File videoFile,
-  //       required File? coverFile,
-  //       required Map<String, dynamic> params,
-  //       bool showProgress = true,
-  //       int chunkSize = 8 * 1024 * 1024, // 8 MB
-  //       Function(ResponseModel res)? onSuccess,
-  //       Function(DioExceptions dioExceptions)? onError,
-  //       void Function(int, int)? onSendProgress,
-  //     }) async {
-  //   final int totalSize = await videoFile.length();
-  //   log("totalSize in MB --> ${totalSize / (1024 * 1024)}");
-  //   final String fileName = basename(videoFile.path);
-  //   final String? mimeType = lookupMimeType(videoFile.path);
-  //
-  //   final raf = videoFile.openSync();
-  //   int offset = 0;
-  //   int chunkIndex = 0;
-  //
-  //   showProgressDialog = showProgress;
-  //
-  //   try {
-  //     Response? response;
-  //
-  //     while (offset < totalSize) {
-  //       final int remaining = totalSize - offset;
-  //       final int currentChunkSize = remaining > chunkSize ? chunkSize : remaining;
-  //       final chunk = raf.readSync(currentChunkSize);
-  //
-  //       final formData = FormData.fromMap(params);
-  //
-  //       if (offset == 0) {
-  //
-  //         // if (params != null) {
-  //         //   for (final entry in params.entries) {
-  //         //     final key = entry.key;
-  //         //     final value = entry.value;
-  //         //
-  //         //     if (value is String || value is num || value is bool) {
-  //         //       formData.fields.add(MapEntry(key, value.toString()));
-  //         //
-  //         //     } else if (value is List) {
-  //         //       final isStringList = value.every((v) => v == null || v is String);
-  //         //       if (isStringList) {
-  //         //         for (final v in value) {
-  //         //           if (v != null) {
-  //         //             formData.fields.add(MapEntry(key, v));
-  //         //           }
-  //         //         }
-  //         //       } else {
-  //         //         formData.fields.add(MapEntry(key, jsonEncode(value)));
-  //         //       }
-  //         //
-  //         //     } else if (value is Map) {
-  //         //       formData.fields.add(MapEntry(key, jsonEncode(value)));
-  //         //     } else {
-  //         //       log("⚠️ Unsupported field type for key '$key': ${value.runtimeType}");
-  //         //     }
-  //         //   }
-  //         // }
-  //
-  //
-  //         // Add cover file
-  //         if (coverFile != null) {
-  //           final coverMime = lookupMimeType(coverFile.path);
-  //           formData.files.add(
-  //             MapEntry(
-  //               ApiKeys.cover,
-  //               await MultipartFile.fromFile(
-  //                 coverFile.path,
-  //                 filename: basename(coverFile.path),
-  //                 contentType: parseMediaType(coverMime),
-  //               ),
-  //             ),
-  //           );
-  //         }
-  //       }
-  //
-  //       // Add video chunk
-  //       formData.files.add(
-  //         MapEntry(
-  //           ApiKeys.video,
-  //           MultipartFile.fromBytes(
-  //             chunk,
-  //             filename: fileName,
-  //             contentType: parseMediaType(mimeType),
-  //           ),
-  //         ),
-  //       );
-  //
-  //       // Add chunk info fields
-  //       formData.fields.addAll([
-  //         MapEntry('chunkIndex', '$chunkIndex'),
-  //         MapEntry('chunkStart', '$offset'),
-  //         MapEntry('chunkSize', '$currentChunkSize'),
-  //         MapEntry('totalSize', '$totalSize'),
-  //       ]);
-  //
-  //       response = await baseAPI.post(
-  //         url,
-  //         data: formData,
-  //         options: Options(
-  //           headers: {
-  //             'Content-Range': 'bytes $offset-${offset + currentChunkSize - 1}/$totalSize',
-  //             'Content-Type': 'multipart/form-data',
-  //           },
-  //         ),
-  //         onSendProgress: onSendProgress,
-  //       );
-  //
-  //       if (response.statusCode != 200 && response.statusCode != 201) {
-  //         throw Exception(
-  //           'Chunk $chunkIndex upload failed: ${response.statusCode}, ${response.data}',
-  //         );
-  //       }
-  //
-  //       offset += currentChunkSize;
-  //       chunkIndex += 1;
-  //     }
-  //
-  //     return handleResponse(
-  //       response!,
-  //       onError ?? (error) {},
-  //       onSuccess ?? (res) {},
-  //     );
-  //
-  //   } catch (e) {
-  //     log("e--> $e");
-  //     return null;
-  //   } finally {
-  //     log("e-->");
-  //     raf.closeSync();
-  //   }
-  // }
-  //
-  // MediaType? parseMediaType(String? mimeType) {
-  //   if (mimeType == null) return null;
-  //   final parts = mimeType.split('/');
-  //   if (parts.length != 2) return null;
-  //   return MediaType(parts[0], parts[1]);
-  // }
 
   handleResponse(
     Response response,

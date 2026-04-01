@@ -21,7 +21,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
@@ -633,9 +633,9 @@ class _PersonalProfileSetupNewScreenState
     final user = controller.personalProfileDetails.value.user;
     IndividualProfileTypeModel _selectedProfileType =
         IndividualProfileTypeModel.fromString(user?.profileType ?? SOCIAL_PROFILE);
-    OnboardingCategoryModel? _selectedProfession;
-    List<OnboardingCategoryModel> professionCategoryList =
-              <OnboardingCategoryModel>[];
+    ProfessionTypeData? _selectedProfession;
+    List<ProfessionTypeData> professionCategoryList =
+              <ProfessionTypeData>[];
 
     String designation = user?.designation ?? '';
     IndividualFields? _selectedContentCreatorSpecialization;
@@ -660,16 +660,16 @@ class _PersonalProfileSetupNewScreenState
     void updateCategoryOfProfession(String typeId) {
       switch (typeId) {
         case SOCIAL_PROFILE:
-          professionCategoryList = individualOnboardingSocialProfileList;
+          professionCategoryList = authController.individualOnboardingSocialProfileList;
           break;
         case GIG_WORKER:
-          professionCategoryList = individualOnboardingGigWorkList;
+          professionCategoryList = authController.individualOnboardingGigWorkList;
           break;
         case SELF_EMPLOYED:
-          professionCategoryList = individualSkillWorkList;
+          professionCategoryList = authController.individualOnboardingSkillWorkList;
           break;
         case PROFESSIONAL:
-          professionCategoryList = individualOnboardingConsultationList;
+          professionCategoryList = authController.individualOnboardingConsultationList;
           break;
         default:
           professionCategoryList.clear();
@@ -681,7 +681,7 @@ class _PersonalProfileSetupNewScreenState
 
       String? currentSlug = user?.profession;
       if (currentSlug != null && currentSlug.isNotEmpty) {
-        var match = professionCategoryList.firstWhereOrNull((e) => e.slugId == currentSlug);
+        var match = professionCategoryList.firstWhereOrNull((e) => e.tagId == currentSlug);
         _selectedProfession = match;
       }
       if(_selectedProfession==null) return;
@@ -690,19 +690,19 @@ class _PersonalProfileSetupNewScreenState
       logs.writeln("\n🔎 --- FINAL EXECUTION LOG ---");
 
       if(_selectedProfileType.type == PROFESSIONAL ||
-          _selectedProfession?.slugId == CONTENT_CREATOR ||
-          _selectedProfession?.slugId == ARTIST
+          _selectedProfession?.tagId == CONTENT_CREATOR ||
+          _selectedProfession?.tagId == ARTIST
       ){
         logs.writeln("⚡ Profile Type ${_selectedProfileType.type}");
-        logs.writeln("⚡ Action: Triggered API Call for ${_selectedProfession?.slugId}");
+        logs.writeln("⚡ Action: Triggered API Call for ${_selectedProfession?.tagId}");
 
         // Dropdown values
-        authController.fetchIndividualFields(tagId: _selectedProfession!.slugId)
+        authController.fetchIndividualFields(tagId: _selectedProfession!.tagId ?? '')
             .then((_) {
 
           if (authController.arrIndividualFields.isNotEmpty) {
 
-            if(_selectedProfession?.slugId == CONTENT_CREATOR){
+            if(_selectedProfession?.tagId == CONTENT_CREATOR){
               var mainList = authController.arrIndividualFields;
               try {
                 var match = mainList.firstWhere((element) => element.name == designation);
@@ -729,11 +729,11 @@ class _PersonalProfileSetupNewScreenState
             }
           }
         });
-      } else if(_selectedProfession?.slugId == HOMEMAKER) {
+      } else if(_selectedProfession?.tagId == HOMEMAKER) {
         // Text field
         _expertiseTextCtrl.text = designation;
         logs.writeln(" Action: Set Homemaker Text -> '$designation'");
-      }else if(_selectedProfession?.slugId == SENIOR_CITIZEN) {
+      }else if(_selectedProfession?.tagId == SENIOR_CITIZEN) {
         // Text field
         _seniorTextCtrl.text = designation;
         logs.writeln(" Action: Set Senior Text -> '$designation'");
@@ -748,38 +748,38 @@ class _PersonalProfileSetupNewScreenState
         logs.writeln(" Field: Specialization -> '${_specializationCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == PRIVATE_JOB) {
+      if (_selectedProfession?.tagId == PRIVATE_JOB) {
         _sectorTextCtrl.text = user?.sector ?? '';
         logs.writeln(" Field: Private Sector -> '${_sectorTextCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == GOVERNMENT_JOB) {
+      if (_selectedProfession?.tagId == GOVERNMENT_JOB) {
         _governmentNameCtrl.text = user?.department ?? '';
         logs.writeln(" Field: Govt Dept -> '${_governmentNameCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == POLITICIAN) {
+      if (_selectedProfession?.tagId == POLITICIAN) {
         _politicalPartyCtrl.text = user?.department ?? '';
         logs.writeln("Field: Political Party -> '${_politicalPartyCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == GOVTPSU) {
+      if (_selectedProfession?.tagId == GOVTPSU) {
         _departmentNameCtrl.text = user?.department ?? '';
         _subDivisionCtrl.text = user?.subDivision ?? '';
         logs.writeln(" Field: PSU -> Dept: '${_departmentNameCtrl.text}', SubDiv: '${_subDivisionCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == REG_UNION || _selectedProfession?.slugId == NGO) {
+      if (_selectedProfession?.tagId == REG_UNION || _selectedProfession?.tagId == NGO) {
         _ngoNameTextCtrl.text = user?.department ?? '';
         logs.writeln("Field: NGO/Union -> '${_ngoNameTextCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == INDUSTRIALIST || _selectedProfession?.slugId == DIRECTOR) {
+      if (_selectedProfession?.tagId == INDUSTRIALIST || _selectedProfession?.tagId == DIRECTOR) {
         _companyNameCtrl.text = user?.department ?? '';
         logs.writeln(" Field: Company -> '${_companyNameCtrl.text}'");
       }
 
-      if (_selectedProfession?.slugId == STUDENT) {
+      if (_selectedProfession?.tagId == STUDENT) {
         _courseTextCtrl.text = user?.schoolOrCollegeName ?? '';
         logs.writeln(" Field: School/College -> '${_courseTextCtrl.text}'");
       }
@@ -800,20 +800,20 @@ class _PersonalProfileSetupNewScreenState
           }
         }
 
-        if (_selectedProfession?.slugId == ARTIST) {
+        if (_selectedProfession?.tagId == ARTIST) {
           if (_selectedDesignationObj?.name?.isEmpty ?? true) {
             commonSnackBar(message: 'Select your art / skill');
             return;
           }
         }
-        if (_selectedProfession?.slugId == REG_UNION ||
-            _selectedProfession?.slugId == NGO) {
+        if (_selectedProfession?.tagId == REG_UNION ||
+            _selectedProfession?.tagId == NGO) {
           if (_ngoNameTextCtrl.text.isEmpty) {
             commonSnackBar(message: 'Enter your NGO / Society Name');
             return;
           }
         }
-        if (_selectedProfession?.slugId == CONTENT_CREATOR) {
+        if (_selectedProfession?.tagId == CONTENT_CREATOR) {
           if (_selectedContentCreatorSpecialization?.name?.isEmpty ?? true) {
             commonSnackBar(message: 'Select your Field');
             return;
@@ -835,22 +835,22 @@ class _PersonalProfileSetupNewScreenState
           String? designation;
           if ((_selectedProfileType.type == SELF_EMPLOYED ||
               _selectedProfileType.type == GIG_WORKER)) {
-            designation = formatRole(_selectedProfession?.slugId ?? '');
+            designation = formatRole(_selectedProfession?.tagId ?? '');
             log('designation -- $designation');
           } else if (_selectedProfileType.type == PROFESSIONAL) {
             designation = _selectedDesignationObj?.name;
           } else {
-            if (_selectedProfession?.slugId == STUDENT) {
+            if (_selectedProfession?.tagId == STUDENT) {
               designation = formatRole(STUDENT);
-            } else if (_selectedProfession?.slugId == FARMER) {
+            } else if (_selectedProfession?.tagId == FARMER) {
               designation = formatRole(FARMER);
-            } else if (_selectedProfession?.slugId == HOMEMAKER) {
+            } else if (_selectedProfession?.tagId == HOMEMAKER) {
               designation = _expertiseTextCtrl.text.trim();
-            } else if (_selectedProfession?.slugId == SENIOR_CITIZEN) {
+            } else if (_selectedProfession?.tagId == SENIOR_CITIZEN) {
               designation = _seniorTextCtrl.text.trim();
-            } else if (_selectedProfession?.slugId == ARTIST) {
+            } else if (_selectedProfession?.tagId == ARTIST) {
                 designation = _selectedDesignationObj?.name;
-            } else if (_selectedProfession?.slugId == CONTENT_CREATOR) {
+            } else if (_selectedProfession?.tagId == CONTENT_CREATOR) {
               designation = _selectedDesignationObj?.name;
             }
             // else if (_selectedProfessionTagId == OTHERS) {
@@ -865,31 +865,31 @@ class _PersonalProfileSetupNewScreenState
 
             ///CONDITION....
             ApiKeys.profileType: _selectedProfileType.type,
-            ApiKeys.profession: _selectedProfession?.slugId,
+            ApiKeys.profession: _selectedProfession?.tagId,
             ApiKeys.designation: designation,
-            if (_selectedProfession?.slugId == PRIVATE_JOB)
+            if (_selectedProfession?.tagId == PRIVATE_JOB)
               ApiKeys.sector: _sectorTextCtrl.text,
             if (_selectedProfileType.type == SELF_EMPLOYED ||
                 _selectedProfileType.type == GIG_WORKER)
               ApiKeys.specilization: _specializationCtrl.text.trim(),
-            if (_selectedProfession?.slugId == CONTENT_CREATOR)
+            if (_selectedProfession?.tagId == CONTENT_CREATOR)
               ApiKeys.specilization: _selectedContentCreatorSpecialization?.name,
-            if (_selectedProfession?.slugId == GOVERNMENT_JOB)
+            if (_selectedProfession?.tagId == GOVERNMENT_JOB)
               ApiKeys.department: _governmentNameCtrl.text.trim(),
-            if (_selectedProfession?.slugId == POLITICIAN)
+            if (_selectedProfession?.tagId == POLITICIAN)
               ApiKeys.department: _politicalPartyCtrl.text.trim(),
-            if (_selectedProfession?.slugId == GOVTPSU)
+            if (_selectedProfession?.tagId == GOVTPSU)
               ApiKeys.department: _departmentNameCtrl.text.trim(),
-            if (_selectedProfession?.slugId == GOVTPSU)
+            if (_selectedProfession?.tagId == GOVTPSU)
               ApiKeys.subDivision: _subDivisionCtrl.text.trim(),
-            if (_selectedProfession?.slugId == REG_UNION ||
-                _selectedProfession?.slugId == NGO)
+            if (_selectedProfession?.tagId == REG_UNION ||
+                _selectedProfession?.tagId == NGO)
               ApiKeys.department: _ngoNameTextCtrl.text.trim(),
-            if (_selectedProfession?.slugId == INDUSTRIALIST)
+            if (_selectedProfession?.tagId == INDUSTRIALIST)
               ApiKeys.department: _companyNameCtrl.text.trim(),
-            if (_selectedProfession?.slugId == DIRECTOR)
+            if (_selectedProfession?.tagId == DIRECTOR)
               ApiKeys.department: _companyNameCtrl.text.trim(),
-            if (_selectedProfession?.slugId == STUDENT)
+            if (_selectedProfession?.tagId == STUDENT)
               ApiKeys.schoolOrCollegeName: _courseTextCtrl.text.trim(),
             // if (_selectedProfessionTagId == OTHERS)
             //   ApiKeys.specilization: _otherProfessionTextController.text,
@@ -1001,28 +1001,28 @@ class _PersonalProfileSetupNewScreenState
                           color: AppColors.mainTextColor,
                         ),
                         SizedBox(height: SizeConfig.size8),
-                       CommonDropdownDialog<OnboardingCategoryModel>(
+                       CommonDropdownDialog<ProfessionTypeData>(
                           items: professionCategoryList,
                           selectedValue: _selectedProfession,
                           title: 'Select Profession',
                           hintText: _selectedProfileType.hintText,
-                          displayValue: (item) => item.name.tr,
+                          displayValue: (item) => (item.name ?? '').tr,
                           onChanged: (val) {
-                            if(val == null || _selectedProfession?.slugId == val.slugId) return;
+                            if(val == null || _selectedProfession?.tagId == val.tagId) return;
 
                             _designationController.clear();
                             _selectedContentCreatorSpecialization = null;
                             _selectedDesignationObj = null;
 
                             _selectedProfession = val;
-                            logs("Selected Profession Slug: ${_selectedProfession?.slugId}");
+                            logs("Selected Profession Slug: ${_selectedProfession?.tagId}");
 
                             if(_selectedProfileType.type == PROFESSIONAL ||
-                                  _selectedProfession?.slugId == CONTENT_CREATOR ||
-                                  _selectedProfession?.slugId == ARTIST
+                                  _selectedProfession?.tagId == CONTENT_CREATOR ||
+                                  _selectedProfession?.tagId == ARTIST
                               ){
                                 authController.fetchIndividualFields(
-                                    tagId: _selectedProfession?.slugId ?? ''
+                                    tagId: _selectedProfession?.tagId ?? ''
                                 );
                               }
 
@@ -1082,7 +1082,7 @@ class _PersonalProfileSetupNewScreenState
                       )),
                     ],
 
-                    if(_selectedProfession?.slugId == ARTIST)
+                    if(_selectedProfession?.tagId == ARTIST)
                       ...[
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
@@ -1121,7 +1121,7 @@ class _PersonalProfileSetupNewScreenState
                         )),
                       ],
 
-                    if(_selectedProfession?.slugId == CONTENT_CREATOR)...[
+                    if(_selectedProfession?.tagId == CONTENT_CREATOR)...[
                       SizedBox(height: SizeConfig.paddingM),
 
                       Obx(() => authController.isIndividualFieldLoading.value
@@ -1199,8 +1199,8 @@ class _PersonalProfileSetupNewScreenState
                       ))
                     ],
 
-                    if (_selectedProfession?.slugId == REG_UNION ||
-                        _selectedProfession?.slugId == NGO) ...[
+                    if (_selectedProfession?.tagId == REG_UNION ||
+                        _selectedProfession?.tagId == NGO) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1223,8 +1223,8 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == INDUSTRIALIST ||
-                        _selectedProfession?.slugId == DIRECTOR
+                    if (_selectedProfession?.tagId == INDUSTRIALIST ||
+                        _selectedProfession?.tagId == DIRECTOR
                     ) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
@@ -1248,7 +1248,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == HOMEMAKER) ...[
+                    if (_selectedProfession?.tagId == HOMEMAKER) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1271,7 +1271,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == SENIOR_CITIZEN) ...[
+                    if (_selectedProfession?.tagId == SENIOR_CITIZEN) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1294,7 +1294,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == STUDENT) ...[
+                    if (_selectedProfession?.tagId == STUDENT) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1317,7 +1317,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == POLITICIAN) ...[
+                    if (_selectedProfession?.tagId == POLITICIAN) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1330,7 +1330,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == GOVTPSU) ...[
+                    if (_selectedProfession?.tagId == GOVTPSU) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1365,7 +1365,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == GOVERNMENT_JOB) ...[
+                    if (_selectedProfession?.tagId == GOVERNMENT_JOB) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1391,7 +1391,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ],
 
-                    if (_selectedProfession?.slugId == PRIVATE_JOB) ...[
+                    if (_selectedProfession?.tagId == PRIVATE_JOB) ...[
                       SizedBox(
                         height: SizeConfig.paddingM,
                       ),
@@ -1420,13 +1420,13 @@ class _PersonalProfileSetupNewScreenState
                     if((_selectedProfileType.type  != SELF_EMPLOYED) &&
                     (_selectedProfileType.type  != GIG_WORKER) &&
                     (_selectedProfileType.type  != PROFESSIONAL) &&
-                    (_selectedProfession?.slugId != ARTIST) &&
-                    (_selectedProfession?.slugId != CONTENT_CREATOR) &&
-                    (_selectedProfession?.slugId != HOMEMAKER) &&
-                    (_selectedProfession?.slugId != SENIOR_CITIZEN) &&
-                    (_selectedProfession?.slugId != FARMER) &&
-                    (_selectedProfession?.slugId != STUDENT) &&
-                    (_selectedProfession?.slugId != OTHERS)) ...[
+                    (_selectedProfession?.tagId != ARTIST) &&
+                    (_selectedProfession?.tagId != CONTENT_CREATOR) &&
+                    (_selectedProfession?.tagId != HOMEMAKER) &&
+                    (_selectedProfession?.tagId != SENIOR_CITIZEN) &&
+                    (_selectedProfession?.tagId != FARMER) &&
+                    (_selectedProfession?.tagId != STUDENT) &&
+                    (_selectedProfession?.tagId != OTHERS)) ...[
                       SizedBox(height: SizeConfig.paddingM),
                       CommonTextField(
                         isValidate: false,

@@ -28,31 +28,48 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget
 
 class EarnServiceDashboardView extends StatefulWidget {
   final bool fromBottomNavBar;
-  const EarnServiceDashboardView({super.key, required this.fromBottomNavBar});
+  final int initialTabIndex;
+  final int initialProductSubTab;
+
+  const EarnServiceDashboardView({
+    super.key,
+    required this.fromBottomNavBar,
+    this.initialTabIndex = 0,
+    this.initialProductSubTab = 0,
+  });
 
   @override
-  State<EarnServiceDashboardView> createState() => _EarnServiceDashboardViewState();
+  State<EarnServiceDashboardView> createState() =>
+      _EarnServiceDashboardViewState();
 }
 
 class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     with SingleTickerProviderStateMixin {
-
   final controller = getOrPut(() => EarnServiceController());
-  final viewPersonalDetailsController = Get.find<ViewPersonalDetailsController>();
-  late TabController _tabController;
+  final viewPersonalDetailsController =
+      Get.find<ViewPersonalDetailsController>();
 
-  final RxBool _isFabVisible = true.obs;
+  late TabController _tabController;
   final ScrollController _nestedScrollController = ScrollController();
+  final RxBool _isFabVisible = true.obs;
   double _lastScrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
-    // Initialize exactly 3 tabs here
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
+    if (widget.initialProductSubTab != 0) {
+      controller.selectedProductsServicesTabIndex.value =
+          widget.initialProductSubTab;
+    }
     controller.fetchOwnProducts();
     _nestedScrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_)=> syncShopStatus());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _syncShopStatus());
   }
 
   @override
@@ -63,51 +80,41 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
   }
 
   void _onScroll() {
-    final currentOffset = _nestedScrollController.offset;
-
-    if (currentOffset > _lastScrollOffset && currentOffset > 60) {
-      // Scrolling DOWN — hide FAB
+    final offset = _nestedScrollController.offset;
+    if (offset > _lastScrollOffset && offset > 60) {
       if (_isFabVisible.value) _isFabVisible.value = false;
-    } else if (currentOffset < _lastScrollOffset) {
-      // Scrolling UP — show FAB
+    } else if (offset < _lastScrollOffset) {
       if (!_isFabVisible.value) _isFabVisible.value = true;
     }
-
-    _lastScrollOffset = currentOffset;
+    _lastScrollOffset = offset;
   }
 
-
-  void _openEarnWithBlueEraSheet(){
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => EarnServiceBottomSheet(),
-    );
-  }
-
-  void syncShopStatus() {
-    final statusData = serviceProviderStatusGlobal.toUpperCase();
+  void _syncShopStatus() {
     viewPersonalDetailsController.shopStatusOpenClose.value =
-        statusData == AppConstants.OPEN.toUpperCase();
+        serviceProviderStatusGlobal.toUpperCase() ==
+            AppConstants.OPEN.toUpperCase();
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // BUILD
+  // ═══════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: _buildFAB(), // Move your FAB method here
+      floatingActionButton: _buildFAB(),
       body: SafeArea(
         child: NestedScrollView(
           controller: _nestedScrollController,
           headerSliverBuilder: (_, __) => [
-            _buildFloatingHeader(context),
-            _buildPinnedTabBar(),
+            _buildSliverHeader(),
+            _buildSliverTabBar(),
           ],
           body: TabBarView(
             controller: _tabController,
             children: [
               EarnServiceOrders(),
-              _buildMyProductsStore(),
+              _buildMyProductsTab(),
               RentalServiceScreen(),
             ],
           ),
@@ -116,77 +123,9 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     );
   }
 
-  Widget _buildFAB() {
-    return Obx(() => AnimatedSlide(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      offset: _isFabVisible.value ? Offset.zero : const Offset(0, 2.5),
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 300),
-        opacity: _isFabVisible.value ? 1.0 : 0.0,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: widget.fromBottomNavBar
-                ? kBottomNavigationBarHeight + SizeConfig.size20
-                : 0,
-          ),
-          child: GestureDetector(
-            onTap: _openEarnWithBlueEraSheet,
-            child: Container(
-              height: SizeConfig.size50,
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size20,
-                vertical: SizeConfig.size12,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primaryColor,
-                    AppColors.primaryColor.withValues(alpha: 0.75),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryColor.withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 24, height: 24,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.add_rounded, color: Colors.white, size: 18),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  const CustomText(
-                    'Add Service',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.3,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ));
-  }
+  // ─── Sliver Header ─────────────────────────────────────────────
 
-  Widget _buildFloatingHeader(BuildContext context) {
+  Widget _buildSliverHeader() {
     return SliverAppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -197,12 +136,85 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
       expandedHeight: SizeConfig.size70,
       flexibleSpace: Padding(
         padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-        child: _buildHeader(context),
+        child: Row(
+          children: [
+            if (!widget.fromBottomNavBar)
+              IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: LocalAssets(
+                  imagePath: AppIconAssets.back_arrow,
+                  height: SizeConfig.paddingL,
+                  width: SizeConfig.paddingL,
+                  imgColor: Colors.black,
+                ),
+              ),
+            Expanded(
+              child: Row(
+                children: [
+                  CommonProfileAvatar(),
+                  SizedBox(width: SizeConfig.size15),
+                  InkWell(
+                    onTap: () => Get.to(() => ProfessionDetailsScreen()),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: SizeConfig.paddingXSL),
+                      child: CustomText(
+                        userDesignationGlobal,
+                        fontSize: SizeConfig.large,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _buildGoLiveChip(),
+            IconButton(
+              onPressed: () async => await Get.toNamed(
+                RouteHelper.getAvailabilityScreenRoute(),
+                arguments: {ApiKeys.argId: userId},
+              ),
+              icon: LocalAssets(imagePath: AppIconAssets.clockIcon),
+            ),
+            SizedBox(width: SizeConfig.paddingXSL),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPinnedTabBar() {
+  Widget _buildGoLiveChip() {
+    return Container(
+      margin: EdgeInsets.only(left: SizeConfig.size10),
+      height: SizeConfig.size40,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.primaryColor),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          SizedBox(width: SizeConfig.paddingXSL),
+          CustomText(
+            AppStrings.goLive,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+          buildToggleSwitchChip(
+            value: viewPersonalDetailsController.shopStatusOpenClose,
+            onChanged: viewPersonalDetailsController.toggleShopStatus,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Sliver Tab Bar ────────────────────────────────────────────
+
+  Widget _buildSliverTabBar() {
     return SliverPersistentHeader(
       pinned: true,
       delegate: TabBarDelegate(
@@ -223,302 +235,186 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     );
   }
 
-  Widget _buildMyProductsStore() {
-    return Obx(()=> Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(
-              left: SizeConfig.size8,
-              right: SizeConfig.size8,
-              top: SizeConfig.size15,
+  // ─── FAB ───────────────────────────────────────────────────────
+
+  Widget _buildFAB() {
+    return Obx(() => AnimatedSlide(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          offset:
+              _isFabVisible.value ? Offset.zero : const Offset(0, 2.5),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: _isFabVisible.value ? 1.0 : 0.0,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: widget.fromBottomNavBar
+                    ? kBottomNavigationBarHeight + SizeConfig.size20
+                    : 0,
+              ),
+              child: GestureDetector(
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  isScrollControlled: true,
+                  builder: (_) => EarnServiceBottomSheet(),
+                ),
+                child: Container(
+                  height: SizeConfig.size50,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size20,
+                    vertical: SizeConfig.size12,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primaryColor,
+                        AppColors.primaryColor.withValues(alpha: 0.75),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.add_rounded,
+                            color: Colors.white, size: 18),
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+                      const CustomText(
+                        'Add Service',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-          child: HorizontalTabSelector(
-            tabs: controller.productsServicesTab,
-            selectedIndex: controller.selectedProductsServicesTabIndex.value,
-            horizontalMargin: 0.0,
-            onTabSelected: (index, value) {
-              onMyProductsTabChanged(index);
-            },
-            labelBuilder: (label) => label,
-            unSelectedBackgroundColor: AppColors.white,
-          ),
-        ),
-        Expanded(
-            child: _buildMyProductsTab()
-        )
-      ],
-    )
-    );
+        ));
   }
 
-  void onMyProductsTabChanged(int index) async {
-    controller.selectedProductsServicesTabIndex.value = index;
-
-    switch (index) {
-      case 0: // Tiffin
-       // EarnTiffinScreen();
-        break;
-
-      case 1: // Food
-        break;
-
-      case 2: // Product
-      // if (earnWithBlueEraController.ownProductDataList.isEmpty) {
-        await controller.fetchOwnProducts();
-        // }
-        break;
-    }
-  }
+  // ─── My Products Tab ───────────────────────────────────────────
 
   Widget _buildMyProductsTab() {
-    return Obx(() {
-      final selectedTab = controller.selectedProductsServicesTabIndex.value;
-
-      Widget tabContent;
-
-      switch (selectedTab) {
-        case 0:
-          tabContent = TiffinMenuManagementScreen();
-          break;
-
-      // case 1:
-      //   tabContent = Center(
-      //     child: CustomText(
-      //         AppStrings.comingSoon
-      //     ),
-      //   );
-      //   break;
-
-
-
-        case 1:
-          tabContent = FoodMenuManagementScreen();
-
-          // tabContent = FoodAndGroceryScreen(
-          //   providerType: ProviderType.user,
-          //   serviceSubType: EarnServiceTypes.homeMadeFood,
-          // );
-          break;
-
-        case 2:
-          final productList = controller.ownProductDataList;
-
-          if (controller.isOwnProductDataFirstLoading.value) {
-            tabContent = const Center(
-              child: CircularProgressIndicator(),
-            );
-            break;
-          }
-
-          if (productList.isEmpty) {
-            tabContent = EmptyStateWidget(message: AppStrings.noProductFound);
-            break;
-          }
-
-          tabContent = Column(
-            children: [
-              Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final crossAxisCount = 2;
-                      final crossSpacing = 10.0;
-                      final mainSpacing = 10.0;
-
-
-                      final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
-                      final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
-
-                      final approximateItemHeight = SizeConfig.size240;
-
-                      final childAspectRatio = itemWidth / approximateItemHeight;
-
-
-                      return GridView.builder(
-                        itemCount: productList.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: crossSpacing,
-                          mainAxisSpacing: mainSpacing,
-                          childAspectRatio: childAspectRatio,
-                        ),
-                        padding: EdgeInsets.only(
-                          bottom: kBottomNavigationBarHeight + 40,
-                          left: SizeConfig.size8,
-                          right: SizeConfig.size8,
-                          top: SizeConfig.size8,
-                        ),
-                        itemBuilder: (context, index) {
-                          final productData = productList[index];
-                          return OwnProductCard(
-                              deleteProductApi: (){
-                                // earnWithBlueEraController.deleteProduct();
-                              },
-                              width: itemWidth,
-                              product: productData,
-                              isGridShow: true
-                          );
-                        },
-                      );
-                    },
-                  )
-
-                // ListView.builder(
-                //   physics: const AlwaysScrollableScrollPhysics(),
-                //   shrinkWrap: true,
-                //   itemCount: productList.length,
-                //   padding: EdgeInsets.only(
-                //     bottom: kBottomNavigationBarHeight + SizeConfig.paddingL
-                //   ),
-                //   itemBuilder: (context, index) {
-                //     final productData = productList[index];
-                //
-                //     return Padding(
-                //       padding: EdgeInsets.only(
-                //           bottom: SizeConfig.size8,
-                //           left: SizeConfig.size8,
-                //           right: SizeConfig.size8
-                //       ),
-                //       child: OwnProductCard(
-                //         product: productData,
-                //         isGridShow: true,
-                //         deleteProductApi: (){
-                //           // earnWithBlueEraController.deleteProduct();
-                //         },
-                //       ),
-                //     );
-                //   },
-                // ),
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                top: SizeConfig.size15,
               ),
+              child: HorizontalTabSelector(
+                tabs: controller.productsServicesTab,
+                selectedIndex:
+                    controller.selectedProductsServicesTabIndex.value,
+                horizontalMargin: 0.0,
+                labelBuilder: (label) => label,
+                unSelectedBackgroundColor: AppColors.white,
+                onTabSelected: (index, _) => _onProductSubTabChanged(index),
+              ),
+            ),
+            Expanded(child: _buildProductSubTabContent()),
+          ],
+        ));
+  }
 
-              if (controller.isOwnProductDataLoadingMore.value)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            ],
-          );
-          break;
+  void _onProductSubTabChanged(int index) async {
+    controller.selectedProductsServicesTabIndex.value = index;
+    if (index == 2) await controller.fetchOwnProducts();
+  }
 
-
-      // case 4:
-      //   tabContent = ViewServiceList(
-      //     providerType: ProductServiceProviderType.user,
-      //     serviceSubType: EarnWithBlueEraServiceTypes.homeService,
-      //   );
-      //   break;
-      //
-      //
-      // case 5:
-      //   tabContent = RentalServiceScreen();
-      //   break;
-      //
-      // // case 6:
-      // //   tabContent = ViewServiceList(
-      // //     providerType: ProductServiceProviderType.user,
-      // //     serviceSubType: EarnWithBlueEraServiceTypes.consultingService,
-      // //   );
-      // //   break;
-      // //
-      // // case 7:
-      // //   tabContent = ViewServiceList(
-      // //     providerType: ProductServiceProviderType.user,
-      // //     serviceSubType: EarnWithBlueEraServiceTypes.tuitionService,
-      // //   );
-      // //   break;
-
+  Widget _buildProductSubTabContent() {
+    return Obx(() {
+      switch (controller.selectedProductsServicesTabIndex.value) {
+        case 0:
+          return TiffinMenuManagementScreen();
+        case 1:
+          return const FoodMenuManagementScreen();
+        case 2:
+          return _buildOwnProductsGrid();
         default:
-          tabContent = const SizedBox.shrink();
+          return const SizedBox.shrink();
       }
-
-      return tabContent;
     });
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildOwnProductsGrid() {
+    if (controller.isOwnProductDataFirstLoading.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final productList = controller.ownProductDataList;
+    if (productList.isEmpty) {
+      return EmptyStateWidget(message: AppStrings.noProductFound);
+    }
+
+    return Column(
       children: [
-        // 1. leading (back-arrow) – only if NOT from bottom-nav
-        if (!widget.fromBottomNavBar)
-          IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => Navigator.of(context).pop(),
-            icon: LocalAssets(
-              imagePath: AppIconAssets.back_arrow,
-              height: SizeConfig.paddingL,
-              width: SizeConfig.paddingL,
-              imgColor: Colors.black,
-            ),
-          ),
-
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const crossAxisCount = 2;
+              const spacing = 10.0;
+              final itemWidth =
+                  (constraints.maxWidth - spacing) / crossAxisCount;
+              final childAspectRatio = itemWidth / SizeConfig.size240;
 
-              CommonProfileAvatar(),
-              SizedBox(width: SizeConfig.size15),
-              InkWell(
-                onTap: ()=> Get.to(()=> ProfessionDetailsScreen()),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    top: SizeConfig.paddingXSL,
-                    bottom: SizeConfig.paddingXSL,
-                  ),
-                  child: CustomText(
-                    userDesignationGlobal,
-                    fontSize: SizeConfig.large,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              return GridView.builder(
+                itemCount: productList.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  childAspectRatio: childAspectRatio,
                 ),
-              ),
-            ],
+                padding: EdgeInsets.only(
+                  bottom: kBottomNavigationBarHeight + 40,
+                  left: SizeConfig.size8,
+                  right: SizeConfig.size8,
+                  top: SizeConfig.size8,
+                ),
+                itemBuilder: (context, index) {
+                  return OwnProductCard(
+                    deleteProductApi: () {},
+                    width: itemWidth,
+                    product: productList[index],
+                    isGridShow: true,
+                  );
+                },
+              );
+            },
           ),
         ),
-
-        Container(
-          margin: EdgeInsets.only(
-            left: SizeConfig.size10,
+        if (controller.isOwnProductDataLoadingMore.value)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator()),
           ),
-          height: SizeConfig.size40,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primaryColor),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              SizedBox(width: SizeConfig.paddingXSL),
-              CustomText(
-                AppStrings.goLive,
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-              buildToggleSwitchChip(
-                value: viewPersonalDetailsController.shopStatusOpenClose,
-                onChanged: viewPersonalDetailsController.toggleShopStatus,
-              ),
-            ],
-          ),
-        ),
-
-        // SizedBox(width: SizeConfig.paddingXSL),
-
-        IconButton(
-            onPressed: () async => await Get.toNamed(
-                RouteHelper.getAvailabilityScreenRoute(),
-                arguments: {
-                  ApiKeys.argId: userId,
-                }),
-            icon: LocalAssets(imagePath: AppIconAssets.clockIcon)
-        ),
-
-        SizedBox(width: SizeConfig.paddingXSL),
       ],
     );
   }
-
 }

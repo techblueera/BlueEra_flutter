@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -206,7 +207,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
           color: AppColors.white,
         ),
       ),
-      itemBuilder: (context) => groceryPopUpMenuItems(),
+      itemBuilder: (context) => PopupMenuBuilders.groceryPopUpMenuItems(),
     );
   }
 

@@ -1,12 +1,10 @@
 import 'package:BlueEra/core/api/model/new_food_home_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/all_food_service_screen.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
@@ -56,7 +54,6 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
       body: SafeArea(
         child: CustomScrollView(
           controller: _scrollController,
@@ -98,16 +95,20 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return Container(
       color: AppColors.white,
       padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size16,
+        horizontal: SizeConfig.size8,
         vertical: SizeConfig.size10,
       ),
       child: Row(
         children: [
-          InkWell(
-            onTap: () => Get.back(),
-            child: const Icon(Icons.arrow_back, size: 22),
-          ),
-          SizedBox(width: SizeConfig.size10),
+          IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => Get.back(),
+              icon: LocalAssets(
+                imagePath: AppIconAssets.back_arrow,
+                height: SizeConfig.paddingL,
+                width: SizeConfig.paddingL,
+                imgColor:  Colors.black,
+              )),
           Icon(Icons.location_on, color: AppColors.red, size: 20),
           SizedBox(width: SizeConfig.size6),
           Expanded(
@@ -238,16 +239,16 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
     return InkWell(
       onTap: () {
         // Find matching onboarding category by name for navigation
-        final matchingCategory = businessOnboardingFoodsCategories
-            .firstWhereOrNull((c) =>
-                c.name.replaceAll('\n', ' ').toLowerCase() ==
-                (category.name ?? '').toLowerCase());
-        Get.to(() => AllFoodServiceScreen(
-              professionalConsultantCategories:
-                  businessOnboardingFoodsCategories,
-              selectedProfessionConsultantData:
-                  matchingCategory ?? businessOnboardingFoodsCategories.first,
-            ));
+        // final matchingCategory = businessOnboardingFoodsCategories
+        //     .firstWhereOrNull((c) =>
+        //         c.name.replaceAll('\n', ' ').toLowerCase() ==
+        //         (category.name ?? '').toLowerCase());
+        // Get.to(() => AllFoodServiceScreen(
+        //       professionalConsultantCategories:
+        //           businessOnboardingFoodsCategories,
+        //       selectedProfessionConsultantData:
+        //           matchingCategory ?? businessOnboardingFoodsCategories.first,
+        //     ));
       },
       child: SizedBox(
         width: 70,
@@ -306,12 +307,12 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    Get.to(() => AllFoodServiceScreen(
-                          professionalConsultantCategories:
-                              businessOnboardingFoodsCategories,
-                          selectedProfessionConsultantData:
-                              businessOnboardingFoodsCategories.first,
-                        ));
+                    // Get.to(() => AllFoodServiceScreen(
+                    //       professionalConsultantCategories:
+                    //           businessOnboardingFoodsCategories,
+                    //       selectedProfessionConsultantData:
+                    //           businessOnboardingFoodsCategories.first,
+                    //     ));
                   },
                   child: CustomText(
                     'See all >',

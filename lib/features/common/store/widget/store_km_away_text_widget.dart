@@ -39,7 +39,7 @@ class StoreKmAwayTextWidget extends StatelessWidget {
         ),
       ),
       child: CustomText(
-        "${distance.toStringAsFixed(2)} Km Away",
+        "${distance.toInt()} Km Away",
         fontSize: 10,
         color: AppColors.primaryColor,
         decoration: isUnderlineShow ? TextDecoration.underline : TextDecoration.none,

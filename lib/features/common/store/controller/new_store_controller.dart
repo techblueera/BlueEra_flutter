@@ -12,12 +12,14 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -79,7 +81,7 @@ class NewStoreController extends GetxController{
   final ScrollController aiChatScrollController = ScrollController();
   RxBool chatBotReading = false.obs;
 
-  Rx<OnboardingCategoryModel?> selectedGroceryOrFoodCategoryData = Rx<OnboardingCategoryModel?>(null);
+  Rx<CategoryData?> selectedGroceryOrFoodCategoryData = Rx<CategoryData?>(null);
 
   // RxBool isBannerVisible = false.obs;
   RxBool isBannerVisible = true.obs;
@@ -102,6 +104,64 @@ class NewStoreController extends GetxController{
     searchController.dispose();
     scrollController.dispose();
     super.onClose();
+  }
+
+  // ── Business Store View Tracking ─────────────────────────────────
+
+  final Set<String> _viewedBusinessIds = {};
+
+  /// Track store view in a list (with deduplication - fires once per store per session)
+  void trackStoreListView(String storeId) {
+    if (kReleaseMode && storeId.isNotEmpty && !_viewedBusinessIds.contains(storeId)) {
+      _viewedBusinessIds.add(storeId);
+      Future.microtask(() {
+        try {
+          StoreRepo().businessByViewCountIDApi(businessId: storeId);
+        } catch (e) {
+          print("Failed to track list view: $e");
+        }
+      });
+    }
+  }
+
+  /// Track store view when visiting a single store detail screen (fires every visit)
+  void trackStoreDetailView(String storeId) {
+    if (kReleaseMode && storeId.isNotEmpty) {
+      Future.microtask(() {
+        try {
+          StoreRepo().businessByViewCountIDApi(businessId: storeId);
+        } catch (e) {
+          print("Failed to track detail view: $e");
+        }
+      });
+    }
+  }
+
+  // ── Product Category Tree ─────────────────────────────────
+
+  RxBool isProductCategoryTreeLoading = false.obs;
+  RxList<ProductNestedCategory> productCategoryTreeList = <ProductNestedCategory>[].obs;
+  Rxn<ProductNestedCategory> selectedProductSubCategory = Rxn<ProductNestedCategory>();
+
+  Future<void> fetchProductCategoryTree({required String group}) async {
+    try {
+      isProductCategoryTreeLoading.value = true;
+      productCategoryTreeList.clear();
+
+      final response = await StoreRepo().getProductCategoryTree(group: group);
+
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        if (data != null && data is Map<String, dynamic>) {
+          final parsed = ProductNestedCategoryResponse.fromJson(data);
+          productCategoryTreeList.value = parsed.data ?? [];
+        }
+      }
+    } catch (e) {
+      log('Error fetching product category tree: $e');
+    } finally {
+      isProductCategoryTreeLoading.value = false;
+    }
   }
 
   ///GET STORES ONLY....

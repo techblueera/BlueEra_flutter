@@ -20,6 +20,7 @@ import '../../auth/controller/chat_flag_controller.dart';
 import 'chat_flag_bottom_sheet.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -1456,7 +1457,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           onSelected: (value) {
 
           },
-          itemBuilder: (context) => popPupMenuForAiChat(),
+          itemBuilder: (context) => PopupMenuBuilders.popPupMenuForAiChat(),
         ),
       if(isFromAiChat==true)
       InkWell(
@@ -1536,7 +1537,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 );
               }
             },
-            itemBuilder: (context) => popPupMenuForPersonalChat(),
+            itemBuilder: (context) => PopupMenuBuilders.popPupMenuForPersonalChat(),
         ),
       if(isGroupAppBar != null)
         PopupMenuButton<String>(
@@ -1552,7 +1553,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 showDeleteChatDialog(conversationId ?? '');
               }
             },
-            itemBuilder: (context) => popPupMenuForGroupChat(),
+            itemBuilder: (context) => PopupMenuBuilders.popPupMenuForGroupChat(),
         )
       else if (isFromAiChat==false)
         SizedBox(),

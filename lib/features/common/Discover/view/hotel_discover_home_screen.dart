@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -78,7 +79,6 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: profile?.name,
-        buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
       bottomNavigationBar: profile?.businessId != userId
           ? SafeArea(
@@ -143,6 +143,12 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
             // --- Contact Us ---
             SizedBox(height: SizeConfig.size16),
             _buildContactCard(),
+            SizedBox(height: SizeConfig.size16),
+
+            /// WEBSITE PREVIEW
+            WebsitePreviewCard(
+              url:profile?.website ?? '',
+            ),
 
             // --- Location Map ---
             SizedBox(height: SizeConfig.size16),

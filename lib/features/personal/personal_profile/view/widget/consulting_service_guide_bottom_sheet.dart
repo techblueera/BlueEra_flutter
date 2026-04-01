@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
@@ -26,7 +26,7 @@ class ConsultingServiceGuideBottomSheet extends StatefulWidget {
 class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGuideBottomSheet> {
   final authController = Get.find<AuthController>();
   int? selectedIndex;
-  OnboardingCategoryModel? selectedService;
+  ProfessionTypeData? selectedService;
 
   @override
   void initState() {
@@ -96,11 +96,11 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
                 primary: false,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: individualOnboardingConsultationList.length,
+                itemCount: Get.find<AuthController>().individualOnboardingConsultationList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: individualOnboardingConsultationList[i],
-                  getName: (item) => item.name,
-                  getIcon: (item) => item.icon ?? '',
+                  service: Get.find<AuthController>().individualOnboardingConsultationList[i],
+                  getName: (item) => item.name ?? '',
+                  getIcon: (item) => getIndividualProfessionIcon(item.tagId),
                   isSelected: selectedIndex == i,
                   spacing: 8.0,
                   onTap: (item) {
@@ -129,7 +129,7 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                if(isEarnServiceOpt=='true' && selectedService?.tagId == userProfessionGlobal){
                   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
                   return;
                 }

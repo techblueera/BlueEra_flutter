@@ -69,4 +69,16 @@ class TiffinRepo extends BaseService{
     );
     return response;
   }
+
+  /// Consumer: fetch all tiffins (all users, filtered by query params)
+  Future<ResponseModel> fetchAllTiffins({Map<String, dynamic>? queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      tiffins,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

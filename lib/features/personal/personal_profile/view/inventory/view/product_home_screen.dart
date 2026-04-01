@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/business_ratings_model.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -342,7 +343,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
   //  6. CATEGORY
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildCategorySection(BusinessProfileDetails data) {
-      return businessProductsCategories.isNotEmpty ?
+      return Get.find<AuthController>().businessOnboardingProductsCategories.isNotEmpty ?
       MasonryGridView.count(
         crossAxisCount: 3,
         crossAxisSpacing: 6,
@@ -350,13 +351,13 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
         padding: EdgeInsets.zero,
         primary: false,
         shrinkWrap: true,
-        itemCount: businessProductsCategories.length,
+        itemCount: Get.find<AuthController>().businessOnboardingProductsCategories.length,
         itemBuilder: (context, index) {
-          var categoryItem = businessProductsCategories[index];
+          var categoryItem = Get.find<AuthController>().businessOnboardingProductsCategories[index];
           return CommonServiceCard(
             service: categoryItem,
             getName: (_categoryItem) => _categoryItem.name??'',
-            getIcon: (_categoryItem) => _categoryItem.icon??'',
+            getIcon: (_categoryItem) => _categoryItem.imageUrl??'',
             iconHeight: SizeConfig.size60,
             boxShadow: [],
             onTap: (_categoryItem) {

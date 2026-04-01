@@ -1,34 +1,32 @@
-import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class ProductsStoreScreen extends StatefulWidget {
-  final String? typeOfBusiness;
-  final String? selectedStoreCategoryId;
-  final String? selectedStoreCategoryName;
+  final String? productCategoryName;
+  final String? productCategory;
 
-  const ProductsStoreScreen({
-    super.key,
-    this.typeOfBusiness,
-    this.selectedStoreCategoryId,
-    this.selectedStoreCategoryName,
-  });
+  const ProductsStoreScreen(
+      {
+        super.key,
+        this.productCategoryName,
+        this.productCategory,
+      });
 
   @override
   State<ProductsStoreScreen> createState() => _ProductsStoreScreenState();
@@ -37,20 +35,23 @@ class ProductsStoreScreen extends StatefulWidget {
 class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   final controller = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
-  final List<OnboardingCategoryModel> _categories = businessProductStoreCategories;
+  final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
+
+  List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
+
 
   @override
   void initState() {
     super.initState();
-    controller.typeOfBusiness = widget.typeOfBusiness;
+    controller.typeOfBusiness = BusinessType.Product.name;
 
-    if (widget.selectedStoreCategoryId != null) {
-      controller.businessCategoryId = widget.selectedStoreCategoryId;
-      final idx = _categories.indexWhere((c) => c.slugId == widget.selectedStoreCategoryId);
+    if (widget.productCategory != null && _categories.isNotEmpty) {
+      controller.businessCategoryId = widget.productCategory;
+      final idx = _categories.indexWhere((c) => c.tagId == widget.productCategory);
       if (idx >= 0) _selectedIndex.value = idx;
-    } else {
-      controller.businessCategoryId = _categories.first.slugId;
+    } else if (_categories.isNotEmpty) {
+      controller.businessCategoryId = _categories.first.tagId;
     }
 
     controller.getAllStoreNearBy();
@@ -71,9 +72,9 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     super.dispose();
   }
 
-  void _onCategoryTap(OnboardingCategoryModel item, int index) {
+  void _onCategoryTap(CategoryData item, int index) {
     _selectedIndex.value = index;
-    controller.businessCategoryId = item.slugId;
+    controller.businessCategoryId = item.tagId;
     controller.getAllStoreNearBy();
   }
 
@@ -88,7 +89,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
         isCustomTitleWidget: () => Obx(() {
           final idx = _selectedIndex.value;
           final name = (idx >= 0 && idx < _categories.length)
-              ? _categories[idx].name
+              ? _categories[idx].name ?? 'Stores'
               : 'Stores';
           return Text(
             name,
@@ -139,10 +140,10 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   }
 
   Widget _buildCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
+    return CommonGenericLeftSideCategoryList<CategoryData>(
       items: _categories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => item.imageUrl ?? '',
       isSelected: (item) {
         final idx = _categories.indexOf(item);
         return _selectedIndex.value == idx;
@@ -161,7 +162,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       if (controller.allStore.isEmpty) {
         return Center(
           child: EmptyStateWidget(
-            message: "No ${_categories[_selectedIndex.value].name} stores found",
+            message: "No ${(_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length) ? _categories[_selectedIndex.value].name ?? '' : ''} stores found",
           ),
         );
       }
@@ -227,7 +228,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                   key: Key("business_$businessId"),
                   onVisibilityChanged: (info) {
                     if (info.visibleFraction >= 0.5 && businessId.isNotEmpty) {
-                      trackBusinessStoreView(businessId);
+                      controller.trackStoreListView(businessId);
                     }
                   },
                   child: Padding(
@@ -246,20 +247,4 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     });
   }
 
-  final Set<String> _viewedBusinessIds = {};
-
-  void trackBusinessStoreView(String storeId) {
-    if (kReleaseMode) {
-      Future.microtask(() async {
-        try {
-          if (!_viewedBusinessIds.contains(storeId)) {
-            _viewedBusinessIds.add(storeId);
-            StoreRepo().businessByViewCountIDApi(businessId: storeId);
-          }
-        } catch (e) {
-          print("Failed to track view: $e");
-        }
-      });
-    }
-  }
 }

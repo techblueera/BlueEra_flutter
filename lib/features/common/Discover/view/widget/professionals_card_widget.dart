@@ -6,6 +6,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/all_professional_consultant_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
 
@@ -34,7 +36,7 @@ class ProfessionalsCardWidget extends StatelessWidget {
                 onTap: () {
                   Get.to(() => AllProfessionConsultantScreen(
                     professionalConsultantCategories:
-                    individualOnboardingConsultationList,
+                    Get.find<AuthController>().individualOnboardingConsultationList,
                   ));
                 },
               ),
@@ -52,18 +54,18 @@ class ProfessionalsCardWidget extends StatelessWidget {
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: individualOnboardingConsultationList.take(6).map((categoryItem) {
+                children: Get.find<AuthController>().individualOnboardingConsultationList.take(6).map((categoryItem) {
                   return SizedBox(
                     width: itemWidth,
                     child: CommonServiceCard(
                       service: categoryItem,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon ?? '',
+                      getName: (item) => item.name ?? '',
+                      getIcon: (item) => getIndividualProfessionIcon(item.tagId),
                       iconHeight: SizeConfig.size80,
                       onTap: (item) {
                         Get.to(() => AllProfessionConsultantScreen(
                             professionalConsultantCategories:
-                                individualOnboardingConsultationList,
+                                Get.find<AuthController>().individualOnboardingConsultationList,
                             selectedProfessionConsultantData: item));
                       },
                     ),

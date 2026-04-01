@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -8,8 +9,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
-import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -29,13 +31,33 @@ class RestaurantNearMeScreen extends StatefulWidget {
 
 class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   final storeController = getOrPut(() => NewStoreController());
+  final AuthController _authController = Get.find<AuthController>();
   final ScrollController _scrollController = ScrollController();
   final RxInt selectedCategoryIndex = 0.obs;
+
+  List<CategoryData> get _categories => _authController.businessOnboardingFoodsCategories;
+
+  static final Map<String, String> _foodCategoryIcons = {
+    MULTI_CUISINE_RESTAURANTS: OnboardingBusinessAssets.multicuisineRestaurant,
+    PURE_VEG_RESTAURANT: OnboardingBusinessAssets.pureVegRestaurant,
+    COFFEE_BEVERAGES_SHOP: OnboardingBusinessAssets.coffeeBeveragesShop,
+    ECONOMY_DHABA: OnboardingBusinessAssets.economyDhaba,
+    SWEET_NAMKEEN_SHOP: OnboardingBusinessAssets.sweetNamkeenShop,
+    BREAKFAST_FAST_FOOD: OnboardingBusinessAssets.breakfastFastFood,
+    GARDEN_BUFFET_RESTAURANT: OnboardingBusinessAssets.gardenBuffetRestaurant,
+    CLOUD_KITCHEN: OnboardingBusinessAssets.cloudKitchenMess,
+    NON_VEG_RESTAURANT: OnboardingBusinessAssets.nonVegRestaurant,
+    ICE_CREAM_CORNER: OnboardingBusinessAssets.iceCreamCorner,
+  };
+
+  String _getCategoryIcon(CategoryData item) {
+    return _foodCategoryIcons[item.tagId] ?? item.imageUrl ?? '';
+  }
 
   @override
   void initState() {
     super.initState();
-    _fetchStores();
+    _fetchStores(categoryId: _categories.isNotEmpty ? _categories.first.tagId : null);
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -63,10 +85,9 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () => Obx(() {
-          final categories = businessOnboardingFoodsCategories;
           final idx = selectedCategoryIndex.value;
-          final name = (idx >= 0 && idx < categories.length)
-              ? categories[idx].name
+          final name = (idx >= 0 && idx < _categories.length)
+              ? _categories[idx].name ?? 'Restaurant Near Me'
               : 'Restaurant Near Me';
           return Text(
             name,
@@ -106,19 +127,17 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   // ── Left Category Sidebar ─────────────────────────────────────────────────
 
   Widget _buildCategorySidebar() {
-    final categories = businessOnboardingFoodsCategories;
-
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: categories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
+    return CommonGenericLeftSideCategoryList<CategoryData>(
+      items: _categories,
+      getLabel: (item) => item.name ?? '',
+      getIcon: (item) => _getCategoryIcon(item),
       isSelected: (item) {
-        final idx = categories.indexOf(item);
+        final idx = _categories.indexOf(item);
         return selectedCategoryIndex.value == idx;
       },
       onTap: (item, index) {
         selectedCategoryIndex.value = index;
-        _fetchStores(categoryId: item.slugId);
+        _fetchStores(categoryId: item.tagId);
       },
     );
   }

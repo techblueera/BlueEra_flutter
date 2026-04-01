@@ -219,6 +219,18 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Consumer: fetch all home-made food items (all users, filtered by query params)
+  Future<ResponseModel> fetchAllHomeFoodItems({Map<String, dynamic>? queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      homeFood,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
 }
 

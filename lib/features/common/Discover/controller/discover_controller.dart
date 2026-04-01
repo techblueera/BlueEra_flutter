@@ -741,13 +741,14 @@ class DiscoverController extends GetxController {
       }
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.orderFor : await getOrderTypeString(),
-        ApiKeys.pickupLatitude : selectedFromLat?.value,
-        ApiKeys.pickupLongitude : selectedFromLong?.value,
-        ApiKeys.dropLatitude : selectedToLat?.value,
-        ApiKeys.dropLongitude : selectedToLong?.value,
+        ApiKeys.orderFor: await getOrderTypeString(),
+        ApiKeys.pickupLatitude: selectedFromLat?.value,
+        ApiKeys.pickupLongitude: selectedFromLong?.value,
+        ApiKeys.dropLatitude: selectedToLat?.value,
+        ApiKeys.dropLongitude: selectedToLong?.value,
         ApiKeys.range_in_km: 20,
-        if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
+        if (selectedHorizontalTab.value == 0 ||
+            selectedHorizontalTab.value == 1)
           ApiKeys.pincode: pincode,
       };
       final response = await DiscoverRepo().getBookingRidersApi(

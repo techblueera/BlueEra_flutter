@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -353,7 +354,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
         alignment: Alignment.center,
         child: const Icon(Icons.crop, color: Colors.white, size: 18),
       ),
-      itemBuilder: (context) => photoPostMenuItems(),
+      itemBuilder: (context) => PopupMenuBuilders.photoPostMenuItems(),
     );
   }
 

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -396,30 +395,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
                 SizedBox(height: SizeConfig.paddingXSL),
 
-                // --- Bottom Banner ---
-                CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText('Best Deal In Your City',
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w600),
-                        SizedBox(height: SizeConfig.paddingXSL),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            height: SizeConfig.size180,
-                            width: SizeConfig.screenWidth,
-                            child: LocalAssets(
-                              imagePath: AppImageAssets.medicalHealthService,
-                              boxFix: BoxFit.cover,
-                            ),
-                          ),
-                        )
-                      ],
-                    ))
+
               ],
             ),
           )),
@@ -442,9 +418,9 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
           serviceCategory: serviceData,
           onTap: (c) {
             Get.to(() => ProductsStoreScreen(
-              typeOfBusiness: AppConstants.service,
-              selectedStoreCategoryId: c.slugId,
-              selectedStoreCategoryName: c.name,
+              // typeOfBusiness: AppConstants.service,
+              // selectedStoreCategoryId: c.slugId,
+              // selectedStoreCategoryName: c.name,
             ));
           },
         );

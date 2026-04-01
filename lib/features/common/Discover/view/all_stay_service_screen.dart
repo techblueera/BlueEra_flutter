@@ -9,7 +9,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
+import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widget.dart';
@@ -18,13 +19,11 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
@@ -90,46 +89,15 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(buildCustomActionWidget: () => const DiscoverCartIcon()),
+      appBar: CommonBackAppBar(
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(
-              height: SizeConfig.paddingM,
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: InkWell(
-                onTap: () {},
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size10,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 1.2),
-                      boxShadow: [AppShadows.textFieldShadow]),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.franchiseIcon,
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(AppStrings.bookViaBlueEraPartner,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: SizeConfig.paddingXSL,
+            BookViaBlueEraPartnerBanner(
+              onTap: () {
+                // your navigation here
+              },
             ),
             Expanded(
               child: Row(
@@ -476,12 +444,12 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         []; // Fallback to empty list
     return InkWell(
       onTap: () {
-        Get.to(HotelDiscoverHomeScreen(
+        Get.to(()=> HotelDiscoverHomeScreen(
           data: service,
         ));
       },
       child: PropertyCard(
-        imageUrls: allImages ?? [],
+        imageUrls: allImages,
         hotelName: service.profile?.name ?? "N/A",
         hotelDescr: '',
         distance: distance.toString(),
@@ -824,8 +792,8 @@ class _PropertyCardState extends State<PropertyCard> {
                         margin: const EdgeInsets.symmetric(horizontal: 3.0),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(
-                            _currentIndex == entry.key ? 1.0 : 0.5,
+                          color: Colors.white.withValues(
+                            alpha: _currentIndex == entry.key ? 1.0 : 0.5,
                           ),
                         ),
                       );

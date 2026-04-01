@@ -32,6 +32,7 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/feed_tag_people_bottom_sheet.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/feed/view/twitter_post_detail_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';

@@ -19,7 +19,6 @@ import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_
 import 'package:BlueEra/features/common/Discover/view/widget/job_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/restaurant_near_me_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';

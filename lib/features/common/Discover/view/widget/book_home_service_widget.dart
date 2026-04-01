@@ -6,6 +6,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +18,8 @@ class BookHomeServiceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categories = Get.find<AuthController>().individualOnboardingSkillWorkList;
+
     return CustomFormCard(
       color: AppColors.whiteFC,
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -32,8 +36,7 @@ class BookHomeServiceWidget extends StatelessWidget {
               ViewAllButton(
                 onTap: () {
                   Get.to(() => AllSelfProfessionScreen(
-                        selfEmployedCategories:
-                            individualSkillWorkList.toList(),
+                        selfEmployedCategories: categories,
                       ));
                 },
               ),
@@ -50,16 +53,16 @@ class BookHomeServiceWidget extends StatelessWidget {
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: individualSkillWorkList.take(9).map((categoryItem) {
+                children: categories.take(9).map((categoryItem) {
                   return SizedBox(
                     width: itemWidth,
                     child: CommonServiceCard(
                       service: categoryItem,
-                      getName: (item) => item.name,
-                      getIcon: (item) => item.icon ?? '',
+                      getName: (item) => item.name ?? '',
+                      getIcon: (item) => getIndividualProfessionIcon(item.tagId),
                       onTap: (item) {
                         Get.to(() => AllSelfProfessionScreen(
-                            selfEmployedCategories: individualSkillWorkList,
+                            selfEmployedCategories: categories,
                             selectedSelfProfessionData: item));
                       },
                     ),

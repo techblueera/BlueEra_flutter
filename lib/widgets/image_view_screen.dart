@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -178,7 +179,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                             color: AppColors.white,
                           )),
                       itemBuilder: (context) =>
-                          popupMenuVisitProfileActionItems(
+                          PopupMenuBuilders.popupMenuVisitProfileActionItems(
                               isShowSaveOption: false),
                     ),
                   ),

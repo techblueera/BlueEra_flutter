@@ -52,9 +52,9 @@ class CategoryData {
     name = json['name'];
     imageUrl = json['image_url'];
     tagId = json['tag_id'];
-    if (json['subcategories'] != null) {
+    if (json['subCategories'] != null) {
       subCategories = <SubCategories>[];
-      json['subcategories'].forEach((v) {
+      json['subCategories'].forEach((v) {
         subCategories!.add(new SubCategories.fromJson(v));
       });
     }
@@ -69,7 +69,7 @@ class CategoryData {
     data['image_url'] = this.imageUrl;
     data['tag_id'] = this.tagId;
     if (this.subCategories != null) {
-      data['subcategories'] =
+      data['subCategories'] =
           this.subCategories!.map((v) => v.toJson()).toList();
     }
     data['businessType'] = this.businessType;

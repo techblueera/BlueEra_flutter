@@ -207,14 +207,17 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                   Positioned(
                     right: 20,
                     top: 10,
-                    child: InkWell(
-                      onTap: () => _pickImage(true),
-                      child: Container(
-                          width: 30,
-                          height: 30,
-                          child: LocalAssets(
-                            imagePath: AppIconAssets.edit_banner_icon,
-                          )),
+                    child: IgnorePointer(
+                      ignoring: widget.isReadOnly,
+                      child: InkWell(
+                        onTap: () => _pickImage(true),
+                        child: Container(
+                            width: 30,
+                            height: 30,
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.edit_banner_icon,
+                            )),
+                      ),
                     ),
                   ),
 
@@ -222,36 +225,40 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                 Positioned(
                   bottom: 0,
                   left: 20,
-                  child: GestureDetector(
-                    onTap: () => _pickImage(false),
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 10)
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: _logoImage != null
-                            ? Image.file(_logoImage!, fit: BoxFit.cover,
-                                width: 100, height: 100)
-                            : (controller.hospitalDataResModel?.value.data
-                                        ?.logoUrl?.isNotEmpty ??
-                                    false)
-                                ? Image.network(
-                                    controller.hospitalDataResModel!.value
-                                        .data!.logoUrl!,
-                                    fit: BoxFit.cover,
-                                    width: 100,
-                                    height: 100,
-                                    errorBuilder: (_, __, ___) =>
-                                        _logoPlaceholder(),
-                                  )
-                                : _logoPlaceholder(),
+                  child: IgnorePointer(
+                    ignoring: widget.isReadOnly,
+
+                    child: GestureDetector(
+                      onTap: () => _pickImage(false),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black12, blurRadius: 10)
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: _logoImage != null
+                              ? Image.file(_logoImage!, fit: BoxFit.cover,
+                                  width: 100, height: 100)
+                              : (controller.hospitalDataResModel?.value.data
+                                          ?.logoUrl?.isNotEmpty ??
+                                      false)
+                                  ? Image.network(
+                                      controller.hospitalDataResModel!.value
+                                          .data!.logoUrl!,
+                                      fit: BoxFit.cover,
+                                      width: 100,
+                                      height: 100,
+                                      errorBuilder: (_, __, ___) =>
+                                          _logoPlaceholder(),
+                                    )
+                                  : _logoPlaceholder(),
+                        ),
                       ),
                     ),
                   ),
@@ -260,22 +267,26 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                   Positioned(
                       bottom: 10,
                       left: 90,
-                      child: InkWell(
-                        onTap: () => _pickImage(false),
-                        child: Container(
-                            width: 25,
-                            height: 25,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              // color: AppColors.red00,
-                              color: AppColors.secondaryTextColor
-                                  .withValues(alpha: 0.3),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 15,
-                            )),
+                      child: IgnorePointer(
+                        ignoring: widget.isReadOnly,
+
+                        child: InkWell(
+                          onTap: () => _pickImage(false),
+                          child: Container(
+                              width: 25,
+                              height: 25,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                // color: AppColors.red00,
+                                color: AppColors.secondaryTextColor
+                                    .withValues(alpha: 0.3),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 15,
+                              )),
+                        ),
                       ))
               ],
             ),

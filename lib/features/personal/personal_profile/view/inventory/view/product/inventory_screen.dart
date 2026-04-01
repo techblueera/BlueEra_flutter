@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -408,7 +409,7 @@ class _InventoryScreenState extends State<InventoryScreen>
           elevation: 8,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           icon: Icon(Icons.more_vert),
-          itemBuilder: (context) => inventoryPopupMenuItems(),
+          itemBuilder: (context) => PopupMenuBuilders.inventoryPopupMenuItems(),
           onSelected: (String value) async {
             switch (value) {
               case "ADD_PRODUCT":
@@ -416,7 +417,8 @@ class _InventoryScreenState extends State<InventoryScreen>
                   ApiKeys.id: businessId,
                   ApiKeys.providerType: ProviderType.business
                 });
-                inventoryController.callApi(forceRefresh: true);                break;
+                inventoryController.callApi(forceRefresh: true);
+                break;
 
               case "BUSINESS_CARDS":
                 Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());

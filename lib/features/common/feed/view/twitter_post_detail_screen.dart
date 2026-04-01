@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -31,7 +32,9 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -159,7 +162,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
             padding: EdgeInsets.zero,
             icon: Icon(Icons.more_vert,
                 color: AppColors.secondaryTextColor, size: 20),
-            itemBuilder: (_) => popupMenuVisitProfileItems(),
+            itemBuilder: (_) => PopupMenuBuilders.popupMenuVisitProfileItems(),
           ),
         ],
       ),
@@ -223,11 +226,13 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                 padding: EdgeInsets.only(top: SizeConfig.size10),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: SocialImageGrid(
-                    imageUrls: _post.media ?? [],
-                    subTitle: _post.subTitle ?? "",
-                    postData: _post,
-                  ),
+                  child: (_post.media?.length == 1)
+                      ? _buildFullWidthSingleImage(_post.media!.first)
+                      : SocialImageGrid(
+                          imageUrls: _post.media ?? [],
+                          subTitle: _post.subTitle ?? "",
+                          postData: _post,
+                        ),
                 ),
               ),
           ],
@@ -883,6 +888,45 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
         CustomText(label,
             fontSize: 14, color: AppColors.secondaryTextColor),
       ],
+    );
+  }
+
+  Widget _buildFullWidthSingleImage(String imageUrl) {
+    final double screenWidth = Get.width;
+    final double mediaWidth = _post.media_width?.toDouble() ?? 0;
+    final double mediaHeight = _post.media_height?.toDouble() ?? 0;
+    final bool hasValidSize = mediaWidth > 0 && mediaHeight > 0;
+
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => ImageViewScreen(
+              appBarTitle: 'Item Image',
+              imageUrls: _post.media ?? [],
+              initialIndex: 0,
+            ));
+      },
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        width: screenWidth,
+        fit: BoxFit.cover,
+        placeholder: (context, _) => AspectRatio(
+          aspectRatio: hasValidSize ? (mediaWidth / mediaHeight) : 16 / 9,
+          child: Container(
+            color: Colors.grey[200],
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, _, __) => AspectRatio(
+          aspectRatio: hasValidSize ? (mediaWidth / mediaHeight) : 16 / 9,
+          child: Container(
+            color: Colors.grey[300],
+            alignment: Alignment.center,
+            child:
+                const Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      ),
     );
   }
 

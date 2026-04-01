@@ -3,16 +3,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.dart';
-import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -20,9 +16,9 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BusinessStoreCard extends StatelessWidget {
@@ -150,88 +146,103 @@ class BusinessStoreCard extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: ds(4)),
-                      Row(
-                        children: [
-                          CustomText(
-                            '${
-                              getAllStoreResData?.subCategoryOfBusiness?.name ??
-                                  getAllStoreResData?.natureOfBusiness ??
-                                  'OTHER'
-                            } ',
-                              color: Colors.grey, fontSize: ds(12)
-                          ),
-                          Row(
-                            children: [
-                              LocalAssets(
-                                imagePath: AppIconAssets.star,
-                                height: 12,
-                                width: 12,
-                              ),
-                              CustomText(
-                                ' ${
-                                    (getAllStoreResData?.avgRating ?? 0) > 0
-                                      ? "(${getAllStoreResData?.avgRating})"
-                                      : "${AppStrings.no.tr} "
-                                }',
-                                color: AppColors.orangelite, fontSize: ds(12)
-                              ),
-                            ],
-                          ),
-                          CustomText(
-                            AppStrings.ratings,
-                              color: Colors.grey, fontSize: ds(12)
-                          ),
-                        ],
+                      FittedBox(
+                        child: Row(
+                          children: [
+                            CustomText(
+                              '${
+                                getAllStoreResData?.subCategoryOfBusiness?.name ??
+                                    getAllStoreResData?.natureOfBusiness ??
+                                    'OTHER'
+                              } ',
+                                color: Colors.grey, fontSize: ds(12)
+                            ),
+                            Row(
+                              children: [
+                                LocalAssets(
+                                  imagePath: AppIconAssets.star,
+                                  height: 12,
+                                  width: 12,
+                                ),
+                                CustomText(
+                                  ' ${
+                                      (getAllStoreResData?.avgRating ?? 0) > 0
+                                        ? "(${getAllStoreResData?.avgRating})"
+                                        : "${AppStrings.no.tr} "
+                                  }',
+                                  color: AppColors.orangelite, fontSize: ds(12)
+                                ),
+                              ],
+                            ),
+                            CustomText(
+                              AppStrings.ratings,
+                                color: Colors.grey, fontSize: ds(12)
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: ds(4)),
-                      Wrap(
-                        spacing: ds(4),
-                        runSpacing: ds(4),
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.whiteF1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: CustomText(
-                              '${calculateDistanceKm(
-                                LocationService.lat,
-                                LocationService.lng,
-                                getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
-                                getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
-                              ).toStringAsFixed(2)} Km Away',
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ),
-
-                          if(getAllStoreResData?.address?.isNotEmpty??false)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.whiteF1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: CustomText(
-                              getAllStoreResData?.address ?? '',
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+
           SizedBox(height: ds(10)),
+
+          // --- Address & Distance Card (Tappable) ---
+          GestureDetector(
+            onTap: () => _showMapBottomSheet(context),
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(color: AppColors.greyE5, width: 0.5),
+                color: AppColors.white,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildIconContainer(AppIconAssets.location_outline),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          '${calculateDistanceKm(
+                            LocationService.lat,
+                            LocationService.lng,
+                            getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
+                            getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
+                          ).toStringAsFixed(2)} Km Away',
+                          fontSize: 13.0,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(height: SizeConfig.size4),
+                        CustomText(
+                          getAllStoreResData?.address ?? AppStrings.na,
+                          fontSize: 11.0,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(height: ds(6)),
 
           if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
           Padding(
-            padding: EdgeInsets.only(bottom: ds(6)),
+            padding: EdgeInsets.only(top: ds(10)),
             child: ExpandableText(
               text: "${getAllStoreResData?.businessDescription ?? ''}",
               trimLines: 3,
@@ -244,25 +255,7 @@ class BusinessStoreCard extends StatelessWidget {
             ),
           ),
 
-          if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
-          Padding(
-            padding: EdgeInsets.only(bottom: ds(12)),
-            child: InkWell(
-              onTap: () async {
-                final Uri url = Uri.parse(getAllStoreResData?.websiteUrl??'');
-                if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-                }
-              },
-              child: CustomText(
-                getAllStoreResData?.websiteUrl ?? '',
-                color: AppColors.primaryColor,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-
+          SizedBox(height: ds(5)),
 
           if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false))
           /// Image grid
@@ -284,150 +277,122 @@ class BusinessStoreCard extends StatelessWidget {
               },
             ),
 
-          SizedBox(height: SizeConfig.paddingXSL),
+          SizedBox(height: ds(5)),
 
-          /// Interaction row
+          // --- Stats: Category & Product ---
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  LocalAssets(imagePath: AppIconAssets.storeWatch),
-                  SizedBox(width: ds(4)),
-                  CustomText(
-                   timeAgo(
-                       (getAllStoreResData != null && getAllStoreResData?.createdAt != null)
-                       ? DateTime.parse(getAllStoreResData!.createdAt!)
-                       : DateTime.now()),
-                    fontSize: SizeConfig.extraSmall,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(width: ds(10)),
-                  LocalAssets(imagePath: AppIconAssets.eye_new),
-                  SizedBox(width: ds(4)),
-                  CustomText(
-                    getAllStoreResData?.views,
-                    fontSize: SizeConfig.extraSmall,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(width: ds(10)),
-
-                  /// Business Followers
-                  InkWell(
-                    onTap: (){
-                      Get.to(() => FollowersFollowingPage(
-                        tabIndex: 1,
-                        userID: getAllStoreResData?.userId ?? "",
-                      ));
-                    },
-                    child: Row(
-                      children: [
-                        LocalAssets(imagePath: AppIconAssets.userNew),
-                        SizedBox(width: ds(4)),
-                        CustomText(
-                          getAllStoreResData?.followerCount,
-                          fontSize: SizeConfig.extraSmall,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  SizedBox(width: ds(10)),
-
-                  /// Business reviews
-                  InkWell(
-                   onTap: (){
-                     showModalBottomSheet(
-                       context: context,
-                       isScrollControlled: true,
-                       backgroundColor: Colors.transparent,
-                       builder: (context) =>
-                           BusinessRatingsBottomSheet(
-                             businessId: getAllStoreResData?.id ?? "",
-                           ),
-                     );
-                   },
-                    child: Row(
-                      children: [
-                        LocalAssets(imagePath: AppIconAssets.comment_new),
-                        SizedBox(width: ds(4)),
-                        CustomText(
-                          ((int.parse(getAllStoreResData?.totalRatings ??" 0")) > 0)
-                              ? "${getAllStoreResData?.totalRatings}"
-                              : "0",
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ],
-                    ),
-                  )
-
-                ],
+              _buildStatBox(
+                icon: AppIconAssets.staggeredIcon,
+                count: '${getAllStoreResData?.totalCategoryCount ?? 0}',
+                label: 'Category',
+                iconColor: const Color(0xFF9964F4),
+                bgColor: AppColors.purpleFD,
               ),
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      final success = await showDialog(
-                        context: context,
-                        builder: (_) => RatingFeedbackDialog(
-                          businessId: getAllStoreResData?.id??'',
-                          reviewFor: AppConstants.business
-                        )
-                      );
-
-                      if (success == true) {
-                        Get.find<NewStoreController>().updateStoreRatings(getAllStoreResData?.id??'');
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        border: Border.all(width: 1, color: AppColors.whiteF1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Center(child: Icon(Icons.star_border, size: ds(12), color: AppColors.primaryColor)),
-                    ),
-                  ),
-                  SizedBox(width: ds(6)),
-                  InkWell(
-                    onTap: () async {
-                      final link = profileDeepLink(
-                          userId:
-                          getAllStoreResData?.userId,
-                          accountType: AppConstants.business
-                      );
-                      final message =
-                          "See my profile on BlueEra:\n$link\n";
-                      await SharePlus.instance
-                          .share(ShareParams(
-                        text: message,
-                        subject: getAllStoreResData?.businessName,
-                      ));
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        border: Border.all(width: 1, color: AppColors.whiteF1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Center(
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.share_bold,
-                          width: ds(12),
-                          height: ds(12),
-                          imgColor: AppColors.primaryColor
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              SizedBox(width: SizeConfig.size6),
+              _buildStatBox(
+                icon: AppIconAssets.productCartIcon,
+                count: '${getAllStoreResData?.totalProductCount ?? 0}',
+                label: 'Product',
+                iconColor: const Color(0xFF6179CD),
+                bgColor: AppColors.purpleFF,
               ),
             ],
           ),
+
+
         ],
       ),
+    );
+  }
+
+  Widget _buildStatBox({
+    required String icon,
+    required String count,
+    required String label,
+    required Color iconColor,
+    required Color bgColor,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: AppColors.greyE5, width: 0.5),
+          color: AppColors.white,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6.0),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+              child: LocalAssets(
+                imagePath: icon,
+                imgColor: iconColor,
+                height: 18,
+                width: 18,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    count,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  CustomText(
+                    label,
+                    fontSize: SizeConfig.extraSmall,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconContainer(String iconPath) {
+    return Container(
+      padding: const EdgeInsets.all(6.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6.0),
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 1),
+            blurRadius: 2.0,
+          )
+        ],
+      ),
+      child: LocalAssets(
+        imagePath: iconPath,
+        imgColor: AppColors.secondaryTextColor,
+        height: 24,
+        width: 20,
+      ),
+    );
+  }
+
+  void _showMapBottomSheet(BuildContext context) {
+    RouteMapBottomSheet.show(
+      context: context,
+      destinationName: getAllStoreResData?.businessName ?? 'Store',
+      destinationAddress: getAllStoreResData?.address ?? '',
+      destinationLat: getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
+      destinationLng: getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
+      livePhotos: getAllStoreResData?.livePhotos,
     );
   }
 
@@ -438,7 +403,6 @@ class BusinessStoreCard extends StatelessWidget {
       ImageViewScreen(
         subTitle: natureOfBusiness,
         appBarTitle:
-        // AppLocalizations.of(Get.context!)!.imageViewer,
         AppStrings.imageViewer,
         imageUrls: storeImage,
         initialIndex: index,
