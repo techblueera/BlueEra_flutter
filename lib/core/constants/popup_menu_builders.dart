@@ -105,8 +105,8 @@ class PopupMenuBuilders {
 
   static List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
     final items = <Map<String, dynamic>>[
-      {"id": "ADD PRODUCT", 'title': 'Add Product'},
-      {"id": "BUSINESS CARDS", 'title': AppStrings.myBusinessCard}
+      {"id": "ADD_PRODUCT", 'title': 'Add Product'},
+      {"id": "BUSINESS_CARDS", 'title': AppStrings.myBusinessCard}
     ];
 
     final List<PopupMenuEntry<String>> entries = [];
@@ -359,56 +359,6 @@ class PopupMenuBuilders {
             child: Divider(
               indent: 10,
               endIndent: 10,
-              height: 1,
-              thickness: 0.2,
-              color: AppColors.grey99,
-            ),
-          ),
-        );
-      }
-    }
-
-    return entries;
-  }
-
-  static List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(
-      String businessType) {
-    final items = <InventoryMenuItem>[
-      InventoryMenuItem.addProduct,
-      // if (isShowProduct.contains(businessType)) InventoryMenuItem.addProduct,
-      // if (isShowService.contains(businessType)) InventoryMenuItem.addService,
-      // if (isShowFood.contains(businessType)) InventoryMenuItem.addFood,
-    ];
-
-    final List<PopupMenuEntry<InventoryMenuItem>> entries = [];
-
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-
-      entries.add(
-        PopupMenuItem<InventoryMenuItem>(
-          padding: const EdgeInsets.all(10),
-          height: 35,
-          value: item,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                item.title,
-                color: AppColors.secondaryTextColor,
-              ),
-            ],
-          ),
-        ),
-      );
-
-      if (i != items.length - 1) {
-        entries.add(
-          const PopupMenuItem<InventoryMenuItem>(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            height: 1,
-            child: Divider(
               height: 1,
               thickness: 0.2,
               color: AppColors.grey99,

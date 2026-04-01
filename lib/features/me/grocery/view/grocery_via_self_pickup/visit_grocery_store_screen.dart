@@ -395,9 +395,9 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                               ),
                               SizedBox(height: SizeConfig.size6),
                               PriceRow(
-                                sellingPrice:  "₹${groceryProductData.minSellingPrice}",
+                                sellingPrice: "₹${groceryProductData.minSellingPrice}",
                                 mrp: "₹${groceryProductData.minMrp}",
-                                discount:  "${groceryProductData.avgDiscount}% OFF",
+                                discount: "${groceryProductData.avgDiscount}% OFF",
                               ),
                               SizedBox(height: SizeConfig.size4),
                             ],

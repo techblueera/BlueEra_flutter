@@ -54,7 +54,6 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
       body: SafeArea(
         child: CustomScrollView(
           controller: _scrollController,

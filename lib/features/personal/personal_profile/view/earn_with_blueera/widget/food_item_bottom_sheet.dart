@@ -208,6 +208,50 @@ class FoodItemBottomSheet extends StatelessWidget {
                               ],
                             ),
 
+                            // discount preview
+                            Builder(
+                              builder: (context) {
+                                final mrp = double.tryParse(foodController
+                                    .mrpPriceController.text) ??
+                                    0;
+                                final selling = double.tryParse(foodController
+                                    .sellingPriceController.text) ??
+                                    0;
+                                if (mrp <= 0 || selling <= 0 || selling >= mrp)
+                                  return const SizedBox.shrink();
+                                final discount = ((mrp - selling) / mrp * 100)
+                                    .toStringAsFixed(0);
+                                return Padding(
+                                  padding:
+                                  EdgeInsets.only(top: SizeConfig.size8),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: SizeConfig.size10,
+                                        vertical: SizeConfig.size6),
+                                    decoration: BoxDecoration(
+                                      color:
+                                      Colors.green.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.local_offer_outlined,
+                                            size: 14, color: Colors.green),
+                                        SizedBox(width: SizeConfig.size4),
+                                        CustomText(
+                                          '$discount% discount applied',
+                                          fontSize: SizeConfig.small,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
                             SizedBox(height: SizeConfig.size24),
                           ],
                         ),

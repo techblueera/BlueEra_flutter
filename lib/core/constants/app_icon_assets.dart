@@ -392,7 +392,6 @@ class AppIconAssets {
   static String gardenerIcon = "${iconPath}gardener_icon.svg";
   static String securityPersonIcon = "${iconPath}security_person_icon.svg";
   static String tiffinIcon = "${iconPath}tiffin_icon.svg";
-  static String bakeryIcon = "${iconPath}bakery_icon.svg";
   static String sweetIcon = "${iconPath}sweet_icon.svg";
   static String homeStayIcon = "${iconPath}home_stay_icon.svg";
   static String roomIcon = "${iconPath}room_icon.svg";
@@ -687,5 +686,9 @@ class AppIconAssets {
   static const String morningLunchIcon = "${iconPath}morning_lunch_icon.svg";
   static const String nightDinnerIcon = "${iconPath}night_dinner_icon.svg";
   static const String businessCardIcon = "${iconPath}business_card_icon.svg";
+  static String bakeryIcon = "${iconPath}bakery_icon.svg";
+  static const String sweetsIcon = "${iconPath}sweets_icon.svg";
+  static const String namkeenIcon = "${iconPath}namkeen_icon.svg";
+  static const String picklesIcon = "${iconPath}pickles_icon.svg";
 
 }
