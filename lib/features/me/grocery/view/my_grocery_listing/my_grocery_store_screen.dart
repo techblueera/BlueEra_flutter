@@ -345,7 +345,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           )
               :
           EmptyStateWidget(
-            message: 'You don\'t have inventory yet, Want to create one?',
+            message: 'You don\'t have product yet, Want to create one?',
           ),
 
           SizedBox(

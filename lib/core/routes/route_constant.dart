@@ -85,7 +85,7 @@ class RouteConstant {
   static const String moreCardsScreen = "/MoreCardsScreen";
   // static const String listingFormScreen = "/ListingFormScreen";
   static const String inventoryScreen = "/InventoryScreen";
-  static const String addProductScreen = "/AddProductScreen";
+  static const String addProductTextOrSnapSearchScreen = "/AddProductTextOrSnapSearchScreen";
   static const String addServicesScreen = "/AddServicesScreen";
   static const String addProductViaAiStep1 = "/AddProductViaAiStep1";
   static const String addProductViaAiStep2 = "/AddProductViaAiStep2";
@@ -95,6 +95,7 @@ class RouteConstant {
   static const String productSuperCategoryScreen = "/ProductSuperCategoryScreen";
   static const String productNestedCategoryScreen = "/ProductNestedCategoryScreen";
   static const String storeProductSelectionScreen = "/StoreProductSelectionScreen";
+  static const String productCartScreen = "/ProductCartScreen";
   // static const String storeFeedScreen = "/StoreFeedScreen";
   static const String earnServiceScreen = "/EarnServiceScreen";
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
@@ -172,6 +173,8 @@ class RouteConstant {
   static const String addMedicalScreen = "/AddMedicalScreen";
   static const String addMedicalVariantScreen = "/AddMedicalVariantScreen";
   static const String myMedicalProductsScreen = "/MyMedicalProductsScreen";
+  static const String productNestedCategoryWithInventoryScreen = "/ProductNestedCategoryWithInventoryScreen";
+  static const String myProductProductsScreen = "/MyProductProductsScreen";
   static const String myMedicalVariantScreen = "/MyMedicalVariantScreen";
   static const String medicalListingScreen = "/MedicalListingScreen";
   static const String medicalCartScreen = "/MedicalCartScreen";

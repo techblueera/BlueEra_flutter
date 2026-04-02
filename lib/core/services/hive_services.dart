@@ -11,8 +11,8 @@ import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/all_stores_feed_response_model.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:hive/hive.dart';
 
 class HiveServices{

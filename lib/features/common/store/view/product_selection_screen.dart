@@ -1,21 +1,29 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
-import 'package:BlueEra/features/common/store/view/store_product_card.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
+import 'package:BlueEra/features/me/product/widget/product_floating_cart.dart';
+import 'package:BlueEra/features/me/product/widget/product_variant_grid_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ProductSelectionScreen extends StatefulWidget {
-  final List<ProductNestedCategory> arrProducts;
+  final List<ProductNestedCategoryResponse> arrProducts;
   final String? categoryName;
 
   const ProductSelectionScreen({
@@ -29,65 +37,60 @@ class ProductSelectionScreen extends StatefulWidget {
 }
 
 class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
-  final controller = getOrPut(() => DiscoverController());
+  final controller = getOrPut(() => ProductController());
   final ScrollController scrollController = ScrollController();
-  final ProviderType _providerType = ProviderType.business;
 
-  final Rxn<ProductNestedCategory> _selectedCategory =
-      Rxn<ProductNestedCategory>();
-  final Rxn<ProductNestedCategory> _selectedChild =
-      Rxn<ProductNestedCategory>();
+  final Rxn<ProductNestedCategoryResponse> _selectedCategory =
+      Rxn<ProductNestedCategoryResponse>();
+  final RxInt selectedHorizontalTabIndex = 0.obs;
 
   @override
   void initState() {
     super.initState();
-    scrollController.addListener(_onLoadMore);
+    scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.arrProducts.isNotEmpty) {
-        _selectCategory(widget.arrProducts.first);
+        _selectedCategory.value = widget.arrProducts.first;
+        _fetchProducts();
       }
     });
   }
 
-  void _selectCategory(ProductNestedCategory category) {
-    _selectedCategory.value = category;
-
-    if (category.children != null && category.children!.isNotEmpty) {
-      _selectedChild.value = category.children!.first;
-      _fetchProducts(category.children!.first.key ?? category.key);
-    } else {
-      _selectedChild.value = null;
-      _fetchProducts(category.key);
+  void _onScrollListener() {
+    if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200 &&
+        !controller.isInventoryProductLoadingMore.value &&
+        controller.inventoryProductHasMore) {
+      _fetchProducts(isLoadMore: true);
     }
   }
 
-  void _selectChild(ProductNestedCategory child) {
-    _selectedChild.value = child;
-    _fetchProducts(child.key);
-  }
+  void _fetchProducts({bool isLoadMore = false}) {
+    final category = _selectedCategory.value;
+    if (category == null) return;
 
-  void _fetchProducts(String? productCategory) {
-    controller.getAllProductNearBy(
-      providerType: _providerType,
-      productCategory: productCategory,
-    );
-  }
+    String? categoryId;
+    final tabIndex = selectedHorizontalTabIndex.value;
 
-  void _onLoadMore() {
-    if (scrollController.position.pixels >=
-        scrollController.position.maxScrollExtent - 200) {
-      final key = _selectedChild.value?.key ?? _selectedCategory.value?.key;
-      controller.getAllProductNearBy(
-        providerType: _providerType,
-        productCategory: key,
-        isLoadMore: true,
+    if (tabIndex > 0 &&
+        category.children != null &&
+        category.children!.isNotEmpty) {
+      categoryId = category.children![tabIndex - 1].sId;
+    } else {
+      categoryId = category.sId;
+    }
+
+    if (categoryId != null) {
+      controller.fetchInventoryProducts(
+        categoryId: categoryId,
+        isLoadMore: isLoadMore,
       );
     }
   }
 
   @override
   void dispose() {
-    scrollController.removeListener(_onLoadMore);
+    scrollController.removeListener(_onScrollListener);
     scrollController.dispose();
     super.dispose();
   }
@@ -117,26 +120,47 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           child: Icon(Icons.search),
         ),
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          _buildCategoryList(),
-          Expanded(child: _buildRightContent()),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCategoryList(),
+              Expanded(child: _buildRightContent()),
+            ],
+          ),
+          // Floating cart
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Obx(() => ProductFloatingCart(
+                    selectedProducts: controller.selectedProducts.toList(),
+                    onTap: () {
+                      Get.toNamed(RouteHelper.getProductCartScreenRoute());
+                    },
+                  )),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildCategoryList() {
-    return CommonGenericLeftSideCategoryList<ProductNestedCategory>(
+    return CommonGenericLeftSideCategoryList<ProductNestedCategoryResponse>(
       items: widget.arrProducts,
-      getIcon: (item) => '',
+      getIcon: (item) => item.image ?? '',
       getLabel: (item) => item.name ?? '',
       isSelected: (item) => _selectedCategory.value?.sId == item.sId,
       onTap: (item, index) {
         final selected = widget.arrProducts[index];
         if (_selectedCategory.value?.sId == selected.sId) return;
-        _selectCategory(selected);
+
+        _selectedCategory.value = selected;
+        selectedHorizontalTabIndex.value = 0;
+        _fetchProducts();
       },
     );
   }
@@ -147,10 +171,42 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Child tabs
+              // Max Limit Error
+              if (controller.isProductMaxLimitHit)
+                Container(
+                  width: SizeConfig.screenWidth,
+                  decoration: BoxDecoration(
+                    color: AppColors.redBE,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  margin: EdgeInsets.only(bottom: SizeConfig.size10),
+                  padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size4,
+                    horizontal: SizeConfig.size10,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      children: [
+                        LocalAssets(
+                          imagePath: AppIconAssets.warningOutlineIcon,
+                          width: SizeConfig.size20,
+                          height: SizeConfig.size20,
+                        ),
+                        SizedBox(width: SizeConfig.size8),
+                        CustomText(
+                          'You can\'t select more than ${controller.productMaxLimit} products at a time.',
+                          color: AppColors.redLite,
+                          fontSize: SizeConfig.extraSmall,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               _buildChildTabs(),
               SizedBox(height: 8),
-              // Product grid
               Expanded(child: _buildProductGrid()),
             ],
           ),
@@ -162,15 +218,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       final children = _selectedCategory.value?.children ?? [];
       if (children.isEmpty) return const SizedBox.shrink();
 
-      final selected = _selectedChild.value;
-      final selectedIdx = selected == null
-          ? 0
-          : children.indexWhere((c) => c.sId == selected.sId);
+      final List<dynamic> tabData = ["All", ...children];
 
-      return HorizontalTabSelector<ProductNestedCategory>(
-        tabs: children,
-        selectedIndex: selectedIdx < 0 ? 0 : selectedIdx,
-        labelBuilder: (item) => item.name ?? '',
+      return HorizontalTabSelector<dynamic>(
+        tabs: tabData,
+        selectedIndex: selectedHorizontalTabIndex.value,
+        labelBuilder: (item) =>
+            (item is String) ? item : (item.name ?? ""),
         horizontalPadding: 8,
         verticalPadding: 6,
         verticalMargin: 0,
@@ -178,7 +232,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         unSelectedBackgroundColor: AppColors.white,
         unSelectedBorderColor: AppColors.greyE5,
         onTabSelected: (index, label) {
-          _selectChild(children[index]);
+          selectedHorizontalTabIndex.value = index;
+          _fetchProducts();
         },
       );
     });
@@ -186,29 +241,31 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   Widget _buildProductGrid() {
     return Obx(() {
-      if (controller.isProductDataFirstLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+      if (controller.isInventoryProductFirstLoading.value) {
+        return Center(child: CircularProgressIndicator());
       }
 
-      final products = controller.productDataList;
+      final products = controller.inventoryProductList;
 
       if (products.isEmpty) {
         return Padding(
           padding: EdgeInsets.all(SizeConfig.size20),
-          child: EmptyStateWidget(
-            message: 'No products found.',
-          ),
+          child: EmptyStateWidget(message: 'No products found.'),
         );
       }
 
       return MasonryGridView.count(
         controller: scrollController,
         itemCount: products.length +
-            (controller.isProductDataLoadingMore.value ? 1 : 0),
+            (controller.isInventoryProductLoadingMore.value ? 1 : 0),
         crossAxisCount: 2,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        padding: EdgeInsets.only(bottom: SizeConfig.size30),
+        padding: EdgeInsets.only(
+          bottom: controller.selectedProducts.isNotEmpty
+              ? SizeConfig.size80
+              : SizeConfig.size30,
+        ),
         itemBuilder: (_, i) {
           if (i == products.length) {
             return const Center(
@@ -218,13 +275,47 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               ),
             );
           }
-
-          return StoreProductCard(
-            productStore: products[i].product,
-            isShowInGrid: true,
-          );
+          return Obx(() => ProductVariantGridCard(
+                variantData: products[i],
+                isSelected: controller.isProductSelected(products[i].finalVariant.id),
+                onTap: () => controller.toggleProductSelection(products[i]),
+                onPreviewTap: () => _openPreview(products[i]),
+              ));
         },
       );
     });
+  }
+
+  void _openPreview(VariantData variantData) {
+    final product = variantData.productInformation;
+    final variant = variantData.finalVariant;
+
+    final productPreviewArgs = ProductPreviewArgs(
+      productId: product.id,
+      media: product.media.isNotEmpty
+          ? product.media
+          : variant.mediaRelatedToVarient,
+      name: product.name,
+      description: product.description,
+      tags: product.tags,
+      features: product.addProductFeatures.map((f) => f.title).toList(),
+      details: product.addMoreDetails
+          .map((d) => DetailPair(d.title, d.details))
+          .toList(),
+      sellingPrice: variant.sellingPrice.toString(),
+      MRPPrice: variant.mrp.toString(),
+      warranty: product.productWarrenty,
+      expiry: '',
+      userGuide: product.guideLine,
+    );
+
+    Get.toNamed(
+      RouteHelper.getProductPreviewScreenRoute(),
+      arguments: {
+        ApiKeys.argProductData: productPreviewArgs,
+        ApiKeys.id: controller.ownerID ?? '',
+        ApiKeys.providerType: controller.ownerProviderType ?? ProviderType.business,
+      },
+    );
   }
 }

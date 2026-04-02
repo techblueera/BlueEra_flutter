@@ -767,7 +767,7 @@ extension StoreTypeExtension on StoreType {
   String get value {
     switch (this) {
       case StoreType.inventory:
-        return 'inventory';
+        return 'product';
       case StoreType.service:
         return 'service';
       case StoreType.food:
@@ -779,7 +779,7 @@ extension StoreTypeExtension on StoreType {
 
   static StoreType fromString(String? type) {
     switch (type?.toLowerCase()) {
-      case 'inventory':
+      case 'product':
         return StoreType.inventory;
       case 'service':
         return StoreType.service;

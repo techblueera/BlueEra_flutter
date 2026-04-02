@@ -24,7 +24,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:BlueEra/widgets/user_profile_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
+import 'package:BlueEra/features/me/product/widget/own_product_card.dart';
 
 class EarnServiceDashboardView extends StatefulWidget {
   final bool fromBottomNavBar;

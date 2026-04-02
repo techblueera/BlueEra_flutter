@@ -182,8 +182,8 @@ class MedicalProductVariants {
       });
     }
     weight = json['weight'];
-    inventory = json['inventory'] != null
-        ? new Inventory.fromJson(json['inventory'])
+    inventory = json['product'] != null
+        ? new Inventory.fromJson(json['product'])
         : null;
   }
 
@@ -201,7 +201,7 @@ class MedicalProductVariants {
     }
     data['weight'] = this.weight;
     if (this.inventory != null) {
-      data['inventory'] = this.inventory!.toJson();
+      data['product'] = this.inventory!.toJson();
     }
     return data;
   }

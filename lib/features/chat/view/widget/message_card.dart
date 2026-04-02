@@ -31,7 +31,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
 import '../../../common/food/model/get_food_details_model.dart';
-import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../business_chat/widgets/rider_association_msg_card.dart';

@@ -167,7 +167,7 @@ class ProductVariants {
   int? iV;
   String? sku;
   String? barcode;
-  // Inventory? inventory;
+  // Inventory? product;
   bool? isVegetarian;
 
   ProductVariants({
@@ -183,7 +183,7 @@ class ProductVariants {
     this.iV,
     this.sku,
     this.barcode,
-    // this.inventory,
+    // this.product,
     this.isVegetarian
   });
 
@@ -213,8 +213,8 @@ class ProductVariants {
     iV = json['__v'];
     sku = json['sku'];
     barcode = json['barcode'];
-    // inventory = json['inventory'] != null
-    //     ? new Inventory.fromJson(json['inventory'])
+    // product = json['product'] != null
+    //     ? new Inventory.fromJson(json['product'])
     //     : null;
     isVegetarian = json['isVegetarian'];
 

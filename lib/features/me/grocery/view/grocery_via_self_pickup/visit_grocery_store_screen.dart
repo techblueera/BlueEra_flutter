@@ -479,7 +479,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
           )
               :
           EmptyStateWidget(
-            message: '${details?.businessName} don\'t have an inventory yet.',
+            message: '${details?.businessName} don\'t have an product yet.',
           ),
 
           SizedBox(

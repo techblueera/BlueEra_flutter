@@ -907,14 +907,14 @@ class GroceryController extends GetxController {
       if (responseModel.isSuccess) {
         final GroceryNestedCategoryModel groceryNestedCategoryModel = GroceryNestedCategoryModel.fromJson(responseModel.response?.data);
         groceryNestedCategoryWithInventoryList.value = groceryNestedCategoryModel.children ?? [];
-        log('Nested categories with inventory loaded: ${groceryNestedCategoryWithInventoryList.length}');
+        log('Nested categories with product loaded: ${groceryNestedCategoryWithInventoryList.length}');
       } else {
         commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong,
         );
       }
     } catch (e, s) {
-      log('Error fetching nested categories with inventory: $e\n$s');
+      log('Error fetching nested categories with product: $e\n$s');
     } finally {
       groceryNestedCategoryWithInventoryLoading.value = false;
     }

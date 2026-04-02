@@ -334,6 +334,7 @@ class ApiKeys {
   static const reportedTo = "reported_to";
   static const visibilityDuration = "visibility_duration";
   static const filePath = "filePath";
+  static const category_key = "category_key";
   static const category_id = "category_id";
   static const brand = "brand";
   static const addProductFeatures = "addProductFeatures";
@@ -579,6 +580,7 @@ class ApiKeys {
   static const argArrGrocerySuperCategory = 'argArrGrocerySuperCategory';
   static const argArrProductSuperCategory = 'argArrProductSuperCategory';
   static const argArrProductCatKey = 'argArrProductCatKey';
+  static const argArrProductCatId = 'argArrProductCatId';
   static const argArrProductCatName = 'argArrProductCatName';
   static const argProducts = 'argProducts';
   static const argProductGroup = 'argProductGroup';
@@ -758,5 +760,9 @@ class ApiKeys {
   static const argIsGroceryStore = 'argIsGroceryStore';
   static const argIsDeliveredByRider = 'argIsDeliveredByRider';
   static const argBusinessId = 'argBusinessId';
+  static const argProductCategoryWithInventory = 'argProductCategoryWithInventory';
+  static const argProductCatKey = 'argProductCatKey';
+  static const argProductCatName = 'argProductCatName';
+  static const argProductCategories = 'argProductCategories';
 
 }

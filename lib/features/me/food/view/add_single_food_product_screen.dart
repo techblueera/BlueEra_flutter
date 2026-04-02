@@ -16,21 +16,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class AddSingleProductScreen extends StatefulWidget {
+class AddSingleFoodProductScreen extends StatefulWidget {
   final String foodProductId;
   final int? createMissingProductIndex;
 
-  AddSingleProductScreen({
+  AddSingleFoodProductScreen({
     super.key,
     required this.foodProductId,
     this.createMissingProductIndex,
   });
 
   @override
-  State<AddSingleProductScreen> createState() => _AddSingleProductScreenState();
+  State<AddSingleFoodProductScreen> createState() => _AddSingleFoodProductScreenState();
 }
 
-class _AddSingleProductScreenState extends State<AddSingleProductScreen> {
+class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen> {
   var vc = Get.find<FoodServiceController>();
   final RxList<FoodVariants> selectedVariants = <FoodVariants>[].obs;
 

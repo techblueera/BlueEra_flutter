@@ -262,7 +262,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
                       color: Colors.black87,
                     ),
                     CustomText(
-                      "Ready to publish to inventory",
+                      "Ready to publish to product",
                       fontSize: 12,
                       color: Colors.grey.shade600,
                     ),

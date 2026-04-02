@@ -483,8 +483,8 @@ class CategoryProductVariant {
         images!.add(ProductImageItem.fromJson(v));
       });
     }
-    inventory = json['inventory'] != null
-        ? CategoryInventory.fromJson(json['inventory'])
+    inventory = json['product'] != null
+        ? CategoryInventory.fromJson(json['product'])
         : null;
   }
 }

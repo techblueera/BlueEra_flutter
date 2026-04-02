@@ -14,7 +14,7 @@ import 'package:BlueEra/features/common/service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
+import 'package:BlueEra/features/me/product/model/detail_item.dart';
 import 'package:BlueEra/features/common/service/view/add_services_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';

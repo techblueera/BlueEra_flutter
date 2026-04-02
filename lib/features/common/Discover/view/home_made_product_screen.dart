@@ -9,7 +9,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_pa
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';

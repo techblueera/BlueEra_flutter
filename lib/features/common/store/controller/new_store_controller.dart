@@ -13,12 +13,12 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
+import 'package:BlueEra/features/common/store/models/product_consumer_nested_category_response.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -153,7 +153,7 @@ class NewStoreController extends GetxController{
       if (response.isSuccess) {
         final data = response.response?.data;
         if (data != null && data is Map<String, dynamic>) {
-          final parsed = ProductNestedCategoryResponse.fromJson(data);
+          final parsed = ProductConsumerNestedCategoryResponse.fromJson(data);
           productCategoryTreeList.value = parsed.data ?? [];
         }
       }

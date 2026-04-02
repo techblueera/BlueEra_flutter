@@ -132,4 +132,16 @@ class ProductRepo extends BaseService{
     return response;
   }
 
+  Future<ResponseModel> productNestedCategoryRepo(
+      {Map<String, dynamic>? queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      productNestedCategory,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

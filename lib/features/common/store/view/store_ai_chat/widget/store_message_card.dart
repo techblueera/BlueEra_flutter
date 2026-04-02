@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/widget/message_bubble.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
