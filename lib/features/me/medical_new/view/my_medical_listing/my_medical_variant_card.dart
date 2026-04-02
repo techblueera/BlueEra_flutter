@@ -14,11 +14,13 @@ import '../../model/my_medical_products_response.dart';
 class MyMedicalVariantCard extends StatelessWidget {
   final MedicalProductVariants variantItem;
   final bool isShowInGrid;
+  final String? categoryId;
 
   const MyMedicalVariantCard({
     Key? key,
     required this.variantItem,
-    required this.isShowInGrid
+    required this.isShowInGrid,
+    this.categoryId,
   }) : super(key: key);
 
   @override
@@ -70,11 +72,12 @@ class MyMedicalVariantCard extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: SizeConfig.size5),
-
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                child: Column(
+              Expanded(
+                child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size5),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title
@@ -83,10 +86,10 @@ class MyMedicalVariantCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: SizeConfig.size10),
+                    SizedBox(height: SizeConfig.size6),
 
                     Row(
                       children: [
@@ -189,12 +192,52 @@ class MyMedicalVariantCard extends StatelessWidget {
                           ],
                         ),
                       ],
-                    )
+                    ),
 
+                    SizedBox(height: SizeConfig.size8),
+
+                    // Edit Inventory Button
+                    InkWell(
+                      onTap: () {
+                        controller.openEditInventoryBottomSheet(
+                          context: context,
+                          title: variantItem.variantName ?? 'Edit Inventory',
+                          variant: variantItem,
+                          categoryId: categoryId,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: AppColors.primaryColor.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.edit_outlined,
+                                size: 13, color: AppColors.primaryColor),
+                            SizedBox(width: 4),
+                            CustomText(
+                              'Edit Inventory',
+                              fontSize: 11,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
                   ],
                 ),
-              )
+                ),
+              ),
+              ),
 
             ],
           )
@@ -360,7 +403,49 @@ class MyMedicalVariantCard extends StatelessWidget {
                           ],
                         ),
                       ],
-                    )
+                    ),
+
+                    SizedBox(height: SizeConfig.size8),
+
+                    // Edit Inventory Button
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: InkWell(
+                        onTap: () {
+                          controller.openEditInventoryBottomSheet(
+                            context: context,
+                            title: variantItem.variantName ?? 'Edit Inventory',
+                            variant: variantItem,
+                            categoryId: categoryId,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.primaryColor.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  size: 13, color: AppColors.primaryColor),
+                              SizedBox(width: 4),
+                              CustomText(
+                                'Edit Inventory',
+                                fontSize: 11,
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

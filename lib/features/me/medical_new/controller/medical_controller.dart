@@ -18,6 +18,7 @@ import 'package:BlueEra/features/me/medical_new/model/medical_change_request_mod
 import 'package:BlueEra/features/me/medical_new/model/missing_product_request_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/snap_search_result_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/edit_medical_varient_dialog.dart';
+import 'package:BlueEra/features/me/medical_new/widget/edit_medical_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_varient_dialog.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
@@ -678,7 +679,7 @@ class MedicalController extends GetxController {
       }
     } catch (e) {
       fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
-      log("ERROR===== $e");
+      log("ERROR===== 2 $e");
     } finally{
       myMedicalCategoryLoading.value = false;
     }
@@ -706,7 +707,7 @@ class MedicalController extends GetxController {
       myMedicalDataHasMore = true;
     }
 
-    try {
+    // try {
       Map<String, dynamic> params = {
         ApiKeys.page: myMedicalDataPage,
         ApiKeys.limit: pageLimit,
@@ -744,16 +745,16 @@ class MedicalController extends GetxController {
       } else {
         fetchMyMedicalProductsResponse.value = ApiResponse.error('error');
       }
-    } catch (e) {
-      fetchMyMedicalProductsResponse.value = ApiResponse.error('error');
-      log("ERROR===== $e");
-    } finally{
+    // } catch (e) {
+    //   fetchMyMedicalProductsResponse.value = ApiResponse.error('error');
+    //   log("ERROR===== 1 $e");
+    // } finally{
       if (isLoadMore) {
         isMyMedicalDataLoadingMore.value = false;
       } else {
         isMyMedicalDataFirstLoading.value = false;
       }
-    }
+    // }
   }
 
   /// Fetch Grocery Products
@@ -828,6 +829,70 @@ class MedicalController extends GetxController {
     } finally {
       isUpdateInventoryLoading.value = false;
     }
+  }
+
+  /// Opens a bottom sheet for editing inventory (price + quantity).
+  /// Price can only be decreased, not increased.
+  void openEditInventoryBottomSheet({
+    required BuildContext context,
+    required String title,
+    required MedicalProductVariants variant,
+    String? categoryId,
+  }) {
+    final inventory = variant.inventory;
+    final batch = inventory?.batches?.firstOrNull;
+    final pricing = variant.pricing?.firstOrNull;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Obx(() => EditMedicalInventoryBottomSheet(
+              title: title,
+              currentMrp: pricing?.mrp?.toString() ?? '0',
+              currentSellingPrice: pricing?.sellingPrice?.toString() ?? '0',
+              currentQuantity: batch?.quantity?.toString() ?? '0',
+              isLoading: isUpdateInventoryLoading.value,
+              onSubmit: (mrp, sellingPrice, quantity) async {
+                if (inventory?.inventoryId == null) {
+                  commonSnackBar(message: 'Inventory not found');
+                  return;
+                }
+
+                final updatedBatches = <Map<String, dynamic>>[
+                  {
+                    if (batch?.sId != null) '_id': batch!.sId,
+                    if (batch?.batchNumber != null)
+                      'batchNumber': batch!.batchNumber,
+                    'quantity': int.tryParse(quantity) ?? 0,
+                    'mrp': num.tryParse(mrp) ?? 0,
+                    'sellingPrice': num.tryParse(sellingPrice) ?? 0,
+                  }
+                ];
+
+                await updateInventory(
+                  inventoryId: inventory!.inventoryId!,
+                  batches: updatedBatches,
+                );
+
+                // Update local data
+                if (pricing != null) {
+                  pricing.mrp = num.tryParse(mrp);
+                  pricing.sellingPrice = num.tryParse(sellingPrice);
+                }
+                if (batch != null) {
+                  batch.quantity = int.tryParse(quantity);
+                }
+
+                Get.back();
+                if (categoryId != null) {
+                  fetchMyGroceryProducts(categoryId: categoryId);
+                }
+              },
+            ));
+      },
+    );
   }
 
   RxBool isDeleteInventoryLoading = false.obs;

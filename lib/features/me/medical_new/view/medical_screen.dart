@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -90,7 +91,7 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
             body: TabBarView(
               controller: _tabController,
               children: [
-                MedicalHomeScreen(businessId: businessId,),
+                MedicalHomeScreen(businessId: userId,),
                 Center(child: CustomText(AppStrings.comingSoon))
               ]
             ),
@@ -127,6 +128,7 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
         Padding(
           padding: EdgeInsets.only(
               left: SizeConfig.paddingXSL,
+              right: SizeConfig.paddingL
           ),
           child: InkWell(
             onTap:() {
@@ -181,28 +183,28 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
             ),
           ),
         ),
-        Padding(
-          padding: EdgeInsets.only(
-              left: SizeConfig.paddingXSL,
-              right: SizeConfig.paddingL
-          ),
-          child: InkWell(
-            onTap: ()=> Get.toNamed(
-               RouteHelper.getMedicalCategoryScreenRoute(),
-            ),
-            child: Container(
-              height: SizeConfig.size40,
-              width: SizeConfig.size40,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(SizeConfig.size8),
-                  color: AppColors.primaryColor
-              ),
-              alignment: Alignment.center,
-              padding: EdgeInsets.all(6.0),
-              child: LocalAssets(imagePath: AppIconAssets.add),
-            ),
-          ),
-        ),
+        // Padding(
+        //   padding: EdgeInsets.only(
+        //       left: SizeConfig.paddingXSL,
+        //       right: SizeConfig.paddingL
+        //   ),
+        //   child: InkWell(
+        //     onTap: ()=> Get.toNamed(
+        //        RouteHelper.getMedicalCategoryScreenRoute(),
+        //     ),
+        //     child: Container(
+        //       height: SizeConfig.size40,
+        //       width: SizeConfig.size40,
+        //       decoration: BoxDecoration(
+        //           borderRadius: BorderRadius.circular(SizeConfig.size8),
+        //           color: AppColors.primaryColor
+        //       ),
+        //       alignment: Alignment.center,
+        //       padding: EdgeInsets.all(6.0),
+        //       child: LocalAssets(imagePath: AppIconAssets.add),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

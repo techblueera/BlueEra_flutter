@@ -3,8 +3,10 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -15,10 +17,12 @@ import '../../model/my_medical_products_response.dart';
 
 class MedicalProductCard extends StatelessWidget {
   final Products medicalProducts;
+  final String? categoryId;
 
   const MedicalProductCard({
     Key? key,
     required this.medicalProducts,
+    this.categoryId,
   }) : super(key: key);
 
   @override
@@ -47,7 +51,8 @@ class MedicalProductCard extends StatelessWidget {
         Get.toNamed(RouteHelper.getMyMedicalVariantScreenRoute(),
           arguments: {
             ApiKeys.argVariants: variants,
-            ApiKeys.argIsShowInGrid: true
+            ApiKeys.argIsShowInGrid: true,
+            ApiKeys.argCategoryId: categoryId,
           },
         );
       },
@@ -129,36 +134,24 @@ class MedicalProductCard extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.only(
                     top: 8.0,
-                    bottom: 8,
+                    bottom: 5,
                     right: 10
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Title + 3-dot menu
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: CustomText(
-                              medicalProducts.name ?? '',
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.mainTextColor,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2
-                          ),
-                        ),
-                        Icon(
-                          Icons.more_vert,
-                          size: 20,
-                          color: Colors.grey.shade700,
-                        ),
-                      ],
+                    /// Title
+                    CustomText(
+                        medicalProducts.name ?? '',
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2
                     ),
                     SizedBox(height: SizeConfig.size6),
 
-                    /// Price Row
+                    /// Last Update
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: CustomText(
@@ -179,6 +172,54 @@ class MedicalProductCard extends StatelessWidget {
                           color: AppColors.secondaryTextColor
                       ),
                     ),
+
+                    Spacer(),
+
+                    /// Edit Inventory Button
+                    if (medicalProducts.variants != null &&
+                        medicalProducts.variants!.isNotEmpty)
+                      Builder(builder: (context) {
+                        final controller = getOrPut(() => MedicalController());
+                        return InkWell(
+                          onTap: () {
+                            controller.openEditInventoryBottomSheet(
+                              context: context,
+                              title: medicalProducts.name ?? 'Edit Inventory',
+                              variant: medicalProducts.variants!.first,
+                              categoryId: categoryId,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_outlined,
+                                    size: 12,
+                                    color: AppColors.primaryColor),
+                                SizedBox(width: 4),
+                                CustomText(
+                                  'Edit',
+                                  fontSize: 11,
+                                  color: AppColors.primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
 
                   ],
                 ),

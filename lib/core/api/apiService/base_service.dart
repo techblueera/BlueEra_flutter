@@ -735,6 +735,7 @@ abstract class BaseService {
   String updateMedicalOrder(String orderId) => "medical-service/orders/$orderId";
   String medicalServiceOrder(String orderId) => 'medical-service/orders/$orderId/alternatives';
   final String medicalNestedCategory = 'medical-service/categories/nested';
+  // String medicalProfileFd(String businessId) => 'medical-service/profile/home/69ce088dde2705587c143d6c';
   String medicalProfileFd(String businessId) => 'medical-service/profile/home/$businessId';
   final String medicalOrderUpdatePaymentStatus = 'rider-service/medical/orders/payment-status';
   final String medicalOrderAvailableItem = 'rider-service/medical/orders/available-items';

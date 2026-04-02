@@ -118,14 +118,12 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
               _buildAddProductsSection(),
               SizedBox(height: SizeConfig.size10),
               _buildBulkUploadSection(),
-              SizedBox(height: SizeConfig.size10),
               if (popularProducts.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size10),
                 _buildPopularProducts(popularProducts),
               ],
               SizedBox(height: SizeConfig.size10),
-              _buildUpdateMedicalProducts(categoriesWithProducts),
-              SizedBox(height: SizeConfig.size10),
+              // _buildUpdateMedicalProducts(categoriesWithProducts),
+              // SizedBox(height: SizeConfig.size10),
               _buildGallerySection(),
               SizedBox(height: SizeConfig.size10),
               _buildContactSection(profile),
@@ -594,13 +592,28 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   }
 
   // ─────────────────────────────────────────────
-  // UPDATE YOUR MEDICAL PRODUCTS (ss8) - Static 6 categories
+  // UPDATE YOUR MEDICAL PRODUCTS (ss8) - Dynamic inventory categories + static add
   // ─────────────────────────────────────────────
   Widget _buildUpdateMedicalProducts(List<CategoryWithProducts> apiCategories) {
-    // Build a set of API category keys that have products
-    final activeKeys = <String>{};
-    for (final cat in apiCategories) {
-      if (cat.key != null && cat.hasProducts) activeKeys.add(cat.key!);
+    // Separate categories that have inventory vs those that don't
+    final inventoryCategories = <CategoryWithProducts>[];
+    final emptyCategories = <Map<String, String>>[];
+
+    for (final staticCat in _staticCategories) {
+      CategoryWithProducts? match;
+      for (final apiCat in apiCategories) {
+        if (apiCat.key != null &&
+            apiCat.key!.toUpperCase().replaceAll(' ', '_') ==
+                staticCat['key']!.toUpperCase().replaceAll(' ', '_')) {
+          match = apiCat;
+          break;
+        }
+      }
+      if (match != null && match.hasProducts) {
+        inventoryCategories.add(match);
+      } else {
+        emptyCategories.add(staticCat);
+      }
     }
 
     return Padding(
@@ -611,23 +624,188 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: 'Update Your Medical Products'),
+            // --- Inventory Section ---
+            Row(
+              children: [
+                Expanded(
+                  child: ServiceHomeTitleWidget(title: 'Your Medical Inventory'),
+                ),
+                InkWell(
+                  onTap: () => Get.toNamed(
+                    RouteHelper.getMedicalCategoryScreenRoute(),
+                  ),
+                  child: CustomText(
+                    'Update Inventory',
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: SizeConfig.size12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: _staticCategories.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: SizeConfig.size10,
-                mainAxisSpacing: SizeConfig.size10,
-                childAspectRatio: 0.85,
+
+            if (inventoryCategories.isNotEmpty) ...[
+              GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: inventoryCategories.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: SizeConfig.size10,
+                  mainAxisSpacing: SizeConfig.size10,
+                  childAspectRatio: 0.72,
+                ),
+                itemBuilder: (context, index) {
+                  final cat = inventoryCategories[index];
+                  final productCount = cat.getAllProducts().length;
+                  final staticMatch = _getStaticCategoryByKey(cat.key);
+                  return _inventoryCategoryCard(
+                    cat: cat,
+                    image: staticMatch?['image'],
+                    productCount: productCount,
+                  );
+                },
               ),
-              itemBuilder: (context, index) {
-                final cat = _staticCategories[index];
-                final hasProducts = activeKeys.contains(cat['key']);
-                return _staticCategoryCard(cat, hasProducts, apiCategories);
-              },
+              SizedBox(height: SizeConfig.size15),
+            ] else ...[
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+                decoration: BoxDecoration(
+                  color: AppColors.whiteF3,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.inventory_2_outlined, color: Colors.grey.shade400, size: 36),
+                    SizedBox(height: 8),
+                    CustomText(
+                      'No inventory added yet',
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    SizedBox(height: 10),
+                    InkWell(
+                      onTap: () => Get.toNamed(RouteHelper.getMedicalCategoryScreenRoute()),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: CustomText(
+                          'Add Products Now',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.size15),
+            ],
+
+            // --- Add More Categories Section ---
+            if (emptyCategories.isNotEmpty) ...[
+              ServiceHomeTitleWidget(title: 'Add More Categories'),
+              SizedBox(height: SizeConfig.size10),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: emptyCategories.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: SizeConfig.size10,
+                  mainAxisSpacing: SizeConfig.size10,
+                  childAspectRatio: 0.85,
+                ),
+                itemBuilder: (context, index) {
+                  final cat = emptyCategories[index];
+                  return _emptyCategoryCard(cat);
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Find static category map by API key
+  Map<String, String>? _getStaticCategoryByKey(String? apiKey) {
+    if (apiKey == null) return null;
+    final normalized = apiKey.toUpperCase().replaceAll(' ', '_');
+    for (final s in _staticCategories) {
+      if (s['key']!.toUpperCase().replaceAll(' ', '_') == normalized) return s;
+    }
+    return null;
+  }
+
+  /// Card for categories WITH inventory — shows product count + edit option
+  Widget _inventoryCategoryCard({
+    required CategoryWithProducts cat,
+    String? image,
+    required int productCount,
+  }) {
+    return InkWell(
+      onTap: () {
+        Get.to(() => MyMedicalSuperCategoryScreen());
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (image != null)
+              Image.asset(image, width: 44, height: 44, fit: BoxFit.contain)
+            else
+              Icon(Icons.medical_services_outlined, size: 44, color: AppColors.primaryColor),
+            SizedBox(height: 4),
+            CustomText(
+              cat.name?.replaceAll('_', ' ') ?? '',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              color: AppColors.mainTextColor,
+            ),
+            SizedBox(height: 4),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+              ),
+              child: CustomText(
+                '$productCount Products',
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.edit_outlined, size: 12, color: AppColors.green00),
+                SizedBox(width: 2),
+                CustomText(
+                  'Edit',
+                  fontSize: 10,
+                  color: AppColors.green00,
+                  fontWeight: FontWeight.w600,
+                ),
+              ],
             ),
           ],
         ),
@@ -635,11 +813,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     );
   }
 
-  Widget _staticCategoryCard(
-    Map<String, String> category,
-    bool hasProducts,
-    List<CategoryWithProducts> apiCategories,
-  ) {
+  /// Card for categories WITHOUT inventory — shows add option
+  Widget _emptyCategoryCard(Map<String, String> category) {
     return InkWell(
       onTap: () => _onCategoryTap(category),
       borderRadius: BorderRadius.circular(10),
@@ -654,11 +829,11 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
           children: [
             Image.asset(
               category['image']!,
-              width: 50,
-              height: 50,
+              width: 44,
+              height: 44,
               fit: BoxFit.contain,
             ),
-            SizedBox(height: 6),
+            SizedBox(height: 4),
             CustomText(
               category['title'],
               fontSize: 11,
@@ -667,11 +842,20 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
               maxLines: 2,
               color: Colors.blueGrey.shade700,
             ),
-            if (hasProducts)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(Icons.check_circle, color: AppColors.green00, size: 14),
-              ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_circle_outline, size: 12, color: AppColors.primaryColor),
+                SizedBox(width: 2),
+                CustomText(
+                  'Add',
+                  fontSize: 10,
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -721,7 +905,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       commonSnackBar(message: 'Category not available yet');
       return;
     }
-    final level2Children = apiCategory.children ?? [];
+    final level2Children = apiCategory?.children ?? [];
     if (level2Children.isNotEmpty) {
       Get.to(() => MedicalLevel2CategoryScreen(
             title: category['title']!.replaceAll('\n', ' '),
@@ -731,41 +915,38 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   }
 
   Widget _buildBulkUploadSection() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: CommonCardWidget(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(
-              "Bulk Upload Shop Product Photos",
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            SizedBox(height: 10),
-            Obx(() => _medicalController.isSnapSearchLoading.value
-                ? SizedBox(
-                    height: 100,
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : Row(
-                    children: [
-                      _uploadMediaWidget(
-                        imagePath: 'assets/category/medical/medical_upload_photo_med.png',
-                        title: 'Upload Photo',
-                        onTap: () => _pickAndSnapSearch(source: ImageSource.camera),
-                      ),
-                      SizedBox(width: 7),
-                      _uploadMediaWidget(
-                        imagePath: 'assets/category/medical/medical_upload_photo.png',
-                        title: 'Upload List',
-                        onTap: () => _pickAndSnapSearch(source: ImageSource.gallery),
-                      ),
-                    ],
-                  )),
-          ],
-        ),
+    return CommonCardWidget(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomText(
+            "Bulk Upload Shop Product Photos",
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          SizedBox(height: 10),
+          Obx(() => _medicalController.isSnapSearchLoading.value
+              ? SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : Row(
+                  children: [
+                    _uploadMediaWidget(
+                      imagePath: 'assets/category/medical/medical_upload_photo_med.png',
+                      title: 'Upload Photo',
+                      onTap: () => _pickAndSnapSearch(source: ImageSource.camera),
+                    ),
+                    SizedBox(width: 7),
+                    _uploadMediaWidget(
+                      imagePath: 'assets/category/medical/medical_upload_photo.png',
+                      title: 'Upload List',
+                      onTap: () => _pickAndSnapSearch(source: ImageSource.gallery),
+                    ),
+                  ],
+                )),
+        ],
       ),
     );
   }

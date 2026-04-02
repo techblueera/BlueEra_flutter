@@ -12,11 +12,13 @@ import '../../model/my_medical_products_response.dart';
 class MyMedicalVariantScreen extends StatefulWidget {
   final List<MedicalProductVariants> variants;
   final bool? isShowInGrid;
+  final String? categoryId;
 
   const MyMedicalVariantScreen({
     super.key,
     required this.variants,
-    this.isShowInGrid = true
+    this.isShowInGrid = true,
+    this.categoryId,
   });
 
   @override
@@ -126,6 +128,7 @@ class _MyMedicalVariantScreenState extends State<MyMedicalVariantScreen> {
                     return MyMedicalVariantCard(
                       variantItem: variantItem,
                       isShowInGrid: true,
+                      categoryId: widget.categoryId,
                     );
                   },
                 );
@@ -147,6 +150,7 @@ class _MyMedicalVariantScreenState extends State<MyMedicalVariantScreen> {
                 child: MyMedicalVariantCard(
                   variantItem: variantItem,
                   isShowInGrid: false,
+                  categoryId: widget.categoryId,
                 ),
               );
             },

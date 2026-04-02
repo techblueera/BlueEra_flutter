@@ -1738,10 +1738,12 @@ class RouteHelper {
         final List<MedicalProductVariants> variants =
         args[ApiKeys.argVariants] as List<MedicalProductVariants>;
         final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
+        final String? argMedCategoryId = args[ApiKeys.argCategoryId] as String?;
         return MaterialPageRoute(
             builder: (_) => MyMedicalVariantScreen(
                 variants: variants,
-                isShowInGrid: argIsShowInGrid
+                isShowInGrid: argIsShowInGrid,
+                categoryId: argMedCategoryId,
             ),
             settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
 

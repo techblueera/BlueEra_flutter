@@ -105,6 +105,7 @@ class _MyMedicalProductsScreenState extends State<MyMedicalProductsScreen> {
 
             return  MedicalProductCard(
                 medicalProducts: medicalProducts,
+                categoryId: categoryId,
             );
           },
         );
