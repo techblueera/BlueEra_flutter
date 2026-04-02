@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -11,8 +11,8 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../auth/controller/call_controller.dart';
-import '../../../auth/repo/make_order_repo.dart';
+import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import 'ride_navigation_overlay_controller.dart';
 import 'rider_ride_navigation_screen.dart';
 
 /// Screen shown after rider accepts an order.
@@ -30,6 +30,7 @@ class RiderPickupNavigationScreen extends StatefulWidget {
   final String customerImage;
   final String otp;
   final String paymentMethod;
+  final String orderId;
 
   const RiderPickupNavigationScreen({
     super.key,
@@ -45,6 +46,7 @@ class RiderPickupNavigationScreen extends StatefulWidget {
     this.customerImage = '',
     required this.otp,
     this.paymentMethod = 'Cash',
+    this.orderId = '',
   });
 
   @override
@@ -57,6 +59,7 @@ class _RiderPickupNavigationScreenState
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  List<LatLng> _routeCoords = [];
 
   // OTP
   final List<TextEditingController> _otpControllers =
@@ -81,6 +84,12 @@ class _RiderPickupNavigationScreenState
     WidgetsBinding.instance.addObserver(this);
     _setupMarkers();
     _fetchRoute();
+    // Hide floating overlay after first frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<RideNavigationOverlayController>()) {
+        Get.find<RideNavigationOverlayController>().hideOverlay();
+      }
+    });
     // Enable PiP auto-entry when user leaves the app
     if (Platform.isAndroid) {
       PipService.updatePipStatus(true);
@@ -142,9 +151,10 @@ class _RiderPickupNavigationScreenState
       );
 
       if (result.points.isNotEmpty) {
-        final routeCoords = result.points
+        _routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();
+        final routeCoords = _routeCoords;
 
         setState(() {
           _polylines.add(
@@ -185,10 +195,8 @@ class _RiderPickupNavigationScreenState
     final entered = _otpControllers.map((c) => c.text).join();
     if (entered.length < 4) return;
 
-    // Get orderId from CallController
-    final callController = Get.find<CallController>();
-    final orderId = callController.fareCallOrderId.value;
-
+    final orderId = widget.orderId;
+print("ldkclskdclskdcsdc ${orderId}");
     if (orderId.isEmpty) {
       // Fallback: local OTP check if no orderId
       if (entered == widget.otp) {
@@ -204,21 +212,21 @@ class _RiderPickupNavigationScreenState
     }
 
     // Call the API to verify pickup OTP
-    final response = await MakeOrderRepo().verifyPickupOtpRideOrParcelApi(
-      {'otp': entered},
+    final controller = Get.put(DeliverPartnerOrdersController());
+    final success = await controller.verifyPickupOtpRideOrParcelApi(
+      {ApiKeys.pickupOTP: entered},
       orderId,
     );
 
     if (!mounted) return;
 
-    if (response.isSuccess) {
+    if (success) {
       setState(() {
         _otpVerified = true;
         _otpError = false;
       });
       HapticFeedback.mediumImpact();
     } else {
-      commonSnackBar(message: response.message ?? 'Invalid OTP');
       _handleOtpError();
     }
   }
@@ -234,6 +242,37 @@ class _RiderPickupNavigationScreenState
       _otpFocusNodes[0].requestFocus();
       setState(() => _otpError = false);
     });
+  }
+
+  void _minimiseToOverlay() {
+    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    overlayCtrl.showOverlay(
+      riderLatVal: _riderLatLng.latitude,
+      riderLngVal: _riderLatLng.longitude,
+      destLatVal: _pickupLatLng.latitude,
+      destLngVal: _pickupLatLng.longitude,
+      destLabelVal: widget.pickupLocation,
+      customerNameVal: widget.customerName,
+      fareAmountVal: widget.fareAmount,
+      routePoints: _routeCoords,
+      type: 'pickup',
+      params: {
+        'pickupLocation': widget.pickupLocation,
+        'dropLocation': widget.dropLocation,
+        'pickupLat': widget.pickupLat,
+        'pickupLng': widget.pickupLng,
+        'dropLat': widget.dropLat,
+        'dropLng': widget.dropLng,
+        'fareAmount': widget.fareAmount,
+        'distanceKm': widget.distanceKm,
+        'customerName': widget.customerName,
+        'customerImage': widget.customerImage,
+        'otp': widget.otp,
+        'paymentMethod': widget.paymentMethod,
+        'orderId': widget.orderId,
+      },
+    );
+    Navigator.of(context).pop();
   }
 
   void _startRide() {
@@ -253,6 +292,7 @@ class _RiderPickupNavigationScreenState
           customerName: widget.customerName,
           customerImage: widget.customerImage,
           paymentMethod: widget.paymentMethod,
+          orderId: widget.orderId,
         ),
       ),
     );
@@ -260,7 +300,12 @@ class _RiderPickupNavigationScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _minimiseToOverlay();
+      },
+      child: Scaffold(
       body: Stack(
         children: [
           // Full-screen map
@@ -308,6 +353,7 @@ class _RiderPickupNavigationScreenState
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -329,9 +375,9 @@ class _RiderPickupNavigationScreenState
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              // Back button
+              // Back button — minimise to floating mini-map
               GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
+                onTap: _minimiseToOverlay,
                 child: Container(
                   width: 40,
                   height: 40,

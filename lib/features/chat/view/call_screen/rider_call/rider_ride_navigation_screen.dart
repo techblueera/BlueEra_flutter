@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../auth/controller/call_controller.dart';
-import '../../../auth/repo/make_order_repo.dart';
+import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 
 /// Screen shown after "Start Ride" — pickup location → drop location map.
 class RiderRideNavigationScreen extends StatefulWidget {
@@ -25,6 +23,7 @@ class RiderRideNavigationScreen extends StatefulWidget {
   final String customerName;
   final String customerImage;
   final String paymentMethod;
+  final String orderId;
 
   const RiderRideNavigationScreen({
     super.key,
@@ -39,6 +38,7 @@ class RiderRideNavigationScreen extends StatefulWidget {
     required this.customerName,
     this.customerImage = '',
     this.paymentMethod = 'Cash',
+    this.orderId = '',
   });
 
   @override
@@ -55,6 +55,7 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
   LatLng? _currentRiderPosition;
   bool _rideCompleted = false;
   bool _isEndingRide = false;
+  double _dragX = 0;
 
   // Timer
   final Stopwatch _rideStopwatch = Stopwatch();
@@ -198,19 +199,12 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
   Future<void> _endRide() async {
     setState(() => _isEndingRide = true);
 
-    // Call the complete ride API
-    final callController = Get.find<CallController>();
-    final orderId = callController.fareCallOrderId.value;
+    final orderId = widget.orderId;
 
     if (orderId.isNotEmpty) {
-      final lat = _currentRiderPosition?.latitude ?? LocationService.lat;
-      final lng = _currentRiderPosition?.longitude ?? LocationService.lng;
-      final response = await MakeOrderRepo().completePickupRiderApi(
-        {'latitude': lat, 'longitude': lng},
-        orderId,
-      );
-      if (!response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Failed to complete ride');
+      final controller = Get.put(DeliverPartnerOrdersController());
+      final success = await controller.completePickupRiderApi(orderId);
+      if (!success) {
         if (mounted) setState(() => _isEndingRide = false);
         return;
       }
@@ -431,8 +425,8 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
           _buildFareDistanceRow(),
           const SizedBox(height: 20),
 
-          // End Ride button
-          _buildEndRideButton(),
+          // Slide to complete
+          _buildSlideToComplete(),
 
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
@@ -605,39 +599,86 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
     );
   }
 
-  Widget _buildEndRideButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SizedBox(
-        width: double.infinity,
-        height: 54,
-        child: ElevatedButton(
-          onPressed: _endRide,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF5252),
-            foregroundColor: Colors.white,
-            elevation: 4,
-            shadowColor: const Color(0xFFFF5252).withValues(alpha: 0.4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+  Widget _buildSlideToComplete() {
+    if (_isEndingRide) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(
+          height: 54,
+          child: Center(
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                color: Color(0xFF00C853),
+                strokeWidth: 2.5,
+              ),
             ),
           ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.stop_rounded, size: 26),
-              SizedBox(width: 8),
-              Text(
-                'End Ride',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'OpenSans',
-                ),
-              ),
-            ],
-          ),
         ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final sliderWidth = constraints.maxWidth;
+          const buttonSize = 54.0;
+
+          return Container(
+            height: buttonSize,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(buttonSize / 2),
+            ),
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                Center(
+                  child: Text(
+                    'Slide to complete ride',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'OpenSans',
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: _dragX,
+                  child: GestureDetector(
+                    onHorizontalDragUpdate: (details) {
+                      setState(() {
+                        _dragX = (_dragX + details.delta.dx)
+                            .clamp(0, sliderWidth - buttonSize);
+                      });
+                    },
+                    onHorizontalDragEnd: (_) {
+                      if (_dragX > (sliderWidth - buttonSize) * 0.7) {
+                        _endRide();
+                      }
+                      setState(() => _dragX = 0);
+                    },
+                    child: Container(
+                      height: buttonSize,
+                      width: buttonSize,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00C853),
+                        borderRadius: BorderRadius.circular(buttonSize / 2),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

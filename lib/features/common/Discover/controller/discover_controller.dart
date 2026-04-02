@@ -32,6 +32,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
+import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 
 enum CategoryFilter {
   nearest('Nearest'),
@@ -142,6 +143,11 @@ class DiscoverController extends GetxController {
   RxString fareCallCurrentRiderId = ''.obs;
   Rxn<Map<String, dynamic>> fareCallAcceptedRiderInfo = Rxn<Map<String, dynamic>>();
   RxString fareCallAcceptedRiderId = ''.obs;
+  RxString fareCallPickupOtp = ''.obs;
+  RxBool isFareCallRideStarted = false.obs;
+  Rxn<Map<String, dynamic>> fareCallRideStartedData = Rxn<Map<String, dynamic>>();
+  RxBool isFareCallRideCompleted = false.obs;
+  Rxn<Map<String, dynamic>> fareCallRideCompletedData = Rxn<Map<String, dynamic>>();
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
@@ -913,6 +919,7 @@ class DiscoverController extends GetxController {
           ? Map<String, dynamic>.from(data['riderInfo'])
           : null;
       fareCallAcceptedRiderId.value = data['riderId'] ?? data['riderInfo']?['riderId'] ?? '';
+      fareCallPickupOtp.value = data['pickupOTP']?.toString() ?? '';
       isFareCallInProgress.value = false;
     });
 
@@ -921,6 +928,31 @@ class DiscoverController extends GetxController {
       isFareCallInProgress.value = false;
       fareCallAcceptedRiderInfo.value = null;
       commonSnackBar(message: 'No riders available. Please try again.');
+    });
+
+    socket.listenEvent('ride:started', (data) {
+      log('[FARE_CALL_QUEUE] ride:started → $data');
+      isFareCallRideStarted.value = true;
+      fareCallRideStartedData.value = data != null
+          ? Map<String, dynamic>.from(data)
+          : null;
+    });
+
+    socket.listenEvent('ride:completed', (data) {
+      log('[FARE_CALL_QUEUE] ride:completed → $data');
+      isFareCallRideCompleted.value = true;
+      fareCallRideCompletedData.value = data != null
+          ? Map<String, dynamic>.from(data)
+          : null;
+
+      // If the floating overlay is showing, close it and show a snackbar
+      if (Get.isRegistered<RideNavigationOverlayController>()) {
+        final overlayCtrl = Get.find<RideNavigationOverlayController>();
+        if (overlayCtrl.isOverlayVisible.value) {
+          overlayCtrl.hideOverlay();
+          commonSnackBar(message: 'Ride completed successfully!');
+        }
+      }
     });
   }
 
@@ -945,6 +977,11 @@ class DiscoverController extends GetxController {
     fareCallCurrentRiderId.value = '';
     fareCallAcceptedRiderInfo.value = null;
     fareCallAcceptedRiderId.value = '';
+    fareCallPickupOtp.value = '';
+    isFareCallRideStarted.value = false;
+    fareCallRideStartedData.value = null;
+    isFareCallRideCompleted.value = false;
+    fareCallRideCompletedData.value = null;
   }
 
   Future<void> fetchRentalServices(
