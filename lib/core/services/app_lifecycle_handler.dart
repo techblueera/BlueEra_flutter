@@ -7,25 +7,11 @@ import 'package:get/get.dart';
 import '../../features/chat/auth/controller/call_controller.dart';
 import '../../features/chat/auth/controller/chat_view_controller.dart';
 import '../../features/chat/auth/socket/chat_socket.dart';
-import '../../features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
-import '../../features/common/delivery_partner/view/delivery_partner_orders/on_going_pip_screen.dart';
-import '../constants/app_constant.dart';
-import '../constants/getx_utils.dart';
-import '../constants/shared_preference_utils.dart';
 
 class AppLifecycleHandler extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    log("Lifecycle state changed → $state");
-    if (userProfessionGlobal == BIKE_RIDER) {
-      if(state == AppLifecycleState.inactive){
-        final controller = getOrPut(() => DeliverPartnerOrdersController());
-        if(controller.onGoingOrders.isNotEmpty){
-          Get.to(()=> OnGoingPipScreen());
-        }
-    }
 
-    }
 
     // Handle floating call overlay on app lifecycle changes
     _handleCallOverlayLifecycle(state);

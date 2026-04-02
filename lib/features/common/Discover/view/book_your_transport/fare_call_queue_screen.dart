@@ -10,8 +10,15 @@ import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../chat/auth/controller/call_controller.dart';
+import '../../../../chat/view/forward_screen/chat_forward_screen.dart';
+import '../../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../../chat/auth/controller/live_trach_rider_controller.dart';
+import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import '../../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../controller/discover_controller.dart';
 
 /// Customer-side fare-call screen.
@@ -36,6 +43,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   late Worker _queueAcceptedWorker;
   late Worker _queueExhaustedWorker;
   late Worker _callStatusWorker;
+  Worker? _rideCompletedWorker;
 
   // Call timer
   Timer? _localTimer;
@@ -43,12 +51,14 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   // Rider accepted state
   bool _riderAccepted = false;
+  bool _rideCompleted = false;
   Map<String, dynamic>? _acceptedRiderInfo;
 
   // Map state (after rider accepted)
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  List<LatLng> _routeCoords = [];
   LiveTrachRiderController? _liveTrackController;
   Worker? _riderLatWorker;
   Worker? _riderLngWorker;
@@ -57,6 +67,12 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Hide floating overlay after first frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<RideNavigationOverlayController>()) {
+        Get.find<RideNavigationOverlayController>().hideOverlay();
+      }
+    });
 
     if (!Get.isRegistered<CallController>()) {
       Get.put(CallController(), permanent: true);
@@ -104,6 +120,38 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         _localTimer?.cancel();
       }
     });
+
+    // Watch for ride completed
+    _rideCompletedWorker =
+        ever(discoverController.isFareCallRideCompleted, (completed) {
+      if (!mounted || !completed) return;
+      _liveTrackController?.dispose();
+      _riderLatWorker?.dispose();
+      _riderLngWorker?.dispose();
+      setState(() => _rideCompleted = true);
+    });
+
+    // If rider was already accepted (e.g. returning from floating overlay),
+    // restore map state directly.
+    final existingRiderInfo = discoverController.fareCallAcceptedRiderInfo.value;
+    if (existingRiderInfo != null && !_riderAccepted) {
+      _riderAccepted = true;
+      _acceptedRiderInfo = existingRiderInfo;
+
+      if (Platform.isAndroid) {
+        PipService.updatePipStatus(true);
+      }
+
+      final riderId = discoverController.fareCallAcceptedRiderId.value;
+      if (riderId.isNotEmpty) {
+        _liveTrackController = Get.put(LiveTrachRiderController());
+        _liveTrackController!.fetchStream(riderId);
+        _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
+        _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
+      }
+
+      _setupPickupMarker();
+    }
   }
 
   void _onRiderAccepted(Map<String, dynamic> riderInfo) {
@@ -198,6 +246,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         final routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();
+        _routeCoords = routeCoords;
 
         setState(() {
           _polylines.clear();
@@ -273,6 +322,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _queueAcceptedWorker.dispose();
     _queueExhaustedWorker.dispose();
     _callStatusWorker.dispose();
+    _rideCompletedWorker?.dispose();
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
     _localTimer?.cancel();
@@ -298,13 +348,56 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     Get.back();
   }
 
+  void _minimiseToOverlay() {
+    final pickupLat = discoverController.selectedFromLat?.value ?? 0.0;
+    final pickupLng = discoverController.selectedFromLong?.value ?? 0.0;
+    final riderLat = _liveTrackController?.liveLat.value ?? 0.0;
+    final riderLng = _liveTrackController?.liveLng.value ?? 0.0;
+
+    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    overlayCtrl.showOverlay(
+      riderLatVal: riderLat,
+      riderLngVal: riderLng,
+      destLatVal: pickupLat,
+      destLngVal: pickupLng,
+      destLabelVal: discoverController.selectedFromAddress?.value ?? 'Pickup',
+      customerNameVal: _acceptedRiderInfo?['name'] ?? 'Rider',
+      fareAmountVal: 0,
+      routePoints: _routeCoords,
+      type: 'customer_tracking',
+      params: {
+        'orderId': widget.orderId,
+      },
+    );
+    // Pop all screens until the bottom navigation bar
+    final bottomBarController = Get.put(BottomBarController());
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.selectedChatTabIndex.value=3;
+    bottomBarController.onChangeIndex(3);
+    Get.until((route) =>
+        route.settings.name == '/BottomNavigationBarScreen' ||
+        route.isFirst);
+
+  }
+
+  void _callRider() {
+    final contact = _acceptedRiderInfo?['contact'] ?? '';
+    if (contact.isNotEmpty) {
+      launchUrl(Uri.parse('tel:$contact'));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        _endCallAndGoBack();
+        if (_riderAccepted) {
+          _minimiseToOverlay();
+        } else {
+          _endCallAndGoBack();
+        }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),
@@ -385,12 +478,14 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           ),
         ),
 
-        // Bottom panel — call controls + ride info
+        // Bottom panel — call controls + ride info OR completed panel
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: _buildMapBottomPanel(),
+          child: _rideCompleted
+              ? _buildRideCompletedPanel()
+              : _buildMapBottomPanel(),
         ),
       ],
     );
@@ -414,9 +509,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              // Back button
+              // Back button — minimise to floating mini-map
               GestureDetector(
-                onTap: _endCallAndGoBack,
+                onTap: _minimiseToOverlay,
                 child: Container(
                   width: 40,
                   height: 40,
@@ -521,6 +616,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   }
 
   Widget _buildMapBottomPanel() {
+    return Obx(() {
+    final otp = discoverController.fareCallPickupOtp.value;
+    final rideStarted = discoverController.isFareCallRideStarted.value;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -546,6 +645,152 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
               borderRadius: BorderRadius.circular(2),
             ),
           ),
+          const SizedBox(height: 16),
+
+          // Rider info + call button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                // Rider avatar
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFF0F0F0),
+                    border: Border.all(
+                      color: const Color(0xFF4285F4).withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                  ),
+                  child: _acceptedRiderInfo?['profileImage'] != null &&
+                          (_acceptedRiderInfo!['profileImage'] as String).isNotEmpty
+                      ? ClipOval(
+                          child: Image.network(
+                            _acceptedRiderInfo!['profileImage'],
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                                Icons.delivery_dining_rounded,
+                                color: Color(0xFF9E9E9E),
+                                size: 26),
+                          ),
+                        )
+                      : const Icon(Icons.delivery_dining_rounded,
+                          color: Color(0xFF9E9E9E), size: 26),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _acceptedRiderInfo?['name'] ?? 'Rider',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'OpenSans',
+                          color: Color(0xFF1A1A2E),
+                        ),
+                      ),
+                      if (_acceptedRiderInfo?['contact'] != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Text(
+                            _acceptedRiderInfo!['contact'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                              fontFamily: 'OpenSans',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // Call rider button
+                GestureDetector(
+                  onTap: _callRider,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00C853).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.phone_rounded,
+                        color: Color(0xFF00C853), size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Show OTP or Share Live Location based on ride started
+          if (rideStarted)
+            _buildShareRiderDetailsButton()
+          else if (otp.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4285F4).withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFF4285F4).withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.pin_rounded,
+                        color: Color(0xFF4285F4), size: 20),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Pickup OTP',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'OpenSans',
+                        color: Color(0xFF1A1A2E),
+                      ),
+                    ),
+                    const Spacer(),
+                    // OTP digits
+                    Row(
+                      children: otp.split('').map((digit) {
+                        return Container(
+                          width: 32,
+                          height: 38,
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFF4285F4).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            digit,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'OpenSans',
+                              color: Color(0xFF4285F4),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           const SizedBox(height: 16),
 
           // Ride summary (pickup → drop)
@@ -614,95 +859,503 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             ),
           ),
 
-          const SizedBox(height: 16),
-          // Divider(height: 1, color: Colors.grey.shade200),
-          // const SizedBox(height: 12),
-          //
-          // // Call controls row
-          // Obx(() {
-          //   final isSpeakerOn = _callController.isSpeakerOn.value;
-          //   final status = _callController.callStatus.value;
-          //   final isConnected = status == CallStatus.connected;
-          //   final duration = _callController.callDurationSeconds.value;
-          //   final time = duration > 0 ? duration : _localSeconds;
-          //
-          //   return Padding(
-          //     padding: const EdgeInsets.symmetric(horizontal: 20),
-          //     child: Row(
-          //       children: [
-          //         // Call status + timer
-          //         Icon(
-          //           Icons.phone_in_talk_rounded,
-          //           color: isConnected
-          //               ? const Color(0xFF00C853)
-          //               : Colors.grey,
-          //           size: 20,
-          //         ),
-          //         const SizedBox(width: 8),
-          //         Text(
-          //           isConnected
-          //               ? _formatTime(time)
-          //               : 'Connecting...',
-          //           style: TextStyle(
-          //             fontSize: 14,
-          //             fontWeight: FontWeight.w600,
-          //             fontFamily: 'OpenSans',
-          //             color: isConnected
-          //                 ? const Color(0xFF00C853)
-          //                 : Colors.grey,
-          //           ),
-          //         ),
-          //         const Spacer(),
-          //         // Speaker
-          //         GestureDetector(
-          //           onTap: isConnected
-          //               ? () => _callController.toggleSpeaker()
-          //               : null,
-          //           child: Container(
-          //             width: 42,
-          //             height: 42,
-          //             decoration: BoxDecoration(
-          //               shape: BoxShape.circle,
-          //               color: isSpeakerOn
-          //                   ? const Color(0xFF4285F4).withValues(alpha: 0.15)
-          //                   : Colors.grey.shade100,
-          //             ),
-          //             child: Icon(
-          //               isSpeakerOn
-          //                   ? Icons.volume_up_rounded
-          //                   : Icons.volume_down_rounded,
-          //               color: isSpeakerOn
-          //                   ? const Color(0xFF4285F4)
-          //                   : Colors.grey,
-          //               size: 20,
-          //             ),
-          //           ),
-          //         ),
-          //         const SizedBox(width: 12),
-          //         // End call
-          //         GestureDetector(
-          //           onTap: _endCallAndGoBack,
-          //           child: Container(
-          //             width: 42,
-          //             height: 42,
-          //             decoration: const BoxDecoration(
-          //               shape: BoxShape.circle,
-          //               color: Color(0xFFEA4335),
-          //             ),
-          //             child: const Icon(
-          //               Icons.call_end_rounded,
-          //               color: Colors.white,
-          //               size: 20,
-          //             ),
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   );
-          // }),
-
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
+      ),
+    );
+    });
+  }
+
+  Widget _buildRideCompletedPanel() {
+    final completedData = discoverController.fareCallRideCompletedData.value;
+    final rideDetails = completedData?['rideDetails'] as Map<String, dynamic>? ?? {};
+    final riderInfo = completedData?['riderInfo'] as Map<String, dynamic>? ?? {};
+
+    final fare = rideDetails['fare'] ?? 0;
+    final modeOfPayment = rideDetails['modeOfPayment'] ?? '';
+    final orderFor = rideDetails['orderFor'] ?? '';
+    final pickupAddress = rideDetails['pickup']?['address'] ?? '';
+    final dropAddress = rideDetails['drop']?['address'] ?? '';
+    final riderName = riderInfo['name'] ?? '';
+    final riderContact = riderInfo['contact'] ?? '';
+    final riderImage = riderInfo['profileImage'] ?? '';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 10),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Checkmark
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFF00C853).withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check_rounded,
+                color: Color(0xFF00C853), size: 36),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Ride Completed!',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'OpenSans',
+              color: Color(0xFF1A1A2E),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'You have arrived at your destination',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+              fontFamily: 'OpenSans',
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Rider info row
+          if (riderName.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFF0F0F0),
+                      border: Border.all(
+                        color: const Color(0xFF4285F4).withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: riderImage.isNotEmpty
+                        ? ClipOval(
+                            child: Image.network(
+                              riderImage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.person_rounded,
+                                  color: Color(0xFF9E9E9E),
+                                  size: 24),
+                            ),
+                          )
+                        : const Icon(Icons.person_rounded,
+                            color: Color(0xFF9E9E9E), size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          riderName,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        if (riderContact.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              riderContact,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                fontFamily: 'OpenSans',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (riderName.isNotEmpty) const SizedBox(height: 16),
+
+          // Fare & Payment summary
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        '₹${(fare is num) ? fare.toStringAsFixed(0) : fare}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00C853),
+                          fontFamily: 'OpenSans',
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Fare',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                          fontFamily: 'OpenSans',
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Colors.grey.shade300,
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        modeOfPayment.toString().capitalizeFirst ?? modeOfPayment,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4285F4),
+                          fontFamily: 'OpenSans',
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Payment',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                          fontFamily: 'OpenSans',
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (orderFor.isNotEmpty) ...[
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: Colors.grey.shade300,
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          orderFor,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFFA000),
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Ride Type',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Pickup → Drop addresses
+          if (pickupAddress.isNotEmpty || dropAddress.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF00C853),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 20,
+                        color: Colors.grey.shade300,
+                      ),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF7043),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          pickupAddress,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          dropAddress,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 20),
+
+          // Done button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () {
+                  discoverController.resetFareCallState();
+                  Get.until((route) =>
+                      route.settings.name == '/BottomNavigationBarScreen' ||
+                      route.isFirst);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'Done',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShareRiderDetailsButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF00C853).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF00C853).withValues(alpha: 0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.check_circle_rounded,
+                    color: Color(0xFF00C853), size: 20),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Ride Started — OTP Verified',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'OpenSans',
+                      color: Color(0xFF00C853),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton.icon(
+                onPressed: _shareRiderDetails,
+                icon: const Icon(Icons.share_rounded, size: 20),
+                label: const Text(
+                  'Share Rider Details',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00C853),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _buildRiderShareText() {
+    final data = discoverController.fareCallRideStartedData.value;
+    final riderInfo = data?['riderInfo'];
+    final rideDetails = data?['rideDetails'];
+
+    final riderName = riderInfo?['name'] ?? _acceptedRiderInfo?['name'] ?? 'Unknown';
+    final riderContact = riderInfo?['contact'] ?? _acceptedRiderInfo?['contact'] ?? '';
+    final dropAddress = rideDetails?['drop']?['address'] ??
+        discoverController.selectedToAddress?.value ?? '';
+    final pickupAddress = rideDetails?['pickup']?['address'] ??
+        discoverController.selectedFromAddress?.value ?? '';
+
+    return '🚗 Ride Safety Details\n\n'
+        '👤 Rider: $riderName\n'
+        '📞 Contact: $riderContact\n'
+        '📍 Pickup: $pickupAddress\n'
+        '📍 Drop: $dropAddress\n\n'
+        'Shared via BlueEra for safety purposes.';
+  }
+
+  void _shareRiderDetails() {
+    final shareText = _buildRiderShareText();
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.send_rounded,
+                  color: Color(0xFF4285F4), size: 24),
+              title: const Text(
+                'Share within BlueEra',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'OpenSans',
+                ),
+              ),
+              onTap: () {
+                Get.back();
+                Get.to(() => ChatForwardScreen(
+                      sharedText: shareText,
+                      stopChatNav: true,
+                    ));
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.share_outlined,
+                  color: Color(0xFF4285F4), size: 24),
+              title: const Text(
+                'Share externally',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'OpenSans',
+                ),
+              ),
+              onTap: () async {
+                Get.back();
+                try {
+                  await SharePlus.instance.share(
+                    ShareParams(text: shareText),
+                  );
+                } catch (e) {
+                  debugPrint('Share failed: $e');
+                }
+              },
+            ),
+            const SizedBox(height: 18),
+          ],
+        ),
       ),
     );
   }

@@ -45,6 +45,7 @@ import 'features/chat/auth/controller/call_controller.dart';
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
 import 'features/chat/view/call_screen/widget/ongoing_call_overlay.dart';
+import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -470,6 +471,8 @@ class _MyAppState extends State<MyApp> {
               const GlobalMessage(),
               // WhatsApp-style ongoing call overlay -- shown above app bar
               const OngoingCallOverlay(),
+              // Floating mini-map for ride navigation
+              const RideNavigationFloatingOverlay(),
             ],
           );
         },

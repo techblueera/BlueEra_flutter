@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +63,7 @@ class CallController extends GetxController {
   // --- Fare-call ride state ---
   var isFareCall = false.obs;
   var fareCallOrderId = ''.obs;
+  var fareCallOrderMongoId = ''.obs;
   var fareCallRideDetails = Rxn<Map<String, dynamic>>();
 
   // Media toggles
@@ -389,7 +391,7 @@ class CallController extends GetxController {
 
   void _handleIncomingCall(dynamic data) {
     debugPrint('[FARE_CALL_DEBUG] _handleIncomingCall → currentStatus=${callStatus.value}, isCallActivityActive=$isCallActivityActive');
-    debugPrint('[FARE_CALL_DEBUG] _handleIncomingCall → raw data=$data');
+    log('[FARE_CALL_DEBUG] _handleIncomingCall → raw data=$data');
     if (callStatus.value != CallStatus.idle) {
       debugPrint('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (not idle, status=${callStatus.value})');
       return; // already in a call
@@ -421,6 +423,7 @@ class CallController extends GetxController {
     if (metadata != null && metadata['orderType'] == 'fare-call') {
       isFareCall.value = true;
       fareCallOrderId.value = metadata['orderId'] ?? '';
+      fareCallOrderMongoId.value = metadata['orderMongoId'] ?? '';
       fareCallRideDetails.value = metadata['rideDetails'] != null
           ? Map<String, dynamic>.from(metadata['rideDetails'])
           : null;
@@ -435,6 +438,7 @@ class CallController extends GetxController {
 
     isFareCall.value = false;
     fareCallOrderId.value = '';
+    fareCallOrderMongoId.value = '';
     fareCallRideDetails.value = null;
 
     // Show incoming call screen via GetX navigation (avoid duplicate if push already opened it)
@@ -2062,6 +2066,7 @@ class CallController extends GetxController {
     switchTypeRequestedBy.value = '';
     isFareCall.value = false;
     fareCallOrderId.value = '';
+    fareCallOrderMongoId.value = '';
     fareCallRideDetails.value = null;
   }
 

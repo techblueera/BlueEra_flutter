@@ -12,6 +12,9 @@ import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_enum.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
+import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
+import '../../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
 import '../../controller/pip_floating_page_controller.dart';
 
 
@@ -88,10 +91,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           switch (controller.selectedPickUp.value) {
 
             case PickUpTab.orders:
-              return _buildMergedOrderList(
-                onGoing: controller.onGoingOrders,
-                newOrders: controller.newOrders,
-              );
+              return _buildOngoingRideOrEmpty();
 
             case PickUpTab.newOrder:
               return _buildOrderList(controller.newOrders);
@@ -115,6 +115,285 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
         }
       }),
     );
+  }
+
+  Widget _buildOngoingRideOrEmpty() {
+    if (!Get.isRegistered<RideNavigationOverlayController>()) {
+      return Center(child: CustomText(AppStrings.noOrdersFound));
+    }
+    final overlayCtrl = Get.find<RideNavigationOverlayController>();
+
+    return Obx(() {
+      // Force reactivity by reading observable values
+      overlayCtrl.screenType.value;
+      overlayCtrl.screenParams.length;
+
+      if (!overlayCtrl.hasOngoingRide) {
+        return Center(child: CustomText(AppStrings.noOrdersFound));
+      }
+
+      final p = overlayCtrl.screenParams;
+      final type = overlayCtrl.screenType.value;
+      final customerName = p['customerName'] ?? '';
+      final pickupLocation = p['pickupLocation'] ?? '';
+      final dropLocation = p['dropLocation'] ?? '';
+      final fareAmount = (p['fareAmount'] as num?)?.toDouble() ?? 0.0;
+      final paymentMethod = p['paymentMethod'] ?? 'Cash';
+
+      return ListView(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size15,
+          vertical: SizeConfig.size10,
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: CustomText(
+              'ONGOING RIDE',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              if (type == 'pickup') {
+                Get.to(() => RiderPickupNavigationScreen(
+                      pickupLocation: p['pickupLocation'] ?? '',
+                      dropLocation: p['dropLocation'] ?? '',
+                      pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
+                      pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
+                      dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
+                      dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
+                      fareAmount: fareAmount,
+                      distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
+                      customerName: customerName,
+                      customerImage: p['customerImage'] ?? '',
+                      otp: p['otp'] ?? '',
+                      paymentMethod: paymentMethod,
+                      orderId: p['orderId'] ?? '',
+                    ));
+              } else {
+                Get.to(() => RiderRideNavigationScreen(
+                      pickupLocation: p['pickupLocation'] ?? '',
+                      dropLocation: p['dropLocation'] ?? '',
+                      pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
+                      pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
+                      dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
+                      dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
+                      fareAmount: fareAmount,
+                      distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
+                      customerName: customerName,
+                      customerImage: p['customerImage'] ?? '',
+                      paymentMethod: paymentMethod,
+                      orderId: p['orderId'] ?? '',
+                    ));
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF00C853).withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status + fare row
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00C853).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF00C853),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              type == 'pickup'
+                                  ? 'Heading to Pickup'
+                                  : 'Ride in Progress',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'OpenSans',
+                                color: Color(0xFF00C853),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '₹${fareAmount.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00C853),
+                          fontFamily: 'OpenSans',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Customer name
+                  Row(
+                    children: [
+                      const Icon(Icons.person_rounded,
+                          color: Color(0xFF4285F4), size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          customerName,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4285F4).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          paymentMethod,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF4285F4),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Pickup → Drop
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF00C853),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 20,
+                            color: Colors.grey.shade300,
+                          ),
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF7043),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pickupLocation,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                                fontFamily: 'OpenSans',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              dropLocation,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                                fontFamily: 'OpenSans',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Tap to navigate button
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A2E),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.navigation_rounded,
+                            color: Colors.white, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'Continue Navigation',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   /// Merged view: ongoing orders on top, then new orders below.

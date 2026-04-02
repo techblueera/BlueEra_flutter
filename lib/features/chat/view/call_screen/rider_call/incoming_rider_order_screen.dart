@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -60,7 +61,6 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
 
     _callController = Get.find<CallController>();
     final ride = _callController.fareCallRideDetails.value;
-
     _pickupAddress = ride?['pickup']?['address'] ?? 'Pickup location';
     _dropAddress = ride?['drop']?['address'] ?? 'Drop location';
     _pickupLat = _toDouble(ride?['pickup']?['lat']);
@@ -252,6 +252,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     final rideAccepted = await _callController.acceptFareCallRide();
     if (!rideAccepted) return;
 
+    // Capture orderMongoId before endCall() clears it via _resetState()
+    final orderMongoId = _callController.fareCallOrderMongoId.value;
+
     _callController.endCall();
     _callTimer?.cancel();
     if (!mounted) return;
@@ -268,6 +271,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
           customerImage: _customerImage,
           otp: '',
           paymentMethod: _paymentMethod,
+          orderId: orderMongoId,
         ));
   }
 
