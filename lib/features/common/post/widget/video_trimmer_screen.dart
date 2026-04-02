@@ -29,6 +29,10 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
 
   void _loadVideo() async {
     await _trimmer.loadVideo(videoFile: File(widget.videoPath));
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (_trimmer.videoPlayerController != null) {
+      endValue = _trimmer.videoPlayerController!.value.duration.inSeconds.toDouble();
+    }
     if (mounted) setState(() => isLoaded = true);
   }
 

@@ -57,7 +57,7 @@ class MedicalInventoryCategoryScreen extends StatelessWidget {
         // Collect leaf categories (level 2/3) that have products
         final leafCategories = _collectLeafCategories(category);
         if (leafCategories.isEmpty) {
-          commonSnackBar(message: 'No data found');
+          commonSnackBar(message: 'NA');
           return;
         }
         Get.to(() => MedicalInventoryProductScreen(

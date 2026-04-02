@@ -97,7 +97,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     }
     if (_data == null) {
       return Scaffold(
-        body: Center(child: CustomText('No data found', color: AppColors.greyA5)),
+        body: Center(child: CustomText('NA', color: AppColors.greyA5)),
       );
     }
 

@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../common/post/message_post/feed_video_preview_widget.dart';
+import '../../../../common/post/widget/video_trimmer_screen.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
 
 class SymbolUploadWidget extends StatefulWidget {
@@ -424,7 +426,45 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.file(file, fit: BoxFit.cover),
+            GestureDetector(
+              onTap: () => openImagePreview(controller.imagesList, index),
+              child: FutureBuilder<Uint8List>(
+                future: file.readAsBytes(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                    return Image.memory(
+                      snapshot.data!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Icon(Icons.broken_image, color: Colors.grey),
+                          ),
+                        );
+                      },
+                    );
+                  } else if (snapshot.hasError) {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    );
+                  } else {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
             // Top gradient
             Positioned(
               top: 0,
@@ -480,7 +520,18 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
               Obx(() {
                 final thumb = controller.videoThumbnails[file.path];
                 if (thumb != null) {
-                  return Image.file(thumb, fit: BoxFit.cover);
+                  return Image.file(
+                    thumb,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(Icons.broken_image, color: Colors.grey),
+                        ),
+                      );
+                    },
+                  );
                 }
                 return const Center(
                   child: SizedBox(
@@ -655,6 +706,127 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
     );
   }
 
+  void openImagePreview(List<File> files, int initialIndex) {
+    int currentIndex = initialIndex;
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: EdgeInsets.zero,
+        backgroundColor: Colors.black,
+        child: StatefulBuilder(
+          builder: (context, setState) => Stack(
+            fit: StackFit.expand,
+            children: [
+              FutureBuilder<Uint8List>(
+                future: files[currentIndex].readAsBytes(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                    return InteractiveViewer(
+                      child: Image.memory(
+                        snapshot.data!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(Icons.broken_image, color: Colors.white, size: 50),
+                          );
+                        },
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Center(
+                      child: Icon(Icons.broken_image, color: Colors.white, size: 50),
+                    );
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    );
+                  }
+                },
+              ),
+              // Close button
+              Positioned(
+                top: 40,
+                right: 20,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+              // Previous button
+              if (currentIndex > 0)
+                Positioned(
+                  left: 20,
+                  top: MediaQuery.of(context).size.height / 2 - 30,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 40),
+                    onPressed: () {
+                      setState(() {
+                        currentIndex = currentIndex - 1;
+                      });
+                    },
+                  ),
+                ),
+              // Next button
+              if (currentIndex < files.length - 1)
+                Positioned(
+                  right: 20,
+                  top: MediaQuery.of(context).size.height / 2 - 30,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 40),
+                    onPressed: () {
+                      setState(() {
+                        currentIndex = currentIndex + 1;
+                      });
+                    },
+                  ),
+                ),
+              // Index indicator
+              Positioned(
+                bottom: 40,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${currentIndex + 1} / ${files.length}',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ),
+              ),
+              // Delete button
+              Positioned(
+                bottom: 40,
+                right: 20,
+                child: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.black, size: 30),
+                  onPressed: () {
+                    Get.find<AddChatSymbolController>().removeMedia(currentIndex);
+                    if (Get.find<AddChatSymbolController>().imagesList.isEmpty) {
+                      Navigator.of(context).pop();
+                    } else {
+                      if (currentIndex >= Get.find<AddChatSymbolController>().imagesList.length) {
+                        currentIndex = Get.find<AddChatSymbolController>().imagesList.length - 1;
+                      }
+                      setState(() {});
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildIndexBadge(int index) {
     return Positioned(
       left: 12,
@@ -703,6 +875,9 @@ class _SymbolTypeOption {
   });
 }
 
-void openVideoPreview(File file) {
-  Get.to(VideoPreviewScreen(file: file));
+void openVideoPreview(File file) async {
+  final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: file.path));
+  if (trimmedPath != null) {
+    Get.find<AddChatSymbolController>().imagesList[0] = File(trimmedPath);
+  }
 }

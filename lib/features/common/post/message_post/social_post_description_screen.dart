@@ -20,6 +20,12 @@ class SocialPostDescriptionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Reset AI fields when entering the screen
+    if (messageController.selectedLanguage.value.isNotEmpty ||
+        messageController.selectedEmotion.value.isNotEmpty ||
+        messageController.topicDescriptionText.value.isNotEmpty) {
+      messageController.resetAIFields();
+    }
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
@@ -68,19 +74,22 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                   ),
 
                   CommonDropdownDialog<CommentTypeModel>(
-                    items:emotionList,
-                    selectedValue: messageController.selectedEmotion.value.isEmpty
-                        ? null
-                        : emotionList.firstWhere(
-                          (e) => e.sludId == messageController.selectedEmotion.value,
-                      orElse: () => emotionList.first,
-                    ),
+                    items: emotionList,
+                    selectedValue:
+                        messageController.selectedEmotion.value.isEmpty
+                            ? null
+                            : emotionList.firstWhere(
+                                (e) =>
+                                    e.sludId ==
+                                    messageController.selectedEmotion.value,
+                                orElse: () => emotionList.first,
+                              ),
                     title: AppStrings.selectEmotion,
                     hintText: AppStrings.emotionHint,
                     displayValue: (value) => value.name,
                     onChanged: (value) {
-
-                      messageController.selectedEmotion.value = value?.sludId??"";
+                      messageController.selectedEmotion.value =
+                          value?.sludId ?? "";
                       messageController.onSelectionChanged();
                     },
                   ),

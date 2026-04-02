@@ -221,7 +221,6 @@ class AddChatSymbolController extends GetxController {
   }
 
   void removeMedia(int index) {
-    selectedPostType.value = null;
     imagesList.removeAt(index);
     if (imagesList.isEmpty) selectedPostType.value = null;
   }

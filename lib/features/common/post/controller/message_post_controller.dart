@@ -626,9 +626,15 @@ class MessagePostController extends GetxController {
           await PostRepo().aiSocialPostGenerateRepo(queryParam: reqParm);
       if (responseModel.isSuccess) {
         setSuggestions(responseModel.response?.data);
+        isGenerated.value = false; // Re-enable button after success
+      } else {
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+        isGenerated.value = false; // Re-enable button on failure
       }
     } catch (e) {
       logs("ERROR 593$e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      isGenerated.value = false; // Re-enable button on error
     }
   }
 
@@ -636,10 +642,38 @@ class MessagePostController extends GetxController {
   var selectedSuggestion = "".obs;
 
   void setSuggestions(dynamic json) {
-    final data = json["post_suggestions"] as List<dynamic>;
+    List<dynamic> data;
+    if (json is List) {
+      data = json;
+    } else if (json is Map) {
+      if (json.containsKey("post_suggestions")) {
+        data = json["post_suggestions"] as List<dynamic>;
+      } else if (json.containsKey("suggestions")) {
+        data = json["suggestions"] as List<dynamic>;
+      } else if (json.containsKey("data") && json["data"] is List) {
+        data = json["data"] as List<dynamic>;
+      } else {
+        // Try to find any key that contains a list
+        for (var value in json.values) {
+          if (value is List) {
+            data = value;
+            break;
+          }
+        }
+        throw Exception("Invalid response format: no suitable list found in map");
+      }
+    } else {
+      throw Exception("Invalid response format: expected List or Map");
+    }
 
     suggestions.value = data.map((inner) {
-      return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+      if (inner is List) {
+        return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+      } else if (inner is String) {
+        return inner;
+      } else {
+        return inner.toString();
+      }
     }).toList();
 
     selectedSuggestion.value = ""; // reset selection
@@ -648,6 +682,16 @@ class MessagePostController extends GetxController {
   // Call this whenever any selection changes
   void onSelectionChanged() {
     isGenerated.value = false; // Re-enable button
+  }
+
+  void resetAIFields() {
+    selectedLanguage.value = '';
+    selectedEmotion.value = '';
+    topicDescriptionText.value = '';
+    imageTopicsTextEditControllar.value.text = '';
+    suggestions.clear();
+    selectedSuggestion.value = '';
+    isGenerated.value = false;
   }
 
   bool get isFormValid =>

@@ -668,6 +668,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 _feedActionButton(
                                   iconPath: AppIconAssets.eye_new,
                                   count: formatNumberLikePost(_post.viewsCount ?? 0),
+                                  onTap: () {}, // Prevent navigation to post detail when clicking views
                                 ),
 
                                 // Comment

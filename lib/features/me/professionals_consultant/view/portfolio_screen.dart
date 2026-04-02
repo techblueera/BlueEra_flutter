@@ -56,7 +56,7 @@ class PortfolioScreen extends StatelessWidget {
                 .getProfessionalServiceRes?.value.data?.portfolio?.length,
           );
         }
-        return Center(child: CustomText("No data found"));
+        return Center(child: CustomText("NA"));
       }),
     );
   }

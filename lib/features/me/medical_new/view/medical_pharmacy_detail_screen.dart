@@ -77,7 +77,7 @@ class _MedicalPharmacyDetailScreenState
     if (_data == null) {
       return Scaffold(
         body: Center(
-            child: CustomText('No data found', color: AppColors.greyA5)),
+            child: CustomText('NA', color: AppColors.greyA5)),
       );
     }
 
@@ -478,7 +478,7 @@ class _MedicalPharmacyDetailScreenState
             );
 
         if (apiCat == null || apiCat.children == null || apiCat.children!.isEmpty) {
-          commonSnackBar(message: 'No data found');
+          commonSnackBar(message: 'NA');
           return;
         }
 

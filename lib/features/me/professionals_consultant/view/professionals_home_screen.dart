@@ -199,7 +199,7 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: const Text(
-              'No Data Found',
+              'NA',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 10,

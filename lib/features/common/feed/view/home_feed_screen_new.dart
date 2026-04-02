@@ -281,6 +281,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         }
 
         return content;
+      } else if (feedController.feedResponse.value.status == Status.LOADING) {
+        return const Center(child: CircularProgressIndicator());
       } else if (feedController.feedResponse.value.status == Status.ERROR) {
         return LoadErrorWidget(
           errorMessage: 'Failed to load posts',

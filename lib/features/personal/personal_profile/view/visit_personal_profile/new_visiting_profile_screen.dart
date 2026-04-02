@@ -349,8 +349,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                 height: 1.4,
                 fontFamily: AppConstants.OpenSans,
               ),
-              expandMode: ExpandMode.dialog,
-              dialogTitle: AppStrings.bio.tr,
+              expandMode: ExpandMode.expandable,
             ),
           ],
 

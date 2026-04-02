@@ -817,18 +817,30 @@ class FeedController extends GetxController {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 
-    try {
-      final response = await FeedRepo().deletePost(postId: postId);
-      if (response.isSuccess) {
-        if (index != -1) list.removeAt(index);
-        Navigator.pop(navigator!.context);
-        commonSnackBar(message: response.message);
-        deletePostResponse = ApiResponse.complete(response);
-      } else {
+    if (index != -1) {
+      final post = list[index];
+      try {
+        final response = await FeedRepo().deletePost(postId: postId);
+        if (response.isSuccess) {
+          // If the deleted post is a repost, decrement the original post's repost count
+          if (post.is_reposted == true && post.children_post != null) {
+            final originalIndex = list.indexWhere((p) => p.id == post.children_post!.id);
+            if (originalIndex != -1) {
+              list[originalIndex] = list[originalIndex].copyWith(
+                repostCount: (list[originalIndex].repostCount ?? 0) - 1,
+              );
+            }
+          }
+          list.removeAt(index);
+          Navigator.pop(navigator!.context);
+          commonSnackBar(message: response.message);
+          deletePostResponse = ApiResponse.complete(response);
+        } else {
+          deletePostResponse = ApiResponse.error('error');
+        }
+      } catch (_) {
         deletePostResponse = ApiResponse.error('error');
       }
-    } catch (_) {
-      deletePostResponse = ApiResponse.error('error');
     }
   }
 
@@ -1106,6 +1118,7 @@ class FeedController extends GetxController {
       allPosts.clear();
       shortsController?.latestShortsPosts.clear();
       hasMoreData.value = true;
+      feedResponse.value = ApiResponse.loading(); // Set to loading during refresh
     }
     if (!hasMoreData.value) return;
     isLoadingHome.value = true;
