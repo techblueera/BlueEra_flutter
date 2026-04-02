@@ -75,10 +75,10 @@ class _MyMedicalProductsScreenState extends State<MyMedicalProductsScreen> {
         if (groceryList.isEmpty) {
           return Center(
             child: CustomText(
-                'Not found any grocery',
+                'No products found in this category',
                 fontSize: SizeConfig.large,
-                color: AppColors.mainTextColor,
-                fontWeight: FontWeight.w700
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w500
             ),
           );
         }

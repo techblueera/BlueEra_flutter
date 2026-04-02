@@ -35,24 +35,23 @@ class _MyMedicalVariantScreenState extends State<MyMedicalVariantScreen> {
     super.initState();
     _variants = widget.variants;
 
-      // WidgetsBinding.instance.addPostFrameCallback((_){
-      // controller.fetchMyGroceryProducts(
-      //     categoryId: widget.productId,
-      //     isSubCategoryProducts: true
-      // );
-      //
-      // scrollController.addListener(() {
-      //   if (scrollController.position.pixels >=
-      //       scrollController.position.maxScrollExtent - 200) {
-      //     controller.fetchMyGroceryProducts(
-      //         isLoadMore: true,
-      //         categoryId: widget.productId,
-      //         isSubCategoryProducts: true
-      //     );
-      //   }
-      // });
-      // });
-
+    // WidgetsBinding.instance.addPostFrameCallback((_){
+    // controller.fetchMyGroceryProducts(
+    //     categoryId: widget.productId,
+    //     isSubCategoryProducts: true
+    // );
+    //
+    // scrollController.addListener(() {
+    //   if (scrollController.position.pixels >=
+    //       scrollController.position.maxScrollExtent - 200) {
+    //     controller.fetchMyGroceryProducts(
+    //         isLoadMore: true,
+    //         categoryId: widget.productId,
+    //         isSubCategoryProducts: true
+    //     );
+    //   }
+    // });
+    // });
   }
 
   @override
@@ -65,99 +64,96 @@ class _MyMedicalVariantScreenState extends State<MyMedicalVariantScreen> {
   Widget build(BuildContext context) {
     final width = SizeConfig.screenWidth;
 
-    double dynamicSize(double base) =>
-        base * (width / 390);
+    double dynamicSize(double base) => base * (width / 390);
 
     return Scaffold(
-      appBar: CommonBackAppBar(
-
-      ),
-
+      appBar: CommonBackAppBar(),
       body: SafeArea(
-        child:
-        Builder(
+        child: Builder(
           builder: (BuildContext context) {
-          // Empty state
-          if (_variants.isEmpty) {
-            return Center(
-              child: CustomText(
-                  'Not found any grocery',
-                  fontSize: SizeConfig.large,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w700
-              ),
-            );
-          }
-
-          return (widget.isShowInGrid ?? false)
-              ? Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size8,
-                vertical: SizeConfig.size8
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = 2;
-                final crossSpacing = 10.0;
-                final mainSpacing = 10.0;
-
-                final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
-                final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
-
-                final approximateItemHeight = SizeConfig.size280;
-
-                final childAspectRatio = itemWidth / approximateItemHeight;
-
-                return GridView.builder(
-                  controller: scrollController,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size8,
-                      vertical: SizeConfig.size10
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: crossSpacing,
-                    mainAxisSpacing: mainSpacing,
-                    childAspectRatio: childAspectRatio,
-                  ),
-                  itemCount: _variants.length +
-                      (controller.isMyMedicalDataLoadingMore.value ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    final variantItem = _variants[index];
-
-                    return MyMedicalVariantCard(
-                      variantItem: variantItem,
-                      isShowInGrid: true,
-                      categoryId: widget.categoryId,
-                    );
-                  },
-                );
-              },
-            ),
-          )
-              : ListView.builder(
-            controller: scrollController,
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size8,
-                vertical: SizeConfig.size8
-            ),
-            itemCount: _variants.length,
-            itemBuilder: (context, index) {
-              final variantItem = _variants[index];
-
-              return Padding(
-                padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                child: MyMedicalVariantCard(
-                  variantItem: variantItem,
-                  isShowInGrid: false,
-                  categoryId: widget.categoryId,
-                ),
+            // Empty state
+            if (_variants.isEmpty) {
+              return Center(
+                child: CustomText('No variants found for this product',
+                    fontSize: SizeConfig.large,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w500),
               );
-            },
-          );
-        }, ),
+            }
+
+            return (widget.isShowInGrid ?? false)
+                ? Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size8,
+                        vertical: SizeConfig.size8),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount = 2;
+                        final crossSpacing = 10.0;
+                        final mainSpacing = 10.0;
+
+                        final totalHorizontalSpacing =
+                            (crossAxisCount - 1) * crossSpacing;
+                        final itemWidth =
+                            (constraints.maxWidth - totalHorizontalSpacing) /
+                                crossAxisCount;
+
+                        final approximateItemHeight = SizeConfig.size280;
+
+                        final childAspectRatio =
+                            itemWidth / approximateItemHeight;
+
+                        return GridView.builder(
+                          controller: scrollController,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size8,
+                              vertical: SizeConfig.size10),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: crossSpacing,
+                            mainAxisSpacing: mainSpacing,
+                            childAspectRatio: childAspectRatio,
+                          ),
+                          itemCount: _variants.length +
+                              (controller.isMyMedicalDataLoadingMore.value
+                                  ? 1
+                                  : 0),
+                          itemBuilder: (context, index) {
+                            final variantItem = _variants[index];
+
+                            return MyMedicalVariantCard(
+                              variantItem: variantItem,
+                              isShowInGrid: true,
+                              categoryId: widget.categoryId,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  )
+                : ListView.builder(
+                    controller: scrollController,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size8,
+                        vertical: SizeConfig.size8),
+                    itemCount: _variants.length,
+                    itemBuilder: (context, index) {
+                      final variantItem = _variants[index];
+
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: dynamicSize(10)),
+                        child: MyMedicalVariantCard(
+                          variantItem: variantItem,
+                          isShowInGrid: false,
+                          categoryId: widget.categoryId,
+                        ),
+                      );
+                    },
+                  );
+          },
+        ),
       ),
     );
   }
-
 }

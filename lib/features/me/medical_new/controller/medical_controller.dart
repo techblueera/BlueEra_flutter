@@ -19,7 +19,7 @@ import 'package:BlueEra/features/me/medical_new/model/missing_product_request_mo
 import 'package:BlueEra/features/me/medical_new/model/snap_search_result_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/edit_medical_varient_dialog.dart';
 import 'package:BlueEra/features/me/medical_new/widget/edit_medical_inventory_bottom_sheet.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_varient_dialog.dart';
+import 'package:BlueEra/features/me/medical_new/widget/add_medical_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -403,8 +403,10 @@ class MedicalController extends GetxController {
     required String title,
     required VariantsData variant,
   }) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) {
         return EditMedicalVarientDialog(
           title: title,
@@ -425,23 +427,33 @@ class MedicalController extends GetxController {
     required BuildContext context,
     required MedicalProductData groceryItem,
   }) {
-    showDialog(
+    // Don't allow adding variants if product has no existing variants
+    if (groceryItem.variants == null || groceryItem.variants!.isEmpty) {
+      commonSnackBar(message: 'This product does not support variants');
+      return;
+    }
+
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: !isCreateNewMedicalProductNewVariantLoading.value,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: !isCreateNewMedicalProductNewVariantLoading.value,
+      enableDrag: !isCreateNewMedicalProductNewVariantLoading.value,
       builder: (_) {
-        return MedicalVariantDialog(
-          title: "Add More Variant",
-          onSubmit: (weight, unit, mrp, sellingPrice) {
-            createNewMedicalProductNewVariant(
-                medicalItem: groceryItem,
-                productId: groceryItem.sId ?? '',
-                weight: weight,
-                unit: unit,
-                mrp: mrp,
-                sellingPrice: sellingPrice);
-          },
-          isAddGroceryProductNewVariantLoading: isCreateNewMedicalProductNewVariantLoading.value,
-        );
+        return Obx(() => AddMedicalVariantBottomSheet(
+              title: groceryItem.name ?? 'Add Variant',
+              isLoading: isCreateNewMedicalProductNewVariantLoading.value,
+              onSubmit: (weight, unit, mrp, sellingPrice) {
+                createNewMedicalProductNewVariant(
+                  medicalItem: groceryItem,
+                  productId: groceryItem.sId ?? '',
+                  weight: weight,
+                  unit: unit,
+                  mrp: mrp,
+                  sellingPrice: sellingPrice,
+                );
+              },
+            ));
       },
     );
   }

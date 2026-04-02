@@ -68,7 +68,8 @@ class _AddGroceryViaRiderCategoryScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Bulk Upload Shop Product Photos',
+            // 'Bulk Upload Shop Product Photos',
+            "Upload Grocery List Photos",
             fontSize: SizeConfig.large,
             color: AppColors.mainTextColor,
             fontWeight: FontWeight.w600,

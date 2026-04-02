@@ -5,26 +5,30 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
-class EditMedicalVarientDialog extends StatefulWidget {
+class AddMedicalVariantBottomSheet extends StatefulWidget {
   final String title;
-  final String mrp;
-  final String selling;
-  final Function(String, String) onSubmit;
-  const EditMedicalVarientDialog({
+  final Function(String weight, String unit, String mrp, String sellingPrice)
+      onSubmit;
+  final bool isLoading;
+
+  const AddMedicalVariantBottomSheet({
     super.key,
     required this.title,
-    required this.mrp,
-    required this.selling,
     required this.onSubmit,
+    this.isLoading = false,
   });
 
   @override
-  State<EditMedicalVarientDialog> createState() => _EditMedicalVarientDialogState();
+  State<AddMedicalVariantBottomSheet> createState() =>
+      _AddMedicalVariantBottomSheetState();
 }
 
-class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
-  final TextEditingController mrpController = TextEditingController();
-  final TextEditingController sellingController = TextEditingController();
+class _AddMedicalVariantBottomSheetState
+    extends State<AddMedicalVariantBottomSheet> {
+  final weightController = TextEditingController();
+  final unitController = TextEditingController();
+  final mrpController = TextEditingController();
+  final sellingController = TextEditingController();
 
   bool isFormValid = false;
   String? errorMessage;
@@ -32,25 +36,28 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
   @override
   void initState() {
     super.initState();
-    mrpController.text = widget.mrp;
-    sellingController.text = widget.selling;
+    weightController.addListener(_validateForm);
+    unitController.addListener(_validateForm);
     mrpController.addListener(_validateForm);
     sellingController.addListener(_validateForm);
-    _validateForm();
   }
 
   @override
   void dispose() {
+    weightController.dispose();
+    unitController.dispose();
     mrpController.dispose();
     sellingController.dispose();
     super.dispose();
   }
 
   void _validateForm() {
+    final weight = weightController.text.trim();
+    final unit = unitController.text.trim();
     final mrpText = mrpController.text.trim();
     final sellingText = sellingController.text.trim();
 
-    if (mrpText.isEmpty || sellingText.isEmpty) {
+    if (weight.isEmpty || unit.isEmpty || mrpText.isEmpty || sellingText.isEmpty) {
       _updateValidity(false, null);
       return;
     }
@@ -59,9 +66,11 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
     final selling = double.tryParse(sellingText);
 
     if (mrp == null || selling == null) {
-      _updateValidity(false, 'Enter valid numbers');
+      _updateValidity(false, 'Enter valid numbers for price');
     } else if (mrp <= 0) {
       _updateValidity(false, 'MRP must be greater than 0');
+    } else if (selling <= 0) {
+      _updateValidity(false, 'Selling price must be greater than 0');
     } else if (selling > mrp) {
       _updateValidity(false, 'Selling price cannot exceed MRP');
     } else {
@@ -109,6 +118,7 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
               ),
             ),
 
+            // Title
             CustomText(
               widget.title,
               fontSize: SizeConfig.large,
@@ -117,11 +127,48 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
             ),
             SizedBox(height: SizeConfig.size15),
 
-            _input('MRP (₹)', 'E.g. ₹1,999', mrpController, isNumber: true),
+            // Weight + Unit row
+            Row(
+              children: [
+                Expanded(
+                  child: _buildField(
+                    label: 'Weight / Quantity',
+                    hint: 'E.g. 100',
+                    controller: weightController,
+                    isNumber: true,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: _buildField(
+                    label: 'Unit',
+                    hint: 'GM / KG / PCS',
+                    controller: unitController,
+                    isCapitalize: true,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: SizeConfig.size12),
 
-            _input('Selling Price (₹)', 'E.g. ₹1,499', sellingController, isNumber: true),
+            // MRP
+            _buildField(
+              label: 'MRP (₹)',
+              hint: 'E.g. 1999',
+              controller: mrpController,
+              isNumber: true,
+            ),
+            SizedBox(height: SizeConfig.size12),
 
+            // Selling Price
+            _buildField(
+              label: 'Selling Price (₹)',
+              hint: 'E.g. 1499',
+              controller: sellingController,
+              isNumber: true,
+            ),
+
+            // Error
             if (errorMessage != null) ...[
               SizedBox(height: SizeConfig.size8),
               Container(
@@ -149,16 +196,20 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
 
             SizedBox(height: SizeConfig.size20),
 
+            // Submit
             CustomBtn(
-              onTap: isFormValid
+              onTap: isFormValid && !widget.isLoading
                   ? () => widget.onSubmit(
+                        weightController.text.trim(),
+                        unitController.text.trim(),
                         mrpController.text.trim(),
                         sellingController.text.trim(),
                       )
                   : null,
               isValidate: isFormValid,
               radius: SizeConfig.size10,
-              title: 'Update Price',
+              title: 'Add Variant',
+              isLoading: widget.isLoading,
             ),
             SizedBox(height: SizeConfig.size10),
           ],
@@ -167,8 +218,13 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
     );
   }
 
-  Widget _input(String label, String hint, TextEditingController controller,
-      {bool isNumber = false}) {
+  Widget _buildField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    bool isNumber = false,
+    bool isCapitalize = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -178,11 +234,12 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
           fontWeight: FontWeight.w500,
           color: AppColors.mainTextColor,
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         CommonTextField(
           textEditController: controller,
           keyBoardType: isNumber ? TextInputType.number : TextInputType.text,
           hintText: hint,
+          isCapitalize: isCapitalize,
         ),
       ],
     );

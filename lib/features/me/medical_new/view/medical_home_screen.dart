@@ -15,11 +15,13 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_gallery_controller.dart';
+import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/medical_new/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_gallery/medical_gallery_list_screen.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_contact_edit_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
+import 'package:BlueEra/features/me/medical_new/view/add_medical_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_level2_category_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_super_category_screen.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -81,12 +83,35 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         final data = res.response?.data['data'] ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
           setState(() => _data = MedicalHomeResponseModel.fromJson(data));
+
+          // Populate gallery from home API response if gallery controller is empty
+          _populateGalleryFromResponse(data['gallery']);
         }
       }
     } catch (e) {
       debugPrint("Error fetching medical profile: $e");
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  /// If the gallery controller's own fetch returned empty but the home API
+  /// has gallery data, parse and populate it so images display.
+  void _populateGalleryFromResponse(dynamic galleryJson) {
+    if (galleryJson == null || galleryJson is! List || galleryJson.isEmpty) return;
+    if (_galleryController.galleryList.isNotEmpty) return; // already loaded
+
+    try {
+      for (final item in galleryJson) {
+        if (item is Map<String, dynamic>) {
+          final entry = OtherServiceGalleryData.fromJson(item);
+          if (entry.imageUrls != null && entry.imageUrls!.isNotEmpty) {
+            _galleryController.galleryList.add(entry);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error parsing gallery from home response: $e");
     }
   }
 
@@ -117,7 +142,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
               SizedBox(height: SizeConfig.size10),
               _buildAddProductsSection(),
               SizedBox(height: SizeConfig.size10),
-              _buildBulkUploadSection(),
+              // _buildBulkUploadSection(),
               if (popularProducts.isNotEmpty) ...[
                 _buildPopularProducts(popularProducts),
               ],
@@ -379,8 +404,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     title: 'Add New\nProducts',
                     subtitle: 'Browse categories & add',
                     color: AppColors.primaryColor,
-                    onTap: () => Get.toNamed(
-                      RouteHelper.getMedicalCategoryScreenRoute(),
+                    onTap: () => Get.to(
+                      () => const AddMedicalProductsScreen(),
                     ),
                   ),
                 ),
@@ -921,7 +946,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           CustomText(
-            "Bulk Upload Shop Product Photos",
+            "Upload Product Photos",
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
