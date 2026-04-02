@@ -1,44 +1,31 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical_new/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_inventory_category_screen.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_inventory_category_screen.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/widgets/social_gallery_grid.dart';
+import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-/// View-only pharmacy detail screen — same UI as MedicalHomeScreen
-/// but without edit capabilities (no logo/cover edit, no inventory management).
-/// Used when a user taps a pharmacy card from NearestPharmaciesListScreen.
 class MedicalPharmacyDetailScreen extends StatefulWidget {
   final String businessId;
 
   const MedicalPharmacyDetailScreen({super.key, required this.businessId});
-
-  @visibleForTesting
-  static Future<MedicalHomeResponseModel?> fetchProfile(String businessId) async {
-    final res = await MedicalRepo().fetchMedicalProfileFd(businessId: businessId);
-    if (res.isSuccess && res.response?.data != null) {
-      final data = res.response?.data['data'] ?? res.response?.data;
-      if (data != null && data is Map<String, dynamic>) {
-        return MedicalHomeResponseModel.fromJson(data);
-      }
-    }
-    return null;
-  }
 
   @override
   State<MedicalPharmacyDetailScreen> createState() =>
@@ -58,9 +45,16 @@ class _MedicalPharmacyDetailScreenState
 
   Future<void> _fetchData() async {
     try {
-      final result =
-          await MedicalPharmacyDetailScreen.fetchProfile(widget.businessId);
-      if (mounted) setState(() => _data = result);
+      final res = await MedicalRepo()
+          .fetchMedicalProfileFd(businessId: widget.businessId);
+      if (res.isSuccess && res.response?.data != null) {
+        final data = res.response?.data['data'] ?? res.response?.data;
+        if (data != null && data is Map<String, dynamic>) {
+          if (mounted) {
+            setState(() => _data = MedicalHomeResponseModel.fromJson(data));
+          }
+        }
+      }
     } catch (e) {
       debugPrint("Error fetching pharmacy profile: $e");
     } finally {
@@ -76,8 +70,21 @@ class _MedicalPharmacyDetailScreenState
     }
     if (_data == null) {
       return Scaffold(
+        backgroundColor: AppColors.whiteF3,
+        appBar: CommonBackAppBar(title: 'Pharmacy'),
         body: Center(
-            child: CustomText('NA', color: AppColors.greyA5)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.storefront_outlined,
+                  size: 64, color: Colors.grey.shade300),
+              SizedBox(height: 12),
+              CustomText('Pharmacy details not available',
+                  fontSize: SizeConfig.large,
+                  color: AppColors.secondaryTextColor),
+            ],
+          ),
+        ),
       );
     }
 
@@ -88,178 +95,205 @@ class _MedicalPharmacyDetailScreenState
 
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(profile),
-              SizedBox(height: SizeConfig.size10),
-              ProfileImpressionStats(),
-              SizedBox(height: SizeConfig.size10),
+      appBar: CommonBackAppBar(title: profile?.businessName ?? 'Pharmacy'),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(profile),
+            SizedBox(height: SizeConfig.size10),
+            _buildUploadPrescriptionCard(),
+            SizedBox(height: SizeConfig.size10),
+            ProfileImpressionStats(),
+            SizedBox(height: SizeConfig.size10),
 
-              if (popularProducts.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size10),
-                _buildPopularProducts(popularProducts),
-              ],
-              if (categoriesWithProducts.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size10),
-                _buildMedicalProductCategories(categoriesWithProducts),
-              ],
+            // Website preview
+            if (profile?.websiteUrl != null &&
+                profile!.websiteUrl!.isNotEmpty) ...[
+              _buildWebsitePreview(profile.websiteUrl!),
               SizedBox(height: SizeConfig.size10),
-              _buildGallerySection(),
-              SizedBox(height: SizeConfig.size10),
-              _buildContactSection(profile),
-              SizedBox(height: kBottomNavigationBarHeight + 30),
             ],
-          ),
+
+            if (popularProducts.isNotEmpty) ...[
+              _buildPopularProducts(popularProducts),
+              SizedBox(height: SizeConfig.size10),
+            ],
+
+            if (categoriesWithProducts.isNotEmpty) ...[
+              _buildMedicalProductCategories(categoriesWithProducts),
+              SizedBox(height: SizeConfig.size10),
+            ],
+
+            _buildGallerySection(),
+
+            _buildContactSection(profile),
+            SizedBox(height: kBottomNavigationBarHeight + 30),
+          ],
         ),
       ),
     );
   }
 
   // ─────────────────────────────────────────────
-  // HEADER — View only (no edit buttons)
+  // HEADER — Cover, Logo, Rating, Reviews, Distance
   // ─────────────────────────────────────────────
   Widget _buildHeader(BusinessProfile? profile) {
+    final loc = profile?.businessLocation;
+    String? distanceText;
+    if (loc?.lat != null && loc?.lon != null) {
+      final km = calculateDistance(loc!.lat!, loc.lon!);
+      if (km != null) distanceText = '${km.toStringAsFixed(1)} KM';
+    }
+
     return CommonCardWidget(
       padding: 0,
       cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Cover + Logo
           SizedBox(
-            height: 180,
+            height: 170,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Cover image
                 ClipRRect(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(10),
                     topRight: Radius.circular(10),
                   ),
                   child: SizedBox(
-                    height: 130,
+                    height: 120,
                     width: double.infinity,
-                    child: Builder(builder: (_) {
-                      final url = profile?.logo ?? '';
-                      return url.isNotEmpty
-                          ? Image.network(url,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  Container(color: Colors.blueGrey[100]))
-                          : Container(color: Colors.blueGrey[100]);
-                    }),
+                    child: _networkImage(profile?.logo, BoxFit.cover),
                   ),
                 ),
-
-                // Back button
                 Positioned(
-                  left: 10,
-                  top: 8,
-                  child: InkWell(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: CircleAvatar(
-                      backgroundColor:
-                          AppColors.black.withValues(alpha: 0.3),
-                      child: const Icon(Icons.arrow_back,
-                          color: Colors.white, size: 20),
-                    ),
-                  ),
-                ),
-
-                // Logo (circular, view only)
-                Positioned(
-                  left: 20,
-                  top: 90,
+                  left: 16,
+                  top: 80,
                   child: Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border:
-                          Border.all(color: Colors.white, width: 3),
+                      border: Border.all(color: Colors.white, width: 3),
                       boxShadow: const [
-                        BoxShadow(
-                            color: Colors.black12, blurRadius: 8)
+                        BoxShadow(color: Colors.black12, blurRadius: 8)
                       ],
-                      image: (profile?.logo != null &&
-                              profile!.logo!.isNotEmpty)
-                          ? DecorationImage(
-                              image: NetworkImage(profile.logo!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
                       color: Colors.grey[200],
                     ),
-                    child: (profile?.logo == null ||
-                            profile!.logo!.isEmpty)
-                        ? Icon(Icons.local_pharmacy,
-                            color: Colors.grey, size: 36)
-                        : null,
+                    child: ClipOval(
+                      child: (profile?.logo != null &&
+                              profile!.logo!.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: profile.logo!,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) => Icon(
+                                  Icons.local_pharmacy,
+                                  color: Colors.grey,
+                                  size: 36),
+                            )
+                          : Icon(Icons.local_pharmacy,
+                              color: Colors.grey, size: 36),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Name + Rating + Description
+          // Name + Stats
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 CustomText(
-                  profile?.businessName ?? '',
+                  (profile?.businessName != null &&
+                          profile!.businessName!.isNotEmpty)
+                      ? profile.businessName!
+                      : 'Pharmacy',
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   maxLines: 2,
                 ),
-                SizedBox(height: 4),
-                Row(
+                SizedBox(height: 6),
+
+                // Rating • Reviews • Distance
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
-                    Icon(Icons.star, color: Colors.amber, size: 16),
-                    SizedBox(width: 4),
-                    CustomText(
-                      '${profile?.avgRating ?? 0}',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.star_rounded,
+                            size: 16, color: AppColors.yellow00),
+                        SizedBox(width: 2),
+                        CustomText(
+                          (profile?.avgRating != null &&
+                                  profile!.avgRating! > 0)
+                              ? '${profile.avgRating}'
+                              : 'N/A',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.yellow00,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
                     ),
-                    CustomText(
-                      '(${profile?.totalRatings ?? '0'} reviews)',
-                      fontSize: 12,
-                      color: AppColors.secondaryTextColor,
+                    _statDot(),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.rate_review_outlined,
+                            size: 14,
+                            color: AppColors.secondaryTextColor),
+                        SizedBox(width: 3),
+                        CustomText(
+                          '${profile?.totalRatings ?? '0'} Reviews',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 10),
-                    Icon(Icons.location_on_outlined,
-                        color: AppColors.secondaryTextColor, size: 14),
-                    Flexible(
-                      child: CustomText(
-                        profile?.cityStatePincode ?? '',
-                        fontSize: 12,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    if (distanceText != null) ...[
+                      _statDot(),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_on_outlined,
+                              size: 14, color: AppColors.primaryColor),
+                          SizedBox(width: 2),
+                          CustomText(distanceText,
+                              fontSize: SizeConfig.small,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600),
+                        ],
                       ),
-                    ),
+                    ],
                   ],
                 ),
-                if (profile?.businessDescription != null &&
-                    profile!.businessDescription!.isNotEmpty) ...[
-                  SizedBox(height: 8),
-                  ExpandableText(
-                    text: profile.businessDescription!,
-                    trimLines: 3,
-                    isReadMoreNewLine: false,
-                    expandMode: ExpandMode.dialog,
-                    style: TextStyle(
-                      color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppConstants.OpenSans,
-                    ),
+
+                if (profile?.cityStatePincode != null &&
+                    profile!.cityStatePincode!.isNotEmpty) ...[
+                  SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.place_outlined,
+                          size: 14, color: AppColors.secondaryTextColor),
+                      SizedBox(width: 4),
+                      Flexible(
+                        child: CustomText(
+                          profile.cityStatePincode!,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
                 SizedBox(height: 14),
@@ -272,9 +306,134 @@ class _MedicalPharmacyDetailScreenState
   }
 
   // ─────────────────────────────────────────────
-  // POPULAR PRODUCTS
+  // UPLOAD PRESCRIPTION
+  // ─────────────────────────────────────────────
+  Widget _buildUploadPrescriptionCard() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        padding: 12,
+        cardMargin: 0,
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.description_outlined,
+                  color: AppColors.primaryColor, size: 28),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText('Upload Prescription',
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor),
+                  SizedBox(height: 2),
+                  CustomText('Schedule Your Visit Easily',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor),
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: () async {
+                final path =
+                    await CommonImageUploadTile.pickImage(context: context);
+                if (path != null && path.isNotEmpty) {
+                  commonSnackBar(
+                      message: 'Prescription uploaded successfully');
+                }
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.greyE5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.camera_alt_outlined,
+                        size: 16, color: AppColors.mainTextColor),
+                    SizedBox(width: 6),
+                    CustomText('Upload',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.mainTextColor),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // WEBSITE PREVIEW
+  // ─────────────────────────────────────────────
+  Widget _buildWebsitePreview(String url) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        padding: 0,
+        cardMargin: 0,
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 12, right: 12, top: 10),
+              child: Row(
+                children: [
+                  Icon(Icons.language, size: 16, color: AppColors.primaryColor),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: CustomText(url,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.primaryColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  InkWell(
+                    onTap: () => Get.to(
+                        () => CommonWebView(urlLink: url, urlTitle: 'Website')),
+                    child: CustomText('Visit',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 8),
+            SizedBox(
+              height: 180,
+              child: AbsorbPointer(
+                child:
+                    CommonWebView(urlLink: url, urlTitle: '', hideAppBar: true),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // POPULAR PRODUCTS — View More if > 5
   // ─────────────────────────────────────────────
   Widget _buildPopularProducts(List<PopularProduct> products) {
+    final showViewMore = products.length > 5;
+    final displayList = showViewMore ? products.sublist(0, 5) : products;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: CommonCardWidget(
@@ -283,17 +442,27 @@ class _MedicalPharmacyDetailScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: 'Popular Medical Products'),
+            Row(
+              children: [
+                Expanded(
+                    child: ServiceHomeTitleWidget(
+                        title: 'Popular Medical Products')),
+                if (showViewMore)
+                  CustomText('View All',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600),
+              ],
+            ),
             SizedBox(height: SizeConfig.size10),
             SizedBox(
-              height: 230,
+              height: 200,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: products.length.clamp(0, 10),
+                itemCount: displayList.length,
                 separatorBuilder: (_, __) =>
                     SizedBox(width: SizeConfig.size10),
-                itemBuilder: (_, i) =>
-                    _popularProductCard(products[i]),
+                itemBuilder: (_, i) => _popularProductCard(displayList[i]),
               ),
             ),
           ],
@@ -304,105 +473,58 @@ class _MedicalPharmacyDetailScreenState
 
   Widget _popularProductCard(PopularProduct item) {
     final productName =
-        item.product?.name ?? item.variant?.variantName ?? '';
-    final description = item.product?.description ?? '';
+        item.product?.name ?? item.variant?.variantName ?? 'Product';
     final imageUrl = item.product?.images?.firstOrNull?.url ??
         item.variant?.images?.firstOrNull?.url;
     final mrp =
         item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
     final sellingPrice = item.batches?.sellingPrice ??
         item.variant?.pricing?.firstOrNull?.sellingPrice;
-    final discount =
-        (mrp != null && sellingPrice != null && mrp > 0)
-            ? (((mrp - sellingPrice) / mrp) * 100).toInt()
-            : 0;
+    final discount = (mrp != null && sellingPrice != null && mrp > 0)
+        ? (((mrp - sellingPrice) / mrp) * 100).toInt()
+        : 0;
 
     return Container(
-      width: 150,
+      width: 140,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade200),
       ),
       clipBehavior: Clip.hardEdge,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product Image
           SizedBox(
-            height: 100,
+            height: 90,
             width: double.infinity,
-            child: imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(color: Colors.grey.shade100),
-                    errorWidget: (_, __, ___) => Container(
-                      color: Colors.grey.shade100,
-                      child: Icon(Icons.image_outlined,
-                          color: Colors.grey),
-                    ),
-                  )
-                : Container(
-                    color: Colors.grey.shade100,
-                    child: Icon(Icons.image_outlined,
-                        color: Colors.grey),
-                  ),
+            child: _networkImage(imageUrl, BoxFit.cover),
           ),
-          // Info
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    productName,
-                    fontSize: 12,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  SizedBox(height: 2),
-                  if (description.isNotEmpty)
-                    CustomText(
-                      description,
-                      fontSize: 10,
-                      maxLines: 1,
+                  CustomText(productName,
+                      fontSize: 11,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      color: AppColors.secondaryTextColor,
-                    ),
+                      fontWeight: FontWeight.w600),
                   Spacer(),
-                  // Price row
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      CustomText(
-                        '₹${sellingPrice ?? mrp ?? ''}',
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.mainTextColor,
-                      ),
-                      if (mrp != null &&
-                          sellingPrice != null &&
-                          mrp != sellingPrice) ...[
+                      if (sellingPrice != null || mrp != null)
+                        CustomText('₹${sellingPrice ?? mrp}',
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.mainTextColor),
+                      if (discount > 0) ...[
                         SizedBox(width: 4),
-                        Text(
-                          '₹$mrp',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        CustomText(
-                          '$discount% Off',
-                          fontSize: 10,
-                          color: AppColors.green00,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        CustomText('$discount% off',
+                            fontSize: 9,
+                            color: AppColors.green00,
+                            fontWeight: FontWeight.w600),
                       ],
                     ],
                   ),
@@ -416,7 +538,7 @@ class _MedicalPharmacyDetailScreenState
   }
 
   // ─────────────────────────────────────────────
-  // MEDICAL PRODUCT CATEGORIES (Grid — same as MedicalHomeScreen)
+  // CATEGORIES — Only with products, View More if > 6
   // ─────────────────────────────────────────────
   static const List<Map<String, String>> _staticCategories = [
     {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
@@ -427,11 +549,45 @@ class _MedicalPharmacyDetailScreenState
     {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
   ];
 
-  Widget _buildMedicalProductCategories(List<CategoryWithProducts> apiCategories) {
-    final activeKeys = <String>{};
-    for (final cat in apiCategories) {
-      if (cat.key != null && cat.hasProducts) activeKeys.add(cat.key!);
+  static String _normalizeKey(String key) =>
+      key.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
+  Widget _buildMedicalProductCategories(
+      List<CategoryWithProducts> apiCategories) {
+    final activeCats = <_CategoryDisplay>[];
+    for (final sc in _staticCategories) {
+      final staticNorm = _normalizeKey(sc['key']!);
+      final match = apiCategories.cast<CategoryWithProducts?>().firstWhere(
+            (c) => c?.key != null && _normalizeKey(c!.key!) == staticNorm,
+            orElse: () => null,
+          );
+      if (match != null && match.hasProducts) {
+        activeCats.add(_CategoryDisplay(
+          title: sc['title']!.replaceAll('\n', ' '),
+          image: sc['image']!,
+          category: match,
+        ));
+      }
     }
+    for (final apiCat in apiCategories) {
+      if (!apiCat.hasProducts || apiCat.key == null) continue;
+      final apiNorm = _normalizeKey(apiCat.key!);
+      final alreadyAdded =
+          activeCats.any((a) => _normalizeKey(a.category.key ?? '') == apiNorm);
+      if (!alreadyAdded) {
+        activeCats.add(_CategoryDisplay(
+          title: apiCat.name?.replaceAll('_', ' ') ?? 'Category',
+          image: '',
+          category: apiCat,
+        ));
+      }
+    }
+
+    if (activeCats.isEmpty) return const SizedBox.shrink();
+
+    final showViewMore = activeCats.length > 6;
+    final displayList =
+        showViewMore ? activeCats.sublist(0, 6) : activeCats;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -441,12 +597,23 @@ class _MedicalPharmacyDetailScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: 'Medical Products'),
+            Row(
+              children: [
+                Expanded(
+                    child:
+                        ServiceHomeTitleWidget(title: 'Medical Products')),
+                if (showViewMore)
+                  CustomText('View All',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600),
+              ],
+            ),
             SizedBox(height: SizeConfig.size12),
             GridView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              itemCount: _staticCategories.length,
+              itemCount: displayList.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: SizeConfig.size10,
@@ -454,9 +621,9 @@ class _MedicalPharmacyDetailScreenState
                 childAspectRatio: 0.85,
               ),
               itemBuilder: (context, index) {
-                final cat = _staticCategories[index];
-                final hasProducts = activeKeys.contains(cat['key']);
-                return _staticCategoryCard(cat, hasProducts, apiCategories);
+                final item = displayList[index];
+                final productCount = item.category.getAllProducts().length;
+                return _productCategoryCard(item, productCount);
               },
             ),
           ],
@@ -465,27 +632,16 @@ class _MedicalPharmacyDetailScreenState
     );
   }
 
-  Widget _staticCategoryCard(
-    Map<String, String> category,
-    bool hasProducts,
-    List<CategoryWithProducts> apiCategories,
-  ) {
+  Widget _productCategoryCard(_CategoryDisplay item, int productCount) {
     return InkWell(
       onTap: () {
-        final apiCat = apiCategories.cast<CategoryWithProducts?>().firstWhere(
-              (c) => c?.key == category['key'],
-              orElse: () => null,
-            );
-
-        if (apiCat == null || apiCat.children == null || apiCat.children!.isEmpty) {
-          commonSnackBar(message: 'NA');
-          return;
+        if (item.category.children != null &&
+            item.category.children!.isNotEmpty) {
+          Get.to(() => MedicalInventoryCategoryScreen(
+                title: item.title,
+                children: item.category.children!,
+              ));
         }
-
-        Get.to(() => MedicalInventoryCategoryScreen(
-              title: apiCat.name ?? category['title'] ?? '',
-              children: apiCat.children!,
-            ));
       },
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -497,26 +653,25 @@ class _MedicalPharmacyDetailScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              category['image']!,
-              width: 50,
-              height: 50,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(height: 6),
-            CustomText(
-              category['title'],
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              color: Colors.blueGrey.shade700,
-            ),
-            if (hasProducts)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(Icons.check_circle, color: AppColors.green00, size: 14),
-              ),
+            if (item.image.isNotEmpty)
+              Image.asset(item.image,
+                  width: 44, height: 44, fit: BoxFit.contain)
+            else
+              Icon(Icons.medical_services_outlined,
+                  size: 44, color: AppColors.primaryColor),
+            SizedBox(height: 4),
+            CustomText(item.title,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                color: Colors.blueGrey.shade700),
+            SizedBox(height: 2),
+            CustomText('$productCount Products',
+                fontSize: 9,
+                color: AppColors.green00,
+                fontWeight: FontWeight.w600),
           ],
         ),
       ),
@@ -524,7 +679,7 @@ class _MedicalPharmacyDetailScreenState
   }
 
   // ─────────────────────────────────────────────
-  // GALLERY (View Only)
+  // GALLERY — Social style (SocialGalleryGrid)
   // ─────────────────────────────────────────────
   Widget _buildGallerySection() {
     final galleryImages = <String>[];
@@ -537,8 +692,6 @@ class _MedicalPharmacyDetailScreenState
               if (u is String && u.isNotEmpty) galleryImages.add(u);
             }
           }
-          final url = item['url'];
-          if (url is String && url.isNotEmpty) galleryImages.add(url);
         } else if (item is String && item.isNotEmpty) {
           galleryImages.add(item);
         }
@@ -557,39 +710,183 @@ class _MedicalPharmacyDetailScreenState
           children: [
             ServiceHomeTitleWidget(title: AppStrings.gallery),
             SizedBox(height: 12),
-            StaggeredGrid.count(
-              crossAxisCount: 3,
-              mainAxisSpacing: 6,
-              crossAxisSpacing: 6,
-              children: List.generate(
-                galleryImages.length > 9 ? 9 : galleryImages.length,
-                (index) => StaggeredGridTile.count(
-                  crossAxisCellCount: index == 0 ? 2 : 1,
-                  mainAxisCellCount: index == 0 ? 2 : 1,
-                  child: InkWell(
-                    onTap: () => navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: AppStrings.imageViewer,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: galleryImages,
-                        initialIndex: index,
+            SocialGalleryGrid(imageUrls: galleryImages),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // CONTACT US — Clickable (phone, email, website)
+  // ─────────────────────────────────────────────
+  Widget _buildContactSection(BusinessProfile? profile) {
+    if (profile == null) return const SizedBox.shrink();
+
+    final loc = profile.businessLocation;
+    final phone = profile.businessNumber?.formattedMobile;
+    final owner = profile.ownerDetails?.firstOrNull;
+
+    final hasAnyContact = (profile.websiteUrl?.isNotEmpty ?? false) ||
+        (owner?.name?.isNotEmpty ?? false) ||
+        (owner?.email?.isNotEmpty ?? false) ||
+        phone != null ||
+        (profile.address?.isNotEmpty ?? false);
+
+    if (!hasAnyContact && loc?.lat == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        children: [
+          if (hasAnyContact)
+            CommonCardWidget(
+              padding: 12,
+              cardMargin: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ServiceHomeTitleWidget(title: AppStrings.contactUs),
+                  SizedBox(height: 12),
+
+                  // About
+                  if (profile.businessDescription != null &&
+                      profile.businessDescription!.isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline,
+                                  size: 16,
+                                  color: AppColors.primaryColor),
+                              SizedBox(width: 6),
+                              CustomText('About Us',
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryColor),
+                            ],
+                          ),
+                          SizedBox(height: 6),
+                          ExpandableText(
+                            text: profile.businessDescription!,
+                            trimLines: 3,
+                            isReadMoreNewLine: false,
+                            expandMode: ExpandMode.dialog,
+                            style: TextStyle(
+                              color: AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: AppConstants.OpenSans,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        galleryImages[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: Colors.grey[200],
-                          child: Icon(Icons.broken_image,
-                              color: Colors.grey),
-                        ),
-                      ),
+                    SizedBox(height: 12),
+                  ],
+
+                  // Contact items
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        if (profile.websiteUrl?.isNotEmpty ?? false)
+                          _contactItem(
+                            Icons.language_outlined,
+                            profile.websiteUrl!,
+                            isLink: true,
+                            onTap: () => _launchUrl(profile.websiteUrl),
+                          ),
+                        if (owner?.name?.isNotEmpty ?? false)
+                          _contactItem(
+                              Icons.person_outline, owner!.name!),
+                        if (owner?.email?.isNotEmpty ?? false)
+                          _contactItem(
+                            Icons.email_outlined,
+                            owner!.email!,
+                            isLink: true,
+                            onTap: () => _launchEmail(owner.email),
+                          ),
+                        if (phone != null)
+                          _contactItem(
+                            Icons.phone_outlined,
+                            phone,
+                            isLink: true,
+                            onTap: () => _launchPhone(phone),
+                          ),
+                        if (profile.address?.isNotEmpty ?? false)
+                          _contactItem(
+                              Icons.location_on_outlined, profile.address!),
+                      ],
                     ),
                   ),
-                ),
+                ],
+              ),
+            ),
+
+          // Google Map
+          if (loc?.lat != null && loc?.lon != null) ...[
+            SizedBox(height: SizeConfig.size12),
+            BusinessLocationWidget(
+              locationText: '',
+              latitude: loc!.lat!,
+              longitude: loc.lon!,
+              businessName: profile.businessName ?? '',
+              padding: 0,
+              isTitleShow: true,
+            ),
+          ],
+          SizedBox(height: SizeConfig.size10),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────
+
+  Widget _contactItem(IconData icon, String text,
+      {bool isLink = false, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: (isLink && onTap != null) ? onTap : null,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon,
+                size: 20,
+                color: isLink
+                    ? AppColors.primaryColor
+                    : AppColors.secondaryTextColor),
+            SizedBox(width: 12),
+            Expanded(
+              child: CustomText(
+                text,
+                fontSize: SizeConfig.medium,
+                color: isLink
+                    ? AppColors.primaryColor
+                    : AppColors.mainTextColor,
+                decoration: isLink
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+                decorationColor: isLink ? AppColors.primaryColor : null,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -598,145 +895,71 @@ class _MedicalPharmacyDetailScreenState
     );
   }
 
-  // ─────────────────────────────────────────────
-  // CONTACT US + Map (View Only)
-  // ─────────────────────────────────────────────
-  Widget _buildContactSection(BusinessProfile? profile) {
-    if (profile == null) return const SizedBox.shrink();
-    final loc = profile.businessLocation;
-    final phone = profile.businessNumber?.formattedMobile;
-    final owner = profile.ownerDetails?.firstOrNull;
+  Widget _statDot() => Container(
+        width: 4,
+        height: 4,
+        decoration: BoxDecoration(
+          color: AppColors.secondaryTextColor,
+          shape: BoxShape.circle,
+        ),
+      );
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Column(
-        children: [
-          CommonCardWidget(
-            padding: 5,
-            cardMargin: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 6),
-                  child:
-                      ServiceHomeTitleWidget(title: AppStrings.contactUs),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[200]!),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Logo + Name
-                      if (profile.logo != null &&
-                          profile.logo!.isNotEmpty)
-                        Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8)
-                            ],
-                            image: DecorationImage(
-                              image: NetworkImage(profile.logo!),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      SizedBox(height: 10),
-                      CustomText(
-                        profile.businessName,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      if (profile.businessDescription?.isNotEmpty ??
-                          false) ...[
-                        SizedBox(height: 5),
-                        CustomText(
-                          profile.businessDescription!,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          fontSize: 13,
-                        ),
-                      ],
-                      Divider(height: 20),
-                      // Contact items
-                      if (profile.websiteUrl?.isNotEmpty ?? false)
-                        _contactItem(
-                            AppIconAssets.website_click,
-                            profile.websiteUrl!,
-                            AppColors.primaryColor),
-                      if (owner?.name?.isNotEmpty ?? false)
-                        _contactItem(AppIconAssets.principal,
-                            owner!.name!, Colors.grey[700]!),
-                      if (owner?.email?.isNotEmpty ?? false)
-                        _contactItem(
-                            AppIconAssets.email,
-                            owner!.email!,
-                            AppColors.secondaryTextColor),
-                      if (phone != null)
-                        _contactItem(AppIconAssets.phone_outline,
-                            phone, AppColors.secondaryTextColor),
-                      if (profile.address?.isNotEmpty ?? false)
-                        _contactItem(
-                            AppIconAssets.location_new,
-                            profile.address!,
-                            Colors.grey[700]!),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Google Map
-          if (loc?.lat != null && loc?.lon != null) ...[
-            SizedBox(height: SizeConfig.size16),
-            BusinessLocationWidget(
-              locationText: "",
-              latitude: loc!.lat!,
-              longitude: loc.lon!,
-              businessName: profile.businessName ?? "",
-              padding: 0,
-              isTitleShow: true,
-            ),
-          ],
-        ],
+  Widget _networkImage(String? url, BoxFit fit) {
+    if (url == null || url.isEmpty) {
+      return Container(
+        color: Colors.grey.shade200,
+        child: Icon(Icons.image_outlined,
+            color: Colors.grey.shade400, size: 40),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: fit,
+      placeholder: (_, __) => Container(color: Colors.grey.shade200),
+      errorWidget: (_, __, ___) => Container(
+        color: Colors.grey.shade200,
+        child: Icon(Icons.broken_image_outlined,
+            color: Colors.grey.shade400, size: 40),
       ),
     );
   }
 
-  Widget _contactItem(String icon, String label, Color iconColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          LocalAssets(
-              imagePath: icon,
-              imgColor: iconColor,
-              height: 18,
-              width: 18),
-          SizedBox(width: 12),
-          Expanded(
-            child: CustomText(
-              label,
-              color: AppColors.mainTextColor,
-              fontSize: 13,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
+  void _launchUrl(String? url) async {
+    if (url == null || url.isEmpty) return;
+    String finalUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      finalUrl = 'https://$url';
+    }
+    try {
+      await launchUrl(
+          Uri.parse(finalUrl), mode: LaunchMode.externalApplication);
+    } catch (_) {}
   }
+
+  void _launchEmail(String? email) async {
+    if (email == null || email.isEmpty) return;
+    try {
+      await launchUrl(Uri(scheme: 'mailto', path: email));
+    } catch (_) {}
+  }
+
+  void _launchPhone(String? phone) async {
+    if (phone == null || phone.isEmpty) return;
+    final clean = phone.replaceAll(RegExp(r'\s+'), '');
+    try {
+      await launchUrl(Uri(scheme: 'tel', path: clean));
+    } catch (_) {}
+  }
+}
+
+class _CategoryDisplay {
+  final String title;
+  final String image;
+  final CategoryWithProducts category;
+
+  _CategoryDisplay({
+    required this.title,
+    required this.image,
+    required this.category,
+  });
 }

@@ -291,7 +291,7 @@ class BusinessProfileHeader extends StatelessWidget {
                   children: [
                     InkWell(
                       onTap: () {
-                        openBusinessDetailsEditSheet(context);
+                        // openBusinessDetailsEditSheet(context);
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -315,68 +315,68 @@ class BusinessProfileHeader extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            SizedBox(width: SizeConfig.size10),
-                            LocalAssets(
-                              imagePath: AppIconAssets.editIcon,
-                              height: SizeConfig.size12,
-                              width: SizeConfig.size12,
-                              imgColor: AppColors.primaryColor,
-                            ),
+                            // SizedBox(width: SizeConfig.size10),
+                            // LocalAssets(
+                            //   imagePath: AppIconAssets.editIcon,
+                            //   height: SizeConfig.size12,
+                            //   width: SizeConfig.size12,
+                            //   imgColor: AppColors.primaryColor,
+                            // ),
                           ],
                         ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        String cleanValue(String? value) {
-                          if (value == null) return '';
-                          if (value.trim().toLowerCase() == 'na') return '';
-                          return value;
-                        }
-
-                        TextEditingController ownerNameCtrl =
-                            TextEditingController(
-                          text: cleanValue(details!.ownerDetails?.first.name),
-                        );
-
-                        TextEditingController ownerRoleCtrl =
-                            TextEditingController(
-                          text: cleanValue(
-                              details?.ownerDetails?.first.role_in_business),
-                        );
-
-                        TextEditingController ownerEmailCtrl =
-                            TextEditingController(
-                          text: cleanValue(details?.ownerDetails?.first.email),
-                        );
-
-                        openOwnerEditSheet(
-                          context: context,
-                          nameController: ownerNameCtrl,
-                          roleController: ownerRoleCtrl,
-                          emailController: ownerEmailCtrl,
-                          onSave: () async {
-                            if (!GetUtils.isEmail(ownerEmailCtrl.text.trim())) {
-                              commonSnackBar(
-                                  message: AppStrings.pleaseEnterValidEmail);
-                              return;
-                            }
-
-                            Map<String, dynamic> updatedParams = {
-                              ApiKeys.owner_details: jsonEncode([
-                                {
-                                  ApiKeys.name: ownerNameCtrl.text,
-                                  ApiKeys.role_in_business: ownerRoleCtrl.text,
-                                  ApiKeys.email: ownerEmailCtrl.text,
-                                }
-                              ]),
-                            };
-
-                            await Get.find<ViewBusinessDetailsController>()
-                                .updateBusinessDetails(updatedParams);
-                            Get.back();
-                          },
-                        );
+                        // String cleanValue(String? value) {
+                        //   if (value == null) return '';
+                        //   if (value.trim().toLowerCase() == 'na') return '';
+                        //   return value;
+                        // }
+                        //
+                        // TextEditingController ownerNameCtrl =
+                        //     TextEditingController(
+                        //   text: cleanValue(details!.ownerDetails?.first.name),
+                        // );
+                        //
+                        // TextEditingController ownerRoleCtrl =
+                        //     TextEditingController(
+                        //   text: cleanValue(
+                        //       details?.ownerDetails?.first.role_in_business),
+                        // );
+                        //
+                        // TextEditingController ownerEmailCtrl =
+                        //     TextEditingController(
+                        //   text: cleanValue(details?.ownerDetails?.first.email),
+                        // );
+                        //
+                        // openOwnerEditSheet(
+                        //   context: context,
+                        //   nameController: ownerNameCtrl,
+                        //   roleController: ownerRoleCtrl,
+                        //   emailController: ownerEmailCtrl,
+                        //   onSave: () async {
+                        //     if (!GetUtils.isEmail(ownerEmailCtrl.text.trim())) {
+                        //       commonSnackBar(
+                        //           message: AppStrings.pleaseEnterValidEmail);
+                        //       return;
+                        //     }
+                        //
+                        //     Map<String, dynamic> updatedParams = {
+                        //       ApiKeys.owner_details: jsonEncode([
+                        //         {
+                        //           ApiKeys.name: ownerNameCtrl.text,
+                        //           ApiKeys.role_in_business: ownerRoleCtrl.text,
+                        //           ApiKeys.email: ownerEmailCtrl.text,
+                        //         }
+                        //       ]),
+                        //     };
+                        //
+                        //     await Get.find<ViewBusinessDetailsController>()
+                        //         .updateBusinessDetails(updatedParams);
+                        //     Get.back();
+                        //   },
+                        // );
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -399,13 +399,13 @@ class BusinessProfileHeader extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            SizedBox(width: SizeConfig.size10),
-                            LocalAssets(
-                              imagePath: AppIconAssets.editIcon,
-                              height: SizeConfig.size12,
-                              width: SizeConfig.size12,
-                              imgColor: AppColors.primaryColor,
-                            ),
+                            // SizedBox(width: SizeConfig.size10),
+                            // LocalAssets(
+                            //   imagePath: AppIconAssets.editIcon,
+                            //   height: SizeConfig.size12,
+                            //   width: SizeConfig.size12,
+                            //   imgColor: AppColors.primaryColor,
+                            // ),
                           ],
                         ),
                       ),

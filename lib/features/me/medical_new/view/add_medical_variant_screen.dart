@@ -172,9 +172,9 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                 const SizedBox(width: 4),
                                                 Flexible(
                                                   child: CustomText(
-                                                    (v.weight != null && v.unit != null)
-                                                        ? '${v.weight} ${v.unit}'
-                                                        : 'N/A',
+                                                    (v.weight != null || v.unit != null)
+                                                        ? '${v.weight ?? '-'} ${v.unit ?? ''}'
+                                                        : 'Weight not set',
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.mainTextColor,
@@ -191,7 +191,9 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                 const SizedBox(width: 4),
                                                 Flexible(
                                                   child: CustomText(
-                                                    "₹${v.pricing?[0].mrp?.toStringAsFixed(2)}",
+                                                    (v.pricing != null && v.pricing!.isNotEmpty && v.pricing![0].mrp != null)
+                                                        ? '₹${v.pricing![0].mrp!.toStringAsFixed(2)}'
+                                                        : 'MRP not set',
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.mainTextColor,
@@ -208,7 +210,9 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                 const SizedBox(width: 4),
                                                 Flexible(
                                                   child: CustomText(
-                                                    "₹${v.pricing?[0].sellingPrice?.toStringAsFixed(2)}",
+                                                    (v.pricing != null && v.pricing!.isNotEmpty && v.pricing![0].sellingPrice != null)
+                                                        ? '₹${v.pricing![0].sellingPrice!.toStringAsFixed(2)}'
+                                                        : 'Price not set',
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.mainTextColor,
@@ -249,32 +253,35 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: SizeConfig.size10),
-                      GestureDetector(
-                        onTap: () {
-                          controller.openAddVariantDialog(
-                            context: context,
-                            groceryItem: groceryItem,
-                          );
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            const Icon(
-                              CupertinoIcons.add,
-                              color: AppColors.primaryColor,
-                              size: 20,
-                            ),
-                            SizedBox(width: 6),
-                            CustomText(
-                              "Add More Varient",
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: SizeConfig.small,
-                            ),
-                          ],
+                      if (groceryItem.variants != null &&
+                          groceryItem.variants!.isNotEmpty) ...[
+                        SizedBox(height: SizeConfig.size10),
+                        GestureDetector(
+                          onTap: () {
+                            controller.openAddVariantDialog(
+                              context: context,
+                              groceryItem: groceryItem,
+                            );
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              const Icon(
+                                CupertinoIcons.add,
+                                color: AppColors.primaryColor,
+                                size: 20,
+                              ),
+                              SizedBox(width: 6),
+                              CustomText(
+                                "Add More Variant",
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: SizeConfig.small,
+                              ),
+                            ],
+                          ),
                         ),
-                      )
+                      ]
                     ],
                   ),
                 );

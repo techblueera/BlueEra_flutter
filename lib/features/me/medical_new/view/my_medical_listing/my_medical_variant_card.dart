@@ -33,171 +33,127 @@ class MyMedicalVariantCard extends StatelessWidget {
     print("Discount Range: ${price.discountRange}");
 
     return InkWell(
-      onTap: (){
+      onTap: () {
         // Get.to(()=> FoodDetailsViewScreen(
         //   productPriceFormat:(foodDetailsData?.priceType == "single")?"${foodDetailsData?.singlePrice ?? "0"}": "$priceText",
         //   data: foodDetailsData ?? GetFoodDetailsModel(),
         // ));
       },
-      child: (isShowInGrid) ? Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: AppColors.white,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image slideshow
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child:
-                  (variantItem.images!=null  &&
-                      variantItem.images!.isNotEmpty)
-                      ? CustomImageSlideshow(
-                    isLoading: false,
-                    width: double.infinity,
-                    height: SizeConfig.size150,
-                    imagePaths: variantItem.images!.map((i)=> i.url??'').toList(),
-                    borderRadius: BorderRadius.zero,
-                    boxFit: BoxFit.contain,
-                  )
-                      : LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.fill,
-                    height: SizeConfig.size150,
-                    width: double.infinity,
-                  ),
-                ),
+      child: (isShowInGrid)
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: AppColors.white,
               ),
-
-              Expanded(
-                child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size5),
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    CustomText(
-                      variantItem.variantName,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-
-                    Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              border:
-                              Border.all(color: AppColors.green00, width: 1),
-                              borderRadius: BorderRadius.circular(2)),
-                          padding: EdgeInsets.all(3.5),
-                          child: Container(
-                            height: 7,
-                            width: 7,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(7),
-                                color: AppColors.green00),
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size6),
-                        Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              border:
-                              Border.all(width: 0.5, color: AppColors.greyE5)),
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
-                          child: CustomText(
-                            '${variantItem.weight?.toInt()} ${variantItem.unit}',
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.price.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image slideshow
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: (variantItem.images != null &&
+                              variantItem.images!.isNotEmpty)
+                          ? CustomImageSlideshow(
+                              isLoading: false,
+                              width: double.infinity,
+                              height: SizeConfig.size150,
+                              imagePaths: variantItem.images!
+                                  .map((i) => i.url ?? '')
+                                  .toList(),
+                              borderRadius: BorderRadius.zero,
+                              boxFit: BoxFit.contain,
+                            )
+                          : LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.fill,
+                              height: SizeConfig.size150,
+                              width: double.infinity,
                             ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.sellingRange}",
-                                fontSize: 10,
+                    ),
+                  ),
+
+                  // Info section - flexible
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size10, vertical: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            (variantItem.variantName != null && variantItem.variantName!.isNotEmpty)
+                                ? variantItem.variantName!
+                                : 'Variant name not available',
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 3),
+                          if (variantItem.weight != null || variantItem.unit != null)
+                            Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: AppColors.green00, width: 1),
+                                      borderRadius: BorderRadius.circular(2)),
+                                  padding: EdgeInsets.all(3),
+                                  child: Container(
+                                    height: 6,
+                                    width: 6,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(6),
+                                        color: AppColors.green00),
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Flexible(
+                                  child: CustomText(
+                                    '${variantItem.weight ?? '-'} ${variantItem.unit ?? ''}',
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          Spacer(),
+                          Row(
+                            children: [
+                              CustomText(
+                                price.sellingRange.isNotEmpty
+                                    ? '₹${price.sellingRange}'
+                                    : 'Price not set',
+                                fontSize: 11,
                                 color: AppColors.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.mrp.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.mrpRange}",
-                                fontSize: 10,
-                                color: AppColors.grayText,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.discount.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.discountRange}",
-                                fontSize: 10,
-                                color: AppColors.green00,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              if (price.mrpRange.isNotEmpty) ...[
+                                SizedBox(width: 6),
+                                Flexible(
+                                  child: CustomText('MRP ₹${price.mrpRange}',
+                                      fontSize: 9,
+                                      color: AppColors.grayText,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
 
-                    SizedBox(height: SizeConfig.size8),
-
-                    // Edit Inventory Button
-                    InkWell(
+                  // Edit button - always pinned at bottom
+                  Padding(
+                    padding: EdgeInsets.only(left: 6, right: 6, bottom: 6),
+                    child: InkWell(
                       onTap: () {
                         controller.openEditInventoryBottomSheet(
                           context: context,
@@ -208,12 +164,14 @@ class MyMedicalVariantCard extends StatelessWidget {
                       },
                       borderRadius: BorderRadius.circular(6),
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: AppColors.primaryColor.withValues(alpha: 0.2),
+                            color:
+                                AppColors.primaryColor.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Row(
@@ -232,227 +190,232 @@ class MyMedicalVariantCard extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                  ],
-                ),
-                ),
+                  ),
+                ],
+              ))
+          : Container(
+              height: SizeConfig.size200,
+              decoration: BoxDecoration(
+                color: AppColors.whiteFE,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowColor,
+                    blurRadius: 1.4,
+                    offset: const Offset(0, 0.7),
+                  ),
+                ],
               ),
-              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Product Image
+                  (variantItem.images != null && variantItem.images!.isNotEmpty)
+                      ? CustomImageSlideshow(
+                          isLoading: false,
+                          width: double.infinity,
+                          height: SizeConfig.size150,
+                          imagePaths: variantItem.images!
+                              .map((i) => i.url ?? '')
+                              .toList(),
+                          borderRadius: BorderRadius.zero,
+                        )
+                      : LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                        ),
+                  const SizedBox(width: 10),
 
-            ],
-          )
-      ) : Container(
-        height: SizeConfig.size200,
-        decoration: BoxDecoration(
-          color: AppColors.whiteFE,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowColor,
-              blurRadius: 1.4,
-              offset: const Offset(0, 0.7),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// Product Image
-            (variantItem.images!=null  &&
-                variantItem.images!.isNotEmpty)
-                ? CustomImageSlideshow(
-              isLoading: false,
-              width: double.infinity,
-              height: SizeConfig.size150,
-              imagePaths: variantItem.images!.map((i)=> i.url??'').toList(),
-              borderRadius: BorderRadius.zero,
-            )
-                : LocalAssets(
-              imagePath: AppIconAssets.place_holder_image,
-              boxFix: BoxFit.cover,
-            ),
-            const SizedBox(width: 10),
-
-            /// Product Details
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: CustomText(
-                            variantItem.variantName,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w600,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            color: AppColors.mainTextColor,
-                          ),
-                        ),
-                        Icon(
-                          Icons.more_vert,
-                          size: 20,
-                          color: Colors.grey.shade700,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              border:
-                              Border.all(color: AppColors.green00, width: 1),
-                              borderRadius: BorderRadius.circular(2)),
-                          padding: EdgeInsets.all(3.5),
-                          child: Container(
-                            height: 7,
-                            width: 7,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(7),
-                                color: AppColors.green00),
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size6),
-                        Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              border:
-                              Border.all(width: 0.5, color: AppColors.greyE5)),
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
-                          child: CustomText(
-                            '${variantItem.weight?.toInt()} ${variantItem.unit}',
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.price.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.sellingRange}",
-                                fontSize: 10,
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.mrp.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.mrpRange}",
-                                fontSize: 10,
-                                color: AppColors.grayText,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              "${AppStrings.discount.tr}: ",
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText(
-                                "${price.discountRange}",
-                                fontSize: 10,
-                                color: AppColors.green00,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    // Edit Inventory Button
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: InkWell(
-                        onTap: () {
-                          controller.openEditInventoryBottomSheet(
-                            context: context,
-                            title: variantItem.variantName ?? 'Edit Inventory',
-                            variant: variantItem,
-                            categoryId: categoryId,
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: AppColors.primaryColor.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                  /// Product Details
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(SizeConfig.size10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.edit_outlined,
-                                  size: 13, color: AppColors.primaryColor),
-                              SizedBox(width: 4),
-                              CustomText(
-                                'Edit Inventory',
-                                fontSize: 11,
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: CustomText(
+                                  (variantItem.variantName != null && variantItem.variantName!.isNotEmpty)
+                                      ? variantItem.variantName!
+                                      : 'Variant name not available',
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w600,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  color: AppColors.mainTextColor,
+                                ),
                               ),
                             ],
                           ),
-                        ),
+                          SizedBox(height: SizeConfig.size10),
+                          Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: AppColors.green00, width: 1),
+                                    borderRadius: BorderRadius.circular(2)),
+                                padding: EdgeInsets.all(3.5),
+                                child: Container(
+                                  height: 7,
+                                  width: 7,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(7),
+                                      color: AppColors.green00),
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size6),
+                              if (variantItem.weight != null || variantItem.unit != null)
+                                Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                          width: 0.5, color: AppColors.greyE5)),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 2, vertical: 0.5),
+                                  child: CustomText(
+                                    '${variantItem.weight ?? '-'} ${variantItem.unit ?? ''}',
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: SizeConfig.size6),
+                          Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    "${AppStrings.price.tr}: ",
+                                    fontSize: 10,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  SizedBox(width: SizeConfig.size3),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: CustomText(
+                                      price.sellingRange.isNotEmpty
+                                          ? price.sellingRange
+                                          : 'Not set',
+                                      fontSize: 10,
+                                      color: price.sellingRange.isNotEmpty
+                                          ? AppColors.primaryColor
+                                          : AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    "${AppStrings.mrp.tr}: ",
+                                    fontSize: 10,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  SizedBox(width: SizeConfig.size3),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: CustomText(
+                                      price.mrpRange.isNotEmpty
+                                          ? price.mrpRange
+                                          : 'Not set',
+                                      fontSize: 10,
+                                      color: AppColors.grayText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (price.discountRange.isNotEmpty) ...[
+                                SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      "${AppStrings.discount.tr}: ",
+                                      fontSize: 10,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    SizedBox(width: SizeConfig.size3),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: CustomText(
+                                        price.discountRange,
+                                        fontSize: 10,
+                                        color: AppColors.green00,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+
+                          SizedBox(height: SizeConfig.size8),
+
+                          // Edit Inventory Button
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () {
+                                controller.openEditInventoryBottomSheet(
+                                  context: context,
+                                  title: variantItem.variantName ??
+                                      'Edit Inventory',
+                                  variant: variantItem,
+                                  categoryId: categoryId,
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppColors.primaryColor
+                                        .withValues(alpha: 0.2),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.edit_outlined,
+                                        size: 13,
+                                        color: AppColors.primaryColor),
+                                    SizedBox(width: 4),
+                                    CustomText(
+                                      'Edit Inventory',
+                                      fontSize: 11,
+                                      color: AppColors.primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
