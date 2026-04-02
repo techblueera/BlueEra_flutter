@@ -1633,6 +1633,7 @@ class AppStrings {
   static const String income = 'income';
   static const String newOrder = 'newOrder';
   static const String onGoing = 'onGoing';
+  static const String pickUpOrders = 'Orders';
 
   static const String notFoundAnyProduct = 'notFoundAnyProduct';
   static const String notFoundAnyService = 'notFoundAnyService';

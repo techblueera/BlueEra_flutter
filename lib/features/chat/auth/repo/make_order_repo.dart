@@ -119,6 +119,22 @@ class MakeOrderRepo extends BaseService {
      onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> rideActionApi(Map<String, dynamic> params, String orderId) async {
+    final response = await ApiBaseHelper().postHTTP(
+        rideAction(orderId),
+        showProgress: false,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> cancelFareCallQueueApi(String orderId) async {
+    final response = await ApiBaseHelper().postHTTP(
+        cancelFareCallQueue(orderId),
+        showProgress: false,
+        params: {},
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> getRidersBookingOrders() async {
     final response = await ApiBaseHelper().getHTTP(
         getRiderBookingList,

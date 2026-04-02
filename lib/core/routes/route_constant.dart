@@ -92,6 +92,9 @@ class RouteConstant {
   static const String productPreviewScreen = "/ProductPreviewScreen";
   static const String createVariantScreen = "/CreateVariantScreen";
   static const String storeProductPreviewScreenProduct = "/StoreProductPreviewScreenProduct";
+  static const String productSuperCategoryScreen = "/ProductSuperCategoryScreen";
+  static const String productNestedCategoryScreen = "/ProductNestedCategoryScreen";
+  static const String storeProductSelectionScreen = "/StoreProductSelectionScreen";
   // static const String storeFeedScreen = "/StoreFeedScreen";
   static const String earnServiceScreen = "/EarnServiceScreen";
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
@@ -185,4 +188,9 @@ class RouteConstant {
   static const String IncomingCallScreen = "/IncomingCallScreen";
   static const String ActiveCallScreen = "/ActiveCallScreen";
   static const String CallRoomScreen = "/CallRoomScreen";
+
+  // Rider call screens
+  static const String IncomingRiderOrderScreen = "/IncomingRiderOrderScreen";
+  static const String RiderPickupNavigationScreen = "/RiderPickupNavigationScreen";
+  static const String RiderRideNavigationScreen = "/RiderRideNavigationScreen";
 }

@@ -124,63 +124,45 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   }
 
   Widget _buildJobDetailContent(Job job) {
-    return Container(
-      margin: EdgeInsets.only(
-          left: SizeConfig.size15,
-          right: SizeConfig.size15,
-          top: SizeConfig.size15),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          InkWell(
-            onTap: () {
-              navigatePushTo(
-                context,
-                ImageViewScreen(
-                  appBarTitle: AppStrings.imageViewer,
-                  // imageUrls: [post?.author.profileImage ?? ''],
-                  imageUrls: [job.jobPostImage ?? ""],
-                  initialIndex: 0,
-                ),
-              );
-            },
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(10.0)),
-              child: CachedNetworkImage(
-                imageUrl: job.jobPostImage ?? "",
-                // <-- Replace with your image URL from API
-                fit: BoxFit.cover,
-                width: 400,
-                height: 400,
-                // width: double.infinity,
-                // height: double.infinity,
-                placeholder: (context, url) =>
-                    const Center(child: CircularProgressIndicator()),
-                errorWidget: (context, url, error) => Container(
-                  width: SizeConfig.screenWidth,
-                  height: SizeConfig.size140,
-                  color: Colors.grey[300],
-                  child: LocalAssets(imagePath: AppIconAssets.blueEraIcon),
-                ),
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        InkWell(
+          onTap: () {
+            navigatePushTo(
+              context,
+              ImageViewScreen(
+                appBarTitle: AppStrings.imageViewer,
+                imageUrls: [job.jobPostImage ?? ""],
+                initialIndex: 0,
               ),
+            );
+          },
+          child: CachedNetworkImage(
+            imageUrl: job.jobPostImage ?? "",
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            placeholder: (context, url) =>
+                const Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) => Container(
+              width: SizeConfig.screenWidth,
+              height: SizeConfig.size140,
+              color: Colors.grey[300],
+              child: LocalAssets(imagePath: AppIconAssets.blueEraIcon),
             ),
           ),
-          CommonDraggableBottomSheet(
-            maxChildSize: 1.0,
-            minChildSize: 0.6,
-            padding: EdgeInsets.zero,
-            backgroundColor: AppColors.whiteF3,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-            builder: (scrollController) =>
-                _buildJobDetailsCard(scrollController, job),
-          ),
-        ],
-      ),
+        ),
+        CommonDraggableBottomSheet(
+          maxChildSize: 1.0,
+          minChildSize: 0.5,
+          padding: EdgeInsets.zero,
+          backgroundColor: AppColors.whiteF3,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+          builder: (scrollController) =>
+              _buildJobDetailsCard(scrollController, job),
+        ),
+      ],
     );
   }
 

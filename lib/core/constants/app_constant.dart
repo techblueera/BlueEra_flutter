@@ -597,7 +597,7 @@ String getInitials(String? name) {
       .toUpperCase();
 }
 
-void createProfileScreen() {
+Future createProfileScreen() async {
   // Get.toNamed(
   //   RouteHelper.getSelectAccountScreenRoute(),
   //   arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
@@ -3213,10 +3213,6 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
       // name: AppStrings.homeMadeProducts,
       slugId: HOME_MADE_PRODUCTS,
       icon: AppImageAssets.homeMadeProduct),
-  CollapsibleGridModel(
-      name: 'Home Made\nFood Items',
-      slugId: HOME_MADE_FOOD,
-      icon: AppImageAssets.homeMadeFood),
   CollapsibleGridModel(
       name: 'Rental\nServices',
       // name: AppStrings.rentalServices,

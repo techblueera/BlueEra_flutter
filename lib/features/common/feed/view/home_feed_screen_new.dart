@@ -22,7 +22,7 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-DateTime? _lastHomeFetchTime;
+DateTime? lastHomeFetchTime;
 // Define the threshold (e.g., 5 seconds)
 final Duration fetchThreshold = const Duration(seconds: 90);
 
@@ -67,8 +67,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   void _guardedFetchData({bool refreshFlag = false}) {
     final currentTime = DateTime.now();
 
-    if (_lastHomeFetchTime != null &&
-        currentTime.difference(_lastHomeFetchTime!) < fetchThreshold) {
+    if (lastHomeFetchTime != null &&
+        currentTime.difference(lastHomeFetchTime!) < fetchThreshold) {
       // Too soon! Ignore the request.
       debugPrint(
           "API call ignored: executed less than ${fetchThreshold.inSeconds}s ago.");
@@ -76,7 +76,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     }
 
     // Update the timestamp and execute
-    _lastHomeFetchTime = currentTime;
+    lastHomeFetchTime = currentTime;
     fetchPostData(refreshFlag: refreshFlag);
   }
 
@@ -287,7 +287,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         return LoadErrorWidget(
           errorMessage: 'Failed to load posts',
           onRetry: () {
-            feedController.isLoadingHome.value = true;
+            feedController.isLoadingHome.value = false;
             fetchPostData();
           },
         );

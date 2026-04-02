@@ -1,0 +1,20 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="20" r="20" fill="#FFF0F5"/>
+  <rect x="5" y="22" width="30" height="13" rx="3" fill="#BB5D4C"/>
+  <rect x="8" y="14" width="24" height="14" rx="2" fill="#FFD98F"/>
+  <rect x="8" y="14" width="24" height="5" rx="2" fill="#FFC143"/>
+  <rect x="10" y="15" width="20" height="3" rx="1" fill="white" opacity="0.5"/>
+  <line x1="8" y1="21" x2="32" y2="21" stroke="#C8860A" stroke-width="0.8"/>
+  <line x1="16" y1="14" x2="16" y2="28" stroke="#C8860A" stroke-width="0.8"/>
+  <line x1="24" y1="14" x2="24" y2="28" stroke="#C8860A" stroke-width="0.8"/>
+  <circle cx="12" cy="17" r="1.5" fill="#6DBF67"/>
+  <circle cx="20" cy="17" r="1.5" fill="#6DBF67"/>
+  <circle cx="28" cy="17" r="1.5" fill="#6DBF67"/>
+  <circle cx="12" cy="25" r="1.5" fill="#6DBF67"/>
+  <circle cx="20" cy="25" r="1.5" fill="#6DBF67"/>
+  <circle cx="28" cy="25" r="1.5" fill="#6DBF67"/>
+  <rect x="5" y="28" width="30" height="4" rx="1" fill="#A44F3E"/>
+  <circle cx="12" cy="30" r="1" fill="#FFB509"/>
+  <circle cx="20" cy="30" r="1" fill="#FFB509"/>
+  <circle cx="28" cy="30" r="1" fill="#FFB509"/>
+</svg>

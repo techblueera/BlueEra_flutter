@@ -65,7 +65,8 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             onTap: () {
               if (userProfessionGlobal == BIKE_RIDER) {
                 Get.offNamedUntil(
-                  RouteHelper.getAddProductScreenRoute(),
+                  // RouteHelper.getAddProductScreenRoute(),
+                  RouteHelper.getAddProductViaAiStep1Route(),
                   ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()),
                   arguments: {
                     ApiKeys.id: userId,

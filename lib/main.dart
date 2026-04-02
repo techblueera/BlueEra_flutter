@@ -41,7 +41,6 @@ import 'core/services/address_cache_service.dart';
 import 'core/services/home_cache_service.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/chat/auth/controller/call_controller.dart';
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
@@ -73,8 +72,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     Map<String, dynamic> callerData = jsonDecode(data['callerData']);
     log("payload 71)  ${data}");
     final callType = payload['call_type'];
+
+    // Detect fare-call metadata from payload
+    final metadata = payload['metadata'];
+    final isFareCall = metadata != null && metadata['orderType'] == 'fare-call';
+
     showFlutterCallNotification(
-      desiginations: () {
+      desiginations: isFareCall
+          ? 'Ride Request'
+          : () {
         final accountType = callerData['account_type']?.toString() ?? '';
 
         if (accountType == 'BUSINESS') {
@@ -108,7 +114,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         return designation.isEmpty ? 'Incoming Call' : designation.toLowerCase();
       }(),
       callSessionId: payload["call_id"],
-      callerName: callerName,
+      callerName: isFareCall ? (callerName.isNotEmpty ? callerName : 'Ride Request') : callerName,
       callerImage: callerData['profile_image'].isNotEmpty ? callerData['profile_image'] : null,
       callType: callType,
       extra: {
@@ -120,6 +126,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'callId':payload["call_id"],
         'roomId':payload["room_id"],
         'operation': 'incoming_call',
+        if (isFareCall) 'isFareCall': 'true',
+        if (isFareCall) 'fareCallOrderId': metadata['orderId'] ?? '',
+        if (isFareCall) 'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
       },
     );
     // final controller=Get.put(CallController());
@@ -181,15 +190,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   if (message.notification != null) {
     await AppNotificationHandler().playCustomSound(message);
-  }
-
-  if (operation == 'ride_order_received') {
-    NotificationData rideNotification = NotificationData.fromJson(message.data);
-    AppNotificationHandler().callShow(
-        orderId: '${rideNotification.metadata?.orderId}',
-        lng: double.parse(rideNotification.deliveryLong.toString()),
-        lat: double.parse(rideNotification.deliveryLat.toString()));
-    return;
   }
 
   // For ALL other notifications in background: use the generic data-only renderer.

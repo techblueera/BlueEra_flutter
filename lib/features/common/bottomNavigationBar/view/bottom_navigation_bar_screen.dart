@@ -263,10 +263,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  // void _initializeOneSignal() {
-  //   getOneSignalUpdate();
-  // }
-
   void _handlePostFrameInitialization() {
     if (isBusiness()) {
       bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
@@ -328,11 +324,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-  /*    floatingActionButton: kDebugMode
-          ? FloatingActionButton(onPressed: () async {
-              Get.to(EmergencyBasicInfoScreen());
-            })
-          : null,*/
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {

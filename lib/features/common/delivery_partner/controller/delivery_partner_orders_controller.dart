@@ -25,8 +25,13 @@ class DeliverPartnerOrdersController extends GetxController {
       DeliveryPartnerOrdersTab.values;
   RxInt selectedDeliveryPartnerOrderIndex = 0.obs;
 
-  final List<PickUpTab> pickUpTabs = PickUpTab.values;
-  Rx<PickUpTab> selectedPickUp = PickUpTab.newOrder.obs;
+  final List<PickUpTab> pickUpTabs = [
+    PickUpTab.orders,
+    PickUpTab.completed,
+    PickUpTab.cancel,
+    PickUpTab.rejected,
+  ];
+  Rx<PickUpTab> selectedPickUp = PickUpTab.orders.obs;
   RxList<RiderOrdersDetailsModel> riderOrdersList =
       <RiderOrdersDetailsModel>[].obs;
   Rx<ApiResponse> ordersListResponse = ApiResponse.initial('Initial').obs; // Declare your RxLists
@@ -140,6 +145,29 @@ class DeliverPartnerOrdersController extends GetxController {
       return false;
     }
   }
+  /// Accept or reject a fare-call ride order using the ride-action endpoint.
+  Future<bool> rideAction(String action, String orderId) async {
+    try {
+      final response = await MakeOrderRepo().rideActionApi(
+        {'action': action},
+        orderId,
+      );
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? (action == 'reject'
+                ? 'Ride order rejected'
+                : 'Ride order accepted'));
+        return true;
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
   Future<bool> updateRideOrParcelOrderStatusApi(Map<String,dynamic> params,String orderId) async {
     try {
       ResponseModel? response = await MakeOrderRepo().updateRideOrParcelOrderStatusApi(params,orderId);

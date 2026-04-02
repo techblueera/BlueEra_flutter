@@ -21,9 +21,12 @@ class _CommonWebViewState extends State<CommonWebView> {
   @override
   void initState() {
     super.initState();
+    final urlWithScheme = widget.urlLink.startsWith('http')
+        ? widget.urlLink
+        : 'https://${widget.urlLink}';
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(widget.urlLink));
+      ..loadRequest(Uri.parse(urlWithScheme));
   }
 
 

@@ -54,7 +54,6 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: widget.type.label,
-        buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
       body: SafeArea(
         child: Obx(() {

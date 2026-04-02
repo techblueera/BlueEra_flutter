@@ -36,6 +36,8 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
+
 class AuthController extends GetxController {
   ApiResponse mobileNoOtpSendResponse = ApiResponse.initial('Initial');
   ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
@@ -295,6 +297,10 @@ class AuthController extends GetxController {
             await controller.createServiceController(reqParm: data);
           }
 
+          if (Get.isRegistered<BottomBarController>()) {
+            Get.find<BottomBarController>().currentIndex.value = 0;
+          }
+
           Get.offNamedUntil(
             RouteHelper.getAddBioViaAiScreenRoute(),
             arguments: {
@@ -333,7 +339,7 @@ class AuthController extends GetxController {
   RxBool isAddBusinessUserLoading = false.obs;
 
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
-    // try {
+    try {
       isAddBusinessUserLoading.value = true;
       ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
           bodyRequest: reqData, showProgress: false);
@@ -417,7 +423,6 @@ class AuthController extends GetxController {
               BusinessType.Motel.name.toUpperCase())) {
             final controller = getOrPut(() => HotelServiceController());
 
-
             final locationMap = jsonDecode(reqData[ApiKeys.business_location]);
             final lat = locationMap[ApiKeys.lat];
             final lon = locationMap[ApiKeys.lon];
@@ -433,7 +438,7 @@ class AuthController extends GetxController {
                 "type": "Point",
                 "coordinates": [lat, lon]
 
-            // "coordinates": [reqData[ApiKeys.business_location]['lat'],reqData[ApiKeys.business_location]['lon'],]
+                // "coordinates": [reqData[ApiKeys.business_location]['lat'],reqData[ApiKeys.business_location]['lon'],]
               },
               "bus_station_location": {
                 "name": "",
@@ -444,6 +449,11 @@ class AuthController extends GetxController {
             };
             controller.createHotelServiceController(reqParm: reqDataParm);
           }
+
+          if (Get.isRegistered<BottomBarController>()) {
+            Get.find<BottomBarController>().currentIndex.value = 0;
+          }
+
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
           addUserResponse = ApiResponse.complete(response);
@@ -455,13 +465,13 @@ class AuthController extends GetxController {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
-    // } catch (e) {
-    //   logs("ERRPR $e");
-    //   addUserResponse = ApiResponse.error('error');
-    //   commonSnackBar(message: AppStrings.somethingWentWrong);
-    // } finally {
-    //   isAddBusinessUserLoading.value = false;
-    // }
+    } catch (e) {
+      logs("ERRPR $e");
+      addUserResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isAddBusinessUserLoading.value = false;
+    }
   }
 
   List<CategoryData> businessCategories = [];

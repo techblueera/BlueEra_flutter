@@ -4,6 +4,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
+import 'package:BlueEra/features/chat/view/call_screen/rider_call/incoming_rider_order_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
@@ -102,6 +103,10 @@ import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_screen.
 import 'package:BlueEra/features/me/grocery/view/grocery_stores_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_products_selection_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
+import 'package:BlueEra/features/common/store/view/product_super_category_screen.dart';
+import 'package:BlueEra/features/common/store/view/product_nested_category_screen.dart';
+import 'package:BlueEra/features/common/store/view/product_selection_screen.dart';
+import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
@@ -381,6 +386,15 @@ class RouteHelper {
 
   static String getStoreProductPreviewScreenProductRoute() =>
       RouteConstant.storeProductPreviewScreenProduct;
+
+  static String getProductSuperCategoryScreenRoute() =>
+      RouteConstant.productSuperCategoryScreen;
+
+  static String getProductNestedCategoryScreenRoute() =>
+      RouteConstant.productNestedCategoryScreen;
+
+  static String getStoreProductSelectionScreenRoute() =>
+      RouteConstant.storeProductSelectionScreen;
 
   static String getEarnServiceScreenRoute() => RouteConstant.earnServiceScreen;
 
@@ -1587,6 +1601,45 @@ class RouteHelper {
                 ),
             settings:
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
+
+      case RouteConstant.productSuperCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String group = args[ApiKeys.argProductGroup] as String;
+        return MaterialPageRoute(
+            builder: (_) => ProductSuperCategoryScreen(group: group),
+            settings:
+                RouteSettings(name: getProductSuperCategoryScreenRoute()));
+
+      case RouteConstant.productNestedCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<ProductNestedCategory> superCats =
+            args[ApiKeys.argArrProductSuperCategory]
+                as List<ProductNestedCategory>;
+        final String catKey = args[ApiKeys.argArrProductCatKey] as String;
+        final String catName = args[ApiKeys.argArrProductCatName] as String;
+        return MaterialPageRoute(
+            builder: (_) => ProductNestedCategoryScreen(
+                  argArrProductSuperCat: superCats,
+                  argArrProductCatKey: catKey,
+                  argArrProductCatName: catName,
+                ),
+            settings:
+                RouteSettings(name: getProductNestedCategoryScreenRoute()));
+
+      case RouteConstant.storeProductSelectionScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<ProductNestedCategory> products =
+            args[ApiKeys.argProducts] as List<ProductNestedCategory>;
+        final String? categoryName =
+            args[ApiKeys.argArrProductCatName] as String?;
+        return MaterialPageRoute(
+            builder: (_) => ProductSelectionScreen(
+                  arrProducts: products,
+                  categoryName: categoryName,
+                ),
+            settings:
+                RouteSettings(name: getStoreProductSelectionScreenRoute()));
+
       case RouteConstant.paymentSettingScreen:
         return MaterialPageRoute(
             builder: (_) => PaymentSettingScreen(),
@@ -1685,10 +1738,12 @@ class RouteHelper {
         final List<MedicalProductVariants> variants =
         args[ApiKeys.argVariants] as List<MedicalProductVariants>;
         final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
+        final String? argMedCategoryId = args[ApiKeys.argCategoryId] as String?;
         return MaterialPageRoute(
             builder: (_) => MyMedicalVariantScreen(
                 variants: variants,
-                isShowInGrid: argIsShowInGrid
+                isShowInGrid: argIsShowInGrid,
+                categoryId: argMedCategoryId,
             ),
             settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
 
@@ -1890,6 +1945,11 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => const CallRoomScreen(),
           settings: const RouteSettings(name: '/CallRoomScreen'),
+        );
+      case RouteConstant.IncomingRiderOrderScreen:
+        return MaterialPageRoute(
+          builder: (_) => const IncomingRiderOrderScreen(),
+          settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
         );
       // case RouteConstant.yourCartScreen:
       //   return MaterialPageRoute(

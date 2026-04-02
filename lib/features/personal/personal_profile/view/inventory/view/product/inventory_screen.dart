@@ -417,7 +417,8 @@ class _InventoryScreenState extends State<InventoryScreen>
                   ApiKeys.id: businessId,
                   ApiKeys.providerType: ProviderType.business
                 });
-                inventoryController.callApi(forceRefresh: true);                break;
+                inventoryController.callApi(forceRefresh: true);
+                break;
 
               case "BUSINESS_CARDS":
                 Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());

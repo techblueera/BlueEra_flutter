@@ -58,7 +58,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   @override
   void didPopNext() {
     _checkRiderStatus();
-
   }
 
   @override
@@ -89,13 +88,12 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
         allStepsCompleted = stepStatus.values.every((status) => status == true);
-        final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
-        if (riderOpt.isEmpty) {
-          return _buildLoading();
-        }
+        // final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
+        // if (riderOpt.isEmpty) {
+        //   return _buildLoading();
+        // }
 
-        return
-          _buildRiderEnabled(context);
+        return _buildRiderEnabled(context);
       }
       return SizedBox.shrink();
     });

@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/profile_impression_stats.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -44,7 +45,6 @@ class _DiscoverHospitalHomeScreenState
       bottomNavigationBar: _buildBottomBar(),
       appBar: CommonBackAppBar(
         title: AppStrings.hospital,
-        // buildCustomActionWidget: () => const DiscoverCartIcon(),
       ),
       body: RefreshIndicator(
         color: AppColors.primaryColor,
@@ -120,6 +120,11 @@ class _DiscoverHospitalHomeScreenState
                 _buildContactSection(),
 
                 SizedBox(height: SizeConfig.paddingXS),
+
+                /// WEBSITE PREVIEW
+                WebsitePreviewCard(
+                  url: data.contacts?.firstOrNull?.branch?.website ?? '',
+                ),
 
                 /// LOCATION MAP
                 _buildLocationSection(),

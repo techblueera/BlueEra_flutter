@@ -116,16 +116,19 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
                   child: _groceryPopUpMenu(index))
             ],
           ),
-          Padding(
+          Expanded(
+            child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: 9.0, vertical: SizeConfig.size6),
-            child: Column(
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
                   "${p.name}",
                   fontSize: SizeConfig.small,
-                  maxLines: 2,
+                  maxLines: 1,
                   color: AppColors.mainTextColor,
                   overflow: TextOverflow.ellipsis,
                   fontWeight: FontWeight.w600,
@@ -151,12 +154,13 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
                     Container(
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
-                          border:
-                              Border.all(width: 0.5, color: AppColors.greyE5)),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
+                          border: Border.all(width: 0.5, color: AppColors.greyE5)),
+                      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                       child: CustomText(
-                        '${p.variants?.firstOrNull?.weight} ${p.variants?.firstOrNull?.unit}',
+                        // Logic: If weight or unit is null, or the entire variant is null, show 'N/A'
+                        (p.variants?.firstOrNull?.weight != null && p.variants?.firstOrNull?.unit != null)
+                            ? '${p.variants!.firstOrNull!.weight} ${p.variants!.firstOrNull!.unit}'
+                            : 'N/A',
                         fontSize: 11,
                         color: Colors.grey,
                       ),
@@ -235,6 +239,8 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
                 )
               ],
             ),
+            ),
+          ),
           ),
         ],
       ),

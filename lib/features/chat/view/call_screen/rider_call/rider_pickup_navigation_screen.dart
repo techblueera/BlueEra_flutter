@@ -1,0 +1,760 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/pip_service.dart';
+import 'package:BlueEra/environment_config.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../../auth/controller/call_controller.dart';
+import '../../../auth/repo/make_order_repo.dart';
+import 'rider_ride_navigation_screen.dart';
+
+/// Screen shown after rider accepts an order.
+/// Shows map from rider's current location → pickup location with OTP verification.
+class RiderPickupNavigationScreen extends StatefulWidget {
+  final String pickupLocation;
+  final String dropLocation;
+  final double pickupLat;
+  final double pickupLng;
+  final double dropLat;
+  final double dropLng;
+  final double fareAmount;
+  final double distanceKm;
+  final String customerName;
+  final String customerImage;
+  final String otp;
+  final String paymentMethod;
+
+  const RiderPickupNavigationScreen({
+    super.key,
+    required this.pickupLocation,
+    required this.dropLocation,
+    required this.pickupLat,
+    required this.pickupLng,
+    required this.dropLat,
+    required this.dropLng,
+    required this.fareAmount,
+    required this.distanceKm,
+    required this.customerName,
+    this.customerImage = '',
+    required this.otp,
+    this.paymentMethod = 'Cash',
+  });
+
+  @override
+  State<RiderPickupNavigationScreen> createState() =>
+      _RiderPickupNavigationScreenState();
+}
+
+class _RiderPickupNavigationScreenState
+    extends State<RiderPickupNavigationScreen> with WidgetsBindingObserver {
+  GoogleMapController? _mapController;
+  final Set<Marker> _markers = {};
+  final Set<Polyline> _polylines = {};
+
+  // OTP
+  final List<TextEditingController> _otpControllers =
+      List.generate(4, (_) => TextEditingController());
+  final List<FocusNode> _otpFocusNodes = List.generate(4, (_) => FocusNode());
+  bool _otpVerified = false;
+  bool _otpError = false;
+  bool _isStartingRide = false;
+
+  LatLng get _riderLatLng {
+    final lat = LocationService.lat;
+    final lng = LocationService.lng;
+    if (lat != 0.0 && lng != 0.0) return LatLng(lat, lng);
+    return const LatLng(26.7836, 80.9013);
+  }
+
+  LatLng get _pickupLatLng => LatLng(widget.pickupLat, widget.pickupLng);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _setupMarkers();
+    _fetchRoute();
+    // Enable PiP auto-entry when user leaves the app
+    if (Platform.isAndroid) {
+      PipService.updatePipStatus(true);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (Platform.isAndroid) {
+      PipService.updatePipStatus(false);
+    }
+    _mapController?.dispose();
+    for (final c in _otpControllers) {
+      c.dispose();
+    }
+    for (final f in _otpFocusNodes) {
+      f.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!Platform.isAndroid) return;
+    if (state == AppLifecycleState.inactive) {
+      // App going to background — enter PiP
+      PipService.enterPip();
+    }
+  }
+
+  void _setupMarkers() {
+    _markers.addAll([
+      Marker(
+        markerId: const MarkerId('rider'),
+        position: _riderLatLng,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        infoWindow: const InfoWindow(title: 'Your Location'),
+      ),
+      Marker(
+        markerId: const MarkerId('pickup'),
+        position: _pickupLatLng,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow: InfoWindow(title: 'Pickup', snippet: widget.pickupLocation),
+      ),
+    ]);
+  }
+
+  Future<void> _fetchRoute() async {
+    try {
+      final polylinePoints = PolylinePoints(apiKey: googleMapKey);
+      final result = await polylinePoints.getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(_riderLatLng.latitude, _riderLatLng.longitude),
+          destination:
+              PointLatLng(_pickupLatLng.latitude, _pickupLatLng.longitude),
+          mode: TravelMode.driving,
+        ),
+      );
+
+      if (result.points.isNotEmpty) {
+        final routeCoords = result.points
+            .map((p) => LatLng(p.latitude, p.longitude))
+            .toList();
+
+        setState(() {
+          _polylines.add(
+            Polyline(
+              polylineId: const PolylineId('to_pickup'),
+              points: routeCoords,
+              width: 5,
+              color: const Color(0xFF4285F4),
+              geodesic: true,
+              jointType: JointType.round,
+              startCap: Cap.roundCap,
+              endCap: Cap.roundCap,
+            ),
+          );
+        });
+
+        _fitBounds(_riderLatLng, _pickupLatLng);
+      }
+    } catch (_) {}
+  }
+
+  void _fitBounds(LatLng a, LatLng b) {
+    if (_mapController == null) return;
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        a.latitude < b.latitude ? a.latitude : b.latitude,
+        a.longitude < b.longitude ? a.longitude : b.longitude,
+      ),
+      northeast: LatLng(
+        a.latitude > b.latitude ? a.latitude : b.latitude,
+        a.longitude > b.longitude ? a.longitude : b.longitude,
+      ),
+    );
+    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+  }
+
+  Future<void> _verifyOtp() async {
+    final entered = _otpControllers.map((c) => c.text).join();
+    if (entered.length < 4) return;
+
+    // Get orderId from CallController
+    final callController = Get.find<CallController>();
+    final orderId = callController.fareCallOrderId.value;
+
+    if (orderId.isEmpty) {
+      // Fallback: local OTP check if no orderId
+      if (entered == widget.otp) {
+        setState(() {
+          _otpVerified = true;
+          _otpError = false;
+        });
+        HapticFeedback.mediumImpact();
+      } else {
+        _handleOtpError();
+      }
+      return;
+    }
+
+    // Call the API to verify pickup OTP
+    final response = await MakeOrderRepo().verifyPickupOtpRideOrParcelApi(
+      {'otp': entered},
+      orderId,
+    );
+
+    if (!mounted) return;
+
+    if (response.isSuccess) {
+      setState(() {
+        _otpVerified = true;
+        _otpError = false;
+      });
+      HapticFeedback.mediumImpact();
+    } else {
+      commonSnackBar(message: response.message ?? 'Invalid OTP');
+      _handleOtpError();
+    }
+  }
+
+  void _handleOtpError() {
+    setState(() => _otpError = true);
+    HapticFeedback.heavyImpact();
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      for (final c in _otpControllers) {
+        c.clear();
+      }
+      _otpFocusNodes[0].requestFocus();
+      setState(() => _otpError = false);
+    });
+  }
+
+  void _startRide() {
+    setState(() => _isStartingRide = true);
+    // Navigate to ride screen (pickup → drop)
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => RiderRideNavigationScreen(
+          pickupLocation: widget.pickupLocation,
+          dropLocation: widget.dropLocation,
+          pickupLat: widget.pickupLat,
+          pickupLng: widget.pickupLng,
+          dropLat: widget.dropLat,
+          dropLng: widget.dropLng,
+          fareAmount: widget.fareAmount,
+          distanceKm: widget.distanceKm,
+          customerName: widget.customerName,
+          customerImage: widget.customerImage,
+          paymentMethod: widget.paymentMethod,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Full-screen map
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _riderLatLng,
+              zoom: 14,
+            ),
+            markers: _markers,
+            polylines: _polylines,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
+            onMapCreated: (controller) {
+              _mapController = controller;
+              // Fit after map ready
+              Future.delayed(const Duration(milliseconds: 500), () {
+                _fitBounds(_riderLatLng, _pickupLatLng);
+              });
+            },
+          ),
+
+          // Top bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildTopBar(),
+          ),
+
+          // Recenter button
+          Positioned(
+            right: 16,
+            bottom: 340,
+            child: _buildRecenterButton(),
+          ),
+
+          // Bottom panel
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildBottomPanel(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.black.withValues(alpha: 0.7),
+            Colors.transparent,
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              // Back button
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.arrow_back_rounded, size: 22),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Heading
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF00C853),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Heading to Pickup',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00C853).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '₹${widget.fareAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF00C853),
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecenterButton() {
+    return GestureDetector(
+      onTap: () => _fitBounds(_riderLatLng, _pickupLatLng),
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.my_location_rounded,
+            color: Color(0xFF4285F4), size: 22),
+      ),
+    );
+  }
+
+  Widget _buildBottomPanel() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          const SizedBox(height: 10),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Customer info + pickup address
+          _buildCustomerPickupInfo(),
+
+          const SizedBox(height: 20),
+
+          // OTP section
+          _buildOtpSection(),
+
+          const SizedBox(height: 20),
+
+          // Start Ride button (visible only after OTP verified)
+          if (_otpVerified) _buildStartRideButton(),
+
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerPickupInfo() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          // Customer avatar
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFF0F0F0),
+              border: Border.all(
+                color: const Color(0xFF00C853).withValues(alpha: 0.5),
+                width: 2,
+              ),
+            ),
+            child: widget.customerImage.isNotEmpty
+                ? ClipOval(
+                    child: Image.network(
+                      widget.customerImage,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                          Icons.person_rounded,
+                          color: Color(0xFF9E9E9E),
+                          size: 26),
+                    ),
+                  )
+                : const Icon(Icons.person_rounded,
+                    color: Color(0xFF9E9E9E), size: 26),
+          ),
+          const SizedBox(width: 14),
+          // Name + pickup
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.customerName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'OpenSans',
+                    color: Color(0xFF1A1A2E),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded,
+                        color: Color(0xFF00C853), size: 14),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        widget.pickupLocation,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontFamily: 'OpenSans',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Call / navigate buttons
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF00C853).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.phone_rounded,
+                color: Color(0xFF00C853), size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtpSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          // Label
+          Row(
+            children: [
+              Icon(
+                _otpVerified
+                    ? Icons.check_circle_rounded
+                    : Icons.pin_rounded,
+                color: _otpVerified
+                    ? const Color(0xFF00C853)
+                    : _otpError
+                        ? const Color(0xFFEA4335)
+                        : const Color(0xFF1A1A2E),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _otpVerified
+                    ? 'OTP Verified'
+                    : 'Enter 4-digit OTP from customer',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'OpenSans',
+                  color: _otpVerified
+                      ? const Color(0xFF00C853)
+                      : _otpError
+                          ? const Color(0xFFEA4335)
+                          : const Color(0xFF1A1A2E),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // OTP input boxes
+          if (!_otpVerified)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (index) => _buildOtpBox(index)),
+            ),
+          if (_otpVerified)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle_rounded,
+                      color: Color(0xFF00C853), size: 32),
+                  const SizedBox(width: 10),
+                  Text(
+                    'OTP ${_otpControllers.map((c) => c.text).join()} verified',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF00C853),
+                      fontFamily: 'OpenSans',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtpBox(int index) {
+    final hasError = _otpError;
+
+    return Container(
+      width: 56,
+      height: 60,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      child: TextField(
+        controller: _otpControllers[index],
+        focusNode: _otpFocusNodes[index],
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        maxLength: 1,
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'OpenSans',
+          color: hasError ? const Color(0xFFEA4335) : const Color(0xFF1A1A2E),
+        ),
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          counterText: '',
+          filled: true,
+          fillColor: hasError
+              ? const Color(0xFFEA4335).withValues(alpha: 0.05)
+              : const Color(0xFFF5F5F5),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: hasError
+                  ? const Color(0xFFEA4335)
+                  : const Color(0xFFE0E0E0),
+              width: 1.5,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: hasError
+                  ? const Color(0xFFEA4335)
+                  : const Color(0xFFE0E0E0),
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: hasError
+                  ? const Color(0xFFEA4335)
+                  : const Color(0xFF4285F4),
+              width: 2,
+            ),
+          ),
+        ),
+        onChanged: (value) {
+          if (value.isNotEmpty && index < 3) {
+            _otpFocusNodes[index + 1].requestFocus();
+          }
+          // Auto-verify when all 4 digits entered
+          if (index == 3 && value.isNotEmpty) {
+            _verifyOtp();
+          }
+          // Handle backspace on empty
+          if (value.isEmpty && index > 0) {
+            _otpFocusNodes[index - 1].requestFocus();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildStartRideButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton(
+          onPressed: _isStartingRide ? null : _startRide,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF00C853),
+            foregroundColor: Colors.white,
+            elevation: 4,
+            shadowColor: const Color(0xFF00C853).withValues(alpha: 0.4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: _isStartingRide
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.play_arrow_rounded, size: 26),
+                    SizedBox(width: 8),
+                    Text(
+                      'Start Ride',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'OpenSans',
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}

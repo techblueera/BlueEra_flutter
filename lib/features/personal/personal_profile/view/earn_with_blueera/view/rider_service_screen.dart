@@ -52,7 +52,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   @override
   void initState() {
-    _checkRiderServiceStatus();
+    // _checkRiderServiceStatus();
     _checkRiderStatus();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
@@ -77,15 +77,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   @override
   void didPopNext() {
-    _checkRiderServiceStatus();
+    // _checkRiderServiceStatus();
     _checkRiderStatus();
   }
 
-  Future<void> _checkRiderServiceStatus() async {
-    await getRiderServiceOptData();
-    controller.isRiderServiceOpt.value = isRiderServiceOpt;
-    print('isRiderServiceUser -- ${controller.isRiderServiceOpt.value}');
-  }
+  // Future<void> _checkRiderServiceStatus() async {
+  //   await getRiderServiceOptData();
+  //   controller.isRiderServiceOpt.value = isRiderServiceOpt;
+  //   print('isRiderServiceUser -- ${controller.isRiderServiceOpt.value}');
+  // }
 
 
   @override
@@ -106,10 +106,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final riderValue = controller.isRiderServiceOpt.value;
-      if(riderValue.isEmpty){
-        return _buildLoading();
-      }
+      // final riderValue = controller.isRiderServiceOpt.value;
+      // if(riderValue.isEmpty){
+      //   return _buildLoading();
+      // }
 
       if (controller
           .ridersOnboardingStatusResponse.value.status ==
@@ -120,10 +120,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
         allStepsCompleted = stepStatus.values.every((status) => status == true);
-        final riderOpt = controller.isRiderServiceOpt.value;
-        if (riderOpt.isEmpty) {
-          return _buildLoading();
-        }
+        // final riderOpt = controller.isRiderServiceOpt.value;
+        // if (riderOpt.isEmpty) {
+        //   return _buildLoading();
+        // }
 
         return _buildRiderEnabled(context);
       }
@@ -403,7 +403,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   navigatePushTo(context, BusinessOwnProfileScreen());
                 }
               },
-              child: CustomText("${userNameGlobal}",fontSize: 15,fontWeight: FontWeight.w600,)),
+              child: CustomText(
+                "${userNameGlobal}",
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              )),
         ),
         // CommonProfileAvatar(),
         // SizedBox(width: SizeConfig.size15),

@@ -7,7 +7,7 @@
 // import 'package:BlueEra/core/constants/getx_utils.dart';
 // import 'package:BlueEra/core/constants/size_config.dart';
 // import 'package:BlueEra/core/constants/snackbar_helper.dart';
-// import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
+// import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 // import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 // import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 // import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';

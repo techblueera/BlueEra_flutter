@@ -29,6 +29,9 @@ import 'package:get/get.dart';
 import '../../../../core/api/model/new_food_home_res_model.dart';
 import '../model/get_booking_rider_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../chat/auth/controller/call_controller.dart';
+import '../../../chat/auth/repo/make_order_repo.dart';
+import '../../../chat/auth/socket/chat_socket.dart';
 
 enum CategoryFilter {
   nearest('Nearest'),
@@ -130,6 +133,15 @@ class DiscoverController extends GetxController {
   int rentalServicePage = 1;
   var isRentalServiceLoadingMore = false.obs;
   bool hasMoreRentalServiceData = true;
+
+  // --- Fare-call queue state ---
+  RxBool isFareCallInProgress = false.obs;
+  RxString fareCallOrderId = ''.obs;
+  RxInt fareCallCurrentRiderIndex = 0.obs;
+  RxInt fareCallTotalRiders = 0.obs;
+  RxString fareCallCurrentRiderId = ''.obs;
+  Rxn<Map<String, dynamic>> fareCallAcceptedRiderInfo = Rxn<Map<String, dynamic>>();
+  RxString fareCallAcceptedRiderId = ''.obs;
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
@@ -818,7 +830,8 @@ class DiscoverController extends GetxController {
       if (selectedHorizontalTab.value == 1)
         if (selectedBookingFor.value == AppConstants.myFriend)
           ApiKeys.contactNo: myFriendPhoneController.text,
-      ApiKeys.fare: ridersDetailsList.value.twoWheelerRider?.fare
+      ApiKeys.fare: ridersDetailsList.value.twoWheelerRider?.fare,
+      ApiKeys.orderType: 'fare-call',
     };
 
     final response = await DiscoverRepo().makeTransportBookOrderApi(
@@ -827,15 +840,111 @@ class DiscoverController extends GetxController {
 
     if (response.isSuccess) {
       bookRiderBtnLoading.value = false;
-      commonSnackBar(
-          message: response.message ??
-              "Your Booking Request Send To Rider,Wait Rider Accept Soon");
+      // Store the orderId for fare-call queue tracking
+      final data = response.response?.data;
+      if (data != null && data is Map) {
+        fareCallOrderId.value = data['orderId'] ?? data['_id'] ?? '';
+      }
+      isFareCallInProgress.value = true;
+      fareCallTotalRiders.value = selectedRiders.length;
+      fareCallCurrentRiderIndex.value = 0;
       return true;
     } else {
       bookRiderBtnLoading.value = false;
       commonSnackBar(message: response.message ?? "Unable to Book a Rider");
       return false;
     }
+  }
+
+  /// Setup socket listeners for fare-call queue progress
+  void setupFareCallQueueListeners() {
+    final socket = ChatSocketService();
+
+    socket.listenEvent('ride:queue:calling', (data) {
+      debugPrint('[FARE_CALL_QUEUE] ride:queue:calling → $data');
+      fareCallCurrentRiderIndex.value = (data['riderIndex'] ?? 0) + 1;
+      fareCallTotalRiders.value = data['totalRiders'] ?? selectedRiders.length;
+      fareCallCurrentRiderId.value = data['riderId'] ?? '';
+
+      // Auto-join the WebRTC call room so audio connects when rider accepts
+      final callId = (data['call_id'] ?? '').toString();
+      final roomId = (data['room_id'] ?? '').toString();
+      final riderId = (data['riderId'] ?? '').toString();
+      final conversationId = (data['conversation_id'] ?? '').toString();
+      // ice_servers can be a List [...] or a Map {iceServers: [...]}
+      final rawIceServers = data['ice_servers'];
+      List iceServers;
+      if (rawIceServers is List) {
+        iceServers = rawIceServers;
+      } else if (rawIceServers is Map && rawIceServers['iceServers'] is List) {
+        iceServers = rawIceServers['iceServers'] as List;
+      } else {
+        iceServers = [];
+      }
+
+      debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → callId=$callId, roomId=$roomId, riderId=$riderId, iceServers count=${iceServers.length}');
+      debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
+
+      if (callId.isNotEmpty && roomId.isNotEmpty && riderId.isNotEmpty) {
+        if (!Get.isRegistered<CallController>()) {
+          debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → CallController not registered, creating new');
+          Get.put(CallController(), permanent: true);
+        }
+        final callController = Get.find<CallController>();
+        debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → CallController current status=${callController.callStatus.value}');
+        callController.joinFareCallAsCustomer(
+          fareCallId: callId,
+          fareRoomId: roomId,
+          riderId: riderId,
+          fareConversationId: conversationId,
+          iceServers: iceServers,
+        );
+      } else {
+        debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → ⚠️ MISSING DATA: callId=$callId, roomId=$roomId, riderId=$riderId — cannot join call!');
+      }
+    });
+
+    socket.listenEvent('ride:queue:accepted', (data) {
+      debugPrint('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
+      // IMPORTANT: Set riderInfo BEFORE setting isFareCallInProgress=false.
+      // The exhausted worker triggers on isFareCallInProgress change and checks
+      // fareCallAcceptedRiderInfo — if riderInfo is still null, it pops the screen.
+      fareCallAcceptedRiderInfo.value = data['riderInfo'] != null
+          ? Map<String, dynamic>.from(data['riderInfo'])
+          : null;
+      fareCallAcceptedRiderId.value = data['riderId'] ?? data['riderInfo']?['riderId'] ?? '';
+      isFareCallInProgress.value = false;
+    });
+
+    socket.listenEvent('ride:queue:exhausted', (data) {
+      debugPrint('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
+      isFareCallInProgress.value = false;
+      fareCallAcceptedRiderInfo.value = null;
+      commonSnackBar(message: 'No riders available. Please try again.');
+    });
+  }
+
+  /// Cancel fare-call queue
+  Future<void> cancelFareCallQueue() async {
+    if (fareCallOrderId.value.isEmpty) return;
+    final response = await MakeOrderRepo().cancelFareCallQueueApi(fareCallOrderId.value);
+    if (response.isSuccess) {
+      isFareCallInProgress.value = false;
+      commonSnackBar(message: 'Ride request cancelled');
+    } else {
+      commonSnackBar(message: response.message ?? 'Failed to cancel');
+    }
+  }
+
+  /// Cleanup fare-call queue state
+  void resetFareCallState() {
+    isFareCallInProgress.value = false;
+    fareCallOrderId.value = '';
+    fareCallCurrentRiderIndex.value = 0;
+    fareCallTotalRiders.value = 0;
+    fareCallCurrentRiderId.value = '';
+    fareCallAcceptedRiderInfo.value = null;
+    fareCallAcceptedRiderId.value = '';
   }
 
   Future<void> fetchRentalServices(
