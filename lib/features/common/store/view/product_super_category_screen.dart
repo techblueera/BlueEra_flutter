@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -11,7 +12,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
+import 'package:BlueEra/features/common/store/models/product_consumer_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/widget/create_own_product_via_ai_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -22,31 +26,29 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ProductSuperCategoryScreen extends StatelessWidget {
-  final String group;
-  ProductSuperCategoryScreen({super.key, required this.group});
+  final String? ownerID;
+  final ProviderType? providerType;
 
-  final controller = getOrPut(() => NewStoreController());
+  ProductSuperCategoryScreen({
+    super.key,
+    this.ownerID,
+    this.providerType,
+  });
+
+  final controller = getOrPut(() => ProductController());
 
   @override
   Widget build(BuildContext context) {
-    controller.fetchProductCategoryTree(group: group);
+    controller.fetchProductsNestedCategory();
+    if (ownerID != null) controller.ownerID = ownerID;
+    if (providerType != null) controller.ownerProviderType = providerType;
 
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
-        buildCustomActionWidget: () => Padding(
-          padding: const EdgeInsets.only(right: 20.0),
-          child: CustomBtn(
-            height: SizeConfig.size35,
-            width: SizeConfig.size70,
-            onTap: () {},
-            bgColor: AppColors.white,
-            borderColor: AppColors.primaryColor,
-            radius: 10.0,
-            title: 'Tutorial',
-            textColor: AppColors.primaryColor,
-          ),
+        buildCustomActionWidget: () => CreateOwnProductViaAiWidget(
+          providerType: ProviderType.business,
         ),
       ),
       body: SingleChildScrollView(
@@ -75,15 +77,21 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                       shrinkWrap: true,
                       primary: false,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _productAddOptions.length,
+                      itemCount: controller.productSnapSearchConfig.length,
                       crossAxisCount: 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
                       padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
-                        var item = _productAddOptions[index];
+                        var item = controller.productSnapSearchConfig[index];
                         return InkWell(
-                          onTap: () => item['onTap'](),
+                          onTap: () => Get.toNamed(
+                              RouteHelper.getAddProductTextOrSnapScreenRoute(),
+                              arguments: {
+                                ApiKeys.id: controller.ownerID,
+                                ApiKeys.providerType: controller.ownerProviderType,
+                            },
+                          ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.0),
                             child: Container(
@@ -191,7 +199,9 @@ class ProductSuperCategoryScreen extends StatelessWidget {
 
                     Obx(() {
                       // ── Loading state ──
-                      if (controller.isProductCategoryTreeLoading.value) {
+                      if (
+                      controller.nestedProductCategoryResponse.value.status == Status.INITIAL
+                      ) {
                         return const Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 32),
@@ -201,7 +211,7 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                       }
 
                       // ── Empty state ──
-                      if (controller.productCategoryTreeList.isEmpty) {
+                      if (controller.productsNestedCategoryList.isEmpty) {
                         return const Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 32),
@@ -215,17 +225,15 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                         shrinkWrap: true,
                         primary: false,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount:
-                            controller.productCategoryTreeList.length,
+                        itemCount: controller.productsNestedCategoryList.length,
                         crossAxisCount: 3,
                         crossAxisSpacing: 6,
                         mainAxisSpacing: 6,
                         padding: EdgeInsets.zero,
                         itemBuilder: (context, index) {
-                          final category =
-                              controller.productCategoryTreeList[index];
+                          final category = controller.productsNestedCategoryList[index];
 
-                          return CommonServiceCard<ProductNestedCategory>(
+                          return CommonServiceCard<ProductNestedCategoryResponse>(
                             service: category,
                             getName: (item) => item.name ?? '',
                             getIcon: (item) => '',
@@ -236,13 +244,9 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                                 RouteHelper
                                     .getProductNestedCategoryScreenRoute(),
                                 arguments: {
-                                  ApiKeys.argArrProductSuperCategory:
-                                      controller.productCategoryTreeList
-                                          .toList(),
-                                  ApiKeys.argArrProductCatKey:
-                                      item.key,
-                                  ApiKeys.argArrProductCatName:
-                                      item.name,
+                                  ApiKeys.argArrProductSuperCategory: controller.productsNestedCategoryList.toList(),
+                                  ApiKeys.argArrProductCatId: item.sId,
+                                  ApiKeys.argArrProductCatName: item.name,
                                 },
                               );
                             },
@@ -260,28 +264,4 @@ class ProductSuperCategoryScreen extends StatelessWidget {
     );
   }
 
-  late final List<Map<String, dynamic>> _productAddOptions = [
-    {
-      'title': 'Upload Photo',
-      'icon': AppIconAssets.cameraAddOutlineIcon,
-      'image': AppImageAssets.groceryImageFirst,
-      'onTap': () {
-        Get.toNamed(
-          RouteHelper.getAddProductViaAiStep1Route(),
-          arguments: {
-            ApiKeys.id: '',
-            ApiKeys.providerType: ProviderType.business,
-          },
-        );
-      },
-    },
-    {
-      'title': 'Choose Category',
-      'icon': AppIconAssets.search,
-      'image': AppImageAssets.groceryImageSecond,
-      'onTap': () {
-        // Scroll down to categories section - already visible below
-      },
-    },
-  ];
 }

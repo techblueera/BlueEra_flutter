@@ -21,7 +21,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 /// View-only pharmacy detail screen — same UI as MedicalHomeScreen
-/// but without edit capabilities (no logo/cover edit, no inventory management).
+/// but without edit capabilities (no logo/cover edit, no product management).
 /// Used when a user taps a pharmacy card from NearestPharmaciesListScreen.
 class MedicalPharmacyDetailScreen extends StatefulWidget {
   final String businessId;

@@ -29,6 +29,9 @@ import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_scr
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_with_inventory_screen.dart';
+import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/product/view/product_nested_category_with_inventory_screen.dart';
+import 'package:BlueEra/features/me/product/view/my_product_products_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -106,7 +109,8 @@ import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.d
 import 'package:BlueEra/features/common/store/view/product_super_category_screen.dart';
 import 'package:BlueEra/features/common/store/view/product_nested_category_screen.dart';
 import 'package:BlueEra/features/common/store/view/product_selection_screen.dart';
-import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/view/product/product_cart_screen.dart';
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
@@ -129,17 +133,17 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_via_ai_step1.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_via_ai_step2.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/create_varient_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/store_product_preview_screen_product.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/view/product/add_product_text_or_snap_screen.dart';
+import 'package:BlueEra/features/me/product/view/product/add_product_via_ai_step1.dart';
+import 'package:BlueEra/features/me/product/view/product/add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/me/product/view/product/create_varient_screen.dart';
+import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
+import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
+import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
+import 'package:BlueEra/features/me/product/view/product/store_product_preview_screen_product.dart';
+import 'package:BlueEra/features/me/product/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
@@ -363,7 +367,8 @@ class RouteHelper {
 
   static String getMoreCardsScreenRoute() => RouteConstant.moreCardsScreen;
 
-  static String getAddProductScreenRoute() => RouteConstant.addProductScreen;
+  static String getAddProductTextOrSnapScreenRoute() =>
+      RouteConstant.addProductTextOrSnapSearchScreen;
 
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
@@ -395,6 +400,9 @@ class RouteHelper {
 
   static String getStoreProductSelectionScreenRoute() =>
       RouteConstant.storeProductSelectionScreen;
+
+  static String getProductCartScreenRoute() =>
+      RouteConstant.productCartScreen;
 
   static String getEarnServiceScreenRoute() => RouteConstant.earnServiceScreen;
 
@@ -599,6 +607,12 @@ class RouteHelper {
 
   static String getProductSelectionScreenRoute() =>
       RouteConstant.productSelectionScreen;
+
+  static String getProductNestedCategoryWithInventoryScreenRoute() =>
+      RouteConstant.productNestedCategoryWithInventoryScreen;
+
+  static String getMyProductProductsScreenRoute() =>
+      RouteConstant.myProductProductsScreen;
 
   static String getFoodEntryAiScreenRoute() =>
       RouteConstant.foodEntryAiScreen;
@@ -1151,18 +1165,18 @@ class RouteHelper {
                   onHeaderVisibilityChanged: onHeaderVisibilityChanged,
                 ),
             settings: RouteSettings(name: getMoreCardsScreenRoute()));
-      case RouteConstant.addProductScreen:
+      case RouteConstant.addProductTextOrSnapSearchScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
-            builder: (_) => AddProductScreen(
+            builder: (_) => AddProductTextOrSnapSearchScreen(
                   id: id,
                   providerType: providerType,
                 ),
-            settings: RouteSettings(name: getAddProductScreenRoute()));
+            settings: RouteSettings(name: getAddProductTextOrSnapScreenRoute()));
       // case RouteConstant.listingFormScreen:
       //   return MaterialPageRoute(
       //       builder: (_) => ListingFormScreen(),
@@ -1603,33 +1617,35 @@ class RouteHelper {
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
 
       case RouteConstant.productSuperCategoryScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final String group = args[ApiKeys.argProductGroup] as String;
+        final args = settings.arguments as Map<String, dynamic>?;
+        final String? ownerID = args?[ApiKeys.id] as String?;
+        final ProviderType? providerType = args?[ApiKeys.providerType] as ProviderType?;
         return MaterialPageRoute(
-            builder: (_) => ProductSuperCategoryScreen(group: group),
-            settings:
-                RouteSettings(name: getProductSuperCategoryScreenRoute()));
+            builder: (_) => ProductSuperCategoryScreen(
+                ownerID: ownerID,
+                providerType: providerType,
+            ),
+            settings: RouteSettings(name: getProductSuperCategoryScreenRoute()));
 
       case RouteConstant.productNestedCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<ProductNestedCategory> superCats =
+        final List<ProductNestedCategoryResponse> superCats =
             args[ApiKeys.argArrProductSuperCategory]
-                as List<ProductNestedCategory>;
-        final String catKey = args[ApiKeys.argArrProductCatKey] as String;
+                as List<ProductNestedCategoryResponse>;
+        final String catId = args[ApiKeys.argArrProductCatId] as String;
         final String catName = args[ApiKeys.argArrProductCatName] as String;
         return MaterialPageRoute(
             builder: (_) => ProductNestedCategoryScreen(
                   argArrProductSuperCat: superCats,
-                  argArrProductCatKey: catKey,
+                  argArrProductCatId: catId,
                   argArrProductCatName: catName,
                 ),
-            settings:
-                RouteSettings(name: getProductNestedCategoryScreenRoute()));
+            settings: RouteSettings(name: getProductNestedCategoryScreenRoute()));
 
       case RouteConstant.storeProductSelectionScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<ProductNestedCategory> products =
-            args[ApiKeys.argProducts] as List<ProductNestedCategory>;
+        final List<ProductNestedCategoryResponse> products =
+            args[ApiKeys.argProducts] as List<ProductNestedCategoryResponse>;
         final String? categoryName =
             args[ApiKeys.argArrProductCatName] as String?;
         return MaterialPageRoute(
@@ -1639,6 +1655,11 @@ class RouteHelper {
                 ),
             settings:
                 RouteSettings(name: getStoreProductSelectionScreenRoute()));
+
+      case RouteConstant.productCartScreen:
+        return MaterialPageRoute(
+            builder: (_) => ProductCartScreen(),
+            settings: RouteSettings(name: getProductCartScreenRoute()));
 
       case RouteConstant.paymentSettingScreen:
         return MaterialPageRoute(
@@ -1856,7 +1877,7 @@ class RouteHelper {
         final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
 
         return MaterialPageRoute(
-            builder: (_) => AddSingleProductScreen(
+            builder: (_) => AddSingleFoodProductScreen(
               foodProductId: productId,
               createMissingProductIndex: createMissingProductIndex
             ),
@@ -1872,6 +1893,35 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getProductSelectionScreenRoute())
         );
+
+      case RouteConstant.productNestedCategoryWithInventoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String userId = args[ApiKeys.userId] as String;
+        final List<ProductCategoryWithInventoryModel> argProductCategoryWithInventory
+            = args[ApiKeys.argProductCategoryWithInventory] as List<ProductCategoryWithInventoryModel>;
+        final String argProductCatName = args[ApiKeys.argProductCatName] as String;
+        final String argProductCatKey = args[ApiKeys.argProductCatKey] as String;
+        return MaterialPageRoute(
+            builder: (_) => ProductNestedCategoryWithInventoryScreen(
+              userId: userId,
+              argProductCategoryWithInventory: argProductCategoryWithInventory,
+              argProductCatKey: argProductCatKey,
+              argProductCatName: argProductCatName,
+            ),
+            settings: RouteSettings(name: getProductNestedCategoryWithInventoryScreenRoute())
+        );
+
+      case RouteConstant.myProductProductsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String userId = args[ApiKeys.userId] as String;
+        final List<ProductNestedCategoryResponse> argProductCategories =
+            args[ApiKeys.argProductCategories] as List<ProductNestedCategoryResponse>;
+        return MaterialPageRoute(
+            builder: (_) => MyProductProductsScreen(
+              userId: userId,
+              arrCategories: argProductCategories,
+            ),
+            settings: RouteSettings(name: getMyProductProductsScreenRoute()));
 
       case RouteConstant.foodEntryAiScreen:
         final args = settings.arguments as Map<String, dynamic>;

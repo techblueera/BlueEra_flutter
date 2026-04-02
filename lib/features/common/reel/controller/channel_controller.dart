@@ -8,8 +8,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/models/channel_stats_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 

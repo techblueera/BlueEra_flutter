@@ -34,7 +34,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
   // Map to store product ID for each variant ID: { "variant_id": "product_id" }
   var cartProductIds = <String, String>{}.obs;
 
-  // Map to store inventory ID for each variant ID: { "variant_id": "inventory_id" }
+  // Map to store product ID for each variant ID: { "variant_id": "inventory_id" }
   var cartInventoryIds = <String, String>{}.obs;
 
   // Map to store business info for each variant ID: { "variant_id": { businessId, businessName, logo, address } }
@@ -162,7 +162,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
             0;
 
         items.add({
-          "inventory": cartInventoryIds[variant.sId] ?? "",
+          "product": cartInventoryIds[variant.sId] ?? "",
           "productVariant": variant.sId ?? "",
           "quantity": qty,
           "mrp": mrp,

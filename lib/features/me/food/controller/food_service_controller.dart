@@ -602,7 +602,7 @@ class FoodServiceController extends GetxController {
     } catch (e) {
       getSingleFoodProductResponse.value =
           ApiResponse.error(e.toString());
-      debugPrint("Error adding to inventory: $e");
+      debugPrint("Error adding to product: $e");
     }
 
   }
@@ -647,7 +647,7 @@ class FoodServiceController extends GetxController {
       final responseModel = await FoodRepo().addKitchenInventoryRepo(params: tempReqList);
 
       if (responseModel.isSuccess) {
-        commonSnackBar(message: responseModel.message ?? "Product added to inventory");
+        commonSnackBar(message: responseModel.message ?? "Product added to product");
         if(createMissingProductIndex==null){
           Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
 
@@ -681,7 +681,7 @@ class FoodServiceController extends GetxController {
         commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      debugPrint("Error adding to inventory: $e");
+      debugPrint("Error adding to product: $e");
     }
   }
 

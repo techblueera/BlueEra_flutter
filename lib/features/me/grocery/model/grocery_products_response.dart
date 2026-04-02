@@ -97,7 +97,7 @@ class Category {
 //   List<Pricing>? pricing;
 //   List<Images>? images;
 //   String? quantity;
-//   Inventory? inventory;
+//   Inventory? product;
 //
 //   Variants(
 //       {this.sId,
@@ -107,7 +107,7 @@ class Category {
 //         this.pricing,
 //         this.images,
 //         this.quantity,
-//         this.inventory});
+//         this.product});
 //
 //   Variants.fromJson(Map<String, dynamic> json) {
 //     sId = json['_id'];
@@ -127,8 +127,8 @@ class Category {
 //       });
 //     }
 //     quantity = json['quantity'];
-//     inventory = json['inventory'] != null
-//         ? new Inventory.fromJson(json['inventory'])
+//     product = json['product'] != null
+//         ? new Inventory.fromJson(json['product'])
 //         : null;
 //   }
 //
@@ -145,8 +145,8 @@ class Category {
 //       data['images'] = this.images!.map((v) => v.toJson()).toList();
 //     }
 //     data['quantity'] = this.quantity;
-//     if (this.inventory != null) {
-//       data['inventory'] = this.inventory!.toJson();
+//     if (this.product != null) {
+//       data['product'] = this.product!.toJson();
 //     }
 //     return data;
 //   }

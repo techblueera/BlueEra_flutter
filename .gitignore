@@ -55,5 +55,5 @@ lib/env.g.dart
 
 # FVM Version Cache
 .fvm/
-lib/features/personal/personal_profile/view/inventory/widgets/catalog.dart
+lib/features/me/product/widgets/catalog.dart
 ios/Flutter/Secrets.xcconfig

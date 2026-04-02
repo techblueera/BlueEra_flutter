@@ -483,6 +483,10 @@ abstract class BaseService {
   final String cloneProductInventory = 'inventory-service/products/cloneProductInventory';
   String addUpdateProductVariant(String productId)=> 'product-service/api/product/$productId';
   String getProductById(String productId)=> 'product-service/api/product/get-product-by-id/$productId';
+  final String productNestedCategory = 'product-service/api/categories/nested';
+  String productInventoryByCategory(String businessId) => 'product-service/api/product/business/$businessId/inventoryByCategory';
+  final String productNestedCategoryWithInventory = 'product-service/api/categories/nested/with-inventory';
+  final String productSnapSearch = 'product-service/api/ai-product/snap-search';
 
   final String homeFeed = 'userfeed-service/feed';
   final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';

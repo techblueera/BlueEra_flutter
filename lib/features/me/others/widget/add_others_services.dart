@@ -10,7 +10,7 @@ import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
 import 'package:BlueEra/features/me/others/view/announcements/announcements_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
+import 'package:BlueEra/features/me/product/view/product/add_product_text_or_snap_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -34,7 +34,7 @@ class _AddOthersServicesState extends State<AddOthersServices> {
     ServiceMenuItem(
       title: "Products",
       icon: AppIconAssets.other_products,
-      page: () => AddProductScreen(id: businessId, providerType: ProviderType.business),
+      page: () => AddProductTextOrSnapSearchScreen(id: businessId, providerType: ProviderType.business),
       // page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Product.name,), // Update to your actual page
     ),
     ServiceMenuItem(

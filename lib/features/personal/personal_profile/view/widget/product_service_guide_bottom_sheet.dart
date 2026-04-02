@@ -75,7 +75,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
                 );
               } else {
                 Get.offNamedUntil(
-                  RouteHelper.getAddProductScreenRoute(),
+                  RouteHelper.getAddProductTextOrSnapScreenRoute(),
                   ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()),
                   arguments: {
                     ApiKeys.id: userId,

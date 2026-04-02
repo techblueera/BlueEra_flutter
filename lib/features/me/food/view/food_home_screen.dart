@@ -759,7 +759,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 },
               )
                   : EmptyStateWidget(
-                message: 'You don\'t have inventory yet, Want to create one?',
+                message: 'You don\'t have product yet, Want to create one?',
               ),
 
               SizedBox(

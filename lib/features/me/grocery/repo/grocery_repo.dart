@@ -89,7 +89,7 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  /// Add Grocery Product to inventory
+  /// Add Grocery Product to product
   Future<ResponseModel> addGroceryProductVariantRepo(
       {List<Map<String, dynamic>>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
@@ -324,7 +324,7 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  /// Add Grocery Product to inventory
+  /// Add Grocery Product to product
   Future<ResponseModel> missingGroceryProductRequestsRepo(
       {Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(

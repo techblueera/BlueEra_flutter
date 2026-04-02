@@ -547,7 +547,7 @@ class ChatViewController extends GetxController {
   String _getInitialMessageText(String type) {
     switch (type) {
       case AppConstants.askInventory_Chat_Type:
-        return "Hello! I can help you check our inventory. What product are you looking for?";
+        return "Hello! I can help you check our product. What product are you looking for?";
 
       case AppConstants.askFood_Chat_Type:
         return "Hungry? I can help you find food details and calories. What did you eat?";

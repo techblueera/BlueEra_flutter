@@ -297,7 +297,7 @@ void main() {
   });
 
   group('CategoryProductVariant parsing', () {
-    test('parses with inventory data', () {
+    test('parses with product data', () {
       final json = {
         '_id': 'cpv1',
         'variantName': '100ml',
@@ -309,7 +309,7 @@ void main() {
         'images': [
           {'url': 'https://example.com/v.png', '_id': 'img1'}
         ],
-        'inventory': {
+        'product': {
           'inventoryId': 'inv1',
           'pincode': '110001',
           'cityName': 'Delhi',
@@ -339,7 +339,7 @@ void main() {
       expect(variant.inventory!.batches!.first.quantity, 100);
     });
 
-    test('parses without inventory', () {
+    test('parses without product', () {
       final json = {
         '_id': 'cpv2',
         'variantName': '200mg',

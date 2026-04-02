@@ -1,24 +1,29 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/store/models/product_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/common_back_app_bar.dart';
 
 class ProductNestedCategoryScreen extends StatefulWidget {
-  final List<ProductNestedCategory> argArrProductSuperCat;
-  final String argArrProductCatKey;
+  final List<ProductNestedCategoryResponse> argArrProductSuperCat;
+  final String argArrProductCatId;
   final String argArrProductCatName;
 
   const ProductNestedCategoryScreen({
     super.key,
     required this.argArrProductSuperCat,
-    required this.argArrProductCatKey,
+    required this.argArrProductCatId,
     required this.argArrProductCatName,
   });
 
@@ -30,24 +35,24 @@ class ProductNestedCategoryScreen extends StatefulWidget {
 class _ProductNestedCategoryScreenState
     extends State<ProductNestedCategoryScreen> {
   late String _argArrProductCatName;
-  late String _argArrProductCatKey;
-  late List<ProductNestedCategory> _argArrProductSuperCat;
-  List<ProductNestedCategory> _filteredChildren = [];
+  late String _argArrProductCatId;
+  late List<ProductNestedCategoryResponse> _argArrProductSuperCat;
+  List<ProductNestedCategoryResponse> _filteredChildren = [];
 
   @override
   void initState() {
     _argArrProductSuperCat = widget.argArrProductSuperCat;
     _argArrProductCatName = widget.argArrProductCatName;
-    _argArrProductCatKey = widget.argArrProductCatKey;
-    _applyFilter(_argArrProductCatKey);
+    _argArrProductCatId = widget.argArrProductCatId;
+    _applyFilter(_argArrProductCatId);
     super.initState();
   }
 
-  void _applyFilter(String key) {
+  void _applyFilter(String id) {
     final match = _argArrProductSuperCat.firstWhereOrNull(
-      (cat) => cat.key == key,
+      (cat) => cat.sId == id,
     );
-    _argArrProductCatKey = key;
+    _argArrProductCatId = id;
     _filteredChildren = match?.children ?? [];
     setState(() {});
   }
@@ -58,16 +63,16 @@ class _ProductNestedCategoryScreenState
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () =>
-            PopupMenuButton<ProductNestedCategory>(
+            PopupMenuButton<ProductNestedCategoryResponse>(
               offset: const Offset(0, 30),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
-              onSelected: (ProductNestedCategory value) {
+              onSelected: (ProductNestedCategoryResponse value) {
                 setState(() {
                   _argArrProductCatName = value.name ?? '';
                 });
-                _argArrProductCatKey = value.key ?? '';
-                _applyFilter(value.key ?? '');
+                _argArrProductCatId = value.sId ?? '';
+                _applyFilter(value.sId ?? '');
               },
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -91,22 +96,30 @@ class _ProductNestedCategoryScreenState
               ),
               itemBuilder: (BuildContext context) {
                 return _argArrProductSuperCat.map((choice) {
-                  return PopupMenuItem<ProductNestedCategory>(
+                  return PopupMenuItem<ProductNestedCategoryResponse>(
                     value: choice,
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.category_outlined,
-                          size: SizeConfig.size20,
-                          color: AppColors.secondaryTextColor,
-                        ),
+                        (isNetworkImage(choice.image))
+                            ? SvgPicture.network(
+                                choice.image ?? '',
+                                width: SizeConfig.size20,
+                                height: SizeConfig.size20,
+                                fit: BoxFit.contain,
+                              )
+                            : LocalAssets(
+                                imagePath: choice.image ?? '',
+                                width: SizeConfig.size20,
+                                height: SizeConfig.size20,
+                                boxFix: BoxFit.contain,
+                              ),
                         SizedBox(width: SizeConfig.size8),
                         CustomText(
                           choice.name?.tr,
-                          color: choice.key == _argArrProductCatKey
+                          color: choice.sId == _argArrProductCatId
                               ? Colors.green
                               : Colors.black,
-                          fontWeight: choice.key == _argArrProductCatKey
+                          fontWeight: choice.sId == _argArrProductCatId
                               ? FontWeight.bold
                               : FontWeight.normal,
                         ),
@@ -151,18 +164,32 @@ class _ProductNestedCategoryScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Container(
-                            height: SizeConfig.size120,
-                            width: double.maxFinite,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: AppColors.whiteFE,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.category_outlined,
-                                size: SizeConfig.size50,
-                                color: AppColors.greyE5,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.whiteFE,
+                              ),
+                              child: CachedNetworkImage(
+                                imageUrl: item.image ?? '',
+                                height: SizeConfig.size120,
+                                width: double.maxFinite,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => SizedBox(
+                                    height: SizeConfig.size120,
+                                    width: SizeConfig.size120,
+                                    child: LocalAssets(
+                                      imagePath:
+                                          AppIconAssets.place_holder_image,
+                                      boxFix: BoxFit.cover,
+                                    )),
+                                errorWidget: (context, url, error) =>
+                                    LocalAssets(
+                                  imagePath:
+                                      AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ),

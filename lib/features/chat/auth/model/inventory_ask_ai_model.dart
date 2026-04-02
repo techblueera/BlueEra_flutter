@@ -1,6 +1,6 @@
 import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
 
-import '../../../personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 
 class InventoryAskAiModel extends BaseAiChatModel {
   List<String>? suggestions;

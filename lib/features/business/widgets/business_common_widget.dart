@@ -487,6 +487,13 @@ Widget _buildDropdown({
   required List<String> items,
   required Function(String?) onChanged,
 }) {
+  // Ensure the current value exists in items to avoid DropdownButton assertion error
+  final effectiveItems = List<String>.from(items);
+  if (value.isNotEmpty && !effectiveItems.contains(value)) {
+    effectiveItems.add(value);
+    effectiveItems.sort();
+  }
+
   return Container(
     padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size16, vertical: SizeConfig.size10),
@@ -503,7 +510,7 @@ Widget _buildDropdown({
         hint: CustomText(hint, color: Colors.grey[600]),
         icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
         style: TextStyle(color: Colors.black87, fontSize: 14),
-        items: items.map((String t) {
+        items: effectiveItems.map((String t) {
           return DropdownMenuItem<String>(
             value: t,
             child: Text(t),

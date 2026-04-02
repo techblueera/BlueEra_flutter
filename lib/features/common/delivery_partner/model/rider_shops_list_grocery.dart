@@ -61,7 +61,7 @@ class AvailableProduct {
   factory AvailableProduct.fromJson(Map<String, dynamic> json) {
     return AvailableProduct(
       variant: Variant.fromJson(json['variant'] ?? {}),
-      inventory: Inventory.fromJson(json['inventory'] ?? {}),
+      inventory: Inventory.fromJson(json['product'] ?? {}),
     );
   }
 }
