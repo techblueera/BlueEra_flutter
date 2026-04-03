@@ -188,9 +188,13 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
               right: SizeConfig.paddingL
           ),
           child: InkWell(
-            onTap: ()=> Get.toNamed(
-               RouteHelper.getMedicalCategoryScreenRoute(),
-            ),
+            onTap: (){
+              Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
+
+            },
+            // onTap: ()=> Get.toNamed(
+            //    RouteHelper.getMedicalCategoryScreenRoute(),
+            // ),
             child: Container(
               height: SizeConfig.size40,
               width: SizeConfig.size40,

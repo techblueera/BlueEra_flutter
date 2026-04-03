@@ -26,9 +26,6 @@ class SocialContactUsController extends GetxController {
       if (responseModel.isSuccess) {
         contactUsData.value =
             SocialContactUsResModel.fromJson(responseModel.response?.data);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } finally {
       isLoading(false);

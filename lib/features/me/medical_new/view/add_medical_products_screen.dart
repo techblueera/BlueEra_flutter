@@ -5,9 +5,10 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+
 
 class AddMedicalProductsScreen extends StatefulWidget {
   const AddMedicalProductsScreen({super.key});
@@ -19,22 +20,18 @@ class AddMedicalProductsScreen extends StatefulWidget {
 
 class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
   final _medicalController = getOrPut(() => MedicalController());
-  final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickAndSnapSearch({required ImageSource source}) async {
+  Future<void> _pickAndSnapSearch() async {
     try {
-      final List<XFile> images;
-      if (source == ImageSource.gallery) {
-        images = await _picker.pickMultiImage(limit: 5);
-      } else {
-        final XFile? photo =
-            await _picker.pickImage(source: ImageSource.camera);
-        images = photo != null ? [photo] : [];
-      }
-      if (images.isEmpty) return;
-      await _medicalController.snapSearch(
-        imagePaths: images.map((e) => e.path).toList(),
+      final paths = await SelectProductImageDialog.showLogoDialog(
+        context,
+        'Upload Product Photos',
+        isOnlyCamera: true,
+        isGallery: true,
+        maxImages: 5,
       );
+      if (paths == null || paths.isEmpty) return;
+      await _medicalController.snapSearch(imagePaths: paths);
     } catch (e) {
       debugPrint('Image pick error: $e');
     }
@@ -89,8 +86,7 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                                 title: 'Take Photo',
                                 subtitle: 'Capture product image',
                                 color: AppColors.primaryColor,
-                                onTap: () => _pickAndSnapSearch(
-                                    source: ImageSource.camera),
+                                onTap: _pickAndSnapSearch,
                               ),
                             ),
                             SizedBox(width: SizeConfig.size10),
@@ -100,8 +96,7 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                                 title: 'Upload List',
                                 subtitle: 'Select from gallery',
                                 color: AppColors.green00,
-                                onTap: () => _pickAndSnapSearch(
-                                    source: ImageSource.gallery),
+                                onTap: _pickAndSnapSearch,
                               ),
                             ),
                           ],

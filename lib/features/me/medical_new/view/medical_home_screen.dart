@@ -49,7 +49,6 @@ const List<Map<String, String>> _staticCategories = [
   {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
   {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
 ];
-
 class MedicalHomeScreen extends StatefulWidget {
   final String businessId;
 
@@ -213,18 +212,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                   ),
                 ),
 
-                // Share & Bookmark
-                Positioned(
-                  top: 10,
-                  right: 55,
-                  child: Row(
-                    children: [
-                      _circleIconButton(Icons.share_outlined),
-                      SizedBox(width: 8),
-                      _circleIconButton(Icons.bookmark_border),
-                    ],
-                  ),
-                ),
+
 
                 // Editable logo (circular)
                 Positioned(
@@ -287,22 +275,22 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     ),
                   ],
                 ),
-                if (profile?.businessDescription != null &&
-                    profile!.businessDescription!.isNotEmpty) ...[
-                  SizedBox(height: 8),
-                  ExpandableText(
-                    text: profile.businessDescription!,
-                    trimLines: 3,
-                    isReadMoreNewLine: false,
-                    expandMode: ExpandMode.dialog,
-                    style: TextStyle(
-                      color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppConstants.OpenSans,
-                    ),
-                  ),
-                ],
+                // if (profile?.businessDescription != null &&
+                //     profile!.businessDescription!.isNotEmpty) ...[
+                //   SizedBox(height: 8),
+                //   ExpandableText(
+                //     text: profile.businessDescription!,
+                //     trimLines: 3,
+                //     isReadMoreNewLine: false,
+                //     expandMode: ExpandMode.dialog,
+                //     style: TextStyle(
+                //       color: AppColors.secondaryTextColor,
+                //       fontSize: SizeConfig.medium,
+                //       fontWeight: FontWeight.w400,
+                //       fontFamily: AppConstants.OpenSans,
+                //     ),
+                //   ),
+                // ],
                 SizedBox(height: 14),
               ],
             ),
@@ -404,9 +392,13 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     title: 'Add New\nProducts',
                     subtitle: 'Browse categories & add',
                     color: AppColors.primaryColor,
-                    onTap: () => Get.to(
-                      () => const AddMedicalProductsScreen(),
-                    ),
+                    onTap: (){
+                      Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
+
+                    }
+                    // onTap: () => Get.to(
+                    //   () => const AddMedicalProductsScreen(),
+                    // ),
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
