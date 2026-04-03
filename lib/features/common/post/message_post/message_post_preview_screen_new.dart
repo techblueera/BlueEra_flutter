@@ -48,6 +48,8 @@ class _MessagePostPreviewScreenNewState
     extends State<MessagePostPreviewScreenNew> {
   late MessagePostController msgPostController;
   late TagUserController tagUserController;
+  late String originalCaption;
+  late bool hasChanges;
 
   @override
   void initState() {
@@ -87,7 +89,11 @@ class _MessagePostPreviewScreenNewState
         msgPostController.referenceLinkController.value.text =
             widget.post?.referenceLink ?? "";
       }
+
+      // Store original caption for change detection
+      originalCaption = widget.post?.subTitle ?? "";
     }
+    hasChanges = false;
     super.initState();
   }
 
@@ -187,9 +193,27 @@ class _MessagePostPreviewScreenNewState
                                         ? SizeConfig.size10
                                         : 0,
                                     bottom: SizeConfig.size15),
-                                child: HighlightText(
-                                    text: msgPostController
-                                        .descriptionMessage.value.text),
+                                child: msgPostController.isMsgPostEdit
+                                    ? CommonTextField(
+                                        title: AppStrings.description,
+                                        hintText:
+                                            "Enter description (minimum 30 characters)",
+                                        maxLength: 2000,
+                                        isValidate: false,
+                                        readOnly: false,
+                                        maxLine: 3,
+                                        textEditController: msgPostController
+                                            .descriptionMessage.value,
+                                        onChange: (value) {
+                                          setState(() {
+                                            hasChanges =
+                                                value != originalCaption;
+                                          });
+                                        },
+                                      )
+                                    : HighlightText(
+                                        text: msgPostController
+                                            .descriptionMessage.value.text),
                               ),
                               if (msgPostController.referenceLinkController
                                   .value.text.isNotEmpty)
@@ -219,7 +243,8 @@ class _MessagePostPreviewScreenNewState
                                   ),
                                 ),
 
-                              if (msgPostController.imagesList.isNotEmpty)
+                              if (msgPostController.imagesList.isNotEmpty &&
+                                  !msgPostController.isMsgPostEdit)
                                 // InstaSlider(),
                                 LocalMediaGrid(
                                   files: msgPostController.imagesList,
@@ -301,11 +326,11 @@ class _MessagePostPreviewScreenNewState
                               borderRadius: BorderRadius.circular(12)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-
                             children: [
                               msgPostController.isMsgPostEdit
                                   ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         CustomText(
                                           AppStrings.natureOfPost,
@@ -362,51 +387,87 @@ class _MessagePostPreviewScreenNewState
                                   ),
                                   SizedBox(width: SizeConfig.size16),
                                   Expanded(
-                                    child: PositiveCustomBtn(
-                                      onTap: () async {
-                                        try {
-                                          String? tagUserIds = tagUserController
-                                              .selectedUsers
-                                              .map((user) => user.id.toString())
-                                              .join(',');
-                                          msgPostController.isLoading.value =
-                                              true;
+                                    child: Builder(builder: (_) {
+                                      bool isUpdateEnabled =
+                                          msgPostController.isMsgPostEdit
+                                              ? hasChanges
+                                              : true;
 
-                                          dynamic reqData;
+                                      return PositiveCustomBtn(
+                                        onTap: isUpdateEnabled
+                                            ? () async {
+                                                try {
+                                                  // Validate description length
+                                                  String descriptionText =
+                                                      msgPostController
+                                                          .descriptionMessage
+                                                          .value
+                                                          .text
+                                                          .trim();
+                                                  if (descriptionText.length <
+                                                      30) {
+                                                    commonSnackBar(
+                                                        message:
+                                                            'Description must be at least 30 characters long',
+                                                        snackBackgroundColor:
+                                                            AppColors.red);
+                                                    return;
+                                                  }
 
-                                          if (msgPostController.isMsgPostEdit) {
-                                            reqData = {
-                                              ApiKeys.type:
-                                                  AppConstants.MESSAGE_POST,
-                                              ApiKeys.tagged_users:
-                                                  tagUserIds.isNotEmpty
-                                                      ? tagUserIds
-                                                      : ""
-                                            };
-                                            await msgPostController
-                                                .editMsgPostController(
-                                              bodyReq: reqData,
-                                            );
-                                          } else {
-                                            await msgPostController
-                                                .uploadMessagePost(
-                                                    postVia: widget.postVia);
-                                          }
+                                                  String? tagUserIds =
+                                                      tagUserController
+                                                          .selectedUsers
+                                                          .map((user) => user.id
+                                                              .toString())
+                                                          .join(',');
+                                                  msgPostController
+                                                      .isLoading.value = true;
 
-                                          msgPostController.isLoading.value =
-                                              false;
-                                        } on Exception catch (e) {
-                                          logs("ERRO ${e}");
-                                          msgPostController.isLoading.value =
-                                              false;
+                                                  dynamic reqData;
 
-                                          // TODO
-                                        }
-                                      },
-                                      title: msgPostController.isMsgPostEdit
-                                          ? AppStrings.postUpdate
-                                          : AppStrings.postNow,
-                                    ),
+                                                  if (msgPostController
+                                                      .isMsgPostEdit) {
+                                                    reqData = {
+                                                      ApiKeys.type: AppConstants
+                                                          .MESSAGE_POST,
+                                                      ApiKeys.sub_title:
+                                                          descriptionText,
+                                                      ApiKeys.tagged_users:
+                                                          tagUserIds.isNotEmpty
+                                                              ? tagUserIds
+                                                              : ""
+                                                    };
+                                                    await msgPostController
+                                                        .editMsgPostController(
+                                                      bodyReq: reqData,
+                                                    );
+                                                  } else {
+                                                    await msgPostController
+                                                        .uploadMessagePost(
+                                                            postVia:
+                                                                widget.postVia);
+                                                  }
+
+                                                  msgPostController
+                                                      .isLoading.value = false;
+                                                } on Exception catch (e) {
+                                                  logs("ERRO ${e}");
+                                                  msgPostController
+                                                      .isLoading.value = false;
+
+                                                  // TODO
+                                                }
+                                              }
+                                            : null,
+                                        title: msgPostController.isMsgPostEdit
+                                            ? AppStrings.postUpdate
+                                            : AppStrings.postNow,
+                                        bgColor: isUpdateEnabled
+                                            ? AppColors.primaryColor
+                                            : AppColors.primaryColor
+                                                .withOpacity(0.5),
+                                      );
+                                    }),
                                   ),
                                 ],
                               ),

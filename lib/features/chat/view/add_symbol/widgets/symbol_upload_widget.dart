@@ -242,7 +242,7 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
               ),
               const SizedBox(height: 2),
               Text(
-                isPhoto ? '$count of 4 photos' : '1 video selected',
+                isPhoto ? '$count photos' : '1 video selected',
                 style: TextStyle(
                   color: const Color(0xFF2D3142).withValues(alpha: 0.4),
                   fontSize: 12,

@@ -604,14 +604,14 @@ class _PersonalProfileSetupNewScreenState
                               .where((item) => item.isCompleted == false)
                               .length;
 
-                          return CustomText(
+                          return pendingCount > 0 ? CustomText(
                             "$pendingCount action${pendingCount != 1 ? 's' : ''} pending",
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.small,
                             color: pendingCount == 0
                                 ? AppColors.green7F
                                 : AppColors.yellow00,
-                          );
+                          ) : SizedBox();
                         },
                       ),
                     ],
@@ -2012,7 +2012,7 @@ class _PersonalProfileSetupNewScreenState
                   SizedBox(width: SizeConfig.size10),*/
                   Expanded(
                     child: Obx(() => GestureDetector(
-                          onTap: () {
+                          onTap: viewProfileController.myProfileCompletionPercent.value >= 1.0 ? null : () {
                             viewProfileController.isMyProfileShow.value =
                                 !viewProfileController.isMyProfileShow.value;
                           },
@@ -2020,10 +2020,9 @@ class _PersonalProfileSetupNewScreenState
                             padding: EdgeInsets.symmetric(
                                 horizontal: SizeConfig.size10, vertical: 8),
                             decoration: BoxDecoration(
-                              color:
-                                  viewProfileController.isMyProfileShow.isTrue
-                                      ? AppColors.primaryColor
-                                      : Colors.white,
+                              color: viewProfileController.isMyProfileShow.isTrue
+                                  ? AppColors.primaryColor
+                                  : Colors.white,
                               border: Border.all(color: AppColors.primaryColor),
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -2033,8 +2032,7 @@ class _PersonalProfileSetupNewScreenState
                               children: [
                                 CustomText(
                                   AppStrings.myProfile,
-                                  color: viewProfileController
-                                          .isMyProfileShow.isTrue
+                                  color: viewProfileController.isMyProfileShow.isTrue
                                       ? Colors.white
                                       : AppColors.primaryColor,
                                   fontSize: 14,
@@ -2056,8 +2054,7 @@ class _PersonalProfileSetupNewScreenState
                                         "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
                                         fontSize: 8,
                                         fontWeight: FontWeight.w600,
-                                        color: viewProfileController
-                                                .isMyProfileShow.isTrue
+                                        color: viewProfileController.isMyProfileShow.isTrue
                                             ? Colors.white
                                             : AppColors.black,
                                       ),
