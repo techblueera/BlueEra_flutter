@@ -78,7 +78,7 @@ class AppColors {
   static const greenDarkOut = Color.fromRGBO(69, 90, 100, 1);
   static const greyBf = Color(0xffB0B4BF);
   static const primaryColor = Color(0xFF0086FF);
-  static const appBackgroundColor = Color(0xFFF1F1F3);
+  static const appBackgroundColor = Color(0xFFE0E6F3);
   static const mainTextColor = Color(0xFF090707);
   static const secondaryTextColor = Color(0xFF505050);
   static const shadowColor = Color(0xFA999999);

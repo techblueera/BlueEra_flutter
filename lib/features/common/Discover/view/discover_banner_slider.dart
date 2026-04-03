@@ -38,76 +38,86 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   // "assets/images/ban1.jpeg"
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        /// Carousel — full bleed, auto-scroll, covers status bar + notch
-        CarouselSlider.builder(
-          itemCount: sliderData.length,
-          options: CarouselOptions(
-            aspectRatio: 4 / 3,
-            viewportFraction: 1.0,
-            autoPlay: true,
+    final double bannerHeight = (MediaQuery.of(context).size.width * 3 / 4);
+    return Container(
+      color: AppColors.white,
+      child: Stack(
+        children: [
+          /// Carousel — full bleed, auto-scroll, covers status bar + notch
+          CarouselSlider.builder(
+            itemCount: sliderData.length,
+            options: CarouselOptions(
+              height: bannerHeight,
+              viewportFraction: 1.0,
+              // autoPlay: false,
+              autoPlay: true,
+              autoPlayInterval: const Duration(seconds: 5),
+              autoPlayAnimationDuration: const Duration(milliseconds: 800),
+              autoPlayCurve: Curves.easeInOutCubic,
+              enableInfiniteScroll: sliderData.length > 1,
+              scrollPhysics: sliderData.length > 1
+                  ? const BouncingScrollPhysics()
+                  : const NeverScrollableScrollPhysics(),
+              onPageChanged: (index, reason) {
+                setState(() {
+                  currentPage = index;
+                });
+              },
+            ),
+            itemBuilder: (context, index, realIndex) {
+              final data = sliderData[index];
+              return InkWell(
+                onTap: () => _handleOnTap(data['slugId']!),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: bannerHeight,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(30.0)),
+                    child: LocalAssets(
+                      imagePath: data["image"]!,
+                      boxFix: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              );
 
-            autoPlayInterval: const Duration(seconds: 5),
-            autoPlayAnimationDuration: const Duration(milliseconds: 800),
-            autoPlayCurve: Curves.easeInOutCubic,
-            enableInfiniteScroll: sliderData.length > 1,
-            scrollPhysics: sliderData.length > 1
-                ? const BouncingScrollPhysics()
-                : const NeverScrollableScrollPhysics(),
-            onPageChanged: (index, reason) {
-              setState(() {
-                currentPage = index;
-              });
+              return InkWell(
+                onTap: () => _handleOnTap(data['slugId']!),
+                child: NetWorkOcToAssets(
+                  imgUrl: data["image"]!,
+                  boxFit: BoxFit.cover,
+                ),
+              );
             },
           ),
-          itemBuilder: (context, index, realIndex) {
-            final data = sliderData[index];
-            return InkWell(
-              onTap: () => _handleOnTap(data['slugId']!),
-              child: LocalAssets(
-                imagePath:data["image"]!,
-                // imagePath:"assets/images/ban1.jpeg",
-                boxFix: BoxFit.contain,
-              ),
-            );
 
-            return InkWell(
-              onTap: () => _handleOnTap(data['slugId']!),
-              child: NetWorkOcToAssets(
-                imgUrl: data["image"]!,
-                boxFit: BoxFit.cover,
-              ),
-            );
-          },
-        ),
-
-       /* /// DOT INDICATOR overlaid at bottom of banner
-        if (sliderData.length > 1)
-          Positioned(
-            bottom: 10,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                sliderData.length,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  height: 6,
-                  width: currentPage == index ? 20 : 6,
-                  decoration: BoxDecoration(
-                    color: currentPage == index
-                        ? AppColors.white
-                        : AppColors.white.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(12),
+         /* /// DOT INDICATOR overlaid at bottom of banner
+          if (sliderData.length > 1)
+            Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  sliderData.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    height: 6,
+                    width: currentPage == index ? 20 : 6,
+                    decoration: BoxDecoration(
+                      color: currentPage == index
+                          ? AppColors.white
+                          : AppColors.white.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),*/
-      ],
+            ),*/
+        ],
+      ),
     );
   }
 

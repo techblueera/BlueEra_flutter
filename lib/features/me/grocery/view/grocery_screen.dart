@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
+import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_store_screen.dart';
@@ -31,15 +31,30 @@ class GroceryScreen extends StatefulWidget {
 class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProviderStateMixin {
   TabController? _tabController;
   final TextEditingController searchController = TextEditingController();
-  final List<Tab> _tabs = [
-    Tab(text: AppStrings.myOrder.tr),
-    Tab(text: AppStrings.myStore.tr),
-    Tab(text: AppStrings.statistics.tr),
-  ];
+  late List<Tab> _tabs;
+  late List<Widget> _tabViews;
 
   @override
   void initState() {
     super.initState();
+    _initializeTabs();
+  }
+
+  void _initializeTabs() {
+    _tabs = [
+      Tab(text: AppStrings.myOrder.tr),
+      Tab(text: AppStrings.myStore.tr),
+      Tab(text: AppStrings.website.tr),
+      Tab(text: AppStrings.statistics.tr),
+    ];
+
+    _tabViews = [
+      MyGroceryOrders(),
+      MyGroceryStoreScreen(),
+      const WebsiteTab(),
+      Center(child: CustomText(AppStrings.comingSoon)),
+    ];
+
     _tabController = TabController(length: _tabs.length, vsync: this);
   }
 
@@ -50,7 +65,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
     deleteIfRegistered<GrocerySelfPickupConsumerController>();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -63,19 +77,19 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                 SliverAppBar(
                   backgroundColor: Colors.white,
                   elevation: 0,
-                  floating: true,   // appear on scroll up
-                  snap: true,       // instantly snap down
-                  pinned: false,    // don't keep the header fixed
+                  floating: true,
+                  snap: true,
+                  pinned: false,
                   automaticallyImplyLeading: false,
                   flexibleSpace: Padding(
                     padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-                    child: _buildHeader(context), // your header row
+                    child: _buildHeader(context),
                   ),
                   expandedHeight: SizeConfig.size70,
                 ),
 
                 SliverPersistentHeader(
-                  pinned: true,   // TabBar should always stay visible
+                  pinned: true,
                   delegate: TabBarDelegate(
                     TabBar(
                       controller: _tabController,
@@ -92,11 +106,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
             },
             body: TabBarView(
               controller: _tabController,
-              children: [
-                MyGroceryOrders(),
-                MyGroceryStoreScreen(),
-                Center(child: CustomText(AppStrings.comingSoon))
-              ]
+              children: _tabViews,
             ),
           )
       ),
@@ -118,7 +128,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                 width: SizeConfig.paddingL,
                 imgColor:  Colors.black,
               )),
-        // SizedBox(width: !(widget.fromBottomNavBar??false) ? 0.0 : SizeConfig.size15),
         CommonProfileAvatar(),
         SizedBox(width: SizeConfig.size15),
         Expanded(

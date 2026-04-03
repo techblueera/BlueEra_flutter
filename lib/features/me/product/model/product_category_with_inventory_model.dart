@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+
 /// Root response model for inventoryByCategory API
 class ProductInventoryByCategoryResponse {
   bool? status;
@@ -22,68 +24,52 @@ class ProductInventoryByCategoryResponse {
   }
 }
 
-/// Each item in data array: { category_info, inventories }
+/// Each item in data array
 class ProductCategoryWithInventoryModel {
-  CategoryInfo? categoryInfo;
+  String? sId;
+  String? name;
+  String? key;
+  bool? isActive;
+  String? parentId;
+  int? level;
+  String? image;
+  List<ProductNestedCategoryResponse>? children;
   List<ProductInventoryItem>? inventories;
 
   ProductCategoryWithInventoryModel({
-    this.categoryInfo,
+    this.sId,
+    this.name,
+    this.key,
+    this.isActive,
+    this.parentId,
+    this.level,
+    this.image,
+    this.children,
     this.inventories,
   });
 
   ProductCategoryWithInventoryModel.fromJson(Map<String, dynamic> json) {
-    categoryInfo = json['category_info'] != null
-        ? CategoryInfo.fromJson(json['category_info'])
-        : null;
+    sId = json['_id'];
+    name = json['name'];
+    key = json['key'];
+    isActive = json['isActive'];
+    parentId = json['parentId'];
+    level = json['level'];
+    image = json['image'];
+
+    if (json['children'] != null) {
+      children = <ProductNestedCategoryResponse>[];
+      json['children'].forEach((v) {
+        children!.add(ProductNestedCategoryResponse.fromJson(v));
+      });
+    }
+
     if (json['inventories'] != null) {
       inventories = <ProductInventoryItem>[];
       json['inventories'].forEach((v) {
         inventories!.add(ProductInventoryItem.fromJson(v));
       });
     }
-  }
-
-  // Convenience getters for easy access
-  String? get name => categoryInfo?.name;
-  String? get key => categoryInfo?.key;
-  String? get sId => categoryInfo?.sId;
-  String? get image => inventories?.isNotEmpty == true
-      ? inventories!.first.productDetails?.media?.firstOrNull
-      : null;
-}
-
-class CategoryInfo {
-  String? sId;
-  String? name;
-  String? key;
-  String? parentId;
-  int? level;
-
-  CategoryInfo({
-    this.sId,
-    this.name,
-    this.key,
-    this.parentId,
-    this.level,
-  });
-
-  CategoryInfo.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    key = json['key'];
-    parentId = json['parentId'];
-    level = json['level'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = sId;
-    data['name'] = name;
-    data['key'] = key;
-    data['parentId'] = parentId;
-    data['level'] = level;
-    return data;
   }
 }
 

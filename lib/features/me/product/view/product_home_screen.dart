@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -13,6 +12,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -24,6 +24,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/common_methods.dart';
+import '../widget/attribute_two_rows.dart';
 
 class ProductHomeScreen extends StatefulWidget {
   const ProductHomeScreen({super.key});
@@ -156,6 +158,42 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                     ? details!.media.first
                     : '';
 
+                final Map<String, List<dynamic>> uniqueAttributes = {};
+                final firstTwoKeys = <String>[];
+                for (var v in variants) {
+                  for (var key in v.attributes.keys) {
+                    if (!firstTwoKeys.contains(key)) {
+                      firstTwoKeys.add(key);
+                    }
+                    if (firstTwoKeys.length == 1) break;
+                  }
+                  if (firstTwoKeys.length == 1) break;
+                }
+                for (var key in firstTwoKeys) {
+                  uniqueAttributes[key] = [];
+                  for (var v in variants) {
+                    final value = v.attributes[key];
+                    if (value != null) {
+                      if (key == 'color' && value is Map<String, dynamic>) {
+                        final colorMap = {
+                          "color_name": value["color_name"] ?? "",
+                          "color_code": value["color_code"] ?? ""
+                        };
+                        if (!uniqueAttributes[key]!.any((e) =>
+                            e is Map &&
+                            e["color_name"] == colorMap["color_name"] &&
+                            e["color_code"] == colorMap["color_code"])) {
+                          uniqueAttributes[key]!.add(colorMap);
+                        }
+                      } else {
+                        if (!uniqueAttributes[key]!.contains(value)) {
+                          uniqueAttributes[key]!.add(value);
+                        }
+                      }
+                    }
+                  }
+                }
+
                 return Container(
                   width: SizeConfig.size160,
                   margin: EdgeInsets.only(right: 8.0),
@@ -216,28 +254,12 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                             ),
                             SizedBox(height: SizeConfig.size6),
                             if (variants.isNotEmpty)
-                              FittedBox(
-                                child: Row(
-                                  children: [
-                                    CustomText(
-                                      '\u20B9${variants[0].sellingPrice}',
-                                      fontSize: 12,
-                                      color: AppColors.primaryColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    SizedBox(width: SizeConfig.size6),
-                                    CustomText(
-                                      '\u20B9${variants[0].mrp}',
-                                      fontSize: 10,
-                                      color: AppColors.secondaryTextColor,
-                                      decoration:
-                                          TextDecoration.lineThrough,
-                                      decorationColor:
-                                          AppColors.secondaryTextColor,
-                                    ),
-                                  ],
-                                ),
+                              PriceRow(
+                                sellingPrice: '\u20B9${variants[0].sellingPrice}',
+                                mrp: '\u20B9${variants[0].mrp}',
+                                discount: "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
                               ),
+                            AttributeRows(attributeMap: uniqueAttributes),
                             SizedBox(height: SizeConfig.size4),
                           ],
                         ),
@@ -271,10 +293,16 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
               ),
               SizedBox(width: SizeConfig.size8),
               InkWell(
-                onTap: () => Get.toNamed(
-                  RouteHelper.getProductSuperCategoryScreenRoute(),
-                  arguments: {ApiKeys.argBulkUpload: false},
-                ),
+                onTap: () async {
+                  await Get.toNamed(
+                    RouteHelper.getProductSuperCategoryScreenRoute(),
+                    arguments: {ApiKeys.argBulkUpload: false},
+                  );
+                  if (controller.productDataNeedsRefresh) {
+                    controller.productDataNeedsRefresh = false;
+                    controller.fetchAllProductData();
+                  }
+                },
                 child: CustomText('Update Inventory',
                     fontSize: SizeConfig.medium,
                     color: AppColors.primaryColor,
@@ -305,7 +333,6 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                           RouteHelper
                               .getProductNestedCategoryWithInventoryScreenRoute(),
                           arguments: {
-                            ApiKeys.userId: userId,
                             ApiKeys.argProductCategoryWithInventory:
                                 categoryList.toList(),
                             ApiKeys.argProductCatKey:

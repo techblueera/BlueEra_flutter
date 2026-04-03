@@ -5,10 +5,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
@@ -31,28 +30,17 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
   final TextEditingController searchController = TextEditingController();
-  final _viewBusinessController =
-      Get.find<ViewBusinessDetailsController>();
-  bool _hasWebsite = false;
-
-  String get _websiteUrl =>
-      _viewBusinessController
-          .businessProfileDetails.value?.data?.websiteUrl ??
-      '';
-
-  int get _tabCount => _hasWebsite ? 3 : 2;
 
   List<Tab> get _tabs => [
         Tab(text: AppStrings.home.tr),
-        if (_hasWebsite) Tab(text: AppStrings.website.tr),
+        Tab(text: AppStrings.website.tr),
         Tab(text: AppStrings.statistics.tr),
       ];
 
   @override
   void initState() {
     super.initState();
-    _hasWebsite = _websiteUrl.isNotEmpty;
-    _tabController = TabController(length: _tabCount, vsync: this);
+    _tabController = TabController(length: _tabs.length, vsync: this);
   }
 
   @override
@@ -61,31 +49,12 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     super.dispose();
   }
 
-  void _syncWebsiteTab() {
-    final newHasWebsite = _websiteUrl.isNotEmpty;
-    if (newHasWebsite == _hasWebsite) return;
-
-    _hasWebsite = newHasWebsite;
-    final currentIndex = _tabController.index;
-    _tabController.dispose();
-    _tabController = TabController(
-      length: _tabCount,
-      vsync: this,
-      initialIndex: currentIndex.clamp(0, _tabCount - 1),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppColors.white,
         body: SafeArea(
-            child: Obx(() {
-              // Access the reactive value to subscribe, then sync tabs
-              _viewBusinessController.businessProfileDetails.value;
-              _syncWebsiteTab();
-
-              return NestedScrollView(
+            child: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
                     SliverAppBar(
@@ -121,17 +90,11 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                   controller: _tabController,
                   children: [
                     RestaurantHomeScreen(),
-                    if (_hasWebsite)
-                      CommonWebView(
-                        urlLink: _websiteUrl,
-                        urlTitle: '',
-                        hideAppBar: true,
-                      ),
+                    const WebsiteTab(),
                     ComingSoon(),
                   ],
                 ),
-              );
-            }),
+              ),
         ));
   }
 

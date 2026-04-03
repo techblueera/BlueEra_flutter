@@ -21,6 +21,7 @@ import 'package:BlueEra/features/me/product/model/inventory_based_search_product
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/model/product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/model/product_snap_search_response.dart';
 import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
@@ -36,6 +37,7 @@ class InventoryController extends GetxController {
 
   final TextEditingController searchController = TextEditingController();
   
+  bool productDataNeedsRefresh = false;
   RxBool isLoading = false.obs;
   RxBool isProductLoading = false.obs;
   RxString selectedFilter = AppStrings.draft.obs;
@@ -237,6 +239,7 @@ class InventoryController extends GetxController {
   bool productByCategoryHasMore = true;
   int productByCategoryPageLimit = 20;
   RxBool isProductSearchOpen = false.obs;
+  RxInt selectedProductHorizontalTabIndex = 0.obs;
 
   Future<void> fetchProductsByCategory({
     required String categoryId,
@@ -307,6 +310,7 @@ class InventoryController extends GetxController {
   final RxMap<String, File?> productSnapSearchImagesMap = <String, File?>{}.obs;
   Rx<ApiResponse> productSnapSearchResponse = ApiResponse.initial('Initial').obs;
   RxList<VariantData> snapSearchProductList = <VariantData>[].obs;
+  Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
 
   Future<void> addProductImagesBySlot(String title) async {
     if (productSnapSearchImagesMap.values.any((v) => v != null)) {
@@ -326,6 +330,7 @@ class InventoryController extends GetxController {
     productSnapSearchImagesMap[title] = null;
     productSnapSearchImagesMap.refresh();
     snapSearchProductList.clear();
+    productSnapSearchData.value = null;
     productSnapSearchResponse.value = ApiResponse.initial('Initial');
   }
 
@@ -343,6 +348,7 @@ class InventoryController extends GetxController {
     try {
       productSnapSearchResponse.value = ApiResponse.loading('Loading');
       snapSearchProductList.clear();
+      productSnapSearchData.value = null;
 
       List<dio.MultipartFile> imageByPart = [];
       for (final image in activeImages) {
@@ -362,10 +368,17 @@ class InventoryController extends GetxController {
       if (responseModel.isSuccess) {
         productSnapSearchResponse.value = ApiResponse.complete(responseModel);
 
-        final responseData = InventoryBasedSearchProductResponse.fromJson(
+        final response = ProductSnapSearchResponseModel.fromJson(
           responseModel.response?.data,
         );
-        snapSearchProductList.assignAll(responseData.data);
+        productSnapSearchData.value = response.data;
+
+        final foundItems = response.data?.foundProducts ?? [];
+        final variants = <VariantData>[];
+        for (final item in foundItems) {
+          variants.addAll(item.variants);
+        }
+        snapSearchProductList.assignAll(variants);
       } else {
         productSnapSearchResponse.value = ApiResponse.error('error');
       }
@@ -420,38 +433,6 @@ class InventoryController extends GetxController {
     super.onClose();
   }
 
-  void callApi({bool forceRefresh = false}) {
-    RxList<GetProductData> targetList;
-
-    switch (selectedProductIndex.value) {
-      case 0:
-        targetList = allProducts;
-        break;
-      case 1:
-        targetList = liveProducts;
-        break;
-      case 2:
-        targetList = draftProducts;
-        break;
-      default:
-        targetList = allProducts;
-    }
-
-    if (forceRefresh || targetList.isEmpty) {
-      switch (selectedProductIndex.value) {
-        case 0:
-          fetchProducts();
-          break;
-        case 1:
-          fetchProducts(isDraftProduct: false);
-          break;
-        case 2:
-          fetchProducts(isDraftProduct: true);
-          break;
-      }
-    }
-  }
-
   Future<void> fetchProducts({bool? isDraftProduct}) async {
     try {
       ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
@@ -460,7 +441,6 @@ class InventoryController extends GetxController {
       isProductLoading.value = true;
 
       Map<String, dynamic> queryParams = {
-        // ApiKeys.businessId: businessId,
         'ownerId': businessId,
         'ownerType': ProviderType.business.title,
       };
@@ -663,16 +643,18 @@ class InventoryController extends GetxController {
       double? businessLng;
       String? categoryId;
       if(isIndividualUser()){
-         businessLat = viewIndividualProfileController.personalProfileDetails.value.user?.userLocation?.lat ?? LocationService.lat;
-         businessLng = viewIndividualProfileController.personalProfileDetails.value.user?.userLocation?.lon ?? LocationService.lng;
-         // categoryId = viewIndividualProfileController.personalProfileDetails.value.user.c
-         //    ?? viewIndivi dualProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
+        var user = viewIndividualProfileController.personalProfileDetails.value.user;
+         businessLat = user?.userLocation?.lat ?? LocationService.lat;
+         businessLng = user?.userLocation?.lon ?? LocationService.lng;
+         // categoryId = user.categoryDetails?.id
+         //    ?? user.subCategoryDetails?.id ?? '';
       }
       else{
-         businessLat = viewProfileController.businessProfileDetails.value?.data?.businessLocation?.lat ?? LocationService.lat;
-         businessLng = viewProfileController.businessProfileDetails.value?.data?.businessLocation?.lon ?? LocationService.lng ;
-         categoryId = viewProfileController.businessProfileDetails.value?.data?.subCategoryDetails?.id
-            ?? viewProfileController.businessProfileDetails.value?.data?.categoryDetails?.id ?? '';
+         var businessProfileDetails = viewProfileController.businessProfileDetails.value?.data;
+         businessLat = businessProfileDetails?.businessLocation?.lat ?? LocationService.lat;
+         businessLng = businessProfileDetails?.businessLocation?.lon ?? LocationService.lng ;
+         categoryId = businessProfileDetails?.categoryOfBusiness ?? businessProfileDetails?.subCategoryOfBusiness;
+         print('categoryId: $categoryId');
       }
 
       Map<String, dynamic> params = {
@@ -777,6 +759,7 @@ class InventoryController extends GetxController {
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
+        productDataNeedsRefresh = true;
         if((providerType==ProviderType.business)){
           navigateToInventory();
         }else{

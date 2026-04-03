@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -10,8 +8,8 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/product/controller/product_business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/product/view/product/product_screen.dart';
 import 'package:BlueEra/features/me/product/view/product_home_screen.dart';
+import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -49,9 +47,8 @@ class _InventoryScreenState extends State<InventoryScreen>
   late List<Tab> _tabs;
 
   final inventoryController = getOrPut(() => InventoryController());
-  // final serviceController = getOrPut(() => ServiceController());
-  // final foodUploadController = getOrPut(() => FoodUploadController());
   final controller = getOrPut(() => ProductBusinessProfileFullController());
+  late List<Widget> _tabViews;
 
   @override
   void initState() {
@@ -89,14 +86,18 @@ class _InventoryScreenState extends State<InventoryScreen>
   //
 
   void _initializeData() {
-    // _businessType = businessTypeGlobal.toLowerCase();
-    // log('business -- $_businessType');
-
     _tabs = [
       Tab(text: AppStrings.home.tr),
-      Tab(text: AppStrings.myProducts.tr),
+      Tab(text: AppStrings.website.tr),
       Tab(text: AppStrings.statistics.tr),
     ];
+
+    _tabViews = [
+      ProductHomeScreen(),
+      const WebsiteTab(),
+      Center(child: CustomText('Coming soon...')),
+    ];
+
     _tabController = TabController(length: _tabs.length, vsync: this);
     setState(() => _isLoading = false);
   }
@@ -290,16 +291,7 @@ class _InventoryScreenState extends State<InventoryScreen>
             //     'Coming soon...',
             //   )
             // ],
-            children: [
-              ProductHomeScreen(),
-              // ProductBusinessProfileFullScreen(),
-              ProductScreen(),
-              Center(
-                child: CustomText(
-                  'Coming soon...',
-                ),
-              )
-            ],
+            children: _tabViews,
           ),
         )
       ),
@@ -413,7 +405,10 @@ class _InventoryScreenState extends State<InventoryScreen>
                 ApiKeys.id: businessId,
                 ApiKeys.providerType: ProviderType.business
               });
-              inventoryController.callApi(forceRefresh: true);
+              if (inventoryController.productDataNeedsRefresh) {
+                inventoryController.productDataNeedsRefresh = false;
+                inventoryController.fetchAllProductData();
+              }
             },
             child: Container(
               height: SizeConfig.size40,

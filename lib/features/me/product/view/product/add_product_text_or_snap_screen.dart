@@ -13,15 +13,18 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/widget/product_floating_cart.dart';
+import 'package:BlueEra/features/me/product/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/widget/product_variant_grid_card.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -57,7 +60,6 @@ class _AddProductTextOrSnapSearchScreenState
 
   @override
   void dispose() {
-    deleteIfRegistered<InventoryController>();
     super.dispose();
   }
 
@@ -360,7 +362,16 @@ class _AddProductTextOrSnapSearchScreenState
   }
 
   Widget _buildSuggestedProducts() {
-    return CustomFormCard(
+    return  controller.isSuggestedProductFirstLoading.isTrue
+          ? Padding(
+      padding: const EdgeInsets.all(30.0),
+      child: Align(
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(),
+      ),
+    )
+            : controller.suggestedProductList.isNotEmpty
+               ? CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size15),
       borderRadius: BorderRadius.circular(12.0),
       child: Column(
@@ -372,17 +383,7 @@ class _AddProductTextOrSnapSearchScreenState
             fontWeight: FontWeight.bold,
             color: AppColors.mainTextColor,
           ),
-          controller.isSuggestedProductFirstLoading.isTrue
-              ? Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : controller.suggestedProductList.isEmpty
-                  ? SizedBox.shrink()
-                  : Padding(
+          Padding(
                       padding: EdgeInsets.only(top: SizeConfig.size15),
                       child: Column(
                         children: [
@@ -405,7 +406,8 @@ class _AddProductTextOrSnapSearchScreenState
                     ),
         ],
       ),
-    );
+    )
+                 : SizedBox.shrink();
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -664,8 +666,10 @@ class _AddProductTextOrSnapSearchScreenState
         );
       }
 
+      final searchData = controller.productSnapSearchData.value;
       final products = controller.snapSearchProductList;
-      if (products.isEmpty) {
+
+      if (searchData == null || products.isEmpty) {
         return Column(
           children: [
             SizedBox(height: SizeConfig.paddingL),
@@ -690,18 +694,192 @@ class _AddProductTextOrSnapSearchScreenState
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Summary header
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: CustomText(
-              "${products.length} Items Found",
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  "${searchData.foundCount ?? products.length} Items Found",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                if ((searchData.missingCount ?? 0) > 0)
+                  CustomText(
+                    "${searchData.missingCount} Items missing",
+                    color: AppColors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+              ],
             ),
           ),
-          _buildVariantGrid(products),
+
+          // Product list
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: products.length,
+            padding: EdgeInsets.zero,
+            itemBuilder: (context, index) {
+              return _buildSnapProductCard(products[index]);
+            },
+          ),
         ],
       );
     });
+  }
+
+  Widget _buildSnapProductCard(VariantData variantData) {
+    final product = variantData.productInformation;
+    final variant = variantData.finalVariant;
+
+    String imageUrl = '';
+    if (product.media.isNotEmpty) {
+      imageUrl = product.media.first;
+    } else if (variant.mediaRelatedToVarient.isNotEmpty) {
+      imageUrl = variant.mediaRelatedToVarient.first;
+    }
+
+    // Build unique attributes from product variants
+    final Map<String, List<dynamic>> uniqueAttributes = {};
+    final firstTwoKeys = <String>[];
+    for (var v in product.variants) {
+      for (var key in v.attributes.keys) {
+        if (!firstTwoKeys.contains(key)) {
+          firstTwoKeys.add(key);
+        }
+        if (firstTwoKeys.length == 1) break;
+      }
+      if (firstTwoKeys.length == 1) break;
+    }
+    for (var key in firstTwoKeys) {
+      uniqueAttributes[key] = [];
+      for (var v in product.variants) {
+        final value = v.attributes[key];
+        if (value != null) {
+          if (key == 'color' && value is Map<String, dynamic>) {
+            final colorMap = {
+              "color_name": value["color_name"] ?? "",
+              "color_code": value["color_code"] ?? ""
+            };
+            if (!uniqueAttributes[key]!.any((e) =>
+                e is Map &&
+                e["color_name"] == colorMap["color_name"] &&
+                e["color_code"] == colorMap["color_code"])) {
+              uniqueAttributes[key]!.add(colorMap);
+            }
+          } else {
+            if (!uniqueAttributes[key]!.contains(value)) {
+              uniqueAttributes[key]!.add(value);
+            }
+          }
+        }
+      }
+    }
+
+    return CustomFormCard(
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+          margin: EdgeInsets.only(bottom: SizeConfig.size10),
+          child: InkWell(
+            onTap: () => controller.toggleVariantWithData(variantData),
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Checkbox
+                Obx(() => Checkbox(
+                  value: controller.isVariantSelected(variant.id),
+                  onChanged: (_) =>
+                      controller.toggleVariantWithData(variantData),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.0),
+                    side: BorderSide(
+                      color: AppColors.secondaryTextColor
+                    )
+                  ),
+                  checkColor: Colors.white,
+                  activeColor: AppColors.primaryColor,
+                  fillColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return AppColors.primaryColor;
+                    }
+                    return AppColors.white;
+                  }),
+                )),
+
+                // Product image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          height: SizeConfig.size80,
+                          width: SizeConfig.size80,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade200,
+                            height: SizeConfig.size80,
+                            width: SizeConfig.size80,
+                            child: const Center(
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                            height: SizeConfig.size80,
+                            width: SizeConfig.size80,
+                          ),
+                        )
+                      : LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                          height: SizeConfig.size80,
+                          width: SizeConfig.size80,
+                        ),
+                ),
+
+                SizedBox(width: SizeConfig.size10),
+
+                // Product info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        product.name,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: SizeConfig.size5),
+                      PriceRow(
+                        sellingPrice: '\u20B9${variant.sellingPrice.toStringAsFixed(0)}',
+                        mrp: '\u20B9${variant.mrp.toStringAsFixed(0)}',
+                        discount: "${calculateDiscount('${variant.sellingPrice}', '${variant.mrp}')}% OFF",
+                      ),
+                      AttributeRows(attributeMap: uniqueAttributes),
+                    ],
+                  ),
+                ),
+
+                // Preview button
+                IconButton(
+                  onPressed: () => _openPreview(variantData),
+                  icon: const Icon(
+                    Icons.visibility_outlined,
+                    size: 20,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
   }
 
   // ════════════════════════════════════════════════════════════════════
