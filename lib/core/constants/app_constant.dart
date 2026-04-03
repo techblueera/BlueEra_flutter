@@ -1182,6 +1182,11 @@ class ChatEmitEvents {
   static const newSelfPickupOrderReceived = "newSelfPickupOrderReceived";
   static const selfPickupOrderReady = "selfPickupOrderReady";
 
+  // Signaling events
+  static const isTyping = "isTyping";
+  static const markConversationRead = "markConversationRead";
+  static const unreadCountCleared = "unreadCountCleared";
+
   // ── E2E Encryption Events (Phase 1–4) ─────────────────────────────────────
   // Events this client EMITS → server
   static const e2eMessageSend       = "message:send";         // Phase 3: send encrypted msg

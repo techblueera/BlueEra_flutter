@@ -933,6 +933,11 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   if (!value.isEmpty) {
                                     chatViewController.isTextFieldEmpty.value =
                                     true;
+                                    // Emit typing indicator (debounced)
+                                    if (widget.conversationId.isNotEmpty) {
+                                      chatViewController.emitTyping(
+                                          widget.conversationId);
+                                    }
                                   } else {
                                     chatViewController.isTextFieldEmpty.value =
                                     false;

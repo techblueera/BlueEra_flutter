@@ -183,6 +183,16 @@ class MainActivity: FlutterActivity() {
                         startActivity(intent)
                         result.success(null)
                     }
+                    "bringCallActivityToFront" -> {
+                        val intent = Intent(this@MainActivity, CallActivity::class.java).apply {
+                            addFlags(
+                                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            )
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    }
                     else -> result.notImplemented()
                 }
             }

@@ -108,6 +108,21 @@ class CallActivityService {
     }
   }
 
+  /// Bring existing CallActivity to front without creating a new instance
+  static Future<bool> bringCallActivityToFront() async {
+    if (!Platform.isAndroid) return false;
+
+    try {
+      final result = await _launcherChannel.invokeMethod('bringCallActivityToFront');
+      return result == true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("CallActivityService bringCallActivityToFront error: $e");
+      }
+      return false;
+    }
+  }
+
   /// Close CallActivity and remove from Recents
   static Future<void> closeCallActivity() async {
     if (!Platform.isAndroid) {

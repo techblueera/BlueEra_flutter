@@ -46,6 +46,7 @@ import 'component_widgets.dart';
 import 'document_message_card.dart';
 import 'live_location_message_card.dart';
 
+import 'call_message_card.dart';
 import 'message_bubble.dart';
 import 'message_context_menu.dart';
 
@@ -277,6 +278,18 @@ class _MessageCardState extends State<MessageCard>
 
       case "rider_association":
         messageWidget = RiderAssociationMsgCard(message: widget.message, time: time);
+
+      case "audio_call":
+      case "video_call":
+        return CallMessageCard(
+          message: widget.message,
+          isReceive: isReceive,
+          time: time,
+          conversationId: widget.conversationId,
+          otherUserId: widget.userId,
+          otherUserName: widget.name,
+          otherUserImage: widget.profileImage,
+        );
 
       default:
 

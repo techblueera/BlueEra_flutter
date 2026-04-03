@@ -405,6 +405,13 @@ class MessageMetadata {
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
+  // Call-related fields
+  String? callId;
+  String? roomId;
+  String? otherUserId;
+  String? callStatus;
+  String? callTime;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -429,6 +436,11 @@ class MessageMetadata {
     this.selfPickupOrder,
     this.riderAssociationId,
     this.riderAssociation,
+    this.callId,
+    this.roomId,
+    this.otherUserId,
+    this.callStatus,
+    this.callTime,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -465,6 +477,11 @@ class MessageMetadata {
           ? RiderAssociationMetadata.fromJson(
               Map<String, dynamic>.from(json['riderAssociation']))
           : null,
+      callId: json['call_id']?.toString(),
+      roomId: json['room_id']?.toString(),
+      otherUserId: json['other_user_id']?.toString(),
+      callStatus: json['call_status']?.toString(),
+      callTime: json['call_time']?.toString(),
     );
   }
 
@@ -492,6 +509,11 @@ class MessageMetadata {
       'selfpickupOrderId': selfpickupOrderId,
       'riderAssociationId': riderAssociationId,
       'riderAssociation': riderAssociation?.toJson(),
+      'call_id': callId,
+      'room_id': roomId,
+      'other_user_id': otherUserId,
+      'call_status': callStatus,
+      'call_time': callTime,
     };
   }
 }

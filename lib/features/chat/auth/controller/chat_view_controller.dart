@@ -288,6 +288,11 @@ class ChatViewController extends GetxController {
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
   RxString readMessageStatus = ''.obs;
+
+  // Typing indicator state
+  RxString typingText = ''.obs;
+  Timer? _typingDebounceTimer;
+  final Map<String, Timer> _typingHideTimers = {};
   RxInt selectedIndex =0.obs;
 
   Rx<Messages> sendLoadingFile = Messages().obs;
@@ -786,7 +791,7 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-        log("skjdnsdjcnsjkc ${data}");
+
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -802,7 +807,7 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
-
+        log("dssdjksldkfjds ${data}");
         final parsedData = GetListOfMessageData.fromJson(data);
 
         if (parsedData.messages != null) {
@@ -904,31 +909,61 @@ class ChatViewController extends GetxController {
             message.conversationId ?? '', message);
         scrollDown();
       });
-      // chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
-      //   if (userOpenUserId.value == data['user_id']) {
-      //     if (data['is_online']) {
-      //       userOnlineStatus.value = "Online";
-      //     }
-      //   } else {
-      //     userOnlineStatus.value = "Offline";
-      //   }
-      // });
+      chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
+        if (userOpenUserId.value == data['user_id']) {
+          userOnlineStatus.value =
+              data['is_online'] == true ? "Online" : "Offline";
+        }
+      });
       chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
         final List<Map<String, dynamic>> datas =
         List<Map<String, dynamic>>.from(data);
 
-        final Map<String, dynamic> user = datas.firstWhere(
-              (e) => e['user_id'] == userOpenUserId.value,
-          orElse: () => <String, dynamic>{},
-        );
+        for (final update in datas) {
+          final uid = update['user_id'] as String?;
+          final isOnline = update['is_online'] == true;
 
-        userOnlineStatus.value =
-        user['is_online'] == true ? "Online" : "Offline";
+          // Update the active chat screen
+          if (uid == userOpenUserId.value) {
+            userOnlineStatus.value = isOnline ? "Online" : "Offline";
+          }
+        }
+      });
+
+      // Typing indicator listener
+      chatSocket.listenEvent(ChatEmitEvents.isTyping, (data) {
+        final conversationId = data['conversation_id'] as String?;
+        final typingUserId = data['user_id'] as String?;
+        final typingUser = data['user'];
+
+        if (conversationId == null ||
+            conversationId != userOpenConversationId.value) return;
+        if (typingUserId == null) return;
+
+        final name = typingUser?['name'] ?? 'Someone';
+        typingText.value = '$name is typing...';
+
+        // Auto-hide after 3 seconds
+        _typingHideTimers[typingUserId]?.cancel();
+        _typingHideTimers[typingUserId] = Timer(const Duration(seconds: 3), () {
+          _typingHideTimers.remove(typingUserId);
+          if (_typingHideTimers.isEmpty) {
+            typingText.value = '';
+          }
+        });
       });
 
       chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
         if (data['conversation_id'] == userOpenConversationId.value) {
           readMessageStatus.value = data['status'];
+        }
+      });
+
+      // Unread count cleared listener
+      chatSocket.listenEvent(ChatEmitEvents.unreadCountCleared, (data) {
+        final conversationId = data['conversation_id'] as String?;
+        if (conversationId != null) {
+          _updateChatListUnreadCount(conversationId, 0);
         }
       });
       chatSocket.listenEvent(ChatEmitEvents.update_data, (data) {
@@ -1600,9 +1635,42 @@ class ChatViewController extends GetxController {
     userOpenUserId.value = userId;
     emitEvent(ChatEmitEvents.screenRoom,
         {ApiKeys.conversation_id: "${conversationId}"});
+    // Mark conversation as read on the server
+    chatSocket.emitEvent(ChatEmitEvents.markConversationRead,
+        {ApiKeys.conversation_id: conversationId});
     addConversationOnce(conversationId);
+    // Reset typing indicator for new conversation
+    typingText.value = '';
+    _typingHideTimers.forEach((_, timer) => timer.cancel());
+    _typingHideTimers.clear();
     // E2E: load locally stored decrypted messages for this conversation
     loadE2EMessages(conversationId);
+  }
+
+  /// Emit typing indicator (debounced — max once every 2 seconds)
+  void emitTyping(String conversationId) {
+    if (_typingDebounceTimer?.isActive ?? false) return;
+    chatSocket.emitEvent(ChatEmitEvents.isTyping,
+        {ApiKeys.conversation_id: conversationId});
+    _typingDebounceTimer = Timer(const Duration(seconds: 2), () {});
+  }
+
+  /// Update unread count in chat list models
+  void _updateChatListUnreadCount(String conversationId, num count) {
+    for (final model in [
+      getPersonalChatListModel,
+      getBusinessChatListModel,
+      getOrderChatListModel,
+    ]) {
+      final chatList = model?.value.chatList;
+      if (chatList == null) continue;
+      for (final chat in chatList) {
+        if (chat?.conversationId == conversationId) {
+          chat?.unreadCount = count;
+        }
+      }
+      model?.refresh();
+    }
   }
 
   void addConversationOnce(String conversationId) {

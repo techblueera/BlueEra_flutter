@@ -1334,17 +1334,26 @@ AppBar getChatTitleAppBar(BuildContext context, {
                             ],
                           )
                         : const SizedBox.shrink()),
-                    CustomText(
-                      '${(type == AppConstants.personal_Chat_Type||type==AppConstants.business_Chat_Type)?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
-                          AppStrings.Admin) ? (type == "business") ? chatViewController
-                          .userOnlineStatus.value == "Online"
-                          ? "Shop Open"
-                          : "Shop Closed" : chatViewController
-                          .userOnlineStatus.value : "BlueCs Limited"}',
-                      color: AppColors.grayText,
-
-                      fontSize: SizeConfig.size12,
-                    ),
+                    Obx(() {
+                      // Show typing indicator if active
+                      if (chatViewController.typingText.value.isNotEmpty) {
+                        return CustomText(
+                          chatViewController.typingText.value,
+                          color: Colors.green,
+                          fontSize: SizeConfig.size12,
+                        );
+                      }
+                      return CustomText(
+                        '${(type == AppConstants.personal_Chat_Type||type==AppConstants.business_Chat_Type)?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
+                            AppStrings.Admin) ? (type == "business") ? chatViewController
+                            .userOnlineStatus.value == "Online"
+                            ? "Shop Open"
+                            : "Shop Closed" : chatViewController
+                            .userOnlineStatus.value : "BlueCs Limited"}',
+                        color: AppColors.grayText,
+                        fontSize: SizeConfig.size12,
+                      );
+                    }),
                     SizedBox(
                       width: SizeConfig.size3,
                     ),
