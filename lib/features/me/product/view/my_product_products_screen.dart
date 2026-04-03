@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/product/model/product_nested_category_respon
 import 'package:BlueEra/features/me/product/widget/own_product_card.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -15,12 +16,10 @@ import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/custom_text_cm.dart';
 
 class MyProductProductsScreen extends StatefulWidget {
-  final String userId;
   final List<ProductNestedCategoryResponse> arrCategories;
 
   const MyProductProductsScreen({
     super.key,
-    required this.userId,
     required this.arrCategories,
   });
 
@@ -40,6 +39,7 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.selectedProductCategoryData.value =
           widget.arrCategories.first;
+      controller.selectedProductHorizontalTabIndex.value = 0;
       getProducts();
     });
     super.initState();
@@ -61,8 +61,16 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
   }
 
   void getProducts({bool isLoadMore = false}) {
-    final String categoryId =
-        controller.selectedProductCategoryData.value?.sId ?? '';
+    final selected = controller.selectedProductCategoryData.value;
+    final tabIndex = controller.selectedProductHorizontalTabIndex.value;
+    String categoryId;
+
+    if (tabIndex == 0) {
+      categoryId = selected?.sId ?? '';
+    } else {
+      final children = selected?.children ?? [];
+      categoryId = children[tabIndex - 1].sId ?? '';
+    }
 
     controller.fetchProductsByCategory(
       categoryId: categoryId,
@@ -96,9 +104,7 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
                   ),
           );
         }),
-        buildCustomActionWidget: () =>
-            (widget.userId == userId)
-                ? Obx(() {
+        buildCustomActionWidget: () => Obx(() {
                     final bool isOpen = controller.isProductSearchOpen.value;
 
                     return InkWell(
@@ -119,8 +125,7 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
                         ),
                       ),
                     );
-                  })
-                : const SizedBox.shrink(),
+                  }),
       ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,67 +151,102 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
           return;
         }
         controller.selectedProductCategoryData.value = selected;
+        controller.selectedProductHorizontalTabIndex.value = 0;
         getProducts();
       },
     );
   }
 
   Widget rightContent() {
-    return Obx(() => Padding(
-          padding: const EdgeInsets.all(4),
-          child: controller.isProductByCategoryFirstLoading.value
-              ? Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(SizeConfig.size20),
-                    child: SizedBox(
-                      height: 20.0,
-                      width: 20.0,
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                )
-              : controller.productsByCategoryList.isNotEmpty
-                  ? MasonryGridView.count(
-                      itemCount: controller.productsByCategoryList.length +
-                          (controller.isProductByCategoryLoadingMore.value
-                              ? 1
-                              : 0),
-                      controller: scrollController,
-                      padding: EdgeInsets.only(
-                        bottom:
-                            SizeConfig.size15 + kBottomNavigationBarHeight,
-                      ),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      itemBuilder: (BuildContext context, int index) {
-                        if (index >=
-                            controller.productsByCategoryList.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(20),
-                            child: Center(
-                                child: CircularProgressIndicator()),
-                          );
-                        }
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() {
+            final children = controller.selectedProductCategoryData.value?.children ?? [];
 
-                        final product =
-                            controller.productsByCategoryList[index];
+            if (children.isEmpty) return const SizedBox.shrink();
 
-                        return OwnProductCard(
-                          product: product,
-                          deleteProductApi: () {
-                            controller.deleteProduct();
-                          },
-                          isGridShow: true,
-                        );
-                      },
-                    )
-                  : Padding(
+            final List<dynamic> tabData = ["All", ...children];
+
+            return HorizontalTabSelector<dynamic>(
+              tabs: tabData,
+              selectedIndex: controller.selectedProductHorizontalTabIndex.value,
+              labelBuilder: (item) => (item is String) ? item : (item.name ?? ""),
+              horizontalPadding: 8,
+              verticalPadding: 6,
+              verticalMargin: 0,
+              horizontalMargin: 0,
+              unSelectedBackgroundColor: AppColors.white,
+              unSelectedBorderColor: AppColors.greyE5,
+              onTabSelected: (index, label) {
+                controller.selectedProductHorizontalTabIndex.value = index;
+                getProducts();
+              },
+            );
+          }),
+
+          SizedBox(height: 8),
+
+          Expanded(
+            child: Obx(() => controller.isProductByCategoryFirstLoading.value
+                ? Center(
+                    child: Padding(
                       padding: EdgeInsets.all(SizeConfig.size20),
-                      child: EmptyStateWidget(
-                        message: 'No products found.',
+                      child: SizedBox(
+                        height: 20.0,
+                        width: 20.0,
+                        child: CircularProgressIndicator(),
                       ),
                     ),
-        ));
+                  )
+                : controller.productsByCategoryList.isNotEmpty
+                    ? MasonryGridView.count(
+                        itemCount: controller.productsByCategoryList.length +
+                            (controller.isProductByCategoryLoadingMore.value
+                                ? 1
+                                : 0),
+                        controller: scrollController,
+                        padding: EdgeInsets.only(
+                          bottom:
+                              SizeConfig.size15 + kBottomNavigationBarHeight,
+                        ),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
+                        itemBuilder: (BuildContext context, int index) {
+                          if (index >=
+                              controller.productsByCategoryList.length) {
+                            return const Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Center(
+                                  child: CircularProgressIndicator()),
+                            );
+                          }
+
+                          final product =
+                              controller.productsByCategoryList[index];
+
+                          return OwnProductCard(
+                            product: product,
+                            deleteProductApi: () {
+                              controller.deleteProduct();
+                            },
+                            isGridShow: true,
+                          );
+                        },
+                      )
+                    : Padding(
+                        padding: EdgeInsets.all(SizeConfig.size20),
+                        child: EmptyStateWidget(
+                          message: 'No products found.',
+                        ),
+                      ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

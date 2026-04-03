@@ -1898,14 +1898,12 @@ class RouteHelper {
 
       case RouteConstant.productNestedCategoryWithInventoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String userId = args[ApiKeys.userId] as String;
         final List<ProductCategoryWithInventoryModel> argProductCategoryWithInventory
             = args[ApiKeys.argProductCategoryWithInventory] as List<ProductCategoryWithInventoryModel>;
         final String argProductCatName = args[ApiKeys.argProductCatName] as String;
         final String argProductCatKey = args[ApiKeys.argProductCatKey] as String;
         return MaterialPageRoute(
             builder: (_) => ProductNestedCategoryWithInventoryScreen(
-              userId: userId,
               argProductCategoryWithInventory: argProductCategoryWithInventory,
               argProductCatKey: argProductCatKey,
               argProductCatName: argProductCatName,
@@ -1915,12 +1913,10 @@ class RouteHelper {
 
       case RouteConstant.myProductProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String userId = args[ApiKeys.userId] as String;
         final List<ProductNestedCategoryResponse> argProductCategories =
             args[ApiKeys.argProductCategories] as List<ProductNestedCategoryResponse>;
         return MaterialPageRoute(
             builder: (_) => MyProductProductsScreen(
-              userId: userId,
               arrCategories: argProductCategories,
             ),
             settings: RouteSettings(name: getMyProductProductsScreenRoute()));

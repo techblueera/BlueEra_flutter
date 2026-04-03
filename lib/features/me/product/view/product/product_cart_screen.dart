@@ -33,10 +33,12 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
     super.initState();
     inventoryController = Get.put(InventoryController());
 
-    for (final product in productController.selectedProducts) {
-      final id = product.finalVariant.id;
-      inventoryController.variantSelection[id] = true;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final product in productController.selectedProducts) {
+        final id = product.finalVariant.id;
+        inventoryController.variantSelection[id] = true;
+      }
+    });
   }
 
   @override

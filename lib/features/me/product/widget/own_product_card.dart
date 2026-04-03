@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
@@ -151,36 +152,10 @@ class OwnProductCard extends StatelessWidget {
 
                   // Price Row
                   if (variants.isNotEmpty)
-                    Row(
-                      children: [
-                        CustomText(
-                          '₹${variants[0].sellingPrice}',
-                          fontWeight: FontWeight.w700,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.primaryColor,
-                          fontFamily: AppConstants.OpenSans,
-                        ),
-                         SizedBox(width: SizeConfig.size6),
-                        CustomText(
-                          ' ₹${variants[0].mrp}',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                          decoration: TextDecoration.lineThrough,
-                          fontFamily: AppConstants.OpenSans,
-                        ),
-                        if (discountProduct > 0)
-                          Padding(
-                            padding: EdgeInsets.only(left: SizeConfig.size6),
-                            child: CustomText(
-                              "${discountProduct}% ${AppStrings.off.tr}",
-                              fontSize: SizeConfig.small,
-                              color: AppColors.greenShade,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                          ),
-                      ],
+                    PriceRow(
+                      sellingPrice: '\u20B9${variants[0].sellingPrice}',
+                      mrp: '\u20B9${variants[0].mrp}',
+                      discount: "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
                     ),
 
                   // // Category and Variants count
@@ -299,43 +274,10 @@ class OwnProductCard extends StatelessWidget {
                     SizedBox(height: SizeConfig.size8),
 
                     /// Price Row
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CustomText(
-                              AppStrings.pricePrefix,
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor
-                          ),
-                          CustomText(
-                              '₹${variants[0].sellingPrice}',
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primaryColor
-                          ),
-                          const SizedBox(width: 6),
-                          CustomText(
-                              ' ₹${variants[0].mrp}',
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                              decoration: TextDecoration.lineThrough
-                          ),
-                          if (discountProduct > 0)
-                            Padding(
-                              padding: EdgeInsets.only(left: SizeConfig.size6),
-                              child: CustomText(
-                                  "${discountProduct}% ${AppStrings.off.tr}",
-                                  fontSize: SizeConfig.small,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.green.shade600
-                              ),
-                            ),
-                        ],
-                      ),
+                    PriceRow(
+                      sellingPrice: '\u20B9${variants[0].sellingPrice}',
+                      mrp: '\u20B9${variants[0].mrp}',
+                      discount: "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
                     ),
                     SizedBox(height: SizeConfig.size4),
 

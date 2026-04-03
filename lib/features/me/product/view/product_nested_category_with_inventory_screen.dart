@@ -17,14 +17,12 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/common_back_app_bar.dart';
 
 class ProductNestedCategoryWithInventoryScreen extends StatefulWidget {
-  final String userId;
   final List<ProductCategoryWithInventoryModel> argProductCategoryWithInventory;
   final String argProductCatKey;
   final String argProductCatName;
 
   const ProductNestedCategoryWithInventoryScreen({
     super.key,
-    required this.userId,
     required this.argProductCategoryWithInventory,
     required this.argProductCatKey,
     required this.argProductCatName,
@@ -52,15 +50,16 @@ class _ProductNestedCategoryWithInventoryScreenState
 
   @override
   void dispose() {
-    deleteIfRegistered<InventoryController>();
     super.dispose();
   }
 
   void updateProductCategory(String incomingKey) {
     _argProductCatKey = incomingKey;
-    _inventoryController.fetchProductNestedCategoryWithInventory(
-      categoryKey: _argProductCatKey,
+    final matched = _argProductCategoryWithInventory.firstWhereOrNull(
+      (cat) => cat.key == _argProductCatKey,
     );
+    _inventoryController.productNestedCategoryLoading.value = false;
+    _inventoryController.productNestedCategoryList.value = matched?.children ?? [];
   }
 
   @override
@@ -177,7 +176,6 @@ class _ProductNestedCategoryWithInventoryScreenState
                           Get.toNamed(
                             RouteHelper.getMyProductProductsScreenRoute(),
                             arguments: {
-                              ApiKeys.userId: widget.userId,
                               ApiKeys.argProductCategories: item.children,
                             },
                           );
