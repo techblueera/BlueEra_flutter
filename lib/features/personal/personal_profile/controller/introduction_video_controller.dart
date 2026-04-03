@@ -230,14 +230,14 @@ class IntroductionVideoController extends GetxController {
         isUploading.value = false;
         resetVideo();
         hasUploadedVideo.value = false;
-        Get.back();
+        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
         commonSnackBar(
             message: response.message ?? 'Video deleted successfully');
       } else {
         commonSnackBar(message: response.message ?? 'Delete failed');
       }
     } catch (e) {
-      print('Error uploading video: $e');
+      print('Error deleting video: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isUploading.value = false;
