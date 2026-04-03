@@ -2,13 +2,14 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/finance/finance_listing_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class FinancialSectors extends StatelessWidget {
   const FinancialSectors({super.key});
@@ -42,7 +43,9 @@ class FinancialSectors extends StatelessWidget {
                   var categoryItem = financeCategories[index];
                   return InkWell(
                     onTap: () {
-                      commonSnackBar(message: "Coming Soon...");
+                      Get.to(() => FinanceListingScreen(
+                            selectedCategory: categoryItem,
+                          ));
                     },
                     child: Container(
                       padding: EdgeInsets.all(SizeConfig.size10),

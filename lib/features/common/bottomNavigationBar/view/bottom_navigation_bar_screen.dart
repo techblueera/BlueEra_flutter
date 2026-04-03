@@ -62,7 +62,8 @@ class BottomNavigationBarScreen extends StatefulWidget {
   final int? initialIndex;
   final SharedMedia? sharedMedia;
 
-  const BottomNavigationBarScreen({super.key, this.initialIndex = 0, this.sharedMedia});
+  const BottomNavigationBarScreen(
+      {super.key, this.initialIndex = 0, this.sharedMedia});
 
   @override
   State<BottomNavigationBarScreen> createState() =>
@@ -138,7 +139,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       //   }
       // });
     });
-
   }
 
   Future<void> checkByRiderCall() async {
@@ -146,7 +146,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (orderId != null) {
       // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      Future.delayed(Duration(seconds: 1),(){
+      Future.delayed(Duration(seconds: 1), () {
         FlutterCallkitIncoming.endAllCalls();
       });
     }
@@ -157,7 +157,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (calls is List) {
       if (calls.isNotEmpty) {
         // Skip voice/video calls — those are handled by CallController
-        final extra = Map<String, dynamic>.from(calls[0]['extra']as Map? ?? {});
+        final extra =
+            Map<String, dynamic>.from(calls[0]['extra'] as Map? ?? {});
         final operation = (extra['operation'] ?? '').toString();
         if (operation == 'incoming_call') return null;
 
@@ -318,6 +319,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
     super.dispose();
   }
+
   final callController = getOrPut(() => CallController());
 
   @override
@@ -332,7 +334,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 // Your dynamic screen based on index
                 Obx(() {
                   return Positioned.fill(
-                    top: (callController.callStatus.value != CallStatus.connected)?0:50,
+                    top: (callController.callStatus.value !=
+                            CallStatus.connected)
+                        ? 0
+                        : 50,
                     child: _getScreen(
                         bottomBarController.currentIndex.value, isVisible),
                   );
@@ -400,7 +405,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 2:
-        return meScreens();
+        return WillPopScope(
+            onWillPop: () async {
+              bottomBarController.onChangeIndex(0);
+
+              return false;
+            },
+            child: meScreens());
 
       case 3:
       default:
@@ -418,7 +429,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarVisibleNotifier.value = visible;
     }
   }
-
 
   Widget meScreens() {
     if (isGuestUser()) return GuestDashBoardScreen();
@@ -463,11 +473,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
-    } else if(businessTypeGlobal.toUpperCase() ==
-        BusinessType.Product.name.toUpperCase()){
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Product.name.toUpperCase()) {
       return const InventoryScreen(fromBottomNavBar: true);
-    }
-    else if (_isServiceOrSpecificAutomotive()) {
+    } else if (_isServiceOrSpecificAutomotive()) {
+      return const OthersMain();
+    } else if (businessTypeGlobal.toUpperCase() == "FINANCE") {
       return const OthersMain();
     } else if (checkInventoryEligibility(
         businessTypeGlobal, businessCategoryGlobal)) {
@@ -532,7 +543,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const ProfessionalsMainScreen();
 
       default:
-      // This acts as your fallback (PersonalProfileSetupNewScreen)
+        // This acts as your fallback (PersonalProfileSetupNewScreen)
         return const PersonalProfileSetupNewScreen();
     }
   }

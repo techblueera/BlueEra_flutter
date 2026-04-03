@@ -44,9 +44,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.getBusinessProfileFull();
-    });
   }
 
   @override
@@ -59,7 +56,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         }
         final data = controller.businessProfile.value;
         if (data == null) {
-          return CustomText("Add Data");
+          return Center(child: CustomText("No Data Found"));
         }
 
         return CustomScrollView(

@@ -419,6 +419,14 @@ class AuthController extends GetxController {
             final controller = getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData[ApiKeys.business_name];
             await controller.createOtherProfileController(reqParm: reqBody);
+          } else if ((typeOfBusiness == "FINANCE") ||
+              (typeOfBusiness == "BANKING_SECTOR")) {
+            final controller = getOrPut(() => BusinessProfileFullController());
+            reqBody['profileName'] = reqData[ApiKeys.business_name];
+            reqBody['type'] = "finance";
+            reqBody['sub_type'] = typeOfBusiness;
+
+            await controller.createOtherProfileController(reqParm: reqBody);
           } else if ((typeOfBusiness ==
               BusinessType.Motel.name.toUpperCase())) {
             final controller = getOrPut(() => HotelServiceController());
@@ -901,14 +909,6 @@ class AuthController extends GetxController {
           break;
       }
     }
-
-    log('''
-✅ Category Sync Complete:
-- Social Profile: ${individualOnboardingSocialProfileList.length}
-- Gig Work: ${individualOnboardingGigWorkList.length}
-- Skill Work:  ${individualOnboardingSkillWorkList.length}
-- Consultation:     ${individualOnboardingConsultationList.length}
-  ''');
   }
 
   RxBool isAllBusinessCategoriesLoading = false.obs;
@@ -1007,15 +1007,5 @@ class AuthController extends GetxController {
           break;
       }
     }
-
-    log('''
-✅ Category Sync Complete:
-- Services: ${businessOnboardingServicesCategories.length}
-- Products: ${businessOnboardingProductsCategories.length}
-- Grocery:  ${businessOnboardingGroceriesCategories.length}
-- Food:     ${businessOnboardingFoodsCategories.length}
-- Healthcare: ${businessOnboardingHealthcareSectorsCategories.length}
-- Finance:  ${businessOnboardingFinancialSectorsCategories.length}
-  ''');
   }
 }

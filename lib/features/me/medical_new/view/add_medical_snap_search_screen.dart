@@ -3,12 +3,16 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/snap_search_result_model.dart';
+import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_level2_category_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -29,6 +33,12 @@ class AddMedicalSnapSearchScreen extends StatefulWidget {
 
 class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen> {
   final controller = getOrPut(() => MedicalController());
+
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchGroceryNestedCategory();
+  }
 
   @override
   dispose(){
@@ -53,6 +63,27 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildBulkUploadSection(),
+            SizedBox(height: SizeConfig.size15),
+
+            // OR Divider
+            Row(
+              children: [
+                Expanded(child: Divider(color: AppColors.greyE5)),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: CustomText('OR',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w600),
+                ),
+                Expanded(child: Divider(color: AppColors.greyE5)),
+              ],
+            ),
+
+            SizedBox(height: SizeConfig.size15),
+
+            // Browse Categories Grid
+            _buildCategoryGrid(),
             _buildProductList(),
           ],
         ),
@@ -207,6 +238,141 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
         ],
       ),
     );
+  }
+
+  static const List<Map<String, String>> _staticCategories = [
+    {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA_NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
+    {'title': 'Home &\nPatient Care', 'key': 'HOME_PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
+    {'title': 'Medical\nDevices', 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
+    {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
+    {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL_BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
+    {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE_FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
+  ];
+
+  Widget _buildCategoryGrid() {
+    return Obx(() {
+      if (controller.medicalNestedCategoryLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      final categories = controller.medicalNestedCategoryList;
+      return CustomFormCard(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              'Choose Your Medical Products',
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+            SizedBox(height: SizeConfig.size12),
+            MasonryGridView.count(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              primary: false,
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              padding: EdgeInsets.zero,
+              itemCount: _staticCategories.length,
+              itemBuilder: (context, index) {
+                final cat = _staticCategories[index];
+                return _buildCategoryItem(
+                  title: cat['title']!,
+                  imagePath: cat['image']!,
+                  onTap: () {
+                    logs("cat['key']!== ${cat['key']!}");
+                    final matched = _findApiCategory(
+                      cat['key']!,
+                      categories,
+                    );
+                    logs("matched=== ${matched}");
+                    if (matched == null) {
+                      return;
+                    }
+                    final children = matched.children ?? [];
+                    if (children.isEmpty) return;
+                    Get.to(() => MedicalLevel2CategoryScreen(
+                      title: cat['title']!.replaceAll('\n', ' '),
+                      level2Categories: children,
+                    ));
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildCategoryItem({
+    required String title,
+    required String imagePath,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.all(SizeConfig.size5),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5, width: 1),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              imagePath,
+              height: SizeConfig.size60,
+              width: SizeConfig.size60,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => LocalAssets(
+                imagePath: AppIconAssets.place_holder_image,
+                height: SizeConfig.size60,
+                width: SizeConfig.size60,
+              ),
+            ),
+            SizedBox(height: SizeConfig.paddingXSL),
+            SizedBox(
+              height: 30,
+              child: CustomText(
+                title,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  MedicalNestedCategoryModel? _findApiCategory(
+    String staticKey,
+    List<MedicalNestedCategoryModel> categories,
+  ) {
+    final normalizedKey = staticKey.toUpperCase().replaceAll(' ', '_');
+    for (final level0 in categories) {
+      if ((level0.key ?? '').toUpperCase().replaceAll(' ', '_') == normalizedKey) {
+        return level0;
+      }
+      for (final level1 in (level0.children ?? <MedicalNestedCategoryModel>[])) {
+        if ((level1.key ?? '').toUpperCase().replaceAll(' ', '_') == normalizedKey) {
+          return level1;
+        }
+      }
+    }
+    return null;
   }
 
   Widget _buildProductList() {
