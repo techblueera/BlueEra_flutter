@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/profile_identity_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
@@ -48,7 +49,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                       rxValue: controller.bioRx,
                       maxChars: 180,
                       aiType: "Short Bio",
-                      aiData: {"name": "User Name"},
+                      aiData: {"name": userNameGlobal},
                     ),
                   ),
                   SizedBox(height: SizeConfig.size14),

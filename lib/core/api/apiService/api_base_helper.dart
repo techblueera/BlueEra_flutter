@@ -88,7 +88,7 @@ class ApiBaseHelper {
   ///DIO INTERCEPTOR...
   static Dio addInterceptors(Dio dio) {
     ///For Print Logs
-    if (!kReleaseMode) {
+    // if (!kReleaseMode) {
       dio.interceptors.add(
         LogInterceptor(
           request: true,
@@ -97,7 +97,7 @@ class ApiBaseHelper {
           requestHeader: false,
         ),
       );
-    }
+    // }
 
     ///For Show Hide Progress Dialog
     return dio

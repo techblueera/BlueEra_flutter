@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/model/personal_identity_model.dart';
 import 'package:BlueEra/core/api/model/social_event_model.dart';
 import 'package:BlueEra/core/api/model/social_vision_mission_model.dart';
 import 'package:BlueEra/core/api/model/social_activity_res_model.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/social/model/social_profile_res_model.dart';
 
@@ -218,6 +219,7 @@ class SocialProfileRepo extends BaseService {
 
   Future<ResponseModel> getSocialContactByIdRepo(
       ) async {
+    logs("logMsg");
     final response = await ApiBaseHelper().getHTTP(
       "${socialContact}/$userId",
       onError: (error) {},
