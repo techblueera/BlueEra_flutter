@@ -198,7 +198,7 @@ class BusinessStoreCard extends StatelessWidget {
                 getAllStoreResData?.websiteUrl ?? AppStrings.na,
                 fontSize: 12.0,
                 color: AppColors.primaryColor,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
             // ExpandableText(
