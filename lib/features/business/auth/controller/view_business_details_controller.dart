@@ -312,7 +312,7 @@ class ViewBusinessDetailsController extends GetxController {
   RxList<CategoryData> categoryList = <CategoryData>[].obs;
   Rx<CategoryData?> selectedCategory = Rx<CategoryData?>(null);
 
-  /// Step 3 – Sub Categories / Products
+  /// Step 3 – Sub Categories
   RxList<SubCategories> subCategoryList = <SubCategories>[].obs;
   Rx<SubCategories?> selectedSubCategory = Rx<SubCategories?>(null);
 

@@ -154,11 +154,13 @@ class InventoryController extends GetxController {
   bool suggestedProductHasMoreData = true;
   RxList<VariantData> suggestedProductList = <VariantData>[].obs;
 
-  // ── Product Category With Inventory ──────────────────────────────────
+  // ── Product Nested Category With Inventory ──────────────────────────────────
   Rx<ApiResponse> fetchProductCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> fetchProductBusinessProductsResponse = ApiResponse.initial('Initial').obs;
   RxBool myProductLoading = true.obs;
   RxList<ProductCategoryWithInventoryModel> productCategoryList = <ProductCategoryWithInventoryModel>[].obs;
+  RxBool productNestedCategoryLoading = false.obs;
+  RxList<ProductNestedCategoryResponse> productNestedCategoryList = <ProductNestedCategoryResponse>[].obs;
 
   Future<void> fetchAllProductData() async {
     try {
@@ -195,38 +197,6 @@ class InventoryController extends GetxController {
     } catch (e) {
       fetchProductCategoryResponse.value = ApiResponse.error('error');
       log("ERROR fetching product categories: $e");
-    }
-  }
-
-  // ── Product Nested Category With Inventory ─────────────────────────
-  RxBool productNestedCategoryLoading = true.obs;
-  RxList<ProductNestedCategoryResponse> productNestedCategoryList = <ProductNestedCategoryResponse>[].obs;
-
-  Future<void> fetchProductNestedCategoryWithInventory({
-    required String categoryKey,
-  }) async {
-    try {
-      productNestedCategoryLoading.value = true;
-      productNestedCategoryList.clear();
-
-      final response = await InventoryRepo().fetchProductNestedCategoryWithInventoryRepo(
-        queryParams: {
-          ApiKeys.businessId: businessId,
-          ApiKeys.categoryKey: categoryKey,
-        },
-      );
-
-      if (response.isSuccess) {
-        final ProductNestedCategoryResponse model = ProductNestedCategoryResponse.fromJson(response.response?.data);
-        productNestedCategoryList.value = model.children ?? [];
-        log('Product nested categories loaded: ${productNestedCategoryList.length}');
-      } else {
-        log('Failed to fetch product nested categories');
-      }
-    } catch (e, s) {
-      log('Error fetching product nested categories: $e\n$s');
-    } finally {
-      productNestedCategoryLoading.value = false;
     }
   }
 

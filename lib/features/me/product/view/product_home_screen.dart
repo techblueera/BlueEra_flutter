@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -255,8 +256,8 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                             SizedBox(height: SizeConfig.size6),
                             if (variants.isNotEmpty)
                               PriceRow(
-                                sellingPrice: '\u20B9${variants[0].sellingPrice}',
-                                mrp: '\u20B9${variants[0].mrp}',
+                                sellingPrice: '${AppConstants.rupeeSymbol}${variants[0].sellingPrice}',
+                                mrp: '${AppConstants.rupeeSymbol}${variants[0].mrp}',
                                 discount: "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
                               ),
                             AttributeRows(attributeMap: uniqueAttributes),

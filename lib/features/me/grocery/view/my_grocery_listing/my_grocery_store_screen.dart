@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -242,9 +243,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                               ),
                               SizedBox(height: SizeConfig.size6),
                               PriceRow(
-                                sellingPrice:  "₹${groceryProductData.minSellingPrice}",
-                                mrp: "₹${groceryProductData.minMrp}",
-                                discount:  "${groceryProductData.avgDiscount}% OFF",
+                                sellingPrice: "${AppConstants.rupeeSymbol}${groceryProductData.minSellingPrice}",
+                                mrp: "${AppConstants.rupeeSymbol}${groceryProductData.minMrp}",
+                                discount: "${groceryProductData.avgDiscount}% OFF",
                               ),
 
                               SizedBox(height: SizeConfig.size4),
@@ -284,12 +285,18 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 width: SizeConfig.size8,
               ),
               InkWell(
-                onTap: ()=> Get.toNamed(
+                onTap: () async {
+                  await Get.toNamed(
                     RouteHelper.getGrocerySuperCategoryScreenRoute(),
                     arguments: {
                       ApiKeys.argBulkUpload: false
-                    }
-                ),
+                    },
+                  );
+                  if (controller.groceryDataNeedsRefresh) {
+                    controller.groceryDataNeedsRefresh = false;
+                    controller.fetchAllGroceryData(userId, otherStore: false);
+                  }
+                },
                 child: CustomText(
                     'Update Inventory',
                     fontSize: SizeConfig.medium,

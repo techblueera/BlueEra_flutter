@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
@@ -200,12 +201,19 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
               right: SizeConfig.paddingL
           ),
           child: InkWell(
-            onTap: ()=> Get.toNamed(
-               RouteHelper.getGrocerySuperCategoryScreenRoute(),
-              arguments: {
-                 ApiKeys.argBulkUpload: true
+            onTap: () async {
+              final groceryController = getOrPut(() => GroceryController());
+              await Get.toNamed(
+                RouteHelper.getGrocerySuperCategoryScreenRoute(),
+                arguments: {
+                  ApiKeys.argBulkUpload: true
+                },
+              );
+              if (groceryController.groceryDataNeedsRefresh) {
+                groceryController.groceryDataNeedsRefresh = false;
+                groceryController.fetchAllGroceryData(userId, otherStore: false);
               }
-            ),
+            },
             child: Container(
               height: SizeConfig.size40,
               width: SizeConfig.size40,

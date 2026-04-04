@@ -129,18 +129,6 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
-  /// Fetch Product Nested Category With Inventory
-  Future<ResponseModel> fetchProductNestedCategoryWithInventoryRepo({required Map<String, dynamic> queryParams}) async {
-    final response = await ApiBaseHelper().getHTTP(
-      productNestedCategoryWithInventory,
-      params: queryParams,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   ///GET BUSINESS PROFILE REPO....
   Future<ResponseModel> getBusinessProfileRepo() async {
     final response = await ApiBaseHelper().getHTTP(

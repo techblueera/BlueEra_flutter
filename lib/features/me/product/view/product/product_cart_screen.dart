@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -251,8 +252,8 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                       ],
                       SizedBox(height: SizeConfig.size8),
                       PriceRow(
-                        sellingPrice: '\u20b9${variant.sellingPrice.toStringAsFixed(0)}',
-                        mrp: '\u20b9${variant.mrp.toStringAsFixed(0)}',
+                        sellingPrice: '${AppConstants.rupeeSymbol}${variant.sellingPrice.toStringAsFixed(0)}',
+                        mrp: '${AppConstants.rupeeSymbol}${variant.mrp.toStringAsFixed(0)}',
                         discount: '$discount% off',
                       ),
                     ],
@@ -332,7 +333,7 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                             ),
                             alignment: Alignment.center,
                             child: CustomText(
-                              '\u20b9',
+                              AppConstants.rupeeSymbol,
                               fontSize: SizeConfig.medium,
                               color: AppColors.primaryColor,
                               fontWeight: FontWeight.w600,

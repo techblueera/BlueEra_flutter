@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:croppy/croppy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
@@ -291,7 +292,9 @@ class BusinessProfileHeader extends StatelessWidget {
                   children: [
                     InkWell(
                       onTap: () {
-                        // openBusinessDetailsEditSheet(context);
+                        if(kDebugMode){
+                          openBusinessDetailsEditSheet(context);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -315,13 +318,16 @@ class BusinessProfileHeader extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            // SizedBox(width: SizeConfig.size10),
-                            // LocalAssets(
-                            //   imagePath: AppIconAssets.editIcon,
-                            //   height: SizeConfig.size12,
-                            //   width: SizeConfig.size12,
-                            //   imgColor: AppColors.primaryColor,
-                            // ),
+                            if(kDebugMode)...[
+                              SizedBox(width: SizeConfig.size10),
+                              LocalAssets(
+                                imagePath: AppIconAssets.editIcon,
+                                height: SizeConfig.size12,
+                                width: SizeConfig.size12,
+                                imgColor: AppColors.primaryColor,
+                              ),
+                            ]
+
                           ],
                         ),
                       ),

@@ -11,6 +11,8 @@ import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.
 import 'package:get/get.dart';
 
 class RestaurantController extends GetxController {
+  bool foodDataNeedsRefresh = false;
+
   Rx<ApiResponse> foodHomeDataResponse =
       ApiResponse.initial('Initial').obs;
 

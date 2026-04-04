@@ -39,6 +39,8 @@ class PriceResult {
 }
 
 class GroceryController extends GetxController {
+  bool groceryDataNeedsRefresh = false;
+
   Rx<ApiResponse> groceryCategoryResponse =
     ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> groceryCategoryOfChildrenResponse =
@@ -502,7 +504,7 @@ class GroceryController extends GetxController {
       }
 
       addGroceryProductVariantResponse.value = ApiResponse.complete(response);
-      // final jsonData = response.response?.data;
+      groceryDataNeedsRefresh = true;
 
       final bool hasNoMissingProducts = (productSnapSearchData.value?.missingProducts ?? []).isEmpty;
       final bool shouldGoToHome = !isSnapSearch || hasNoMissingProducts;

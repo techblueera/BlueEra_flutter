@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -327,7 +328,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           Row(
                             children: [
                               CustomText(
-                                "₹${sellingPrice ?? 0}",
+                                "${AppConstants.rupeeSymbol}${sellingPrice ?? 0}",
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
                               ),
@@ -336,7 +337,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                                   mrp >= sellingPrice) ...[
                                 const SizedBox(width: 6),
                                 CustomText(
-                                  "₹$mrp",
+                                  "${AppConstants.rupeeSymbol}$mrp",
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.secondaryTextColor,
@@ -738,12 +739,17 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                     getIcon: (_categoryItem) => _categoryItem.image ?? '',
                     iconHeight: SizeConfig.size60,
                     boxShadow: [],
-                    onTap: (_categoryItem) {
-                      return Get.to(
+                    onTap: (_categoryItem) async {
+                      await Get.to(
                               () =>
                               MyFoodProductScreen(
                                 foodMenu: _categoryItem,
                               ));
+                      if (controller.foodDataNeedsRefresh) {
+                        controller.foodDataNeedsRefresh = false;
+                        controller.fetchHomeData(businessId: businessId);
+                      }
+                      return;
 
                       // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
                       //   arguments: {

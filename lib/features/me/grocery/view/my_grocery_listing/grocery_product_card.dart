@@ -218,7 +218,8 @@ class GroceryProductCard extends StatelessWidget {
 
                   // Action button
                   if (flowType == GroceryCardFlowType.myStore)
-                    _buildEditButton(onTap: () {})
+                    // _buildEditButton(onTap: () {})
+                    SizedBox()
                   else
                     _buildCardAddButton(),
                 ],

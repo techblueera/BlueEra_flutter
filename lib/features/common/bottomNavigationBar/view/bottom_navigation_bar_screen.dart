@@ -408,7 +408,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return WillPopScope(
             onWillPop: () async {
               bottomBarController.onChangeIndex(0);
-
               return false;
             },
             child: meScreens());

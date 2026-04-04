@@ -89,7 +89,11 @@ class _ExpandableTextState extends State<ExpandableText> {
               ),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
-                  setState(() => _readMore = false);
+                  if (widget.expandMode == ExpandMode.dialog) {
+                    _showFullTextDialog(context, style);
+                  } else {
+                    setState(() => _readMore = false);
+                  }
                 },
             ),
           ],

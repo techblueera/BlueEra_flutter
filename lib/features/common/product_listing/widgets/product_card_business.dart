@@ -10,6 +10,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
+import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -130,77 +131,42 @@ class _ProductCardState extends State<ProductCardBusiness> {
                 false)) ...[
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: CustomText(
-                        '₹${product.sellerClassification?.variants[0].sellingPrice}',
-                        fontWeight: FontWeight.w700,
-                        fontSize: SizeConfig.small,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.mainTextColor,
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size5),
-                    if (discountProduct > 0) ...[
-                      Flexible(
-                        child: CustomText(
-                          ' ₹${product.sellerClassification?.variants[0].mrp}',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                          decoration: TextDecoration.lineThrough,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 6,
-                      ),
-                      Flexible(
-                        child: CustomText(
-                          '${discountProduct}% ${AppStrings.offCaps.tr}',
-                          fontSize: SizeConfig.size10,
-                          color: AppColors.greenShade,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ],
+                child: PriceRow(
+                  sellingPrice: '${AppConstants.rupeeSymbol}${product.sellerClassification?.variants[0].sellingPrice}',
+                  mrp: '${AppConstants.rupeeSymbol}${product.sellerClassification?.variants[0].mrp}',
+                  discount: '${discountProduct}% ${AppStrings.offCaps.tr}',
                 ),
               ),
               // SizedBox(height: SizeConfig.size2),
             ],
-            SizedBox(height: SizeConfig.size10),
-            if (widget.isShowKM)
-              Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size4,
-                ), margin: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size4
-              ),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(SizeConfig.size4),
-                    color: AppColors.blueShade.withOpacity(0.1),
-                    border: Border.all(
-                        color: AppColors.blueShade
-                    )
-                ),
-                child: KmAwayTextWidget(
-                    isUnderlineShow: false,
-                    lat: widget.productData.product.sellerClassification
-                        ?.businessLocation?.latitude
-                        .toString() ??
-                        "",
-                    long: widget.productData.product.sellerClassification
-                        ?.businessLocation?.longitude
-                        ?.toString() ??
-                        ""),
-              ),
-            // SizedBox(height: SizeConfig.size2),
+
+            // SizedBox(height: SizeConfig.size10),
+            // if (widget.isShowKM)
+            //   Container(
+            //     padding: EdgeInsets.symmetric(
+            //       vertical: SizeConfig.size4,
+            //     ), margin: EdgeInsets.symmetric(
+            //       horizontal: SizeConfig.size4
+            //   ),
+            //     decoration: BoxDecoration(
+            //         borderRadius: BorderRadius.circular(SizeConfig.size4),
+            //         color: AppColors.blueShade.withOpacity(0.1),
+            //         border: Border.all(
+            //             color: AppColors.blueShade
+            //         )
+            //     ),
+            //     child: KmAwayTextWidget(
+            //         isUnderlineShow: false,
+            //         lat: widget.productData.product.sellerClassification
+            //             ?.businessLocation?.latitude
+            //             .toString() ??
+            //             "",
+            //         long: widget.productData.product.sellerClassification
+            //             ?.businessLocation?.longitude
+            //             ?.toString() ??
+            //             ""),
+            //   ),
+
             SizedBox(height: SizeConfig.size10),
             if (widget.isShowChat)
               InkWell(

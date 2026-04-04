@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -149,14 +150,14 @@ class BusinessStoreCard extends StatelessWidget {
                       FittedBox(
                         child: Row(
                           children: [
-                            CustomText(
-                              '${
-                                getAllStoreResData?.subCategoryOfBusiness?.name ??
-                                    getAllStoreResData?.natureOfBusiness ??
-                                    'OTHER'
+                            BusinessCommonSubCategoryWidget(
+                              label: '${
+                                  getAllStoreResData?.subCategoryOfBusiness?.name ??
+                                      getAllStoreResData?.natureOfBusiness ??
+                                      'OTHER'
                               } ',
-                                color: Colors.grey, fontSize: ds(12)
                             ),
+                            SizedBox(width: ds(4)),
                             Row(
                               children: [
                                 LocalAssets(
@@ -189,7 +190,30 @@ class BusinessStoreCard extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: ds(10)),
+          if(getAllStoreResData?.websiteUrl?.isNotEmpty??false) ...[
+            SizedBox(height: ds(6)),
+            InkWell(
+              onTap: ()=> launchUrl(Uri.parse(getAllStoreResData?.websiteUrl??'')),
+              child: CustomText(
+                getAllStoreResData?.websiteUrl ?? AppStrings.na,
+                fontSize: 12.0,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            // ExpandableText(
+            //   text: "${getAllStoreResData?.businessDescription ?? ''}",
+            //   trimLines: 2,
+            //   expandMode: ExpandMode.dialog,
+            //   style: TextStyle(
+            //     color: AppColors.secondaryTextColor,
+            //     fontFamily: AppConstants.OpenSans,
+            //     fontWeight: FontWeight.w400,
+            //   ),
+            // ),
+          ],
+
+          SizedBox(height: ds(8)),
 
           // --- Address & Distance Card (Tappable) ---
           GestureDetector(
@@ -238,27 +262,9 @@ class BusinessStoreCard extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: ds(6)),
-
-          if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
-          Padding(
-            padding: EdgeInsets.only(top: ds(10)),
-            child: ExpandableText(
-              text: "${getAllStoreResData?.businessDescription ?? ''}",
-              trimLines: 3,
-              expandMode: ExpandMode.dialog,
-              style: TextStyle(
-                color: AppColors.mainTextColor,
-                fontFamily: AppConstants.OpenSans,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-
-          SizedBox(height: ds(5)),
-
-          if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false))
-          /// Image grid
+          if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false)) ...[
+            SizedBox(height: ds(5)),
+            /// Image grid
             StoreLivePhotoWidget(
               livePhotos: getAllStoreResData?.livePhotos ?? [],
               natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
@@ -276,6 +282,7 @@ class BusinessStoreCard extends StatelessWidget {
                 );
               },
             ),
+          ],
 
           SizedBox(height: ds(5)),
 

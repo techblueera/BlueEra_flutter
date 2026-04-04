@@ -1,13 +1,12 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_floating_cart.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -16,11 +15,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/size_config.dart';
-import '../../../../../widgets/common_back_app_bar.dart';
-import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../../widgets/local_assets.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/size_config.dart';
+import '../../../../widgets/common_back_app_bar.dart';
+import '../../../../widgets/custom_text_cm.dart';
+import '../../../../widgets/local_assets.dart';
 
 class GroceryProductsSelectionScreen extends StatefulWidget {
   final List<GroceryNestedCategoryModel> arrGroceries;
@@ -44,7 +43,6 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.selectedGroceryData.value = widget.arrGroceries.first;
-      // controller.selectedGroceryData.value = widget.selectedGroceryData;
       controller.fetchBoth();
     });
   }
@@ -68,87 +66,48 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
 
   @override
   Widget build(BuildContext context) {
-    return  Obx(()=> Scaffold(
+    return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.selectedGroceryData.value?.name,
+        isCustomTitleWidget: () => Obx(() {
+          final name = controller.selectedGroceryData.value?.name ?? '';
+          return Text(
+            name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        }),
         isShadowShow: false,
-        buildCustomActionWidget:()=>
-        Obx(()=> controller.selectedGroceries.isEmpty
-            ?  Padding(
+        buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 20.0),
           child: Icon(Icons.search),
-        )
-            :  InkWell(
-              onTap: ()=> Get.toNamed(RouteHelper.getAddGroceryScreenRoute()),
-              child: Padding(
-              padding: const EdgeInsets.only(right: 20.0),
-              child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                LocalAssets(
-                  imagePath: AppIconAssets.cartIcon,
-                ),
-                Positioned(
-                  top: -5,
-                  right: -5,
-                    child: Container(
-                      height: SizeConfig.size16,
-                      width: SizeConfig.size16,
-                      decoration: BoxDecoration(
-                        color: AppColors.red,
-                        shape: BoxShape.circle
-                      ),
-                      alignment: Alignment.center,
-                      child: CustomText(
-                         '${controller.selectedGroceries.length}',
-                          color: AppColors.white,
-                      ),
-                    )
-                )
-              ]
-              ),
-            ),
-          ),
-        )
+        ),
       ),
-      bottomNavigationBar:
-      Obx((){
-        if(controller.selectedGroceries.isEmpty)
-            return SizedBox();
-        else
-          return Material(
-          elevation: 8.0,
-          child: Container(
-            color: AppColors.white,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size15,
-                  vertical: SizeConfig.size15),
-              child: SafeArea(
-                child: CustomBtn(
-                  onTap: () {
-                     Get.toNamed(RouteHelper.getAddGroceryScreenRoute());
-                  },
-                  isValidate: true,
-                  radius: SizeConfig.size8,
-                  title: AppStrings.next,
-                  // isLoading: authController.isAddBusinessUserLoading.value
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          leftCategoryList(),
-          Expanded(
-              child: rightContent()
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              leftCategoryList(),
+              Expanded(child: rightContent()),
+            ],
+          ),
+          // Floating cart
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: GroceryFloatingCart(controller: controller),
+            ),
           ),
         ],
-       ),
-      ));
+      ),
+    );
   }
 
   Widget leftCategoryList() {
@@ -209,7 +168,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                     ),
                     SizedBox(width: SizeConfig.size8),
                     CustomText(
-                      'You can’t select more than ${controller.maxLimit} products at a time.',
+                      'You can\'t select more than ${controller.maxLimit} products at a time.',
                       color: AppColors.redLite,
                       fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w400,
@@ -220,64 +179,6 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
             ),
 
           // TABS
-
-          // Obx(() {
-          //
-          //   final List<dynamic> marqueeData = ["All", ...controller.selectedGroceryData.value?.children??[]];
-          //
-          //   return SizedBox(
-          //     height: 28.0,
-          //     width: double.infinity,
-          //     // 2. Use the new Generic Widget
-          //     child: AutoScrollMarquee<dynamic>(
-          //       items: marqueeData,
-          //       speed: 0.5,
-          //       gap: 200.0,
-          //       itemBuilder: (context, item, i) {
-          //         // 🟢 'item' is passed directly. No need to look it up!
-          //
-          //         // 3. Logic for display name
-          //         String displayName;
-          //         if (item is String) {
-          //           displayName = item; // "All"
-          //         } else {
-          //           displayName = item.name ?? ""; // Your Category Model
-          //         }
-          //
-          //         // 4. Selection Logic
-          //         // We use 'i' (the actualIndex from the widget) to check selection
-          //         bool selected = controller.selectedHorizontalTabIndex.value == i;
-          //
-          //         return InkWell(
-          //           onTap: () {
-          //             controller.selectedHorizontalTabIndex.value = i;
-          //             controller.fetchGroceryCategoryProducts();
-          //           },
-          //           child: Container(
-          //             margin: const EdgeInsets.symmetric(horizontal: 6),
-          //             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          //             decoration: BoxDecoration(
-          //               color: selected ? AppColors.primaryColor : AppColors.white,
-          //               borderRadius: BorderRadius.circular(6),
-          //               border: selected
-          //                   ? null
-          //                   : Border.all(color: AppColors.greyLite, width: 0.5),
-          //             ),
-          //             child: Center(
-          //               child: CustomText(
-          //                 displayName,
-          //                 color: selected ? AppColors.white : AppColors.secondaryTextColor,
-          //                 fontWeight: FontWeight.w400,
-          //                 fontSize: 12,
-          //               ),
-          //             ),
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //   );
-          // }),
-
           Obx(() {
             final List<dynamic> tabData = ["All", ...controller.selectedGroceryData.value?.children??[]];
 
@@ -321,7 +222,11 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              padding: EdgeInsets.only(bottom: SizeConfig.size30),
+              padding: EdgeInsets.only(
+                bottom: controller.selectedGroceries.isNotEmpty
+                    ? SizeConfig.size80
+                    : SizeConfig.size30,
+              ),
               itemBuilder: (_, i) {
                 if (i == controller.arrGroceryCategoryProducts.length) {
                   return const Center(
@@ -349,11 +254,8 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
   }
 
   Widget groceryCard(GroceryProductData groceryProductData) {
-    // final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
+    final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
     final price = controller.getPriceDetails(groceryProductData.variants?[0].pricing);
-    // print("Selling Range: ${price.sellingRange}");
-    // print("MRP Range: ${price.mrpRange}");
-    // print("Discount Range: ${price.discountRange}");
 
     return Container(
       decoration: BoxDecoration(
@@ -448,85 +350,16 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                   mrp: "${price.mrpRange}",
                   discount: "${price.discountRange}",
                 ),
-                // Column(
-                //   children: [
-                //     Row(
-                //       mainAxisAlignment: MainAxisAlignment.start,
-                //       children: [
-                //         CustomText(
-                //           "${AppStrings.price.tr}: ",
-                //           fontSize: 10,
-                //           color: AppColors.secondaryTextColor,
-                //           fontWeight: FontWeight.w600,
-                //         ),
-                //         SizedBox(width: SizeConfig.size3),
-                //         FittedBox(
-                //           fit: BoxFit.scaleDown,
-                //           child: CustomText(
-                //             "${price.sellingRange}",
-                //             fontSize: 10,
-                //             color: AppColors.primaryColor,
-                //             fontWeight: FontWeight.bold,
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //     SizedBox(height: 4),
-                //     Row(
-                //         mainAxisAlignment: MainAxisAlignment.start,
-                //         children: [
-                //           CustomText(
-                //             "${AppStrings.mrp.tr}: ",
-                //             fontSize: 10,
-                //             color: AppColors.secondaryTextColor,
-                //             fontWeight: FontWeight.w600,
-                //           ),
-                //           SizedBox(width: SizeConfig.size3),
-                //           FittedBox(
-                //             fit: BoxFit.scaleDown,
-                //             child: CustomText(
-                //               "${price.mrpRange}",
-                //               fontSize: 10,
-                //               color: AppColors.grayText,
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //
-                //     SizedBox(height: 4),
-                //     Row(
-                //       mainAxisAlignment: MainAxisAlignment.start,
-                //       children: [
-                //         CustomText(
-                //           "${AppStrings.discount.tr}: ",
-                //           fontSize: 10,
-                //           color: AppColors.secondaryTextColor,
-                //           fontWeight: FontWeight.w600,
-                //         ),
-                //         SizedBox(width: SizeConfig.size3),
-                //         FittedBox(
-                //           fit: BoxFit.scaleDown,
-                //           child: CustomText(
-                //             "${price.discountRange}",
-                //             fontSize: 10,
-                //             color: AppColors.green00,
-                //             fontWeight: FontWeight.w600,
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //     SizedBox(height: SizeConfig.size8),
-                //     CustomBtn(
-                //       height: SizeConfig.size36,
-                //       onTap: () => controller.toggleSelection(groceryProductData),
-                //       title: isSelected ? 'Added' : 'Add',
-                //       textColor: isSelected ? AppColors.white : AppColors.primaryColor,
-                //       bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
-                //       radius: 6.0,
-                //       borderColor: AppColors.primaryColor,
-                //     )
-                //   ],
-                // ),
+                SizedBox(height: SizeConfig.size8),
+                CustomBtn(
+                  height: SizeConfig.size36,
+                  onTap: () => controller.toggleSelection(groceryProductData),
+                  title: isSelected ? 'Added' : 'Add',
+                  textColor: isSelected ? AppColors.white : AppColors.primaryColor,
+                  bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
+                  radius: 6.0,
+                  borderColor: AppColors.primaryColor,
+                )
               ],
             ),
           ),

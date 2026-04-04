@@ -137,7 +137,6 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                       AppColors.primaryColor, true, () {
                     if (isGuestUser()) {
                       createProfileScreen();
-
                       return;
                     }
                     chatViewController.checkChatConnectionAndOpenChat(

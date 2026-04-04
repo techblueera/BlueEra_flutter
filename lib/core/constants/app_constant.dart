@@ -42,6 +42,8 @@ import '../../features/personal/personal_profile/view/manage_notification/notifi
 import '../../features/chat/view/wallet_chat/wallet_chat_screen.dart';
 
 class AppConstants {
+  static const String rupeeSymbol = '\u20B9';
+
   static const String appName = 'BlueEra';
   static const String shareAppMsg = 'Created By BlueEra jobs app!\n\n'
       "Hey! I'm using BlueEraJobs and join me there. "
