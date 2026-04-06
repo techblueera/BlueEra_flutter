@@ -60,6 +60,19 @@ class InventoryController extends GetxController {
   RxList<GetProductData> liveProducts = <GetProductData>[].obs;
   RxList<GetProductData> draftProducts = <GetProductData>[].obs;
 
+  /// ─── Pagination for "Top Selling" own products ───────────────────
+  /// Shared between [ProductHomeScreen]'s horizontal preview and the
+  /// "View All" screen. On the home screen only the first
+  /// [ownProductsPreviewLimit] items are rendered — the rest of the
+  /// paginated list lives behind the "View All" action.
+  RxBool isAllProductsLoadingMore = false.obs;
+  int _allProductsPage = 1;
+  bool _allProductsHasMore = true;
+  static const int _allProductsLimit = 20;
+  static const int ownProductsPreviewLimit = 20;
+
+  bool get allProductsHasMore => _allProductsHasMore;
+
   // final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
   final int maxSelectionLimit = 10;
   final RxBool showErrorBanner = false.obs;
@@ -156,18 +169,17 @@ class InventoryController extends GetxController {
 
   // ── Product Nested Category With Inventory ──────────────────────────────────
   Rx<ApiResponse> fetchProductCategoryResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> fetchProductBusinessProductsResponse = ApiResponse.initial('Initial').obs;
   RxBool myProductLoading = true.obs;
   RxList<ProductCategoryWithInventoryModel> productCategoryList = <ProductCategoryWithInventoryModel>[].obs;
   RxBool productNestedCategoryLoading = false.obs;
   RxList<ProductNestedCategoryResponse> productNestedCategoryList = <ProductNestedCategoryResponse>[].obs;
 
-  Future<void> fetchAllProductData() async {
+  Future<void> fetchAllProductData({String? visitBusinessId}) async {
     try {
       myProductLoading.value = true;
       await Future.wait([
-        fetchProductCategoryWithInventory(),
-        fetchProducts(),
+        fetchProductCategoryWithInventory(visitBusinessId: visitBusinessId),
+        fetchProducts(visitBusinessId: visitBusinessId),
       ]);
     } catch (e) {
       log('Error fetching product data: $e');
@@ -176,12 +188,14 @@ class InventoryController extends GetxController {
     }
   }
 
-  Future<void> fetchProductCategoryWithInventory() async {
+  Future<void> fetchProductCategoryWithInventory({
+    String? visitBusinessId,
+  }) async {
     try {
       fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
 
       final response = await InventoryRepo().fetchProductCategoryWithInventoryRepo(
-        businessId: businessId,
+        businessId: visitBusinessId ?? businessId,
       );
 
       if (response.isSuccess) {
@@ -214,6 +228,7 @@ class InventoryController extends GetxController {
   Future<void> fetchProductsByCategory({
     required String categoryId,
     bool isLoadMore = false,
+    String? visitBusinessId,
   }) async {
     if (isLoadMore) {
       if (isProductByCategoryLoadingMore.value || !productByCategoryHasMore) return;
@@ -226,7 +241,7 @@ class InventoryController extends GetxController {
 
     try {
       Map<String, dynamic> queryParams = {
-        'ownerId': businessId,
+        'ownerId': visitBusinessId ?? businessId,
         'ownerType': ProviderType.business.title,
         'categoryId': categoryId,
         ApiKeys.page: productByCategoryPage,
@@ -403,39 +418,94 @@ class InventoryController extends GetxController {
     super.onClose();
   }
 
-  Future<void> fetchProducts({bool? isDraftProduct}) async {
+  /// Currently-active `ownerId` for the paginated `allProducts` list. When
+  /// the user is visiting another business this becomes the visiting
+  /// business's id; on the owner's own product home it stays as the
+  /// global `businessId`. Remembered here so load-more requests keep
+  /// hitting the same business across `isLoadMore` calls without the
+  /// caller having to re-pass it.
+  String? _allProductsActiveOwnerId;
+
+  Future<void> fetchProducts({
+    bool? isDraftProduct,
+    bool isLoadMore = false,
+    String? visitBusinessId,
+  }) async {
+    // Paginated "allProducts" path is only engaged when no draft filter is
+    // supplied — the draft/live lists still use the old one-shot behavior.
+    final bool paginate = isDraftProduct == null;
+
     try {
-      ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
+      if (paginate && isLoadMore) {
+        // Guard against duplicate/overlapping load-more calls and stop
+        // once the server has reported there are no more pages.
+        if (!_allProductsHasMore ||
+            isAllProductsLoadingMore.value ||
+            ownDraftAndPublicProductResponse.value.status == Status.INITIAL) {
+          return;
+        }
+        isAllProductsLoadingMore.value = true;
+      } else {
+        ownDraftAndPublicProductResponse.value =
+            ApiResponse.initial('Initial');
+        isLoading.value = true;
+        isProductLoading.value = true;
+        if (paginate) {
+          _allProductsPage = 1;
+          _allProductsHasMore = true;
+          allProducts.clear();
+          // Remember which owner this paginated run is scoped to, so
+          // subsequent load-more calls stay on the same business even
+          // if the caller forgets to pass `visitBusinessId` again.
+          _allProductsActiveOwnerId = visitBusinessId ?? businessId;
+        }
+      }
 
-      isLoading.value = true;
-      isProductLoading.value = true;
+      final String effectiveOwnerId = paginate
+          ? (_allProductsActiveOwnerId ?? businessId)
+          : (visitBusinessId ?? businessId);
 
-      Map<String, dynamic> queryParams = {
-        'ownerId': businessId,
+      final Map<String, dynamic> queryParams = {
+        'ownerId': effectiveOwnerId,
         'ownerType': ProviderType.business.title,
       };
 
-      if(isDraftProduct!=null){
+      if (isDraftProduct != null) {
         queryParams['DRAFT'] = isDraftProduct;
+      } else {
+        queryParams[ApiKeys.page] = _allProductsPage;
+        queryParams[ApiKeys.limit] = _allProductsLimit;
       }
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
+      final response = await InventoryRepo()
+          .fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
-        final getOwnProductModel = GetProductModel.fromJson(response.response!.data);
-        List<GetProductData> products = getOwnProductModel.data;
+        final getOwnProductModel =
+            GetProductModel.fromJson(response.response!.data);
+        final List<GetProductData> products = getOwnProductModel.data;
 
-        if(isDraftProduct!=null){
-          if(isDraftProduct){
+        if (isDraftProduct != null) {
+          if (isDraftProduct) {
             draftProducts.clear();
             draftProducts.assignAll(products);
-          }else{
+          } else {
             liveProducts.clear();
             liveProducts.assignAll(products);
           }
-        }else{
-          allProducts.clear();
-          allProducts.assignAll(products);
+        } else {
+          if (isLoadMore) {
+            allProducts.addAll(products);
+          } else {
+            allProducts.assignAll(products);
+          }
+          if (products.isNotEmpty) {
+            _allProductsPage++;
+          }
+          // Backend returned fewer than a full page → no more pages.
+          if (products.length < _allProductsLimit) {
+            _allProductsHasMore = false;
+          }
         }
       } else {
         print("API failed with status: ${response.statusCode}");
@@ -445,8 +515,12 @@ class InventoryController extends GetxController {
       print("stack trace: $s");
       ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     } finally {
-      isLoading.value = false;
-      isProductLoading.value = false;
+      if (paginate && isLoadMore) {
+        isAllProductsLoadingMore.value = false;
+      } else {
+        isLoading.value = false;
+        isProductLoading.value = false;
+      }
     }
   }
 

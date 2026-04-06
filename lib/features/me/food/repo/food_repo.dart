@@ -88,6 +88,21 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Paginated discount food products for the Offer Dish (Discount) section.
+  Future<ResponseModel> getDiscountFoodProductsRepo({
+    required String businessId,
+    required Map<String, dynamic> queryParams,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      discountFoodProducts(businessId),
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   // POST: Create a new contact
   Future<ResponseModel> addFoodContactRepo({
     required Map<String, dynamic> reqBody,

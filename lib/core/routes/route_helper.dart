@@ -15,7 +15,6 @@ import 'package:BlueEra/features/me/food/view/food_ai_details_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_customer_listing_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_product_selection_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_review_selection_screen.dart';
 import 'package:BlueEra/features/me/food/view/missing_food_itmes_screen.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
@@ -474,8 +473,8 @@ class RouteHelper {
   static String getGroceryProductsSelectionScreenRoute() =>
       RouteConstant.groceryProductsSelectionScreen;
 
-  static String getAddGroceryScreenRoute() =>
-      RouteConstant.addGroceryScreen;
+  // static String getAddGroceryScreenRoute() =>
+  //     RouteConstant.addGroceryScreen;
 
   static String getAddGroceryVariantScreenRoute() =>
       RouteConstant.addGroceryVariantScreen;
@@ -622,9 +621,6 @@ class RouteHelper {
 
   static String getFoodCustomerListingScreenRoute() =>
       RouteConstant.foodCustomerListingScreen;
-
-  static String getFoodReviewSelectionScreenRoute() =>
-      RouteConstant.foodReviewSelectionScreen;
 
   static String getNearByRidersScreenRoute() =>
       RouteConstant.nearByRidersScreen;
@@ -1525,10 +1521,10 @@ class RouteHelper {
                 // selectedGroceryData: argSelectedGroceryData
             ),
             settings: RouteSettings(name: getGroceryProductsSelectionScreenRoute()));
-      case RouteConstant.addGroceryScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddGroceryScreen(),
-            settings: RouteSettings(name: getAddGroceryScreenRoute()));
+      // case RouteConstant.addGroceryScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => AddGroceryScreen(),
+      //       settings: RouteSettings(name: getAddGroceryScreenRoute()));
       case RouteConstant.addGroceryVariantScreen:
         return MaterialPageRoute(
             builder: (_) => AddGroceryVariantScreen(),
@@ -1952,12 +1948,6 @@ class RouteHelper {
               visitBusinessId: visitBusinessId,
             ),
             settings: RouteSettings(name: getFoodCustomerListingScreenRoute())
-        );
-
-      case RouteConstant.foodReviewSelectionScreen:
-        return MaterialPageRoute(
-            builder: (_) => FoodReviewSelectionScreen(),
-            settings: RouteSettings(name: getFoodReviewSelectionScreenRoute())
         );
 
       case RouteConstant.nearByRidersScreen:

@@ -633,6 +633,19 @@ class GroceryController extends GetxController {
   RxList<GroceryCategoryWithInventoryModel> groceryCategoryList = <GroceryCategoryWithInventoryModel>[].obs;
   RxList<BusinessProductData> groceryBusinessProductsList = <BusinessProductData>[].obs;
 
+  /// ─── Pagination for "Top Selling Products" (business-products API) ───
+  /// Shared between the store screens (home preview) and the standalone
+  /// "View All" screen. On the home screens only the first
+  /// [businessProductsPreviewLimit] items are rendered — the rest of the
+  /// paginated list lives behind the "View All" action.
+  RxBool isBusinessProductsLoadingMore = false.obs;
+  int _businessProductsPage = 1;
+  bool _businessProductsHasMore = true;
+  static const int _businessProductsLimit = 20;
+  static const int businessProductsPreviewLimit = 20;
+
+  bool get businessProductsHasMore => _businessProductsHasMore;
+
   Future<void> fetchAllGroceryData(String userId, {required bool otherStore}) async {
     try {
       myGroceryLoading.value = true;
@@ -688,40 +701,78 @@ class GroceryController extends GetxController {
      }
   }
 
-  Future<void> fetchGroceryBusinessProductsRepo(String userId, bool otherStore) async {
+  Future<void> fetchGroceryBusinessProductsRepo(
+    String userId,
+    bool otherStore, {
+    bool isLoadMore = false,
+  }) async {
     try {
-
-      fetchGroceryBusinessProductsResponse.value = ApiResponse.initial('Initial');
+      if (isLoadMore) {
+        // Guard against duplicate/overlapping load-more calls and stop once
+        // the server has reported there are no more pages.
+        if (!_businessProductsHasMore ||
+            isBusinessProductsLoadingMore.value ||
+            fetchGroceryBusinessProductsResponse.value.status ==
+                Status.INITIAL) {
+          return;
+        }
+        isBusinessProductsLoadingMore.value = true;
+      } else {
+        fetchGroceryBusinessProductsResponse.value = ApiResponse.initial('Initial');
+        _businessProductsPage = 1;
+        _businessProductsHasMore = true;
+        groceryBusinessProductsList.clear();
+      }
 
       Map<String, dynamic> params = {
         ApiKeys.businessId: userId,
         ApiKeys.sortBy: "discount_high_to_low",
+        ApiKeys.page: _businessProductsPage,
+        ApiKeys.limit: _businessProductsLimit,
       };
 
       ResponseModel responseModel;
-      if(!otherStore){
-        responseModel = await GroceryRepo().fetchGroceryBusinessProductsRepo(
-            params: params
-        );
-      }else{
-        responseModel = await GroceryRepo().fetchPublicGroceryBusinessProductsRepo(
-            params: params
-        );
+      if (!otherStore) {
+        responseModel =
+            await GroceryRepo().fetchGroceryBusinessProductsRepo(params: params);
+      } else {
+        responseModel = await GroceryRepo()
+            .fetchPublicGroceryBusinessProductsRepo(params: params);
       }
 
       if (responseModel.isSuccess) {
+        var groceryBusinessProductsModel = GroceryBusinessProductsModel
+            .fromJson(responseModel.response?.data);
+        final newItems = groceryBusinessProductsModel.data ?? [];
 
-        fetchGroceryBusinessProductsResponse.value = ApiResponse.complete(responseModel);
-        var groceryBusinessProductsModel = GroceryBusinessProductsModel.fromJson(responseModel.response?.data);
-        groceryBusinessProductsList.value = groceryBusinessProductsModel.data ?? [];
+        if (isLoadMore) {
+          groceryBusinessProductsList.addAll(newItems);
+        } else {
+          groceryBusinessProductsList.value = newItems;
+        }
 
+        if (newItems.isNotEmpty) {
+          _businessProductsPage++;
+        }
+        // If the backend returned less than the page size, we've reached
+        // the end — no point hammering the server for another page.
+        if (newItems.length < _businessProductsLimit) {
+          _businessProductsHasMore = false;
+        }
+
+        fetchGroceryBusinessProductsResponse.value =
+            ApiResponse.complete(responseModel);
         log("Loaded ${groceryBusinessProductsList.length}");
-      }else{
+      } else {
         fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
       log("Stack Trace===== $s");
+    } finally {
+      if (isLoadMore) {
+        isBusinessProductsLoadingMore.value = false;
+      }
     }
   }
 

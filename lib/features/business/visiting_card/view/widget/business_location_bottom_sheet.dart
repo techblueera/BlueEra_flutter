@@ -125,14 +125,14 @@ class _BusinessLocationBottomSheetState
                 children: [
                   CustomText(
                     AppStrings.businessLocation,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+                  CloseButton()
                 ],
               ),
-              SizedBox(height: SizeConfig.size16),
+              SizedBox(height: SizeConfig.size6),
 
               CommonTextField(
                 readOnly: true,

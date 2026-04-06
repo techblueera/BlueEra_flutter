@@ -21,6 +21,7 @@ import 'package:BlueEra/features/business/widgets/business_availability_widget.d
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_hours_sheet_content.dart';
+import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
@@ -62,7 +63,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
       padding: EdgeInsets.zero,
-      margin: const EdgeInsets.only(top: 10.0),
+      // margin: const EdgeInsets.only(top: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -122,9 +123,17 @@ class BusinessProfileHeaderView extends StatelessWidget {
           Positioned(
             right: 10,
             bottom: 5,
-            child: BusinessCardUi(
-              onTap: () => Get.to(() => AllVisitingCards(
-                  businessDetails: details, showAppBar: true)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                BusinessVerifyNowButton(details: details),
+                const SizedBox(width: 8),
+                BusinessCardUi(
+                  onTap: () => Get.to(() => AllVisitingCards(
+                      businessDetails: details, showAppBar: true)),
+                ),
+              ],
             ),
           ),
         ],

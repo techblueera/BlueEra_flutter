@@ -28,7 +28,6 @@ import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
@@ -269,7 +268,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     onTap: () {
                       showDialog(
                           barrierDismissible: true,
-                          barrierColor: Colors.black.withOpacity(0.3),
+                          barrierColor: Colors.black.withValues(alpha: 0.3),
                           context: context,
                           builder: (BuildContext context) {
                             return Align(

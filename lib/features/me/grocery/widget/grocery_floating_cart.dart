@@ -26,7 +26,8 @@ class GroceryFloatingCart extends StatelessWidget {
       return FloatingCartWidget(
         itemCount: selected.length,
         displayImages: displayImages,
-        onTap: () => Get.toNamed(RouteHelper.getAddGroceryScreenRoute()),
+        onTap: () => Get.toNamed(RouteHelper.getAddGroceryVariantScreenRoute()),
+        // onTap: () => Get.toNamed(RouteHelper.getAddGroceryScreenRoute()),
       );
     });
   }

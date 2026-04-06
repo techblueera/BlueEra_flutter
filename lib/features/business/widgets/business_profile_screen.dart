@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
-import 'package:BlueEra/features/business/widgets/my_product_card_details.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -129,7 +128,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   Widget build(BuildContext context) {
     postTabs = [
       TabItem(id: 'Profile', title: AppStrings.profile.tr),
-      TabItem(id: 'My Products', title: AppStrings.myProducts.tr),
+      // TabItem(id: 'My Products', title: AppStrings.myProducts.tr),
       TabItem(id: 'My Posts', title: AppStrings.myPosts.tr),
     ];
     return GetBuilder<ViewBusinessDetailsController>(builder: (controller) {
@@ -213,8 +212,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
             postFilterType: PostType.myPosts,
             id: businessId,
             isInParentScroll: true);
-      case "My Products":
-        return MyProductCardDetails();
+      // case "My Products":
+      //   return MyProductCardDetails();
       default:
         return const Center(child: CustomText('Coming soon'));
     }

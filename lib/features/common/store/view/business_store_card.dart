@@ -6,15 +6,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/me/product/view/visit_product_store_details_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
@@ -51,10 +50,9 @@ class BusinessStoreCard extends StatelessWidget {
           InkWell(
             onTap: (){
               if(!selfBusiness){
-                Get.to(() => VisitBusinessProfileNew(
-                  businessId: getAllStoreResData?.id ?? "",
-                  screenName: AppConstants.storeFeedScreen,
-                ));
+                Get.to(() => VisitProductStoreDetailsScreen(
+                      visitBusinessId: getAllStoreResData?.id ?? "",
+                    ));
               }else{
                 Get.to(() =>  BusinessOwnProfileScreen());
               }

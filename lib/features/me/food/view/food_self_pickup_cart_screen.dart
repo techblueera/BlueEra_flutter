@@ -1,10 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
+import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
+import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -12,14 +13,19 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SelfPickUpCartScreen extends StatefulWidget {
-  const SelfPickUpCartScreen({super.key});
+/// Self-pickup cart for the food flow. Same structure as
+/// [GrocerySelfPickUpCartScreen] — items are grouped by store, each store
+/// can be toggled via checkbox on the bottom summary bar, and the submit
+/// button fires a bulk food order call on [FoodSelfPickupController].
+class FoodSelfPickUpCartScreen extends StatefulWidget {
+  const FoodSelfPickUpCartScreen({super.key});
 
   @override
-  State<SelfPickUpCartScreen> createState() => _SelfPickUpCartScreenState();
+  State<FoodSelfPickUpCartScreen> createState() =>
+      _FoodSelfPickUpCartScreenState();
 }
 
-class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
+class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
   static const List<Color> _cardColors = [
     Color(0xFFFFFEF7),
     Color(0xFFFFF9F3),
@@ -29,11 +35,11 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
   final RxSet<String> selectedBusinessIds = <String>{}.obs;
   bool _initialized = false;
 
-  Map<String, List<ProductVariants>> _groupByBusiness(
-      GrocerySelfPickupConsumerController controller) {
-    final Map<String, List<ProductVariants>> grouped = {};
-    for (var variant in controller.selectedGroceriesVariants) {
-      final info = controller.cartBusinessInfo[variant.sId];
+  Map<String, List<FoodVariants>> _groupByBusiness(
+      FoodSelfPickupController controller) {
+    final Map<String, List<FoodVariants>> grouped = {};
+    for (var variant in controller.selectedFoodVariants) {
+      final info = controller.cartBusinessInfo[variant.id];
       final businessId = info?['businessId'] ?? 'unknown';
       grouped.putIfAbsent(businessId, () => []).add(variant);
     }
@@ -45,29 +51,28 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
   }
 
   double _calcTotal(
-      List<ProductVariants> items, GrocerySelfPickupConsumerController controller) {
+      List<FoodVariants> items, FoodSelfPickupController controller) {
     double total = 0;
     for (var v in items) {
-      int qty = controller.getQuantity(v.sId);
-      double sp =
-          double.tryParse(v.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
+      final qty = controller.getQuantity(v.id);
+      final sp = (v.baseSellingPrice ?? 0).toDouble();
       total += sp * qty;
     }
     return total;
   }
 
   int _calcItemCount(
-      List<ProductVariants> items, GrocerySelfPickupConsumerController controller) {
+      List<FoodVariants> items, FoodSelfPickupController controller) {
     int count = 0;
     for (var v in items) {
-      count += controller.getQuantity(v.sId);
+      count += controller.getQuantity(v.id);
     }
     return count;
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<GrocerySelfPickupConsumerController>();
+    final controller = Get.find<FoodSelfPickupController>();
 
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
@@ -92,7 +97,7 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
         ),
       ),
       body: Obx(() {
-        final variants = controller.selectedGroceriesVariants;
+        final variants = controller.selectedFoodVariants;
 
         if (variants.isEmpty) {
           return Center(
@@ -125,13 +130,15 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
                   final businessId = businessIds[index];
                   final items = grouped[businessId]!;
                   final businessInfo =
-                      controller.cartBusinessInfo[items.first.sId] ?? {};
-                  final Color bgColor = _cardColors[index % _cardColors.length];
+                      controller.cartBusinessInfo[items.first.id] ?? {};
+                  final Color bgColor =
+                      _cardColors[index % _cardColors.length];
                   final int productCount = _calcItemCount(items, controller);
                   final double storeTotal = _calcTotal(items, controller);
 
                   return _StoreCard(
-                    businessName: businessInfo['businessName'] ?? 'Unknown Store',
+                    businessName:
+                        businessInfo['businessName'] ?? 'Unknown Store',
                     businessLogo: businessInfo['logo'] ?? '',
                     businessAddress: businessInfo['address'] ?? '',
                     productCount: productCount,
@@ -141,7 +148,7 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
                       _showProductsBottomSheet(
                         context,
                         businessName:
-                        businessInfo['businessName'] ?? 'Unknown Store',
+                            businessInfo['businessName'] ?? 'Unknown Store',
                         items: items,
                         controller: controller,
                       );
@@ -164,11 +171,11 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
   }
 
   void _showProductsBottomSheet(
-      BuildContext context, {
-        required String businessName,
-        required List<ProductVariants> items,
-        required GrocerySelfPickupConsumerController controller,
-      }) {
+    BuildContext context, {
+    required String businessName,
+    required List<FoodVariants> items,
+    required FoodSelfPickupController controller,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -187,10 +194,10 @@ class _SelfPickUpCartScreenState extends State<SelfPickUpCartScreen> {
 // ═══════════════════════════════════════════════════════════════════
 
 class _BottomSummaryBar extends StatelessWidget {
-  final Map<String, List<ProductVariants>> grouped;
-  final GrocerySelfPickupConsumerController controller;
-  final double Function(List<ProductVariants>, GrocerySelfPickupConsumerController) calcTotal;
-  final int Function(List<ProductVariants>, GrocerySelfPickupConsumerController) calcItemCount;
+  final Map<String, List<FoodVariants>> grouped;
+  final FoodSelfPickupController controller;
+  final double Function(List<FoodVariants>, FoodSelfPickupController) calcTotal;
+  final int Function(List<FoodVariants>, FoodSelfPickupController) calcItemCount;
   final RxSet<String> selectedBusinessIds;
 
   const _BottomSummaryBar({
@@ -226,7 +233,8 @@ class _BottomSummaryBar extends StatelessWidget {
               offset: const Offset(0, -4),
             ),
           ],
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           top: false,
@@ -240,7 +248,7 @@ class _BottomSummaryBar extends StatelessWidget {
                   final businessId = entry.key;
                   final items = entry.value;
                   final businessInfo =
-                      controller.cartBusinessInfo[items.first.sId] ?? {};
+                      controller.cartBusinessInfo[items.first.id] ?? {};
                   final shopName =
                       businessInfo['businessName'] ?? 'Unknown Store';
                   final shopTotal = calcTotal(items, controller);
@@ -273,7 +281,7 @@ class _BottomSummaryBar extends StatelessWidget {
                               },
                               activeColor: AppColors.primaryColor,
                               materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
+                                  MaterialTapTargetSize.shrinkWrap,
                               visualDensity: VisualDensity.compact,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
@@ -294,7 +302,7 @@ class _BottomSummaryBar extends StatelessWidget {
                             ),
                           ),
                           CustomText(
-                            '₹${shopTotal.toStringAsFixed(2)}',
+                            '${AppConstants.rupeeSymbol}${shopTotal.toStringAsFixed(2)}',
                             fontSize: SizeConfig.small,
                             color: isChecked
                                 ? AppColors.mainTextColor
@@ -324,7 +332,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           CustomText(
-                            '₹${grandTotal.toStringAsFixed(2)}',
+                            '${AppConstants.rupeeSymbol}${grandTotal.toStringAsFixed(2)}',
                             fontSize: SizeConfig.extraLarge,
                             color: AppColors.mainTextColor,
                             fontWeight: FontWeight.w700,
@@ -336,7 +344,13 @@ class _BottomSummaryBar extends StatelessWidget {
                     Expanded(
                       child: InkWell(
                         onTap: selectedShopCount > 0
-                            ? () => controller.placeBulkGroceryOrderApi()
+                            ? () {
+                                // TODO: wire to a food bulk-order API when
+                                // the backend is ready — placeholder for
+                                // now to keep parity with grocery.
+                                commonSnackBar(
+                                    message: 'Food order flow coming soon');
+                              }
                             : null,
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
@@ -348,13 +362,13 @@ class _BottomSummaryBar extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: selectedShopCount > 0
                                 ? [
-                              BoxShadow(
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ]
+                                    BoxShadow(
+                                      color: AppColors.primaryColor
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ]
                                 : [],
                           ),
                           alignment: Alignment.center,
@@ -445,7 +459,7 @@ class _StoreCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           _buildBadge(
-                            '₹${storeTotal.toStringAsFixed(2)}',
+                            '${AppConstants.rupeeSymbol}${storeTotal.toStringAsFixed(2)}',
                             const Color(0xFFE8F5E9),
                             AppColors.green1A,
                           ),
@@ -456,7 +470,6 @@ class _StoreCard extends StatelessWidget {
                 ),
               ],
             ),
-
             if (businessAddress.isNotEmpty) ...[
               SizedBox(height: SizeConfig.paddingXSL),
               Container(
@@ -503,9 +516,7 @@ class _StoreCard extends StatelessWidget {
                 ),
               ),
             ],
-
             SizedBox(height: SizeConfig.paddingXSL),
-
             SizedBox(
               width: double.infinity,
               child: InkWell(
@@ -562,8 +573,8 @@ class _StoreCard extends StatelessWidget {
 
 class _ProductsBottomSheet extends StatelessWidget {
   final String businessName;
-  final List<ProductVariants> items;
-  final GrocerySelfPickupConsumerController controller;
+  final List<FoodVariants> items;
+  final FoodSelfPickupController controller;
 
   const _ProductsBottomSheet({
     required this.businessName,
@@ -591,7 +602,6 @@ class _ProductsBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -630,12 +640,11 @@ class _ProductsBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Container(height: 1, color: AppColors.appBackgroundColor),
-
           Expanded(
             child: Obx(() {
               final activeItems = items
-                  .where((v) => controller.selectedGroceriesVariants
-                  .any((sv) => sv.sId == v.sId))
+                  .where((v) => controller.selectedFoodVariants
+                      .any((sv) => sv.id == v.id))
                   .toList();
 
               if (activeItems.isEmpty) {
@@ -648,11 +657,9 @@ class _ProductsBottomSheet extends StatelessWidget {
               int totalProducts = 0;
               double totalAmount = 0;
               for (var v in activeItems) {
-                int qty = controller.getQuantity(v.sId);
+                final qty = controller.getQuantity(v.id);
                 totalProducts += qty;
-                double sp = double.tryParse(
-                    v.pricing?.first.sellingPrice.toString() ?? '0') ??
-                    0;
+                final sp = (v.baseSellingPrice ?? 0).toDouble();
                 totalAmount += sp * qty;
               }
 
@@ -671,7 +678,8 @@ class _ProductsBottomSheet extends StatelessWidget {
                         color: AppColors.primaryColor.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.primaryColor.withValues(alpha: 0.15),
+                          color: AppColors.primaryColor
+                              .withValues(alpha: 0.15),
                         ),
                       ),
                       child: Row(
@@ -691,7 +699,7 @@ class _ProductsBottomSheet extends StatelessWidget {
                             ],
                           ),
                           CustomText(
-                            '₹${totalAmount.toStringAsFixed(2)}',
+                            '${AppConstants.rupeeSymbol}${totalAmount.toStringAsFixed(2)}',
                             fontSize: SizeConfig.large,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primaryColor,
@@ -720,8 +728,8 @@ class _ProductsBottomSheet extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════
 
 class _VariantItem extends StatelessWidget {
-  final ProductVariants variant;
-  final GrocerySelfPickupConsumerController controller;
+  final FoodVariants variant;
+  final FoodSelfPickupController controller;
 
   const _VariantItem({
     required this.variant,
@@ -730,8 +738,8 @@ class _VariantItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sellingPrice = variant.pricing?.first.sellingPrice ?? 0;
-    final mrp = variant.pricing?.first.mrp ?? 0;
+    final sellingPrice = variant.baseSellingPrice ?? 0;
+    final mrp = variant.mrp ?? 0;
 
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -744,16 +752,10 @@ class _VariantItem extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Image
-          (variant.images != null && variant.images!.isNotEmpty)
-              ? CustomImageSlideshow(
-            isLoading: false,
-            width: SizeConfig.size50,
-            height: SizeConfig.size50,
-            imagePaths: variant.images!.map((i) => i.url ?? '').toList(),
-            borderRadius: BorderRadius.circular(6),
-          )
-              : ClipRRect(
+          // Food variants don't carry their own image list; fall back to
+          // the placeholder (the dish image is shown on the product tile
+          // where the user added it from).
+          ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LocalAssets(
               imagePath: AppIconAssets.place_holder_image,
@@ -762,9 +764,7 @@ class _VariantItem extends StatelessWidget {
               height: SizeConfig.size50,
             ),
           ),
-
           SizedBox(width: SizeConfig.paddingXSL),
-
           // Details
           Expanded(
             child: Column(
@@ -775,35 +775,43 @@ class _VariantItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    CustomText('${variant.quantity}',
+                    if ((variant.quantityLabel ?? '').isNotEmpty) ...[
+                      CustomText(
+                        variant.quantityLabel ?? '',
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.mainTextColor),
-                    SizedBox(width: SizeConfig.size6),
-                    Container(
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      Container(
                         width: 0.5,
                         height: SizeConfig.size12,
-                        color: AppColors.secondaryTextColor),
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                    ],
+                    CustomText(
+                      '${AppConstants.rupeeSymbol}$sellingPrice',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                    ),
                     SizedBox(width: SizeConfig.size6),
-                    CustomText('₹$sellingPrice',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mainTextColor),
-                    SizedBox(width: SizeConfig.size6),
-                    CustomText('₹$mrp',
+                    if (mrp > sellingPrice)
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}$mrp',
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
                         decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor),
+                        decorationColor: AppColors.secondaryTextColor,
+                      ),
                   ],
                 ),
               ],
             ),
           ),
-
           SizedBox(width: SizeConfig.paddingXSL),
-
           // Dashed divider
           DashedBorderContainer(
             borderColor: AppColors.greyE5,
@@ -812,24 +820,28 @@ class _VariantItem extends StatelessWidget {
             child: SizedBox(height: SizeConfig.size50, width: 1),
           ),
           SizedBox(width: SizeConfig.size10),
-
           // Qty controls
           Obx(() {
             return Column(
               children: [
                 Row(
                   children: [
-                    CustomText('₹$sellingPrice',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mainTextColor),
+                    CustomText(
+                      '${AppConstants.rupeeSymbol}$sellingPrice',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                    ),
                     SizedBox(width: SizeConfig.size4),
-                    CustomText('₹$mrp',
+                    if (mrp > sellingPrice)
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}$mrp',
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
                         decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor),
+                        decorationColor: AppColors.secondaryTextColor,
+                      ),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size4),
@@ -859,7 +871,7 @@ class _VariantItem extends StatelessWidget {
                         ),
                       ),
                       CustomText(
-                        '${controller.getQuantity(variant.sId)}',
+                        '${controller.getQuantity(variant.id)}',
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,

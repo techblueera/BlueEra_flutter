@@ -701,6 +701,7 @@ abstract class BaseService {
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
   final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';
   final String home = 'food-service/api/home/';
+  String discountFoodProducts(String businessId) => 'food-service/api/home/$businessId/discountProducts';
   String nestedCategoryWithInventory(String userId) => 'food-service/api/home/$userId';
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';

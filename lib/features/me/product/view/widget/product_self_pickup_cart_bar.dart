@@ -1,41 +1,36 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_self_pickup_cart_screen.dart';
+import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
+import 'package:BlueEra/features/me/product/view/product_self_pickup_cart_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SelfPickupCommonCartUi extends StatelessWidget {
-  final RxList selectedVariants;
+/// Floating cart pill for the product self-pickup flow. Must be placed as
+/// a **direct** `Positioned` child of a `Stack` — it already returns a
+/// `Positioned` from build so that `StackParentData` propagation is
+/// unambiguous.
+class ProductSelfPickupCartBar extends StatelessWidget {
+  final ProductSelfPickupController controller;
 
-  const SelfPickupCommonCartUi({
-    super.key,
-    required this.selectedVariants,
-  });
+  const ProductSelfPickupCartBar({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final int itemCount = selectedVariants.length;
-      if (itemCount == 0) return const SizedBox.shrink();
-      return Positioned(
-        left: 16,
-        right: 16,
-        bottom: 20,
-        child: SafeArea(
+    return Positioned(
+      left: 16,
+      right: 16,
+      bottom: 20,
+      child: Obx(() {
+        // `.length` is a tracked RxList accessor — touching it first
+        // guarantees the Obx is subscribed to the cart list.
+        final itemCount = controller.selectedProductVariants.length;
+        if (itemCount == 0) return const SizedBox.shrink();
+        return SafeArea(
           child: GestureDetector(
-            onTap: () {
-            //   Get.toNamed(
-            //   RouteHelper.getYourAddToCardScreenRoute(),
-            // );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GrocerySelfPickUpCartScreen(),
-                ),
-              );
-            },
+            onTap: () => Get.to(() => const ProductSelfPickUpCartScreen()),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              padding: const EdgeInsets.symmetric(
+                  vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor,
                 borderRadius: BorderRadius.circular(12),
@@ -50,7 +45,8 @@ class SelfPickupCommonCartUi extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
@@ -79,8 +75,8 @@ class SelfPickupCommonCartUi extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }

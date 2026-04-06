@@ -1,28 +1,21 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-
-import '../../../../me/grocery/widget/grocery_data.dart';
 
 class RiderStoreScreen extends StatefulWidget {
   const RiderStoreScreen({super.key});
@@ -39,7 +32,6 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
 
   @override
   void initState() {
-    foodCustomerController.clearControllerFields();
     foodServiceController.getFoodNestedCategoryApi();
     groceryController.fetchGroceryNestedCategory();
     super.initState();

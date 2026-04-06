@@ -4,19 +4,15 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/description_preview_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -25,7 +21,6 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class BusinessProfileWidget extends StatefulWidget {
@@ -58,7 +53,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
   Widget build(BuildContext context) {
     details = controller.businessProfileDetails.value?.data;
 
-    final theme = Theme.of(context);
     return Column(
       children: [
         /*   CustomFormCard(
@@ -562,492 +556,258 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           height: SizeConfig.size10,
         ),
 
-        ///ABOUT YOUR BUSINESS...
-        Obx(() {
-          return CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      letterSpacing: 0.4,
-                      AppStrings.businessDescription,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.bold,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    (controller.isListingDescriptionEdit.value)
-                        ? Row(
-                            children: [
-                              Obx(()=> !controller.isLoading.value
-                                  ? InkWell(
-                                  onTap: () {
-                                    controller.listingDescriptionController
-                                        .value.text =
-                                        controller.businessDescription.value
-                                            .toString();
-                                    businessDescriptionController
-                                        .generateDescriptions(bodyRequest: {
-                                      ApiKeys.business_name: controller
-                                          .businessProfileDetails.value
-                                          ?.data
-                                          ?.businessName,
-                                      ApiKeys.category: controller
-                                          .businessProfileDetails.value
-                                          ?.data
-                                          ?.categoryDetails
-                                          ?.name,
-                                      ApiKeys.sub_category: controller
-                                          .businessProfileDetails.value
-                                          ?.data
-                                          ?.subCategoryDetails
-                                          ?.name,
-                                      ApiKeys.city: controller
-                                          .businessProfileDetails.value
-                                          ?.data
-                                          ?.cityStatePincode,
-                                    });
-                                    // listingDescriptionController.text = controller
-                                    //     .businessProfileDetails?.data.businessName.value
-                                    //     .toString();
-                                    setState(() {
-                                      controller
-                                          .isListingDescriptionEdit.value =
-                                      !controller
-                                          .isListingDescriptionEdit.value;
-                                    });
-                                  },
-                                  child: LocalAssets(
-                                    height: 25,
-                                    width: 25,
-                                    imgColor: AppColors.primaryColor,
-                                    imagePath: AppIconAssets.ai_generative,
-                                  )) : SizedBox(
-                                  height: 25,
-                                  width: 25,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.0,
-                                  ))),
+         /// BUSINESS Description...
+        // const BusinessDescriptionCard(),
+        // SizedBox(
+        //   height: SizeConfig.size10,
+        // ),
 
-                              SizedBox(
-                                width: SizeConfig.size10,
-                              ),
-                              InkWell(
-                                  onTap: () {
-                                    controller.listingDescriptionController
-                                            .value.text =
-                                        controller.businessDescription.value
-                                            .toString();
-                                    setState(() {
-                                      controller
-                                              .isListingDescriptionEdit.value =
-                                          !controller
-                                              .isListingDescriptionEdit.value;
-                                    });
-                                  },
-                                  child: LocalAssets(
-                                    height: 16,
-                                    imagePath: AppIconAssets.pen_line,
-                                  )),
-                            ],
-                          )
-                        : Row(
-                            children: [
-                              CustomBtn(
-                                  height: 24,
-                                  width: 56,
-                                  onTap: () {
-                                    businessDescriptionController
-                                        .descriptionSuggestions
-                                        .clear();
-                                    setState(() {
-                                      controller
-                                              .isListingDescriptionEdit.value =
-                                          !controller
-                                              .isListingDescriptionEdit.value;
-                                    });
-                                  },
-                                  title: AppStrings.cancel),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              CustomBtn(
-                                  height: 24,
-                                  width: 56,
-                                  bgColor: theme.colorScheme.primary,
-                                  onTap: () async {
-                                    if (controller.listingDescriptionController
-                                        .value.text.isNotEmpty) {
-                                      businessDescriptionController
-                                          .descriptionSuggestions
-                                          .clear();
-                                      setState(() {
-                                        controller.isListingDescriptionEdit
-                                                .value =
-                                            !controller
-                                                .isListingDescriptionEdit.value;
-                                      });
-                                      Map<String, dynamic> params = {
-                                        ApiKeys.description:
-                                            "${controller.listingDescriptionController.value.text}"
-                                      };
-                                      await controller
-                                          .updateBusinessDescription(params);
-                                    } else {
-                                      commonSnackBar(
-                                          message:
-                                          AppStrings.descriptionEmpty);
-                                    }
-                                  },
-                                  title: AppStrings.save),
-                            ],
-                          )
-                  ],
-                ),
-                SizedBox(
-                  height: SizeConfig.size6,
-                ),
-                CustomText(
-                  AppStrings.tellCustomersWhatYouOffer,
-                  fontSize: SizeConfig.size12,
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w400,
-                ),
-                SizedBox(
-                  height: SizeConfig.size6,
-                ),
-                (controller.isListingDescriptionEdit.value)
-                    ? SizedBox()
-                    : const SizedBox(
-                        height: 4,
-                      ),
-                (controller.isListingDescriptionEdit.value &&
-                        controller.businessDescription != '')
-                    ? Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          border: Border.all(color: AppColors.whiteE5),
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [AppShadows.textFieldShadow],
-                        ),
-                        width: double.infinity,
-                        margin: EdgeInsets.only(top: 16),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 13, vertical: 13),
-                        child: Obx(() {
-                          return DescriptionPreview(
-                            text: controller.businessDescription.value,
-                            dialogTitle: AppStrings.businessDescription,
-                          );
-                        }),
-                      )
-                    : CommonTextField(
-                        borderWidth: 0,
-                        borderColor: Colors.transparent,
-                        hintText:AppStrings.addBusinessDetails,
-                        textEditController:
-                            controller.listingDescriptionController.value,
-                        maxLine: 5,
-                        inputLength: 900,
-                        isValidate: false,
-                        maxLength: AppConstants.inputCharterLimit400,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(
-                            AppConstants.inputCharterLimit400,
-                          ),
-                          NoLeadingSpaceFormatter(),
-                          NoConsecutiveSpacesFormatter(),
-                        ],
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return AppStrings.pleaseEnterBusinessDetails.tr;
-                          }
-                          if (value.trim().length < 50) {
-                            return AppStrings.min50Characters.tr;
-                          }
-                          if (value.trim().length > 900) {
-                            return AppStrings.max900Characters.tr;
-                          }
-                          return null;
-                        },
-                      ),
-                Obx(() {
-                  return SizedBox(
-                    height: (controller.isListingDescriptionEdit.value)
-                        ? 8
-                        : SizeConfig.size18,
-                  );
-                }),
-              ],
-            ),
-          );
-        }),
-        SizedBox(
-          height: SizeConfig.size10,
-        ),
-
-        /// Inventory
-        CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                color: AppColors.secondaryTextColor,
-                AppStrings.listYourProductServices,
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.bold,
-              ),
-              SizedBox(
-                height: SizeConfig.size10,
-              ),
-              InkWell(
-                onTap: () {
-                  // details?.livePhotos
-                  // controller.imgLocalL3.length
-                  if ((details?.livePhotos?.length == 3) ||
-                      controller.imgLocalL3.length == 3) {
-                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
-                  } else {
-                    commonSnackBar(
-                        message: AppStrings.upload3StorePictures);
-                  }
-                },
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  decoration: BoxDecoration(
-                      boxShadow: [AppShadows.textFieldShadow],
-                      color: AppColors.white,
-                      border:
-                          Border.all(color: AppColors.primaryColor, width: 2),
-                      borderRadius: BorderRadius.circular(10)),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size10,
-                      vertical: SizeConfig.size10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(AppStrings.addProductServiceHere,
-                              // fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.mainTextColor,
-                            ),
-                            SizedBox(
-                              height: SizeConfig.size6,
-                            ),
-                            CustomText(
-                              AppStrings.startSellingNow,
-                              // fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                            // CustomText(
-                            //   "Organize your products into 👔 Men • 👗 Women • 🧒 Kids. Make shopping easier for your customers!",
-                            //   fontSize: SizeConfig.extraSmall,
-                            // ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size20,
-                      ),
-                      LocalAssets(imagePath: AppIconAssets.store_bg)
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: SizeConfig.size10,
-        ),
-
-        ///STORE IMAGE...
-        CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4.0),
-                      child: CustomText(
-                        letterSpacing: 0.6,
-                        AppStrings.yourLiveStorePictures,
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.bold,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                    CustomText(
-                      textAlign: TextAlign.left,
-                      AppStrings.minimum3Images,
-                      fontSize: SizeConfig.size12,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: SizeConfig.size8,
-                ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      ///API
-                      (details?.livePhotos?.isNotEmpty ?? false)
-                          ? Row(
-                              children: List<Widget>.generate(
-                                  (details?.livePhotos?.length ?? 0),
-                                  (apiIndex) {
-                                return _APIbuildImageContainer(
-                                    details?.livePhotos?[apiIndex],
-                                    apiIndex,
-                                    false,
-                                    apiIndex,
-                                    theme,
-                                    controller);
-                              }),
-                            )
-                          : SizedBox(),
-
-                      ///LOCAL
-                      Row(
-                        children: List<Widget>.generate(
-                            controller.imgLocalL3.length, (localIndex) {
-                          return _buildImageContainer(
-                              controller.imgLocalL3[localIndex],
-                              localIndex,
-                              false,
-                              controller);
-                        }),
-                      ),
-
-                      ///EMPTY.....
-                      (3 -
-                                      (details?.livePhotos?.length ?? 0) -
-                                      // controller.imgUploadL2.length -
-                                      controller.imgLocalL3.length) +
-                                  controller.imgDeleteL3.length >
-                              0
-                          ? Row(
-                              children: List<Widget>.generate(
-                                  (3 -
-                                      (details?.livePhotos?.length ?? 0) -
-                                      // controller.imgUploadL2.length -
-                                      controller.imgLocalL3.length), (index) {
-                                return _buildImageContainer(
-                                    "", 0, false, controller);
-                              }),
-                            )
-                          : SizedBox(),
-                    ],
-                  ),
-                ),
-              ],
-            )),
-        SizedBox(
-          height: SizeConfig.size10,
-        ),
+        // /// Inventory
+        // CustomFormCard(
+        //   padding: EdgeInsets.all(SizeConfig.size10),
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       CustomText(
+        //         color: AppColors.secondaryTextColor,
+        //         AppStrings.listYourProductServices,
+        //         fontSize: SizeConfig.large,
+        //         fontWeight: FontWeight.bold,
+        //       ),
+        //       SizedBox(
+        //         height: SizeConfig.size10,
+        //       ),
+        //       InkWell(
+        //         onTap: () {
+        //           // details?.livePhotos
+        //           // controller.imgLocalL3.length
+        //           if ((details?.livePhotos?.length == 3) ||
+        //               controller.imgLocalL3.length == 3) {
+        //             Get.toNamed(RouteHelper.getInventoryScreenRoute());
+        //           } else {
+        //             commonSnackBar(
+        //                 message: AppStrings.upload3StorePictures);
+        //           }
+        //         },
+        //         borderRadius: BorderRadius.circular(10),
+        //         child: Container(
+        //           decoration: BoxDecoration(
+        //               boxShadow: [AppShadows.textFieldShadow],
+        //               color: AppColors.white,
+        //               border:
+        //                   Border.all(color: AppColors.primaryColor, width: 2),
+        //               borderRadius: BorderRadius.circular(10)),
+        //           padding: EdgeInsets.symmetric(
+        //               horizontal: SizeConfig.size10,
+        //               vertical: SizeConfig.size10),
+        //           child: Row(
+        //             children: [
+        //               Expanded(
+        //                 child: Column(
+        //                   mainAxisAlignment: MainAxisAlignment.start,
+        //                   crossAxisAlignment: CrossAxisAlignment.start,
+        //                   children: [
+        //                     CustomText(AppStrings.addProductServiceHere,
+        //                       // fontSize: SizeConfig.small,
+        //                       fontWeight: FontWeight.bold,
+        //                       color: AppColors.mainTextColor,
+        //                     ),
+        //                     SizedBox(
+        //                       height: SizeConfig.size6,
+        //                     ),
+        //                     CustomText(
+        //                       AppStrings.startSellingNow,
+        //                       // fontSize: SizeConfig.small,
+        //                       fontWeight: FontWeight.bold,
+        //                       color: AppColors.secondaryTextColor,
+        //                     ),
+        //                     // CustomText(
+        //                     //   "Organize your products into 👔 Men • 👗 Women • 🧒 Kids. Make shopping easier for your customers!",
+        //                     //   fontSize: SizeConfig.extraSmall,
+        //                     // ),
+        //                   ],
+        //                 ),
+        //               ),
+        //               SizedBox(
+        //                 width: SizeConfig.size20,
+        //               ),
+        //               LocalAssets(imagePath: AppIconAssets.store_bg)
+        //             ],
+        //           ),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // SizedBox(
+        //   height: SizeConfig.size10,
+        // ),
+        //
+        // ///STORE IMAGE...
+        // CustomFormCard(
+        //     padding: EdgeInsets.all(SizeConfig.size10),
+        //     child: Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         Row(
+        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //           children: [
+        //             Padding(
+        //               padding: const EdgeInsets.only(left: 4.0),
+        //               child: CustomText(
+        //                 letterSpacing: 0.6,
+        //                 AppStrings.yourLiveStorePictures,
+        //                 fontSize: SizeConfig.large,
+        //                 fontWeight: FontWeight.bold,
+        //                 overflow: TextOverflow.ellipsis,
+        //                 color: AppColors.secondaryTextColor,
+        //               ),
+        //             ),
+        //             CustomText(
+        //               textAlign: TextAlign.left,
+        //               AppStrings.minimum3Images,
+        //               fontSize: SizeConfig.size12,
+        //               color: AppColors.secondaryTextColor,
+        //               fontWeight: FontWeight.w400,
+        //             ),
+        //           ],
+        //         ),
+        //         SizedBox(
+        //           height: SizeConfig.size8,
+        //         ),
+        //         SingleChildScrollView(
+        //           scrollDirection: Axis.horizontal,
+        //           child: Row(
+        //             children: [
+        //               ///API
+        //               (details?.livePhotos?.isNotEmpty ?? false)
+        //                   ? Row(
+        //                       children: List<Widget>.generate(
+        //                           (details?.livePhotos?.length ?? 0),
+        //                           (apiIndex) {
+        //                         return _APIbuildImageContainer(
+        //                             details?.livePhotos?[apiIndex],
+        //                             apiIndex,
+        //                             false,
+        //                             apiIndex,
+        //                             theme,
+        //                             controller);
+        //                       }),
+        //                     )
+        //                   : SizedBox(),
+        //
+        //               ///LOCAL
+        //               Row(
+        //                 children: List<Widget>.generate(
+        //                     controller.imgLocalL3.length, (localIndex) {
+        //                   return _buildImageContainer(
+        //                       controller.imgLocalL3[localIndex],
+        //                       localIndex,
+        //                       false,
+        //                       controller);
+        //                 }),
+        //               ),
+        //
+        //               ///EMPTY.....
+        //               (3 -
+        //                               (details?.livePhotos?.length ?? 0) -
+        //                               // controller.imgUploadL2.length -
+        //                               controller.imgLocalL3.length) +
+        //                           controller.imgDeleteL3.length >
+        //                       0
+        //                   ? Row(
+        //                       children: List<Widget>.generate(
+        //                           (3 -
+        //                               (details?.livePhotos?.length ?? 0) -
+        //                               // controller.imgUploadL2.length -
+        //                               controller.imgLocalL3.length), (index) {
+        //                         return _buildImageContainer(
+        //                             "", 0, false, controller);
+        //                       }),
+        //                     )
+        //                   : SizedBox(),
+        //             ],
+        //           ),
+        //         ),
+        //       ],
+        //     )),
+        // SizedBox(
+        //   height: SizeConfig.size10,
+        // ),
 
         /// business Location
-        if ((details?.businessLocation?.lat != null &&
-                details?.businessLocation?.lat != 0) &&
-            (details?.businessLocation?.lon != null &&
-                details?.businessLocation?.lon != 0)) ...[
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.start,
-          //   children: [
-          //     CustomText(
-          //       "Your business live location",
-          //       fontSize: SizeConfig.large,
-          //       fontWeight: FontWeight.bold,
-          //       overflow: TextOverflow.ellipsis,
-          //     ),
-          //   ],
-          // ),
-
-          CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 4.0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          AppStrings.yourBusinessLiveLocation,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.bold,
-                          overflow: TextOverflow.ellipsis,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ),
-                      InkWell(
-                          onTap: () =>
-                              updateLocationDialog(context, details, false),
-                          child: LocalAssets(
-                            height: 16,
-                            imagePath: AppIconAssets.pen_line,
-                          ))
-                    ],
-                  ),
-                ),
-                // Align(
-                //   alignment: Alignment.centerLeft,
-                //   child: CustomText(
-                //     "Your store’s map location",
-                //     fontSize: SizeConfig.medium,
-                //     color: AppColors.secondaryTextColor,
-                //     fontWeight: FontWeight.w400,
-                //     overflow: TextOverflow.ellipsis,
-                //   ),
-                // ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6.0),
-                  child: CustomText(
-                    '${details?.address}',
-                    fontSize: SizeConfig.size14,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-                // SizedBox(
-                //   height: SizeConfig.size10,
-                // ),
-                BusinessLocationWidget(
-                  latitude: (details?.businessLocation?.lat?.toDouble() ?? 0.0),
-                  longitude:
-                      (details?.businessLocation?.lon?.toDouble() ?? 0.0),
-                  businessName: details?.businessName ?? "",
-                  isTitleShow: false,
-                  locationText: details?.address ?? "",
-                  padding: 0,
-                ),
-              ],
-            ),
-          )
-        ],
+        // if ((details?.businessLocation?.lat != null &&
+        //         details?.businessLocation?.lat != 0) &&
+        //     (details?.businessLocation?.lon != null &&
+        //         details?.businessLocation?.lon != 0)) ...[
+        //           CustomFormCard(
+        //     padding: EdgeInsets.all(SizeConfig.size12),
+        //     child: Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         Padding(
+        //           padding: const EdgeInsets.only(
+        //             left: 4.0,
+        //           ),
+        //           child: Row(
+        //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //             children: [
+        //               Expanded(
+        //                 child: CustomText(
+        //                   AppStrings.yourBusinessLiveLocation,
+        //                   fontSize: SizeConfig.large,
+        //                   fontWeight: FontWeight.bold,
+        //                   overflow: TextOverflow.ellipsis,
+        //                   color: AppColors.secondaryTextColor,
+        //                 ),
+        //               ),
+        //               InkWell(
+        //                   onTap: () =>
+        //                       updateLocationDialog(context, details, false),
+        //                   child: LocalAssets(
+        //                     height: 16,
+        //                     imagePath: AppIconAssets.pen_line,
+        //                   ))
+        //             ],
+        //           ),
+        //         ),
+        //         // Align(
+        //         //   alignment: Alignment.centerLeft,
+        //         //   child: CustomText(
+        //         //     "Your store’s map location",
+        //         //     fontSize: SizeConfig.medium,
+        //         //     color: AppColors.secondaryTextColor,
+        //         //     fontWeight: FontWeight.w400,
+        //         //     overflow: TextOverflow.ellipsis,
+        //         //   ),
+        //         // ),
+        //         SizedBox(
+        //           height: SizeConfig.size10,
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(left: 6.0),
+        //           child: CustomText(
+        //             '${details?.address}',
+        //             fontSize: SizeConfig.size14,
+        //             fontWeight: FontWeight.w300,
+        //           ),
+        //         ),
+        //         // SizedBox(
+        //         //   height: SizeConfig.size10,
+        //         // ),
+        //         BusinessLocationWidget(
+        //           latitude: (details?.businessLocation?.lat?.toDouble() ?? 0.0),
+        //           longitude:
+        //               (details?.businessLocation?.lon?.toDouble() ?? 0.0),
+        //           businessName: details?.businessName ?? "",
+        //           isTitleShow: false,
+        //           locationText: details?.address ?? "",
+        //           padding: 0,
+        //         ),
+        //       ],
+        //     ),
+        //   )
+        // ],
 
         SizedBox(
           height: SizeConfig.size65,

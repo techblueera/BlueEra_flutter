@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -15,6 +17,7 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
+import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
@@ -62,6 +65,14 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllGroceryData(widget.userId, otherStore: true);
     storeController.trackStoreDetailView(widget.visitBusinessId);
+    dev.log(
+      '[VisitStore] initState '
+      'ctrlHash=${identityHashCode(groceryCustomerController)} '
+      'listHash=${identityHashCode(groceryCustomerController.selectedGroceriesVariants)} '
+      'len=${groceryCustomerController.selectedGroceriesVariants.length} '
+      'ids=${groceryCustomerController.selectedGroceriesVariants.map((v) => v.sId).toList()}',
+      name: 'VisitStore',
+    );
   }
 
   @override
@@ -106,7 +117,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                   if (controller.fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL) {
                     return Padding(
                         padding: EdgeInsets.only(top: SizeConfig.paddingM),
-                        child: buildHorizontalProductListSkeleton());
+                        child: buildHorizontalListSkeleton());
                   }
                   return controller.groceryBusinessProductsList.isNotEmpty
                       ? _topSellingProduct()
@@ -235,11 +246,18 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
               SizedBox(
                 width: SizeConfig.size8,
               ),
-              CustomText(
-                  'View All',
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.w600),
+              InkWell(
+                onTap: () => Get.to(() => AllTopSellingGroceryProductsScreen(
+                      userId: widget.userId,
+                      otherStore: true,
+                      visitBusinessId: widget.visitBusinessId,
+                    )),
+                child: CustomText(
+                    'View All',
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
+              ),
             ],
           ),
 
@@ -249,11 +267,19 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
 
           SizedBox(
             height: SizeConfig.size240,
-            child: ListView.builder(
-                itemCount: controller.groceryBusinessProductsList.length,
+            child: Builder(builder: (context) {
+
+              final previewItems = controller.groceryBusinessProductsList.length >
+                      GroceryController.businessProductsPreviewLimit
+                  ? controller.groceryBusinessProductsList
+                      .take(GroceryController.businessProductsPreviewLimit)
+                      .toList()
+                  : controller.groceryBusinessProductsList.toList();
+              return ListView.builder(
+                itemCount: previewItems.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index){
-                  var groceryProductData = controller.groceryBusinessProductsList[index];
+                  var groceryProductData = previewItems[index];
 
                   return Container(
                     width: SizeConfig.size150,
@@ -267,47 +293,53 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                       children: [
                         SizedBox(height: SizeConfig.size4),
 
-                        Stack(
-                          children: [
-                            Column(
-                              children: [
-                                ClipRRect(
+                        // Image flexes to fill remaining height so the text
+                        // area below can grow with the device text scale
+                        // without overflowing the fixed card height.
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10.0),
-                                  child: SizedBox(
-                                    height: SizeConfig.size140,
-                                    width: double.infinity,
-                                    child: (groceryProductData.product?.images?.isNotEmpty ?? false)
-                                        ? CachedNetworkImage(
-                                      imageUrl: groceryProductData.product?.images!.first.url??'',
-                                      fit: BoxFit.fill,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey.shade200,
-                                        child: Center(
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
+                                  child: (groceryProductData.product?.images?.isNotEmpty ?? false)
+                                      ? CachedNetworkImage(
+                                    imageUrl: groceryProductData.product?.images!.first.url??'',
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      color: Colors.grey.shade200,
+                                      child: Center(
+                                        child: CircularProgressIndicator(strokeWidth: 2),
                                       ),
-                                      errorWidget: (context, url, error) => LocalAssets(
-                                        imagePath: AppIconAssets.place_holder_image,
-                                        boxFix: BoxFit.cover,
-                                      ),
-                                    )
-                                        : LocalAssets(
+                                    ),
+                                    errorWidget: (context, url, error) => LocalAssets(
                                       imagePath: AppIconAssets.place_holder_image,
                                       boxFix: BoxFit.cover,
                                     ),
+                                  )
+                                      : LocalAssets(
+                                    imagePath: AppIconAssets.place_holder_image,
+                                    boxFix: BoxFit.cover,
                                   ),
                                 ),
-                              ],
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Obx(() {
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Obx(() {
                                 var productVariants = groceryProductData.productVariant;
 
-
-                                final bool isAdded = groceryCustomerController.selectedGroceriesVariants
-                                    .any((v) => v.sId == productVariants?.sId);
+                                final cart = groceryCustomerController.selectedGroceriesVariants;
+                                final cartLen = cart.length;
+                                final bool isAdded = cart.any((v) => v.sId == productVariants?.sId);
+                                dev.log(
+                                  '[VisitStore] tile Obx variantId=${productVariants?.sId} '
+                                  'cartLen=$cartLen added=$isAdded '
+                                  'ctrlHash=${identityHashCode(groceryCustomerController)} '
+                                  'listHash=${identityHashCode(cart)} '
+                                  'cartIds=${cart.map((v) => v.sId).toList()}',
+                                  name: 'VisitStore',
+                                );
 
                                 return IconButton(
                                   onPressed: () {
@@ -315,6 +347,13 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                                       commonSnackBar(message: 'No variants available');
                                       return;
                                     }
+
+                                    dev.log(
+                                      '[VisitStore] toggle tapped variantId=${productVariants.sId} '
+                                      'alreadyInCart=$isAdded beforeLen=${groceryCustomerController.selectedGroceriesVariants.length} '
+                                      'ctrlHash=${identityHashCode(groceryCustomerController)}',
+                                      name: 'VisitStore',
+                                    );
 
                                     if(!isAdded){
                                       final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
@@ -328,8 +367,18 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                                         businessAddress: bDetails?.address,
                                         // deliveryType: 'SELF',
                                       );
+                                      dev.log(
+                                        '[VisitStore] after addToCart len=${groceryCustomerController.selectedGroceriesVariants.length} '
+                                        'ids=${groceryCustomerController.selectedGroceriesVariants.map((v) => v.sId).toList()}',
+                                        name: 'VisitStore',
+                                      );
                                     }else{
                                       groceryCustomerController.removeFromCart(productVariants);
+                                      dev.log(
+                                        '[VisitStore] after removeFromCart len=${groceryCustomerController.selectedGroceriesVariants.length} '
+                                        'ids=${groceryCustomerController.selectedGroceriesVariants.map((v) => v.sId).toList()}',
+                                        name: 'VisitStore',
+                                      );
                                     }
                                   },
                                   icon: Container(
@@ -348,26 +397,25 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                                   ),
                                 );
                               }),
-                            )
-                          ],
+                              )
+                            ],
+                          ),
                         ),
 
                         Padding(
                           padding: EdgeInsets.symmetric(
                               horizontal: 9.0, vertical: SizeConfig.size6),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                height: SizeConfig.size30,
-                                child: CustomText(
-                                  "${groceryProductData.product?.name}",
-                                  fontSize: SizeConfig.small,
-                                  maxLines: 2,
-                                  color: AppColors.mainTextColor,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              CustomText(
+                                "${groceryProductData.product?.name}",
+                                fontSize: SizeConfig.small,
+                                maxLines: 2,
+                                color: AppColors.mainTextColor,
+                                overflow: TextOverflow.ellipsis,
+                                fontWeight: FontWeight.w600,
                               ),
                               SizedBox(height: SizeConfig.size6),
                               FittedBox(
@@ -406,8 +454,9 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                       ],
                     ),
                   );
-                }
-            ),
+                },
+              );
+            }),
           ),
 
 

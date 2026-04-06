@@ -17,6 +17,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/views/screens/choose_account_type_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -179,6 +180,7 @@ class AppConstants {
         color: AppColors.darkPinkShade),
   ];
 
+  static const String veg = 'veg';
   static const String group_Chat_Type = 'group';
   static const String order_Chat_Type = 'order';
   static const String emergency = 'Emergency';
@@ -600,17 +602,7 @@ String getInitials(String? name) {
 }
 
 Future createProfileScreen() async {
-  // Get.toNamed(
-  //   RouteHelper.getSelectAccountScreenRoute(),
-  //   arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
-  // );
-  // Get.toNamed(
-  //   RouteHelper.getCreateNewAccountScreenRoute(),
-  //   // arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
-  // );
-  Get.toNamed(
-    RouteHelper.getCreateAccountTypeScreenRoute(),
-  );
+  Get.to(() => const ChooseAccountTypeScreen());
 }
 
 void navigatePushTo(BuildContext context, Widget destination) {

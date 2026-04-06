@@ -1,17 +1,18 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
-import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_cart_icon.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -29,16 +30,25 @@ class FoodCustomerListingScreen extends StatefulWidget {
 }
 
 class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
-  final controller = Get.find<FoodCustomerController>();
-  // final controller = getOrPut(() => FoodCustomerController());
+  /// Session cart + category-listing state — both live on the self-pickup
+  /// controller so this screen only depends on one controller.
+  final FoodSelfPickupController controller =
+      getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
+
   final ScrollController scrollController = ScrollController();
   String? _visitBusinessId;
+
+  ViewBusinessDetailsController? get _viewBusinessDetailsController =>
+      Get.isRegistered<ViewBusinessDetailsController>()
+          ? Get.find<ViewBusinessDetailsController>()
+          : null;
 
   @override
   void initState() {
     super.initState();
     _visitBusinessId = widget.visitBusinessId;
     debugPrint("visit business id -- ${widget.visitBusinessId}");
+    controller.resetCategoryListingState();
     final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
 
     if (firstLevel1 != null) {
@@ -92,14 +102,17 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _buildBottomAddToCart(),
-      appBar: CommonBackAppBar(
-          buildCustomActionWidget: () => FoodCartIconButton(),
-      ),
-      body: Row(
+      appBar: CommonBackAppBar(),
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          _buildLeftSidebar(),
-          _buildRightContent()
+          Row(
+            children: [
+              _buildLeftSidebar(),
+              _buildRightContent(),
+            ],
+          ),
+          FoodSelfPickupCartBar(controller: controller),
         ],
       ),
     );
@@ -278,209 +291,19 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
     );
   }
 
-  Widget _buildBottomAddToCart() {
-    return Obx(() {
-      final bool hasSelection = controller.selectedVariantsMap.isNotEmpty;
-
-      if (!hasSelection) return const SizedBox.shrink();
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: PositiveCustomBtn(
-            onTap: () => Get.toNamed(RouteHelper.getFoodReviewSelectionScreenRoute()),
-            // 3. Use the dynamic count in the title to make the UI interactive
-            title: "Review Selection (${controller.totalVariantsCount})",
-          ),
-        ),
-      );
-    });
-  }
-
-
   void _showVariantSheet(
-      BuildContext context,
-      CategoryFoodProductData product
-      ) {
-    Get.bottomSheet(
-      buildProductVariantBottomSheet(
-        product: product,
-      ),
-      isScrollControlled: true,
-    );
-  }
-
-  Widget buildProductVariantBottomSheet({
-    required CategoryFoodProductData product,
-  }) {
-    final RxList<FoodVariants> tempSelectedVariants = <FoodVariants>[].obs;
-
-    // Initialize from the new Map structure
-    final saved = controller.selectedVariantsMap[product.id]?.selectedVariants ?? [];
-    tempSelectedVariants.assignAll(saved);
-
-    return Container(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        child: Obx(() {
-          final String pId = product.id ?? "";
-          final liveProduct = controller.categoryCustomerFoodProductDataList
-              .firstWhereOrNull((p) => p.id == pId) ?? product;
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ... Header & Product Info remains same ...
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText("All Variant", fontSize: 18, fontWeight: FontWeight.bold),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ProductImageWidget(imageUrl: liveProduct.images?.firstOrNull, height: 60, width: 60),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(liveProduct.name, fontWeight: FontWeight.w600, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        ProductDescriptionWidget(description: liveProduct.description),
-                        const SizedBox(height: 8),
-                        FoodDietaryAndTagRow(dietaryType: product.dietaryType, cookingMethods: product.cookingMethod),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-              const Divider(),
-
-              // Variant List
-              Column(
-                children: (liveProduct.variants ?? []).map((item) {
-                  return Obx(() {
-                    bool isSelected = tempSelectedVariants.any((v) => v.id == item.id);
-                    return _buildVariantItemRow(
-                      item: item,
-                      isSelected: isSelected,
-                      productId: pId,
-                      onToggle: () {
-                        int index = tempSelectedVariants.indexWhere((v) => v.id == item.id);
-                        if (index != -1) {
-                          tempSelectedVariants.removeAt(index);
-                        } else {
-                          tempSelectedVariants.add(item);
-                        }
-                      },
-                    );
-                  });
-                }).toList(),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 5. Save Button - UPDATED LOGIC
-              PositiveCustomBtn(
-                onTap: () {
-                  if (tempSelectedVariants.isEmpty) {
-                    controller.selectedVariantsMap.remove(pId);
-                  } else {
-                    // SAVE BOTH PRODUCT AND VARIANTS
-                    controller.selectedVariantsMap[pId] = SelectedFoodItem(
-                      product: product,
-                      selectedVariants: List.from(tempSelectedVariants),
-                    );
-                  }
-                  controller.selectedVariantsMap.refresh();
-                  Get.back();
-                },
-                title: "Add To Cart",
-              ),
-              const SizedBox(height: 20),
-            ],
-          );
-        }),
+      BuildContext context, CategoryFoodProductData product) {
+    final bDetails =
+        _viewBusinessDetailsController?.visitedBusinessProfileDetails?.data;
+    showFoodSelfPickupVariantsSheet(
+      context,
+      args: FoodSelfPickupSheetArgs.fromCategoryProduct(
+        product,
+        visitBusinessId: _visitBusinessId ?? bDetails?.id,
+        visitBusinessName: bDetails?.businessName,
+        visitBusinessLogo: bDetails?.logo,
+        visitBusinessAddress: bDetails?.address,
       ),
     );
   }
-
-// Private helper for the Variant Row to keep the main method cleaner
-  Widget _buildVariantItemRow({
-    required FoodVariants item,
-    required bool isSelected,
-    required String productId,
-    required VoidCallback onToggle,
-  }) {
-    return InkWell(
-      onTap: onToggle,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Checkbox(
-              value: isSelected,
-              side: BorderSide(
-                color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
-                width: 1.5,
-              ),
-              activeColor: AppColors.primaryColor,
-              checkColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onChanged: (_) => onToggle(),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText("${item.variantName} - ${item.quantityLabel}", fontSize: 16, color: AppColors.secondaryTextColor),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      CustomText("Selling-₹${item.baseSellingPrice}", fontSize: 14, color: AppColors.secondaryTextColor),
-                      const SizedBox(width: 8),
-                      Container(height: 15, width: 1.5, color: Colors.grey.shade300),
-                      const SizedBox(width: 8),
-                      CustomText("₹${item.mrp}", fontSize: 14, color: AppColors.secondaryTextColor, decoration: TextDecoration.lineThrough),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
 }

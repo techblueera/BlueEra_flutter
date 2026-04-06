@@ -11,6 +11,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/business/widgets/business_description_card.dart';
+import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
@@ -38,8 +40,7 @@ class MyGroceryStoreScreen extends StatefulWidget {
 
 class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
-  final viewBusinessDetailsController =
-        Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   BusinessProfileDetails? businessProfileDetails;
 
   @override
@@ -82,7 +83,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                   if (controller.fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: buildHorizontalProductListSkeleton(),
+                      child: buildHorizontalListSkeleton(),
                     );
                   }
 
@@ -102,6 +103,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                 CommonBusinessLivePhoto(
                   controller: viewBusinessDetailsController,
                 ),
+
+                // --- Business Description ---
+                const BusinessDescriptionCard(),
 
                 // --- Contact & Map ---
                 BusinessContactMapCard(
@@ -143,11 +147,17 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
               SizedBox(
                 width: SizeConfig.size8,
               ),
-              CustomText(
-                  'View All',
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.w600),
+              InkWell(
+                onTap: () => Get.to(() => AllTopSellingGroceryProductsScreen(
+                      userId: userId,
+                      otherStore: false,
+                    )),
+                child: CustomText(
+                    'View All',
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
+              ),
             ],
           ),
 
@@ -156,12 +166,22 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           ),
 
           SizedBox(
-            height: SizeConfig.size240,
-            child: ListView.builder(
-                itemCount: controller.groceryBusinessProductsList.length,
+            height: SizeConfig.size230,
+            child: Builder(builder: (context) {
+              // Preview only — cap to first 20 regardless of what's loaded
+              // in the shared list. The full paginated list lives behind
+              // the "View All" tap → AllTopSellingProductsScreen.
+              final previewItems = controller.groceryBusinessProductsList.length >
+                      GroceryController.businessProductsPreviewLimit
+                  ? controller.groceryBusinessProductsList
+                      .take(GroceryController.businessProductsPreviewLimit)
+                      .toList()
+                  : controller.groceryBusinessProductsList.toList();
+              return ListView.builder(
+                itemCount: previewItems.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index){
-                  var groceryProductData = controller.groceryBusinessProductsList[index];
+                  var groceryProductData = previewItems[index];
                   return Container(
                     width: SizeConfig.size160,
                     margin: EdgeInsets.only(right: 8.0),
@@ -173,48 +193,48 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: SizeConfig.size4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10.0),
-                          child: SizedBox(
-                            height: SizeConfig.size140,
-                            width: double.infinity,
-                            child: (groceryProductData.product?.images?.isNotEmpty ?? false)
-                                ? CachedNetworkImage(
-                              imageUrl: groceryProductData.product?.images!.first.url??'',
-                              fit: BoxFit.fill,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey.shade200,
-                                child: Center(
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: (groceryProductData.product?.images?.isNotEmpty ?? false)
+                                  ? CachedNetworkImage(
+                                imageUrl: groceryProductData.product?.images!.first.url??'',
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey.shade200,
+                                  child: Center(
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
                                 ),
-                              ),
-                              errorWidget: (context, url, error) => LocalAssets(
+                                errorWidget: (context, url, error) => LocalAssets(
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.cover,
+                                ),
+                              )
+                                  : LocalAssets(
                                 imagePath: AppIconAssets.place_holder_image,
                                 boxFix: BoxFit.cover,
                               ),
-                            )
-                                : LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
                             ),
                           ),
                         ),
                         Padding(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 9.0, vertical: SizeConfig.size6),
+                              horizontal: 8.0,
+                              vertical: 6.0),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                height: SizeConfig.size30,
-                                child: CustomText(
-                                  "${groceryProductData.product?.name}",
-                                  fontSize: SizeConfig.small,
-                                  maxLines: 2,
-                                  color: AppColors.mainTextColor,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              CustomText(
+                                "${groceryProductData.product?.name}",
+                                fontSize: SizeConfig.small,
+                                maxLines: 2,
+                                color: AppColors.mainTextColor,
+                                overflow: TextOverflow.ellipsis,
+                                fontWeight: FontWeight.w600,
                               ),
                               SizedBox(height: SizeConfig.size6),
 
@@ -255,8 +275,9 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                       ],
                     ),
                   );
-                }
-            ),
+                },
+              );
+            }),
           )
 
         ],
@@ -363,6 +384,8 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
       ),
     );
   }
+
+
 
 }
 

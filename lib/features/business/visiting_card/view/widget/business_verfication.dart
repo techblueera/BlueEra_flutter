@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -99,7 +100,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
 
   @override
   void initState() {
-    // TODO: implement initState
+    super.initState();
     if (viewBusinessDetailsController.viewBusinessVerifyStatus != null) {
       if (viewBusinessDetailsController
               .viewBusinessVerifyStatus?.value.businessDoc !=
@@ -118,7 +119,6 @@ class _BusinessVerificationState extends State<BusinessVerification> {
         }
       }
     }
-    super.initState();
   }
 
   selectImage(BuildContext context) async {
@@ -139,184 +139,163 @@ class _BusinessVerificationState extends State<BusinessVerification> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-        backgroundColor: AppColors.white,
         appBar: CommonBackAppBar(
           title:AppStrings.businessVerification,
           titleColor: Colors.black,
           appBarColor: AppColors.white,
         ),
-        body: SizedBox(
-          height: 600,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size20,
-              vertical: SizeConfig.size20,
+        body: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size20,
+            vertical: SizeConfig.size20,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: AppShadows.bottomAndTopShadow),
+            padding: EdgeInsets.all(
+              SizeConfig.size18,
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: AppShadows.bottomAndTopShadow),
-              padding: EdgeInsets.all(
-                SizeConfig.size18,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              const SizedBox(
+                height: 8,
               ),
-              child: ListView(children: [
-                const SizedBox(
-                  height: 8,
-                ),
-                CustomText(
-                  AppStrings.addDetailsToVerifyBusiness,
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.size18,
-                  color: AppColors.black,
-                ),
-                SizedBox(height: 31),
-                CommonTextField(
-                  onChange: (val){
-                    setState(() {
+              CustomText(
+                AppStrings.addDetailsToVerifyBusiness,
+                fontWeight: FontWeight.w700,
+                fontSize: SizeConfig.size18,
+                color: AppColors.black,
+              ),
+              SizedBox(height: 30),
+              CommonTextField(
+                onChange: (val){
+                  setState(() {
 
-                    });
-                  },
-                  textEditController: gstController,
-                  inputLength: AppConstants.inputCharterLimit50,
-                  keyBoardType: TextInputType.text,
-                  // regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                  title: AppStrings.enterGstNumber,
-                  hintText: AppStrings.enterGstNumber,
-                  isValidate: false,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      authController.isValidate.value = false;
-                      return AppStrings.enterGstNumber.tr;
-                    }
+                  });
+                },
+                textEditController: gstController,
+                inputLength: AppConstants.inputCharterLimit50,
+                keyBoardType: TextInputType.text,
+                // regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                title: AppStrings.enterGstNumber,
+                hintText: AppStrings.enterGstNumber,
+                isValidate: false,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    authController.isValidate.value = false;
+                    return AppStrings.enterGstNumber.tr;
+                  }
 
 
-                    if (!gstRegExp.hasMatch(value)) {
-                      authController.isValidate.value = false;
-                      return AppStrings.enterGstNumber.tr;
-                    }
+                  if (!gstRegExp.hasMatch(value)) {
+                    authController.isValidate.value = false;
+                    return AppStrings.enterGstNumber.tr;
+                  }
 
 
-                    authController.isValidate.value = true;
-                    return null;
-                  },
-                ),
-                // SizedBox(height: 16),
-                // Center(
-                //     child: CustomText(
-                //   "Or",
-                //   fontWeight: FontWeight.w600,
-                //   fontSize: SizeConfig.size18,
-                //   color: AppColors.black,
-                // )),
-                SizedBox(height: 16),
-                CustomText(AppStrings.chooseDocumentType,
-                    fontWeight: FontWeight.w400,
-                    fontSize: SizeConfig.size14,
-                    color: AppColors.black),
-                SizedBox(
-                  height: 8,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      focusColor: AppColors.fillColor,
-                      dropdownColor: AppColors.fillColor,
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontFamily: AppConstants.OpenSans),
+                  authController.isValidate.value = true;
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              CustomText(AppStrings.chooseDocumentType,
+                  fontWeight: FontWeight.w400,
+                  fontSize: SizeConfig.size14,
+                  color: AppColors.black),
+              SizedBox(
+                height: 8,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<String>(
+                    focusColor: AppColors.fillColor,
+                    dropdownColor: AppColors.fillColor,
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontFamily: AppConstants.OpenSans),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(18),
+                      filled: true,
+                      fillColor: AppColors.fillColor,
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.grey99,
+                          ),
+                          borderRadius: BorderRadius.circular(2)),
+                    ),
+                    value: selectedDocType,
+                    hint: CustomText(
+                      AppStrings.selectDocumentType.tr,
+                    ),
+                    items: [
+                      ...documentTypes.map((type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type),
+                          )),
+                      DropdownMenuItem(
+                        value: "Other Govt License",
+                        child: CustomText(AppStrings.otherGovtLicense),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDocType = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  if (selectedDocType == 'Other Govt License')
+                    TextField(
+                      controller: docController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
-                        contentPadding: EdgeInsets.all(18),
+                        hintText:AppStrings.enterDocumentType.tr,
+                        hintStyle: TextStyle(color: Color(0xFF7A8B9A)),
                         filled: true,
+                        contentPadding: EdgeInsets.all(18),
                         fillColor: AppColors.fillColor,
                         border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.grey99,
-                            ),
-                            borderRadius: BorderRadius.circular(2)),
+                            borderRadius: BorderRadius.circular(2),
+                            borderSide: BorderSide(color: AppColors.grey99)),
                       ),
-                      value: selectedDocType,
-                      hint: CustomText(
-                        AppStrings.selectDocumentType.tr,
-                      ),
-                      items: [
-                        ...documentTypes.map((type) => DropdownMenuItem(
-                              value: type,
-                              child: Text(type),
-                            )),
-                        DropdownMenuItem(
-                          value: "Other Govt License",
-                          child: CustomText(AppStrings.otherGovtLicense),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedDocType = value;
-                        });
-                      },
                     ),
+                  if (selectedDocType == "Other Govt License")
                     SizedBox(height: 20),
-                    if (selectedDocType == 'Other Govt License')
-                      TextField(
-                        controller: docController,
-                        style: TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          hintText:AppStrings.enterDocumentType.tr,
-                          hintStyle: TextStyle(color: Color(0xFF7A8B9A)),
-                          filled: true,
-                          contentPadding: EdgeInsets.all(18),
-                          fillColor: AppColors.fillColor,
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(2),
-                              borderSide: BorderSide(color: AppColors.grey99)),
-                        ),
-                      ),
-                    if (selectedDocType == "Other Govt License")
-                      SizedBox(height: 20),
-                    CommonDocumentPicker(
-                      imagePath: selectedImage,
-                      onClear: () {
-                        setState(() {
-                          selectedImage = null;
-                        });
-                      },
-                      onSelect: (context) {
-                        selectImage(context); // your method to pick image
-                      },
-                    ),
-                    SizedBox(height: 19),
-                    GestureDetector(
-                      onTap: (isFormComplete()&&gstController.text.isNotEmpty&&gstRegExp.hasMatch(gstController.text)&&selectedImage!=null)
-                          ? () {
+                  CommonDocumentPicker(
+                    imagePath: selectedImage,
+                    onClear: () {
+                      setState(() {
+                        selectedImage = null;
+                      });
+                    },
+                    onSelect: (context) {
+                      selectImage(context); // your method to pick image
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  CustomBtn(
+                    radius: 8,
+                    onTap: (isFormComplete()&&gstController.text.isNotEmpty&&gstRegExp.hasMatch(gstController.text)&&selectedImage!=null)
+                        ? () {
 
-                              verify();
-                            }
-                          : null,
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: (isFormComplete()&&gstController.text.isNotEmpty&&gstRegExp.hasMatch(gstController.text)&&selectedImage!=null)
-                              ? AppColors.primaryColor
-                              : Color(0xFF7A7F83),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: CustomText(
-                            AppStrings.verifyNow,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ]),
-            ),
+                            verify();
+                          }
+                        : null,
+                    bgColor: (isFormComplete()&&gstController.text.isNotEmpty&&gstRegExp.hasMatch(gstController.text)&&selectedImage!=null)
+                        ? AppColors.primaryColor
+                        : Color(0xFF7A7F83),
+                    title: AppStrings.verifyNow
+                  ),
+                ],
+              )
+            ]),
           ),
         ));
   }

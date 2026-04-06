@@ -10,7 +10,11 @@ import 'package:BlueEra/features/common/store/controller/new_store_controller.da
 import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
+import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
+import 'package:BlueEra/features/me/product/view/product_self_pickup_cart_screen.dart';
+import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart_bar.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +41,14 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   final ScrollController storesScrollController = ScrollController();
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
+
+  /// Session-scoped product cart. Registered at this entry point and
+  /// deleted on exit so going back clears the cart — same lifecycle as
+  /// grocery's [GroceryStoresScreen] and food's
+  /// [RestaurantNearMeScreen].
+  final ProductSelfPickupController productCartController =
+      getOrPut<ProductSelfPickupController>(
+          () => ProductSelfPickupController());
 
   List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
 
@@ -69,7 +81,86 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   void dispose() {
     storesScrollController.removeListener(_onLoadMore);
     storesScrollController.dispose();
+    // Leaving the products entry point → clear + unregister the session
+    // cart so selections don't leak across browsing sessions.
+    deleteIfRegistered<ProductSelfPickupController>();
     super.dispose();
+  }
+
+  void _handleBackWithCartWarning() {
+    final isCartEmpty = productCartController.selectedProductVariants.isEmpty;
+    if (isCartEmpty) {
+      Get.back();
+      return;
+    }
+    _showCartWarningDialog(
+      onPlaceOrder: () {
+        Get.to(() => const ProductSelfPickUpCartScreen());
+      },
+    );
+  }
+
+  void _showCartWarningDialog({required VoidCallback onPlaceOrder}) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_rounded, color: Colors.red, size: 80),
+              const SizedBox(height: 20),
+              const CustomText(
+                "Place Order Unless Your\nCart Will Be Empty,\nYou Can't See Selected Items",
+                textAlign: TextAlign.center,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.mainTextColor,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Get.back(); // close dialog
+                        productCartController.clearCart();
+                        Get.back(); // leave screen
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade300),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: CustomText(
+                        "Skip",
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: CustomBtn(
+                      title: "Place Order",
+                      bgColor: AppColors.primaryColor,
+                      onTap: () {
+                        Get.back();
+                        onPlaceOrder();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _onCategoryTap(CategoryData item, int index) {
@@ -84,7 +175,13 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
 
     double dynamicSize(double base) => base * (width / 390);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBackWithCartWarning();
+      },
+      child: Scaffold(
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () => Obx(() {
           final idx = _selectedIndex.value;
@@ -102,6 +199,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
             overflow: TextOverflow.ellipsis,
           );
         }),
+        onBackTap: _handleBackWithCartWarning,
         buildCustomActionWidget: () {
           final chat = ChatViewController.inventoryAiChatListSearchModule;
           return IconButton(
@@ -127,14 +225,21 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
         },
       ),
       body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            _buildCategoryList(),
-            SizedBox(width: SizeConfig.size6),
-            Expanded(child: _buildStoreContent(dynamicSize)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCategoryList(),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(child: _buildStoreContent(dynamicSize)),
+              ],
+            ),
+            ProductSelfPickupCartBar(controller: productCartController),
           ],
         ),
+      ),
       ),
     );
   }

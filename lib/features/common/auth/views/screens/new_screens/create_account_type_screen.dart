@@ -28,8 +28,20 @@ import 'package:get/get.dart';
 import '../../../model/get_categories_model.dart';
 
 class CreateAccountTypeScreen extends StatefulWidget {
+  final String? accountType;
 
-  const CreateAccountTypeScreen({super.key});
+  /// When [accountType] is [AppConstants.individual], this chooses which
+  /// entry in [individualOnboardingProfilesCategory] is preselected on
+  /// entry. Used by [ChooseAccountTypeScreen] so the Professional card
+  /// lands on "Skill Work / Self Employee" (index 1) and the Personal
+  /// card lands on "Social profile" (index 0).
+  final int initialIndividualIndex;
+
+  const CreateAccountTypeScreen({
+    super.key,
+    this.accountType,
+    this.initialIndividualIndex = 0,
+  });
 
   @override
   State<CreateAccountTypeScreen> createState() => _CreateAccountTypeScreenState();
@@ -38,47 +50,66 @@ class CreateAccountTypeScreen extends StatefulWidget {
 class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   final authController = getOrPut(() => AuthController());
 
+  bool get _showIndividualSidebar =>
+      widget.accountType == null ||
+      widget.accountType == AppConstants.individual;
+
+  bool get _showBusinessSidebar =>
+      widget.accountType == null ||
+      widget.accountType == AppConstants.business;
+
   @override
   void initState() {
     super.initState();
     authController.getAllIndividualProfession();
     authController.getAllBusinessCategories();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      authController.selectedIndividualOnboardingProfile.value = OnboardingCategoryModel(
-        name: 'Social profile',
-        slugId: SOCIAL_PROFILE,
-        icon: AppIconAssets.politicianIcon,
-        accountType: AppConstants.individual,
-      );
+      if (widget.accountType == AppConstants.business) {
+        authController.selectedIndividualOnboardingProfile.value = null;
+        authController.selectedBusinessOnboardingProfile.value =
+            businessOnboardingProfilesCategory.first;
+        authController.selectedParentSlug.value = AppConstants.business;
+      } else {
+        authController.selectedBusinessOnboardingProfile.value = null;
+        // Clamp the incoming index so an out-of-bounds value still
+        // falls back to the first item safely.
+        final idx = widget.initialIndividualIndex.clamp(
+          0,
+          individualOnboardingProfilesCategory.length - 1,
+        );
+        authController.selectedIndividualOnboardingProfile.value =
+            individualOnboardingProfilesCategory[idx];
+        authController.selectedParentSlug.value = AppConstants.individual;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
 
-        if (!isGuestUser()) {
-          commonConformationDialog(
-            context: context,
-            text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
-            confirmCallback: () async {
-              await SharedPreferenceUtils.clearPreference();
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                RouteHelper.getMobileNumberLoginRoute(),
-                    (Route<dynamic> route) => false,
-              );
-              // Get.close(2);
-            },
-            cancelCallback: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-          );
-        } else {
-          Navigator.of(context).pop(); // Close the dialog
-        }
+        // if (!isGuestUser()) {
+        //   commonConformationDialog(
+        //     context: context,
+        //     text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
+        //     confirmCallback: () async {
+        //       await SharedPreferenceUtils.clearPreference();
+        //       Navigator.of(context).pushNamedAndRemoveUntil(
+        //         RouteHelper.getMobileNumberLoginRoute(),
+        //             (Route<dynamic> route) => false,
+        //       );
+        //       // Get.close(2);
+        //     },
+        //     cancelCallback: () {
+        //       Navigator.of(context).pop(); // Close the dialog
+        //     },
+        //   );
+        // } else {
+        //   Navigator.of(context).pop(); // Close the dialog
+        // }
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
@@ -86,24 +117,25 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           appBarColor: Colors.white,
           title: AppStrings.chooseYourAccountType,
           onBackTap: () {
-            if (!isGuestUser()) {
-              commonConformationDialog(
-                context: context,
-                text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
-                confirmCallback: () async {
-                  await SharedPreferenceUtils.clearPreference();
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    RouteHelper.getMobileNumberLoginRoute(),
-                        (Route<dynamic> route) => false,
-                  );
-                },
-                cancelCallback: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-              );
-            } else {
-              Navigator.of(context).pop(); // Close the dialog
-            }
+            Navigator.of(context).pop();
+            // if (!isGuestUser()) {
+            //   commonConformationDialog(
+            //     context: context,
+            //     text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
+            //     confirmCallback: () async {
+            //       await SharedPreferenceUtils.clearPreference();
+            //       Navigator.of(context).pushNamedAndRemoveUntil(
+            //         RouteHelper.getMobileNumberLoginRoute(),
+            //             (Route<dynamic> route) => false,
+            //       );
+            //     },
+            //     cancelCallback: () {
+            //       Navigator.of(context).pop(); // Close the dialog
+            //     },
+            //   );
+            // } else {
+            //   Navigator.of(context).pop(); // Close the dialog
+            // }
           },
         ),
         body: SafeArea(
@@ -186,7 +218,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget accountTypesList() {
     return Container(
-      width: 94,
+      width: SizeConfig.screenWidth * 0.18,
       height: SizeConfig.screenHeight,
       color: AppColors.white,
       child: ListView(
@@ -198,6 +230,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                 height: SizeConfig.paddingXSL,
               ),
 
+              if (_showIndividualSidebar)
               Container(
                 color: AppColors.lightGreenShade.withValues(alpha: 0.1),
                 child: Column(
@@ -239,6 +272,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                 ),
               ),
 
+              if (_showBusinessSidebar)
               Container(
                 color: AppColors.blueShade.withValues(alpha: 0.1),
                 child: Column(

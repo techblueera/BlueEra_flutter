@@ -10,12 +10,14 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
+import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -77,7 +79,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                     Status.INITIAL) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 10),
-                    child: buildHorizontalProductListSkeleton(),
+                    child: buildHorizontalListSkeleton(),
                   );
                 }
 
@@ -99,6 +101,9 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
               CommonBusinessLivePhoto(
                 controller: viewBusinessDetailsController,
               ),
+
+              /// --- Business Description ---
+              const BusinessDescriptionCard(),
 
               // --- Contact & Map ---
               BusinessContactMapCard(
@@ -136,19 +141,29 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                     fontWeight: FontWeight.w600),
               ),
               SizedBox(width: SizeConfig.size8),
-              CustomText('View All',
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.w600),
+              InkWell(
+                onTap: () =>
+                    Get.to(() => const AllTopSellingProductsScreen()),
+                child: CustomText('View All',
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
+              ),
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           SizedBox(
             height: SizeConfig.size240,
-            child: ListView.builder(
-              itemCount: controller.allProducts.length > 10
-                  ? 10
-                  : controller.allProducts.length,
+            child: Builder(builder: (context) {
+              // Preview only — cap to the first 20 items. The full
+              // paginated list lives behind the "View All" tap →
+              // AllTopSellingProductsScreen.
+              final previewCount = controller.allProducts.length >
+                      InventoryController.ownProductsPreviewLimit
+                  ? InventoryController.ownProductsPreviewLimit
+                  : controller.allProducts.length;
+              return ListView.builder(
+              itemCount: previewCount,
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 var product = controller.allProducts[index];
@@ -269,7 +284,8 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                   ),
                 );
               },
-            ),
+              );
+            }),
           ),
         ],
       ),

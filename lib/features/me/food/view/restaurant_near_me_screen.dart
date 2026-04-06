@@ -1,22 +1,28 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/me/food/view/food_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart_bar.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +40,12 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   final AuthController _authController = Get.find<AuthController>();
   final ScrollController _scrollController = ScrollController();
   final RxInt selectedCategoryIndex = 0.obs;
+
+  /// Session-scoped food cart. Registered here (entry point) and deleted
+  /// in `dispose`, so going back from this screen clears the selection —
+  /// matching the grocery stores flow.
+  final FoodSelfPickupController foodCartController =
+      getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
 
   List<CategoryData> get _categories => _authController.businessOnboardingFoodsCategories;
 
@@ -76,49 +88,139 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    deleteIfRegistered<FoodSelfPickupController>();
     super.dispose();
+  }
+
+  void _handleBackWithCartWarning() {
+    final isCartEmpty = foodCartController.selectedFoodVariants.isEmpty;
+    if (isCartEmpty) {
+      Get.back();
+      return;
+    }
+    _showCartWarningDialog(
+      onPlaceOrder: () {
+        Get.back();
+      },
+    );
+  }
+
+  void _showCartWarningDialog({required VoidCallback onPlaceOrder}) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_rounded, color: Colors.red, size: 80),
+              const SizedBox(height: 20),
+              const CustomText(
+                "Place Order Unless Your\nCart Will Be Empty,\nYou Can't See Selected Items",
+                textAlign: TextAlign.center,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.mainTextColor,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Get.back();
+                        Get.back();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade300),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: CustomText(
+                        "Skip",
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: CustomBtn(
+                      title: "Place Order",
+                      bgColor: AppColors.primaryColor,
+                      onTap: () {
+                        Get.back();
+                        Get.to(()=> const FoodSelfPickUpCartScreen());
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(
-        isCustomTitleWidget: () => Obx(() {
-          final idx = selectedCategoryIndex.value;
-          final name = (idx >= 0 && idx < _categories.length)
-              ? _categories[idx].name ?? 'Restaurant Near Me'
-              : 'Restaurant Near Me';
-          return Text(
-            name,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          );
-        }),
-        buildCustomActionWidget: () => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search, size: 24),
-            ),
-            const DiscoverCartIcon(),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBackWithCartWarning();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        appBar: CommonBackAppBar(
+          isCustomTitleWidget: () => Obx(() {
+            final idx = selectedCategoryIndex.value;
+            final name = (idx >= 0 && idx < _categories.length)
+                ? _categories[idx].name ?? 'Restaurant Near Me'
+                : 'Restaurant Near Me';
+            return Text(
+              name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            );
+          }),
+          onBackTap: _handleBackWithCartWarning,
+          buildCustomActionWidget: () => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.search, size: 24),
+              ),
+              const DiscoverCartIcon(),
+            ],
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCategorySidebar(),
-            SizedBox(width: SizeConfig.size6),
-            Expanded(child: _buildRestaurantList()),
-          ],
+        body: SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildCategorySidebar(),
+                  SizedBox(width: SizeConfig.size6),
+                  Expanded(child: _buildRestaurantList()),
+                ],
+              ),
+              FoodSelfPickupCartBar(controller: foodCartController),
+            ],
+          ),
         ),
       ),
     );
@@ -326,7 +428,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     final hasLivePhoto = livePhotos.isNotEmpty;
     final hasLogo = store.logo?.isNotEmpty ?? false;
     final totalOrders = store.views ?? '10k+';
-    final categoryGradient = _getCategoryGradient(categoryName);
     final isVeg = _isVeg(subCategoryName);
     final rating = (store.avgRating ?? 0) > 0 ? '${store.avgRating}' : '4.5';
 
@@ -661,6 +762,83 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     ],
                   ),
 
+                  // ── Stats row: Category count + Product count ──
+                  SizedBox(height: SizeConfig.size10),
+                  Row(
+                    children: [
+                      _buildStatBox(
+                        icon: AppIconAssets.staggeredIcon,
+                        count: '${store.totalCategoryCount ?? 0}',
+                        label: 'Category',
+                        iconColor: const Color(0xFF9964F4),
+                        bgColor: AppColors.purpleFD,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      _buildStatBox(
+                        icon: AppIconAssets.productCartIcon,
+                        count: '${store.totalProductCount ?? 0}',
+                        label: 'Product',
+                        iconColor: const Color(0xFF6179CD),
+                        bgColor: AppColors.purpleFF,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatBox({
+    required String icon,
+    required String count,
+    required String label,
+    required Color iconColor,
+    required Color bgColor,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: AppColors.greyE5, width: 0.5),
+          color: AppColors.white,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6.0),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+              child: LocalAssets(
+                imagePath: icon,
+                imgColor: iconColor,
+                height: 18,
+                width: 18,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    count,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  CustomText(
+                    label,
+                    fontSize: SizeConfig.extraSmall,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ],
               ),
             ),

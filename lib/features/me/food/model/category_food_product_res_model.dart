@@ -1,47 +1,5 @@
 import 'dart:convert';
 
-CategoryFoodProductResModel categoryFoodProductResModelFromJson(String str) => CategoryFoodProductResModel.fromJson(json.decode(str));
-String categoryFoodProductResModelToJson(CategoryFoodProductResModel data) => json.encode(data.toJson());
-class CategoryFoodProductResModel {
-  CategoryFoodProductResModel({
-      this.success, 
-      this.count, 
-      this.totalPages, 
-      this.currentPage, 
-      this.data,});
-
-  CategoryFoodProductResModel.fromJson(dynamic json) {
-    success = json['success'];
-    count = json['count'];
-    totalPages = json['totalPages'];
-    currentPage = json['currentPage'];
-    if (json['data'] != null) {
-      data = [];
-      json['data'].forEach((v) {
-        data?.add(CategoryFoodProductData.fromJson(v));
-      });
-    }
-  }
-  bool? success;
-  int? count;
-  int? totalPages;
-  int? currentPage;
-  List<CategoryFoodProductData>? data;
-
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    map['success'] = success;
-    map['count'] = count;
-    map['totalPages'] = totalPages;
-    map['currentPage'] = currentPage;
-    if (data != null) {
-      map['data'] = data?.map((v) => v.toJson()).toList();
-    }
-    return map;
-  }
-
-}
-
 CategoryFoodProductData dataFromJson(String str) => CategoryFoodProductData.fromJson(json.decode(str));
 String dataToJson(CategoryFoodProductData data) => json.encode(data.toJson());
 class CategoryFoodProductData {

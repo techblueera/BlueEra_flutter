@@ -12,13 +12,16 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_common_gallery_card.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
+import 'package:BlueEra/features/me/food/view/discount_food_products_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
 import 'package:BlueEra/features/me/food/view/my_food_product_screen.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -41,11 +44,17 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   final controller = getOrPut(() => RestaurantController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   BusinessProfileDetails? businessProfileDetails;
-  
+
+  /// Number of discount dishes shown on the home preview. The full list
+  /// lives behind the "View All" action which opens
+  /// [DiscountFoodProductsScreen] (paginated).
+  static const int _discountPreviewLimit = 20;
+
   @override
   initState() {
     super.initState();
     controller.fetchHomeData(businessId: businessId);
+    controller.fetchDiscountFoodProducts(businessId: businessId);
   }
 
   @override
@@ -64,6 +73,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
         return RefreshIndicator(
           onRefresh: () async {
             controller.fetchHomeData(businessId: businessId);
+            await controller.fetchDiscountFoodProducts(businessId: businessId);
           },
           child: SingleChildScrollView(
             padding: EdgeInsets.only(
@@ -84,12 +94,19 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 // ── 4. Business Stats ──
                 BusinessStats(details: businessProfileDetails),
 
-                ///Food Selection (Horizontal List)
-                if (controller.allFoodItems.isNotEmpty)
-                  CustomFormCard(
-                    padding: EdgeInsets.symmetric(
-                      vertical: 10.0
-                    ),
+                ///Offer Dish (Discount) — paginated via discountProducts API
+                Obx(() {
+                  final isInitialLoading =
+                      controller.isDiscountProductsLoading.value &&
+                          controller.discountFoodItems.isEmpty;
+                  final hasItems = controller.discountFoodItems.isNotEmpty;
+
+                  if (!isInitialLoading && !hasItems) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return CustomFormCard(
+                    padding: EdgeInsets.symmetric(vertical: 10.0),
                     margin: const EdgeInsets.only(top: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,9 +122,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                               InkWell(
-                                onTap: () {
-                                  // TODO: navigate to all offers
-                                },
+                                onTap: () => Get.to(() =>
+                                    DiscountFoodProductsScreen(
+                                        businessId: businessId)),
                                 child: CustomText(
                                   AppStrings.viewAll.tr,
                                   fontSize: 13,
@@ -119,10 +136,19 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _buildHorizontalFoodList(),
+                        if (isInitialLoading)
+                          const SizedBox(
+                            height: 250,
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        else
+                          _buildDiscountFoodList(),
                       ],
                     ),
-                  ),
+                  );
+                }),
 
                 /// Restaurant Specials
                 _buildRestaurantSpecials(),
@@ -134,6 +160,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 CommonBusinessLivePhoto(
                   controller: viewBusinessDetailsController,
                 ),
+
+                /// --- Business Description ---
+                const BusinessDescriptionCard(),
 
                 /// Gallery
                 CommonGalleryCard(
@@ -173,33 +202,38 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     );
   }
 
-  Widget _buildHorizontalFoodList() {
-    return Obx(() => SizedBox(
-          height: 250,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: controller.allFoodItems.length,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            itemBuilder: (context, index) {
-              final item = controller.allFoodItems[index];
-              final bool hasVariants =
+  Widget _buildDiscountFoodList() {
+    return Obx(() {
+      final items = controller.discountFoodItems.length > _discountPreviewLimit
+          ? controller.discountFoodItems.take(_discountPreviewLimit).toList()
+          : controller.discountFoodItems.toList();
+
+      return SizedBox(
+        height: 250,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: items.length,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            final bool hasVariants =
                   item.variants != null && item.variants!.isNotEmpty;
               final int variantCount = item.variants?.length ?? 0;
               final bool isMultiVariant = variantCount > 1;
 
-              final sellingPrice = hasVariants
-                  ? item.variants![0].price?.sellingPrice
-                  : item.price?.sellingPrice;
-              final mrp = hasVariants
-                  ? item.variants![0].price?.mrp
-                  : item.price?.mrp;
+              final sellingPrice = hasVariants ? item.variants![0].baseSellingPrice : null;
+              final mrp = hasVariants ? item.variants![0].mrp : null;
 
               final int discountPercent =
                   (mrp != null && sellingPrice != null && mrp > sellingPrice)
                       ? (((mrp - sellingPrice) / mrp) * 100).round()
                       : 0;
 
-              return Container(
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () =>
+                    showFoodProductVariantSheet(context, product: item),
+                child: Container(
                 width: 170,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
@@ -218,7 +252,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           borderRadius: BorderRadius.circular(10),
                           child: CachedNetworkImage(
                             imageUrl:
-                                item.product?.images?.firstOrNull ?? "",
+                                item.images?.firstOrNull ?? "",
                             height: 140,
                             width: 170,
                             fit: BoxFit.cover,
@@ -278,9 +312,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           top: 8,
                           right: 8,
                           child: FoodTypeIndicator(
-                            isVegetarian: item.product?.dietaryType
-                                ?.toLowerCase() ==
-                                "veg",
+                            isVegetarian: item.dietaryType
+                                ?.toLowerCase() == AppConstants.veg,
                             size: 8,
                           ),
                         ),
@@ -295,7 +328,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                         children: [
                           // ── Item name ──
                           CustomText(
-                            item.product?.name ?? "",
+                            item.name ?? "",
                             fontWeight: FontWeight.w600,
                             maxLines: 1,
                             fontSize: 13,
@@ -349,7 +382,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           ),
 
                           // --- 4. Multiple Variants Indicator ---
-                          if (isMultiVariant)
+                          // if (isMultiVariant)
                             Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Container(
@@ -361,7 +394,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: CustomText(
-                                  "+${variantCount - 1} more variant",
+                                  isMultiVariant ?
+                                  "+${variantCount - 1} more variant"
+                                  : '${variantCount} variant',
                                   fontSize: 10,
                                   color: AppColors.primaryColor,
                                   fontWeight: FontWeight.w500,
@@ -375,10 +410,12 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
                   ],
                 ),
+                ),
               );
             },
           ),
-        ));
+        );
+      });
   }
 
   Widget _buildDottedLine() {

@@ -13,7 +13,6 @@ class GroceryNestedCategoryModel {
   String? description;
   String? image;
   List<GroceryNestedCategoryModel>? children;
-  List<Items>? items;
 
   GroceryNestedCategoryModel({
     this.sId,
@@ -28,7 +27,6 @@ class GroceryNestedCategoryModel {
     this.description,
     this.image,
     this.children,
-    this.items,
   });
 
   GroceryNestedCategoryModel.fromJson(Map<String, dynamic> json) {
@@ -51,12 +49,6 @@ class GroceryNestedCategoryModel {
       });
     }
 
-    if (json['items'] != null) {
-      items = [];
-      json['items'].forEach((v) {
-        items?.add(Items.fromJson(v));
-      });
-    }
   }
 
   Map<String, dynamic> toJson() {

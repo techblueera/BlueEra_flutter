@@ -1,14 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/view/self_pickup_cart_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
@@ -34,7 +31,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   final controller = getOrPut(() => NewStoreController());
   final groceryController = getOrPut(() => GroceryController());
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
-  final foodCustomerListingScreen = getOrPut(() => FoodCustomerController());
   final ScrollController storesScrollController = ScrollController();
   final AuthController _authController = Get.find<AuthController>();
   AnimationController? _shimmerController;
@@ -103,7 +99,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => SelfPickUpCartScreen(),
+              builder: (_) => GrocerySelfPickUpCartScreen(),
             ),
           );
         },

@@ -70,6 +70,9 @@ class AppImageAssets {
   static const String groceryImageFirst = "${imgPath}grocery_image_first.png";
   static const String groceryImageSecond = "${imgPath}grocery_image_second.png";
   static const String foodDummyImage = "${imgPath}food_dummy_image.png";
+  static const String businessListing = "${imgPath}business_listing.png";
+  static const String socialAccount = "${imgPath}social_account.png";
+  static const String professionalAccounts = "${imgPath}professional_accounts.png";
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";

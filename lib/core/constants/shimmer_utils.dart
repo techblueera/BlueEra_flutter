@@ -49,7 +49,7 @@ Widget buildBusinessHeaderSkeleton() {
   );
 }
 
-Widget buildHorizontalProductListSkeleton() {
+Widget buildHorizontalListSkeleton() {
   return SizedBox(
     height: SizeConfig.size265,
     child: ListView.builder(

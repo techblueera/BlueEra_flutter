@@ -5,8 +5,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -21,6 +24,106 @@ class BusinessContactMapCard extends StatelessWidget {
     this.businessProfileDetails,
   });
 
+
+  Future<void> updateLocationDialog(
+      BuildContext context,
+      BusinessProfileDetails? details,
+     ) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          backgroundColor: AppColors.white,
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            margin: EdgeInsets.only(
+                left: SizeConfig.size16,
+                right: SizeConfig.size16,
+                bottom: SizeConfig.size16,
+                top: SizeConfig.size8),
+            // vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: InkWell(
+                      onTap: () =>  Get.back(),
+                      child: Icon(
+                        Icons.close,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    )),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LocalAssets(imagePath: AppIconAssets.warningIcon),
+                    SizedBox(width: SizeConfig.size5),
+                    CustomText(
+                      AppStrings.updateLocation,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w700,
+                      textAlign: TextAlign.center,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: SizeConfig.size7,
+                ),
+                CustomText(
+                    AppStrings.updateLocationWarning,
+                    fontSize: SizeConfig.medium,
+                    textAlign: TextAlign.center,
+                    color: AppColors.secondaryTextColor),
+                SizedBox(height: SizeConfig.size15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomBtn(
+                        height: SizeConfig.size45,
+                        onTap: () =>  Get.back(),
+                        title: AppStrings.cancel,
+                        textColor: AppColors.secondaryTextColor,
+                        bgColor: AppColors.white,
+                        borderColor: AppColors.secondaryTextColor,
+                        radius: 8.0,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    Expanded(
+                      child: CustomBtn(
+                        height: SizeConfig.size45,
+                        onTap: () {
+                          Get.back();
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => BusinessLocationBottomSheet(
+                                prevBusinessDetails: details),
+                          );
+                        },
+                        title: AppStrings.confirm,
+                        isValidate: true,
+                        bgColor: AppColors.red02,
+                        radius: 8.0,
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final logoUrl = businessProfileDetails?.logo;
@@ -33,11 +136,28 @@ class BusinessContactMapCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            AppStrings.contactUs.tr,
-            fontSize: SizeConfig.large,
-            color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w600,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: CustomText(
+                  AppStrings.contactUs.tr,
+                  fontSize: SizeConfig.large,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              InkWell(
+                onTap: () => updateLocationDialog(
+                    context,
+                    businessProfileDetails
+                ),
+                child: LocalAssets(
+                  height: 16,
+                  imagePath: AppIconAssets.pen_line,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           Container(
@@ -155,4 +275,5 @@ class BusinessContactMapCard extends StatelessWidget {
       ),
     );
   }
+
 }

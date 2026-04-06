@@ -5,8 +5,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/business/widgets/blinking_verify_button.dart';
 import 'package:BlueEra/features/business/widgets/business_common_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -31,8 +31,6 @@ import '../auth/model/viewBusinessProfileModel.dart';
 
 import '../visiting_card/view/business_details_edit_page_one.dart';
 import 'package:dio/dio.dart' as dio;
-
-import '../visiting_card/view/widget/business_verfication.dart';
 
 class BusinessProfileHeader extends StatelessWidget {
   final BusinessProfileDetails? details;
@@ -202,32 +200,9 @@ class BusinessProfileHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        (details?.businessIsVerified ?? false)
-                            ? Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 13, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xffC5FFC9),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: CustomText(
-                                    AppStrings.verifiedProfile,
-                                    color: AppColors.secondaryTextColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )
-                            : Flexible(
-                                child: BlinkingVerifyButton(
-                                  onTap: () {
-                                    Get.to(BusinessVerification());
-
-                                    //commonSnackBar(message: "Coming soon....");
-                                  },
-                                ),
-                              ),
+                        Flexible(
+                          child: BusinessVerifyNowButton(details: details),
+                        ),
                         SizedBox(
                           width: SizeConfig.size10,
                         ),

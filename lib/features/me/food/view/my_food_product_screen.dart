@@ -1,7 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
@@ -10,18 +7,14 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../common/food/model/food_category_res_model.dart';
-import '../model/food_home_res_model.dart';
 
 class MyFoodProductScreen extends StatefulWidget {
   final GroceryNestedCategoryModel foodMenu;
@@ -89,12 +82,7 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
   }
 
   void _showVariantSheet(CategoryFoodProductData product) {
-    Get.bottomSheet(
-      _buildProductVariantWidget(
-          product
-      ),
-      isScrollControlled: true,
-    );
+    showFoodProductVariantSheet(context, product: product);
   }
 
   void callFoodProductBySubSubCatAPi({bool isLoadMore = false}){
@@ -279,172 +267,4 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
     );
   }
 
-  Widget _buildProductVariantWidget(CategoryFoodProductData product) {
-    return Container(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 30),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          _buildProductInfo(product),
-          const Divider(),
-          _buildVariantList(product),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText("All Variant",
-            fontSize: 18, fontWeight: FontWeight.bold),
-        IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Get.back(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductInfo(CategoryFoodProductData liveProduct) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ProductImageWidget(
-          imageUrl: liveProduct.images?.firstOrNull,
-          width: 60,
-          height: 60,
-        ),
-
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                liveProduct.name,
-                fontWeight: FontWeight.w600,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              ProductDescriptionWidget(
-                description: liveProduct.description,
-              ),
-              const SizedBox(height: 8),
-              FoodDietaryAndTagRow(
-                dietaryType: liveProduct.dietaryType,
-                cookingMethods: liveProduct.cookingMethod,
-              ),
-            ],
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget _buildVariantList(CategoryFoodProductData liveProduct) {
-    final displayVariants = liveProduct.variants ?? [];
-
-    return Column(
-      children: displayVariants.map((item) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            // Adding a subtle shadow for depth
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-            border: Border.all(
-              color: AppColors.greyE5.withValues(alpha: 0.5),
-              width: 1,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: IntrinsicHeight( // Ensures the blue line matches the content height
-              child: Row(
-                children: [
-                  // 1. Blue Vertical Accent Line
-                  Container(
-                    width: 4,
-                    color: AppColors.primaryColor,
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // 2. Variant Content
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            "${item.variantName} - ${item.quantityLabel}",
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600, // Semi-bold for title
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              // Selling Price Chip Look
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: CustomText(
-                                  "₹${item.baseSellingPrice}",
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              // MRP
-                              CustomText(
-                                "₹${item.mrp}",
-                                fontSize: 12,
-                                color: AppColors.secondaryTextColor.withValues(alpha: 0.7),
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Padding(
-                  //   padding: const EdgeInsets.only(right: 8.0),
-                  //   child: Icon(
-                  //     Icons.chevron_right,
-                  //     color: AppColors.greyE5,
-                  //     size: 20,
-                  //   ),
-                  // ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
 }

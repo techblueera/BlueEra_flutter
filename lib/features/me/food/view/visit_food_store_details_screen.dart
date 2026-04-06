@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -15,10 +14,12 @@ import 'package:BlueEra/features/common/store/controller/new_store_controller.da
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/me/food/controller/food_customer_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_cart_icon.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_variants_sheet.dart';
+import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -52,25 +53,65 @@ class VisitFoodStoreDetailsScreen extends StatefulWidget {
 class _VisitFoodStoreDetailsScreenState
     extends State<VisitFoodStoreDetailsScreen> {
   final controller = getOrPut(() => RestaurantController());
-  final foodCustomerController = getOrPut(() => FoodCustomerController());
   final storeController = getOrPut(() => NewStoreController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+
+  /// Session cart — registered by [RestaurantNearMeScreen] entry point.
+  /// Found (not `put`) here so add/remove on this screen mutates the same
+  /// instance the cart bar on the entry point is watching.
+  final FoodSelfPickupController foodCartController =
+      getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
 
   @override
   void initState() {
     super.initState();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchHomeData(businessId: widget.visitBusinessId);
+    // Offer Dish (Discount) on this screen is fed by the same paginated
+    // `food-service/api/discountProducts` endpoint used on food_home_screen,
+    // so the data model (`CategoryFoodProductData`) is consistent across
+    // surfaces and the self-pickup variants sheet can be reused directly.
+    controller.fetchDiscountFoodProducts(businessId: widget.visitBusinessId);
     storeController.trackStoreDetailView(widget.visitBusinessId);
+  }
+
+  void _openVariantsSheetForOfferDish(CategoryFoodProductData product) {
+    final visitDetails =
+        viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+    final details =
+        visitDetails ?? controller.restaurantData.value?.businessProfileDetails;
+
+    // The discountProducts API already returns CategoryFoodProductData (same
+    // model the listing screen uses), so we can hand it straight to the
+    // self-pickup variants sheet — no conversion needed.
+    showFoodSelfPickupVariantsSheet(
+      context,
+      args: FoodSelfPickupSheetArgs.fromCategoryProduct(
+        product,
+        visitBusinessId: widget.visitBusinessId,
+        visitBusinessName: details?.businessName,
+        visitBusinessLogo: details?.logo,
+        visitBusinessAddress: details?.address,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        buildCustomActionWidget: () => FoodCartIconButton(),
+      appBar: CommonBackAppBar(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          _buildScrollBody(),
+          FoodSelfPickupCartBar(controller: foodCartController),
+        ],
       ),
-      body: Obx(() {
+    );
+  }
+
+  Widget _buildScrollBody() {
+    return Obx(() {
         if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -107,8 +148,8 @@ class _VisitFoodStoreDetailsScreenState
                 const SizedBox(height: 10),
                 VisitBusinessStatsCard(details: details),
 
-                /// Offer Dish (Discount) — only when items exist
-                if (controller.allFoodItems.isNotEmpty) ...[
+                /// Offer Dish (Discount) — paginated discountProducts API
+                if (controller.discountFoodItems.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   CustomFormCard(
                     padding: EdgeInsets.zero,
@@ -137,7 +178,7 @@ class _VisitFoodStoreDetailsScreenState
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _buildHorizontalFoodList(),
+                        _buildDiscountFoodList(),
                         const SizedBox(height: 10),
                       ],
                     ),
@@ -232,41 +273,40 @@ class _VisitFoodStoreDetailsScreenState
             ),
           ),
         );
-      }),
-    );
+      });
   }
 
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  OFFER DISH (Horizontal List with Discount)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildHorizontalFoodList() {
+  Widget _buildDiscountFoodList() {
     return Obx(() => SizedBox(
           height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: controller.allFoodItems.length,
+            itemCount: controller.discountFoodItems.length,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             itemBuilder: (context, index) {
-              final item = controller.allFoodItems[index];
+              final item = controller.discountFoodItems[index];
               final bool hasVariants =
                   item.variants != null && item.variants!.isNotEmpty;
               final int variantCount = item.variants?.length ?? 0;
               final bool isMultiVariant = variantCount > 1;
 
-              final sellingPrice = hasVariants
-                  ? item.variants![0].price?.sellingPrice
-                  : item.price?.sellingPrice;
-              final mrp = hasVariants
-                  ? item.variants![0].price?.mrp
-                  : item.price?.mrp;
+              final sellingPrice =
+                  hasVariants ? item.variants![0].baseSellingPrice : null;
+              final mrp = hasVariants ? item.variants![0].mrp : null;
 
               final int discountPercent =
                   (mrp != null && sellingPrice != null && mrp > sellingPrice)
                       ? (((mrp - sellingPrice) / mrp) * 100).round()
                       : 0;
 
-              return Container(
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _openVariantsSheetForOfferDish(item),
+                child: Container(
                 width: 170,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
@@ -281,8 +321,7 @@ class _VisitFoodStoreDetailsScreenState
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: CachedNetworkImage(
-                            imageUrl:
-                                item.product?.images?.firstOrNull ?? "",
+                            imageUrl: item.images?.firstOrNull ?? "",
                             height: 140,
                             width: 170,
                             fit: BoxFit.cover,
@@ -341,9 +380,8 @@ class _VisitFoodStoreDetailsScreenState
                           top: 8,
                           right: 8,
                           child: FoodTypeIndicator(
-                            isVegetarian: item.product?.dietaryType
-                                    ?.toLowerCase() ==
-                                "veg",
+                            isVegetarian:
+                                item.dietaryType?.toLowerCase() == "veg",
                             size: 8,
                           ),
                         ),
@@ -355,25 +393,30 @@ class _VisitFoodStoreDetailsScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            item.product?.name ?? "",
+                            item.name ?? "",
                             fontWeight: FontWeight.w600,
                             maxLines: 1,
                             fontSize: 13,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
-                          if (item.rating != null && item.rating! > 0)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
-                              child: Row(
-                                children: [
-                                  RatingBadge(
-                                      rating:
-                                          item.rating.toString()),
-                                  const SizedBox(width: 4),
-                                ],
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              children: [
+                                RatingBadge(rating: '4.5'),
+                                const SizedBox(width: 4),
+                                CustomText(
+                                  '1.2 K Reviews',
+                                  fontWeight: FontWeight.w600,
+                                  maxLines: 1,
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: 12,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
+                          ),
                           _buildDottedLine(),
                           const SizedBox(height: 6),
                           Row(
@@ -400,7 +443,7 @@ class _VisitFoodStoreDetailsScreenState
                               ],
                             ],
                           ),
-                          if (isMultiVariant)
+                          // if (isMultiVariant)
                             Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Container(
@@ -413,7 +456,9 @@ class _VisitFoodStoreDetailsScreenState
                                       BorderRadius.circular(4),
                                 ),
                                 child: CustomText(
-                                  "+${variantCount - 1} more variant",
+                                  isMultiVariant ?
+                                  "+${variantCount - 1} more variant"
+                                      : '${variantCount} variant',
                                   fontSize: 10,
                                   color: AppColors.primaryColor,
                                   fontWeight: FontWeight.w500,
@@ -424,6 +469,7 @@ class _VisitFoodStoreDetailsScreenState
                       ),
                     ),
                   ],
+                ),
                 ),
               );
             },
