@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
@@ -47,7 +48,7 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
               children: [
                 Expanded(
                   child: CustomText(
-                    'Choose Delivery Option',
+                    AppStrings.chooseDeliveryOption.tr,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,

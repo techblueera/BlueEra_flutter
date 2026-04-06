@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/all_education_service_screen.dart';
@@ -23,7 +24,7 @@ class JobServiceCardWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          titleWidget("Job Near Me"),
+          titleWidget(AppStrings.jobNearMe.tr),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),

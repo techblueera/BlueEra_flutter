@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/quick_food_search_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/restaurant_near_me_screen.dart';
@@ -33,7 +34,7 @@ class ChooseFoodOptionDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: CustomText(
-                    'How would you like to find food?',
+                    AppStrings.howWouldYouLikeToFindFood.tr,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
@@ -45,8 +46,8 @@ class ChooseFoodOptionDialog extends StatelessWidget {
             const SizedBox(height: 10),
             _buildOption(
               icon: AppIconAssets.fastFoodQuickServiceIcon,
-              title: 'Quick Food Search',
-              subtitle: 'Search food items directly from nearby stores',
+              title: AppStrings.quickFoodSearch.tr,
+              subtitle: AppStrings.quickFoodSearchSubtitle.tr,
               onTap: () {
                 Get.back();
                 Get.to(() => const QuickFoodSearchScreen());
@@ -55,8 +56,8 @@ class ChooseFoodOptionDialog extends StatelessWidget {
             const SizedBox(height: 12),
             _buildOption(
               icon: AppIconAssets.restaurantIcon,
-              title: 'Search Via Restaurant',
-              subtitle: 'Browse restaurants and their menus near you',
+              title: AppStrings.searchViaRestaurant.tr,
+              subtitle: AppStrings.searchViaRestaurantSubtitle.tr,
               onTap: () {
                 Get.back();
                 Get.to(() => const RestaurantNearMeScreen());

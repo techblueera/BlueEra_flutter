@@ -33,7 +33,8 @@
       "Bash(adb:*)",
       "Bash(export PATH=\"$PATH:$HOME/Library/Android/sdk/platform-tools\")",
       "Bash(git log:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(curl:*)"
     ]
   }
 }

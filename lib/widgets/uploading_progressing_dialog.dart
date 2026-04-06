@@ -50,16 +50,26 @@ class _ProgressContent extends StatefulWidget {
 class _ProgressContentState extends State<_ProgressContent> {
   late double progress;
 
+  // `double.nan.clamp(0, 1)` returns NaN in Dart, and LinearProgressIndicator
+  // crashes on NaN/Infinity in its semantics wrapper ("Infinity or NaN toInt").
+  // This sanitizer is the last line of defense regardless of upstream bugs.
+  double _sanitize(double v) {
+    if (!v.isFinite) return 0.0;
+    if (v < 0.0) return 0.0;
+    if (v > 1.0) return 1.0;
+    return v;
+  }
+
   @override
   void initState() {
     super.initState();
-    progress = widget.initialProgress;
+    progress = _sanitize(widget.initialProgress);
 
     // bind updater
     UploadProgressDialog._updateProgressUI = (double newProgress) {
       if (mounted) {
         setState(() {
-          progress = newProgress.clamp(0.0, 1.0);
+          progress = _sanitize(newProgress);
         });
       }
     };

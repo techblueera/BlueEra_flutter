@@ -7,6 +7,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 
 class AutomotiveServiceCardWidget extends StatelessWidget {
@@ -40,7 +41,7 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
                       service: item,
                       getName: (i) => i.name,
                       getIcon: (i) => i.icon ?? "",
-                      onTap: (i) => commonSnackBar(message: "Coming Soon..."),
+                      onTap: (i) => commonSnackBar(message: AppStrings.comingSoon),
                     ),
                   );
                 }).toList(),

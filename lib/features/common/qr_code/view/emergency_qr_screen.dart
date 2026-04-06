@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
@@ -70,7 +71,7 @@ class EmergencyQrWidget extends StatelessWidget {
               CustomText(
                 controller.fullName.value.isNotEmpty
                     ? controller.fullName.value
-                    : "Emergency QR",
+                    : AppStrings.emergencyQr.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -96,8 +97,8 @@ class EmergencyQrWidget extends StatelessWidget {
                         dataModuleShape: QrDataModuleShape.square,
                         color: Color(0xFF1A1A2E),
                       ),
-                      errorStateBuilder: (context, error) => const Center(
-                        child: CustomText("QR Error"),
+                      errorStateBuilder: (context, error) => Center(
+                        child: CustomText(AppStrings.qrError.tr),
                       ),
                     ),
                     Container(
@@ -136,7 +137,7 @@ class EmergencyQrWidget extends StatelessWidget {
                       color: AppColors.whiteE5,
                     )),
                 child: CustomText(
-                  "Scan & Visit",
+                  AppStrings.scanAndVisit.tr,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -167,7 +168,7 @@ class EmergencyQrWidget extends StatelessWidget {
                           color: Colors.white, size: 18),
                       const SizedBox(width: 8),
                       CustomText(
-                        "View More Designs",
+                        AppStrings.viewMoreDesigns.tr,
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
@@ -225,7 +226,7 @@ class EmergencyQrWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              "Vehicle Safety - Parking QR Code",
+              AppStrings.vehicleSafetyParkingQrCode.tr,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -280,7 +281,7 @@ class EmergencyQrWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             CustomText(
-              "Paste it to save lives",
+              AppStrings.pasteItToSaveLives.tr,
               color: Color(0xffD7A302),
               fontWeight: FontWeight.w600,
             ),
@@ -298,7 +299,7 @@ class EmergencyQrWidget extends StatelessWidget {
                       color: AppColors.primaryColor,
                     )),
                 child: CustomText(
-                  "Generate Now",
+                  AppStrings.generateNow.tr,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -329,20 +330,20 @@ class EmergencyQrWidget extends StatelessWidget {
     try {
       final pngBytes = await _captureQrImage();
       if (pngBytes == null) {
-        commonSnackBar(message: "Failed to capture QR code");
+        commonSnackBar(message: AppStrings.failedToCaptureQrCode.tr);
         return;
       }
 
       if (Platform.isAndroid) {
         final status = await Permission.storage.request();
         if (!status.isGranted) {
-          commonSnackBar(message: "Storage permission required");
+          commonSnackBar(message: AppStrings.storagePermissionRequired.tr);
           return;
         }
       } else if (Platform.isIOS) {
         final status = await Permission.photos.request();
         if (!status.isGranted) {
-          commonSnackBar(message: "Photos permission required");
+          commonSnackBar(message: AppStrings.photosPermissionRequired.tr);
           return;
         }
       }
@@ -353,10 +354,10 @@ class EmergencyQrWidget extends StatelessWidget {
       final file = File(filePath);
       await file.writeAsBytes(pngBytes);
 
-      commonSnackBar(message: "QR Code saved successfully");
+      commonSnackBar(message: AppStrings.qrCodeSavedSuccessfully.tr);
     } catch (e) {
       debugPrint("Error saving QR: $e");
-      commonSnackBar(message: "Failed to save QR code");
+      commonSnackBar(message: AppStrings.failedToSaveQrCode.tr);
     } finally {
       _isSaving.value = false;
     }
@@ -366,7 +367,7 @@ class EmergencyQrWidget extends StatelessWidget {
     try {
       final pngBytes = await _captureQrImage();
       if (pngBytes == null) {
-        commonSnackBar(message: "Failed to capture QR code");
+        commonSnackBar(message: AppStrings.failedToCaptureQrCode.tr);
         return;
       }
 
@@ -376,7 +377,7 @@ class EmergencyQrWidget extends StatelessWidget {
 
       await SharePlus.instance.share(ShareParams(
         files: [XFile(file.path)],
-        text: "My Emergency QR Code\n$_qrData",
+        text: "${AppStrings.myEmergencyQrCode.tr}\n$_qrData",
       ));
 
       if (await file.exists()) {

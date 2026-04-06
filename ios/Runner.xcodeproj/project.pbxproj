@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -663,7 +663,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.70;
+				FLUTTER_BUILD_NAME = 1.2.71;
 				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
@@ -672,7 +672,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.70;
+				MARKETING_VERSION = 1.2.71;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -983,7 +983,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.70;
+				FLUTTER_BUILD_NAME = 1.2.71;
 				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
@@ -992,7 +992,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.70;
+				MARKETING_VERSION = 1.2.71;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1015,7 +1015,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.70;
+				FLUTTER_BUILD_NAME = 1.2.71;
 				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
@@ -1024,7 +1024,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.70;
+				MARKETING_VERSION = 1.2.71;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

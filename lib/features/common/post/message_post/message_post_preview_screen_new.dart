@@ -26,6 +26,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/highlight_text_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -50,6 +52,15 @@ class _MessagePostPreviewScreenNewState
   late TagUserController tagUserController;
   late String originalCaption;
   late bool hasChanges;
+
+  // Video validation state — for new video posts we must confirm the trimmed
+  // file can actually be opened by the platform player before allowing the
+  // user to submit. Protects against ExoPlayer "Source error" crashes that
+  // otherwise would only surface during upload/playback.
+  bool _isVideoValidating = false;
+  bool _isVideoReady = true;
+  String? _videoError;
+  Worker? _videoWorker;
 
   @override
   void initState() {
@@ -95,6 +106,74 @@ class _MessagePostPreviewScreenNewState
     }
     hasChanges = false;
     super.initState();
+
+    // Validate the trimmed/picked video once on entry, and again whenever the
+    // user re-trims (imagesList mutates). Skipped in edit mode because the
+    // existing post's media is a remote URL, not a local file.
+    if (!widget.isEdit) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _validateCurrentVideoIfNeeded();
+      });
+      _videoWorker = ever<List<File>>(msgPostController.imagesList, (_) {
+        _validateCurrentVideoIfNeeded();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoWorker?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _validateCurrentVideoIfNeeded() async {
+    if (!mounted) return;
+
+    // Non-video posts are always considered ready.
+    if (msgPostController.selectedType.value != MediaType.video) {
+      setState(() {
+        _isVideoValidating = false;
+        _isVideoReady = true;
+        _videoError = null;
+      });
+      return;
+    }
+
+    final file = msgPostController.imagesList.firstOrNull;
+    if (file == null || !file.existsSync()) {
+      setState(() {
+        _isVideoValidating = false;
+        _isVideoReady = false;
+        _videoError =
+            'Video file is missing. Please pick or re-trim the video.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isVideoValidating = true;
+      _isVideoReady = false;
+      _videoError = null;
+    });
+
+    final duration = await msgPostController.validateVideoFile(file);
+    if (!mounted) return;
+    if (duration != null) {
+      setState(() {
+        _isVideoValidating = false;
+        _isVideoReady = true;
+        _videoError = null;
+      });
+    } else {
+      final msg =
+          'Unable to play the trimmed video. Please re-trim or choose another video.';
+      setState(() {
+        _isVideoValidating = false;
+        _isVideoReady = false;
+        _videoError = msg;
+      });
+      commonSnackBar(message: msg, snackBackgroundColor: AppColors.red);
+    }
   }
 
   @override
@@ -263,6 +342,65 @@ class _MessagePostPreviewScreenNewState
                                 InstaSliderNetwork(
                                   post: widget.post,
                                 ),
+                              // Video validation status — only shown for new
+                              // video posts. Blocks submit until the trimmed
+                              // file is confirmed playable.
+                              if (!msgPostController.isMsgPostEdit &&
+                                  msgPostController.selectedType.value ==
+                                      MediaType.video &&
+                                  (_isVideoValidating || _videoError != null))
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                      left: SizeConfig.size50,
+                                      top: SizeConfig.size10),
+                                  child: _isVideoValidating
+                                      ? Row(
+                                          children: [
+                                            SizedBox(
+                                              width: SizeConfig.size16,
+                                              height: SizeConfig.size16,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                      strokeWidth: 2),
+                                            ),
+                                            SizedBox(
+                                                width: SizeConfig.size10),
+                                            Expanded(
+                                              child: CustomText(
+                                                "Validating video, please wait...",
+                                                color: AppColors.black,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Row(
+                                          children: [
+                                            Icon(Icons.error_outline,
+                                                color: AppColors.red,
+                                                size: SizeConfig.size20),
+                                            SizedBox(
+                                                width: SizeConfig.size10),
+                                            Expanded(
+                                              child: CustomText(
+                                                _videoError ?? "",
+                                                color: AppColors.red,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                                width: SizeConfig.size10),
+                                            GestureDetector(
+                                              onTap:
+                                                  _validateCurrentVideoIfNeeded,
+                                              child: CustomText(
+                                                "Retry",
+                                                color:
+                                                    AppColors.primaryColor,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
                               // Selected users chips
                               Obx(
                                 () => tagUserController.selectedUsers.isNotEmpty
@@ -388,10 +526,25 @@ class _MessagePostPreviewScreenNewState
                                   SizedBox(width: SizeConfig.size16),
                                   Expanded(
                                     child: Builder(builder: (_) {
+                                      // Block submit if a new video post is
+                                      // still validating or failed validation
+                                      // — prevents uploading a file the
+                                      // platform player can't even open.
+                                      final bool isNewVideoPost =
+                                          !msgPostController.isMsgPostEdit &&
+                                              msgPostController
+                                                      .selectedType.value ==
+                                                  MediaType.video;
+                                      final bool videoBlocksSubmit =
+                                          isNewVideoPost &&
+                                              (_isVideoValidating ||
+                                                  !_isVideoReady ||
+                                                  _videoError != null);
                                       bool isUpdateEnabled =
-                                          msgPostController.isMsgPostEdit
-                                              ? hasChanges
-                                              : true;
+                                          (msgPostController.isMsgPostEdit
+                                                  ? hasChanges
+                                                  : true) &&
+                                              !videoBlocksSubmit;
 
                                       return PositiveCustomBtn(
                                         onTap: isUpdateEnabled

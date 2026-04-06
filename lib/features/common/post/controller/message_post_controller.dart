@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/photo_post_model.dart';
@@ -31,6 +32,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:video_player/video_player.dart';
 
 class MessagePostController extends GetxController {
   /// ADD MSG POST
@@ -155,6 +157,7 @@ class MessagePostController extends GetxController {
     messageText.value = "";
     postText.value = "";
     isAddLink.value = false;
+    originalVideoSourcePath = null;
     Get.find<TagUserController>().clearAllSelections();
     Get.find<TagUserController>().selectedUsers.clear();
   }
@@ -181,6 +184,38 @@ class MessagePostController extends GetxController {
   RxList<String> uploadImageList = <String>[].obs;
   RxList<File> imagesList = <File>[].obs;
   Rx<MediaType?> selectedType = Rx<MediaType?>(null);
+
+  // Path of the ORIGINAL video the user picked, kept around so re-trim can
+  // always go back to the source. Without this, "Retry" would re-feed a
+  // (possibly corrupt) trimmed artifact into the trimmer and loop forever.
+  String? originalVideoSourcePath;
+
+  /// Returns the playable [Duration] of [file], or null if it cannot be
+  /// opened by the platform video player. Catches the case where
+  /// `video_trimmer` produces a malformed MP4 (e.g. missing stsd box) that
+  /// ExoPlayer cannot decode.
+  Future<Duration?> validateVideoFile(File file) async {
+    if (!file.existsSync()) return null;
+    final controller = VideoPlayerController.file(file);
+    try {
+      await controller.initialize();
+      if (!controller.value.isInitialized || controller.value.hasError) {
+        return null;
+      }
+      final duration = controller.value.duration;
+      if (duration.inMilliseconds <= 0) return null;
+      return duration;
+    } catch (e) {
+      logs("ERROR validateVideoFile $e");
+      return null;
+    } finally {
+      await controller.dispose();
+    }
+  }
+
+  /// Maximum video length the message-post flow accepts without trimming.
+  /// Mirrors the `maxVideoLength` enforced inside `VideoTrimmerPage`.
+  static const Duration maxVideoDuration = Duration(seconds: 150);
 
   void removeMedia(int index) {
     imagesList.removeAt(index);
@@ -263,18 +298,84 @@ class MessagePostController extends GetxController {
     if (result == null) return;
 
     final path = result.path;
+    final originalFile = File(path);
+
+    // Validate the SOURCE first — if the user picked a corrupt file there's
+    // no point invoking the trimmer (which would silently emit garbage).
+    final sourceDuration = await validateVideoFile(originalFile);
+    if (sourceDuration == null) {
+      commonSnackBar(
+        message:
+            "The selected video is unsupported or corrupted. Please pick another video.",
+        snackBackgroundColor: AppColors.red,
+      );
+      selectedType.value = null;
+      return;
+    }
+
+    // Remember the original path so re-trim ("edit") can always start from
+    // the source rather than a previously-trimmed (possibly broken) file.
+    originalVideoSourcePath = path;
+
+    // 🚀 Stage 1: Generate a tiny first-frame thumbnail from the ORIGINAL
+    // file IMMEDIATELY, in parallel with the trimmer UI. This way the AI
+    // description button is unblocked almost instantly, even for large videos.
+    final fastThumbFuture = generateThumbnail(originalFile, fast: true);
+
+    // If the original video already fits within the max allowed length,
+    // skip the trimmer entirely and upload it as-is. Trimming is only
+    // needed when the source is longer than `maxVideoDuration`.
+    if (sourceDuration <= maxVideoDuration) {
+      selectedType.value = MediaType.video;
+      imagesList.value = [originalFile];
+      await fastThumbFuture;
+      // Stage-2 nicer thumb in the background.
+      generateThumbnail(originalFile);
+      return;
+    }
 
     final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
 
     if (trimmedPath != null) {
       print("✅ Trimmed Video Path: $trimmedPath");
-      // final files = result.paths.map((e) => File(e!)).toList();
       final videoTriFile = File(trimmedPath);
+
+      // Validate the trimmer output before exposing it to the rest of the
+      // flow. video_trimmer 5.0.0 has been observed producing malformed MP4s
+      // (missing stsd box) on some Android devices — those crash ExoPlayer
+      // at upload/playback time. If trimming failed, fall back to the
+      // already-validated ORIGINAL file so the user can still upload.
+      final trimmedDuration = await validateVideoFile(videoTriFile);
+      final File chosenFile;
+      if (trimmedDuration != null) {
+        chosenFile = videoTriFile;
+      } else {
+        commonSnackBar(
+          message:
+              "Trimming failed on this device, uploading the original video instead.",
+          snackBackgroundColor: AppColors.red,
+        );
+        chosenFile = originalFile;
+      }
 
       selectedType.value = MediaType.video;
 
-      imagesList.value = [videoTriFile];
-      generateThumbnail(videoTriFile);
+      imagesList.value = [chosenFile];
+
+      // Wait for the fast thumb (usually already done by now) and reuse it
+      // under the chosen file's path so `generateSocialMediaContent` can
+      // proceed. If we fell back to the original, the thumb is already
+      // keyed under originalFile.path so the remap is a no-op.
+      await fastThumbFuture;
+      final originalThumb = videoThumbnails[originalFile.path];
+      if (originalThumb != null) {
+        videoThumbnails[chosenFile.path] = originalThumb;
+      }
+
+      // 🎨 Stage 2 (optional): regenerate a nicer thumbnail from the chosen
+      // file in the background. AI generation is already unblocked, so this
+      // does not need to be awaited.
+      generateThumbnail(chosenFile);
 
       // Upload / Save / Play trimmed video here
     }
@@ -303,18 +404,41 @@ class MessagePostController extends GetxController {
   }*/
 
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
+  RxBool isThumbnailGenerating = false.obs;
 
-  Future<void> generateThumbnail(File videoFile) async {
-    final tempDir = await getTemporaryDirectory();
-    final thumbPath = await VideoThumbnail.thumbnailFile(
-      video: videoFile.path,
-      thumbnailPath: tempDir.path,
-      imageFormat: ImageFormat.JPEG,
-      maxHeight: 400,
-      quality: 80,
-    );
+  /// Generates a thumbnail from [videoFile].
+  ///
+  /// When [fast] is true, uses very small dimensions + first frame (timeMs:0)
+  /// for near-instant generation — ideal for the "unblock AI description
+  /// button ASAP" stage 1 pass. When false, produces a slightly higher
+  /// quality thumbnail suitable for previewing to the user.
+  Future<void> generateThumbnail(File videoFile, {bool fast = false}) async {
+    // If a thumbnail already exists for this path we're doing a background
+    // refresh — do NOT flip the flag, otherwise we'd re-disable the AI button
+    // that was already unblocked by the stage-1 fast thumb.
+    final isBackgroundRefresh = videoThumbnails.containsKey(videoFile.path);
+    try {
+      if (!isBackgroundRefresh) isThumbnailGenerating.value = true;
+      final tempDir = await getTemporaryDirectory();
+      final thumbPath = await VideoThumbnail.thumbnailFile(
+        video: videoFile.path,
+        thumbnailPath: tempDir.path,
+        imageFormat: ImageFormat.JPEG,
+        // First frame is always a keyframe → zero seek cost. Tiny dimensions
+        // keep platform-side decoding fast even on >10MB videos. The AI
+        // endpoint downscales anyway, so a 144p thumb is more than enough.
+        maxHeight: fast ? 144 : 200,
+        maxWidth: fast ? 256 : 360,
+        quality: fast ? 40 : 50,
+        timeMs: 0,
+      );
 
-    videoThumbnails[videoFile.path] = File(thumbPath.path);
+      videoThumbnails[videoFile.path] = File(thumbPath.path);
+    } catch (e) {
+      logs("ERROR generateThumbnail $e");
+    } finally {
+      if (!isBackgroundRefresh) isThumbnailGenerating.value = false;
+    }
   }
 
   Future<void> uploadMessagePost({required PostVia? postVia}) async {
@@ -328,7 +452,9 @@ class MessagePostController extends GetxController {
         double progress = 0.0;
 
         void updateProgress(double value) {
-          progress = value.clamp(0.0, 1.0);
+          // Guard against NaN/Infinity leaking in from upstream callbacks.
+          final safe = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
+          progress = safe.toDouble();
           UploadProgressDialog.update(progress);
         }
 
@@ -577,6 +703,18 @@ class MessagePostController extends GetxController {
 
   Future<void> generateSocialMediaContent() async {
     try {
+      // Block AI generation until video thumbnail is ready (large videos
+      // may still be decoding their first frame).
+      if (selectedType.value == MediaType.video) {
+        final videoPath = imagesList.firstOrNull?.path;
+        if (isThumbnailGenerating.value ||
+            (videoPath != null && videoThumbnails[videoPath] == null)) {
+          commonSnackBar(
+              message:
+                  "Preparing video preview, please wait a moment and try again");
+          return;
+        }
+      }
       isGenerated.value = true; // <--- Disable button after API call
       suggestions.clear();
 
@@ -698,5 +836,6 @@ class MessagePostController extends GetxController {
       selectedLanguage.value.isNotEmpty &&
       selectedEmotion.value.isNotEmpty &&
       topicDescriptionText.value.isNotEmpty &&
-      !isGenerated.value; // <--- disable when generated
+      !isGenerated.value && // <--- disable when generated
+      !isThumbnailGenerating.value; // <--- disable while thumbnail is generating
 }

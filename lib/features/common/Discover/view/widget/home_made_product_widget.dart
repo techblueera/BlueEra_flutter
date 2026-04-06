@@ -25,7 +25,7 @@ class HomeMadeProductWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          titleWidget("Home Made Product & Services"),
+          titleWidget(AppStrings.homeMadeProductAndServices.tr),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),

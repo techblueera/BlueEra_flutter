@@ -94,7 +94,7 @@ class ShoppingCardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomText(
-                      'How would you like to shop?',
+                      AppStrings.howWouldYouLikeToShop.tr,
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -111,8 +111,8 @@ class ShoppingCardWidget extends StatelessWidget {
               // Option 1: Browse Products
               _buildOptionTile(
                 icon: AppIconAssets.productCartIcon,
-                title: 'Browse Products',
-                subtitle: 'Search & explore products from local stores',
+                title: AppStrings.browseProducts.tr,
+                subtitle: AppStrings.browseProductsSubtitle.tr,
                 onTap: () {
                   // Get.back();
                   Get.to(() => AllBusinessProductsScreen(
@@ -126,8 +126,8 @@ class ShoppingCardWidget extends StatelessWidget {
               // Option 2: Shop Via Store
               _buildOptionTile(
                 icon: AppIconAssets.staggeredIcon,
-                title: 'Shop Via Store',
-                subtitle: 'Find nearby stores & browse their products',
+                title: AppStrings.shopViaStore.tr,
+                subtitle: AppStrings.shopViaStoreSubtitle.tr,
                 onTap: () {
                   // Get.back();
                   Get.to(() => ProductsStoreScreen(

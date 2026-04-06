@@ -25,7 +25,7 @@ class ResponsiveRentalCard extends StatelessWidget {
         children: [
           SizedBox(height: SizeConfig.paddingXSL),
 
-          titleWidget(AppStrings.rentalServices),
+          titleWidget(AppStrings.rentalServices.tr),
           SizedBox(height: SizeConfig.paddingXSL),
 
           Padding(
@@ -71,13 +71,13 @@ class ResponsiveRentalCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CustomText(
-              'For Rent',
+            CustomText(
+              AppStrings.forRent.tr,
               fontSize: 18, fontWeight: FontWeight.w500),
 
             const SizedBox(height: 4),
             CustomText(
-              'Houses, vehicles & more near you',
+              AppStrings.housesVehiclesMoreNearYou.tr,
             color: AppColors.secondaryTextColor, fontSize: 12),
             const SizedBox(height: 16),
 
@@ -92,15 +92,15 @@ class ResponsiveRentalCard extends StatelessWidget {
                          stayCategories: stayHomeItemsCategories,
                          selectedStayCategory: stayHomeItemsCategories[0]));
                    },
-                    child: _buildTag('House Rent')),
+                    child: _buildTag(AppStrings.houseRent.tr)),
                 InkWell(onTap: (){
-                  commonSnackBar(message: "Coming soon...");
-                },child: _buildTag('Vehicle Rent')),
+                  commonSnackBar(message: AppStrings.comingSoon.tr);
+                },child: _buildTag(AppStrings.vehicleRent.tr)),
                 InkWell(onTap: (){
                   Get.to(() => AllStayServiceScreen(
                       stayCategories: stayHomeItemsCategories,
                       selectedStayCategory: stayHomeItemsCategories[1]));
-                },child: _buildTag('Other Rental')),
+                },child: _buildTag(AppStrings.otherRental.tr)),
               ],
             ),
           ],

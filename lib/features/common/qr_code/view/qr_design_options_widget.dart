@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/qr_code/model/qr_design_model.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_card_widget.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_fullscreen_view.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class QrDesignOptionsWidget extends StatelessWidget {
   final String userName;
@@ -26,15 +28,15 @@ class QrDesignOptionsWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                const CustomText(
-                  'QR Sticker Designs',
+                CustomText(
+                  AppStrings.qrStickerDesigns.tr,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
                 ),
                 const Spacer(),
                 CustomText(
-                  '${designs.length} designs',
+                  '${designs.length} ${AppStrings.designs.tr}',
                   fontSize: 12,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -42,10 +44,10 @@ class QrDesignOptionsWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: CustomText(
-              'Tap any design to view full screen',
+              AppStrings.tapAnyDesignToViewFullScreen.tr,
               fontSize: 12,
               color: AppColors.secondaryTextColor,
             ),

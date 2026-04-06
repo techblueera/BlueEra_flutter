@@ -340,26 +340,25 @@ Future<void> main() async {
   // LAUNCH APP -- first frame renders immediately
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // if (kReleaseMode) {
-  //   FlutterError.onError =
-  //       FirebaseCrashlytics.instance.recordFlutterFatalError;
-  //   PlatformDispatcher.instance.onError = (error, stack) {
-  //     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  //     return true;
-  //   };
-  //
-  //   runZonedGuarded<Future<void>>(() async {
-  //     runApp(MyApp(initialLocale: locale));
-  //     _initDeferred(localizationService);
-  //   }, (error, stack) {
-  //     print("error==== 111 ${error}");
-  //     print("stack==== 111 ${stack}");
-  //     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  //   });
-  // } else {
-    runApp(MyApp(initialLocale: locale));
-    _initDeferred(localizationService);
-  // }
+  if (kReleaseMode) {
+    // Catches sync errors from the Flutter framework
+    FlutterError.onError =
+        FirebaseCrashlytics.instance.recordFlutterFatalError;
+    // Catches async errors that aren't handled by Flutter itself
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
+
+  // IMPORTANT: do NOT wrap runApp in runZonedGuarded.
+  // runZonedGuarded creates a new Zone, and GetX translations registered
+  // in the root zone via Get.addTranslations(...) are not visible to the
+  // GetMaterialApp built inside that guarded zone — breaking localization
+  // in release mode. FlutterError.onError + PlatformDispatcher.instance.onError
+  // already cover all uncaught errors, so runZonedGuarded is unnecessary.
+  runApp(MyApp(initialLocale: locale));
+  _initDeferred(localizationService);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
