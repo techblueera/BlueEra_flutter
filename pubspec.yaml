@@ -164,6 +164,7 @@ flutter:
     - assets/category/foods/
     - assets/category/foods/menu/
     - assets/category/food_home/
+    - assets/translations/
 
 
   fonts:
