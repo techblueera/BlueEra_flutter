@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/personal/auth/repo/languages_repo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -49,11 +50,17 @@ class LocalizationService extends Translations {
       // Step 2: load local asset JSON as base
       final assetData = await _loadAssetTranslations(languageCode);
 
-      // Step 3: load from Hive
+      // Step 3: load from Hive (use safe cast for release mode)
       final stored = box.get(languageCode);
       Map<String, String> localData = {};
       if (stored != null && stored is Map) {
-        localData = Map<String, String>.from(stored);
+        try {
+          localData = Map<String, String>.from(
+            stored.map((k, v) => MapEntry(k.toString(), v.toString())),
+          );
+        } catch (_) {
+          localData = {};
+        }
       }
 
       // Step 4: If we have local data (asset + hive), use it immediately
@@ -66,15 +73,9 @@ class LocalizationService extends Translations {
       }
 
       // Step 5: No local data at all — must fetch from API (first-time only)
-      final response = await LanguageRepo().downloadLanguage(languageCode);
-      if (response.statusCode == 200) {
-        final raw = response.response?.data;
-        final Map<String, dynamic> jsonData =
-        raw is String ? jsonDecode(raw) : (raw is Map ? raw : {});
-        final Map<String, String> formatted =
-        jsonData.map((k, v) => MapEntry(k, v.toString()));
-
-        final merged = {...assetData, ...formatted};
+      final apiData = await _fetchFromApi(languageCode);
+      if (apiData.isNotEmpty) {
+        final merged = {...assetData, ...apiData};
         _translations[languageCode] = merged;
         await box.put(languageCode, merged);
         return merged;
@@ -87,22 +88,64 @@ class LocalizationService extends Translations {
     }
   }
 
+  /// Safely parses translation data from API response.
+  /// Uses response.data (which extracts the inner 'data' field from the API wrapper).
+  Map<String, String> _parseTranslationResponse(ResponseModel response) {
+    try {
+      // response.data extracts the 'data' field from the wrapped API response
+      // e.g. {"data": {"hello": "Hello", ...}, "message": "..."} → {"hello": "Hello", ...}
+      final translationData = response.data ?? response.response?.data;
+      if (translationData == null) return {};
+
+      Map<String, dynamic> jsonData;
+      if (translationData is String) {
+        jsonData = Map<String, dynamic>.from(jsonDecode(translationData) as Map);
+      } else if (translationData is Map) {
+        jsonData = Map<String, dynamic>.from(translationData);
+      } else {
+        return {};
+      }
+
+      return jsonData.map((k, v) => MapEntry(k, v.toString()));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Fetches translations from API with retry
+  Future<Map<String, String>> _fetchFromApi(String languageCode) async {
+    for (int attempt = 0; attempt < 2; attempt++) {
+      try {
+        final response = await LanguageRepo().downloadLanguage(languageCode);
+        if (response.statusCode == 200) {
+          return _parseTranslationResponse(response);
+        }
+      } catch (_) {
+        if (attempt == 0) {
+          await Future.delayed(const Duration(seconds: 1));
+        }
+      }
+    }
+    return {};
+  }
+
   /// Fetches latest translations from API in the background and updates cache.
   void _refreshFromApiInBackground(String languageCode) {
     Future(() async {
       try {
         final response = await LanguageRepo().downloadLanguage(languageCode);
         if (response.statusCode == 200) {
-          final raw = response.response?.data;
-          final Map<String, dynamic> jsonData =
-          raw is String ? jsonDecode(raw) : (raw is Map ? raw : {});
-          final Map<String, String> formatted =
-          jsonData.map((k, v) => MapEntry(k, v.toString()));
+          final formatted = _parseTranslationResponse(response);
+          if (formatted.isEmpty) return;
 
           final existing = _translations[languageCode] ?? {};
           final merged = {...existing, ...formatted};
           _translations[languageCode] = merged;
           await box.put(languageCode, merged);
+
+          // Update GetX so the UI reflects new translations
+          Get.clearTranslations();
+          Get.addTranslations(_translations);
         }
       } catch (_) {
         // Silent — background refresh, don't block UI
@@ -128,20 +171,12 @@ class LocalizationService extends Translations {
       // 3️⃣ Otherwise → download from API
       final response = await LanguageRepo().downloadLanguage(languageCode);
       if (response.statusCode == 200) {
-        final raw = response.response?.data;
-
-        // Handle both string & map responses safely
-        final Map<String, dynamic> jsonData = raw is String
-            ? jsonDecode(raw)
-            : (raw is Map ? raw : <String, dynamic>{});
-
-        final Map<String, String> formatted =
-            jsonData.map((k, v) => MapEntry(k, v.toString()));
-
-        _translations[languageCode] = formatted;
-
-        await box.put(languageCode, formatted);
-        return formatted;
+        final formatted = _parseTranslationResponse(response);
+        if (formatted.isNotEmpty) {
+          _translations[languageCode] = formatted;
+          await box.put(languageCode, formatted);
+          return formatted;
+        }
       }
     } catch (e, st) {
       print('⚠️ Error loading translations for $languageCode: $e\n$st');
@@ -168,9 +203,16 @@ class LocalizationService extends Translations {
   /// Load all cached languages at startup (optional)
   Future<void> preloadCachedLanguages() async {
     for (final key in box.keys) {
+      if (key == 'selectedLanguage') continue;
       final value = box.get(key);
       if (value is Map) {
-        _translations[key] = Map<String, String>.from(value);
+        try {
+          _translations[key] = Map<String, String>.from(
+            (value).map((k, v) => MapEntry(k.toString(), v.toString())),
+          );
+        } catch (_) {
+          // Skip corrupted entries
+        }
       }
     }
   }

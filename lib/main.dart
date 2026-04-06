@@ -340,24 +340,26 @@ Future<void> main() async {
   // LAUNCH APP -- first frame renders immediately
   // ═══════════════════════════════════════════════════════════════════════════
 
-  if (kReleaseMode) {
-    FlutterError.onError =
-        FirebaseCrashlytics.instance.recordFlutterFatalError;
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-
-    runZonedGuarded<Future<void>>(() async {
-      runApp(MyApp(initialLocale: locale));
-      _initDeferred(localizationService);
-    }, (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    });
-  } else {
+  // if (kReleaseMode) {
+  //   FlutterError.onError =
+  //       FirebaseCrashlytics.instance.recordFlutterFatalError;
+  //   PlatformDispatcher.instance.onError = (error, stack) {
+  //     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  //     return true;
+  //   };
+  //
+  //   runZonedGuarded<Future<void>>(() async {
+  //     runApp(MyApp(initialLocale: locale));
+  //     _initDeferred(localizationService);
+  //   }, (error, stack) {
+  //     print("error==== 111 ${error}");
+  //     print("stack==== 111 ${stack}");
+  //     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  //   });
+  // } else {
     runApp(MyApp(initialLocale: locale));
     _initDeferred(localizationService);
-  }
+  // }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -396,6 +398,14 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   await checkAppVersionAndResetIfNeeded();
   if (kDebugMode) {
     await resetLanguageLocalization();
+  } else {
+    // In release mode, re-apply translations to GetX after deferred init
+    // to ensure they survive GetMaterialApp initialization inside runZonedGuarded
+    final savedLang = LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
+    await localizationService.loadTranslations(savedLang);
+    Get.clearTranslations();
+    Get.addTranslations(localizationService.keys);
+    Get.updateLocale(Locale(savedLang));
   }
 }
 

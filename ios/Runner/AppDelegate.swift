@@ -3,6 +3,7 @@ import Flutter
 import FirebaseCore
 import GoogleMaps
 import PushKit
+import AVFoundation
 import flutter_callkit_incoming
 
 @main
@@ -15,12 +16,28 @@ import flutter_callkit_incoming
         FirebaseApp.configure()
         GeneratedPluginRegistrant.register(with: self)
 
+        // Configure AVAudioSession early to prevent error -50 when CallKit queries session properties
+        configureAudioSession()
+
         // Register for VoIP push notifications (required for iOS CallKit)
         let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
         voipRegistry.delegate = self
         voipRegistry.desiredPushTypes = [.voIP]
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+
+    private func configureAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(
+                .playAndRecord,
+                mode: .voiceChat,
+                options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP]
+            )
+        } catch {
+            print("Failed to configure AVAudioSession: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - PushKit VoIP Delegate
@@ -81,7 +98,7 @@ import flutter_callkit_incoming
         callKitData.iconName = "CallKitLogo"
         callKitData.handleType = "generic"
         callKitData.supportsVideo = true
-        callKitData.audioSessionMode = "default"
+        callKitData.audioSessionMode = "voiceChat"
         callKitData.audioSessionActive = true
         callKitData.ringtonePath = "system_ringtone_default"
 

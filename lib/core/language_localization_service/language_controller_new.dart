@@ -50,7 +50,6 @@ class LanguageControllerNew extends GetxController {
 
   Future<void> downloadLanguage(LanguageModelNew lang) async {
     await LocalizationService().loadTranslations(lang.code);
-    await box.put(lang.code, true);
     lang.isDownloaded = true;
     languages.refresh();
   }

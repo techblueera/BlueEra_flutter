@@ -22,12 +22,29 @@ class E2ELocalDbService {
   Future<void> init() async {
     if (_db != null) return;
     final dbPath = p.join(await getDatabasesPath(), 'blueera_e2e.db');
-    _db = await openDatabase(
-      dbPath,
-      version: 2,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+    try {
+      _db = await openDatabase(
+        dbPath,
+        version: 2,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      );
+    } catch (e) {
+      print('E2ELocalDbService: Failed to open database, retrying: $e');
+      // If the database file is corrupted, delete and recreate
+      try {
+        await deleteDatabase(dbPath);
+        _db = await openDatabase(
+          dbPath,
+          version: 2,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        );
+      } catch (e2) {
+        print('E2ELocalDbService: Retry also failed: $e2');
+        rethrow;
+      }
+    }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
