@@ -44,7 +44,7 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
                 },
                 isValidate: true,
                 radius: SizeConfig.size8,
-                title: 'Post ${controller.selectedMedicalProducts.length} Products',
+                title: '${AppStrings.medicalPostProductsPrefix.tr} ${controller.selectedMedicalProducts.length} ${AppStrings.medicalPostProductsSuffix.tr}',
                 // isLoading: authController.isAddBusinessUserLoading.value
               ),
             ),
@@ -159,7 +159,7 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
                       child: CustomText(
                         (p.variants?.firstOrNull?.weight != null || p.variants?.firstOrNull?.unit != null)
                             ? '${p.variants?.firstOrNull?.weight ?? '-'} ${p.variants?.firstOrNull?.unit ?? ''}'
-                            : 'Weight not set',
+                            : AppStrings.medicalWeightNotSet.tr,
                         fontSize: 11,
                         color: Colors.grey,
                       ),

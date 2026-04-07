@@ -17,13 +17,13 @@ class MedicalGalleryListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Medical Gallery'),
+      appBar: CommonBackAppBar(title: AppStrings.medicalGallery),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
           child: PositiveCustomBtn(
             onTap: () => Get.to(() => MedicalGalleryUploadScreen()),
-            title: 'Upload Photos',
+            title: AppStrings.uploadPhotos,
           ),
         ),
       ),
@@ -35,7 +35,7 @@ class MedicalGalleryListScreen extends StatelessWidget {
         if (controller.galleryList.isEmpty) {
           return Center(
             child: CustomText(
-              'No gallery photos yet',
+              AppStrings.noGalleryPhotosYet,
               color: Colors.grey,
             ),
           );
@@ -111,7 +111,7 @@ class MedicalGalleryListScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             CustomText(
-                              'Last Update: ${_formatDate(item.updatedAt ?? '')}',
+                              '${AppStrings.lastUpdateLabel.tr}: ${_formatDate(item.updatedAt ?? '')}',
                               color: Colors.grey,
                               fontSize: 12,
                             ),

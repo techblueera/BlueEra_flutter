@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -25,7 +26,7 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
     try {
       final paths = await SelectProductImageDialog.showLogoDialog(
         context,
-        'Upload Product Photos',
+        AppStrings.medicalUploadProductPhotos.tr,
         isOnlyCamera: true,
         isGallery: true,
         maxImages: 5,
@@ -41,7 +42,7 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(title: 'Add Medical Products'),
+      appBar: CommonBackAppBar(title: AppStrings.medicalAddProductsTitle.tr),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size12),
         child: Column(
@@ -60,14 +61,14 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Upload Product Photos',
+                    AppStrings.medicalUploadProductPhotos,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
                   ),
                   SizedBox(height: 4),
                   CustomText(
-                    'Take a photo or upload images of your products to quickly add them',
+                    AppStrings.medicalUploadProductPhotosHelper,
                     fontSize: SizeConfig.small,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -83,8 +84,8 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                             Expanded(
                               child: _uploadOptionCard(
                                 icon: Icons.camera_alt_outlined,
-                                title: 'Take Photo',
-                                subtitle: 'Capture product image',
+                                title: AppStrings.medicalTakePhoto.tr,
+                                subtitle: AppStrings.medicalTakePhotoSubtitle.tr,
                                 color: AppColors.primaryColor,
                                 onTap: _pickAndSnapSearch,
                               ),
@@ -93,8 +94,8 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                             Expanded(
                               child: _uploadOptionCard(
                                 icon: Icons.photo_library_outlined,
-                                title: 'Upload List',
-                                subtitle: 'Select from gallery',
+                                title: AppStrings.medicalUploadList.tr,
+                                subtitle: AppStrings.medicalUploadListSubtitle.tr,
                                 color: AppColors.green00,
                                 onTap: _pickAndSnapSearch,
                               ),
@@ -113,7 +114,7 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                 Expanded(child: Divider(color: AppColors.greyE5)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: CustomText('OR',
+                  child: CustomText(AppStrings.medicalOr,
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w600),
@@ -156,14 +157,14 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            'Browse Categories',
+                            AppStrings.medicalBrowseCategories,
                             fontSize: SizeConfig.large,
                             fontWeight: FontWeight.w600,
                             color: AppColors.mainTextColor,
                           ),
                           SizedBox(height: 2),
                           CustomText(
-                            'Search and add products from our catalogue',
+                            AppStrings.medicalBrowseCategoriesSubtitle,
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                           ),

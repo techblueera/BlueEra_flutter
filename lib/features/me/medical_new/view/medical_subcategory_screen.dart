@@ -192,7 +192,7 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
                                   height: SizeConfig.size20),
                               SizedBox(width: SizeConfig.size8),
                               CustomText(
-                                'You can’t select more than ${controller.maxLimit} products at a time.',
+                                '${AppStrings.medicalCannotSelectMorePrefix.tr} ${controller.maxLimit} ${AppStrings.medicalCannotSelectMoreSuffix.tr}',
                                 color: AppColors.redLite,
                                 fontSize: SizeConfig.extraSmall,
                                 fontWeight: FontWeight.w400,
@@ -263,7 +263,7 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
                                   padding: EdgeInsets.all(SizeConfig.size20),
                                   child: EmptyStateWidget(
                                       message:
-                                          'No ${widget.arrLevel3Category.first.name?.tr} found.')),
+                                          '${AppStrings.medicalNoFoundPrefix.tr} ${widget.arrLevel3Category.first.name?.tr} ${AppStrings.medicalNoFoundSuffix.tr}')),
                     )
                   ],
                 ),
@@ -373,7 +373,7 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
                     CustomBtn(
                       height: SizeConfig.size30,
                       onTap: () => controller.toggleSelection(medicalProductData),
-                      title: isSelected ? 'Added' : 'Add',
+                      title: isSelected ? AppStrings.medicalAddedLabel.tr : AppStrings.medicalAddBtnLabel.tr,
                       textColor: isSelected ? AppColors.white : AppColors.primaryColor,
                       bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
                       radius: 6.0,

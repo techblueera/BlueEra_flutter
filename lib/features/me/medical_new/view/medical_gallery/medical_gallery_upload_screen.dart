@@ -30,7 +30,7 @@ class MedicalGalleryUploadScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Obx(() => CommonDropdownDialog<String>(
                   title: AppStrings.selectCategory,
-                  hintText: 'E.g. Interior Photos',
+                  hintText: AppStrings.interiorPhotosHint.tr,
                   items: controller.categories,
                   selectedValue: controller.selectedCategory.value.isEmpty
                       ? null
@@ -112,7 +112,7 @@ class MedicalGalleryUploadScreen extends StatelessWidget {
                   controller.selectedImages.isNotEmpty;
               return CustomBtn(
                 title: controller.isUploading.value
-                    ? 'Uploading...'
+                    ? AppStrings.uploadingLabel
                     : AppStrings.submit,
                 isValidate: isValid && !controller.isUploading.value,
                 isLoading: controller.isUploading.value,

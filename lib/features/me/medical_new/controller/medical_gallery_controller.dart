@@ -14,12 +14,12 @@ class MedicalGalleryController extends GetxController {
   var isUploading = false.obs;
 
   final List<String> categories = [
-    "External View & Parking",
-    "Interior Photos",
-    "Equipment Photos",
-    "Team/Staff Photos",
-    "Medicines & Products",
-    "Billing & Counter",
+    AppStrings.medicalGalleryExternalParking,
+    AppStrings.medicalGalleryInteriorPhotos,
+    AppStrings.medicalGalleryEquipmentPhotos,
+    AppStrings.medicalGalleryTeamStaffPhotos,
+    AppStrings.medicalGalleryMedicinesProducts,
+    AppStrings.medicalGalleryBillingCounter,
   ];
 
   var selectedCategory = ''.obs;
@@ -74,7 +74,7 @@ class MedicalGalleryController extends GetxController {
       selectedImages.add(path);
     } else {
       commonSnackBar(
-          message: 'Limit Reached. You can upload a maximum of $maxImages images.');
+          message: '${AppStrings.medicalLimitReachedPrefix.tr} $maxImages ${AppStrings.medicalLimitReachedSuffix.tr}');
     }
   }
 
@@ -92,11 +92,11 @@ class MedicalGalleryController extends GetxController {
   // ─────────────────────────────────────────────
   Future<void> uploadAndCreateGallery() async {
     if (selectedCategory.value.isEmpty) {
-      commonSnackBar(message: 'Please select a category');
+      commonSnackBar(message: AppStrings.medicalPleaseSelectCategory);
       return;
     }
     if (selectedImages.isEmpty) {
-      commonSnackBar(message: 'Please select at least 1 image');
+      commonSnackBar(message: AppStrings.medicalPleaseSelectAtLeastOneImage);
       return;
     }
 
@@ -116,7 +116,7 @@ class MedicalGalleryController extends GetxController {
       }
 
       if (uploadedUrls.isEmpty) {
-        commonSnackBar(message: 'Failed to upload images');
+        commonSnackBar(message: AppStrings.medicalFailedToUploadImages);
         return;
       }
 
@@ -131,7 +131,7 @@ class MedicalGalleryController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.message ?? 'Gallery uploaded successfully');
+            message: response.message ?? AppStrings.medicalGalleryUploadedSuccessfully.tr);
         resetUploadForm();
         Get.back();
         fetchGallery();
@@ -162,7 +162,7 @@ class MedicalGalleryController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.message ?? 'Image deleted successfully');
+            message: response.message ?? AppStrings.medicalImageDeletedSuccessfully.tr);
         fetchGallery();
       } else {
         commonSnackBar(
@@ -184,7 +184,7 @@ class MedicalGalleryController extends GetxController {
       if (response.isSuccess) {
         galleryList.removeWhere((g) => g.id == galleryId);
         commonSnackBar(
-            message: response.message ?? 'Gallery deleted successfully');
+            message: response.message ?? AppStrings.medicalGalleryDeleted.tr);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);

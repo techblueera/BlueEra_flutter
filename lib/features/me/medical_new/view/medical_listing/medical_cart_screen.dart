@@ -36,7 +36,7 @@ class _MedicalCartScreenState extends State<MedicalCartScreen> {
       body: Obx((){
         // If cart is empty, show a message (Optional)
         if (controller.selectedMedicalProductVariants.isEmpty) {
-          return Center(child: CustomText("Your cart is empty", color: AppColors.secondaryTextColor));
+          return Center(child: CustomText(AppStrings.yourCartIsEmpty, color: AppColors.secondaryTextColor));
         }
 
         return  SingleChildScrollView(
@@ -52,7 +52,7 @@ class _MedicalCartScreenState extends State<MedicalCartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} Products',
+                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} ${AppStrings.productsCountSuffix.tr}',
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryTextColor,

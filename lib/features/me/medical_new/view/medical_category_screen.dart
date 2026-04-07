@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
@@ -46,7 +47,7 @@ class _MedicalCategoryScreenState extends State<MedicalCategoryScreen>
     return Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-            title: 'Add Medical Products',
+            title: AppStrings.medicalAddProductsTitle.tr,
            ),
         body: SafeArea(
             child: Obx(() => _medicalController

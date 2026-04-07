@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -123,7 +125,7 @@ class _MedicalInventoryProductScreenState
     if (_currentProducts.isEmpty) {
       return Center(
         child: CustomText(
-          'No products found',
+          AppStrings.medicalNoProductsFoundLabel,
           color: AppColors.secondaryTextColor,
         ),
       );
@@ -249,7 +251,7 @@ class _MedicalInventoryProductScreenState
                             ),
                             SizedBox(width: 4),
                             CustomText(
-                              '$discount% Off',
+                              '$discount${AppStrings.medicalPercentOffSuffix.tr}',
                               fontSize: 10,
                               color: AppColors.green00,
                               fontWeight: FontWeight.w600,
