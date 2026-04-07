@@ -3099,33 +3099,44 @@ final List<CollapsibleGridModel> transportItemsCategories = [
       name: 'Logistics', slugId: 'LOGISTICS', icon: AppImageAssets.logistics),
 ];
 
-final List<CollapsibleGridModel> financeCategories = [
-  CollapsibleGridModel(
-      name: 'Advisory Sector',
-      slugId: 'ADVISORY_SECTOR',
-      icon: AppImageAssets.bankingSector
-      // icon: 'https://be-user-bucket.../advisory_sector.png'
+final List<OnboardingCategoryModel> financeCategories = [
+  OnboardingCategoryModel(
+    name: 'Banking Sector',
+    slugId: 'BANKING_SECTOR',
+    icon: AppImageAssets.bankingSector,
+    subtitle: "Accounts, FD,\nsavings",
+    accountType: AppConstants.business,
   ),
-  CollapsibleGridModel(
-      name: 'Banking Sector',
-      slugId: 'BANKING_SECTOR',
-      icon: AppImageAssets.loanSector),
-  CollapsibleGridModel(
-      name: 'Capital Market',
-      slugId: 'CAPITAL_MARKET',
-      icon: AppImageAssets.insuranceSector),
-  CollapsibleGridModel(
-      name: 'Data Sector',
-      slugId: 'DATA_SECTOR',
-      icon: AppImageAssets.capitalMarket),
-  CollapsibleGridModel(
-      name: 'Insurance Sector',
-      slugId: 'INSURANCE_SECTOR',
-      icon: AppImageAssets.dataSector),
-  CollapsibleGridModel(
-      name: 'Loan Sector',
-      slugId: 'LOAN_SECTOR',
-      icon: AppImageAssets.advisorySector),
+  OnboardingCategoryModel(
+    name: 'Loan Sector',
+    slugId: 'LOAN_SECTOR',
+    icon: AppImageAssets.loanSector,
+    subtitle: "Home, vehicle,\npersonal",
+    accountType: AppConstants.business,),
+  OnboardingCategoryModel(
+    name: 'Insurance Sector',
+    slugId: 'INSURANCE_SECTOR',
+    icon: AppImageAssets.insuranceSector,
+    subtitle: "Health.\nlife, vehicle",
+    accountType: AppConstants.business,),
+  OnboardingCategoryModel(
+    name: 'Capital Market',
+    slugId: 'CAPITAL_MARKET',
+    icon: AppImageAssets.capitalMarket,
+    subtitle: "Stocks, mutual\nfunds, trading",
+    accountType: AppConstants.business,),
+  OnboardingCategoryModel(
+    name: 'Data Sector',
+    slugId: 'DATA_SECTOR',
+    icon: AppImageAssets.dataSector,
+    subtitle: " Analytics, insights,\nreporting",
+    accountType: AppConstants.business,),
+  OnboardingCategoryModel(
+    name: 'Advisory Sector',
+    slugId: 'ADVISORY_SECTOR',
+    icon: AppImageAssets.advisorySector,
+    subtitle: "Financial planning, consultation",
+    accountType: AppConstants.business,),
 ];
 
 final List<CollapsibleGridModel> automotiveServiceItemsCategories = [

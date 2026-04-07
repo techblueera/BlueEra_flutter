@@ -3,13 +3,13 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
-import 'package:BlueEra/widgets/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class FinanceListingScreen extends StatefulWidget {
-  final CollapsibleGridModel? selectedCategory;
+  final OnboardingCategoryModel? selectedCategory;
 
   const FinanceListingScreen({super.key, this.selectedCategory});
 
@@ -18,8 +18,8 @@ class FinanceListingScreen extends StatefulWidget {
 }
 
 class _FinanceListingScreenState extends State<FinanceListingScreen> {
-  final Rx<CollapsibleGridModel?> _selectedCategory =
-      Rx<CollapsibleGridModel?>(null);
+  final Rx<OnboardingCategoryModel?> _selectedCategory =
+      Rx<OnboardingCategoryModel?>(null);
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
   }
 
   Widget _leftCategoryList() {
-    return CommonGenericLeftSideCategoryList<CollapsibleGridModel>(
+    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: financeCategories,
       getLabel: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
