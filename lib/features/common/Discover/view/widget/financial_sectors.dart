@@ -34,83 +34,7 @@ class FinancialSectors extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
             child: isShowInGrid ?
-            SizedBox(
-              height: SizeConfig.size124,
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                primary: false,
-                itemCount: financeCategories.length,
-                scrollDirection: Axis.horizontal,
-                physics: AlwaysScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  var categoryItem = financeCategories[index];
-                  return InkWell(
-                    onTap: () {
-                      Get.to(() => FinanceListingScreen(
-                        selectedCategory: categoryItem,
-                      ));
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(SizeConfig.size10),
-                      margin: EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        // color: AppColors.white,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xffE7F3FF),          // Ending color (adjust to your preference)
-
-                            AppColors.white,           // Starting color
-                          ],
-                          stops: [0.0, 1.0],           // Optional: defines where each color sits
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [AppShadows.textFieldShadow],
-                        border: Border.all(color:Color(0xffDDE2EE), width: 1.0),
-                      ),
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          LocalAssets(
-                            imagePath: categoryItem.icon ?? '',
-                            height: SizeConfig.size60,
-                            width: SizeConfig.size80,
-                          ),
-                          SizedBox(height: SizeConfig.paddingXSL),
-                          Container(
-                            height: SizeConfig.size30,
-                            alignment: Alignment.center,
-                            child: CustomText(
-                              categoryItem.name,
-                              fontSize: SizeConfig.small11,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                  // return CommonServiceCard(
-                  //   service: categoryItem,
-                  //   getName: (item) => item.name,
-                  //   getIcon: (item) => item.icon ?? '',
-                  //   iconHeight: SizeConfig.size60,
-                  //   margin: EdgeInsets.only(right: 6),
-                  //   onTap: (item) {
-                  //     commonSnackBar(message: "Coming Soon...");
-                  //   },
-                  // );
-                },
-              ),
-            )
-                : LayoutBuilder(
+            LayoutBuilder(
                 builder: (context, constraints) {
               const double spacing = 10;
               const int columns = 3;
@@ -140,7 +64,7 @@ class FinancialSectors extends StatelessWidget {
                             ],
                             stops: [0.0, 1.0],
                           ),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                           // boxShadow: [AppShadows.textFieldShadow],
                           border:
                               Border.all(color: Color(0xffDDE2EE), width: 1.0),
@@ -175,6 +99,95 @@ class FinancialSectors extends StatelessWidget {
                     ),
                   );
                 }).toList(),
+              );
+            })
+            : Builder(builder: (context) {
+              // Show ~2 cards plus a half-card peek so users see the list is
+              // horizontally scrollable. Subtract the outer horizontal padding
+              // (18*2 from the parent + 10*2 from the scroll view) and the
+              // 6px right margin per card from the available width.
+              const double cardMargin = 6;
+              final double horizontalChrome =
+                  (18 * 2) + (SizeConfig.size10 * 2);
+              final double cardWidth =
+                  ((MediaQuery.of(context).size.width - horizontalChrome) /
+                          2.5) -
+                      cardMargin;
+
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding:
+                    EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: financeCategories.map((categoryItem) {
+                      return InkWell(
+                        onTap: () {
+                          Get.to(() => FinanceListingScreen(
+                                selectedCategory: categoryItem,
+                              ));
+                        },
+                        child: Container(
+                          width: cardWidth,
+                          padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.size10,
+                            horizontal: SizeConfig.size12,
+                          ),
+                          margin: EdgeInsets.only(right: cardMargin),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xffE7F3FF),
+                                AppColors.white,
+                              ],
+                              stops: [0.0, 1.0],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [AppShadows.textFieldShadow],
+                            border: Border.all(
+                                color: Color(0xffDDE2EE), width: 1.0),
+                          ),
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              LocalAssets(
+                                imagePath: categoryItem.icon ?? '',
+                                height: SizeConfig.size80,
+                                width: SizeConfig.size80,
+                              ),
+                              SizedBox(height: SizeConfig.paddingXSL),
+                              CustomText(
+                                categoryItem.name,
+                                fontSize: SizeConfig.large,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w600,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: SizeConfig.paddingXSL),
+                              CustomText(
+                                categoryItem.subtitle,
+                                fontSize: SizeConfig.small,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w500,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               );
             }),
           )

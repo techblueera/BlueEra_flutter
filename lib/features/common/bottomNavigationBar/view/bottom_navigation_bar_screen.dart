@@ -6,12 +6,10 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_new_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
@@ -405,7 +403,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         //   isHeaderVisible: isVisible,
         //   onHeaderVisibilityChanged: _toggleAppBar,
         // );
-        return DiscoverNewScreen(
+        return DiscoverScreen(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
