@@ -8,6 +8,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
+import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
+import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
@@ -66,22 +69,22 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final ValueNotifier<bool> _showStickyTabs = ValueNotifier<bool>(false);
   bool _isTabTapScrolling = false;
 
-  static final List<Map<String, String>> _sectionData = [
-    {'title': 'Grocery & Food', 'icon': AppImageAssets.groceryItemsDiscover},
-    {'title': 'Transport', 'icon': AppImageAssets.transportVehicle},
-    {'title': 'Healthcare', 'icon': AppImageAssets.pharmacyMedicalStore},
-    {'title': 'Shopping', 'icon': AppImageAssets.fashionLifestyle},
-    {'title': 'Home Services', 'icon': AppImageAssets.homeService},
-    {'title': 'Home Made', 'icon': AppImageAssets.homeMadeFood},
-    {'title': 'Stay', 'icon': AppImageAssets.hotelAndHomeStay},
-    {'title': 'Consultation', 'icon': AppImageAssets.bookProfessional},
-    {'title': 'Rental', 'icon': AppImageAssets.rentalService},
-    {'title': 'Services', 'icon': AppImageAssets.findServiceNearMe},
-    {'title': 'Financial', 'icon': AppImageAssets.financial},
-    {'title': 'Automotive', 'icon': AppImageAssets.automotiveStore},
-    {'title': 'Education', 'icon': AppImageAssets.education},
-    {'title': 'Jobs', 'icon': AppImageAssets.jobBanner},
-  ];
+  List<Map<String, String>> get _sectionData => [
+        {'title': AppStrings.groceryAndFood.tr, 'icon': AppImageAssets.groceryItemsDiscover},
+        {'title': AppStrings.transport.tr, 'icon': AppImageAssets.transportVehicle},
+        {'title': AppStrings.healthcare.tr, 'icon': AppImageAssets.pharmacyMedicalStore},
+        {'title': AppStrings.shopping.tr, 'icon': AppImageAssets.fashionLifestyle},
+        {'title': AppStrings.homeServices.tr, 'icon': AppImageAssets.homeService},
+        {'title': AppStrings.homeMade.tr, 'icon': AppImageAssets.homeMadeFood},
+        {'title': AppStrings.stay.tr, 'icon': AppImageAssets.hotelAndHomeStay},
+        {'title': AppStrings.consultation.tr, 'icon': AppImageAssets.bookProfessional},
+        {'title': AppStrings.rental.tr, 'icon': AppImageAssets.rentalService},
+        {'title': AppStrings.services.tr, 'icon': AppImageAssets.findServiceNearMe},
+        {'title': AppStrings.financial.tr, 'icon': AppImageAssets.financial},
+        {'title': AppStrings.automotive.tr, 'icon': AppImageAssets.automotiveStore},
+        {'title': AppStrings.education.tr, 'icon': AppImageAssets.education},
+        {'title': AppStrings.jobs.tr, 'icon': AppImageAssets.jobBanner},
+      ];
 
   @override
   void initState() {
@@ -199,6 +202,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         }
       },
       child: Scaffold(
+        // floatingActionButton: Padding(
+        //   padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+        //   child: _buildGoLiveFab(),
+        // ),
         body: Stack(
           children: [
             SafeArea(
@@ -310,7 +317,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: CustomText(
-                              AppStrings.searchAnything,
+                              AppStrings.searchAnything.tr,
                               fontSize: 14,
                               color: AppColors.secondaryTextColor,
                             ),
@@ -621,6 +628,54 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return SliverToBoxAdapter(
       child: SizedBox(height: gap ?? SizeConfig.size8),
     );
+  }
+
+  Widget _buildGoLiveFab() {
+    return FloatingActionButton.extended(
+      onPressed: _onGoLiveTap,
+      backgroundColor: AppColors.primaryColor,
+      foregroundColor: AppColors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      icon: const Icon(Icons.podcasts, color: AppColors.white),
+      label: CustomText(
+        'Go Live',
+        fontSize: SizeConfig.medium,
+        fontWeight: FontWeight.w700,
+        color: AppColors.white,
+      ),
+    );
+  }
+
+  Future<void> _onGoLiveTap() async {
+    // Fast path: if everything is already granted, skip the permission screen.
+    if (await GoLivePermissionService.areAllGranted()) {
+      _enterGoLive();
+      return;
+    }
+
+    if (!mounted) return;
+    final granted = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const GoLivePermissionScreen()),
+    );
+
+    if (granted == true) {
+      _enterGoLive();
+    } else {
+      // Re-check in case the user toggled some permissions but not all.
+      final allGranted = await GoLivePermissionService.areAllGranted();
+      if (!allGranted) {
+        commonSnackBar(
+          message: 'Go Live needs all permissions to start.',
+        );
+      }
+    }
+  }
+
+  void _enterGoLive() {
+    // TODO: Hook this up to the actual Go Live entry screen when available.
+    commonSnackBar(message: 'You are ready to Go Live!');
   }
 }
 

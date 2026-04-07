@@ -1628,6 +1628,69 @@ class AppStrings {
   static const String allStepsSubmitted = 'allStepsSubmitted';
   static const searchAnything = "searchAnything";
 
+  /// Discover screen section titles
+  static const String groceryAndFood = "groceryAndFood";
+  static const String transport = "transport";
+  static const String healthcare = "healthcare";
+  static const String homeMade = "homeMade";
+  static const String stay = "stay";
+  static const String consultation = "consultation";
+  static const String rental = "rental";
+
+  /// Discover widgets — inline labels
+  static const String educationTrainingAndSectors = "educationTrainingAndSectors";
+  static const String jobNearMe = "jobNearMe";
+  static const String toLabel = "toLabel";
+  static const String forRent = "forRent";
+  static const String housesVehiclesMoreNearYou = "housesVehiclesMoreNearYou";
+  static const String houseRent = "houseRent";
+  static const String vehicleRent = "vehicleRent";
+  static const String otherRental = "otherRental";
+  static const String verifiedProfessionalsNearYou = "verifiedProfessionalsNearYou";
+  static const String howWouldYouLikeToShop = "howWouldYouLikeToShop";
+  static const String browseProducts = "browseProducts";
+  static const String browseProductsSubtitle = "browseProductsSubtitle";
+  static const String shopViaStore = "shopViaStore";
+  static const String shopViaStoreSubtitle = "shopViaStoreSubtitle";
+  static const String howWouldYouLikeToFindFood = "howWouldYouLikeToFindFood";
+  static const String quickFoodSearch = "quickFoodSearch";
+  static const String quickFoodSearchSubtitle = "quickFoodSearchSubtitle";
+  static const String searchViaRestaurant = "searchViaRestaurant";
+  static const String searchViaRestaurantSubtitle = "searchViaRestaurantSubtitle";
+  static const String chooseDeliveryOption = "chooseDeliveryOption";
+
+  /// Emergency QR widget
+  static const String emergencyQr = "emergencyQr";
+  static const String qrError = "qrError";
+  static const String scanAndVisit = "scanAndVisit";
+  static const String viewMoreDesigns = "viewMoreDesigns";
+  static const String vehicleSafetyParkingQrCode = "vehicleSafetyParkingQrCode";
+  static const String pasteItToSaveLives = "pasteItToSaveLives";
+  static const String generateNow = "generateNow";
+  static const String failedToCaptureQrCode = "failedToCaptureQrCode";
+  static const String storagePermissionRequired = "storagePermissionRequired";
+  static const String photosPermissionRequired = "photosPermissionRequired";
+  static const String qrCodeSavedSuccessfully = "qrCodeSavedSuccessfully";
+  static const String failedToSaveQrCode = "failedToSaveQrCode";
+  static const String myEmergencyQrCode = "myEmergencyQrCode";
+
+  /// Discover widgets — section titles (batch 3)
+  static const String homeMadeProductAndServices = "homeMadeProductAndServices";
+  static const String healthcareServices = "healthcareServices";
+
+  /// QR design options widget
+  static const String qrStickerDesigns = "qrStickerDesigns";
+  static const String designs = "designs";
+  static const String tapAnyDesignToViewFullScreen = "tapAnyDesignToViewFullScreen";
+
+  /// QR fullscreen view
+  static const String myQrCode = "myQrCode";
+  static const String openSettings = "openSettings";
+  static const String photoLibraryAccessNeeded = "photoLibraryAccessNeeded";
+  static const String storagePermissionNeeded = "storagePermissionNeeded";
+  static const String qrCodeSavedToGallery = "qrCodeSavedToGallery";
+  static const String checkMyEmergencyQrCode = "checkMyEmergencyQrCode";
+
   static const String grocery = 'grocery';
   static const String parcel = 'parcel';
   static const String income = 'income';
@@ -3289,7 +3352,7 @@ class AppStrings {
   static const String bookYourTransport = "book_your_transport";
   static const String rentalService = "rental_service";
   static const String findServices = "find_services";
-  static const String financialSectors = "Financial Sectors";
+  static const String financialSectors = "financialSectors";
   static const String automotiveShowroom = "automotive_showroom";
   static const String restaurantNearby = "restaurant_nearby";
   static const String findDreamJob = "find_dream_job";

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:video_trimmer/video_trimmer.dart';
 
@@ -28,12 +30,29 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
   }
 
   void _loadVideo() async {
-    await _trimmer.loadVideo(videoFile: File(widget.videoPath));
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (_trimmer.videoPlayerController != null) {
-      endValue = _trimmer.videoPlayerController!.value.duration.inSeconds.toDouble();
+    try {
+      await _trimmer.loadVideo(videoFile: File(widget.videoPath));
+      await Future.delayed(const Duration(milliseconds: 100));
+      final controller = _trimmer.videoPlayerController;
+      if (controller == null || !controller.value.isInitialized) {
+        throw Exception('Video player failed to initialize');
+      }
+      if (controller.value.hasError) {
+        throw Exception(controller.value.errorDescription ?? 'Video source error');
+      }
+      endValue = controller.value.duration.inSeconds.toDouble();
+      if (endValue <= 0) {
+        throw Exception('Invalid video duration');
+      }
+      if (mounted) setState(() => isLoaded = true);
+    } catch (e) {
+      if (!mounted) return;
+      commonSnackBar(
+        message: 'Unable to load video. The file may be corrupted or unsupported.',
+        snackBackgroundColor: AppColors.red,
+      );
+      Navigator.pop(context);
     }
-    if (mounted) setState(() => isLoaded = true);
   }
 
   Future<void> _toggleTrimPlayback() async {

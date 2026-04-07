@@ -91,7 +91,7 @@ class TransportServiceWidget extends StatelessWidget {
                             SizedBox(height: SizeConfig.paddingS),
 
                             // To
-                            CustomText("To",
+                            CustomText(AppStrings.toLabel.tr,
                                 fontSize: SizeConfig.medium,
                                 color: AppColors.greyBf,
                                 fontWeight: FontWeight.w400)

@@ -26,7 +26,7 @@ class FinancialSectors extends StatelessWidget {
           Padding(
             padding:
             EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-            child: titleWidget(AppStrings.financialSectors),
+            child: titleWidget(AppStrings.financialSectors.tr),
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(

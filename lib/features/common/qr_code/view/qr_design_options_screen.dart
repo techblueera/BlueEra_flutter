@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/qr_code/model/qr_design_model.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_card_widget.dart';
@@ -6,6 +7,7 @@ import 'package:BlueEra/features/common/qr_code/view/qr_fullscreen_view.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class QrDesignOptionsScreen extends StatelessWidget {
   final String userName;
@@ -19,7 +21,7 @@ class QrDesignOptionsScreen extends StatelessWidget {
     final designs = QrDesignModel.designs;
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
-appBar: CommonBackAppBar(title:  'QR Sticker Designs',),
+appBar: CommonBackAppBar(title: AppStrings.qrStickerDesigns.tr,),
       // appBar: AppBar(
       //   backgroundColor: AppColors.white,
       //   elevation: 0,

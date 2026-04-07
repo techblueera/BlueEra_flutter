@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
@@ -24,7 +25,7 @@ class GroceryCardWidget extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                titleWidget("Grocery & Food"),
+                titleWidget(AppStrings.groceryAndFood.tr),
               ],
             ),
             SizedBox(height: SizeConfig.paddingXSL),

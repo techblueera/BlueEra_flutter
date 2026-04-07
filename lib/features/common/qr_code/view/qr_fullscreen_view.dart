@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/qr_code/model/qr_design_model.dart';
@@ -37,7 +38,7 @@ class QrFullScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    appBar: CommonBackAppBar(title:  'My QR Code',),
+    appBar: CommonBackAppBar(title: AppStrings.myQrCode.tr,),
       // backgroundColor: AppColors.appBackgroundColor,
       // appBar: AppBar(
       //   backgroundColor: AppColors.white,
@@ -105,7 +106,7 @@ class QrFullScreenView extends StatelessWidget {
         Expanded(
           child: Obx(() => _buildButton(
                 icon: AppIconAssets.download,
-                label: _isSaving.value ? 'Saving...' : 'Download',
+                label: _isSaving.value ? '${AppStrings.saving.tr}...' : AppStrings.download.tr,
                 onTap: _isSaving.value ? null : _saveQrToGallery,
               )),
         ),
@@ -113,7 +114,7 @@ class QrFullScreenView extends StatelessWidget {
         Expanded(
           child: _buildButton(
             icon:  AppIconAssets.send,
-            label: 'Share',
+            label: AppStrings.share.tr,
             onTap: _shareQrLink,
           ),
         ),
@@ -188,24 +189,24 @@ class QrFullScreenView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const CustomText(
-          'Permission Required',
+        title: CustomText(
+          AppStrings.permissionRequired.tr,
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
         ),
         content: CustomText(
           Platform.isIOS
-              ? 'Photo library access is needed to save the QR code. Please enable it from Settings > Privacy > Photos.'
-              : 'Storage permission is needed to save the QR code. Please enable it from App Settings > Permissions.',
+              ? AppStrings.photoLibraryAccessNeeded.tr
+              : AppStrings.storagePermissionNeeded.tr,
           fontSize: 14,
           color: AppColors.secondaryTextColor,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const CustomText(
-              'Cancel',
+            child: CustomText(
+              AppStrings.cancel.tr,
               fontSize: 14,
               color: AppColors.secondaryTextColor,
             ),
@@ -221,8 +222,8 @@ class QrFullScreenView extends StatelessWidget {
               Navigator.pop(ctx);
               await openAppSettings();
             },
-            child: const CustomText(
-              'Open Settings',
+            child: CustomText(
+              AppStrings.openSettings.tr,
               fontSize: 14,
               color: AppColors.white,
               fontWeight: FontWeight.w600,
@@ -241,7 +242,7 @@ class QrFullScreenView extends StatelessWidget {
 
       final pngBytes = await _captureQrImage();
       if (pngBytes == null) {
-        commonSnackBar(message: "Failed to capture QR code");
+        commonSnackBar(message: AppStrings.failedToCaptureQrCode.tr);
         return;
       }
 
@@ -259,10 +260,10 @@ class QrFullScreenView extends StatelessWidget {
         await file.delete();
       }
 
-      commonSnackBar(message: "QR Code saved to gallery");
+      commonSnackBar(message: AppStrings.qrCodeSavedToGallery.tr);
     } catch (e) {
       debugPrint("Error saving QR: $e");
-      commonSnackBar(message: "Failed to save QR code");
+      commonSnackBar(message: AppStrings.failedToSaveQrCode.tr);
     } finally {
       _isSaving.value = false;
     }
@@ -271,7 +272,7 @@ class QrFullScreenView extends StatelessWidget {
   Future<void> _shareQrLink() async {
     try {
       await SharePlus.instance.share(ShareParams(
-        text: "Check my Emergency QR Code\n$_qrData",
+        text: "${AppStrings.checkMyEmergencyQrCode.tr}\n$_qrData",
       ));
     } catch (e) {
       debugPrint("Error sharing QR link: $e");

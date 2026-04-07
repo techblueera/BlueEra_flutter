@@ -635,7 +635,14 @@ class ApiBaseHelper {
         ),
         onSendProgress: (int sent, int total) {
           if (onProgress != null) {
-            onProgress(sent / total);
+            // When streaming via file.openRead(), Dio can report total = -1
+            // (unknown) or 0 on the first tick → sent/total becomes NaN or
+            // Infinity and crashes LinearProgressIndicator. Fall back to the
+            // known file length and clamp.
+            final int effectiveTotal = total > 0 ? total : fileLength;
+            final double progress =
+                effectiveTotal > 0 ? (sent / effectiveTotal) : 0.0;
+            onProgress(progress.isFinite ? progress.clamp(0.0, 1.0) : 0.0);
           }
         },
       );

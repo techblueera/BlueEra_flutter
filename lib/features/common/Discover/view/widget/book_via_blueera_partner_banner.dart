@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class BookViaBlueEraPartnerBanner extends StatelessWidget {
   final VoidCallback? onTap;
@@ -57,13 +58,13 @@ class BookViaBlueEraPartnerBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      AppStrings.bookViaBlueEraPartner,
+                      AppStrings.bookViaBlueEraPartner.tr,
                       fontSize: SizeConfig.medium,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                     ),
                     CustomText(
-                      'Verified professionals near you',
+                      AppStrings.verifiedProfessionalsNearYou,
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w400,

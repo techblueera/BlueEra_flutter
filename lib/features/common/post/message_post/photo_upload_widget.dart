@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
@@ -214,14 +215,34 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
 
 void openVideoPreview(File file) async {
   final msgController = Get.find<MessagePostController>();
-  final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: file.path));
+  // Always re-trim from the ORIGINAL source. Re-feeding the previously
+  // trimmed file (which may itself be malformed) just produces another
+  // broken artifact and locks the user in a retry loop.
+  final sourcePath = msgController.originalVideoSourcePath ?? file.path;
+  final trimmedPath =
+      await Get.to(() => VideoTrimmerPage(videoPath: sourcePath));
 
   if (trimmedPath != null) {
     print("✅ Re-Trimmed Video Path: $trimmedPath");
     final videoTriFile = File(trimmedPath);
 
-    msgController.imagesList.value = [videoTriFile];
-    msgController.generateThumbnail(videoTriFile);
+    // If trimming produced a playable file, use it. Otherwise fall back to
+    // the original picked video so the user can still upload.
+    final trimmedDuration = await msgController.validateVideoFile(videoTriFile);
+    final File chosenFile;
+    if (trimmedDuration != null) {
+      chosenFile = videoTriFile;
+    } else {
+      commonSnackBar(
+        message:
+            "Trimming failed on this device, uploading the original video instead.",
+        snackBackgroundColor: AppColors.red,
+      );
+      chosenFile = File(sourcePath);
+    }
+
+    msgController.imagesList.value = [chosenFile];
+    msgController.generateThumbnail(chosenFile);
   }
 }
 
