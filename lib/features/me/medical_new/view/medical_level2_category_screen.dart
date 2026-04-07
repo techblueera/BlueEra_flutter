@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_subcategory_screen.dart';
@@ -137,7 +138,7 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 CustomText(
-                  '${level2Categories.length} categories available',
+                  '${level2Categories.length} ${AppStrings.medicalCategoriesAvailableSuffix.tr}',
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: Colors.white.withOpacity(0.9),
@@ -169,14 +170,14 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size16),
           CustomText(
-            'No subcategories available',
+            AppStrings.medicalNoSubcategoriesAvailable,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
           ),
           SizedBox(height: SizeConfig.size6),
           CustomText(
-            'Please check back later',
+            AppStrings.medicalPleaseCheckBackLater,
             fontSize: SizeConfig.small,
             color: AppColors.secondaryTextColor,
           ),

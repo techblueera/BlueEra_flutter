@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -38,7 +39,7 @@ class _MyMedicalSuperCategoryScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(title: 'My Medical Products'),
+      appBar: CommonBackAppBar(title: AppStrings.medicalMyProductsTitle.tr),
       body: Obx(() {
         if (controller.myMedicalCategoryLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -50,8 +51,8 @@ class _MyMedicalSuperCategoryScreenState
         if (categoryList.isEmpty) {
           return Center(
             child: EmptyStateWidget(
-              message: 'You haven\'t posted any products yet',
-              actionText: 'Add Products Now!',
+              message: AppStrings.medicalHaveNotPostedProducts.tr,
+              actionText: AppStrings.medicalAddProductsNow.tr,
               actionCallback: () =>
                   Get.toNamed(RouteHelper.getMedicalCategoryScreenRoute()),
             ),
@@ -160,7 +161,7 @@ class _MyMedicalSuperCategoryScreenState
                               size: 10, color: AppColors.primaryColor),
                           SizedBox(width: 4),
                           CustomText(
-                            'View Products',
+                            AppStrings.medicalViewProducts,
                             fontSize: 11,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,

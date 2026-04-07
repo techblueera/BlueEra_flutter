@@ -234,6 +234,31 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Place bulk food self-pickup order
+  Future<ResponseModel> placeBulkFoodOrderApi(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      placeBulkFoodOrder,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Mark food self-pickup order as ready (restaurant side)
+  Future<ResponseModel> markFoodOrderReadyRepo(
+      {required String orderId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      foodOrderReady(orderId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Consumer: fetch all home-made food items (all users, filtered by query params)
   Future<ResponseModel> fetchAllHomeFoodItems({Map<String, dynamic>? queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

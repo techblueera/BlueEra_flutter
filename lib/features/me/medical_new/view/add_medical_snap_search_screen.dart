@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -51,7 +52,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: "Medical Items",
+        title: AppStrings.medicalItemsTitle.tr,
       ),
       bottomNavigationBar: _buildBottomAction(),
       body: SingleChildScrollView(
@@ -71,7 +72,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
                 Expanded(child: Divider(color: AppColors.greyE5)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: CustomText('OR',
+                  child: CustomText(AppStrings.medicalOr,
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w600),
@@ -117,7 +118,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
             isValidate: canSubmit,
             radius: SizeConfig.size8,
             bgColor: canSubmit ? AppColors.primaryColor : Colors.grey,
-            title: 'Publish $productCount Products, $variantCount Variants',
+            title: '${AppStrings.medicalPublishPrefix.tr} $productCount ${AppStrings.medicalPublishProductsLabel.tr}, $variantCount ${AppStrings.medicalPublishVariantsLabel.tr}',
             isLoading: loading,
           ),
         );
@@ -131,7 +132,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Upload Bulk Product", fontWeight: FontWeight.bold),
+          CustomText(AppStrings.medicalUploadBulkProduct, fontWeight: FontWeight.bold),
           const SizedBox(height: 14),
           MasonryGridView.count(
             shrinkWrap: true,
@@ -229,8 +230,8 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
             },
           ),
           const SizedBox(height: 10),
-          const CustomText(
-            "Upload picture/menu containing up to 20 product at time",
+          CustomText(
+            AppStrings.medicalUploadPicMenuHint,
             fontWeight: FontWeight.w400,
             color: AppColors.red,
             textAlign: TextAlign.center,
@@ -241,12 +242,12 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
   }
 
   static const List<Map<String, String>> _staticCategories = [
-    {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA_NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
-    {'title': 'Home &\nPatient Care', 'key': 'HOME_PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
-    {'title': 'Medical\nDevices', 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
-    {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
-    {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL_BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
-    {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE_FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
+    {'title': AppStrings.medicalAyurvedaNutrition, 'key': 'AYURVEDA_NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
+    {'title': AppStrings.medicalHomePatientCare, 'key': 'HOME_PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
+    {'title': AppStrings.medicalDevicesCat, 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
+    {'title': AppStrings.medicalOtcMedicines, 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
+    {'title': AppStrings.medicalPersonalBabyCare, 'key': 'PERSONAL_BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
+    {'title': AppStrings.medicalWoundCareFirstAid, 'key': 'WOUND_CARE_FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
   ];
 
   Widget _buildCategoryGrid() {
@@ -262,7 +263,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              'Choose Your Medical Products',
+              AppStrings.medicalChooseYourMedicalProducts,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -295,7 +296,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
                     final children = matched.children ?? [];
                     if (children.isEmpty) return;
                     Get.to(() => MedicalLevel2CategoryScreen(
-                      title: cat['title']!.replaceAll('\n', ' '),
+                      title: cat['title']!.tr.replaceAll('\n', ' '),
                       level2Categories: children,
                     ));
                   },
@@ -431,14 +432,13 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(height: SizeConfig.paddingL),
-        const EmptyStateWidget(
-          message: 'We couldn\'t identify any products from this photo. \n'
-              'Try capturing a clearer shot or searching for individual items!',
+        EmptyStateWidget(
+          message: AppStrings.medicalNoProductsIdentified.tr,
         ),
         SizedBox(height: SizeConfig.paddingL),
         CustomBtn(
           width: SizeConfig.size120,
-          title: "Retry",
+          title: AppStrings.medicalRetry.tr,
           textColor: AppColors.white,
           bgColor: AppColors.primaryColor,
           radius: 10.0,
@@ -451,7 +451,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
           ),
           child: CustomText(
-            "Search Manually",
+            AppStrings.medicalSearchManually,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.primaryColor,
@@ -468,7 +468,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomText(
-            "${data.foundCount ?? 0} Items Found",
+            "${data.foundCount ?? 0} ${AppStrings.medicalItemsFoundSuffix.tr}",
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -477,7 +477,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
               // Future navigation logic for missing items
             },
             child: CustomText(
-              "${data.missingCount ?? 0} Items missing",
+              "${data.missingCount ?? 0} ${AppStrings.medicalItemsMissingSuffix.tr}",
               color: Colors.red,
               fontWeight: FontWeight.w500,
             ),
@@ -621,7 +621,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
                                   const SizedBox(width: 6),
 
                                   CustomText(
-                                    "Selling- ₹${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].sellingPrice : '0'}",
+                                    "${AppStrings.medicalSellingRupeePrefix.tr} ${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].sellingPrice : '0'}",
                                     fontSize: SizeConfig.small,
                                     fontWeight: FontWeight.w400,
                                     color: AppColors.mainTextColor,
@@ -633,7 +633,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
                                     onTap: () {
                                       controller.openSnapSearchEditVariantDialog(
                                         context: context,
-                                        title: medicalItem.name ?? 'Edit Variant',
+                                        title: medicalItem.name ?? AppStrings.medicalEditVariant.tr,
                                         variant: v,
                                       );
                                     },

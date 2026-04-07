@@ -4,6 +4,7 @@ import 'package:BlueEra/features/me/medical_new/controller/medical_gallery_contr
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,7 +28,7 @@ class MedicalGalleryDetailScreen extends StatelessWidget {
         List<String> images = currentCategory.imageUrls ?? [];
 
         if (images.isEmpty) {
-          return const Center(child: Text('No images'));
+          return  Center(child: CustomText(AppStrings.noDataFound));
         }
 
         return GridView.builder(

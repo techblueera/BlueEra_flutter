@@ -110,10 +110,6 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                           context: context,
                           text: AppStrings.logoutConfirmationMessage,
                           confirmCallback: () async {
-                            // E2E: revoke device keys from server before clearing session
-                            if (Get.isRegistered<ChatViewController>()) {
-                              await Get.find<ChatViewController>().revokeE2EDevice();
-                            }
                             deleteIfRegistered<ChatViewController>();
                             await SharedPreferenceUtils.clearPreference();
                             locationService.stop();

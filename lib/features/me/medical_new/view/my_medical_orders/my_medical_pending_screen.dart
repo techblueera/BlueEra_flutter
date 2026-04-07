@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_order_model.dart';
@@ -35,7 +36,7 @@ class _MyMedicalPendingScreenState extends State<MyMedicalPendingScreen> {
     return Scaffold(
       body: Obx(()=> controller.groceryPendingOrders.isEmpty
           ? Center(
-        child: EmptyStateWidget(message: 'You Have Not Received\nAny Order'),
+        child: EmptyStateWidget(message: AppStrings.medicalYouHaveNotReceivedAnyOrder.tr),
       )
           :  ListView.builder(
           itemCount: controller.groceryPendingOrders.length,

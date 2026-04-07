@@ -53,7 +53,7 @@ class MedicalProfileController extends GetxController {
       ResponseModel response = await MedicalRepo().updateMedicalAboutUsRepo(params: body);
       if (response.isSuccess) {
         aboutUsData.value = MedicalAboutUs.fromJson(response.response?.data);
-        commonSnackBar(message: response.message ?? 'About us updated successfully');
+        commonSnackBar(message: response.message ?? AppStrings.medicalAboutUsUpdated.tr);
         Get.back();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -128,7 +128,7 @@ class MedicalProfileController extends GetxController {
 
       if (response.isSuccess) {
         contactData.value = MedicalContactInfo.fromJson(response.response?.data);
-        commonSnackBar(message: response.message ?? 'Contact saved successfully');
+        commonSnackBar(message: response.message ?? AppStrings.medicalContactSaved.tr);
         Get.back();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -148,7 +148,7 @@ class MedicalProfileController extends GetxController {
       ResponseModel response = await MedicalRepo().deleteMedicalContactRepo();
       if (response.isSuccess) {
         contactData.value = null;
-        commonSnackBar(message: response.message ?? 'Contact deleted');
+        commonSnackBar(message: response.message ?? AppStrings.medicalContactDeleted.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -210,7 +210,7 @@ class MedicalProfileController extends GetxController {
 
       ResponseModel response = await MedicalRepo().createMedicalTestimonialRepo(params: body);
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Testimonial created');
+        commonSnackBar(message: response.message ?? AppStrings.medicalTestimonialCreated.tr);
         fetchTestimonials();
         Get.back();
       } else {
@@ -248,7 +248,7 @@ class MedicalProfileController extends GetxController {
         params: body,
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Testimonial updated');
+        commonSnackBar(message: response.message ?? AppStrings.medicalTestimonialUpdated.tr);
         fetchTestimonials();
         Get.back();
       } else {
@@ -269,7 +269,7 @@ class MedicalProfileController extends GetxController {
       );
       if (response.isSuccess) {
         testimonialsList.removeWhere((t) => t.id == testimonialId);
-        commonSnackBar(message: response.message ?? 'Testimonial deleted');
+        commonSnackBar(message: response.message ?? AppStrings.medicalTestimonialDeleted.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -337,7 +337,7 @@ class MedicalProfileController extends GetxController {
 
       ResponseModel response = await MedicalRepo().createMedicalGalleryRepo(params: body);
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Gallery created');
+        commonSnackBar(message: response.message ?? AppStrings.medicalGalleryCreated.tr);
         fetchGallery();
         Get.back();
       } else {
@@ -369,7 +369,7 @@ class MedicalProfileController extends GetxController {
         params: body,
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Gallery updated');
+        commonSnackBar(message: response.message ?? AppStrings.medicalGalleryUpdated.tr);
         fetchGallery();
         Get.back();
       } else {
@@ -390,7 +390,7 @@ class MedicalProfileController extends GetxController {
       );
       if (response.isSuccess) {
         galleryList.removeWhere((g) => g.id == galleryId);
-        commonSnackBar(message: response.message ?? 'Gallery deleted');
+        commonSnackBar(message: response.message ?? AppStrings.medicalGalleryDeleted.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -412,7 +412,7 @@ class MedicalProfileController extends GetxController {
         final gallery = galleryList.firstWhereOrNull((g) => g.id == galleryId);
         gallery?.imageUrls?.remove(imageUrl);
         galleryList.refresh();
-        commonSnackBar(message: response.message ?? 'Image deleted');
+        commonSnackBar(message: response.message ?? AppStrings.medicalImageDeleted.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -509,7 +509,7 @@ class MedicalProfileController extends GetxController {
       return uploadInit.publicUrl;
     } catch (e, s) {
       log('uploadFileToS3 error: $s');
-      commonSnackBar(message: 'Failed to upload file');
+      commonSnackBar(message: AppStrings.medicalFailedToUploadFile);
       return null;
     }
   }

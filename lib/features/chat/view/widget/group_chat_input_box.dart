@@ -595,6 +595,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                             },
                           ),
                           onTap: () async {
+                            if (chatViewController.isSending.value) return;
                             if (chatViewController.isTextFieldEmpty.value) {
                               if (chatViewController.sendMessageController.value.text
                                   .isNotEmpty) {

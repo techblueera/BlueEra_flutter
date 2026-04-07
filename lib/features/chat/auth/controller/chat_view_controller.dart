@@ -49,16 +49,9 @@ import '../model/group_details_model.dart';
 import '../model/inventory_ask_ai_model.dart';
 import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
-import '../repo/e2e_repo.dart';
 import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
 import '../socket/live_location_track_socket.dart';
-import '../../../../core/services/e2e/e2e_key_service.dart';
-import '../../../../core/services/e2e/e2e_local_db_service.dart';
-import '../../../../core/services/e2e/e2e_media_service.dart';
-import '../../../../core/services/e2e/e2e_session_service.dart';
-import '../../../../core/services/e2e/e2e_sync_service.dart';
-import '../model/e2e_models.dart';
 
 class ChatViewController extends GetxController {
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
@@ -85,27 +78,11 @@ class ChatViewController extends GetxController {
   final chatSocket      = ChatSocketService();
   final aiSocket        = AiSocketService();
 
-  // ── E2E Encryption Services ──────────────────────────────────────────────
-  final _e2eKeyService  = E2EKeyService();
-  final _e2eSessions    = E2ESessionService();
-  final _e2eSync        = E2ESyncService();
-  final _e2eMedia       = E2EMediaService();
-
-  /// Whether the server resolved this connection as E2E-capable.
-  RxBool e2eActive = false.obs;
-
   /// Whether the user has scrolled up away from the bottom of the chat.
   RxBool isUserScrolledUp = false.obs;
 
   /// Count of new messages that arrived while the user was scrolled up.
   RxInt unreadNewMessageCount = 0.obs;
-
-  /// Guard flag: prevents infinite prekey:low → replenish retry loops.
-  /// Reset on new socket connection. See doc section 6.4.
-  bool _opkReplenishFailed = false;
-
-  /// E2E messages for the currently open conversation (reactive list for UI).
-  RxList<EncryptedMessageLocal> e2eMessages = <EncryptedMessageLocal>[].obs;
   Rx<GetChatRequestListModel>? getChatRequestListModel =
       GetChatRequestListModel().obs;
   Rx<GetChatRequestProfileDetailsModel>? getChatRequestProfileDetailsModel =
@@ -277,6 +254,7 @@ class ChatViewController extends GetxController {
   RxList<ProfessionalContact> findProfessionalContactList = <ProfessionalContact>[].obs;
   Rx<TextEditingController> sendMessageController = TextEditingController().obs;
   RxBool isTextFieldEmpty = false.obs;
+  RxBool isSending = false.obs;
   RxBool socketConnected = false.obs;
   RxBool chatFromBusinessProfile = false.obs;
   RxBool canPopBusiness = false.obs;
@@ -782,16 +760,13 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> connectSocket() async {
-    // E2E: init local DB + register Signal Protocol keys on first run
-    await initializeE2E();
-
     // Always ensure socket is connected
     await chatSocket.connectToSocket();
 
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-
+        //1200000039
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
@@ -807,7 +782,7 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
-        log("dssdjksldkfjds ${data}");
+
         final parsedData = GetListOfMessageData.fromJson(data);
 
         if (parsedData.messages != null) {
@@ -999,7 +974,7 @@ class ChatViewController extends GetxController {
 
       // Self-Pickup: Order marked as ready
       chatSocket.listenEvent(ChatEmitEvents.selfPickupOrderReady, (data) {
-        log("selfPickupOrderReady: $data");
+
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
           final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
@@ -1014,10 +989,93 @@ class ChatViewController extends GetxController {
         }
       });
 
-      socketConnectedCalled.value = true;
+      // Food Self-Pickup: New order received (restaurant side)
+      chatSocket.listenEvent(ChatEmitEvents.newFoodPickupOrderReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
+            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
 
-      // ── E2E: Register socket callbacks ──────────────────────────────────
-      _registerE2ESocketCallbacks();
+      // Food Self-Pickup: Order marked as ready
+      chatSocket.listenEvent(ChatEmitEvents.foodPickupOrderReady, (data) {
+        log("foodPickupOrderReady: $data");
+        final messageId = data['messageId']?.toString() ?? '';
+        if (messageId.isNotEmpty) {
+          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.orderStatus = true;
+              if (msg.metadata?.foodPickupOrder != null) {
+                msg.metadata?.foodPickupOrder?.isReady = true;
+              }
+              if (msg.metadata?.selfPickupOrder != null) {
+                msg.metadata?.selfPickupOrder?.isReady = true;
+              }
+              break;
+            }
+          }
+          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Product Self-Pickup: New order received (seller side)
+      chatSocket.listenEvent(ChatEmitEvents.newProductPickupOrderReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
+            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Product Self-Pickup: Order marked as ready
+      chatSocket.listenEvent(ChatEmitEvents.productPickupOrderReady, (data) {
+        log("productPickupOrderReady: $data");
+        final messageId = data['messageId']?.toString() ?? '';
+        if (messageId.isNotEmpty) {
+          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.orderStatus = true;
+              if (msg.metadata?.productPickupOrder != null) {
+                msg.metadata?.productPickupOrder?.isReady = true;
+              }
+              if (msg.metadata?.selfPickupOrder != null) {
+                msg.metadata?.selfPickupOrder?.isReady = true;
+              }
+              break;
+            }
+          }
+          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+        }
+      });
+
+      socketConnectedCalled.value = true;
     }
     try {
       openedConversation.value = await localStorageHelper.getConversation();
@@ -1032,398 +1090,6 @@ class ChatViewController extends GetxController {
 
     // }
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // E2E ENCRYPTION — Phase 1-4 Integration
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// E2E initialization — matches web tester's autoRegisterE2EKeys() flow:
-  ///  1. Init SQLite database
-  ///  2. Generate NaCl keys if needed
-  ///  3. Revoke stale old devices (web tester does this!)
-  ///  4. Verify server has our device's keys, register if missing
-  Future<void> initializeE2E() async {
-    try {
-      // Step 1: Init local database
-      await E2ELocalDbService().init();
-      if (kDebugMode) print('[E2E-INIT] ═══ E2E Initialization Start ═══');
-
-      final myDeviceId = await _e2eKeyService.getOrCreateDeviceId();
-      if (kDebugMode) print('[E2E-INIT] deviceId: $myDeviceId');
-
-      // Step 2: Ensure NaCl keys exist locally
-      final hasLocalKeys = await _e2eKeyService.isRegistered();
-      if (kDebugMode) print('[E2E-INIT] Local NaCl v2 keys: $hasLocalKeys');
-
-      // Step 3: Check server for our device
-      final myUserId = userId; // global from shared_preference_utils
-      if (myUserId.isEmpty) {
-        if (kDebugMode) print('[E2E-INIT] No userId yet — skipping registration');
-        return;
-      }
-
-      // Use capability endpoint (no OPK consumption) instead of getPrekeyBundles
-      // which consumes a one-time prekey on every call.
-      final capability = await E2ERepo().getCapability(myUserId);
-      final serverHasE2E = capability?.protocol == E2EProtocol.e2e;
-      if (kDebugMode) {
-        print('[E2E-INIT] Server capability for us: ${capability?.protocol}');
-      }
-
-      if (hasLocalKeys && serverHasE2E) {
-        // Everything is good — keys exist locally AND on server
-        if (kDebugMode) print('[E2E-INIT] ✓ Keys already registered on server');
-      } else {
-        // Need to register — either no local keys or server doesn't have ours
-        if (kDebugMode) print('[E2E-INIT] Registration needed (local=$hasLocalKeys, serverE2E=$serverHasE2E)');
-
-        // Register our keys (server handles device replacement)
-        if (kDebugMode) print('[E2E-INIT] Registering keys...');
-        final success = await _e2eKeyService.registerKeys();
-        if (kDebugMode) print('[E2E-INIT] Registration: ${success ? "✓ SUCCESS" : "✘ FAILED"}');
-      }
-
-      if (kDebugMode) print('[E2E-INIT] ═══ E2E Initialization Complete ═══');
-    } catch (e) {
-      if (kDebugMode) print('[E2E-INIT] ✘ Error: $e');
-    }
-  }
-
-  /// Wire all E2E socket callbacks — called once inside connectSocket().
-  void _registerE2ESocketCallbacks() {
-    // Reset OPK replenish guard on new connection
-    _opkReplenishFailed = false;
-
-    // Phase 1: Protocol resolved — server tells us if E2E is active
-    chatSocket.onProtocolResolved((protocol) {
-      e2eActive.value = protocol == 'e2e';
-      // Phase 4: On reconnect, sync any missed encrypted messages
-      if (protocol == 'e2e') {
-        _e2eSync.syncAllConversations();
-      }
-    });
-
-    // Phase 2: OPK pool low — replenish in background (with guard against retry loops)
-    chatSocket.onPrekeyLow((remainingCount) async {
-      if (_opkReplenishFailed) return;
-      // Server remainingCount can be unreliable (negative values observed).
-      // Use a small safe batch size to avoid exceeding the 200 pool limit.
-      const safeCount = 10;
-      if (kDebugMode) print('[E2E] prekey:low (remaining=$remainingCount) — uploading $safeCount OPKs');
-      final success = await _e2eKeyService.replenishOPKs(count: safeCount);
-      if (!success) {
-        if (kDebugMode) print('[E2E] OPK replenish failed/rejected — disabling retries until reconnect');
-        _opkReplenishFailed = true;
-      }
-    });
-
-    // Phase 3: New encrypted message received
-    chatSocket.onE2EMessageNew((data) async {
-      if (kDebugMode) print('[E2E] message:new callback fired');
-      final msg = await _e2eSync.handleIncomingMessage(data);
-      if (msg == null) {
-        if (kDebugMode) print('[E2E] handleIncomingMessage returned null — message dropped');
-        return;
-      }
-
-      // Send delivery ACK
-      chatSocket.sendMessageAck(msg.messageId);
-
-      // Convert to Messages format and add to the regular message list
-      final converted = e2eMessageToMessages(msg);
-
-      // Add to currently open conversation
-      if (msg.conversationId == userOpenConversationId.value) {
-        e2eMessages.add(msg);
-
-        // Also add to the regular list so it appears in the existing ListView
-        final alreadyExists = getListOfMessageData?.any((m) => m.id == converted.id) ?? false;
-        if (!alreadyExists) {
-          getListOfMessageData?.add(converted);
-          getListOfMessageResponse.value = ApiResponse.complete(getListOfMessageData);
-        }
-        scrollDown();
-      }
-
-      // Refresh chat list
-      emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
-    });
-
-    // Phase 3: Delivery status update — update local DB + reactive UI
-    chatSocket.onE2EMessageStatus((data) async {
-      await _e2eSync.handleMessageStatus(data);
-      final messageId = data['message_id'] as String?;
-      final status    = data['status'] as String?;
-      final seqNum    = data['seq_num'] as int?;
-      if (messageId == null || status == null) return;
-      // Update optimistic message in the reactive list
-      final idx = e2eMessages.indexWhere((m) =>
-          m.messageId == messageId || (m.status == 'sending' && m.seqNum == -1));
-      if (idx != -1) {
-        final old = e2eMessages[idx];
-        final confirmed = EncryptedMessageLocal(
-          messageId:      messageId,
-          conversationId: old.conversationId,
-          seqNum:         seqNum ?? old.seqNum,
-          senderId:       old.senderId,
-          senderDeviceId: old.senderDeviceId,
-          plaintext:      old.plaintext,
-          encryptedMedia: old.encryptedMedia,
-          expiresAt:      old.expiresAt,
-          status:         status,
-          createdAt:      old.createdAt,
-        );
-        e2eMessages[idx] = confirmed;
-
-        // Persist to SQLite: replace the optimistic temp-ID entry with the real one.
-        // If the old messageId was a temp ID (optimistic), delete it first.
-        final db = E2ELocalDbService();
-        if (old.messageId != messageId) {
-          await db.deleteMessage(old.messageId);
-        }
-        await db.upsertMessage(confirmed);
-      }
-    });
-
-    // Phase 4: Sync cursor confirmed by server
-    chatSocket.onE2ESyncComplete((data) {
-      if (kDebugMode) {
-        print('[E2E] sync:complete at seq ${data['seq_num']}');
-      }
-    });
-
-    // E2E error handler (doc section 7.4)
-    chatSocket.listenEvent('error', (data) {
-      if (data is Map) {
-        final d = Map<String, dynamic>.from(data);
-        final message = d['message']?.toString() ?? '';
-        if (message.contains('e2e') || message.contains('E2E') ||
-            message.contains('encrypt') || message.contains('Protocol')) {
-          if (kDebugMode) print('[E2E] Server error: $message');
-        }
-      }
-    });
-  }
-
-  /// Send an encrypted message to [recipientUserId] in [conversationId].
-  ///
-  /// [text]  — the plaintext message string.
-  /// [mediaFiles] — optional list of {file, mimeType} for media attachments.
-  ///
-  /// Falls back to the plain `messageReceived` event if E2E is not active.
-  /// Returns true if E2E send succeeded, false if it failed (caller should fallback to plain).
-  Future<bool> sendE2EMessage({
-    required String conversationId,
-    required String recipientUserId,
-    required String text,
-    List<Map<String, dynamic>>? mediaFiles, // [{file: File, mimeType: String}]
-  }) async {
-    try {
-      if (kDebugMode) {
-        print('[E2E-SEND] ═══════════════════════════════════════');
-        print('[E2E-SEND] conversationId: $conversationId');
-        print('[E2E-SEND] recipientUserId: $recipientUserId');
-        print('[E2E-SEND] text: "${text.substring(0, text.length.clamp(0, 100))}"');
-        print('[E2E-SEND] mediaFiles: ${mediaFiles?.length ?? 0}');
-      }
-
-      // Phase 3 media: upload encrypted files first
-      final mediaMetaList = <EncryptedMediaMetadata>[];
-      final encryptedMediaRefs = <Map<String, dynamic>>[];
-
-      if (mediaFiles != null) {
-        for (final m in mediaFiles) {
-          if (kDebugMode) print('[E2E-SEND] Uploading encrypted media: ${m['mimeType']}');
-          final meta = await _e2eMedia.uploadEncryptedMedia(
-            file:     m['file'],
-            mimeType: m['mimeType'],
-          );
-          if (meta != null) {
-            mediaMetaList.add(meta);
-            encryptedMediaRefs.add({
-              's3_key':    meta.s3Key,
-              'mime_type': meta.mimeType,
-              'size':      meta.size,
-            });
-            if (kDebugMode) print('[E2E-SEND]   ✓ Media uploaded: ${meta.s3Key}');
-          } else {
-            if (kDebugMode) print('[E2E-SEND]   ✘ Media upload failed');
-          }
-        }
-      }
-
-      // Build plaintext JSON payload
-      final payload = E2EMessagePayload(
-        text:  text,
-        media: mediaMetaList.isNotEmpty ? mediaMetaList : null,
-      );
-      final payloadJson = payload.toJsonString();
-      if (kDebugMode) print('[E2E-SEND] Payload JSON: ${payloadJson.substring(0, payloadJson.length.clamp(0, 150))}');
-
-      // Encrypt for each recipient device
-      final ciphertextEntries = await _e2eSessions.encryptForRecipient(
-        recipientUserId: recipientUserId,
-        plaintextJson:   payloadJson,
-      );
-
-      if (ciphertextEntries.isEmpty) {
-        if (kDebugMode) print('[E2E-SEND] ✘ No ciphertext entries — recipient has no E2E keys, falling back to plain');
-        return false;
-      }
-
-      if (kDebugMode) {
-        print('[E2E-SEND] Emitting message:send with ${ciphertextEntries.length} ciphertext entries');
-        for (final e in ciphertextEntries) {
-          print('[E2E-SEND]   deviceId=${e.deviceId}, bodyLen=${e.body.length}');
-        }
-      }
-
-      // Emit message:send
-      chatSocket.sendEncryptedMessage(
-        conversationId:     conversationId,
-        ciphertextEntries:  ciphertextEntries
-            .map((e) => {'deviceId': e.deviceId, 'body': e.body})
-            .toList(),
-        encryptedMediaRefs: encryptedMediaRefs.isNotEmpty ? encryptedMediaRefs : null,
-      );
-
-      if (kDebugMode) print('[E2E-SEND] ✓ message:send emitted successfully');
-
-      // Optimistic UI update — also persist to SQLite so message survives navigation
-      final optimistic = EncryptedMessageLocal(
-        messageId:      DateTime.now().millisecondsSinceEpoch.toString(),
-        conversationId: conversationId,
-        seqNum:         -1,
-        senderId:       userId,
-        plaintext:      text,
-        expiresAt:      DateTime.now().add(const Duration(days: 30)),
-        status:         'sending',
-        createdAt:      DateTime.now(),
-      );
-      await E2ELocalDbService().upsertMessage(optimistic);
-      e2eMessages.add(optimistic);
-      scrollDown();
-
-      // Track conversation for future syncs
-      await _e2eSync.trackConversation(conversationId);
-      if (kDebugMode) print('[E2E-SEND] ═══════════════════════════════════════');
-      return true;
-    } catch (e) {
-      if (kDebugMode) print('[E2E] sendE2EMessage error: $e');
-      return false;
-    }
-  }
-
-  /// Load E2E messages for [conversationId] from local SQLite and set [e2eMessages].
-  Future<void> loadE2EMessages(String conversationId) async {
-    try {
-      final msgs = await E2ELocalDbService().getMessages(conversationId);
-      e2eMessages.assignAll(msgs);
-    } catch (e) {
-      if (kDebugMode) print('[E2E] loadE2EMessages error: $e');
-    }
-  }
-
-  /// Convert an [EncryptedMessageLocal] to a [Messages] object for UI rendering
-  /// in the existing MessageCard widget.
-  Messages e2eMessageToMessages(EncryptedMessageLocal e2eMsg) {
-
-    return Messages(
-      id: e2eMsg.messageId,
-      message: e2eMsg.plaintext ?? (e2eMsg.ciphertext != null ? '\u{1F512} Encrypted message' : ''),
-      messageType: 'text',
-      conversationId: e2eMsg.conversationId,
-      senderId: e2eMsg.senderId,
-      createdAt: e2eMsg.createdAt.toIso8601String(),
-      myMessage: e2eMsg.senderId == userId,
-      status: e2eMsg.status == 'device_delivered' ? 'read'
-          : e2eMsg.status == 'server_received' ? 'delivered'
-          : e2eMsg.status == 'sending' ? 'pending' : 'sent',
-    );
-  }
-
-  /// Get merged message list: combines plain messages and E2E messages for display.
-  /// Returns a deduplicated, sorted list ready for rendering.
-  List<Messages> getMergedMessages() {
-    final plainMessages = getListOfMessageData ?? [];
-    if (!e2eActive.value || e2eMessages.isEmpty) return plainMessages;
-
-    // Single-pass merge + dedup using a Set for O(1) lookups
-    final seen = <String>{};
-    final merged = <Messages>[];
-
-    for (final m in plainMessages) {
-      final key = m.id ?? '';
-      if (key.isEmpty || seen.add(key)) {
-        merged.add(m);
-      }
-    }
-
-    for (final e2eMsg in e2eMessages) {
-      final converted = e2eMessageToMessages(e2eMsg);
-      final key = converted.id ?? '';
-      if (key.isEmpty || seen.add(key)) {
-        merged.add(converted);
-      }
-    }
-
-    // Sort by created_at — parse once per item using milliseconds for fast comparison
-    merged.sort((a, b) {
-      final msA = _parseCreatedAtMs(a.createdAt);
-      final msB = _parseCreatedAtMs(b.createdAt);
-      return msA.compareTo(msB);
-    });
-
-    return merged;
-  }
-
-  /// Fast date parser — returns epoch millis, avoids creating DateTime objects in sort.
-  int _parseCreatedAtMs(String? createdAt) {
-    if (createdAt == null || createdAt.isEmpty) return 0;
-    try {
-      return DateTime.parse(createdAt).millisecondsSinceEpoch;
-    } catch (_) {
-      return 0;
-    }
-  }
-
-  /// Check if a recipient supports E2E (GET /protocol/capability/:userId).
-  Future<bool> recipientSupportsE2E(String userId) async {
-    try {
-      final cap = await E2ERepo().getCapability(userId);
-      return cap?.protocol == E2EProtocol.e2e;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// On app resume — trigger offline sync for all tracked conversations.
-  Future<void> triggerE2ESync() async {
-    await _e2eSync.syncAllConversations();
-  }
-
-  /// On logout — revoke this device's keys from the server.
-  Future<void> revokeE2EDevice() async {
-    await _e2eKeyService.revokeDevice();
-  }
-
-  /// Detect MIME type from file extension for E2E media uploads.
-  static String _detectMimeType(String ext) {
-    const mimeMap = {
-      'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
-      'gif': 'image/gif', 'webp': 'image/webp', 'heic': 'image/heic',
-      'mp4': 'video/mp4', 'mov': 'video/quicktime', 'avi': 'video/x-msvideo',
-      'mkv': 'video/x-matroska', 'webm': 'video/webm',
-      'pdf': 'application/pdf', 'doc': 'application/msword',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'xls': 'application/vnd.ms-excel', 'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'mp3': 'audio/mpeg', 'aac': 'audio/aac', 'wav': 'audio/wav',
-      'ogg': 'audio/ogg',
-    };
-    return mimeMap[ext] ?? 'application/octet-stream';
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void changeBusinessInsideTab(int index) {
     businessTabIndexSelected.value = index;
@@ -1643,8 +1309,6 @@ class ChatViewController extends GetxController {
     typingText.value = '';
     _typingHideTimers.forEach((_, timer) => timer.cancel());
     _typingHideTimers.clear();
-    // E2E: load locally stored decrypted messages for this conversation
-    loadE2EMessages(conversationId);
   }
 
   /// Emit typing indicator (debounced — max once every 2 seconds)
@@ -2258,59 +1922,14 @@ class ChatViewController extends GetxController {
   }
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
+    if (isSending.value) return null;
+    isSending.value = true;
     try {
       params[ApiKeys.tagged_users] = taggedUserIds.join(',');
       taggedUserIds.clear();
       if(params[ApiKeys.message_type]=="live_location"){
        await startLiveLocationTracking(labelToDuration(params[ApiKeys.live_location_validity]));
       }
-
-      // ── E2E: Route to encrypted send path if BOTH sides support E2E ──
-      final msgType = params[ApiKeys.message_type]?.toString() ?? '';
-      final e2eSupportedTypes = ['text', 'image', 'video', 'document'];
-      // Determine recipient: from open conversation OR from params (forward/share intent)
-      final recipientId = userOpenUserId.value.isNotEmpty
-          ? userOpenUserId.value
-          : (params[ApiKeys.other_user_id]?.toString() ?? '');
-      final convId = params[ApiKeys.conversation_id]?.toString() ?? '';
-      if (e2eActive.value &&
-          recipientId.isNotEmpty &&
-          convId.isNotEmpty &&
-          e2eSupportedTypes.contains(msgType)) {
-        final text = params[ApiKeys.message]?.toString() ?? '';
-        List<Map<String, dynamic>>? mediaFiles;
-        if (sendFiles != null && sendFiles.isNotEmpty) {
-          mediaFiles = sendFiles.map((f) {
-            final ext = f.path.split('.').last.toLowerCase();
-            final mimeType = _detectMimeType(ext);
-            return <String, dynamic>{
-              'file': f,
-              'mimeType': mimeType,
-            };
-          }).toList();
-        }
-        if (text.isNotEmpty || (mediaFiles != null && mediaFiles.isNotEmpty)) {
-          final e2eSuccess = await sendE2EMessage(
-            conversationId:  convId,
-            recipientUserId: recipientId,
-            text:            text,
-            mediaFiles:      mediaFiles,
-          );
-          if (e2eSuccess) {
-            _updateChatListLastMessage(
-              convId,
-              text,
-              msgType,
-              DateTime.now().toUtc().toIso8601String(),
-            );
-            clearMessageControllerCommon();
-            return true;
-          }
-          // E2E failed (recipient has no keys) — fall through to plain text below
-          if (kDebugMode) print('[E2E] Recipient has no E2E keys — sending as plain text');
-        }
-      }
-      // ── End E2E routing (falls through to plain text if E2E failed) ──
 
       clearMessageControllerCommon();
 
@@ -2431,6 +2050,8 @@ class ChatViewController extends GetxController {
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
       }
+    } finally {
+      isSending.value = false;
     }
     return null;
   }
@@ -2564,6 +2185,9 @@ class ChatViewController extends GetxController {
       {required String userId,bool? isFromContactList,
         bool? isWithProductSend,
         Map<String, dynamic>? shareProductParams,
+        String? name,
+        String? conductNo,
+        String? profile,
       }) async {
     Map<String, dynamic> params = {
       ApiKeys.user_id: userId
@@ -2577,10 +2201,10 @@ class ChatViewController extends GetxController {
       CheckChatConversationModel.fromJson(data);
       String conversationId=details.data?.conversationId??'';
       String otherUserId=details.data?.otherUserId??'';
-      String chatPersonUserId=details.data?.sender?.id??'';
-      String contactNo=details.data?.sender?.contact??'';
-      String contactName=details.data?.sender?.name??'';
-      String profileImage=details.data?.sender?.profileImage??'';
+      String chatPersonUserId=userId;
+      String contactNo=conductNo??details.data?.sender?.contact??'';
+      String contactName=name??details.data?.sender?.name??'';
+      String profileImage=profile??details.data?.sender?.profileImage??'';
       String type=details.data?.conversation?.type??'';
       businessTabIndexSelected.value = 0;
       await getLocalConversation(
@@ -2916,6 +2540,8 @@ class ChatViewController extends GetxController {
     // }
   }
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
+    if (isSending.value) return;
+    isSending.value = true;
     try {
       clearMessageControllerCommon();
       ResponseModel responseModel =
@@ -2941,7 +2567,10 @@ class ChatViewController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      isSending.value = false;
+    }
   }
 
   Future<void> deleteChatMessage(

@@ -1325,15 +1325,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
               if(isGroupAppBar == null)
                 Row(
                   children: [
-                    Obx(() => chatViewController.e2eActive.value
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.lock, color: Colors.green, size: SizeConfig.size10),
-                              SizedBox(width: 2),
-                            ],
-                          )
-                        : const SizedBox.shrink()),
                     Obx(() {
                       // Show typing indicator if active
                       if (chatViewController.typingText.value.isNotEmpty) {
@@ -1374,16 +1365,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
     actions: (type == AppStrings.Admin||type == AppStrings.PersonalChatAi||type == AppStrings.BusinessChatAi||type == AppStrings.InventoryChatAi)
         ? null
         : [
-      // E2E encryption indicator
-      // Obx(() => chatViewController.e2eActive.value
-      //     ? Tooltip(
-      //         message: 'End-to-end encrypted',
-      //         child: Padding(
-      //           padding: const EdgeInsets.symmetric(horizontal: 4),
-      //           child: Icon(Icons.lock, color: Colors.green, size: SizeConfig.size16),
-      //         ),
-      //       )
-      //     : const SizedBox.shrink()),
       SizedBox(width: SizeConfig.size8),
       if(isGroupAppBar == null&&isFromAiChat!=true)
         Builder(

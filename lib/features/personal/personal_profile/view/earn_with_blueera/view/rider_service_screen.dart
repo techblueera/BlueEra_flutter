@@ -13,9 +13,11 @@ import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_o
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
+import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -101,6 +103,30 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   void _checkRiderStatus() {
     /// check riding status
     controller.ridersOnboardingStatusRepoApi();
+  }
+
+  Future<void> _handleGoLiveToggle() async {
+    // Turning OFF — no permissions needed, just toggle
+    if (viewPersonalDetailsController.shopStatusOpenClose.value) {
+      viewPersonalDetailsController.toggleShopStatus();
+      return;
+    }
+
+    // Turning ON — check permissions first
+    if (await GoLivePermissionService.areAllGranted()) {
+      viewPersonalDetailsController.toggleShopStatus();
+      return;
+    }
+
+    if (!mounted) return;
+    final granted = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const GoLivePermissionScreen()),
+    );
+
+    if (granted == true) {
+      viewPersonalDetailsController.toggleShopStatus();
+    }
   }
 
   @override
@@ -440,7 +466,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   ),
                   buildToggleSwitchChip(
                     value: viewPersonalDetailsController.shopStatusOpenClose,
-                    onChanged: viewPersonalDetailsController.toggleShopStatus,
+                    onChanged: () => _handleGoLiveToggle(),
                   ),
                 ],
               ),

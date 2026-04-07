@@ -104,10 +104,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   contactNo: '',
                   conversationId: widget.conversationId),
           body: Obx(() {
-            final _e2eLen = chatViewController.e2eMessages.length;
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
-              final messages = chatViewController.getMergedMessages();
+              final messages = chatViewController.getListOfMessageData ?? [];
               messages.sort((a, b) {
                 final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
                     ? DateTime.parse(a.createdAt!).toLocal()

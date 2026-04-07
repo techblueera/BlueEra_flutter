@@ -1,12 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_inventory_product_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// ss11 — Shows level 1 children of a selected category
 class MedicalInventoryCategoryScreen extends StatelessWidget {
@@ -27,7 +28,7 @@ class MedicalInventoryCategoryScreen extends StatelessWidget {
       body: children.isEmpty
           ? Center(
               child: CustomText(
-                'No subcategories found',
+                AppStrings.medicalNoSubcategoriesFound,
                 color: AppColors.secondaryTextColor,
               ),
             )
@@ -105,9 +106,9 @@ class MedicalInventoryCategoryScreen extends StatelessWidget {
                   SizedBox(height: 4),
                   Row(
                     children: [
-                      _countChip('$subCategoryCount Category'),
+                      _countChip('$subCategoryCount ${AppStrings.medicalCategorySuffix.tr}'),
                       SizedBox(width: 6),
-                      _countChip('$productCount Product'),
+                      _countChip('$productCount ${AppStrings.medicalProductSuffix.tr}'),
                     ],
                   ),
                 ],

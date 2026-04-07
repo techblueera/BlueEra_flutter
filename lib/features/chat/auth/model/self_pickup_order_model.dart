@@ -51,8 +51,11 @@ class SelfPickupOrderModel {
 class SelfPickupItem {
   String? inventoryId;
   String? productVariantId;
+  String? productId;
+  String? variantId;
   String? productName;
   String? variantName;
+  String? quantityLabel;
   String? unit;
   List<SelfPickupItemImage>? images;
   int? quantity;
@@ -62,8 +65,11 @@ class SelfPickupItem {
   SelfPickupItem({
     this.inventoryId,
     this.productVariantId,
+    this.productId,
+    this.variantId,
     this.productName,
     this.variantName,
+    this.quantityLabel,
     this.unit,
     this.images,
     this.quantity,
@@ -75,13 +81,19 @@ class SelfPickupItem {
     return SelfPickupItem(
       inventoryId: json['inventoryId']?.toString(),
       productVariantId: json['productVariantId']?.toString(),
+      productId: json['productId']?.toString(),
+      variantId: json['variantId']?.toString(),
       productName: json['productName']?.toString(),
       variantName: json['variantName']?.toString(),
+      quantityLabel: json['quantityLabel']?.toString(),
       unit: json['unit']?.toString(),
       images: json['images'] != null
-          ? (json['images'] as List)
-              .map((e) => SelfPickupItemImage.fromJson(e))
-              .toList()
+          ? (json['images'] as List).map((e) {
+              if (e is String) {
+                return SelfPickupItemImage(url: e);
+              }
+              return SelfPickupItemImage.fromJson(e);
+            }).toList()
           : null,
       quantity: json['quantity'] is int
           ? json['quantity']
@@ -95,8 +107,11 @@ class SelfPickupItem {
     return {
       'inventoryId': inventoryId,
       'productVariantId': productVariantId,
+      'productId': productId,
+      'variantId': variantId,
       'productName': productName,
       'variantName': variantName,
+      'quantityLabel': quantityLabel,
       'unit': unit,
       'images': images?.map((e) => e.toJson()).toList(),
       'quantity': quantity,

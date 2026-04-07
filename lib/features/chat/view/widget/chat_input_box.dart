@@ -1069,6 +1069,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                             },
                           ),
                           onTap: () async {
+                            if (chatViewController.isSending.value) return;
                             if (chatViewController.isTextFieldEmpty.value) {
                               if (chatViewController.sendMessageController.value.text
                                   .isNotEmpty) {

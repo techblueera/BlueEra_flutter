@@ -6,7 +6,6 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../core/services/e2e/e2e_key_service.dart';
 import '../../../../environment_config.dart';
 
 class ChatSocketService {
@@ -20,11 +19,6 @@ class ChatSocketService {
 
   bool _isConnected = false;
 
-  // Resolved protocol version after handshake ('e2e' | 'plain')
-  String _resolvedProtocol = 'plain';
-  String get resolvedProtocol => _resolvedProtocol;
-  bool   get isE2EEnabled    => _resolvedProtocol == 'e2e';
-
   // Exponential backoff for reconnection
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 5;
@@ -35,13 +29,6 @@ class ChatSocketService {
 
   // All registered listeners — kept so they can be re-registered on reconnect
   final List<MapEntry<String, Function(dynamic)>> _registeredListeners = [];
-
-  // Callbacks for E2E events (set by ChatViewController after socket connects)
-  Function(Map<String, dynamic>)? _onE2EMessageNew;
-  Function(Map<String, dynamic>)? _onE2EMessageStatus;
-  Function(Map<String, dynamic>)? _onE2ESyncComplete;
-  Function(int remainingCount)?    _onPrekeyLow;
-  Function(String protocol)?       _onProtocolResolved;
 
   // ─── Connect ───────────────────────────────────────────────────────────────
 
@@ -55,19 +42,13 @@ class ChatSocketService {
       // Dispose old socket if exists
       _socket?.dispose();
 
-      // Fetch device ID for E2E capability handshake
-      final deviceId = await E2EKeyService().getOrCreateDeviceId();
-
       _socket = IO.io(chatSocketUrl,
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setPath('/socket')
             .enableForceNew()
             .setAuth({
-              'token':        '$authTokenGlobal',
-              // Phase 1: signal E2E capability to server
-              'capabilities': {'e2e': true},
-              'deviceId':     deviceId,
+              'token': '$authTokenGlobal',
             })
             .build(),
       );
@@ -96,9 +77,6 @@ class ChatSocketService {
           _registeredListeners.add(entry);
         }
         _pendingListeners.clear();
-
-        // Attach E2E protocol + message events
-        _attachE2EListeners();
       });
 
       _socket!.onConnectError((err) {
@@ -107,7 +85,6 @@ class ChatSocketService {
 
       _socket!.onDisconnect((_) {
         _isConnected = false;
-        _resolvedProtocol = 'plain';
         if (kDebugMode) print('Chat socket disconnected');
         _scheduleReconnect();
       });
@@ -116,130 +93,6 @@ class ChatSocketService {
       if (kDebugMode) print("Socket connection failed: $e");
       rethrow;
     }
-  }
-
-  // ─── E2E Event Listeners ───────────────────────────────────────────────────
-
-  void _attachE2EListeners() {
-    // Phase 1: Protocol resolved after connection
-    _socket!.off(ChatEmitEvents.e2eProtocolResolved);
-    _socket!.on(ChatEmitEvents.e2eProtocolResolved, (data) {
-      final d = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
-      _resolvedProtocol = (d['version'] as String?) ?? 'plain';
-      if (kDebugMode) print('[E2E] Protocol resolved: $_resolvedProtocol');
-      _onProtocolResolved?.call(_resolvedProtocol);
-    });
-
-    // Phase 1: Upgrade nudge for plain clients (informational only)
-    _socket!.off(ChatEmitEvents.e2eProtocolUpgrade);
-    _socket!.on(ChatEmitEvents.e2eProtocolUpgrade, (data) {
-      final d = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
-      if (kDebugMode) print('[E2E] Upgrade available: ${d['message']}');
-    });
-
-    // Phase 2: OPK pool running low — replenish
-    _socket!.off(ChatEmitEvents.e2ePrekeyLow);
-    _socket!.on(ChatEmitEvents.e2ePrekeyLow, (data) {
-      final d = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
-      final remaining = (d['remainingCount'] as int?) ?? 0;
-      if (kDebugMode) print('[E2E] prekey:low — remaining: $remaining');
-      _onPrekeyLow?.call(remaining);
-    });
-
-    // Phase 3: New encrypted message received
-    _socket!.off(ChatEmitEvents.e2eMessageNew);
-    _socket!.on(ChatEmitEvents.e2eMessageNew, (data) {
-      if (kDebugMode) print('[E2E] message:new received');
-      if (data is Map) {
-        _onE2EMessageNew?.call(Map<String, dynamic>.from(data));
-      }
-    });
-
-    // Phase 3: Message delivery status
-    _socket!.off(ChatEmitEvents.e2eMessageStatus);
-    _socket!.on(ChatEmitEvents.e2eMessageStatus, (data) {
-      if (kDebugMode) print('[E2E] message:status: ${data['status']}');
-      if (data is Map) {
-        _onE2EMessageStatus?.call(Map<String, dynamic>.from(data));
-      }
-    });
-
-    // Phase 4: Server confirms sync cursor persisted
-    _socket!.off(ChatEmitEvents.e2eSyncComplete);
-    _socket!.on(ChatEmitEvents.e2eSyncComplete, (data) {
-      if (kDebugMode) {
-        print('[E2E] sync:complete — conversation ${data['conversation_id']} at seq ${data['seq_num']}');
-      }
-      if (data is Map) {
-        _onE2ESyncComplete?.call(Map<String, dynamic>.from(data));
-      }
-    });
-  }
-
-  // ─── Register E2E Callbacks ────────────────────────────────────────────────
-
-  /// Register callback for new E2E messages (message:new).
-  void onE2EMessageNew(Function(Map<String, dynamic>) callback) {
-    _onE2EMessageNew = callback;
-  }
-
-  /// Register callback for message status updates (message:status).
-  void onE2EMessageStatus(Function(Map<String, dynamic>) callback) {
-    _onE2EMessageStatus = callback;
-  }
-
-  /// Register callback for sync:complete acknowledgements.
-  void onE2ESyncComplete(Function(Map<String, dynamic>) callback) {
-    _onE2ESyncComplete = callback;
-  }
-
-  /// Register callback for prekey:low events (replenish OPKs).
-  void onPrekeyLow(Function(int remainingCount) callback) {
-    _onPrekeyLow = callback;
-  }
-
-  /// Register callback for protocol:resolved (to know if E2E is active).
-  void onProtocolResolved(Function(String protocol) callback) {
-    _onProtocolResolved = callback;
-  }
-
-  // ─── E2E Emit Methods ──────────────────────────────────────────────────────
-
-  /// Phase 3: Send an encrypted message via `message:send`.
-  ///
-  /// [ciphertextEntries] — list of {deviceId, body} per recipient device.
-  /// [encryptedMediaRefs] — optional list of {s3_key, mime_type, size}.
-  void sendEncryptedMessage({
-    required String conversationId,
-    required List<Map<String, String>> ciphertextEntries,
-    List<Map<String, dynamic>>? encryptedMediaRefs,
-  }) {
-    final payload = <String, dynamic>{
-      'conversation_id': conversationId,
-      'type':            'e2e',
-      'ciphertext':      ciphertextEntries,
-      // Always include encrypted_media (empty array for text-only) — matches web tester
-      'encrypted_media': encryptedMediaRefs ?? [],
-    };
-    emitEvent(ChatEmitEvents.e2eMessageSend, payload);
-  }
-
-  /// Phase 3: Send delivery acknowledgement (`message:ack`).
-  void sendMessageAck(String messageId) {
-    emitEvent(ChatEmitEvents.e2eMessageAck, {'message_id': messageId});
-  }
-
-  /// Phase 4: Notify server that sync is complete — persists the cursor.
-  void sendSyncComplete({
-    required String conversationId,
-    required int seqNum,
-    required String deviceId,
-  }) {
-    emitEvent(ChatEmitEvents.e2eMessageSyncComplete, {
-      'conversation_id': conversationId,
-      'seq_num':         seqNum,
-      'deviceId':        deviceId,
-    });
   }
 
   // ─── Generic Emit / Listen ─────────────────────────────────────────────────
@@ -317,7 +170,6 @@ class ChatSocketService {
 
   void disposeSocket() {
     _isConnected = false;
-    _resolvedProtocol = 'plain';
     _reconnectAttempts = 0;
     _reconnectTimer?.cancel();
     _registeredListeners.clear();

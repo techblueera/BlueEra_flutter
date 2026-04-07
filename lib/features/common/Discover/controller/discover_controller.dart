@@ -138,6 +138,7 @@ class DiscoverController extends GetxController {
   RxDouble? selectedToLong = 0.0.obs;
   RxString? selectedFromAddress = "".obs;
   RxString? selectedToAddress = "".obs;
+  RxString transportDistanceText = "".obs;
   RxString selectedRideType = AppConstants.oneWay.obs;
   RxString selectedBookingFor = AppConstants.mySelf.obs;
   final myFriendPhoneController = TextEditingController();

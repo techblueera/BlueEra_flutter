@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -45,8 +46,8 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                       ? AppColors.primaryColor
                       : Colors.grey,
                   title:
-                      'Publish ${controller.selectedMedicalProducts.length} Products, '
-                      '${controller.selectedProductVariants.length} Variants',
+                      '${AppStrings.medicalPublishPrefix.tr} ${controller.selectedMedicalProducts.length} ${AppStrings.medicalPublishProductsLabel.tr}, '
+                      '${controller.selectedProductVariants.length} ${AppStrings.medicalPublishVariantsLabel.tr}',
                   isLoading: controller.isAddMedicalProductsLoading.value,
                 );
               },
@@ -174,7 +175,7 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                   child: CustomText(
                                                     (v.weight != null || v.unit != null)
                                                         ? '${v.weight ?? '-'} ${v.unit ?? ''}'
-                                                        : 'Weight not set',
+                                                        : AppStrings.medicalWeightNotSet.tr,
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.mainTextColor,
@@ -193,7 +194,7 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                   child: CustomText(
                                                     (v.pricing != null && v.pricing!.isNotEmpty && v.pricing![0].mrp != null)
                                                         ? '₹${v.pricing![0].mrp!.toStringAsFixed(2)}'
-                                                        : 'MRP not set',
+                                                        : AppStrings.medicalMrpNotSet.tr,
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.mainTextColor,
@@ -212,7 +213,7 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                   child: CustomText(
                                                     (v.pricing != null && v.pricing!.isNotEmpty && v.pricing![0].sellingPrice != null)
                                                         ? '₹${v.pricing![0].sellingPrice!.toStringAsFixed(2)}'
-                                                        : 'Price not set',
+                                                        : AppStrings.medicalPriceNotSet.tr,
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.mainTextColor,
@@ -227,7 +228,7 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                         .openEditVariantDialog(
                                                       context: context,
                                                       title: groceryItem.name ??
-                                                          'Edit Variant',
+                                                          AppStrings.medicalEditVariant.tr,
                                                       variant:
                                                           groceryItem.variants![
                                                               variantIndex],
@@ -273,7 +274,7 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                               ),
                               SizedBox(width: 6),
                               CustomText(
-                                "Add More Variant",
+                                AppStrings.medicalAddMoreVariant,
                                 color: AppColors.primaryColor,
                                 fontWeight: FontWeight.w600,
                                 fontSize: SizeConfig.small,

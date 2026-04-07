@@ -129,7 +129,7 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                               onTap: null,
                               isValidate: false,
                               radius: SizeConfig.size10,
-                              title: '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} Products',
+                              title: '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} ${AppStrings.medicalPublishProductsLabel.tr}',
                               // isLoading: authController.isAddBusinessUserLoading.value
                               borderColor: AppColors.primaryColor,
                               textColor: AppColors.primaryColor,
@@ -143,7 +143,7 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                             },
                             isValidate: true,
                             radius: SizeConfig.size10,
-                            title: 'View Cart',
+                            title: AppStrings.medicalViewCart.tr,
                             width: SizeConfig.size100,
                             // isLoading: authController.isAddBusinessUserLoading.value
                           ),
@@ -195,42 +195,6 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    // // Max Limit Error
-                    // if (controller.isMaxLimitHit)
-                    //   Container(
-                    //     width: SizeConfig.screenWidth,
-                    //     decoration: BoxDecoration(
-                    //         color: AppColors.redBE,
-                    //         borderRadius: BorderRadius.circular(10.0)
-                    //     ),
-                    //     margin: EdgeInsets.only(bottom: SizeConfig.size10),
-                    //     padding: EdgeInsets.symmetric(
-                    //         vertical: SizeConfig.size4,
-                    //         horizontal: SizeConfig.size10
-                    //     ),
-                    //     child: FittedBox(
-                    //       fit: BoxFit.scaleDown,
-                    //       child: Row(
-                    //         children: [
-                    //           LocalAssets(
-                    //               imagePath: AppIconAssets.warningOutlineIcon,
-                    //               width: SizeConfig.size20,
-                    //               height: SizeConfig.size20
-                    //           ),
-                    //           SizedBox(width: SizeConfig.size8),
-                    //           CustomText(
-                    //             'You can’t select more than ${controller.maxLimit} products at a time.',
-                    //             color: AppColors.redLite,
-                    //             fontSize: SizeConfig.extraSmall,
-                    //             fontWeight: FontWeight.w400,
-                    //           ),
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-
-                    // GRID
                     Expanded(
                         child: controller.isUserMedicalLoading.value
                             ? Center(
@@ -289,7 +253,7 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                                     padding: EdgeInsets.all(SizeConfig.size20),
                                     child: EmptyStateWidget(
                                         message:
-                                            'No ${widget.arrLevel3Category.first.name?.tr} found.'))
+                                            '${AppStrings.medicalNoFoundPrefix.tr} ${widget.arrLevel3Category.first.name?.tr} ${AppStrings.medicalNoFoundSuffix.tr}'))
                     )
                   ],
                 ),
@@ -297,16 +261,6 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
   }
 
   Widget medicalCard(MedicalProductData groceryProductData) {
-    // final price = groceryController
-    //     .getPriceDetails(groceryProductData.variants?[0].pricing);
-    // print("Selling Range: ${price.sellingRange}");
-    // print("MRP Range: ${price.mrpRange}");
-    // print("Discount Range: ${price.discountRange}");
-    // final sellingPrice = price.sellingRange;
-    // final mrp = price.mrpRange;
-    // final discount = price.discountRange;
-
-
     final sellingPrice = "₹${groceryProductData.variants?[0].pricing?[0].sellingPrice}";
     final mrp = "₹${groceryProductData.variants?[0].pricing?[0].mrp}";
     final discount = '${calculateDiscount(
@@ -369,7 +323,7 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                         () {
                       if (groceryProductData.variants == null ||
                           groceryProductData.variants!.isEmpty) {
-                        commonSnackBar(message: 'No variants available');
+                        commonSnackBar(message: AppStrings.medicalNoVariantsAvailable);
                         return;
                       }
 
@@ -708,7 +662,7 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                 child: CustomBtn(
                   width: SizeConfig.size70,
                   height: SizeConfig.size30,
-                  title: isAdded ? 'ADDED' : 'ADD',
+                  title: isAdded ? AppStrings.medicalAddedCaps.tr : AppStrings.medicalAddCaps.tr,
                   onTap: isAdded ? null : onAdd,
                   textColor: AppColors.primaryColor,
                   borderColor: AppColors.primaryColor,
@@ -737,9 +691,9 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
 
   Widget _header(BuildContext context) => Row(
         children: [
-          const Expanded(
+          Expanded(
             child: CustomText(
-              "All Variants",
+              AppStrings.medicalAllVariants,
               fontWeight: FontWeight.w600,
             ),
           ),

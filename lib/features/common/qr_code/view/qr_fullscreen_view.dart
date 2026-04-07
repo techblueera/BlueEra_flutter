@@ -60,38 +60,41 @@ class QrFullScreenView extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: RepaintBoundary(
-                key: _repaintKey,
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 12,
-                        spreadRadius: 4,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Only the QR card sits inside the RepaintBoundary so that
+                  // the captured image (used by Download / Share) contains
+                  // ONLY the design — never the action buttons below it.
+                  RepaintBoundary(
+                    key: _repaintKey,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade200,
+                            blurRadius: 12,
+                            spreadRadius: 4,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-
-                      QrDesignCardWidget(
+                      child: QrDesignCardWidget(
                         design: design,
                         qrData: _qrData,
                         userName: userName,
                         isThumbnail: false,
                       ),
-                      const SizedBox(height: 20),
-
-                      _buildActionBar(),
-
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+
+                  // Action bar lives OUTSIDE the RepaintBoundary so it
+                  // never appears in the downloaded / shared image.
+                  _buildActionBar(),
+                ],
               ),
             ),
           ),

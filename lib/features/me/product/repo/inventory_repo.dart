@@ -138,4 +138,28 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
+  /// Place bulk product self-pickup order
+  Future<ResponseModel> placeBulkProductOrderApi(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      placeBulkProductOrder,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Mark product self-pickup order as ready (seller side)
+  Future<ResponseModel> markProductOrderReadyRepo(
+      {required String orderId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      productOrderReady(orderId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

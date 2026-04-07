@@ -359,7 +359,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: CustomText(
-                            'Submit Order',
+                            'Place Order',
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w700,
                             color: AppColors.white,

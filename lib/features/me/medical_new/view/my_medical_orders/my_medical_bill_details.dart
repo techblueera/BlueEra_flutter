@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
@@ -91,7 +92,7 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
               // SizedBox(height: SizeConfig.size16),
 
               CustomText(
-                  "${billDetails?.totalNoOfMissingItems} Item Missing",
+                  "${billDetails?.totalNoOfMissingItems} ${AppStrings.medicalItemMissingSuffix.tr}",
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.redB4
@@ -109,7 +110,7 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
                   children: [
                     _buildSummaryRow(
                         imagePath: AppIconAssets.cartListIcon,
-                        label: "Total Items",
+                        label: AppStrings.totalItems.tr,
                         value: '${billDetails?.totalNoofAvailableItems.toString().padLeft(2, '0')}'
                     ),
                     CommonHorizontalDivider(
@@ -118,7 +119,7 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
                     ),
                     _buildSummaryRow(
                         imagePath: AppIconAssets.handPriceIcon,
-                        label: "Total MRP",
+                        label: AppStrings.totalMRP.tr,
                         value: '₹${billDetails?.totalPrice}'
                     ),
                   ],
@@ -141,10 +142,10 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                             style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
                             children: [
-                              TextSpan(text: "Net Payment From Rider"),
+                              TextSpan(text: AppStrings.medicalNetPaymentFromRider.tr),
                             ]
                         ),
                       ),
@@ -163,7 +164,7 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
 
               // --- 4. Payment Mode Selector ---
               CustomText(
-                "Payment Mode",
+                AppStrings.medicalPaymentMode,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -186,7 +187,7 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
               CustomBtn(
                 title: controller.isSubmitOrderToRiderLoading.value
                     ? null
-                    : "Submit",
+                    : AppStrings.submit.tr,
                 onTap: () => controller.submitOrderToRider(
                   groceryOrderId: billDetails?.groceryOrderId ?? '',
                   riderOrderId: billDetails?.rideOrderId ?? '',
@@ -220,7 +221,7 @@ class _MedicalBillDetailsSheetState extends State<MedicalBillDetailsSheet> {
     children: [
       Expanded(
         child: CustomText(
-          "Bill Details",
+          AppStrings.billDetails,
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.large,
           color: AppColors.mainTextColor,

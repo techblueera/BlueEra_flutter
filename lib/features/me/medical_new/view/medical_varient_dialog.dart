@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -95,18 +96,18 @@ class _MedicalVariantDialogState extends State<MedicalVariantDialog> {
 
                 Row(
                   children: [
-                    Expanded(child: _input("Quantity", "E.g. 100GM", weightController, isNumber: true)),
+                    Expanded(child: _input(AppStrings.medicalQuantity.tr, AppStrings.medicalEgQuantity.tr, weightController, isNumber: true)),
                     const SizedBox(width: 8),
-                    Expanded(child: _input("Unit", "GM / KG / PCS", unitController, isCapitalize: true)),
+                    Expanded(child: _input(AppStrings.medicalUnit.tr, AppStrings.medicalUnitHint.tr, unitController, isCapitalize: true)),
                   ],
                 ),
 
                 const SizedBox(height: 12),
 
-                _input("MRP", "E.g. ₹1,999", mrpController, isNumber: true),
+                _input(AppStrings.medicalMrp.tr, AppStrings.medicalEgRupeeMrp.tr, mrpController, isNumber: true),
                 const SizedBox(height: 12),
 
-                _input("Selling Price", "E.g. ₹1,999", sellingController, isNumber: true),
+                _input(AppStrings.medicalSellingPrice.tr, AppStrings.medicalEgRupeeMrp.tr, sellingController, isNumber: true),
                 const SizedBox(height: 20),
 
                 Align(
@@ -123,7 +124,7 @@ class _MedicalVariantDialogState extends State<MedicalVariantDialog> {
                     }
                         : null,
                     child: CustomText(
-                      "Submit",
+                      AppStrings.medicalSubmit,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w600,
                       color: (isFormValid && !isLoading)

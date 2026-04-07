@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_order_model.dart';
@@ -86,8 +88,8 @@ class _MedicalOrderCardState extends State<MedicalOrderCard> {
                     fontFamily: 'OpenSans', // Make sure to define your font family if not default
                   ),
                   children: [
-                    const TextSpan(
-                      text: 'Order ID - ',
+                    TextSpan(
+                      text: '${AppStrings.medicalOrderIdLabel.tr} - ',
                     ),
                     TextSpan(
                       text: _order.orderId,
@@ -151,7 +153,7 @@ class _MedicalOrderCardState extends State<MedicalOrderCard> {
               );
             },
             child: CustomText(
-              'View',
+              AppStrings.view,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
@@ -167,7 +169,7 @@ class _MedicalOrderCardState extends State<MedicalOrderCard> {
       children: [
         Expanded(
           child: CustomText(
-            '${_order.missingItemsCount} Item Missing',
+            '${_order.missingItemsCount} ${AppStrings.medicalItemMissingSuffix.tr}',
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.redB4,
@@ -192,7 +194,7 @@ class _MedicalOrderCardState extends State<MedicalOrderCard> {
                 ),
             ),
             child: CustomText(
-              'Complete',
+              AppStrings.medicalCompleteLabel,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
