@@ -80,7 +80,7 @@ class RcBookCardWidget extends StatelessWidget {
             CustomBtn(
               title: controller.isRiderPersonalIdentificationLoading.value
                   ? null
-                  : "Upload",
+                  : AppStrings.upload,
               onTap: () =>
                   controller.ridersRcBookVerificationApi(),
               radius: 10.0,

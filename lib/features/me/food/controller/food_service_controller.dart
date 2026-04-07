@@ -56,12 +56,12 @@ class FoodServiceController extends GetxController {
   FoodProductSnapSearchData? productSnapSearchData;
   List<Map<String, String>> foodSnapSearchPhotos = [
     {
-      'title': 'Upload Grocery List',
+      'title': AppStrings.groceryUploadList,
       'icon': AppIconAssets.cameraAddOutlineIcon,
       'image': AppImageAssets.groceryImageFirst,
     },
     {
-      'title': 'Search Manually',
+      'title': AppStrings.grocerySearchManually,
       'icon': AppIconAssets.search,
       'image': AppImageAssets.groceryImageSecond,
     },

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_self_pickup_cart_screen.dart';
@@ -119,7 +120,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         appBar: CommonBackAppBar(
           isCustomTitleWidget: () => Obx(() => Text(
             controller.selectedGroceryOrFoodCategoryData.value == null
-                ? 'Grocery & Stationary'
+                ? AppStrings.groceryNdStationary.tr
                 : controller.selectedGroceryOrFoodCategoryData.value?.name ?? '',
             style: const TextStyle(
               fontSize: 18,
@@ -201,7 +202,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
       if (controller.allStore.isEmpty) {
         return Center(
             child: EmptyStateWidget(
-                message: "No ${controller.selectedGroceryOrFoodCategoryData.value?.name ?? 'stores'} found"));
+                message: AppStrings.groceryNoStoresFound));
       }
 
       return AnimatedSwitcher(
@@ -231,7 +232,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         size: 14, color: AppColors.primaryColor),
                     const SizedBox(width: 6),
                     CustomText(
-                      "${controller.allStore.length}${controller.isAllStoreLoadingMore.value ? '+' : ''} Stores",
+                      "${controller.allStore.length}${controller.isAllStoreLoadingMore.value ? '+' : ''} ${AppStrings.groceryStoresLabel}",
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -466,8 +467,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
               const SizedBox(height: 24),
 
               // Message Text
-              const CustomText(
-                "Place Order Unless Your\nCard Will Be Empty,\nYou Can't See Selected Items",
+              CustomText(
+                AppStrings.groceryCartWarningMessage,
                 textAlign: TextAlign.center,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -492,7 +493,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
-                          "Skip",
+                          AppStrings.skip,
                           color: AppColors.secondaryTextColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -514,8 +515,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const CustomText(
-                          "Place Order",
+                      child: CustomText(
+                          AppStrings.groceryPlaceOrderBtn,
                         color: AppColors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

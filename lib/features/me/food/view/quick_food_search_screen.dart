@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/new_food_home_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -118,7 +119,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
                 CustomText(
                   LocationService.userCurrentAddress.value.subLocality.isNotEmpty
                       ? LocationService.userCurrentAddress.value.subLocality
-                      : 'Current Location',
+                      : AppStrings.currentLocation,
                   fontWeight: FontWeight.w700,
                   fontSize: SizeConfig.medium,
                   maxLines: 1,
@@ -168,7 +169,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: CustomText(
-                  'Search for dishes & restaurants',
+                  AppStrings.searchForDishesAndRestaurants,
                   fontSize: 14,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -198,7 +199,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
             child: CustomText(
-              "What's on your mind?",
+              AppStrings.whatsOnYourMind,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -300,7 +301,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  'Known & Loved',
+                  AppStrings.knownAndLoved,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
@@ -315,7 +316,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
                     //     ));
                   },
                   child: CustomText(
-                    'See all >',
+                    '${AppStrings.seeAll.tr} >',
                     fontSize: SizeConfig.medium,
                     color: AppColors.red,
                     fontWeight: FontWeight.w600,
@@ -335,7 +336,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
               if (controller.foodRestaurantDataList.isEmpty) {
                 return Center(
                   child: CustomText(
-                    'No restaurants found',
+                    AppStrings.noRestaurantsFound,
                     color: AppColors.secondaryTextColor,
                   ),
                 );
@@ -388,7 +389,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
             ),
             const SizedBox(height: 8),
             CustomText(
-              profile?.businessName ?? 'Restaurant',
+              profile?.businessName ?? AppStrings.restaurant.tr,
               fontWeight: FontWeight.w600,
               fontSize: 13,
               maxLines: 1,
@@ -440,7 +441,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'All Restaurants',
+            AppStrings.allRestaurants,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w700,
             color: AppColors.mainTextColor,
@@ -450,13 +451,13 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _filterChip('Sort by', icon: Icons.swap_vert),
+                _filterChip(AppStrings.sortBy.tr, icon: Icons.swap_vert),
                 SizedBox(width: SizeConfig.size8),
-                _filterChip('Pure Veg'),
+                _filterChip(AppStrings.pureVeg.tr),
                 SizedBox(width: SizeConfig.size8),
-                _filterChip('Under 30 min'),
+                _filterChip(AppStrings.under30Min.tr),
                 SizedBox(width: SizeConfig.size8),
-                _filterChip('Rating 4.0+'),
+                _filterChip(AppStrings.ratingFourPlus.tr),
               ],
             ),
           ),
@@ -511,7 +512,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
             padding: const EdgeInsets.all(40),
             child: Center(
               child: CustomText(
-                'No restaurants found nearby',
+                AppStrings.noRestaurantsFoundNearby,
                 color: AppColors.secondaryTextColor,
               ),
             ),
@@ -578,7 +579,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    profile?.businessName ?? 'Restaurant',
+                    profile?.businessName ?? AppStrings.restaurant.tr,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                     maxLines: 1,
@@ -615,7 +616,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
                       ],
                       if ((profile?.total_ratings ?? 0) > 0)
                         CustomText(
-                          '(${profile?.total_ratings} ratings)',
+                          '(${profile?.total_ratings} ${AppStrings.ratingsCountLabel.tr})',
                           fontSize: 11,
                           color: AppColors.secondaryTextColor,
                         ),

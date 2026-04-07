@@ -34,7 +34,12 @@
       "Bash(export PATH=\"$PATH:$HOME/Library/Android/sdk/platform-tools\")",
       "Bash(git log:*)",
       "Bash(awk:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(file:*)",
+      "Bash(flutter clean:*)",
+      "Bash(ls /Users/Mr.bhavesh/Documents/GitHub/BlueEra_flutter/android/app/src/main/res/drawable*/BEONLYLOGO.png)",
+      "Bash(ls /Users/Mr.bhavesh/Documents/GitHub/BlueEra_flutter/android/app/src/main/res/drawable*/ic_launcher_foreground.png)",
+      "Bash(git status:*)"
     ]
   }
 }

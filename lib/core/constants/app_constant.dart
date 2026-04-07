@@ -10,9 +10,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
@@ -20,27 +17,16 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/auth/views/screens/choose_account_type_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
-import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
-import '../../features/chat/view/chat_theme/chat_background_screen.dart';
-import '../../features/chat/view/contacts/view/contact_list_page.dart';
-import '../../features/chat/view/symbol_view/symbol_view_images.dart';
-import '../../features/chat/view/add_symbol/add_symbol_screen.dart';
-import '../../features/common/auth/model/get_categories_model.dart';
-import '../../features/personal/personal_profile/view/manage_notification/notification.dart';
-import '../../features/chat/view/wallet_chat/wallet_chat_screen.dart';
 
 class AppConstants {
   static const String rupeeSymbol = '\u20B9';
@@ -3464,14 +3450,14 @@ final List<Map<String, String>> chooseDeliveryOptions = [
   {
     "id": "SELF",
     "icon": AppImageAssets.selfPickupIcon,
-    "title": "Self Pick-Up",
-    "subtitle": "Save Your Money & Time"
+    "title": AppStrings.selfPickUpTitle,
+    "subtitle": AppStrings.selfPickUpSubtitle,
   },
   {
     "id": "RIDER",
     "icon": AppIconAssets.riderIconColorful,
-    "title": "Book Rider",
-    "subtitle": "Quick, Personalize, ₹8/Km"
+    "title": AppStrings.bookRiderTitle,
+    "subtitle": AppStrings.bookRiderSubtitle,
   },
   // {
   //   "id": "PARTNER",

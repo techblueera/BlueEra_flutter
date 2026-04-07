@@ -82,7 +82,7 @@ class DrivingLicenceCardWidget extends StatelessWidget {
             CustomBtn(
               title: controller.isRiderPersonalIdentificationLoading.value
                   ? null
-                  : "Upload",
+                  :AppStrings.upload,
               onTap: () => controller.ridersDrivingLicenceVerificationApi(),
               radius: 10.0,
               bgColor: AppColors.primaryColor,

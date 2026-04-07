@@ -88,14 +88,14 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
               } else {
                 return Center(
                     child: EmptyStateWidget(
-                      message: 'No ${widget.type.label.tr} available.',
+                      message: '${AppStrings.noAvailablePrefix.tr} ${widget.type.label.tr} ${AppStrings.noAvailableSuffix.tr}',
                     ));
               }
             }
           } else if (controller.rentalServiceResponse.value.status ==
               Status.ERROR) {
             return LoadErrorWidget(
-                errorMessage: 'Failed to load rental services',
+                errorMessage: AppStrings.failedToLoadRentalServices.tr,
                 onRetry: () => controller.fetchRentalServices(
                   rentalServiceType: widget.type,
                 )
@@ -226,7 +226,7 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
                             imgColor: AppColors.primaryColor,
                           ),
                           label: CustomText(
-                            "Direction",
+                            AppStrings.directionLabel,
                             color: AppColors.primaryColor,
                             fontSize: SizeConfig.small,
                           ),
@@ -267,12 +267,12 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
                             width: 15,
                           ),
                           label: CustomText(
-                            "Reviews",
+                            AppStrings.reviewsTitle,
                             color: AppColors.primaryColor,
                             fontSize: SizeConfig.small,
                           ),
                           onPressed: () {
-                            commonSnackBar(message: "Coming soon");
+                            commonSnackBar(message: AppStrings.comingSoonShort.tr);
                           },
                         ),
                       ),
@@ -300,12 +300,12 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
                             width: 15,
                           ),
                           label: CustomText(
-                            "Book Now",
+                            AppStrings.bookNow,
                             color: AppColors.white,
                             fontSize: SizeConfig.small,
                           ),
                           onPressed: () {
-                            commonSnackBar(message: "Coming soon");
+                            commonSnackBar(message: AppStrings.comingSoonShort.tr);
                           },
                         ),
                       ),

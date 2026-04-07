@@ -140,7 +140,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
             SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
-                onTap: () => commonSnackBar(message: 'Coming Soon....'),
+                onTap: () => commonSnackBar(message: AppStrings.comingSoonLabel.tr),
                 title: AppStrings.bookInquiry,
               ),
             ),
@@ -278,7 +278,7 @@ class _SchoolHeader extends StatelessWidget {
                 _statChip(
                   icon: Icons.star_rounded,
                   iconColor: Colors.amber,
-                  label: "New",
+                  label: AppStrings.newLabel.tr,
                 ),
                 SizedBox(width: SizeConfig.paddingS),
                 if (type.isNotEmpty)
@@ -292,7 +292,7 @@ class _SchoolHeader extends StatelessWidget {
                   _statChip(
                     icon: Icons.calendar_today_outlined,
                     iconColor: AppColors.primaryColor,
-                    label: "Est. $estYear",
+                    label: "${AppStrings.estPrefix.tr} $estYear",
                   ),
               ],
             ),
@@ -338,7 +338,7 @@ class _ManagementSection extends StatelessWidget {
       return _emptySection(
         Icons.people_outline,
         AppStrings.managementTrust.tr,
-        "No management details available.",
+        AppStrings.noManagementDetailsAvailable.tr,
       );
     }
     return SchoolManagementSection(
@@ -360,8 +360,8 @@ class _CoursesSection extends StatelessWidget {
     if (courses.isEmpty) {
       return _emptySection(
         Icons.menu_book_outlined,
-        "Courses",
-        "No courses available.",
+        AppStrings.coursesLabel.tr,
+        AppStrings.noCoursesAvailable.tr,
       );
     }
     return SchoolCourseSection(courses: courses, isEdit: false);
@@ -389,7 +389,7 @@ class _GallerySection extends StatelessWidget {
       return _emptySection(
         Icons.photo_library_outlined,
         AppStrings.gallery.tr,
-        "No photos available.",
+        AppStrings.noPhotosAvailableMsg.tr,
       );
     }
 
@@ -423,7 +423,7 @@ class _QuickLinksSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.link_outlined, "Quick Links"),
+            _sectionHeader(Icons.link_outlined, AppStrings.quickLinksLabel.tr),
             SizedBox(height: SizeConfig.paddingXS),
             _quickLinkTile(
               icon: Icons.work_outline,
@@ -493,8 +493,8 @@ class _ReviewsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _emptySection(
       Icons.rate_review_outlined,
-      "Reviews",
-      "No reviews yet. Be the first to review!",
+      AppStrings.reviewsTitle.tr,
+      AppStrings.noReviewsYet.tr,
     );
   }
 }
@@ -514,7 +514,7 @@ class _ContactUsSection extends StatelessWidget {
       return _emptySection(
         Icons.phone_outlined,
         AppStrings.contactUs.tr,
-        "No contact details available.",
+        AppStrings.noContactDetailsMsg.tr,
       );
     }
 
@@ -544,7 +544,7 @@ class _ContactUsSection extends StatelessWidget {
       child: ExpansionTile(
         shape: const RoundedRectangleBorder(side: BorderSide.none),
         title: CustomText(
-          contact.branch?.name ?? "Branch",
+          contact.branch?.name ?? AppStrings.branchLabel.tr,
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.size14,
         ),

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -117,7 +118,8 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
                 children: [
                   Expanded(
                     child: CustomText(
-                      "Add More Services",
+                      AppStrings.addService,
+                      // "Add More Services",
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.large,
                       color: AppColors.mainTextColor,
@@ -173,7 +175,7 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
                       size: 20
                   ),
                   label: CustomText(
-                    "Add More",
+                   AppStrings.addMore,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,
@@ -185,7 +187,7 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
 
               // --- Upload Button ---
               CustomBtn(
-                title: "Upload",
+                title:AppStrings.upload,
                 onTap: _handleUpload,
                 bgColor: AppColors.primaryColor,
                 radius: 10,

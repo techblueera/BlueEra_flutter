@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -28,8 +29,8 @@ class AddBankAccountScreen extends StatelessWidget {
       backgroundColor: AppColors.whiteF1,
       appBar: CommonBackAppBar(
         title: controller.isupdate.value
-            ? 'Update Bank Account'
-            : 'Add Bank Account',
+            ? AppStrings.updateBankAccount
+            : AppStrings.addBankAccount,
         isLeading: true,
       ),
       body: AbsorbPointer(
@@ -54,7 +55,7 @@ class AddBankAccountScreen extends StatelessWidget {
 
                         /// IFSC Code Field
                         CustomText(
-                          'Select Account Type',
+                          AppStrings.selectAccountType,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.mainTextColor,
@@ -64,7 +65,7 @@ class AddBankAccountScreen extends StatelessWidget {
                           items: ['Bank Account', "UPI"],
                           selectedValue: controller.selectedBankAccountType
                               .value,
-                          hintText: 'Select Account',
+                          hintText: AppStrings.selectAccount.tr,
                           onChanged: (val) {
                             controller.selectedBankAccountType.value =
                                 val ?? '';
@@ -75,7 +76,7 @@ class AddBankAccountScreen extends StatelessWidget {
 
                         /// Bank Name Field
                         CustomText(
-                          'Bank Name',
+                          AppStrings.bankName,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.mainTextColor,
@@ -83,7 +84,7 @@ class AddBankAccountScreen extends StatelessWidget {
                         SizedBox(height: SizeConfig.size8),
                         CommonTextField(
                           textEditController: controller.bankNameController,
-                          hintText: 'E.g. State Bank Of India',
+                          hintText: AppStrings.bankNameHint.tr,
                           keyBoardType: TextInputType.text,
                           validator: ValidationMethod.validateBankName,
                           maxLength: AppConstants.inputCharterLimit20,
@@ -100,7 +101,7 @@ class AddBankAccountScreen extends StatelessWidget {
                           Column(crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CustomText(
-                                'Bank Holder Name',
+                                AppStrings.bankHolderName,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.mainTextColor,
@@ -109,7 +110,7 @@ class AddBankAccountScreen extends StatelessWidget {
                               CommonTextField(
                                 textEditController:
                                 controller.bankHolderNameController,
-                                hintText: 'E.g.Bank Holder Name',
+                                hintText: AppStrings.bankHolderNameHint.tr,
                                 maxLength: AppConstants.inputCharterLimit20,
                                 keyBoardType: TextInputType.text,
                                 validator: ValidationMethod
@@ -123,7 +124,7 @@ class AddBankAccountScreen extends StatelessWidget {
 
                               /// Account Number Field
                               CustomText(
-                                'Account Number',
+                                AppStrings.accountNumber,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.mainTextColor,
@@ -132,7 +133,7 @@ class AddBankAccountScreen extends StatelessWidget {
                               CommonTextField(
                                 textEditController:
                                 controller.accountNumberController,
-                                hintText: 'E.g. 1234567890',
+                                hintText: AppStrings.accountNumberHint.tr,
                                 keyBoardType: TextInputType.number,
                                 validator: ValidationMethod
                                     .validateAccountNumber,
@@ -146,7 +147,7 @@ class AddBankAccountScreen extends StatelessWidget {
 
                               /// IFSC Code Field
                               CustomText(
-                                'IFSC code',
+                                AppStrings.ifscCode,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.mainTextColor,
@@ -155,7 +156,7 @@ class AddBankAccountScreen extends StatelessWidget {
                               CommonTextField(
                                 textEditController: controller
                                     .ifscCodeController,
-                                hintText: 'E.g. SBIN0001234',
+                                hintText: AppStrings.ifscCodeHint.tr,
                                 keyBoardType: TextInputType.text,
                                 inputLength: 11,
                                 validator: ValidationMethod.validateIfscCode,
@@ -171,7 +172,7 @@ class AddBankAccountScreen extends StatelessWidget {
                           Column(crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CustomText(
-                                'UPI ID',
+                                AppStrings.upiId,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.mainTextColor,
@@ -179,7 +180,7 @@ class AddBankAccountScreen extends StatelessWidget {
                               SizedBox(height: SizeConfig.size8),
                               CommonTextField(
                                 textEditController: controller.upiIdController,
-                                hintText: 'E.g.0123456789',
+                                hintText: AppStrings.upiIdHint.tr,
                                 keyBoardType: TextInputType.text,
                                 validator: controller.upiValidate,
                                 contentPadding: EdgeInsets.symmetric(
@@ -213,7 +214,7 @@ class AddBankAccountScreen extends StatelessWidget {
                             }
 
                           },
-                          title: controller.isupdate.value ? 'Update' : 'Add',
+                          title: controller.isupdate.value ? AppStrings.update.tr : AppStrings.add.tr,
                           isLoading: controller.isLoading.value,
                           bgColor: AppColors.primaryColor,
                           textColor: AppColors.white,

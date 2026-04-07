@@ -121,14 +121,14 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                     userId: data.userId ?? '',
                   );
                 },
-                title: "Chat",
+                title: AppStrings.chat.tr,
               ),
             ),
             SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
-                onTap: () => commonSnackBar(message: 'Coming Soon....'),
-                title: "Book Inquiry",
+                onTap: () => commonSnackBar(message: AppStrings.comingSoonLabel.tr),
+                title: AppStrings.bookInquiryLabel.tr,
               ),
             ),
           ],
@@ -254,7 +254,7 @@ class _HeaderSection extends StatelessWidget {
                 _statChip(
                   icon: Icons.star_rounded,
                   iconColor: Colors.amber,
-                  label: "New",
+                  label: AppStrings.newLabel.tr,
                 ),
                 SizedBox(width: SizeConfig.paddingS),
                 // Experience
@@ -314,9 +314,9 @@ class _HeaderSection extends StatelessWidget {
     final y = exp.years ?? 0;
     final m = exp.months ?? 0;
     if (y == 0 && m == 0) return '';
-    if (y > 0 && m > 0) return '${y}y ${m}m exp';
-    if (y > 0) return '${y}y exp';
-    return '${m}m exp';
+    if (y > 0 && m > 0) return '${y}y ${m}m ${AppStrings.yearsMonthsExp.tr}';
+    if (y > 0) return '${y}y ${AppStrings.yearsExp.tr}';
+    return '${m}m ${AppStrings.monthsExp.tr}';
   }
 
   String _capitalize(String text) {
@@ -347,7 +347,7 @@ class _ServicesSectionState extends State<_ServicesSection> {
         '';
 
     if (desc.isEmpty) {
-      return _emptyCard("Our Services", "No services listed yet.");
+      return _emptyCard(AppStrings.ourServices.tr, AppStrings.noServicesListedYet.tr);
     }
 
     return Padding(
@@ -357,7 +357,7 @@ class _ServicesSectionState extends State<_ServicesSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.miscellaneous_services_outlined, "Our Services"),
+            _sectionHeader(Icons.miscellaneous_services_outlined, AppStrings.ourServices.tr),
             SizedBox(height: SizeConfig.paddingXS),
             ExpandableText(
               text: desc,
@@ -389,7 +389,7 @@ class _PortfolioSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final portfolio = data.portfolio ?? [];
     if (portfolio.isEmpty) {
-      return _emptyCard("Projects", "No projects added yet.");
+      return _emptyCard(AppStrings.projectsLabel.tr, AppStrings.noProjectsAddedYet.tr);
     }
 
     return Padding(
@@ -399,7 +399,7 @@ class _PortfolioSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.folder_open_outlined, "Projects"),
+            _sectionHeader(Icons.folder_open_outlined, AppStrings.projectsLabel.tr),
             SizedBox(height: SizeConfig.paddingXS),
             SizedBox(
               height: 160,
@@ -435,7 +435,7 @@ class _CertificatesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final certs = data.certificates ?? [];
     if (certs.isEmpty) {
-      return _emptyCard("Certificates & Awards", "No certificates added yet.");
+      return _emptyCard(AppStrings.certificatesAndAwards.tr, AppStrings.noCertificatesAddedYet.tr);
     }
 
     return Padding(
@@ -445,7 +445,7 @@ class _CertificatesSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.workspace_premium_outlined, "Certificates & Awards"),
+            _sectionHeader(Icons.workspace_premium_outlined, AppStrings.certificatesAndAwards.tr),
             SizedBox(height: SizeConfig.paddingXS),
             SizedBox(
               height: 200,
@@ -507,7 +507,7 @@ class _CertificatesSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      cert.title ?? "Unknown",
+                      cert.title ?? AppStrings.unknown.tr,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.size14,
@@ -546,7 +546,7 @@ class _GallerySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final urls = data.gallery?.signedUrls ?? [];
     if (urls.isEmpty) {
-      return _emptyCard("Gallery", "No photos available.");
+      return _emptyCard(AppStrings.gallery.tr, AppStrings.noPhotosAvailableMsg.tr);
     }
 
     return Padding(
@@ -556,7 +556,7 @@ class _GallerySection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.photo_library_outlined, "Gallery"),
+            _sectionHeader(Icons.photo_library_outlined, AppStrings.gallery.tr),
             SizedBox(height: SizeConfig.paddingXS),
             SocialGalleryGrid(imageUrls: urls),
           ],
@@ -572,7 +572,7 @@ class _GallerySection extends StatelessWidget {
 class _ReviewsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return _emptyCard("Reviews", "No reviews yet. Be the first to review!");
+    return _emptyCard(AppStrings.reviewsTitle.tr, AppStrings.noReviewsYet.tr);
   }
 }
 
@@ -592,7 +592,7 @@ class _ContactSection extends StatelessWidget {
         (contact?.address ?? '').isNotEmpty;
 
     if (!hasAny) {
-      return _emptyCard("Contact Us", "No contact details available.");
+      return _emptyCard(AppStrings.contactUs.tr, AppStrings.noContactDetailsMsg.tr);
     }
 
     return Padding(
@@ -733,7 +733,7 @@ class _WorkingHoursSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final schedule = data.timings?.schedule;
     if (schedule == null) {
-      return _emptyCard("Working Hours", "No working hours added yet.");
+      return _emptyCard(AppStrings.workingHours.tr, AppStrings.noWorkingHoursAddedYet.tr);
     }
 
     return Padding(
@@ -743,7 +743,7 @@ class _WorkingHoursSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.access_time_outlined, "Working Hours"),
+            _sectionHeader(Icons.access_time_outlined, AppStrings.workingHours.tr),
             SizedBox(height: SizeConfig.paddingXS),
             Container(
               padding: EdgeInsets.all(SizeConfig.paddingS),
@@ -753,13 +753,13 @@ class _WorkingHoursSection extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _dayRow("Monday", schedule.monday),
-                  _dayRow("Tuesday", schedule.tuesday),
-                  _dayRow("Wednesday", schedule.wednesday),
-                  _dayRow("Thursday", schedule.thursday),
-                  _dayRow("Friday", schedule.friday),
-                  _dayRow("Saturday", schedule.saturday),
-                  _dayRow("Sunday", schedule.sunday),
+                  _dayRow(AppStrings.monday.tr, schedule.monday),
+                  _dayRow(AppStrings.tuesday.tr, schedule.tuesday),
+                  _dayRow(AppStrings.wednesday.tr, schedule.wednesday),
+                  _dayRow(AppStrings.thursday.tr, schedule.thursday),
+                  _dayRow(AppStrings.friday.tr, schedule.friday),
+                  _dayRow(AppStrings.saturday.tr, schedule.saturday),
+                  _dayRow(AppStrings.sunday.tr, schedule.sunday),
                 ],
               ),
             ),
@@ -773,7 +773,7 @@ class _WorkingHoursSection extends StatelessWidget {
     final isOpen = dayData?.isOpen == true;
     final text = isOpen
         ? "${dayData?.openTime ?? ''} - ${dayData?.closeTime ?? ''}"
-        : "Closed";
+        : AppStrings.closedDay.tr;
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size2),
       child: Row(

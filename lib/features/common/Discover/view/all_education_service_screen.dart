@@ -170,7 +170,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
               if (controller_.schoolDetailsDataDataList.isEmpty) {
                 return Center(
-                    child: EmptyStateWidget(message: "No services found"));
+                    child: EmptyStateWidget(message: AppStrings.noServicesFound.tr));
               }
 
               return ListView.builder(
@@ -233,13 +233,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.name ?? 'User',
+                      CustomText(service.name ?? AppStrings.unknownUser.tr,
                           // fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
                       // SizedBox(height: SizeConfig.size6),
                       CustomText(
-                        service.type ?? 'User',
+                        service.type ?? AppStrings.unknownUser.tr,
                         fontSize: SizeConfig.small,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -279,7 +279,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   child: Row(
                     children: [
                       CustomText(
-                        "Since ${service.establishmentYear ?? ""}",
+                        "${AppStrings.sincePrefix.tr} ${service.establishmentYear ?? ""}",
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         overflow: TextOverflow.ellipsis,

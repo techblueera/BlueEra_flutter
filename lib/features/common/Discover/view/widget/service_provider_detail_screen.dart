@@ -86,8 +86,8 @@ class ServiceProviderDetailScreen extends StatelessWidget {
             /// REVIEWS
             _emptySection(
                 Icons.rate_review_outlined,
-                "Reviews",
-                "No reviews yet. Be the first to review!"),
+                AppStrings.reviewsTitle.tr,
+                AppStrings.noReviewsYet.tr),
 
             SizedBox(height: SizeConfig.paddingXS),
 
@@ -118,8 +118,8 @@ class ServiceProviderDetailScreen extends StatelessWidget {
           top: SizeConfig.paddingXSL,
         ),
         child: PositiveCustomBtn(
-          onTap: () => commonSnackBar(message: 'Coming Soon....'),
-          title: "Request Booking",
+          onTap: () => commonSnackBar(message: AppStrings.comingSoonLabel.tr),
+          title: AppStrings.requestBooking.tr,
         ),
       ),
     );
@@ -220,7 +220,7 @@ class _HeaderSection extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CustomText(
-                        service.name ?? 'Unknown',
+                        service.name ?? AppStrings.unknown.tr,
                         fontSize: SizeConfig.size18,
                         fontWeight: FontWeight.w700,
                         color: AppColors.mainTextColor,
@@ -268,20 +268,20 @@ class _HeaderSection extends StatelessWidget {
                   icon: Icons.star_rounded,
                   iconColor: Colors.amber,
                   label:
-                      "${(service.rating ?? 0).toInt() == 0 ? 'New' : (service.rating ?? 0).toInt()}",
+                      "${(service.rating ?? 0).toInt() == 0 ? AppStrings.newLabel.tr : (service.rating ?? 0).toInt()}",
                 ),
                 SizedBox(width: SizeConfig.paddingS),
                 _statChip(
                   icon: Icons.reviews_outlined,
                   iconColor: AppColors.primaryColor,
-                  label: "${service.reviewCount ?? 0} reviews",
+                  label: "${service.reviewCount ?? 0} ${AppStrings.reviewsCountSuffix.tr}",
                 ),
                 if (service.distance != null) ...[
                   SizedBox(width: SizeConfig.paddingS),
                   _statChip(
                     icon: Icons.location_on_outlined,
                     iconColor: AppColors.primaryColor,
-                    label: "${(service.distance ?? 0).toInt()} km",
+                    label: "${(service.distance ?? 0).toInt()} ${AppStrings.kmLabel.tr}",
                   ),
                 ],
               ],
@@ -325,11 +325,11 @@ class _AboutSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final bio = service.bio ?? '';
     if (bio.isEmpty) {
-      return _emptySection(Icons.info_outline, "About", "No bio available.");
+      return _emptySection(Icons.info_outline, AppStrings.aboutLabel.tr, AppStrings.noBioAvailableMsg.tr);
     }
     return _sectionCard(
       icon: Icons.info_outline,
-      title: "About",
+      title: AppStrings.aboutLabel.tr,
       child: ExpandableText(
         text: bio,
         trimLines: 4,
@@ -357,7 +357,7 @@ class _PricingSection extends StatelessWidget {
     final priceData = service.priceData;
     if (priceData == null) {
       return _emptySection(
-          Icons.sell_outlined, "Pricing", "No pricing info available.");
+          Icons.sell_outlined, AppStrings.pricing.tr, AppStrings.noPricingInfo.tr);
     }
 
     final isRange = priceData.priceType == 'range';
@@ -372,7 +372,7 @@ class _PricingSection extends StatelessWidget {
 
     return _sectionCard(
       icon: Icons.sell_outlined,
-      title: "Pricing",
+      title: AppStrings.pricing.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -405,7 +405,7 @@ class _PricingSection extends StatelessWidget {
           if ((priceData.perUnit ?? '').isNotEmpty) ...[
             SizedBox(height: SizeConfig.size4),
             CustomText(
-              "Per ${priceData.perUnit}",
+              "${AppStrings.perUnitLabel.tr} ${priceData.perUnit}",
               fontSize: SizeConfig.size12,
               color: AppColors.secondaryTextColor,
             ),
@@ -413,7 +413,7 @@ class _PricingSection extends StatelessWidget {
           if ((priceData.minimumBookingAmount ?? 0) > 0) ...[
             SizedBox(height: SizeConfig.size4),
             CustomText(
-              "Min. booking: ₹${priceData.minimumBookingAmount}",
+              "${AppStrings.minBookingLabel.tr} ₹${priceData.minimumBookingAmount}",
               fontSize: SizeConfig.size12,
               color: AppColors.secondaryTextColor,
             ),
@@ -436,12 +436,12 @@ class _TimingSection extends StatelessWidget {
     final timings = service.service?.timings ?? [];
     if (timings.isEmpty) {
       return _emptySection(
-          Icons.access_time_outlined, "Timing", "No timings available.");
+          Icons.access_time_outlined, AppStrings.timingLabel.tr, AppStrings.noTimingsAvailable.tr);
     }
 
     return _sectionCard(
       icon: Icons.access_time_outlined,
-      title: "Timing",
+      title: AppStrings.timingLabel.tr,
       child: Column(
         children: timings.map((t) {
           return Padding(
@@ -466,7 +466,7 @@ class _TimingSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: CustomText(
-                      "Special",
+                      AppStrings.specialLabel,
                       fontSize: SizeConfig.size11,
                       color: Colors.orange.shade700,
                     ),
@@ -505,7 +505,7 @@ class _ServicesOfferedSectionState extends State<_ServicesOfferedSection> {
 
     if (items.isEmpty) {
       return _emptySection(Icons.miscellaneous_services_outlined,
-          "Services Offered", "No services listed.");
+          AppStrings.servicesOffered.tr, AppStrings.noServicesListed.tr);
     }
 
     final displayItems =
@@ -513,7 +513,7 @@ class _ServicesOfferedSectionState extends State<_ServicesOfferedSection> {
 
     return _sectionCard(
       icon: Icons.miscellaneous_services_outlined,
-      title: "Services Offered",
+      title: AppStrings.servicesOffered.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -544,8 +544,8 @@ class _ServicesOfferedSectionState extends State<_ServicesOfferedSection> {
                 padding: EdgeInsets.only(top: SizeConfig.size4),
                 child: CustomText(
                   _showAll
-                      ? "Show less"
-                      : "View all ${items.length} services",
+                      ? AppStrings.showLess.tr
+                      : "${AppStrings.viewAllLabel.tr} ${items.length} ${AppStrings.viewAllServicesCount.tr}",
                   fontSize: SizeConfig.size13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primaryColor,
@@ -572,7 +572,7 @@ class _WhyChooseMeSection extends StatelessWidget {
 
     return _sectionCard(
       icon: Icons.thumb_up_outlined,
-      title: "Why Choose Me",
+      title: AppStrings.whyChooseMe.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: items
@@ -617,12 +617,12 @@ class _ExpertiseSection extends StatelessWidget {
 
     if (items.isEmpty) {
       return _emptySection(
-          Icons.psychology_outlined, "Expertise", "No skills listed.");
+          Icons.psychology_outlined, AppStrings.expertiseLabel.tr, AppStrings.noSkillsListed.tr);
     }
 
     return _sectionCard(
       icon: Icons.psychology_outlined,
-      title: "Expertise",
+      title: AppStrings.expertiseLabel.tr,
       child: Wrap(
         spacing: SizeConfig.paddingXS,
         runSpacing: SizeConfig.paddingXS,
@@ -660,13 +660,13 @@ class _ExperienceSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final experiences = service.experiences ?? [];
     if (experiences.isEmpty) {
-      return _emptySection(Icons.work_history_outlined, "Work Experience",
-          "No experience listed.");
+      return _emptySection(Icons.work_history_outlined, AppStrings.workExperience.tr,
+          AppStrings.noExperienceListed.tr);
     }
 
     return _sectionCard(
       icon: Icons.work_history_outlined,
-      title: "Work Experience",
+      title: AppStrings.workExperience.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: experiences
@@ -714,12 +714,12 @@ class _GallerySection extends StatelessWidget {
     final photos = service.serviceMedia?.photos ?? [];
     if (photos.isEmpty) {
       return _emptySection(
-          Icons.photo_library_outlined, "Gallery", "No photos available.");
+          Icons.photo_library_outlined, AppStrings.gallery.tr, AppStrings.noPhotosAvailableMsg.tr);
     }
 
     return _sectionCard(
       icon: Icons.photo_library_outlined,
-      title: "Gallery",
+      title: AppStrings.gallery.tr,
       child: SocialGalleryGrid(imageUrls: photos),
     );
   }
@@ -740,13 +740,13 @@ class _ContactSection extends StatelessWidget {
     final address = service.address ?? '';
 
     if (phone.isEmpty && email.isEmpty && website.isEmpty && address.isEmpty) {
-      return _emptySection(Icons.phone_outlined, AppStrings.contactUs,
-          "No contact details available.");
+      return _emptySection(Icons.phone_outlined, AppStrings.contactUs.tr,
+          AppStrings.noContactDetailsMsg.tr);
     }
 
     return _sectionCard(
       icon: Icons.phone_outlined,
-      title: AppStrings.contactUs,
+      title: AppStrings.contactUs.tr,
       child: Container(
         padding: EdgeInsets.all(SizeConfig.paddingS),
         decoration: BoxDecoration(

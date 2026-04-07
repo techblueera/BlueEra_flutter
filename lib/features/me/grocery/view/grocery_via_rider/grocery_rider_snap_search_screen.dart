@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -36,7 +37,7 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(title: "Search Grocery Items"),
+      appBar: CommonBackAppBar(title: AppStrings.grocerySearchItemsTitle),
       bottomNavigationBar: _buildBottomAction(),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
@@ -67,7 +68,7 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
             onTap: () => Get.back(),
             radius: SizeConfig.size8,
             bgColor: AppColors.primaryColor,
-            title: 'View Cart ($count items)',
+            title: '${AppStrings.groceryViewCartItems} ($count)',
           ),
         ),
       );
@@ -80,7 +81,7 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Upload Grocery List", fontWeight: FontWeight.bold),
+          CustomText(AppStrings.groceryUploadList, fontWeight: FontWeight.bold),
           const SizedBox(height: 14),
           MasonryGridView.count(
             shrinkWrap: true,
@@ -258,8 +259,8 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
             },
           ),
           const SizedBox(height: 10),
-          const CustomText(
-            "Upload a photo of your grocery list — up to 20 items at a time",
+          CustomText(
+            AppStrings.groceryUploadListHelper,
             fontWeight: FontWeight.w400,
             color: AppColors.red,
             textAlign: TextAlign.center,
@@ -318,14 +319,13 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(height: SizeConfig.paddingL),
-        const EmptyStateWidget(
-          message: 'We couldn\'t identify any products from this photo.\n'
-              'Try capturing a clearer shot!',
+        EmptyStateWidget(
+          message: AppStrings.grocerySnapNoProductsFound,
         ),
         SizedBox(height: SizeConfig.paddingL),
         CustomBtn(
           width: SizeConfig.size120,
-          title: "Retry",
+          title: AppStrings.groceryRetry,
           textColor: AppColors.white,
           bgColor: AppColors.primaryColor,
           radius: 10.0,
@@ -343,12 +343,12 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomText(
-            "${data.foundCount ?? 0} Items Found",
+            "${data.foundCount ?? 0} ${AppStrings.groceryItemsFound}",
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
           CustomText(
-            "${data.missingCount ?? 0} Items missing",
+            "${data.missingCount ?? 0} ${AppStrings.groceryItemsMissing}",
             color: Colors.red,
             fontWeight: FontWeight.w500,
           ),
@@ -486,8 +486,8 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
             color: AppColors.primaryColor,
             borderRadius: BorderRadius.circular(6),
           ),
-          child: const CustomText(
-            "ADD",
+          child: CustomText(
+            AppStrings.groceryAddBtn,
             fontSize: 12,
             color: AppColors.white,
             fontWeight: FontWeight.w600,

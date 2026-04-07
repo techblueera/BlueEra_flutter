@@ -53,7 +53,7 @@ class _ProfileImpressionStatsState extends State<ProfileImpressionStats> {
       {required String label, required String value, IconData? icon, Color? iconColor}) {
     return Row(
       children: [
-        CustomText('$label: ', fontSize: SizeConfig.small,
+        CustomText('${label.tr}: ', fontSize: SizeConfig.small,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor),
         if (icon != null) ...[
@@ -93,9 +93,9 @@ class _ProfileImpressionStatsState extends State<ProfileImpressionStats> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStat(
-                        label: 'Views', value: _formatCount(data?.total_views)),
+                        label: AppStrings.viewsLabel, value: _formatCount(data?.total_views)),
                     SizedBox(height: SizeConfig.size8),
-                    _buildStat(label: 'Inquiries', value: _formatCount('25')),
+                    _buildStat(label: AppStrings.inquiries, value: _formatCount('25')),
                   ],
                 ),
               ),
@@ -107,10 +107,10 @@ class _ProfileImpressionStatsState extends State<ProfileImpressionStats> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildStat(label: 'Followers',
+                    _buildStat(label: AppStrings.followers,
                         value: _formatCount(data?.total_followers)),
                     SizedBox(height: SizeConfig.size8),
-                    _buildStat(label: 'Following',
+                    _buildStat(label: AppStrings.followingLabel,
                         value: _formatCount(data?.total_following)),
                   ],
                 ),
@@ -124,7 +124,7 @@ class _ProfileImpressionStatsState extends State<ProfileImpressionStats> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CustomText('Joined', fontSize: SizeConfig.small,
+                    CustomText(AppStrings.joined, fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size4),

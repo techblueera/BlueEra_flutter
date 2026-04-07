@@ -1,7 +1,7 @@
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_strings.dart';
@@ -33,8 +33,10 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Franchise Inquiry"),
-      body: SingleChildScrollView(
+      appBar: const CommonBackAppBar(title: AppStrings.franchiseInquiry),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
@@ -85,23 +87,23 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                   children: [
 
                     CommonTextField(
-                      title: "Full Name",
+                      title: AppStrings.fullName.tr,
                       textEditController: controller.fullNameController,
-                      hintText: "E.g. 1 Year",
+                      hintText: AppStrings.fullNameHint.tr,
                     ),
 
                     SizedBox(height: SizeConfig.paddingM),
                     CommonTextField(
-                      title: "Email",
+                      title: AppStrings.email.tr,
                       textEditController: controller.emailController,
-                      hintText: "E.g. inquiry@gmail.com",
+                      hintText: AppStrings.emailHint.tr,
                       keyBoardType: TextInputType.emailAddress,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 
                     /// Phone Number
                     CustomText(
-                      "Phone Number",
+                      AppStrings.phoneNumberLabel,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                     ),
@@ -135,7 +137,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                     ),
 
                     SizedBox(height: SizeConfig.paddingM),
-                    CustomText("Highest Educational Qualification",
+                    CustomText(AppStrings.highestEducationalQualification,
                       fontSize: 12,),
                     SizedBox(height: SizeConfig.size8,),
                     Obx(() =>
@@ -153,7 +155,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
 
                     SizedBox(height: SizeConfig.paddingM),
                     CustomText(
-                      "Select The Type of Partner you are interested to become?",
+                      AppStrings.selectPartnerTypeQuestion,
                       fontSize: SizeConfig.small,
                     ),
 
@@ -164,7 +166,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                         isExpanded: true,
                         items: const ["Business Partner", "Marketing Partner"],
                         selectedValue: controller.partnerType.value,
-                        hintText: "E.g. Business Partner/ Marketing....",
+                        hintText: AppStrings.partnerTypeHint.tr,
                         onChanged: (value) {
                           controller.partnerType.value =
                               value ?? "Business Partner";
@@ -176,18 +178,18 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
 
 
                     CommonTextField(
-                      title: "Amount You Can Invest(In Rupees) ?",
+                      title: AppStrings.amountYouCanInvest.tr,
                       textEditController: controller.investmentController,
-                      hintText: "Enter amount",
+                      hintText: AppStrings.enterAmount.tr,
                       maxLength: 12,
                       keyBoardType: TextInputType.number,
                     ),
 
-                  
+
                     SizedBox(height: SizeConfig.paddingM),
 
                     CustomText(
-                      "In Which Location You Want to Start Your Franchise?",
+                      AppStrings.franchiseLocationQuestion,
                     ),
 
                     SizedBox(height: SizeConfig.size8),
@@ -199,7 +201,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                             return CommonDropdown(items:
                             controller.stateList,
                                 selectedValue: controller.selectedState.value,
-                                hintText: "Select State",
+                                hintText: AppStrings.selectState.tr,
                                 onChanged: (val) {
                                   controller.selectState(val ?? '');
                                 },
@@ -210,7 +212,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                         SizedBox(width: SizeConfig.paddingM),
                         Expanded(
                           child: CommonTextField(
-                            hintText: "E.g.Salem",
+                            hintText: AppStrings.cityHint.tr,
                             textEditController: controller
                                 .cityController,
                           ),
@@ -220,7 +222,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                     SizedBox(height: SizeConfig.paddingM),
 
                     CustomText(
-                      "Have you ever worked in a business environment where you handled marketing, customer acquisition, or digital communication?",
+                      AppStrings.workedInBusinessQuestion,
                     ),
 
                     SizedBox(height: SizeConfig.size8),
@@ -229,7 +231,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                           isExpanded: true,
                           items: const ["Yes", "No"],
                           selectedValue: controller.haveYouWorkedHere.value,
-                          hintText: "E.g. Yes / No",
+                          hintText: AppStrings.yesNoHint.tr,
                           onChanged: (value) {
                             controller.haveYouWorkedHere.value = value ?? "No";
                           },
@@ -239,10 +241,10 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
 
 
                     CommonTextField(
-                      title: "Message",
+                      title: AppStrings.message.tr,
                       textEditController: controller.messageController,
                       hintText:
-                      "Hello Everyone @India User\nNow I am Using https://blueera.ai It's Amazing, I suggest to Join Me.",
+                      AppStrings.franchiseMessageHint.tr,
                       maxLine: 5,
                       minLines: 4,
                       hintStyle: TextStyle(
@@ -269,7 +271,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                         ),
                         Expanded(
                           child: CustomText(
-                            "I hereby authorize you to send notifications via SMS/ RCS Messages/Promotional/informational Messages.",
+                            AppStrings.franchiseAuthorizationConsent,
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                           ),
@@ -284,7 +286,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                         isLoading: controller.enquiryBtnLoading.value,
                         isValidate: true,
 
-                        title: "Send Message", onTap: () {
+                        title: AppStrings.sendMessage.tr, onTap: () {
                         if (_formKey.currentState!.validate()) {
                           controller.enquiryFranchise();
                         }
@@ -299,6 +301,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

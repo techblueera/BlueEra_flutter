@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -31,7 +32,10 @@ class _EmergencyMedicalInfoScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Medical  ",actionText: "Step: 2/4",),
+      appBar: CommonBackAppBar(
+        title: AppStrings.emergencyMedicalTitle,
+        actionText: AppStrings.emergencyStep2Of4,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -39,7 +43,7 @@ class _EmergencyMedicalInfoScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText("Blood Group"),
+                CustomText(AppStrings.emergencyBloodGroup),
                 SizedBox(
                   height: 10,
                 ),
@@ -47,8 +51,8 @@ class _EmergencyMedicalInfoScreenState
                   children: [
                     Expanded(
                       child: Obx(() => CommonDropdownDialog<String>(
-                            title: "Blood Group",
-                            hintText: "E.g. A, B, AB, O",
+                            title: AppStrings.emergencyBloodGroup,
+                            hintText: AppStrings.emergencyBloodGroupHint,
                             items: controller.bloodGroupTypes,
                             selectedValue:
                                 controller.selectedBloodGroupType.value,
@@ -63,13 +67,14 @@ class _EmergencyMedicalInfoScreenState
                     SizedBox(width: 12),
                     Expanded(
                       child: Obx(() => CommonDropdownDialog<String>(
-                            title: "Sign",
-                            hintText: "E.g. +, -",
+                            title: AppStrings.emergencySign,
+                            hintText: AppStrings.emergencySignHint,
                             items: controller.bloodGroupSigns,
                             selectedValue:
                                 controller.selectedBloodGroupSign.value,
-                            displayValue: (val) =>
-                                val == '+' ? 'Positive (+)' : 'Negative (-)',
+                            displayValue: (val) => val == '+'
+                                ? AppStrings.emergencyPositive
+                                : AppStrings.emergencyNegative,
                             onChanged: (value) {
                               if (value != null) {
                                 controller.selectedBloodGroupSign.value = value;
@@ -81,14 +86,14 @@ class _EmergencyMedicalInfoScreenState
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: "Known Allergies",
-                  hintText: "E.g. Peanuts, Dust",
+                  title: AppStrings.emergencyKnownAllergies,
+                  hintText: AppStrings.emergencyKnownAllergiesHint,
                   textEditController: controller.allergiesController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: "Known Disease / Medical Condition",
-                  hintText: "E.g. Asthma",
+                  title: AppStrings.emergencyKnownDisease,
+                  hintText: AppStrings.emergencyKnownDiseaseHint,
                   textEditController: controller.diseaseController,
                 ),
                 SizedBox(height: 24),
@@ -99,7 +104,7 @@ class _EmergencyMedicalInfoScreenState
                               !controller.isMedicalSaving.value
                           ? controller.submitMedical
                           : null,
-                      title: "Next",
+                      title: AppStrings.next,
                     )),
               ],
             ),

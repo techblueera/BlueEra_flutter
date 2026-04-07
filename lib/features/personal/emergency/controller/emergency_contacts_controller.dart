@@ -40,7 +40,7 @@ class EmergencyContactsController extends GetxController {
 
   Future<void> submit() async {
     if (!isValid.value) {
-      commonSnackBar(message: "Please fill all required fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillRequiredFields);
       return;
     }
     try {
@@ -52,7 +52,7 @@ class EmergencyContactsController extends GetxController {
       };
       final ResponseModel res = await _repo.submitEmergencyContact(body: body);
       if (res.isSuccess) {
-        commonSnackBar(message: "Saved emergency contact");
+        commonSnackBar(message: AppStrings.emergencySavedContact);
         Get.to(EmergencyPrivacyAlertsScreen());
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);

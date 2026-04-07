@@ -116,7 +116,6 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
           ],
         ),
         actions: [
-          const DiscoverCartIcon(),
           Center(
             child: InkWell(
               borderRadius: BorderRadius.circular(20),

@@ -100,25 +100,25 @@ class EmergencyBasicInfoController extends GetxController {
 
   Future<void> submit() async {
     if (!isValid.value) {
-      commonSnackBar(message: "Please fill all required fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillRequiredFields);
       return;
     }
 
     logs("vehicleController.text=== ${vehicleController.text}");
     if (fullNameController.text.isEmpty) {
-      commonSnackBar(message: "Please fill Full Name fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillFullName);
       return;
     }
     else if (mobileController.text.isEmpty) {
-      commonSnackBar(message: "Please fill Mobile Number fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillMobile);
       return;
     }
     else if (alternateController.text.isEmpty) {
-      commonSnackBar(message: "Please fill Alternate Number fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillAlternate);
       return;
     }
     else if (vehicleController.text.isEmpty) {
-      commonSnackBar(message: "Please fill vehicle fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillVehicle);
       return;
     }
 
@@ -133,7 +133,7 @@ class EmergencyBasicInfoController extends GetxController {
       };
       final ResponseModel res = await _repo.submitBasicInfo(body: body);
       if (res.isSuccess) {
-        commonSnackBar(message: "Saved basic info");
+        commonSnackBar(message: AppStrings.emergencySavedBasicInfo);
         Get.to(EmergencyMedicalInfoScreen());
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -147,7 +147,7 @@ class EmergencyBasicInfoController extends GetxController {
 
   Future<void> submitMedical() async {
     if (!isValidMedical.value) {
-      commonSnackBar(message: "Please fill all required fields correctly");
+      commonSnackBar(message: AppStrings.emergencyFillRequiredFields);
       return;
     }
     try {
@@ -159,7 +159,7 @@ class EmergencyBasicInfoController extends GetxController {
       };
       final ResponseModel res = await _repo.submitBasicInfo(body: body);
       if (res.isSuccess) {
-        commonSnackBar(message: "Saved medical info");
+        commonSnackBar(message: AppStrings.emergencySavedMedicalInfo);
         Get.to(EmergencyContactScreen());
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);

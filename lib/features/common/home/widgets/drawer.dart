@@ -8,11 +8,7 @@ import 'package:BlueEra/features/personal/resume/sections/profile_section.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_instance/src/extension_instance.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -236,7 +232,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     ),
                     const SizedBox(width: 6),
                     const CustomText(
-                      "Wallet",
+                      AppStrings.wallet,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor,
@@ -286,7 +282,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               ),
               child: const Center(
                 child: CustomText(
-                  "Cards",
+                  AppStrings.cards,
                   fontSize: 13,
                 ),
               ),
@@ -300,18 +296,18 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   Widget _menuList() {
     final List<MenuItemModel> menus = [
       MenuItemModel(
-        title: "App Tutorial",
+        title: AppStrings.appTutorial,
         onTap: () => Get.to(()=> AppTutorialScreen()),
       ),
       if(accountTypeGlobal == AppConstants.individual)
       MenuItemModel(
-        title: "Refer & Earn",
+        title: AppStrings.referAndEarn,
         // onTap: () => Get.to(()=> JoinAsBDMScreen()),
         onTap: () => Get.to(()=> ReferralPage()),
       ),
       if (accountTypeGlobal != "BUSINESS")
         MenuItemModel(
-          title: "Earn with BlueEra",
+          title: AppStrings.earnWithBlueEra,
           onTap: () {
             if (viewProfileController.personalProfileDetails.value
                 .isProfileCreated ==
@@ -333,7 +329,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           },
         ),
       MenuItemModel(
-        title: "Saved",
+        title: AppStrings.saved,
         onTap: (){
           Get.to(()=> SavedFeedScreen(
               selectedTab:SavedFeedTab.posts,
@@ -343,16 +339,16 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       if(userProfileTypeGlobal != SOCIAL_PROFILE)
       MenuItemModel(
-        title: "Contribution",
+        title: AppStrings.contribution,
         // title: "Subscription",
         onTap: () => Get.to(()=> SubscriptionScreenNew()),
       ),
       MenuItemModel(
-        title: "Payment",
+        title: AppStrings.payment,
         onTap: () => Get.to(()=> PaymentSettingScreen()),
       ),
       MenuItemModel(
-        title: "Channel & Community",
+        title: AppStrings.channelAndCommunity,
         onTap: () {
           if (channelId.isNotEmpty) {
             Get.toNamed(
@@ -375,7 +371,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         },
       ),
       MenuItemModel(
-        title: "My Documents",
+        title: AppStrings.myDocuments,
         onTap: () => Get.toNamed(
           RouteHelper.getAddDocumentScreenRoute(),
           arguments: {
@@ -387,22 +383,22 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         ),
       ),
       MenuItemModel(
-        title: "Franchise Inquiry",
+        title: AppStrings.franchiseInquiry,
         onTap: () => Get.to(()=>FranchiseInquiryScreen()),
       ),
       MenuItemModel(
-        title: "Account Settings",
+        title: AppStrings.accountSettings,
         onTap: () => Get.to(()=>AccountSettingScreen()),
-      ), MenuItemModel(
-        title: "Profile Settings",
+      ),/* MenuItemModel(
+        title: AppStrings.profileSettings,
         onTap: () => Get.to(()=>ProfileSettingsDrawer()),
-      ),
+      ),*/
       MenuItemModel(
-        title: "Manage Notification",
+        title: AppStrings.manageNotification,
         onTap: () => Get.to(NotificationSettingScreen()),
       ),
       MenuItemModel(
-        title: "Help & Support",
+        title: AppStrings.helpSupport,
         onTap: () => Get.to(HelpAndSupportScreen()),
       ),
     ];
@@ -455,7 +451,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               fontWeight: FontWeight.w600,
             ),
             subtitle: const CustomText(
-              "Learn how to earn with BlueEra",
+              AppStrings.learnHowToEarnWithBlueEra,
               fontSize: 10,
               maxLines: 1,
               color: AppColors.secondaryTextColor,
@@ -480,7 +476,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             onTap: () async {
               await showCommonDialog(
                 context: context,
-                text: AppStrings.logoutConfirmationMessage,
+                text: AppStrings.logoutConfirmationMessage.tr,
                 confirmCallback: () async {
                   // E2E: revoke device keys from server before clearing session
                   if (Get.isRegistered<ChatViewController>()) {

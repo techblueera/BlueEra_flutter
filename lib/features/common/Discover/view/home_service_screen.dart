@@ -141,7 +141,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                   if (controller.filters == selectedEnum) return;
                   controller.selectedFilter.value = selectedEnum;
                 },
-                labelBuilder: (r) => r.label,
+                labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
               SizedBox(height: SizeConfig.size5),
@@ -153,8 +153,8 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                   }
 
                   if (controller.earnServiceList.isEmpty) {
-                    return const Center(
-                      child: EmptyStateWidget(message: "No services found"),
+                    return Center(
+                      child: EmptyStateWidget(message: AppStrings.noServicesFound.tr),
                     );
                   }
 
@@ -235,7 +235,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                     children: [
                       Expanded(
                         child: CustomText(
-                          service.name ?? 'Unknown',
+                          service.name ?? AppStrings.unknown.tr,
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600,

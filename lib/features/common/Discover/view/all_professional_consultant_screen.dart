@@ -162,7 +162,7 @@ class _AllProfessionConsultantScreenState
                   controller.selectedFilter.value = selectedEnum;
                   // controller.callApi();
                 },
-                labelBuilder: (r) => r.label,
+                labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
               SizedBox(
@@ -177,7 +177,7 @@ class _AllProfessionConsultantScreenState
 
                   if (controller.professionalConsDataList.isEmpty) {
                     return Center(
-                        child: EmptyStateWidget(message: "No services found"));
+                        child: EmptyStateWidget(message: AppStrings.noServicesFound.tr));
                   }
 
                   return ListView.builder(
@@ -254,7 +254,7 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.userDetails?.name ?? 'User',
+                      CustomText(service.userDetails?.name ?? AppStrings.unknownUser.tr,
                           // fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
@@ -620,7 +620,7 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Timing',
+                        AppStrings.timingLabel,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -694,7 +694,7 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Service Description',
+                        AppStrings.serviceDescription,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -808,7 +808,7 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Work Experience',
+                        AppStrings.workExperience,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -823,13 +823,13 @@ class _AllProfessionConsultantScreenState
                       (service.about?.totalExperience?.years != null &&
                               service.about?.totalExperience?.years != 0)
                           ? CustomText(
-                              "${service.about?.totalExperience?.years ?? 0} Yr",
+                              "${service.about?.totalExperience?.years ?? 0} ${AppStrings.yearsExp.tr}",
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
                             )
                           : CustomText(
-                              'No Experience',
+                              AppStrings.noExperienceLabel,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
@@ -851,7 +851,7 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Portfolio',
+                        AppStrings.portfolioLabel,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -911,7 +911,7 @@ class _AllProfessionConsultantScreenState
                               ),
                             )
                           : CustomText(
-                              'No Data',
+                              AppStrings.noDataLabel,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
@@ -933,7 +933,7 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Gallery',
+                        AppStrings.gallery,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -1053,7 +1053,7 @@ class _AllProfessionConsultantScreenState
                               );*/
                             })
                           : CustomText(
-                              'No Photos Available',
+                              AppStrings.noPhotosAvailableMsg,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
@@ -1068,7 +1068,7 @@ class _AllProfessionConsultantScreenState
                   onTap: () {},
                   isValidate: true,
                   radius: SizeConfig.size10,
-                  title: 'Request Booking',
+                  title: AppStrings.requestBooking.tr,
                   // isLoading: authController.isAddBusinessUserLoading.value
                 ),
               ],
@@ -1095,7 +1095,7 @@ class _AllProfessionConsultantScreenState
         children: [
           const Expanded(
             child: CustomText(
-              "All Variants",
+              AppStrings.allVariants,
               fontWeight: FontWeight.w600,
             ),
           ),

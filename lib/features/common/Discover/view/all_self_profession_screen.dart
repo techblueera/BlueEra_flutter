@@ -157,7 +157,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                   if (controller.selectedFilter.value == selectedEnum) return;
                   controller.selectedFilter.value = selectedEnum;
                 },
-                labelBuilder: (r) => r.label,
+                labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
               SizedBox(height: SizeConfig.size8),
@@ -169,7 +169,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                   }
                   if (controller.earnServiceList.isEmpty) {
                     return Center(
-                        child: EmptyStateWidget(message: "No services found"));
+                        child: EmptyStateWidget(message: AppStrings.noServicesFound.tr));
                   }
                   return ListView.builder(
                     controller: scrollController,
@@ -263,7 +263,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          service.name ?? 'Unknown User',
+                          service.name ?? AppStrings.unknownUser.tr,
                           fontSize: SizeConfig.medium,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w700,
@@ -384,7 +384,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: CustomText(
-                      'View Profile',
+                      AppStrings.viewProfile,
                       fontSize: SizeConfig.small,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -492,7 +492,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: CustomText(
-                                        service.name ?? 'Unknown',
+                                        service.name ?? AppStrings.unknown.tr,
                                         fontSize: SizeConfig.large,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.mainTextColor,
@@ -566,21 +566,21 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                     children: [
                       _buildStatItem(
                         icon: Icons.currency_rupee_rounded,
-                        label: 'Price',
+                        label: AppStrings.priceLabel.tr,
                         value: priceDisplay,
                         color: priceBadgeColor,
                       ),
                       _buildDivider(),
                       _buildStatItem(
                         icon: Icons.access_time_rounded,
-                        label: 'Opens',
+                        label: AppStrings.opens.tr,
                         value: timingMap["start"] ?? '--',
                         color: Colors.green,
                       ),
                       _buildDivider(),
                       _buildStatItem(
                         icon: Icons.access_time_filled_rounded,
-                        label: 'Closes',
+                        label: AppStrings.closes.tr,
                         value: timingMap["end"] ?? '--',
                         color: AppColors.redB4,
                       ),
@@ -594,7 +594,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                 if (service.service?.facilities?.isNotEmpty == true)
                   _buildInfoCard(
                     icon: Icons.description_outlined,
-                    title: 'Service Description',
+                    title: AppStrings.serviceDescription.tr,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: List.generate(
@@ -633,7 +633,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                 // ─── Work Experience ───
                 _buildInfoCard(
                   icon: Icons.work_outline_rounded,
-                  title: 'Work Experience',
+                  title: AppStrings.workExperience.tr,
                   child: service.experiences?.isNotEmpty == true
                       ? CustomText(
                           service.experiences![0],
@@ -641,7 +641,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor,
                         )
-                      : _buildEmptyState('No experience added yet'),
+                      : _buildEmptyState(AppStrings.noExperienceAddedYet.tr),
                 ),
 
                 SizedBox(height: SizeConfig.size8),
@@ -650,7 +650,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                 if (service.skills?.isNotEmpty == true)
                   _buildInfoCard(
                     icon: Icons.star_outline_rounded,
-                    title: 'Expertise',
+                    title: AppStrings.expertiseLabel.tr,
                     child: Wrap(
                       spacing: SizeConfig.size8,
                       runSpacing: SizeConfig.size8,
@@ -682,7 +682,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                 if (service.serviceMedia?.photos?.isNotEmpty == true)
                   _buildInfoCard(
                     icon: Icons.photo_library_outlined,
-                    title: 'Gallery',
+                    title: AppStrings.gallery.tr,
                     child: SocialGalleryGrid(
                       imageUrls: service.serviceMedia!.photos!,
                     ),
@@ -717,7 +717,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                 onTap: () {},
                 isValidate: true,
                 radius: SizeConfig.size12,
-                title: 'Request Booking',
+                title: AppStrings.requestBooking.tr,
                 bgColor: AppColors.primaryColor,
               ),
             ),

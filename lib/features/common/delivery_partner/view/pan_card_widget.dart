@@ -61,7 +61,7 @@ class PanCardWidget extends StatelessWidget {
             CustomBtn(
               title: controller.isRiderPersonalIdentificationLoading.value
                   ? null
-                  : "Upload",
+                  : AppStrings.upload,
               onTap: () => controller.ridersPanCardApi(),
               radius: 10.0,
               bgColor: AppColors.primaryColor,

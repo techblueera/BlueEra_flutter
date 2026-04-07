@@ -69,7 +69,7 @@ class _AddGroceryViaRiderCategoryScreenState
         children: [
           CustomText(
             // 'Bulk Upload Shop Product Photos',
-            "Upload Grocery List Photos",
+            AppStrings.groceryUploadListPhotos,
             fontSize: SizeConfig.large,
             color: AppColors.mainTextColor,
             fontWeight: FontWeight.w600,

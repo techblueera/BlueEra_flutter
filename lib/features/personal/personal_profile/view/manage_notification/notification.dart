@@ -14,7 +14,7 @@ class NotificationSettingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CommonBackAppBar(
-        title: "Notification Setting",
+        title: AppStrings.notificationSetting,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -27,11 +27,11 @@ class NotificationSettingScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              NotificationTile(title: "Comment"),
-              NotificationTile(title: "Post"),
-              NotificationTile(title: "Like"),
-              NotificationTile(title: "Tag"),
-              NotificationTile(title: "Following"),
+              NotificationTile(title: AppStrings.comment),
+              NotificationTile(title: AppStrings.post),
+              NotificationTile(title: AppStrings.like),
+              NotificationTile(title: AppStrings.tag),
+              NotificationTile(title: AppStrings.followingNotification),
               SizedBox(
                 height: 20,
               ),

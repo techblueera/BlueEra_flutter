@@ -25,7 +25,7 @@ class AppStrings {
   static const privacyPolicy = "privacyPolicy";
   static const makeInIndia = "makeInIndia";
   static const confirm = "confirm";
-  static const logoutConfirmationMessage = "Are you sure want to Exit?";
+  static const logoutConfirmationMessage = "logoutConfirmationMessage";
   static const yes = "yes";
   static const no = "no";
   static const deleteAccountConfirmationMessage =
@@ -40,6 +40,330 @@ class AppStrings {
   static const ownerVerified = "ownerVerified";
   static const manageSubscription = "manageSubscription";
   static const freePlan = "freePlan";
+  static const twoStepAuthentication = "twoStepAuthentication";
+  static const accountDelete = "accountDelete";
+  static const deviceLogout = "deviceLogout";
+  static const verified = "verified";
+  static const pending = "pending";
+
+  ///TWO STEP VERIFY SCREEN
+  static const enableTwoStepVerification = "enableTwoStepVerification";
+  static const setupTwoStepVerification = "setupTwoStepVerification";
+  static const twoStepVerificationInstruction = "twoStepVerificationInstruction";
+  static const manualSetupCode = "manualSetupCode";
+  static const manualSetupCodeInstruction = "manualSetupCodeInstruction";
+  static const continueBtn = "continueBtn";
+
+  ///DRAWER MENU (translations served by language API; not stored in local assets)
+  static const wallet = "wallet";
+  static const cards = "cards";
+  static const appTutorial = "appTutorial";
+  static const referAndEarn = "referAndEarn";
+  static const earnWithBlueEra = "earnWithBlueEra";
+  static const saved = "saved";
+  static const contribution = "contribution";
+  static const payment = "payment";
+  static const channelAndCommunity = "channelAndCommunity";
+  static const myDocuments = "myDocuments";
+  static const franchiseInquiry = "franchiseInquiry";
+  static const profileSettings = "profileSettings";
+  static const manageNotification = "manageNotification";
+  static const learnHowToEarnWithBlueEra = "learnHowToEarnWithBlueEra";
+  static const seeAllPolicies = "seeAllPolicies";
+  static const changeLanguageQuestion = "changeLanguageQuestion";
+
+  ///REEL / CHANNEL
+  static const createChannel = "createChannel";
+
+  ///SAVED FEED SCREEN
+  static const savedPost = "savedPost";
+
+  ///PAYMENT SETTING SCREEN
+  static const paymentSetting = "paymentSetting";
+  static const allBankAccounts = "allBankAccounts";
+  static const addAccount = "addAccount";
+  static const accountNoLabel = "accountNoLabel";
+  static const ifscCodeLabel = "ifscCodeLabel";
+  static const setAsDefault = "setAsDefault";
+
+  ///ADD BANK ACCOUNT SCREEN
+  static const updateBankAccount = "updateBankAccount";
+  static const addBankAccount = "addBankAccount";
+  static const selectAccountType = "selectAccountType";
+  static const bankAccount = "bankAccount";
+  static const upi = "upi";
+  static const selectAccount = "selectAccount";
+  static const bankName = "bankName";
+  static const bankNameHint = "bankNameHint";
+  static const bankHolderName = "bankHolderName";
+  static const bankHolderNameHint = "bankHolderNameHint";
+  static const accountNumber = "accountNumber";
+  static const accountNumberHint = "accountNumberHint";
+  static const ifscCode = "ifscCode";
+  static const ifscCodeHint = "ifscCodeHint";
+  static const upiId = "upiId";
+  static const upiIdHint = "upiIdHint";
+  static const add = "add";
+  static const upiIdRequired = "upiIdRequired";
+  static const invalidUpiId = "invalidUpiId";
+  static const bankAddedSuccessfully = "bankAddedSuccessfully";
+  static const failedToAddAccount = "failedToAddAccount";
+  static const failedToUpdateAccount = "failedToUpdateAccount";
+  static const error = "error";
+
+  ///ADD DOCUMENT SCREEN
+  static const documentProof = "documentProof";
+  static const frontSide = "frontSide";
+  static const backSide = "backSide";
+  static const close = "close";
+  static const addDocuments = "addDocuments";
+  static const view = "view";
+  static const noDocumentUploaded = "noDocumentUploaded";
+  static const info = "info";
+  static const policeVerificationNoc = "policeVerificationNoc";
+  static const uploadPoliceVerificationNoc = "uploadPoliceVerificationNoc";
+  static const gstRegistrationCertificate = "gstRegistrationCertificate";
+  static const gstinNumber = "gstinNumber";
+  static const gstinNumberHint = "gstinNumberHint";
+  static const uploadGstCertificate = "uploadGstCertificate";
+  static const fssaiLicenseTitle = "fssaiLicenseTitle";
+  static const fssaiLicenseNumber = "fssaiLicenseNumber";
+  static const fssaiLicenseNumberHint = "fssaiLicenseNumberHint";
+  static const uploadFssaiCertificate = "uploadFssaiCertificate";
+  static const medicalLicenseTitle = "medicalLicenseTitle";
+  static const fireSafetyCertificateTitle = "fireSafetyCertificateTitle";
+  static const municipalCorpCertificateTitle = "municipalCorpCertificateTitle";
+  static const msmeCertificateTitle = "msmeCertificateTitle";
+  static const shopActCertificateTitle = "shopActCertificateTitle";
+  static const cancelledCheque = "cancelledCheque";
+  static const uploadFrontAndBackImages = "uploadFrontAndBackImages";
+  static const nameOfId = "nameOfId";
+  static const nameOfIdHint = "nameOfIdHint";
+  static const passbookFrontPageOrBankStatement = "passbookFrontPageOrBankStatement";
+  static const aadharNumberHint = "aadharNumberHint";
+  static const hotelTradeLicenseNumber = "hotelTradeLicenseNumber";
+
+  ///CANCEL CHEQUE DOCUMENT WIDGET
+  static const bankAccountNumber = "bankAccountNumber";
+  static const uploadCancelledChequePassbookPhoto = "uploadCancelledChequePassbookPhoto";
+  static const cancelChequeFront = "cancelChequeFront";
+  static const cancelChequeBack = "cancelChequeBack";
+
+  ///FRANCHISE INQUIRY SCREEN
+  static const fullNameHint = "fullNameHint";
+  static const emailHint = "emailHint";
+  static const phoneNumberLabel = "phoneNumberLabel";
+  static const highestEducationalQualification = "highestEducationalQualification";
+  static const selectPartnerTypeQuestion = "selectPartnerTypeQuestion";
+  static const businessPartner = "businessPartner";
+  static const marketingPartner = "marketingPartner";
+  static const partnerTypeHint = "partnerTypeHint";
+  static const amountYouCanInvest = "amountYouCanInvest";
+  static const enterAmount = "enterAmount";
+  static const franchiseLocationQuestion = "franchiseLocationQuestion";
+  static const selectState = "selectState";
+  static const cityHint = "cityHint";
+  static const workedInBusinessQuestion = "workedInBusinessQuestion";
+  static const yesNoHint = "yesNoHint";
+  static const franchiseMessageHint = "franchiseMessageHint";
+  static const franchiseAuthorizationConsent = "franchiseAuthorizationConsent";
+  static const sendMessage = "sendMessage";
+
+  ///NOTIFICATION SETTING SCREEN
+  static const notificationSetting = "notificationSetting";
+  static const comment = "comment";
+  static const like = "like";
+  static const tag = "tag";
+  static const followingNotification = "followingNotification";
+
+  ///SEARCH TRANSPORT ADDRESS SCREEN
+  static const whereAreYouGoing = "whereAreYouGoing";
+  static const rideType = "rideType";
+  static const oneWay = "oneWay";
+  static const roundTrip = "roundTrip";
+  static const sharingLabel = "sharingLabel";
+  static const bookingFor = "bookingFor";
+  static const mySelfLabel = "mySelfLabel";
+  static const myFriend = "myFriend";
+  static const friendsMobileNumber = "friendsMobileNumber";
+  static const phoneNumberHint = "phoneNumberHint";
+  static const receiversName = "receiversName";
+  static const receiversNameHint = "receiversNameHint";
+  static const receiversMobileNumber = "receiversMobileNumber";
+  static const parcelDetails = "parcelDetails";
+  static const parcelCategory = "parcelCategory";
+  static const documentParcel = "documentParcel";
+  static const productParcel = "productParcel";
+  static const othersParcel = "othersParcel";
+  static const chooseParcelCategory = "chooseParcelCategory";
+  static const weightInKgOptional = "weightInKgOptional";
+  static const weightHint = "weightHint";
+  static const parcelDescriptionHint = "parcelDescriptionHint";
+  static const addLabel = "addLabel";
+  static const confirmLocation = "confirmLocation";
+
+  ///PROFILE IMPRESSION STATS
+  static const viewsLabel = "viewsLabel";
+  static const inquiries = "inquiries";
+  static const followers = "followers";
+  static const followingLabel = "followingLabel";
+  static const joined = "joined";
+
+  ///DISCOVER HOSPITAL HOME
+  static const noDepartmentsAvailable = "noDepartmentsAvailable";
+  static const noEmergencyServicesListed = "noEmergencyServicesListed";
+  static const noManagementDetailsAvailable = "noManagementDetailsAvailable";
+  static const noPhotosAvailable = "noPhotosAvailable";
+  static const noContactDetailsAvailable = "noContactDetailsAvailable";
+  static const comingSoonLabel = "comingSoonLabel";
+  static const immediateHelp24x7 = "immediateHelp24x7";
+  static const scheduleYourVisitEasily = "scheduleYourVisitEasily";
+  static const bookNow = "bookNow";
+  static const noHospitalDataFound = "noHospitalDataFound";
+  static const errorCouldNotOpenDialer = "errorCouldNotOpenDialer";
+
+  ///DISCOVER SERVICE PROVIDER / PROFESSION SCREENS
+  static const noServicesFound = "noServicesFound";
+  static const unknownUser = "unknownUser";
+  static const viewProfile = "viewProfile";
+  static const serviceDescription = "serviceDescription";
+  static const workExperience = "workExperience";
+  static const noExperienceAddedYet = "noExperienceAddedYet";
+  static const requestBooking = "requestBooking";
+  static const priceLabel = "priceLabel";
+  static const opens = "opens";
+  static const closes = "closes";
+  static const aboutLabel = "aboutLabel";
+  static const noBioAvailableMsg = "noBioAvailableMsg";
+  static const pricing = "pricing";
+  static const noPricingInfo = "noPricingInfo";
+  static const perUnitLabel = "perUnitLabel";
+  static const minBookingLabel = "minBookingLabel";
+  static const timingLabel = "timingLabel";
+  static const noTimingsAvailable = "noTimingsAvailable";
+  static const specialLabel = "specialLabel";
+  static const servicesOffered = "servicesOffered";
+  static const noServicesListed = "noServicesListed";
+  static const showLess = "showLess";
+  static const viewAllServicesCount = "viewAllServicesCount";
+  static const whyChooseMe = "whyChooseMe";
+  static const expertiseLabel = "expertiseLabel";
+  static const noSkillsListed = "noSkillsListed";
+  static const noExperienceListed = "noExperienceListed";
+  static const noPhotosAvailableMsg = "noPhotosAvailableMsg";
+  static const noContactDetailsMsg = "noContactDetailsMsg";
+  static const newLabel = "newLabel";
+  static const reviewsCountSuffix = "reviewsCountSuffix";
+  static const kmLabel = "kmLabel";
+  static const unknown = "unknown";
+  static const noReviewsYet = "noReviewsYet";
+  static const reviewsTitle = "reviewsTitle";
+  static const ourServices = "ourServices";
+  static const noServicesListedYet = "noServicesListedYet";
+  static const projectsLabel = "projectsLabel";
+  static const noProjectsAddedYet = "noProjectsAddedYet";
+  static const certificatesAndAwards = "certificatesAndAwards";
+  static const noCertificatesAddedYet = "noCertificatesAddedYet";
+  static const workingHours = "workingHours";
+  static const noWorkingHoursAddedYet = "noWorkingHoursAddedYet";
+  static const closedDay = "closedDay";
+  static const monday = "monday";
+  static const tuesday = "tuesday";
+  static const wednesday = "wednesday";
+  static const thursday = "thursday";
+  static const friday = "friday";
+  static const saturday = "saturday";
+  static const sunday = "sunday";
+  static const yearsExp = "yearsExp";
+  static const monthsExp = "monthsExp";
+  static const yearsMonthsExp = "yearsMonthsExp";
+  static const bookInquiryLabel = "bookInquiryLabel";
+  static const allVariants = "allVariants";
+  static const noDescriptionAvailable = "noDescriptionAvailable";
+  static const noExperienceLabel = "noExperienceLabel";
+  static const noDataLabel = "noDataLabel";
+  static const portfolioLabel = "portfolioLabel";
+
+  ///DISCOVER SCHOOL / RENTAL / HOTEL / STAY / EDUCATION SCREENS
+  static const coursesLabel = "coursesLabel";
+  static const noCoursesAvailable = "noCoursesAvailable";
+  static const quickLinksLabel = "quickLinksLabel";
+  static const branchLabel = "branchLabel";
+  static const estPrefix = "estPrefix";
+  static const sincePrefix = "sincePrefix";
+  static const noStayServiceFound = "noStayServiceFound";
+  static const noHotelServiceFound = "noHotelServiceFound";
+  static const checkInLabel = "checkInLabel";
+  static const checkOutLabel = "checkOutLabel";
+  static const securityDepositLabel = "securityDepositLabel";
+  static const pickupLocationLabel = "pickupLocationLabel";
+  static const detailsLabel = "detailsLabel";
+  static const roomTypeLabel = "roomTypeLabel";
+  static const roomLabel = "roomLabel";
+  static const inrPerDay = "inrPerDay";
+  static const kmAwayLabel = "kmAwayLabel";
+  static const noRoomsAvailable = "noRoomsAvailable";
+  static const noAmenitiesListed = "noAmenitiesListed";
+  static const viewMoreLabel = "viewMoreLabel";
+  static const couldNotOpenDialer = "couldNotOpenDialer";
+  static const couldNotOpenEmail = "couldNotOpenEmail";
+  static const couldNotOpenLink = "couldNotOpenLink";
+  static const failedToLoadRentalServices = "failedToLoadRentalServices";
+  static const noAvailablePrefix = "noAvailablePrefix";
+  static const noAvailableSuffix = "noAvailableSuffix";
+  static const directionLabel = "directionLabel";
+  static const reviewsLabelBtn = "reviewsLabelBtn";
+  static const comingSoonShort = "comingSoonShort";
+  static const amenityWifi = "amenityWifi";
+  static const amenityAC = "amenityAC";
+  static const amenityTV = "amenityTV";
+  static const amenityRoomService = "amenityRoomService";
+  static const amenityPowerBackup = "amenityPowerBackup";
+  static const amenityBalcony = "amenityBalcony";
+  static const amenityBathroom = "amenityBathroom";
+  static const amenityWardrobe = "amenityWardrobe";
+  static const amenityDeskChair = "amenityDeskChair";
+  static const amenityRefrigerator = "amenityRefrigerator";
+  static const amenityElectricKettle = "amenityElectricKettle";
+
+  ///DISCOVER FILTER ENUMS
+  static const filterNearest = "filterNearest";
+  static const filterExperienced = "filterExperienced";
+  static const filterPriceLowToHigh = "filterPriceLowToHigh";
+  static const discoverHome = "discoverHome";
+  static const discoverDeals = "discoverDeals";
+  static const discoverEvents = "discoverEvents";
+  static const discoverCareerJobs = "discoverCareerJobs";
+
+  ///MEDICAL PHARMACY DETAIL
+  static const pharmacy = "pharmacy";
+  static const pharmacyDetailsNotAvailable = "pharmacyDetailsNotAvailable";
+  static const reviewsLabel = "reviewsLabel";
+  static const uploadPrescription = "uploadPrescription";
+  static const prescriptionUploadedSuccessfully = "prescriptionUploadedSuccessfully";
+  static const uploadLabel = "uploadLabel";
+  static const websiteLabel = "websiteLabel";
+  static const visitLabel = "visitLabel";
+  static const popularMedicalProducts = "popularMedicalProducts";
+  static const viewAllLabel = "viewAllLabel";
+  static const productsCountLabel = "productsCountLabel";
+  static const medicalProducts = "medicalProducts";
+  static const aboutUsLabel = "aboutUsLabel";
+
+  ///QUICK FOOD SEARCH SCREEN
+  static const searchForDishesAndRestaurants = "searchForDishesAndRestaurants";
+  static const whatsOnYourMind = "whatsOnYourMind";
+  static const knownAndLoved = "knownAndLoved";
+  static const seeAll = "seeAll";
+  static const noRestaurantsFound = "noRestaurantsFound";
+  static const noRestaurantsFoundNearby = "noRestaurantsFoundNearby";
+  static const restaurant = "restaurant";
+  static const allRestaurants = "allRestaurants";
+  static const sortBy = "sortBy";
+  static const pureVeg = "pureVeg";
+  static const under30Min = "under30Min";
+  static const ratingFourPlus = "ratingFourPlus";
+  static const ratingsCountLabel = "ratingsCountLabel";
 
   ///EDIT PROFILE FORM SCREEN...
   static const profilePicture = "profilePicture";
@@ -143,14 +467,10 @@ class AppStrings {
   static const testimonials = "testimonials";
   static const myStore = "myStore";
   static const myChannel = "myChannel";
-  static const view = "view";
-  static const earnWithBlueEra = "earnWithBlueEra";
   static const letsStartEarningNow = "letsStartEarningNow";
   static const paymentAccount = "paymentAccount";
   static const myWallet = "myWallet";
   static const totalEarning = "totalEarning";
-  static const bankAccount = "bankAccount";
-  static const myDocuments = "myDocuments";
   static const addDocument = "addDocument";
   static const myAvailabilityAndBookings = "myAvailabilityAndBookings";
   static const bookings = "bookings";
@@ -162,12 +482,10 @@ class AppStrings {
   static const create = "create";
   static const change = "change";
   static const uploading = "uploading";
-  static const addDocuments = "addDocuments";
   static const documentName = "documentName";
   static const documentNameHint = "documentNameHint";
   static const shareDocument = "shareDocument";
   static const shareMediaFile = "shareMediaFile";
-  static const add = "add";
   static const setYourAvailability = "setYourAvailability";
   static const bookingType = "bookingType";
   static const online = "online";
@@ -187,7 +505,6 @@ class AppStrings {
   static const editCoverPicture = "editCoverPicture";
   static const post = "post";
   static const following = "following";
-  static const followers = "followers";
   static const noDocumentsFound = "noDocumentsFound";
   static const addYourFirstDocument = "addYourFirstDocument";
   static const noVisitingDaysSelected = "noVisitingDaysSelected";
@@ -228,7 +545,6 @@ class AppStrings {
   static const youtubeHint = "youtubeHint";
   static const uploadChannelLogo = "uploadChannelLogo";
   static const addBrandLogoDescription = "addBrandLogoDescription";
-  static const close = "close";
   static const unjoin = "unjoin";
   static const join = "join";
   static const members = "members";
@@ -304,11 +620,9 @@ class AppStrings {
   static const background = "Background";
   static const lockChat = "lockChat";
 
-  static const pending = "pending";
   static const completed = "completed";
   static const canceled = "canceled";
   static const download = "download";
-  static const payment = "payment";
 
   static const myBusinessCard = "myBusinessCard";
   static const lekha = "lekha";
@@ -489,7 +803,6 @@ class AppStrings {
   static const allPosts = "all_posts";
   static const myCards = "my_cards";
   static const searchHere = "search_here";
-  static const joined = "joined";
   static const channels = "channels";
   static const whatsNew = "whats_new";
   static const suggested = "suggested";
@@ -519,7 +832,6 @@ class AppStrings {
   static const all = "all";
   static const applied = "applied";
   static const schedules = "schedules";
-  static const saved = "saved";
   static const unhide = "unhide";
   static const openVacancy = "open_vacancy";
   static const closeVacancy = "close_vacancy";
@@ -675,7 +987,6 @@ class AppStrings {
   static const pleaseSelectBanner = "pleaseSelectBanner";
 
   static const updateJob = "updateJob";
-  static const continueBtn = "continueBtn";
   static const createJobPostStep2 = "createJobPostStep2";
 
   static const candidateBasicRequirements = "candidateBasicRequirements";
@@ -880,7 +1191,6 @@ class AppStrings {
   static const currentCompanyName = "currentCompanyName";
   static const currentCompanyHint = "currentCompanyHint";
   static const currentlyWorking = "currentlyWorking";
-  static const yesNoHint = "yesNoHint";
   static const designationHint = "designationHint";
   static const workType = "workType";
   static const workTypeHint = "workTypeHint";
@@ -1415,7 +1725,6 @@ class AppStrings {
   static const String hintServiceName = 'hintServiceName';
   static const String facility = 'facility';
   static const String facilities = 'facilities';
-  static const String serviceDescription = 'serviceDescription';
   static const String hintServiceDescription = 'hintServiceDescription';
   static const String timing = 'timing';
   static const String defaultTiming = 'defaultTiming';
@@ -1540,7 +1849,6 @@ class AppStrings {
   static const String goToProductPage = 'goToProductPage';
   static const String deleteVariant = 'deleteVariant';
   static const String empty = 'empty';
-  static const String error = 'error';
   static const String selectVariantPrompt = 'selectVariantPrompt';
 
   static const String myServices = 'myServices';
@@ -1548,7 +1856,6 @@ class AppStrings {
   static const String myBusinessCards = 'myBusinessCards';
   static const String noMatchingTabsFound = 'noMatchingTabsFound';
   static const String noProductsFound = 'noProductsFound';
-  static const String noServicesFound = 'noServicesFound';
   static const String noFoodItemsFound = 'noFoodItemsFound';
 
   static const String pricingAndWarranty = 'pricingAndWarranty';
@@ -1791,7 +2098,6 @@ class AppStrings {
   static const String manufacturingRelatedBusinessInfo =
       'manufacturingRelatedBusinessInfo';
   static const String needHelp = 'needHelp';
-  static const String unknown = 'Unknown';
 
   static const String uploadYourPhotoLogo = 'uploadYourPhotoLogo';
   static const String categoryAndSubcategory = 'categoryAndSubcategory';
@@ -1911,8 +2217,6 @@ class AppStrings {
   static const uploadShopActCertificate = "uploadShopActCertificate";
   static const hotelTradeLicense = "hotelTradeLicense";
   static const panCardHotelOrOwner = "panCardHotelOrOwner";
-  static const gstRegistrationCertificate = "gstRegistrationCertificate";
-  static const cancelledCheque = "cancelledCheque";
   static const policeVerificationOrNOC = "policeVerificationOrNOC";
   static const fireSafetyCertificate = "fireSafetyCertificate";
   static const fssaiLicense = "fssaiLicense";
@@ -1939,7 +2243,6 @@ class AppStrings {
   static const yourNameHint = "your_name_hint";
   static const yourRole = "your_role";
   static const yourRoleHint = "your_role_hint";
-  static const emailHint = "email_hint";
 
   // Validation
   static const validationNameRequired = "validation_name_required";
@@ -2010,7 +2313,6 @@ class AppStrings {
 
   static const livePhotos = "live_photos";
   static const storeImage = "store_image";
-  static const noPhotosAvailable = "no_photos_available";
 
   static const noProductsAvailable = "no_products_available";
   static const rateThisBusiness = "rate_this_business";
@@ -2045,7 +2347,6 @@ class AppStrings {
 
   static const report = "report";
   static const reportThisProfile = "report_this_profile";
-  static const inquiries = "inquiries";
   static const visitingCard = "visitingCard";
   static const noImageSelected = "noImageSelected";
   static const imageProcessingFailed = "imageProcessingFailed";
@@ -3376,7 +3677,6 @@ class AppStrings {
       "home_sample_collection_available";
 
   static const String chooseRoom = "choose_room";
-  static const String noRoomsAvailable = "no_rooms_available";
   static const String hotelAmenities = "hotel_amenities";
 
   static const String securityDeposit = "security_deposit";
@@ -3409,7 +3709,6 @@ class AppStrings {
 
   static const String faculty = "faculty";
   static const String noFacultyFound = "no_faculty_found";
-  static const String yearsExp = "years_exp";
   static const String deleteFacultyConfirm = "delete_faculty_confirm";
   static const String addFaculty = "add_faculty";
 
@@ -3621,7 +3920,6 @@ class AppStrings {
   /// LAB PREVIEW & PROFILES SCREENS
   static const String diagnosticLabPreview = "diagnostic_lab_preview";
   static const String labName = "lab_name";
-  static const String verified = "verified";
   static const String popularServices = "popular_services";
   static const String featuredTests = "featured_tests";
   static const String healthPackages = "health_packages";
@@ -3632,7 +3930,6 @@ class AppStrings {
   /// JOB SEEKER LOCALIZATION KEYS
   static const String jobPortfolioResume = "job_portfolio_resume";
   static const String basicProfile = "basic_profile";
-  static const String workExperience = "work_experience";
   static const String portfolioProjects = "portfolio_projects";
   static const String tellUsMoreAboutInfo = "tell_us_more_about_info";
   static const String egCareerObjective = "eg_career_objective";
@@ -3685,4 +3982,87 @@ class AppStrings {
   static const String online_upi_payment = "online_upi_payment";
   static const String credit_card_payment = "credit_card_payment";
   static const String health_checkup_packages = "health_checkup_packages";
+
+  /// Emergency Basic Info Screen
+  static const String emergencyFullNameHint = "emergency_full_name_hint";
+  static const String emergencyMobileNumber = "emergency_mobile_number";
+  static const String emergencyMobileHint = "emergency_mobile_hint";
+  static const String emergencyAlternateNumber = "emergency_alternate_number";
+  static const String emergencyAlternateHint = "emergency_alternate_hint";
+  static const String emergencyEmailOptional = "emergency_email_optional";
+  static const String emergencyEmailHint = "emergency_email_hint";
+  static const String emergencyVehicleHint = "emergency_vehicle_hint";
+
+  /// Emergency Medical Info Screen
+  static const String emergencyMedicalTitle = "emergency_medical_title";
+  static const String emergencyStep2Of4 = "emergency_step_2_of_4";
+  static const String emergencyBloodGroup = "emergency_blood_group";
+  static const String emergencyBloodGroupHint = "emergency_blood_group_hint";
+  static const String emergencySign = "emergency_sign";
+  static const String emergencySignHint = "emergency_sign_hint";
+  static const String emergencyPositive = "emergency_positive";
+  static const String emergencyNegative = "emergency_negative";
+  static const String emergencyKnownAllergies = "emergency_known_allergies";
+  static const String emergencyKnownAllergiesHint = "emergency_known_allergies_hint";
+  static const String emergencyKnownDisease = "emergency_known_disease";
+  static const String emergencyKnownDiseaseHint = "emergency_known_disease_hint";
+
+  /// Emergency Contact Screen
+  static const String emergencyContactTitle = "emergency_contact_title";
+  static const String emergencyStep3Of4 = "emergency_step_3_of_4";
+  static const String emergencyContactName = "emergency_contact_name";
+  static const String emergencyContactNameHint = "emergency_contact_name_hint";
+  static const String emergencyContactMobileHint = "emergency_contact_mobile_hint";
+  static const String emergencyRelationship = "emergency_relationship";
+  static const String emergencyRelationshipHint = "emergency_relationship_hint";
+
+  /// Emergency Privacy & Alerts Screen
+  static const String emergencyPrivacyAlertTitle = "emergency_privacy_alert_title";
+  static const String emergencyStep4Of4 = "emergency_step_4_of_4";
+  static const String emergencyMaskPhoneNumber = "emergency_mask_phone_number";
+  static const String emergencySendSmsAlert = "emergency_send_sms_alert";
+  static const String emergencyShareMedicalInfo = "emergency_share_medical_info";
+  static const String emergencySendChatAlertGps = "emergency_send_chat_alert_gps";
+  static const String emergencyConfirmAccurate = "emergency_confirm_accurate";
+  static const String emergencyAgreeToShare = "emergency_agree_to_share";
+  static const String emergencySubmit = "emergency_submit";
+
+  /// Emergency Snackbar Messages
+  static const String emergencyFillRequiredFields = "emergency_fill_required_fields";
+  static const String emergencyFillFullName = "emergency_fill_full_name";
+  static const String emergencyFillMobile = "emergency_fill_mobile";
+  static const String emergencyFillAlternate = "emergency_fill_alternate";
+  static const String emergencyFillVehicle = "emergency_fill_vehicle";
+  static const String emergencySavedBasicInfo = "emergency_saved_basic_info";
+  static const String emergencySavedMedicalInfo = "emergency_saved_medical_info";
+  static const String emergencySavedContact = "emergency_saved_contact";
+  static const String emergencySavedPrivacy = "emergency_saved_privacy";
+  static const String emergencyConfirmAgreeBeforeSubmit = "emergency_confirm_agree_before_submit";
+
+  /// Choose Delivery Options
+  static const String selfPickUpTitle = "self_pick_up_title";
+  static const String selfPickUpSubtitle = "self_pick_up_subtitle";
+  static const String bookRiderTitle = "book_rider_title";
+  static const String bookRiderSubtitle = "book_rider_subtitle";
+
+  /// Grocery Stores Screen
+  static const String groceryStoresLabel = "grocery_stores_label";
+  static const String groceryNoStoresFound = "grocery_no_stores_found";
+  static const String groceryCartWarningMessage = "grocery_cart_warning_message";
+  static const String groceryPlaceOrderBtn = "grocery_place_order_btn";
+
+  /// Grocery Via Rider — Add Category Screen
+  static const String groceryUploadListPhotos = "grocery_upload_list_photos";
+
+  /// Grocery Rider Snap Search Screen
+  static const String grocerySearchItemsTitle = "grocery_search_items_title";
+  static const String groceryViewCartItems = "grocery_view_cart_items";
+  static const String groceryUploadList = "grocery_upload_list";
+  static const String groceryUploadListHelper = "grocery_upload_list_helper";
+  static const String grocerySnapNoProductsFound = "grocery_snap_no_products_found";
+  static const String groceryRetry = "grocery_retry";
+  static const String groceryItemsFound = "grocery_items_found";
+  static const String groceryItemsMissing = "grocery_items_missing";
+  static const String groceryAddBtn = "grocery_add_btn";
+  static const String grocerySearchManually = "grocery_search_manually";
 }

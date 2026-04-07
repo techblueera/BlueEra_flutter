@@ -17,6 +17,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import '../../../../../core/constants/getx_utils.dart';
 
 import '../../../auth/controller/auth_controller.dart';
@@ -331,7 +332,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          buildCustomActionWidget: () => const DiscoverCartIcon()),
+         ),
       body: Stack(
         children: [
           /// Full-screen map
@@ -558,7 +559,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                                             .selectedToAddress
                                                             ?.value ==
                                                         null)
-                                                ? "Where are you going?"
+                                                ? AppStrings.whereAreYouGoing.tr
                                                 : discoverController
                                                     .selectedToAddress?.value,
                                             fontSize: 13,
@@ -669,7 +670,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const CustomText("Ride Type",
+                      const CustomText(AppStrings.rideType,
                           fontSize: 14, fontWeight: FontWeight.w600),
                       const SizedBox(height: 10),
 
@@ -677,7 +678,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       Row(
                         children: [
                           _selectableChip(
-                            text: "One Way",
+                            text: AppStrings.oneWay.tr,
                             isSelected:
                                 discoverController.selectedRideType.value ==
                                     AppConstants.oneWay,
@@ -688,7 +689,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           ),
                           const SizedBox(width: 10),
                           _selectableChip(
-                            text: "Round Trip",
+                            text: AppStrings.roundTrip.tr,
                             isSelected:
                                 discoverController.selectedRideType.value ==
                                     AppConstants.roundTrip,
@@ -699,7 +700,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           ),
                           const SizedBox(width: 10),
                           _selectableChip(
-                            text: "Sharing",
+                            text: AppStrings.sharingLabel.tr,
                             isSelected:
                                 discoverController.selectedRideType.value ==
                                     AppConstants.sharing,
@@ -712,7 +713,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       ),
 
                       const SizedBox(height: 16),
-                      const CustomText("Booking For",
+                      const CustomText(AppStrings.bookingFor,
                           fontSize: 14, fontWeight: FontWeight.w600),
                       const SizedBox(height: 10),
 
@@ -720,7 +721,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       Row(
                         children: [
                           _selectableChip(
-                            text: "My Self",
+                            text: AppStrings.mySelfLabel.tr,
                             isSelected:
                                 discoverController.selectedBookingFor.value ==
                                     AppConstants.mySelf,
@@ -731,7 +732,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           ),
                           const SizedBox(width: 10),
                           _selectableChip(
-                            text: "My Friend",
+                            text: AppStrings.myFriend.tr,
                             isSelected:
                                 discoverController.selectedBookingFor.value ==
                                     AppConstants.myFriend,
@@ -749,7 +750,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const CustomText("Friend's Mobile Number",
+                            const CustomText(AppStrings.friendsMobileNumber,
                                 fontSize: 14, fontWeight: FontWeight.w600),
                             const SizedBox(height: 10),
 
@@ -784,7 +785,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                           height: 20,
                                           width: 20,
                                         )),
-                                    hintText: "E.g. 1234567890",
+                                    hintText: AppStrings.phoneNumberHint.tr,
                                   ),
                                 ),
                               ],
@@ -802,13 +803,13 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       CommonTextField(
                           textEditController:
                               discoverController.receiversNameController,
-                          title: "Receiver's Name",
-                          hintText: "E.g. Ramesh"),
+                          title: AppStrings.receiversName.tr,
+                          hintText: AppStrings.receiversNameHint.tr),
                       const SizedBox(height: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CustomText("Receiver's Mobile Number",
+                          const CustomText(AppStrings.receiversMobileNumber,
                               fontSize: 14, fontWeight: FontWeight.w400),
                           const SizedBox(height: 10),
 
@@ -843,7 +844,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                         height: 20,
                                         width: 20,
                                       )),
-                                  hintText: "E.g. 1234567890",
+                                  hintText: AppStrings.phoneNumberHint.tr,
                                 ),
                               ),
                             ],
@@ -854,7 +855,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const CustomText("Parcel Details",
+                          const CustomText(AppStrings.parcelDetails,
                               fontSize: 16, fontWeight: FontWeight.w600),
                           InkWell(
                             onTap: () {
@@ -875,7 +876,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          const CustomText("Parcel Details",
+                                          const CustomText(AppStrings.parcelDetails,
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600),
                                           InkWell(
@@ -891,7 +892,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                       SizedBox(
                                         height: 16,
                                       ),
-                                      const CustomText("Category",
+                                      const CustomText(AppStrings.parcelCategory,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w400),
                                       SizedBox(
@@ -900,13 +901,13 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                       Obx(() {
                                         return CommonDropdown(
                                           items: [
-                                            "Document",
-                                            "Product",
-                                            "Others"
+                                            AppStrings.documentParcel.tr,
+                                            AppStrings.productParcel.tr,
+                                            AppStrings.othersParcel.tr
                                           ],
                                           selectedValue: discoverController
                                               .selectedParcelCategory.value,
-                                          hintText: "Choose Parcel Category",
+                                          hintText: AppStrings.chooseParcelCategory.tr,
                                           onChanged: (value) {
                                             discoverController
                                                 .selectedParcelCategory
@@ -919,8 +920,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                       CommonTextField(
                                         textEditController: discoverController
                                             .parcelWeightController,
-                                        title: "Weight in Kg (optional)",
-                                        hintText: "E.g. 0.5kg",
+                                        title: AppStrings.weightInKgOptional.tr,
+                                        hintText: AppStrings.weightHint.tr,
                                         validator: (value) {
                                           return null;
                                         },
@@ -930,9 +931,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                         maxLine: 3,
                                         textEditController: discoverController
                                             .parcelDescriptionController,
-                                        title: "Description",
+                                        title: AppStrings.description.tr,
                                         hintText:
-                                            "E.g. Take this parcel with care",
+                                            AppStrings.parcelDescriptionHint.tr,
                                         validator: (value) {
                                           return null;
                                         },
@@ -947,7 +948,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                                 .addParcelDetails();
                                             Get.back();
                                           },
-                                          title: "Save"),
+                                          title: AppStrings.save.tr),
                                     ],
                                   ),
                                 ),
@@ -960,7 +961,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                   color: AppColors.primaryColor,
                                 ),
                                 const CustomText(
-                                  " Add",
+                                  AppStrings.addLabel,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primaryColor,
@@ -1054,7 +1055,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           vehicleType: widget.vehicleType,
                         ));
                   },
-                  title: "Confirm Location"),
+                  title: AppStrings.confirmLocation.tr),
               const SizedBox(height: 8),
             ],
           ),

@@ -107,7 +107,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () {
-                          commonSnackBar(message: 'Coming Soon....');
+                          commonSnackBar(message: AppStrings.comingSoonLabel.tr);
                         },
                         title: AppStrings.bookInquiry,
                       ),
@@ -307,7 +307,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
           hotelLat,
           hotelLng,
         );
-        distanceText = '${km.toStringAsFixed(1)} Km Away';
+        distanceText = '${km.toStringAsFixed(1)} ${AppStrings.kmAwayLabel.tr}';
       }
     }
 
@@ -330,10 +330,10 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
           ServiceHomeTitleWidget(title: AppStrings.chooseRoom),
           const SizedBox(height: 12),
           if (types.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No rooms available",
+                message: AppStrings.noRoomsAvailable.tr,
                 imageSize: 60,
               ),
             )
@@ -535,10 +535,10 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
           ServiceHomeTitleWidget(title: AppStrings.gallery),
           const SizedBox(height: 12),
           if (allImages.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No photos available",
+                message: AppStrings.noPhotosAvailableMsg.tr,
                 imageSize: 60,
               ),
             )
@@ -554,26 +554,26 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   Widget _buildAmenitiesSection() {
     final amen = profile?.amenities;
     final chips = <_AmenityItem>[];
-    if (amen?.freeWifi == true) chips.add(_AmenityItem(Icons.wifi, "Wifi"));
+    if (amen?.freeWifi == true) chips.add(_AmenityItem(Icons.wifi, AppStrings.amenityWifi.tr));
     if (amen?.airConditioning == true)
-      chips.add(_AmenityItem(Icons.ac_unit, "AC"));
-    if (amen?.television == true) chips.add(_AmenityItem(Icons.tv, "TV"));
+      chips.add(_AmenityItem(Icons.ac_unit, AppStrings.amenityAC.tr));
+    if (amen?.television == true) chips.add(_AmenityItem(Icons.tv, AppStrings.amenityTV.tr));
     if (amen?.roomService == true)
-      chips.add(_AmenityItem(Icons.room_service, "Room Service"));
+      chips.add(_AmenityItem(Icons.room_service, AppStrings.amenityRoomService.tr));
     if (amen?.powerBackup == true)
-      chips.add(_AmenityItem(Icons.battery_charging_full_sharp, "Power Backup"));
+      chips.add(_AmenityItem(Icons.battery_charging_full_sharp, AppStrings.amenityPowerBackup.tr));
     if (amen?.balcony == true)
-      chips.add(_AmenityItem(Icons.balcony, "Balcony"));
+      chips.add(_AmenityItem(Icons.balcony, AppStrings.amenityBalcony.tr));
     if (amen?.attachedBathroom == true)
-      chips.add(_AmenityItem(Icons.bathroom, "Bathroom"));
+      chips.add(_AmenityItem(Icons.bathroom, AppStrings.amenityBathroom.tr));
     if (amen?.wardrobe == true)
-      chips.add(_AmenityItem(Icons.devices_other, "Wardrobe"));
+      chips.add(_AmenityItem(Icons.devices_other, AppStrings.amenityWardrobe.tr));
     if (amen?.deskChair == true)
-      chips.add(_AmenityItem(Icons.chair, "Desk Chair"));
+      chips.add(_AmenityItem(Icons.chair, AppStrings.amenityDeskChair.tr));
     if (amen?.roomRefrigerators == true)
-      chips.add(_AmenityItem(Icons.kitchen, "Refrigerator"));
+      chips.add(_AmenityItem(Icons.kitchen, AppStrings.amenityRefrigerator.tr));
     if (amen?.electricKettle == true)
-      chips.add(_AmenityItem(Icons.electric_bolt, "Electric Kettle"));
+      chips.add(_AmenityItem(Icons.electric_bolt, AppStrings.amenityElectricKettle.tr));
 
     final displayChips = chips.length > 5 ? chips.sublist(0, 5) : chips;
     final hasMore = chips.length > 5;
@@ -587,10 +587,10 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
           ServiceHomeTitleWidget(title: AppStrings.hotelAmenities),
           SizedBox(height: SizeConfig.size12),
           if (chips.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No amenities listed",
+                message: AppStrings.noAmenitiesListed.tr,
                 imageSize: 60,
               ),
             )
@@ -621,7 +621,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(),
-                              child: CustomText('Close',
+                              child: CustomText(AppStrings.close,
                                   color: AppColors.primaryColor),
                             ),
                           ],
@@ -639,7 +639,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                                 AppColors.primaryColor.withValues(alpha: 0.1)),
                       ),
                       child: CustomText(
-                        '+${chips.length - 5} View More',
+                        '+${chips.length - 5} ${AppStrings.viewMoreLabel.tr}',
                         fontSize: SizeConfig.small,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w500,
@@ -693,10 +693,10 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
           ServiceHomeTitleWidget(title: AppStrings.contactUs),
           const SizedBox(height: 12),
           if (!hasContact && (profile?.name?.isEmpty ?? true))
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No contact details available",
+                message: AppStrings.noContactDetailsMsg.tr,
                 imageSize: 60,
               ),
             )
@@ -859,7 +859,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
       } else {
-        commonSnackBar(message: "Could not open the dialer");
+        commonSnackBar(message: AppStrings.couldNotOpenDialer.tr);
       }
     } catch (e) {
       debugPrint("Error launching dialer: $e");
@@ -872,7 +872,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
       } else {
-        commonSnackBar(message: "Could not open email client");
+        commonSnackBar(message: AppStrings.couldNotOpenEmail.tr);
       }
     } catch (e) {
       debugPrint("Error launching email: $e");
@@ -889,7 +889,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        commonSnackBar(message: "Could not open the link");
+        commonSnackBar(message: AppStrings.couldNotOpenLink.tr);
       }
     } catch (e) {
       debugPrint("Error launching URL: $e");

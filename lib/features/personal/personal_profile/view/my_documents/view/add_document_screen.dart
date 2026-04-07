@@ -41,7 +41,7 @@ class AddDocumentScreen extends StatefulWidget {
 
     if (meta == null ||
         (meta.frontUrl == null && meta.backUrl == null)) {
-      Get.snackbar("Info", "No document uploaded");
+      Get.snackbar(AppStrings.info.tr, AppStrings.noDocumentUploaded.tr);
       return;
     }
 
@@ -56,7 +56,7 @@ class AddDocumentScreen extends StatefulWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                  "Document Proof",
+                  AppStrings.documentProof,
                   fontSize: 18, fontWeight: FontWeight.bold
               ),
               const SizedBox(height: 16),
@@ -64,13 +64,13 @@ class AddDocumentScreen extends StatefulWidget {
               if (meta.frontUrl != null)
                 Column(crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText("Front Side",fontSize: 14,fontWeight: FontWeight.w600,),
+                    CustomText(AppStrings.frontSide,fontSize: 14,fontWeight: FontWeight.w600,),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: (){
                         Get.to(
                               () => ImageViewScreen(
-                            appBarTitle: 'Front Side',
+                            appBarTitle: AppStrings.frontSide.tr,
                             imageUrls: [meta.frontUrl!],
                             initialIndex: 0,
                           ),
@@ -106,13 +106,13 @@ class AddDocumentScreen extends StatefulWidget {
 
               if (meta.backUrl != null) ...[
                 const SizedBox(height: 16),
-                CustomText("Back Side",fontSize: 14,fontWeight: FontWeight.w600,),
+                CustomText(AppStrings.backSide,fontSize: 14,fontWeight: FontWeight.w600,),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: (){
                     Get.to(
                           () => ImageViewScreen(
-                        appBarTitle: 'Back Side',
+                        appBarTitle: AppStrings.backSide.tr,
                         imageUrls: [meta.backUrl!],
                         initialIndex: 0,
                       ),
@@ -148,7 +148,7 @@ class AddDocumentScreen extends StatefulWidget {
               const SizedBox(height: 20),
               CustomBtn(onTap: (){
                 Get.back();
-              }, title: "Close",
+              }, title: AppStrings.close.tr,
                 isValidate: true)
             ],
           ),
@@ -173,7 +173,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
-          title: "Add Documents",
+          title: AppStrings.addDocuments,
           isLeading: true,
         ),
         body: SafeArea(
@@ -217,8 +217,8 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                           AppStrings.uploadAadharBothSide,
                                       backImage: true,
                                       textFieldLabel:
-                                          'Hotel Trade License Number',
-                                      textFieldHint: 'E.g. 5678 1234 6679 9012',
+                                          AppStrings.hotelTradeLicenseNumber.tr,
+                                      textFieldHint: AppStrings.aadharNumberHint.tr,
                                       textFieldValidation:
                                           ValidationMethod.validateAadhaar,
                                       maxLength: 12,
@@ -297,11 +297,11 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.addressProof,
                                       uploadSectionLabel:
-                                          'Upload Front and Back Images',
+                                          AppStrings.uploadFrontAndBackImages.tr,
                                       backImage: true,
-                                      textFieldLabel: 'Name of ID',
+                                      textFieldLabel: AppStrings.nameOfId.tr,
                                       textFieldHint:
-                                          'E.g. Voter ID, Gas Bill...',
+                                          AppStrings.nameOfIdHint.tr,
                                       textFieldValidation:
                                           ValidationMethod.validateName,
                                       maxLength: 24,
@@ -320,11 +320,11 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "Police Verification / NOC",
+                                    title: AppStrings.policeVerificationNoc.tr,
                                     child: GenericDocumentWidget(
                                         documentType: DocumentKeys.noc,
                                         uploadSectionLabel:
-                                            "Upload Police Verification / NOC",
+                                            AppStrings.uploadPoliceVerificationNoc,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -343,7 +343,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                     title: AppStrings.uploadBankDetails,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.bankDetails,
-                                      uploadSectionLabel: 'Passbook Front Page or Bank Statement',
+                                      uploadSectionLabel: AppStrings.passbookFrontPageOrBankStatement.tr,
                                       backImage: false
                                     ),
                                   ),
@@ -360,7 +360,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "Cancelled Cheque",
+                                    title: AppStrings.cancelledCheque.tr,
                                     child: CancelChequeDocumentWidget(
                                         documentType: DocumentKeys
                                             .bankersCancelledCheque),
@@ -402,13 +402,13 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "GST Registration Certificate",
+                                    title: AppStrings.gstRegistrationCertificate.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.gstCertificate,
-                                      textFieldLabel: "GSTIN Number",
-                                      textFieldHint: "E.g. 23333....",
+                                      textFieldLabel: AppStrings.gstinNumber.tr,
+                                      textFieldHint: AppStrings.gstinNumberHint.tr,
                                       uploadSectionLabel:
-                                          "Upload GST Certificate",
+                                          AppStrings.uploadGstCertificate.tr,
                                       backImage: true,
                                       textFieldValidation:
                                           ValidationMethod.validateGSTIN,
@@ -429,13 +429,13 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "FSSAI License",
+                                    title: AppStrings.fssaiLicenseTitle.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.fssaiLicense,
-                                      textFieldLabel: "FSSAI License Number",
-                                      textFieldHint: "E.g. 12345678901234",
+                                      textFieldLabel: AppStrings.fssaiLicenseNumber.tr,
+                                      textFieldHint: AppStrings.fssaiLicenseNumberHint.tr,
                                       uploadSectionLabel:
-                                          "Upload FSSAI Certificate",
+                                          AppStrings.uploadFssaiCertificate.tr,
                                       backImage: false,
                                       textFieldValidation:
                                           ValidationMethod.validateFSSAI,
@@ -455,7 +455,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "Medical License",
+                                    title: AppStrings.medicalLicenseTitle.tr,
                                     child: GenericDocumentWidget(
                                         documentType:
                                             DocumentKeys.medicalLicense,
@@ -476,7 +476,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "Fire/Safety Certificate",
+                                    title: AppStrings.fireSafetyCertificateTitle.tr,
                                     child: GenericDocumentWidget(
                                         documentType:
                                             DocumentKeys.fireSafetyCertificate,
@@ -497,7 +497,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: "Municipal Corp. Certificate",
+                                    title: AppStrings.municipalCorpCertificateTitle.tr,
                                     child: GenericDocumentWidget(
                                         documentType: DocumentKeys
                                             .municipalCorpCertificate,
@@ -518,7 +518,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: 'MSME Certificate',
+                                    title: AppStrings.msmeCertificateTitle.tr,
                                     child: GenericDocumentWidget(
                                         documentType:
                                             DocumentKeys.msmeCertificate,
@@ -539,7 +539,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: 'Shop Act Certificate',
+                                    title: AppStrings.shopActCertificateTitle.tr,
                                     child: GenericDocumentWidget(
                                         documentType:
                                             DocumentKeys.shopActCertificate,
@@ -654,7 +654,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                         children: [
                           Icon(Icons.remove_red_eye,color: AppColors.primaryColor,size: 16,),
                           SizedBox(width: 6,),
-                          CustomText("View", color: AppColors.primaryColor)
+                          CustomText(AppStrings.view, color: AppColors.primaryColor)
                         ],
                       )),
                 ),

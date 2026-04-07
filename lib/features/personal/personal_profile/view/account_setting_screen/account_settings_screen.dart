@@ -159,7 +159,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
               _helpServiceCard(
                'assets/images/two_step.png',
-                "Two Step Authentication",
+                AppStrings.twoStepAuthentication,
                     () {
                       navigatePushTo(context, TwoStepVerifyScreen());
 
@@ -168,7 +168,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
               _helpServiceCard(
                 AppIconAssets.deleteIcon,
-                "Account Delete",
+                AppStrings.accountDelete,
                     () async{
 
                         await showCommonDialog(
@@ -194,11 +194,11 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               _helpServiceCard(
                 AppIconAssets.logout,
 
-                "Device Logout",
+                AppStrings.deviceLogout,
                     () async{
                       await showCommonDialog(
                       context: context,
-                      text: AppStrings.logoutConfirmationMessage,
+                      text: AppStrings.logoutConfirmationMessage.tr,
                       confirmCallback: () async {
                         // E2E: revoke device keys from server before clearing session
                         if (Get.isRegistered<ChatViewController>()) {
@@ -307,17 +307,17 @@ Widget _helpServiceCard(
 
             // Right Side Controls (as per image)
             if (slugId == "Email Verification")
-              _statusChip((isVerified==true)?"Verified":"Pending", isGreen: isVerified==true),
+              _statusChip((isVerified==true)?AppStrings.verified:AppStrings.pending, isGreen: isVerified==true),
 
             if (slugId == "Language")
               _statusChip(lang.selectedLang.value, isGrey: true),
 
             if (slugId == "Verification Status")
-              _statusChip("Owner Verified", isGreen: true),
+              _statusChip(AppStrings.ownerVerified, isGreen: true),
 
             if (slugId == "Manage Subscription")
               CustomText(
-                "Free Plan",
+                AppStrings.freePlan,
                 color: AppColors.primaryColor,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,

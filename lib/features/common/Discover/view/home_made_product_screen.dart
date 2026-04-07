@@ -126,7 +126,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                   controller.selectedFilter.value = selectedEnum;
                   // controller.callApi();
                 },
-                labelBuilder: (r) => r.label,
+                labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
               SizedBox(

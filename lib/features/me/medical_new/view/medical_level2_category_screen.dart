@@ -14,6 +14,21 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
   final String title;
   final List<MedicalNestedCategoryModel> level2Categories;
 
+  // 4 soft pastel tile backgrounds — picked pseudo-randomly per item
+  // (deterministic so a given index keeps the same color across rebuilds).
+  static const List<Color> _tileColors = [
+    Color(0xFFE3F2FD), // soft blue
+    Color(0xFFFFF3E0), // soft peach
+    Color(0xFFE8F5E9), // soft mint
+    Color(0xFFFCE4EC), // soft pink
+  ];
+
+  Color _tileColorFor(MedicalNestedCategoryModel category, int index) {
+    // Mix index with name hash so order changes still feel random.
+    final seed = (category.name?.hashCode ?? 0) ^ (index * 31);
+    return _tileColors[seed.abs() % _tileColors.length];
+  }
+
   const MedicalLevel2CategoryScreen({
     super.key,
     required this.title,
@@ -26,120 +41,297 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: title),
       body: level2Categories.isEmpty
-          ? Center(
-              child: CustomText(
-                'No subcategories available',
-                color: AppColors.secondaryTextColor,
-              ),
-            )
-          : GridView.builder(
-              padding: EdgeInsets.all(SizeConfig.size12),
-              itemCount: level2Categories.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: SizeConfig.size10,
-                mainAxisSpacing: SizeConfig.size10,
-                childAspectRatio: 0.85,
-              ),
-              itemBuilder: (context, index) {
-                final category = level2Categories[index];
-                return _buildSubCategoryCard(category);
-              },
+          ? _buildEmptyState()
+          : CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeader()),
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    SizeConfig.size12,
+                    SizeConfig.size4,
+                    SizeConfig.size12,
+                    SizeConfig.size40,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: SizeConfig.size10,
+                      mainAxisSpacing: SizeConfig.size10,
+                      childAspectRatio: 0.82,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final category = level2Categories[index];
+                        return _buildSubCategoryCard(category, index);
+                      },
+                      childCount: level2Categories.length,
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: SizeConfig.size30),
+                ),
+              ],
             ),
     );
   }
 
-  Widget _buildSubCategoryCard(MedicalNestedCategoryModel category) {
-    final childCount = category.children?.length ?? 0;
-
-    return InkWell(
-      onTap: () {
-        final level3Children = category.children ?? [];
-        if (level3Children.isNotEmpty) {
-          Get.to(() => MedicalSubCategoryScreen(
-                arrLevel3Category: level3Children,
-              ));
-        }
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.greyE5),
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(
+        SizeConfig.size14,
+        SizeConfig.size14,
+        SizeConfig.size14,
+        SizeConfig.size10,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size14,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primaryColor.withOpacity(0.95),
+            AppColors.primaryColor.withOpacity(0.75),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            Expanded(
-              child: SizedBox(
-                width: double.infinity,
-                child: (category.image != null && category.image!.isNotEmpty)
-                    ? CachedNetworkImage(
-                        imageUrl: category.image!,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
-                          color: Colors.grey.shade100,
-                          child: Center(
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              width: 60,
-                              height: 60,
-                            ),
-                          ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withOpacity(0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.22),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.medical_services_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  title,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 2),
+                CustomText(
+                  '${level2Categories.length} categories available',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(SizeConfig.size20),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.inbox_rounded,
+              size: 56,
+              color: AppColors.primaryColor.withOpacity(0.7),
+            ),
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomText(
+            'No subcategories available',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+          ),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            'Please check back later',
+            fontSize: SizeConfig.small,
+            color: AppColors.secondaryTextColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubCategoryCard(MedicalNestedCategoryModel category, int index) {
+    final childCount = category.children?.length ?? 0;
+    final hasChildren = childCount > 0;
+    final tileColor = _tileColorFor(category, index);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final level3Children = category.children ?? [];
+          if (level3Children.isNotEmpty) {
+            Get.to(() => MedicalSubCategoryScreen(
+                  arrLevel3Category: level3Children,
+                ));
+          }
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: tileColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.7),
+              width: 0.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Image fills its area — no extra padding around it
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(14),
+                          topRight: Radius.circular(14),
                         ),
-                        errorWidget: (_, __, ___) => Container(
-                          color: Colors.grey.shade100,
-                          child: Center(
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              width: 60,
-                              height: 60,
-                            ),
-                          ),
+                        child: Padding(
+                          padding: EdgeInsets.all(SizeConfig.size10),
+                          child: _buildImage(category),
                         ),
-                      )
-                    : Container(
-                        color: Colors.grey.shade100,
-                        child: Center(
-                          child: LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            width: 60,
-                            height: 60,
+                      ),
+                    ),
+                    if (hasChildren)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: CustomText(
+                            '$childCount',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       ),
+                  ],
+                ),
               ),
-            ),
 
-            // Name + Count
-            Padding(
-              padding: EdgeInsets.all(SizeConfig.size10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    category.name ?? '',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    color: AppColors.mainTextColor,
+              // Tight footer — name only (compact)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(14),
+                    bottomRight: Radius.circular(14),
                   ),
-                  SizedBox(height: 2),
-                  CustomText(
-                    '$childCount Category',
-                    fontSize: SizeConfig.small,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ],
+                ),
+                child: CustomText(
+                  category.name ?? '',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w600,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  color: AppColors.mainTextColor,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImage(MedicalNestedCategoryModel category) {
+    final placeholder = Center(
+      child: LocalAssets(
+        imagePath: AppIconAssets.place_holder_image,
+        width: 56,
+        height: 56,
+      ),
+    );
+
+    if (category.image != null && category.image!.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(12.0),
+
+        child: CachedNetworkImage(
+          imageUrl: category.image!,
+          fit: BoxFit.contain,
+          placeholder: (_, __) => placeholder,
+          errorWidget: (_, __, ___) => Image.asset(
+            "assets/category/medical/sub_category_medical/${category.name}.png",
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => placeholder,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Image.asset(
+        "assets/category/medical/sub_category_medical/${category.name}.png",
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => placeholder,
       ),
     );
   }

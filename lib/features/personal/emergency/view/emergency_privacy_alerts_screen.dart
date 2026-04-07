@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -59,9 +60,9 @@ class _EmergencyPrivacyAlertsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(
-        title: "Privacy & Alert",
-        actionText: "Step: 4/4",
+      appBar: CommonBackAppBar(
+        title: AppStrings.emergencyPrivacyAlertTitle,
+        actionText: AppStrings.emergencyStep4Of4,
       ),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -69,17 +70,18 @@ class _EmergencyPrivacyAlertsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _switchTile("Mask My Phone Number", controller.maskPhoneNumber),
-              _switchTile("Send SMS Alert with Location",
+              _switchTile(AppStrings.emergencyMaskPhoneNumber,
+                  controller.maskPhoneNumber),
+              _switchTile(AppStrings.emergencySendSmsAlert,
                   controller.sendSmsAlertWithLocation),
-              _switchTile("Share Medical Info During Emergency",
+              _switchTile(AppStrings.emergencyShareMedicalInfo,
                   controller.shareMedicalInfo),
-              _switchTile(
-                  "Send Chat Alert with GPS", controller.sendChatAlertWithGps),
+              _switchTile(AppStrings.emergencySendChatAlertGps,
+                  controller.sendChatAlertWithGps),
               SizedBox(height: 16),
-              _checkbox("I confirm the above information is accurate.",
+              _checkbox(AppStrings.emergencyConfirmAccurate,
                   controller.confirmAccurateInfo),
-              _checkbox("I agree to share this information during emergencies.",
+              _checkbox(AppStrings.emergencyAgreeToShare,
                   controller.agreeToShareDuringEmergency),
               SizedBox(height: 24),
               Obx(() => CustomBtn(
@@ -88,7 +90,7 @@ class _EmergencyPrivacyAlertsScreenState
                     onTap: controller.isValid && !controller.isSaving.value
                         ? controller.submit
                         : null,
-                    title: "Submit",
+                    title: AppStrings.emergencySubmit,
                   )),
             ],
           ),

@@ -132,7 +132,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
-        title: (_channelData != null) ? AppStrings.updateChannel : "Create Channel",
+        title: (_channelData != null) ? AppStrings.updateChannel : AppStrings.createChannel,
       ),
       body: Form(
         key: _formKey,

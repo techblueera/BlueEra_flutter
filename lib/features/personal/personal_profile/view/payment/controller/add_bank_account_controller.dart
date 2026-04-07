@@ -59,11 +59,11 @@ class AddBankAccountController extends GetxController {
   String? upiValidate(String? value) {
     if (value == null || value.trim().isEmpty) {
       isUpiValidate.value = false;
-      return "Upi Id is required";
+      return AppStrings.upiIdRequired.tr;
     }
     if (upiRegex.hasMatch(value.trim())) {
       isUpiValidate.value = false;
-      return "Invalide UPI ID";
+      return AppStrings.invalidUpiId.tr;
     }
     isUpiValidate.value = true;
     return null;
@@ -91,7 +91,7 @@ class AddBankAccountController extends GetxController {
         }
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.message??"Bank Added Successfully");
+        commonSnackBar(message: response.message??AppStrings.bankAddedSuccessfully.tr);
         isLoading.value = false;
         clearForm();
         Get.back();
@@ -102,7 +102,7 @@ class AddBankAccountController extends GetxController {
 
       }
     } catch (e) {
-      commonSnackBar(message: "Failed to add account. Please try again.");
+      commonSnackBar(message: AppStrings.failedToAddAccount.tr);
       isLoading.value = false;
       clearForm();
     }
@@ -133,7 +133,7 @@ class AddBankAccountController extends GetxController {
       }
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.message??"Bank Added Successfully");
+        commonSnackBar(message: response.message??AppStrings.bankAddedSuccessfully.tr);
         isLoading.value = false;
         clearForm();
         Get.back();
@@ -197,7 +197,7 @@ class AddBankAccountController extends GetxController {
           'ifscCode': ifscCodeController.text.trim().toUpperCase(),
         });
         Get.snackbar(
-          'Success',
+          AppStrings.success.tr,
           addAccountResponseModalClass!.message ?? "",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
@@ -207,8 +207,8 @@ class AddBankAccountController extends GetxController {
 
     } catch (e) {
       Get.snackbar(
-        'Error',
-        'Failed to update account. Please try again.',
+        AppStrings.error.tr,
+        AppStrings.failedToUpdateAccount.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,

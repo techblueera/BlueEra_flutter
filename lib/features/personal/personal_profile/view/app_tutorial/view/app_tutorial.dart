@@ -37,7 +37,7 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "App Tutorial",
+        title: AppStrings.appTutorial,
       ),
       body: Obx(() {
         if (bottomBarController.adminVideoLoading.value) {

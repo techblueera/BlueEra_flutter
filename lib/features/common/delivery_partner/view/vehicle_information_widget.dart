@@ -260,7 +260,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                       CustomBtn(
                         title: controller.isRiderVehicleInformationLoading.value
                             ? null
-                            : "Upload",
+                            :AppStrings.upload,
                         onTap: () =>
                             controller.ridersOnboardingVehicleInformationApi(
                               widget.screeName

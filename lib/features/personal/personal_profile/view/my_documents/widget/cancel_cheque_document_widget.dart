@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -36,8 +37,8 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 /// Bank Name Field
                 CommonTextField(
                   textEditController: controller.bankNameController,
-                  hintText: 'E.g. State Bank Of India',
-                  title: 'Bank Name',
+                  hintText: AppStrings.bankNameHint.tr,
+                  title: AppStrings.bankName.tr,
                   keyBoardType: TextInputType.text,
                   validator: ValidationMethod.validateBankName,
                   maxLength: AppConstants.inputCharterLimit20,
@@ -54,8 +55,8 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 /// Bank Account Number
                 CommonTextField(
                   textEditController: controller.bankAccountNumberController,
-                  title: 'Bank Account Number',
-                  hintText: 'E.g. 1234567890',
+                  title: AppStrings.bankAccountNumber.tr,
+                  hintText: AppStrings.accountNumberHint.tr,
                   keyBoardType: TextInputType.number,
                   validator: ValidationMethod.validateAccountNumber,
                   inputLength: 18,
@@ -63,8 +64,8 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 SizedBox(height: SizeConfig.paddingM),
                 CommonTextField(
                   textEditController: controller.IFSCCodeController,
-                  title: 'IFSC Code',
-                  hintText: 'E.g. SBIN0001234',
+                  title: AppStrings.ifscCodeLabel.tr,
+                  hintText: AppStrings.ifscCodeHint.tr,
                   keyBoardType: TextInputType.text,
                   inputLength: 11,
                   validator: ValidationMethod.validateIfscCode,
@@ -72,7 +73,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Upload Cancelled Cheque / Bank Passbook Photo',
+                  AppStrings.uploadCancelledChequePassbookPhoto,
                   fontSize: SizeConfig.medium,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
@@ -82,7 +83,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CommonImageUploadTile(
-                        title: 'Cancel Cheque Front',
+                        title: AppStrings.cancelChequeFront.tr,
                         imageFile: controller.cancelChequeFrontImage,
                         context: context,
                         onImageSelected: () async {
@@ -98,7 +99,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                     SizedBox(width: SizeConfig.size3),
                     Expanded(
                       child: CommonImageUploadTile(
-                        title: 'Cancel Cheque Back',
+                        title: AppStrings.cancelChequeBack.tr,
                         imageFile: controller.cancelChequeBackImage,
                         context: context,
                         onImageSelected: () async {
@@ -119,7 +120,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 CustomBtn(
                   title: controller.isCancelChequeLoading.value
                       ? null
-                      : "Upload",
+                      : AppStrings.upload,
                   onTap: () => controller.cancelChequeUploadApi(
                       documentType: documentType
                   ),

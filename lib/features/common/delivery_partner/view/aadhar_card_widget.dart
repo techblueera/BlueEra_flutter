@@ -82,7 +82,7 @@ class AadharCardWidget extends StatelessWidget {
             CustomBtn(
               title: controller.isRiderPersonalIdentificationLoading.value
                   ? null
-                  : "Upload",
+                  :AppStrings.upload,
               onTap: () =>
                   controller.ridersAadharCardApi(),
               radius: 10.0,

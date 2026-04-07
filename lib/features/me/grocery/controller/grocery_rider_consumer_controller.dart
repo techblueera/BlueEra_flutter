@@ -39,12 +39,12 @@ class GroceryRiderConsumerController extends GetxController{
 
   final List<Map<String, String>> grocerySnapSearchConfig = [
     {
-      'title': 'Upload Grocery List',
+      'title': AppStrings.groceryUploadList,
       'icon': AppIconAssets.cameraAddOutlineIcon,
       'image': AppImageAssets.groceryImageFirst,
     },
     {
-      'title': 'Search Manually',
+      'title': AppStrings.grocerySearchManually,
       'icon': AppIconAssets.search,
       'image': AppImageAssets.groceryImageSecond,
     },

@@ -123,7 +123,7 @@ class GenericDocumentWidget extends StatelessWidget {
                 CustomBtn(
                   title: controller.isGenericDocumentLoading.value
                       ? null
-                      : "Upload",
+                      : AppStrings.upload,
                   onTap: () => controller.genericDocumentApi(
                       documentType: documentType,
                       hasInput: textFieldLabel!=null,

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -26,29 +27,32 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Emergency Contact  ",actionText:"Step: 3/4"),
+      appBar: CommonBackAppBar(
+        title: AppStrings.emergencyContactTitle,
+        actionText: AppStrings.emergencyStep3Of4,
+      ),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: CommonCardWidget(
           child: Column(
             children: [
               CommonTextField(
-                title: "Name",
-                hintText: "E.g. Jane Doe",
+                title: AppStrings.emergencyContactName,
+                hintText: AppStrings.emergencyContactNameHint,
                 textEditController: controller.nameController,
               ),
               SizedBox(height: 16),
               CommonTextField(
-                title: "Mobile Number",
-                hintText: "E.g. +919876543212",
+                title: AppStrings.emergencyMobileNumber,
+                hintText: AppStrings.emergencyContactMobileHint,
                 keyBoardType: TextInputType.phone,
                 maxLength: 10,
                 textEditController: controller.mobileController,
               ),
               SizedBox(height: 16),
               CommonTextField(
-                title: "Relationship",
-                hintText: "E.g. Father/Mother/Brother/Sister...",
+                title: AppStrings.emergencyRelationship,
+                hintText: AppStrings.emergencyRelationshipHint,
                 textEditController: controller.relationshipController,
               ),
               SizedBox(height: 24),
@@ -57,7 +61,7 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
                     onTap: controller.isValid.value && !controller.isSaving.value
                         ? controller.submit
                         : null,
-                    title: "Next",
+                    title: AppStrings.next,
                   )),
             ],
           ),

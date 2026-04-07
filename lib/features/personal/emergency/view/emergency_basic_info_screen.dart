@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -26,7 +27,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Basic Info"),
+      appBar: CommonBackAppBar(title: AppStrings.basicInfo),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -34,14 +35,14 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
             child: Column(
               children: [
                 CommonTextField(
-                  title: "Full Name",
-                  hintText: "E.g. Rakesh Gupta",
+                  title: AppStrings.fullName,
+                  hintText: AppStrings.emergencyFullNameHint,
                   textEditController: controller.fullNameController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: "Mobile Number",
-                  hintText: "E.g. +919876543210",
+                  title: AppStrings.emergencyMobileNumber,
+                  hintText: AppStrings.emergencyMobileHint,
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
 
@@ -49,23 +50,23 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: "Alternate Number",
-                  hintText: "E.g. +919876543211",
+                  title: AppStrings.emergencyAlternateNumber,
+                  hintText: AppStrings.emergencyAlternateHint,
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
                   textEditController: controller.alternateController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: "Email ID (Optional)",
-                  hintText: "E.g. rakeshgupta05@gmail.com",
+                  title: AppStrings.emergencyEmailOptional,
+                  hintText: AppStrings.emergencyEmailHint,
                   keyBoardType: TextInputType.emailAddress,
                   textEditController: controller.emailController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: "Vehicle Number",
-                  hintText: "E.g. KA01AB1234",
+                  title: AppStrings.vehicleNumber,
+                  hintText: AppStrings.emergencyVehicleHint,
                   textEditController: controller.vehicleController,
                 ),
                 SizedBox(height: 16),
@@ -75,7 +76,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                       onTap: controller.isValid.value && !controller.isSaving.value
                           ? controller.submit
                           : null,
-                      title: "Next",
+                      title: AppStrings.next,
                     )),
               ],
             ),

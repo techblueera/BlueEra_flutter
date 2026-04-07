@@ -1,10 +1,10 @@
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 
 class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
   final List<T> items;
@@ -15,6 +15,12 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
   final double? width;
   final EdgeInsetsGeometry? padding;
 
+  /// Optional asset path used as a fallback icon when:
+  /// - the network image fails to load,
+  /// - or the local asset path is missing/invalid.
+  /// Pass a section-specific placeholder (e.g. a medical icon) for a polished look.
+  final String? placeholderAssetPath;
+
   const  CommonGenericLeftSideCategoryList({
     super.key,
     required this.items,
@@ -24,7 +30,47 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
     required this.onTap,
     this.width,
     this.padding,
+    this.placeholderAssetPath,
   });
+
+  Widget _fallbackIcon(double size) {
+    if (placeholderAssetPath != null && placeholderAssetPath!.isNotEmpty) {
+      return Image.asset(
+        placeholderAssetPath!,
+        height: size,
+        width: size,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _defaultProductPlaceholder(size),
+      );
+    }
+    return _defaultProductPlaceholder(size);
+  }
+
+  /// E-commerce product placeholder shown whenever a category icon
+  /// (network or local asset) fails to load or is missing.
+  Widget _defaultProductPlaceholder(double size) {
+    return Image.asset(
+      AppIconAssets.place_holder_image,
+      height: size,
+      width: size,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Icon(
+        Icons.image_not_supported_outlined,
+        size: size * 0.6,
+        color: AppColors.primaryColor,
+      ),
+    );
+  }
+
+  Widget _buildLocalAssetWithFallback(String path, double size) {
+    return Image.asset(
+      path,
+      height: size,
+      width: size,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => _fallbackIcon(size),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,24 +130,23 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
                           shape: BoxShape.circle,
                           color: selected ? null : AppColors.skyBlueE4,
                         ),
-                        child: isNetworkImage(icon)
-                            ? CachedNetworkImage(
-                          imageUrl: icon,
-                          height: selected ? 60 : 50,
-                          width: selected ? 60 : 50,
-                          // fit: BoxFit.cover,
-                          placeholder: (context, url) => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
-                        )
-                      : LocalAssets(
-                          imagePath: icon,
-                          height: selected ? 60 : 50,
-                          width: selected ? 60 : 50,
-                          // boxFix: BoxFit.cover, // Ensure image scales correctly
-                        ),
+                        child: (icon.isEmpty)
+                            ? _fallbackIcon(selected ? 60 : 50)
+                            : isNetworkImage(icon)
+                                ? CachedNetworkImage(
+                                    imageUrl: icon,
+                                    height: selected ? 60 : 50,
+                                    width: selected ? 60 : 50,
+                                    // fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        _fallbackIcon(selected ? 60 : 50),
+                                  )
+                                : _buildLocalAssetWithFallback(
+                                    icon, selected ? 60 : 50),
                       ),
                       const SizedBox(height: 6),
                       AnimatedDefaultTextStyle(

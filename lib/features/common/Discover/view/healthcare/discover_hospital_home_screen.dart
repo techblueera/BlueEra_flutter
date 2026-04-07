@@ -78,7 +78,7 @@ class _DiscoverHospitalHomeScreenState
                   hasData: data.departments?.isNotEmpty ?? false,
                   icon: Icons.local_hospital_outlined,
                   title: AppStrings.opdDoctors.tr,
-                  emptyMessage: "No departments available",
+                  emptyMessage: AppStrings.noDepartmentsAvailable.tr,
                   child: HospitalBookingScreen(),
                 ),
 
@@ -89,7 +89,7 @@ class _DiscoverHospitalHomeScreenState
                   hasData: _hasEmergencyData(),
                   icon: Icons.emergency_outlined,
                   title: AppStrings.otherFacilities.tr,
-                  emptyMessage: "No emergency services listed",
+                  emptyMessage: AppStrings.noEmergencyServicesListed.tr,
                   child: EmergencyCriticalCareView(),
                 ),
 
@@ -100,7 +100,7 @@ class _DiscoverHospitalHomeScreenState
                   hasData: data.management?.isNotEmpty ?? false,
                   icon: Icons.people_outline,
                   title: AppStrings.managementTrust.tr,
-                  emptyMessage: "No management details available",
+                  emptyMessage: AppStrings.noManagementDetailsAvailable.tr,
                   child: ManagementCardListWidget(),
                 ),
 
@@ -145,8 +145,8 @@ class _DiscoverHospitalHomeScreenState
       physics: const AlwaysScrollableScrollPhysics(),
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.7,
-        child: const EmptyStateWidget(
-          message: "No hospital data found.\nPull down to refresh.",
+        child: EmptyStateWidget(
+          message: AppStrings.noHospitalDataFound.tr,
         ),
       ),
     );
@@ -169,7 +169,7 @@ class _DiscoverHospitalHomeScreenState
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () {
-                          commonSnackBar(message: 'Coming Soon....');
+                          commonSnackBar(message: AppStrings.comingSoonLabel.tr);
                         },
                         title: AppStrings.bookInquiry,
                       ),
@@ -209,7 +209,7 @@ class _DiscoverHospitalHomeScreenState
                 child: _buildActionCard(
                   icon: "assets/svg/call_24.svg",
                   title: AppStrings.emergencyContact,
-                  subtitle: "24/7 Immediate Help",
+                  subtitle: AppStrings.immediateHelp24x7.tr,
                   buttonText: AppStrings.callNow,
                   isEmergency: true,
                   phoneNo: emergencyNo,
@@ -223,8 +223,8 @@ class _DiscoverHospitalHomeScreenState
                 child: _buildActionCard(
                   icon: "assets/svg/support_helth.svg",
                   title: AppStrings.appointmentNumber,
-                  subtitle: "Schedule Your Visit Easily",
-                  buttonText: "Book Now",
+                  subtitle: AppStrings.scheduleYourVisitEasily.tr,
+                  buttonText: AppStrings.bookNow.tr,
                   isEmergency: false,
                   phoneNo: appointmentNo,
                   onTap: () async {
@@ -306,7 +306,7 @@ class _DiscoverHospitalHomeScreenState
               ),
               SizedBox(height: SizeConfig.paddingM),
               EmptyStateWidget(
-                message: "No photos available",
+                message: AppStrings.noPhotosAvailable.tr,
                 imageSize: SizeConfig.size60,
               ),
               SizedBox(height: SizeConfig.paddingS),
@@ -378,8 +378,8 @@ class _DiscoverHospitalHomeScreenState
                 title: AppStrings.contactUs.tr,
               ),
               SizedBox(height: SizeConfig.paddingM),
-              const EmptyStateWidget(
-                message: "No contact details available",
+              EmptyStateWidget(
+                message: AppStrings.noContactDetailsAvailable.tr,
               ),
               SizedBox(height: SizeConfig.paddingS),
             ],
@@ -517,7 +517,7 @@ class _DiscoverHospitalHomeScreenState
         await launchUrl(launchUri);
       } else {
         commonSnackBar(
-          message: "Error Could not open the dialer",
+          message: AppStrings.errorCouldNotOpenDialer.tr,
         );
       }
     } catch (e) {

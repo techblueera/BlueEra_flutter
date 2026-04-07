@@ -182,7 +182,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                         if (controller.rentalServices.isEmpty) {
                           return Center(
                               child: EmptyStateWidget(
-                                  message: "No stay service found"));
+                                  message: AppStrings.noStayServiceFound.tr));
                         }
 
                         return ListView.builder(
@@ -220,7 +220,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                         if (controller.hotelServices.isEmpty) {
                           return Center(
                               child: EmptyStateWidget(
-                                  message: "No hotel service found"));
+                                  message: AppStrings.noHotelServiceFound.tr));
                         }
 
                         return ListView.builder(
@@ -308,7 +308,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.name ?? 'Unknown User',
+                      CustomText(service.name ?? AppStrings.unknownUser.tr,
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
@@ -347,7 +347,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   child: Row(
                     children: [
                       CustomText(
-                        "Check In: ",
+                        AppStrings.checkInLabel,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         overflow: TextOverflow.ellipsis,
@@ -369,7 +369,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       CustomText(
-                        "Check Out: ",
+                        AppStrings.checkOutLabel,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         overflow: TextOverflow.ellipsis,
@@ -391,7 +391,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 Row(
                   children: [
                     CustomText(
-                      "Security Deposit: ",
+                      AppStrings.securityDepositLabel,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w500,
                       color: AppColors.mainTextColor,
@@ -408,7 +408,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 Row(
                   children: [
                     CustomText(
-                      "Pickup Location: ",
+                      AppStrings.pickupLocationLabel,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w500,
                       overflow: TextOverflow.ellipsis,
@@ -683,7 +683,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         children: [
           Expanded(
             child: CustomText(
-              "Details",
+              AppStrings.detailsLabel,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -810,7 +810,7 @@ class _PropertyCardState extends State<PropertyCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  "Room Type : ${widget.bedType}",
+                  "${AppStrings.roomTypeLabel.tr} ${widget.bedType}",
                   color: AppColors.secondaryTextColor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -819,12 +819,12 @@ class _PropertyCardState extends State<PropertyCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: CustomText("${widget.totalRoom} Room",
+                      child: CustomText("${widget.totalRoom} ${AppStrings.roomLabel.tr}",
                           color: AppColors.secondaryTextColor),
                     ),
                     SizedBox(width: 4),
                     Flexible(
-                      child: CustomText("INR ${widget.rent}/day",
+                      child: CustomText("${AppStrings.inrPerDay.tr} ${widget.rent}/day",
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline),
                     ),
@@ -834,7 +834,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 Row(
                   children: [
                     Icon(Icons.location_on_outlined, size: 16),
-                    CustomText("${widget.distance} km away"),
+                    CustomText("${widget.distance} ${AppStrings.kmAwayLabel.tr}"),
                   ],
                 ),
               ],

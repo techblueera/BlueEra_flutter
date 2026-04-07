@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/controller/payment_setting_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -35,7 +36,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: const CommonBackAppBar(
-        title: "Payment Setting",
+        title: AppStrings.paymentSetting,
         isLeading: true,
       ),
       body: Column(
@@ -54,7 +55,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
               MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  "All Bank Accounts",
+                  AppStrings.allBankAccounts,
                   fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.w400,
                 ),
@@ -76,7 +77,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                           color: AppColors.primaryColor),
                       SizedBox(width: 4),
                       CustomText(
-                        "Add Account",
+                        AppStrings.addAccount,
                         fontSize: SizeConfig.size14,
                         fontWeight: FontWeight.w400,
                         color: AppColors.primaryColor,
@@ -229,9 +230,9 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                   },
                   itemBuilder: (context) =>
                   [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: "default",
-                      child: Text("Set as Default"),
+                      child: Text(AppStrings.setAsDefault.tr),
                     ),
                   ],
                 ),
@@ -265,7 +266,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                   CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      "Account No.",
+                      AppStrings.accountNoLabel,
                       fontSize: SizeConfig.size12,
                       color: Colors.grey,
                     ),
@@ -290,7 +291,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                   CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      "IFSC Code",
+                      AppStrings.ifscCodeLabel,
                       fontSize: SizeConfig.size12,
                       color: Colors.grey,
                     ),

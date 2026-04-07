@@ -71,7 +71,7 @@ class _MedicalPharmacyDetailScreenState
     if (_data == null) {
       return Scaffold(
         backgroundColor: AppColors.whiteF3,
-        appBar: CommonBackAppBar(title: 'Pharmacy'),
+        appBar: CommonBackAppBar(title: AppStrings.pharmacy),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -79,7 +79,7 @@ class _MedicalPharmacyDetailScreenState
               Icon(Icons.storefront_outlined,
                   size: 64, color: Colors.grey.shade300),
               SizedBox(height: 12),
-              CustomText('Pharmacy details not available',
+              CustomText(AppStrings.pharmacyDetailsNotAvailable,
                   fontSize: SizeConfig.large,
                   color: AppColors.secondaryTextColor),
             ],
@@ -95,7 +95,7 @@ class _MedicalPharmacyDetailScreenState
 
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(title: profile?.businessName ?? 'Pharmacy'),
+      appBar: CommonBackAppBar(title: profile?.businessName ?? AppStrings.pharmacy.tr),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +213,7 @@ class _MedicalPharmacyDetailScreenState
                   (profile?.businessName != null &&
                           profile!.businessName!.isNotEmpty)
                       ? profile.businessName!
-                      : 'Pharmacy',
+                      : AppStrings.pharmacy.tr,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   maxLines: 2,
@@ -252,7 +252,7 @@ class _MedicalPharmacyDetailScreenState
                             color: AppColors.secondaryTextColor),
                         SizedBox(width: 3),
                         CustomText(
-                          '${profile?.totalRatings ?? '0'} Reviews',
+                          '${profile?.totalRatings ?? '0'} ${AppStrings.reviewsLabel.tr}',
                           fontSize: SizeConfig.small,
                           color: AppColors.secondaryTextColor,
                         ),
@@ -331,12 +331,12 @@ class _MedicalPharmacyDetailScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText('Upload Prescription',
+                  CustomText(AppStrings.uploadPrescription,
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor),
                   SizedBox(height: 2),
-                  CustomText('Schedule Your Visit Easily',
+                  CustomText(AppStrings.scheduleYourVisitEasily,
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor),
                 ],
@@ -348,7 +348,7 @@ class _MedicalPharmacyDetailScreenState
                     await CommonImageUploadTile.pickImage(context: context);
                 if (path != null && path.isNotEmpty) {
                   commonSnackBar(
-                      message: 'Prescription uploaded successfully');
+                      message: AppStrings.prescriptionUploadedSuccessfully.tr);
                 }
               },
               borderRadius: BorderRadius.circular(8),
@@ -364,7 +364,7 @@ class _MedicalPharmacyDetailScreenState
                     Icon(Icons.camera_alt_outlined,
                         size: 16, color: AppColors.mainTextColor),
                     SizedBox(width: 6),
-                    CustomText('Upload',
+                    CustomText(AppStrings.uploadLabel,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
@@ -404,8 +404,8 @@ class _MedicalPharmacyDetailScreenState
                   ),
                   InkWell(
                     onTap: () => Get.to(
-                        () => CommonWebView(urlLink: url, urlTitle: 'Website')),
-                    child: CustomText('Visit',
+                        () => CommonWebView(urlLink: url, urlTitle: AppStrings.websiteLabel.tr)),
+                    child: CustomText(AppStrings.visitLabel,
                         fontSize: SizeConfig.small,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600),
@@ -446,9 +446,9 @@ class _MedicalPharmacyDetailScreenState
               children: [
                 Expanded(
                     child: ServiceHomeTitleWidget(
-                        title: 'Popular Medical Products')),
+                        title: AppStrings.popularMedicalProducts.tr)),
                 if (showViewMore)
-                  CustomText('View All',
+                  CustomText(AppStrings.viewAllLabel,
                       fontSize: SizeConfig.small,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600),
@@ -473,7 +473,7 @@ class _MedicalPharmacyDetailScreenState
 
   Widget _popularProductCard(PopularProduct item) {
     final productName =
-        item.product?.name ?? item.variant?.variantName ?? 'Product';
+        item.product?.name ?? item.variant?.variantName ?? AppStrings.productParcel.tr;
     final imageUrl = item.product?.images?.firstOrNull?.url ??
         item.variant?.images?.firstOrNull?.url;
     final mrp =
@@ -576,7 +576,7 @@ class _MedicalPharmacyDetailScreenState
           activeCats.any((a) => _normalizeKey(a.category.key ?? '') == apiNorm);
       if (!alreadyAdded) {
         activeCats.add(_CategoryDisplay(
-          title: apiCat.name?.replaceAll('_', ' ') ?? 'Category',
+          title: apiCat.name?.replaceAll('_', ' ') ?? AppStrings.parcelCategory.tr,
           image: '',
           category: apiCat,
         ));
@@ -601,9 +601,9 @@ class _MedicalPharmacyDetailScreenState
               children: [
                 Expanded(
                     child:
-                        ServiceHomeTitleWidget(title: 'Medical Products')),
+                        ServiceHomeTitleWidget(title: AppStrings.medicalProducts.tr)),
                 if (showViewMore)
-                  CustomText('View All',
+                  CustomText(AppStrings.viewAllLabel,
                       fontSize: SizeConfig.small,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600),
@@ -668,7 +668,7 @@ class _MedicalPharmacyDetailScreenState
                 overflow: TextOverflow.ellipsis,
                 color: Colors.blueGrey.shade700),
             SizedBox(height: 2),
-            CustomText('$productCount Products',
+            CustomText('$productCount ${AppStrings.productsCountLabel.tr}',
                 fontSize: 9,
                 color: AppColors.green00,
                 fontWeight: FontWeight.w600),
@@ -769,7 +769,7 @@ class _MedicalPharmacyDetailScreenState
                                   size: 16,
                                   color: AppColors.primaryColor),
                               SizedBox(width: 6),
-                              CustomText('About Us',
+                              CustomText(AppStrings.aboutUsLabel,
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primaryColor),

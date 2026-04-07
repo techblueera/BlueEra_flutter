@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 
@@ -33,7 +35,7 @@ class _TwoStepVerifyScreenState extends State<TwoStepVerifyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Enable Two-Step Verification",
+        title: AppStrings.enableTwoStepVerification,
       ),
       body: SafeArea(
         child: Padding(
@@ -45,7 +47,7 @@ class _TwoStepVerifyScreenState extends State<TwoStepVerifyScreen> {
 
               /// Title
               const CustomText(
-                "Set up Two-Step Verification",
+                AppStrings.setupTwoStepVerification,
 
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -56,8 +58,7 @@ class _TwoStepVerifyScreenState extends State<TwoStepVerifyScreen> {
 
               /// Instruction
               const CustomText(
-                "Scan the QR code using Google Authenticator or any Authenticator app. "
-                    "Then enter the 6-digit code to enable 2FA.",
+                AppStrings.twoStepVerificationInstruction,
                 textAlign: TextAlign.center,
                fontSize: 14, color: AppColors.grayText
               ),
@@ -84,7 +85,7 @@ class _TwoStepVerifyScreenState extends State<TwoStepVerifyScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: CustomText(
-                  "Manual Setup Code",
+                  AppStrings.manualSetupCode,
 
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -134,7 +135,7 @@ class _TwoStepVerifyScreenState extends State<TwoStepVerifyScreen> {
 
               /// Info Text
               const CustomText(
-                "If you cannot scan the QR code, enter the manual setup code in your Authenticator app.",
+                AppStrings.manualSetupCodeInstruction,
                 textAlign: TextAlign.center,
                 fontSize: 13, color: AppColors.grayText
               ),
@@ -142,7 +143,7 @@ class _TwoStepVerifyScreenState extends State<TwoStepVerifyScreen> {
               const Spacer(),
 
               /// Continue Button
-             CustomBtn(onTap: (){},isValidate: true ,title: "Continue")
+             CustomBtn(onTap: (){},isValidate: true ,title: AppStrings.continueBtn.tr)
             ],
           ),
         ),

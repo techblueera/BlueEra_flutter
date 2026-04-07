@@ -136,6 +136,13 @@ flutter_native_splash:
     color: "#ffffff"                   # Background color
     icon_background_color: "#ffffff"
     # Optional: color behind the icon
+  # IMPORTANT: If you re-run `dart run flutter_native_splash:create`, it will
+  # overwrite android/app/src/main/res/values-v31/styles.xml and
+  # values-night-v31/styles.xml back to the Android 12 icon API
+  # (windowSplashScreenAnimatedIcon), which crops the splash to a small
+  # centered icon. After regenerating, re-apply the manual fix in those
+  # two files (use `windowBackground` -> @drawable/launch_background instead
+  # of windowSplashScreenAnimatedIcon).
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -165,6 +172,7 @@ flutter:
     - assets/category/foods/menu/
     - assets/category/food_home/
     - assets/translations/
+    - assets/category/medical/sub_category_medical/
 
 
   fonts:
