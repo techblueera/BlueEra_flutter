@@ -26,7 +26,8 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
-            child: LayoutBuilder(builder: (context, constraints) {
+            child: LayoutBuilder(
+                builder: (context, constraints) {
               const double spacing = 6;
               const int columns = 3;
               final double itemWidth =

@@ -29,7 +29,6 @@ class TransportServiceWidget extends StatelessWidget {
         color: AppColors.whiteFC,
         borderRadius: BorderRadius.circular(0),
         padding: EdgeInsets.all(SizeConfig.size10),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,8 +37,9 @@ class TransportServiceWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal:18.0),
               child: CustomFormCard(
-                isBorderAvailable: true,
-
+                border: Border.all(
+                  color: AppColors.greyE5
+                ),
                 padding: EdgeInsets.all(SizeConfig.size10),
                 // IntrinsicHeight ensures the vertical line stretches to match the fields
                 child: IntrinsicHeight(
@@ -86,7 +86,9 @@ class TransportServiceWidget extends StatelessWidget {
 
                             // Divider
                             CommonHorizontalDivider(
-                                height: 1, color: AppColors.greyBf),
+                                height: 1,
+                                color: AppColors.greyE5
+                            ),
 
                             SizedBox(height: SizeConfig.paddingS),
 
@@ -106,8 +108,14 @@ class TransportServiceWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(color: AppColors.greyE5),
-                          boxShadow: [AppShadows.textFieldShadow],
+                          // border: Border.all(color: AppColors.greyE5),
+                          boxShadow: [
+                            BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            offset: const Offset(0, 1.1),
+                            blurRadius: 6,
+                            spreadRadius: 0,
+                          )],
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.swap_vert,

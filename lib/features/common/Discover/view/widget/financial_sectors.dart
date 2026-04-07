@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class FinancialSectors extends StatelessWidget {
-  const FinancialSectors({super.key});
+  final bool isShowInGrid;
+
+  const FinancialSectors({super.key, required this.isShowInGrid});
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +32,9 @@ class FinancialSectors extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
-            child: SizedBox(
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: isShowInGrid ?
+            SizedBox(
               height: SizeConfig.size124,
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
@@ -44,8 +47,8 @@ class FinancialSectors extends StatelessWidget {
                   return InkWell(
                     onTap: () {
                       Get.to(() => FinanceListingScreen(
-                            selectedCategory: categoryItem,
-                          ));
+                        selectedCategory: categoryItem,
+                      ));
                     },
                     child: Container(
                       padding: EdgeInsets.all(SizeConfig.size10),
@@ -106,7 +109,74 @@ class FinancialSectors extends StatelessWidget {
                   // );
                 },
               ),
-            ),
+            )
+                : LayoutBuilder(
+                builder: (context, constraints) {
+              const double spacing = 10;
+              const int columns = 3;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: financeCategories.map((categoryItem) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: InkWell(
+                      onTap: () {
+                        Get.to(() => FinanceListingScreen(
+                              selectedCategory: categoryItem,
+                            ));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(SizeConfig.size10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xffE7F3FF),
+                              AppColors.white,
+                            ],
+                            stops: [0.0, 1.0],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          // boxShadow: [AppShadows.textFieldShadow],
+                          border:
+                              Border.all(color: Color(0xffDDE2EE), width: 1.0),
+                        ),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            LocalAssets(
+                              imagePath: categoryItem.icon ?? '',
+                              height: SizeConfig.size60,
+                              width: SizeConfig.size80,
+                            ),
+                            SizedBox(height: SizeConfig.paddingXSL),
+                            Container(
+                              height: SizeConfig.size30,
+                              alignment: Alignment.center,
+                              child: CustomText(
+                                categoryItem.name,
+                                fontSize: SizeConfig.small11,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w600,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            }),
           )
         ],
       ),

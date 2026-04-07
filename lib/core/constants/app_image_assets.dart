@@ -73,6 +73,11 @@ class AppImageAssets {
   static const String businessListing = "${imgPath}business_listing.png";
   static const String socialAccount = "${imgPath}social_account.png";
   static const String professionalAccounts = "${imgPath}professional_accounts.png";
+  static const String overviewDiscover = '${imgPath}overview_discover.png';
+  static const String bookingDiscover = '${imgPath}booking_discover.png';
+  static const String professionalDiscover = '${imgPath}professional_discover.png';
+  static const String shoppingDiscover = '${imgPath}shopping_discover.png';
+  static const String servicesDiscover = '${imgPath}services_discover.png';
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";

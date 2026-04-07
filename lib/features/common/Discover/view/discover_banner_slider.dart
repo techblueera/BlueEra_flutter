@@ -40,7 +40,7 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   Widget build(BuildContext context) {
     final double bannerHeight = (MediaQuery.of(context).size.width * 3 / 4);
     return Container(
-      color: AppColors.white,
+      color: AppColors.appBackgroundColor,
       child: Stack(
         children: [
           /// Carousel — full bleed, auto-scroll, covers status bar + notch

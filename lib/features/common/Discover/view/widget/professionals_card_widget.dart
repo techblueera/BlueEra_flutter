@@ -28,7 +28,7 @@ class ProfessionalsCardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              titleWidget(AppStrings.professionals),
+              titleWidget(AppStrings.professionalsConsultant),
               SizedBox(
                 width: SizeConfig.size8,
               ),

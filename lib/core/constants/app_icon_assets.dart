@@ -211,6 +211,7 @@ class AppIconAssets {
   static const String profileFillIcon = '${iconPath}profile_fill_icon.svg';
   static const String fullScreenRotateIcon = '${iconPath}full_screen_rotate_icon.svg';
 
+
   ///B-DEV
   static const String location_bottom = '${iconPath}location_bottom.svg';
 

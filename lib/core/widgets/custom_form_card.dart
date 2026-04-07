@@ -10,7 +10,7 @@ class CustomFormCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
   final Color? color;
-  final bool? isBorderAvailable;
+  final bool? isBoxShadowAvail;
   final BorderRadiusGeometry? borderRadius;
   final BoxBorder? border;
 
@@ -19,7 +19,7 @@ class CustomFormCard extends StatelessWidget {
     required this.child,
     this.width,
     this.padding,
-    this.isBorderAvailable=false,
+    this.isBoxShadowAvail=false,
     this.margin,
     this.color,
     this.borderRadius,
@@ -36,7 +36,7 @@ class CustomFormCard extends StatelessWidget {
         color: color ?? AppColors.white,
         borderRadius: borderRadius ?? BorderRadius.circular(10.0),
         border: border,
-        boxShadow: (isBorderAvailable??false)?[
+        boxShadow: (isBoxShadowAvail??false)?[
           BoxShadow(
           color: Colors.black.withValues(alpha: 0.1),
           blurRadius: 5,
