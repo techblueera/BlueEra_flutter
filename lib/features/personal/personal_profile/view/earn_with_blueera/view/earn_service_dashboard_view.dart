@@ -11,11 +11,11 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_orders.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_selection_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/food_menu_management_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/tiffin_menu_management_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/self_profession_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_service_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -253,12 +253,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
                     : 0,
               ),
               child: GestureDetector(
-                onTap: () => showModalBottomSheet(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  isScrollControlled: true,
-                  builder: (_) => EarnServiceBottomSheet(),
-                ),
+                onTap: () => Get.to(() => const EarnServiceSelectionScreen()),
                 child: Container(
                   height: SizeConfig.size50,
                   padding: EdgeInsets.symmetric(
