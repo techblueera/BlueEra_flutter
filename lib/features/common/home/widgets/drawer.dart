@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
 import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
@@ -57,7 +58,7 @@ class ProfileMenuDrawer extends StatefulWidget {
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
   final viewBusinessProfileController =
-  Get.put(ViewBusinessDetailsController());
+      Get.put(ViewBusinessDetailsController());
 
   final LiveLocationService locationService = LiveLocationService();
   final lang = getOrPut(() => LanguageControllerNew());
@@ -93,7 +94,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     } else {
       return _capitalizeFirstLetter(
         viewBusinessProfileController
-            .businessProfileDetails.value?.data?.businessName ??
+                .businessProfileDetails.value?.data?.businessName ??
             '',
       );
     }
@@ -110,12 +111,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   String userDesigination() {
     if (accountTypeGlobal != "BUSINESS") {
       return viewProfileController
-          .personalProfileDetails.value.user?.designation ??
+              .personalProfileDetails.value.user?.designation ??
           '';
     } else {
       return _capitalizeFirstLetter(
         viewBusinessProfileController
-            .businessProfileDetails.value?.data?.categoryDetails?.name ??
+                .businessProfileDetails.value?.data?.categoryDetails?.name ??
             '',
       );
     }
@@ -216,11 +217,10 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () => Get.to(()=> WalletScreen()),
-
+              onTap: () => Get.to(() => WalletScreen()),
               child: Container(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.primaryColor),
                   borderRadius: BorderRadius.circular(10),
@@ -255,21 +255,20 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(width: 8),
           InkWell(
             onTap: () {
-
-              if(accountTypeGlobal == AppConstants.individual){
-                final viewProfileController = Get.find<ViewPersonalDetailsController>();
-                Get.to(()=> AllVisitingCards(
-                    personalDetails: viewProfileController.personalProfileDetails.value,
-                    showAppBar: true
-                )
-                );
-              }else{
-                final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-                Get.to(()=> AllVisitingCards(
-                    businessDetails: viewBusinessDetailsController.businessProfileDetails.value?.data,
-                    showAppBar: true
-                  )
-                );
+              if (accountTypeGlobal == AppConstants.individual) {
+                final viewProfileController =
+                    Get.find<ViewPersonalDetailsController>();
+                Get.to(() => AllVisitingCards(
+                    personalDetails:
+                        viewProfileController.personalProfileDetails.value,
+                    showAppBar: true));
+              } else {
+                final viewBusinessDetailsController =
+                    getOrPut(() => ViewBusinessDetailsController());
+                Get.to(() => AllVisitingCards(
+                    businessDetails: viewBusinessDetailsController
+                        .businessProfileDetails.value?.data,
+                    showAppBar: true));
               }
 
               // Get.toNamed(
@@ -278,8 +277,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               // );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.whiteE5),
                 borderRadius: BorderRadius.circular(10),
@@ -301,20 +299,20 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     final List<MenuItemModel> menus = [
       MenuItemModel(
         title: "App Tutorial",
-        onTap: () => Get.to(()=> AppTutorialScreen()),
+        onTap: () => Get.to(() => AppTutorialScreen()),
       ),
-      if(accountTypeGlobal == AppConstants.individual)
-      MenuItemModel(
-        title: "Refer & Earn",
-        // onTap: () => Get.to(()=> JoinAsBDMScreen()),
-        onTap: () => Get.to(()=> ReferralPage()),
-      ),
+      if (accountTypeGlobal == AppConstants.individual)
+        MenuItemModel(
+          title: "Refer & Earn",
+          // onTap: () => Get.to(()=> JoinAsBDMScreen()),
+          onTap: () => Get.to(() => ReferralPage()),
+        ),
       if (accountTypeGlobal != "BUSINESS")
         MenuItemModel(
           title: "Earn with BlueEra",
           onTap: () {
-            if (viewProfileController.personalProfileDetails.value
-                .isProfileCreated ==
+            if (viewProfileController
+                    .personalProfileDetails.value.isProfileCreated ==
                 false) {
               Navigator.push(
                 context,
@@ -324,32 +322,32 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               );
             } else {
               if (userProfessionGlobal == BIKE_RIDER) {
-                Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
-              } else {
                 Get.toNamed(
-                    RouteHelper.getEarnServiceScreenRoute());
+                    RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+              } else {
+                Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
               }
             }
           },
         ),
       MenuItemModel(
         title: "Saved",
-        onTap: (){
-          Get.to(()=> SavedFeedScreen(
-              selectedTab:SavedFeedTab.posts,
+        onTap: () {
+          Get.to(() => SavedFeedScreen(
+              selectedTab: SavedFeedTab.posts,
               headerHeight: SizeConfig.size30));
-         ;
+          ;
         },
       ),
-      if(userProfileTypeGlobal != SOCIAL_PROFILE)
-      MenuItemModel(
-        title: "Contribution",
-        // title: "Subscription",
-        onTap: () => Get.to(()=> SubscriptionScreenNew()),
-      ),
+      if (userProfileTypeGlobal != SOCIAL_PROFILE)
+        MenuItemModel(
+          title: "Contribution",
+          // title: "Subscription",
+          onTap: () => Get.to(() => SubscriptionScreenNew()),
+        ),
       MenuItemModel(
         title: "Payment",
-        onTap: () => Get.to(()=> PaymentSettingScreen()),
+        onTap: () => Get.to(() => PaymentSettingScreen()),
       ),
       MenuItemModel(
         title: "Channel & Community",
@@ -360,8 +358,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               arguments: {
                 ApiKeys.argAccountType: accountTypeGlobal,
                 ApiKeys.channelId: channelId,
-                ApiKeys.authorId: (accountTypeGlobal ==
-                    AppConstants.individual)
+                ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual)
                     ? userId
                     : businessId
               },
@@ -388,14 +385,15 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "Franchise Inquiry",
-        onTap: () => Get.to(()=>FranchiseInquiryScreen()),
+        onTap: () => Get.to(() => FranchiseInquiryScreen()),
       ),
       MenuItemModel(
         title: "Account Settings",
-        onTap: () => Get.to(()=>AccountSettingScreen()),
-      ), MenuItemModel(
+        onTap: () => Get.to(() => AccountSettingScreen()),
+      ),
+      MenuItemModel(
         title: "Profile Settings",
-        onTap: () => Get.to(()=>ProfileSettingsDrawer()),
+        onTap: () => Get.to(() => ProfileSettingsDrawer()),
       ),
       MenuItemModel(
         title: "Manage Notification",
@@ -404,6 +402,10 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       MenuItemModel(
         title: "Help & Support",
         onTap: () => Get.to(HelpAndSupportScreen()),
+      ),
+      MenuItemModel(
+        title: "Emergency Profile",
+        onTap: () => Get.toNamed(RouteConstant.EmergencyProfileScreen1),
       ),
     ];
 
@@ -420,16 +422,15 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       'assets/images/profilesetting.png',
       'assets/images/profilesetting.png',
       'assets/images/notify.png',
-      'assets/images/help.png'
+      'assets/images/help.png',
+      'assets/images/subscrption.png'
     ];
 
     return ListView.separated(
       shrinkWrap: true,
-      physics:
-      const NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: menus.length,
-      separatorBuilder: (_, __) =>
-          Divider(height: 1, color: AppColors.whiteE5),
+      separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.whiteE5),
       itemBuilder: (context, index) {
         final item = menus[index];
         return InkWell(
@@ -492,7 +493,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                   await clearAllLocalDataOnLogout();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     RouteHelper.getMobileNumberLoginRoute(),
-                        (Route<dynamic> route) => false,
+                    (Route<dynamic> route) => false,
                   );
                 },
                 cancelCallback: () {

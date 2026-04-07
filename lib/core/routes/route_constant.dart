@@ -85,77 +85,103 @@ class RouteConstant {
   static const String moreCardsScreen = "/MoreCardsScreen";
   // static const String listingFormScreen = "/ListingFormScreen";
   static const String inventoryScreen = "/InventoryScreen";
-  static const String addProductTextOrSnapSearchScreen = "/AddProductTextOrSnapSearchScreen";
+  static const String addProductTextOrSnapSearchScreen =
+      "/AddProductTextOrSnapSearchScreen";
   static const String addServicesScreen = "/AddServicesScreen";
   static const String addProductViaAiStep1 = "/AddProductViaAiStep1";
   static const String addProductViaAiStep2 = "/AddProductViaAiStep2";
   static const String productPreviewScreen = "/ProductPreviewScreen";
   static const String createVariantScreen = "/CreateVariantScreen";
-  static const String storeProductPreviewScreenProduct = "/StoreProductPreviewScreenProduct";
-  static const String productSuperCategoryScreen = "/ProductSuperCategoryScreen";
-  static const String productNestedCategoryScreen = "/ProductNestedCategoryScreen";
-  static const String storeProductSelectionScreen = "/StoreProductSelectionScreen";
+  static const String storeProductPreviewScreenProduct =
+      "/StoreProductPreviewScreenProduct";
+  static const String productSuperCategoryScreen =
+      "/ProductSuperCategoryScreen";
+  static const String productNestedCategoryScreen =
+      "/ProductNestedCategoryScreen";
+  static const String storeProductSelectionScreen =
+      "/StoreProductSelectionScreen";
   static const String productCartScreen = "/ProductCartScreen";
   // static const String storeFeedScreen = "/StoreFeedScreen";
   static const String earnServiceScreen = "/EarnServiceScreen";
-  static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
+  static const String inventoryBusinessCardsScreen =
+      "/InventoryBusinessCardsScreen";
   static const String foodUploadScreen = "/FoodUploadScreen";
-  static const String addFlatRoomRentalServiceScreen = "/AddFlatRoomRentalServiceScreen";
-  static const String personalInformationRidingScreen = "/PersonalInformationRidingScreen";
-  static const String addressLocationRidingScreen = "/AddressLocationRidingScreen";
-  static const String personalIdentificationRidingScreen = "/PersonalIdentificationRidingScreen";
-  static const String drivingVerificationRidingScreen = "/DrivingVerificationRidingScreen";
+  static const String addFlatRoomRentalServiceScreen =
+      "/AddFlatRoomRentalServiceScreen";
+  static const String personalInformationRidingScreen =
+      "/PersonalInformationRidingScreen";
+  static const String addressLocationRidingScreen =
+      "/AddressLocationRidingScreen";
+  static const String personalIdentificationRidingScreen =
+      "/PersonalIdentificationRidingScreen";
+  static const String drivingVerificationRidingScreen =
+      "/DrivingVerificationRidingScreen";
   static const String vehicleImagesRidingScreen = "/VehicleImagesRidingScreen";
-  static const String vehicleInformationRidingScreen = "/VehicleInformationRidingScreen";
+  static const String vehicleInformationRidingScreen =
+      "/VehicleInformationRidingScreen";
   static const String homeStayRentalService = "/HomeStayRentalService";
   static const String vehicleRentalService = "/VehicleRentalService";
   static const String rentalServiceScreen = "/RentalServiceScreen";
-  static const String rentalServiceFullDetailsScreen = "/RentalServiceFullDetailsScreen";
-
+  static const String rentalServiceFullDetailsScreen =
+      "/RentalServiceFullDetailsScreen";
 
   // static const String createNewAccountScreen = "/CreateNewAccountScreen";
-  static const String createBusinessAccountNewStepOne = "/CreateBusinessAccountNewStepOne";
-  static const String createBusinessAccountNewStepTwo = "/CreateBusinessAccountNewStepTwo";
-  static const String createBusinessAccountNewStepThree = "/CreateBusinessAccountNewStepThree";
+  static const String createBusinessAccountNewStepOne =
+      "/CreateBusinessAccountNewStepOne";
+  static const String createBusinessAccountNewStepTwo =
+      "/CreateBusinessAccountNewStepTwo";
+  static const String createBusinessAccountNewStepThree =
+      "/CreateBusinessAccountNewStepThree";
   static const String addBusinessLivePhoto = "/AddBusinessLivePhoto";
   static const String personalAccountNewScreen = "/PersonalAccountNewScreen";
   static const String gstNumberScreen = "/GstNumberScreen";
   static const String addBioViaAiScreen = "/AddBioViaAiScreen";
 
-
   static const String groceryScreen = "/GroceryScreen";
-  static const String groceryNestedCategoryScreen = "/GroceryNestedCategoryScreen";
-  static const String groceryProductsSelectionScreen = "/GroceryProductsSelectionScreen";
+  static const String groceryNestedCategoryScreen =
+      "/GroceryNestedCategoryScreen";
+  static const String groceryProductsSelectionScreen =
+      "/GroceryProductsSelectionScreen";
   static const String addGroceryScreen = "/AddGroceryScreen";
   static const String addGroceryVariantScreen = "/AddGroceryVariantScreen";
   static const String myGroceryProductsScreen = "/MyGroceryProductsScreen";
-  static const String visitGroceryProductsScreen = "/VisitGroceryProductsScreen";
-  static const String allGroceryCategorizeProductsScreen = "/AllGroceryCategorizeProductsScreen";
+  static const String visitGroceryProductsScreen =
+      "/VisitGroceryProductsScreen";
+  static const String allGroceryCategorizeProductsScreen =
+      "/AllGroceryCategorizeProductsScreen";
 
   // static const String groceryCustomerListingScreen = "/GroceryCustomerListingScreen";
   static const String riderServiceScreen = "/RiderServiceScreen";
   static const String groceryCartScreen = "/GroceryCartScreen";
   // static const String yourAddToCardScreen = "/YourAddToCardScreen";
   // static const String RiderProfileStatusScreen = "/RiderProfileStatusScreen";
-  static const String grocerySuperCategoryScreen = "/GrocerySuperCategoryScreen";
+  static const String grocerySuperCategoryScreen =
+      "/GrocerySuperCategoryScreen";
   static const String paymentSettingScreen = "/PaymentSettingScreen";
   static const String medicalOtcItemsScreen = "/MedicalOtcItemsScreen";
   static const String riderStoreScreen = "/RiderStoreScreen";
   static const String groceryConfirmScreen = "/GroceryConfirmScreen";
   static const String hospitalOptCategory = "/GetHospitalOptCategory";
-  static const String hospitalDoctorViewCategory = "/GetHospitalDoctorViewCategory";
+  static const String hospitalDoctorViewCategory =
+      "/GetHospitalDoctorViewCategory";
   static const String hospitalWardViewCategory = "/GetHospitalWardViewCategory";
   static const String addSelfServiceScreen = "/AddSelfServiceScreen";
   static const String createAccountTypeScreen = "/CreateAccountTypeScreen";
-  static const String earnServiceAvailableOptionsScreen = "/EarnServiceAvailableOptionsScreen";
+  static const String earnServiceAvailableOptionsScreen =
+      "/EarnServiceAvailableOptionsScreen";
   static const String groceryStoresScreen = "/GroceryStoresScreen";
-  static const String addGrocerySnapSearchScreen = "/AddGrocerySnapSearchScreen";
-  static const String groceryRiderSnapSearchScreen = "/GroceryRiderSnapSearchScreen";
-  static const String addMedicalSnapSearchScreen = "/AddMedicalSnapSearchScreen";
+  static const String addGrocerySnapSearchScreen =
+      "/AddGrocerySnapSearchScreen";
+  static const String groceryRiderSnapSearchScreen =
+      "/GroceryRiderSnapSearchScreen";
+  static const String addMedicalSnapSearchScreen =
+      "/AddMedicalSnapSearchScreen";
   static const String missingGroceryItemsScreen = "/MissingGroceryItemsScreen";
   static const String visitGroceryStoreScreen = "/VisitGroceryStoreScreen";
-  static const String visitFoodStoreDetailsScreen = "/VisitFoodStoreDetailsScreen";
-  static const String groceryNestedCategoryWithInventoryScreen = "/GroceryNestedCategoryWithInventoryScreen";
+  static const String visitFoodStoreDetailsScreen =
+      "/VisitFoodStoreDetailsScreen";
+  static const String groceryNestedCategoryWithInventoryScreen =
+      "/GroceryNestedCategoryWithInventoryScreen";
   static const String addFoodSnapSearchScreen = "/AddFoodSnapSearchScreen";
   static const String missingFoodItemsScreen = "/missingFoodItemsScreen";
   static const String addSingleProductScreen = "/AddSingleProductScreen";
@@ -173,7 +199,8 @@ class RouteConstant {
   static const String addMedicalScreen = "/AddMedicalScreen";
   static const String addMedicalVariantScreen = "/AddMedicalVariantScreen";
   static const String myMedicalProductsScreen = "/MyMedicalProductsScreen";
-  static const String productNestedCategoryWithInventoryScreen = "/ProductNestedCategoryWithInventoryScreen";
+  static const String productNestedCategoryWithInventoryScreen =
+      "/ProductNestedCategoryWithInventoryScreen";
   static const String myProductProductsScreen = "/MyProductProductsScreen";
   static const String myMedicalVariantScreen = "/MyMedicalVariantScreen";
   static const String medicalListingScreen = "/MedicalListingScreen";
@@ -194,6 +221,10 @@ class RouteConstant {
 
   // Rider call screens
   static const String IncomingRiderOrderScreen = "/IncomingRiderOrderScreen";
-  static const String RiderPickupNavigationScreen = "/RiderPickupNavigationScreen";
+  static const String RiderPickupNavigationScreen =
+      "/RiderPickupNavigationScreen";
   static const String RiderRideNavigationScreen = "/RiderRideNavigationScreen";
+
+  // Emergency
+  static const String EmergencyProfileScreen1 = "/EmergencyProfileScreen1";
 }
