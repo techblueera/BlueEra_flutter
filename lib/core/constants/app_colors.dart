@@ -146,4 +146,16 @@ class AppColors {
   static const purpleFD = Color(0xFFF0E7FD);
   static const purpleFF = Color(0xFFE0E7FF);
   static const whiteFC = Color(0xffF5F7FC);
+
+  static const kBlue   = Color(0xFF2563EB);
+  static const kBlueDark  = Color(0xFF1D4ED8);
+  static const kBlueLight = Color(0xFFEFF6FF);
+  static const kGreen     = Color(0xFFD1FAE5);
+  static const kGreenText = Color(0xFF059669);
+  static const kGrey      = Color(0xFF6B7280);
+  static const kGreyLabel = Color(0xFF9CA3AF);
+  static const kBg        = Color(0xFFF1F5F9);
+  static const kCard      = Colors.white;
+  static const kRed       = Color(0xFFEF4444);
+
 }

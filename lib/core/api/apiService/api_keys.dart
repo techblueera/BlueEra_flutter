@@ -210,7 +210,7 @@ class ApiKeys {
   static const start_from = 'start_from';
   static const city = 'city';
   static const start_via = 'start_via';
-  static const addressString  = 'addressString';
+  static const addressString = 'addressString';
   static const transport_info = 'transport_info';
   static const stoppages = 'stoppages';
   static const stay_info = 'stay_info';
@@ -366,8 +366,8 @@ class ApiKeys {
   static const category = "category";
   static const generateAiProductContent = "GenerateAiProductContent";
   static const addProductViaAiRequest = "addProductViaAiRequest";
-  static const cursor  = "cursor";
-  static const content_types  = "content_types";
+  static const cursor = "cursor";
+  static const content_types = "content_types";
   static const controller = "controller";
   static const addProductViaAiController = "addProductViaAiController";
   static const product_details = "product_details";
@@ -479,8 +479,8 @@ class ApiKeys {
   static const priceUnit = 'priceUnit';
   static const coverpicture = 'coverpicture';
   static const ride_order_id = 'ride_order_id';
-  static const contactNumber  = 'contactNumber';
-  static const highlights  = 'highlights';
+  static const contactNumber = 'contactNumber';
+  static const highlights = 'highlights';
   static const additionalDetails = 'additionalDetails';
   static const roadImages = 'roadImages';
   static const roomImages = 'roomImages';
@@ -654,45 +654,43 @@ class ApiKeys {
   static const argProfileTypeTagId = 'argProfileTypeTagId';
   static const profileType = 'profileType';
   static const number_of_Employees = 'number_of_Employees';
-  static const number_of_branch  = 'number_of_branch ';
-  static const coverPage  = 'coverPage';
-  static const logoImage  = 'logoImage';
-  static const visionMission  = 'visionMission';
-  static const totalBeds  = 'totalBeds';
-  static const availableBeds  = 'availableBeds';
-  static const profile_type  = 'profile_type';
-  static const contact_list  = 'contact_list';
+  static const number_of_branch = 'number_of_branch ';
+  static const coverPage = 'coverPage';
+  static const logoImage = 'logoImage';
+  static const visionMission = 'visionMission';
+  static const totalBeds = 'totalBeds';
+  static const availableBeds = 'availableBeds';
+  static const profile_type = 'profile_type';
+  static const contact_list = 'contact_list';
 
   //medical
-  static const basePrice  = 'basePrice';
-  static const discountPercent  = 'discountPercent';
-  static const altText  = 'altText';
-  static const inventories  = 'inventories';
-  static const cityName  = 'cityName';
-  static const batches  = 'batches';
-  static const quantity  = 'quantity';
-  static const categoryId  = 'categoryId';
-  static const subject  = 'subject';
-  static const priority  = 'priority';
-  static const attachments  = 'attachments';
-  static const mimeType  = 'mimeType';
+  static const basePrice = 'basePrice';
+  static const discountPercent = 'discountPercent';
+  static const altText = 'altText';
+  static const inventories = 'inventories';
+  static const cityName = 'cityName';
+  static const batches = 'batches';
+  static const quantity = 'quantity';
+  static const categoryId = 'categoryId';
+  static const subject = 'subject';
+  static const priority = 'priority';
+  static const attachments = 'attachments';
+  static const mimeType = 'mimeType';
 
-
-
-  static const live_location_validity  = 'live_location_validity';
-  static const token  = 'token';
-  static const coordinates  = 'coordinates';
-  static const availabilityStatus  = 'availabilityStatus';
-  static const pickupLatitude  = 'pickupLatitude';
-  static const pickupLongitude  = 'pickupLongitude';
-  static const dropLatitude  = 'dropLatitude';
-  static const dropLongitude  = 'dropLongitude';
-  static const argDocumentVia  = 'argDocumentVia';
-  static const checkInTime  = 'checkInTime';
-  static const checkOutTime  = 'checkOutTime';
-  static const fare  = 'fare';
-  static const categoryKey  = 'categoryKey';
-  static const websiteUrl  = 'websiteUrl';
+  static const live_location_validity = 'live_location_validity';
+  static const token = 'token';
+  static const coordinates = 'coordinates';
+  static const availabilityStatus = 'availabilityStatus';
+  static const pickupLatitude = 'pickupLatitude';
+  static const pickupLongitude = 'pickupLongitude';
+  static const dropLatitude = 'dropLatitude';
+  static const dropLongitude = 'dropLongitude';
+  static const argDocumentVia = 'argDocumentVia';
+  static const checkInTime = 'checkInTime';
+  static const checkOutTime = 'checkOutTime';
+  static const fare = 'fare';
+  static const categoryKey = 'categoryKey';
+  static const websiteUrl = 'websiteUrl';
 
   static const securityDeposit = 'securityDeposit';
   static const documentRequired = 'documentRequired';
@@ -754,15 +752,19 @@ class ApiKeys {
   static const argMissingProducts = 'argMissingProducts';
   static const argBulkUpload = 'argBulkUpload';
   static const range = 'range';
-  static const argGroceryCategoryWithInventory = 'argGroceryCategoryWithInventory';
+  static const argGroceryCategoryWithInventory =
+      'argGroceryCategoryWithInventory';
   static const argFoodGenAiResModel = 'argFoodGenAiResModel';
   static const argCreateMissingProductIndex = 'argCreateMissingProductIndex';
   static const argIsGroceryStore = 'argIsGroceryStore';
   static const argIsDeliveredByRider = 'argIsDeliveredByRider';
   static const argBusinessId = 'argBusinessId';
-  static const argProductCategoryWithInventory = 'argProductCategoryWithInventory';
+  static const argProductCategoryWithInventory =
+      'argProductCategoryWithInventory';
   static const argProductCatKey = 'argProductCatKey';
   static const argProductCatName = 'argProductCatName';
   static const argProductCategories = 'argProductCategories';
 
+  static const argEmergencyProfileId = 'argEmergencyProfileId';
+  static const argEmergencyProfile = 'argEmergencyProfile';
 }
