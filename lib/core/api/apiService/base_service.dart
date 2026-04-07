@@ -878,6 +878,14 @@ abstract class BaseService {
   final String getGst = 'chat-service/reminders/set-reminder';
   final String placeBulkGroceryOrder = 'grocery-service/api/orders';
 
+  // Food self-pickup orders
+  final String placeBulkFoodOrder = 'food-service/api/orders';
+  String foodOrderReady(String orderId) => 'food-service/api/orders/$orderId/ready';
+
+  // Product self-pickup orders
+  final String placeBulkProductOrder = 'inventory-service/orders';
+  String productOrderReady(String orderId) => 'inventory-service/orders/$orderId/ready';
+
 
   /// Tiffin
   final String tiffins = "earn-service/tiffins";

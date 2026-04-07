@@ -127,41 +127,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
               Obx(() => chatThemeController.chatBackground()),
               Column(
                 children: [
-                  // E2E banner in its own Obx
-                  Obx(() {
-                    if (!chatViewController.e2eActive.value) return const SizedBox.shrink();
-                    return Container(
-                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-                      margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3CD),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.lock, size: 12, color: Colors.amber[800]),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              'Messages are end-to-end encrypted',
-                              style: TextStyle(fontSize: 11, color: Colors.amber[900]),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
                   // Message list + scroll-to-bottom FAB
                   Expanded(
                     child: Stack(
                       children: [
                         // Message list
                         Obx(() {
-                          final _ = chatViewController.e2eMessages.length;
-
                           if (chatViewController.getListOfMessageResponse.value.status !=
                               Status.COMPLETE) {
                             return const Center(
@@ -173,7 +144,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                             );
                           }
 
-                          final messages = chatViewController.getMergedMessages();
+                          final messages = chatViewController.getListOfMessageData ?? [];
                           if (messages.isEmpty) {
                             return Center(
                               child: InkWell(

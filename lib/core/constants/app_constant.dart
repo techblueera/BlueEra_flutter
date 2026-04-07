@@ -1161,6 +1161,10 @@ class ChatEmitEvents {
   static const update_data = "update_data";
   static const newSelfPickupOrderReceived = "newSelfPickupOrderReceived";
   static const selfPickupOrderReady = "selfPickupOrderReady";
+  static const newFoodPickupOrderReceived = "newFoodPickupOrderReceived";
+  static const foodPickupOrderReady = "foodPickupOrderReady";
+  static const newProductPickupOrderReceived = "newProductPickupOrderReceived";
+  static const productPickupOrderReady = "productPickupOrderReady";
 
   // Signaling events
   static const isTyping = "isTyping";

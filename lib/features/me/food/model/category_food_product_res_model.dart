@@ -231,6 +231,7 @@ class FoodVariants {
     this.isActive,
     this.isDefault,
     this.createdAt,
+    this.inventoryId,
     this.updatedAt,
     this.v,});
 
@@ -246,11 +247,13 @@ class FoodVariants {
 
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+    inventoryId = json['inventoryId'];
     v = json['__v'];
   }
   String? id;
   String? product;
   String? variantName;
+  String? inventoryId;
   String? quantityLabel;
   int? mrp;
   int? baseSellingPrice;
@@ -264,6 +267,7 @@ class FoodVariants {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['product'] = product;
+    map['inventoryId'] = inventoryId;
     map['variantName'] = variantName;
     map['quantityLabel'] = quantityLabel;
     map['mrp'] = mrp;

@@ -49,8 +49,6 @@ import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overl
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'core/services/e2e/e2e_local_db_service.dart';
-import 'core/services/e2e/e2e_sync_service.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
 
@@ -137,58 +135,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     return; // Don't play sound or show notification for calls
   }
 
-  // ── E2E encrypted message push ──────────────────────────────────────────
-  if (message.data['type'] == 'encrypted_message') {
-    final conversationId = (message.data['conversation_id'] ?? '').toString();
-    if (conversationId.isNotEmpty) {
-      try {
-        // Restore auth token so REST API calls can authenticate
-        const secureStorage = FlutterSecureStorage(
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
-        );
-        authTokenGlobal = await secureStorage.read(
-          key: SharedPreferenceUtils.authToken,
-        );
-
-        if (authTokenGlobal?.isNotEmpty == true) {
-          // Sync and decrypt missed messages via REST
-          await E2ELocalDbService().init();
-          await E2ESyncService().syncConversation(conversationId);
-
-          // Get the most recently decrypted message for the notification preview
-          final msgs = await E2ELocalDbService().getMessages(conversationId);
-          final latest = msgs.isNotEmpty ? msgs.last : null;
-          final preview = (latest?.plaintext?.isNotEmpty == true)
-              ? latest!.plaintext!
-              : 'New encrypted message';
-
-          // Show local notification with decrypted preview
-          final plugin = FlutterLocalNotificationsPlugin();
-          await plugin.initialize(
-            const InitializationSettings(
-              android: AndroidInitializationSettings('@drawable/ic_stat'),
-              iOS: DarwinInitializationSettings(),
-            ),
-            onDidReceiveBackgroundNotificationResponse:
-                onBackgroundNotificationResponse,
-          );
-          AppNotificationHandler.flutterLocalNotificationsPlugin = plugin;
-          await AppNotificationHandler().showFromData({
-            ...message.data,
-            'title': message.data['title'] ?? 'New Message',
-            'body': preview,
-            'channelId': 'chat_messages',
-            'channelName': 'Chat Messages',
-          });
-        }
-      } catch (e) {
-        if (kDebugMode) print('[E2E] Background FCM handler error: $e');
-      }
-    }
-    return;
-  }
-  // ────────────────────────────────────────────────────────────────────────
-
   if (message.notification != null) {
     await AppNotificationHandler().playCustomSound(message);
   }
@@ -210,6 +156,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // Cancel ALL notifications (including Firebase's auto-shown ones).
   await plugin.cancelAll();
+
 
   // Use the generic showFromData renderer which reads all backend fields:
   // channelId, channelName, channelImportance, style, imageUrl, groupKey, actions, etc.

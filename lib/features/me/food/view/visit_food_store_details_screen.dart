@@ -322,7 +322,7 @@ class _VisitFoodStoreDetailsScreenState
                           borderRadius: BorderRadius.circular(10),
                           child: CachedNetworkImage(
                             imageUrl: item.images?.firstOrNull ?? "",
-                            height: 140,
+                            height: 130,
                             width: 170,
                             fit: BoxFit.cover,
                             placeholder: (_, __) =>

@@ -402,6 +402,12 @@ class MessageMetadata {
   String? selfpickupOrderId;
   SelfPickupOrderModel? selfPickupOrder;
 
+  String? foodPickupOrderId;
+  SelfPickupOrderModel? foodPickupOrder;
+
+  String? productPickupOrderId;
+  SelfPickupOrderModel? productPickupOrder;
+
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
@@ -434,6 +440,10 @@ class MessageMetadata {
     this.rider,
     this.selfpickupOrderId,
     this.selfPickupOrder,
+    this.foodPickupOrderId,
+    this.foodPickupOrder,
+    this.productPickupOrderId,
+    this.productPickupOrder,
     this.riderAssociationId,
     this.riderAssociation,
     this.callId,
@@ -472,6 +482,14 @@ class MessageMetadata {
       selfPickupOrder: (json['order'] != null && json['selfpickupOrderId'] != null)
           ? SelfPickupOrderModel.fromJson(json['order'])
           : null,
+      foodPickupOrderId: json['foodPickupOrderId']?.toString(),
+      foodPickupOrder: (json['order'] != null && json['foodPickupOrderId'] != null)
+          ? SelfPickupOrderModel.fromJson(json['order'])
+          : null,
+      productPickupOrderId: json['productPickupOrderId']?.toString(),
+      productPickupOrder: (json['order'] != null && json['productPickupOrderId'] != null)
+          ? SelfPickupOrderModel.fromJson(json['order'])
+          : null,
       riderAssociationId: json['riderAssociationId']?.toString(),
       riderAssociation: json['riderAssociation'] != null
           ? RiderAssociationMetadata.fromJson(
@@ -507,6 +525,8 @@ class MessageMetadata {
       'order': order?.toJson(),
       'rider': rider?.toJson(),
       'selfpickupOrderId': selfpickupOrderId,
+      'foodPickupOrderId': foodPickupOrderId,
+      'productPickupOrderId': productPickupOrderId,
       'riderAssociationId': riderAssociationId,
       'riderAssociation': riderAssociation?.toJson(),
       'call_id': callId,

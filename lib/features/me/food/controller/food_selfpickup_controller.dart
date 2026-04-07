@@ -1,13 +1,21 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_product_response_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
@@ -19,6 +27,9 @@ import 'package:get/get.dart';
 /// is scoped to a browsing session — matching the grocery behavior where
 /// going back from the stores list clears the cart.
 class FoodSelfPickupController extends GetxController {
+  RxBool isPlaceFoodOrderLoading = false.obs;
+  Rx<ApiResponse> placeFoodOrderResponse = ApiResponse.initial('Initial').obs;
+
   /// Flat list of variants currently in the cart.
   RxList<FoodVariants> selectedFoodVariants = <FoodVariants>[].obs;
 
@@ -246,6 +257,7 @@ class FoodSelfPickupController extends GetxController {
   List<Map<String, dynamic>> buildBulkOrderItems() {
     final items = <Map<String, dynamic>>[];
     for (final variant in selectedFoodVariants) {
+      log("sdljclkcsd ${variant.toJson()}");
       final qty = cartQuantities[variant.id] ?? 0;
       if (qty <= 0) continue;
 
@@ -253,7 +265,7 @@ class FoodSelfPickupController extends GetxController {
       final sp = (variant.baseSellingPrice ?? 0).toDouble();
 
       items.add({
-        'product': cartProductIds[variant.id] ?? '',
+        'inventory': variant.inventoryId ?? '',
         'productVariant': variant.id ?? '',
         'quantity': qty,
         'mrp': mrp,
@@ -261,5 +273,59 @@ class FoodSelfPickupController extends GetxController {
       });
     }
     return items;
+  }
+
+  /// Place a bulk food self-pickup order — mirrors grocery flow.
+  Future<void> placeFoodOrderApi() async {
+    try {
+      isPlaceFoodOrderLoading.value = true;
+      AppLoader.show();
+
+      final itemsList = buildBulkOrderItems();
+
+      final Map<String, dynamic> requestBody = {
+        "items": itemsList,
+        "deliveryType": "self-pickup",
+        "discount": totalSavings,
+      };
+
+      final response =
+          await FoodRepo().placeBulkFoodOrderApi(params: requestBody);
+
+      if (!response.isSuccess) {
+        AppLoader.hide();
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      placeFoodOrderResponse.value = ApiResponse.complete(response);
+      AppLoader.hide();
+      selectedFoodVariants.clear();
+      cartQuantities.clear();
+      cartBusinessInfo.clear();
+      cartProductIds.clear();
+
+      // Navigate to chat Orders tab
+      final bottomController = getOrPut(() => BottomBarController());
+      bottomController.onChangeIndex(3);
+
+      ChatViewController chatViewController =
+          getOrPut(() => ChatViewController());
+      chatViewController.onSelectChatTab(3);
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.order_Chat_Type},
+      );
+
+      Get.until((route) =>
+          route.settings.name == RouteConstant.BottomNavigationBarScreen);
+    } catch (e) {
+      AppLoader.hide();
+      placeFoodOrderResponse.value = ApiResponse.error('error');
+    } finally {
+      isPlaceFoodOrderLoading.value = false;
+    }
   }
 }

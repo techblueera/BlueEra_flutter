@@ -35,22 +35,18 @@ class _BookTransportMainState extends State<BookTransportMain> {
     TransportCategoryDetailsModel(
       name: "Bike",
       svgImage: AppIconAssets.transport_bike,
-      charge: 100,
     ),
     TransportCategoryDetailsModel(
       name: "Taxi",
       svgImage: AppIconAssets.transport_taxi,
-      charge: 500.0,
     ),
     TransportCategoryDetailsModel(
       name: "Auto",
       svgImage: AppIconAssets.transport_auto,
-      charge: 200.0,
     ),
     TransportCategoryDetailsModel(
-      name: "Big Auto",
+      name: "Rickshaws",
       svgImage: AppIconAssets.transport_big_auto,
-      charge: 250.0,
     ),
   ];
   List<TransportCategoryDetailsModel> inOutStationVehicleList = [
@@ -82,8 +78,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
       discoverController.selectedHorizontalTab.value == 0
           ? inCityVehicleList
           : discoverController.selectedHorizontalTab.value == 3
-              ? inParcelVehicleList
-              : inOutStationVehicleList;
+          ? inParcelVehicleList
+          : inOutStationVehicleList;
 
   @override
   void initState() {
@@ -118,7 +114,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
   }
 
   void _editAddress() {
-    Get.off(() => SearchTransportAddress(
+    Get.off(() =>
+        SearchTransportAddress(
           onPlaceSelected: () {},
           vehicleType: widget.vehicleType,
         ));
@@ -137,14 +134,15 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 isLoading: discoverController.bookRiderBtnLoading.value,
                 height: 44,
                 isValidate:
-                    discoverController.selectedRiders.isNotEmpty,
+                discoverController.selectedRiders.isNotEmpty,
                 onTap: () async {
                   final success =
-                      await discoverController.makeTransportBookOrderApi();
+                  await discoverController.makeTransportBookOrderApi();
                   if (success && discoverController.selectedRiders.isNotEmpty) {
                     // Setup queue listeners and navigate to calling progress screen
                     discoverController.setupFareCallQueueListeners();
-                    Get.to(() => FareCallQueueScreen(
+                    Get.to(() =>
+                        FareCallQueueScreen(
                           orderId: discoverController.fareCallOrderId.value,
                         ));
                   }
@@ -170,7 +168,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                       "Parcel / Goods"
                     ],
                     selectedIndex:
-                        discoverController.selectedHorizontalTab.value,
+                    discoverController.selectedHorizontalTab.value,
                     onTabSelected: (index, d) {
                       discoverController.selectedHorizontalTab.value = index;
                     },
@@ -191,6 +189,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
+
                         /// Location icons
                         Padding(
                           padding: const EdgeInsets.only(right: 10.0),
@@ -199,12 +198,12 @@ class _BookTransportMainState extends State<BookTransportMain> {
                             children: [
                               LocalAssets(
                                 imagePath:
-                                    AppIconAssets.transport_from_location,
+                                AppIconAssets.transport_from_location,
                               ),
                               SizedBox(height: SizeConfig.size4),
                               LocalAssets(
                                 imagePath:
-                                    AppIconAssets.tranport_location_pointer,
+                                AppIconAssets.tranport_location_pointer,
                               ),
                               SizedBox(height: SizeConfig.size2),
                               LocalAssets(
@@ -220,20 +219,21 @@ class _BookTransportMainState extends State<BookTransportMain> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+
                               /// Pickup address
                               Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
+                                const EdgeInsets.symmetric(vertical: 6),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: CustomText(
                                         (discoverController.selectedFromAddress
-                                                        ?.value ??
-                                                    '')
-                                                .isNotEmpty
+                                            ?.value ??
+                                            '')
+                                            .isNotEmpty
                                             ? discoverController
-                                                .selectedFromAddress?.value
+                                            .selectedFromAddress?.value
                                             : "Select Pickup",
                                         fontSize: 13,
                                         maxLines: 1,
@@ -255,17 +255,17 @@ class _BookTransportMainState extends State<BookTransportMain> {
                               /// Drop address
                               Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
+                                const EdgeInsets.symmetric(vertical: 6),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: CustomText(
                                         (discoverController.selectedToAddress
-                                                        ?.value ??
-                                                    '')
-                                                .isNotEmpty
+                                            ?.value ??
+                                            '')
+                                            .isNotEmpty
                                             ? discoverController
-                                                .selectedToAddress?.value
+                                            .selectedToAddress?.value
                                             : "Select Drop",
                                         fontSize: 13,
                                         maxLines: 1,
@@ -294,7 +294,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                           padding: const EdgeInsets.all(10),
                           child: LocalAssets(
                               imagePath:
-                                  AppIconAssets.transport_location_exchange),
+                              AppIconAssets.transport_location_exchange),
                         ),
                       ],
                     ),
@@ -319,80 +319,87 @@ class _BookTransportMainState extends State<BookTransportMain> {
                     scrollDirection: Axis.horizontal,
                     itemCount: optionList.length,
                     itemBuilder: (context, i) {
-                      return InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () {
-                          discoverController
-                              .selectedVehicleOptionIndex.value = i;
-                        },
-                        child: Container(
-                          height: 82,
-                          width: 86,
-                          margin: const EdgeInsets.only(right: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                color: discoverController
-                                            .selectedVehicleOptionIndex
-                                            .value ==
-                                        i
-                                    ? AppColors.primaryColor
-                                    : AppColors.whiteE5),
-                            boxShadow: AppShadows.lightBottomShadow,
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                left: 0,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    gradient: discoverController
-                                                .selectedVehicleOptionIndex
-                                                .value ==
-                                            i
-                                        ? LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              AppColors.primaryColor
-                                                  .withOpacity(0.0),
-                                              AppColors.primaryColor
-                                                  .withOpacity(0.2),
-                                            ],
-                                          )
-                                        : null,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Center(
-                                          child: LocalAssets(
-                                              imagePath:
-                                                  optionList[i].svgImage)),
-                                      const SizedBox(height: 2),
-                                      CustomText(
-                                        (optionList[i].charge != null)
-                                            ? "₹${optionList[i].charge}"
-                                            : "${optionList[i].name}",
-                                        textAlign: TextAlign.center,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      const SizedBox(height: 6),
-                                    ],
+                      return Obx(() {
+                        final selectedTab = discoverController.selectedHorizontalTab.value;
+                        final response = discoverController.ridersDetailsList.value;
+                        final vehicleData = getSelectedVehicleData(response, selectedTab, i);
+                        final fare = vehicleData?.fare;
+
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            discoverController
+                                .selectedVehicleOptionIndex.value = i;
+                          },
+                          child: Container(
+                            height: 82,
+                            width: 86,
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: discoverController
+                                      .selectedVehicleOptionIndex
+                                      .value ==
+                                      i
+                                      ? AppColors.primaryColor
+                                      : AppColors.whiteE5),
+                              boxShadow: AppShadows.lightBottomShadow,
+                            ),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  left: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      gradient: discoverController
+                                          .selectedVehicleOptionIndex
+                                          .value ==
+                                          i
+                                          ? LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          AppColors.primaryColor
+                                              .withOpacity(0.0),
+                                          AppColors.primaryColor
+                                              .withOpacity(0.2),
+                                        ],
+                                      )
+                                          : null,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Center(
+                                            child: LocalAssets(
+                                                imagePath:
+                                                optionList[i].svgImage)),
+                                        const SizedBox(height: 2),
+                                        CustomText(
+                                          fare != null
+                                              ? "₹${fare % 1 == 0 ? fare.toInt() : fare}"
+                                              : "${optionList[i].name}",
+                                          textAlign: TextAlign.center,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        const SizedBox(height: 6),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      });
                     },
                   ),
                 ),
@@ -417,7 +424,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 /// Rider list
                 Obx(() {
                   if (discoverController
-                          .bookingRiderListResponse.value.status ==
+                      .bookingRiderListResponse.value.status ==
                       Status.COMPLETE) {
                     final VehicleAllResponse response =
                         discoverController.ridersDetailsList.value;
@@ -439,16 +446,16 @@ class _BookTransportMainState extends State<BookTransportMain> {
 
                     return (discoverController.findRiderDetailsLoading.value)
                         ? const Padding(
-                            padding: EdgeInsets.all(24),
-                            child:
-                                Center(child: CircularProgressIndicator()),
-                          )
+                      padding: EdgeInsets.all(24),
+                      child:
+                      Center(child: CircularProgressIndicator()),
+                    )
                         : Column(
-                            children: riders
-                                .map((rider) =>
-                                    RiderCardWidget(rider: rider))
-                                .toList(),
-                          );
+                      children: riders
+                          .map((rider) =>
+                          RiderCardWidget(rider: rider))
+                          .toList(),
+                    );
                   } else {
                     if (discoverController.findRiderDetailsLoading.value ==
                         true) {
@@ -516,11 +523,9 @@ const ALL_VEHICLE_TYPES = [
   'largeTruckGoods',
 ];
 
-VehicleData? getSelectedVehicleData(
-  VehicleAllResponse response,
-  int selectedTab,
-  int selectedIndex,
-) {
+VehicleData? getSelectedVehicleData(VehicleAllResponse response,
+    int selectedTab,
+    int selectedIndex,) {
   // In City
   if (selectedTab == 0) {
     switch (selectedIndex) {
@@ -595,6 +600,7 @@ class RiderCardWidget extends StatelessWidget {
         ),
         child: Row(
           children: [
+
             /// Selection indicator
             Container(
               width: 22,
@@ -713,7 +719,7 @@ class RiderCardWidget extends StatelessWidget {
                         ),
                         child: CustomText(
                           (rider.vehicleInformation?.vehicleName == null ||
-                                  rider.vehicleInformation?.vehicleName == '')
+                              rider.vehicleInformation?.vehicleName == '')
                               ? "N/A"
                               : rider.vehicleInformation?.vehicleName,
                           fontSize: 12,
@@ -755,17 +761,17 @@ class RiderCardWidget extends StatelessWidget {
                     SizedBox(width: SizeConfig.size2),
                     discoverController.selectedHorizontalTab.value == 1
                         ? CustomText(
-                            '₹ 0.00',
-                            fontSize: 12,
-                            color: AppColors.grayText,
-                            fontWeight: FontWeight.w600,
-                          )
+                      '₹ 0.00',
+                      fontSize: 12,
+                      color: AppColors.grayText,
+                      fontWeight: FontWeight.w600,
+                    )
                         : CustomText(
-                            rider.distance ?? '',
-                            fontSize: 12,
-                            color: AppColors.grayText,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      rider.distance ?? '',
+                      fontSize: 12,
+                      color: AppColors.grayText,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ],
                 )
               ],

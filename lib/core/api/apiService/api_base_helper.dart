@@ -35,10 +35,6 @@ class AuthManager {
     if (isLoggingOut) return;
 // commonSnackBar(message: response?.data["message"]);
     isLoggingOut = true;
-    // E2E: revoke device keys from server before clearing session
-    if (getxObj.Get.isRegistered<ChatViewController>()) {
-      await getxObj.Get.find<ChatViewController>().revokeE2EDevice();
-    }
 
     deleteIfRegistered<ChatViewController>();
     deleteIfRegistered<FeedController>();

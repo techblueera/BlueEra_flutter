@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -26,7 +28,10 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:get/get.dart';
+
+import '../../../chat/auth/controller/chat_view_controller.dart';
 
 class AllProfessionConsultantScreen extends StatefulWidget {
   final List<ProfessionTypeData> professionalConsultantCategories;
@@ -402,7 +407,53 @@ class _AllProfessionConsultantScreenState
                       fontWeight: FontWeight.w500,
                       color: AppColors.white,
                     ),
-                  )
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () {
+                      final targetUserId = service.userId ?? '';
+                      if (targetUserId.isEmpty) return;
+                      final chatViewController = getOrPut(() => ChatViewController());
+
+                      chatViewController.checkChatConnectionAndOpenChat(
+
+                          userId:  service.userId??""
+
+                      );
+                      // Get.to(() => PersonalChatScreen(
+                      //       conversationId: '',
+                      //       userId: targetUserId,
+                      //       profileImage:
+                      //           service.userDetails?.profileImage ?? '',
+                      //       name: service.userDetails?.name ?? '',
+                      //       type: AppConstants.personal_Chat_Type,
+                      //       isInitialMessage: true,
+                      //     ));
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.chat_outlined,
+                              size: 14, color: AppColors.white),
+                          const SizedBox(width: 4),
+                          CustomText(
+                            'Enquire',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],

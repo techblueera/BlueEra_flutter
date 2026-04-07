@@ -345,11 +345,7 @@ class _BottomSummaryBar extends StatelessWidget {
                       child: InkWell(
                         onTap: selectedShopCount > 0
                             ? () {
-                                // TODO: wire to a food bulk-order API when
-                                // the backend is ready — placeholder for
-                                // now to keep parity with grocery.
-                                commonSnackBar(
-                                    message: 'Food order flow coming soon');
+                                controller.placeFoodOrderApi();
                               }
                             : null,
                         borderRadius: BorderRadius.circular(12),
@@ -373,7 +369,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: CustomText(
-                            'Submit Order',
+                            'Place Order',
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w700,
                             color: AppColors.white,

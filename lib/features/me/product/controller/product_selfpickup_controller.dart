@@ -1,4 +1,15 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
 /// Session-scoped cart for the product self-pickup flow.
@@ -12,6 +23,9 @@ import 'package:get/get.dart';
 /// Keyed by the first variant id of each product — that variant is what
 /// carries the selling price / MRP used for totals.
 class ProductSelfPickupController extends GetxController {
+  RxBool isPlaceProductOrderLoading = false.obs;
+  Rx<ApiResponse> placeProductOrderResponse = ApiResponse.initial('Initial').obs;
+
   /// Flat list of products currently in the cart.
   RxList<GetProductData> selectedProductVariants = <GetProductData>[].obs;
 
@@ -130,5 +144,78 @@ class ProductSelfPickupController extends GetxController {
     int count = 0;
     cartQuantities.forEach((_, value) => count += value);
     return count;
+  }
+
+  /// Build order payload per the integration guide.
+  List<Map<String, dynamic>> buildBulkOrderItems() {
+    final items = <Map<String, dynamic>>[];
+    for (final product in selectedProductVariants) {
+      final sc = product.product.sellerClassification;
+      final variants = sc?.variants ?? [];
+      if (variants.isEmpty) continue;
+
+      final variant = variants.first;
+      final qty = cartQuantities[variant.id] ?? 0;
+      if (qty <= 0) continue;
+
+      items.add({
+        'inventory': sc?.id ?? '',
+        'variantId': variant.id,
+        'quantity': qty,
+        'mrp': variant.mrp.toDouble(),
+        'sellingPrice': variant.sellingPrice.toDouble(),
+      });
+    }
+    return items;
+  }
+
+  /// Place a bulk product self-pickup order.
+  Future<void> placeProductOrderApi() async {
+    try {
+      isPlaceProductOrderLoading.value = true;
+      AppLoader.show();
+
+      final itemsList = buildBulkOrderItems();
+
+      final Map<String, dynamic> requestBody = {
+        "items": itemsList,
+        "deliveryType": "self-pickup",
+        "discount": totalSavings,
+      };
+
+      final response =
+          await InventoryRepo().placeBulkProductOrderApi(params: requestBody);
+
+      if (!response.isSuccess) {
+        AppLoader.hide();
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      placeProductOrderResponse.value = ApiResponse.complete(response);
+      AppLoader.hide();
+      clearCart();
+
+      final bottomController = getOrPut(() => BottomBarController());
+      bottomController.onChangeIndex(3);
+
+      ChatViewController chatViewController =
+          getOrPut(() => ChatViewController());
+      chatViewController.onSelectChatTab(3);
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.order_Chat_Type},
+      );
+
+      Get.until((route) =>
+          route.settings.name == RouteConstant.BottomNavigationBarScreen);
+    } catch (e) {
+      AppLoader.hide();
+      placeProductOrderResponse.value = ApiResponse.error('error');
+    } finally {
+      isPlaceProductOrderLoading.value = false;
+    }
   }
 }

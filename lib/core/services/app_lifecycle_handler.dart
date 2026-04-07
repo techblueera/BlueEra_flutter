@@ -20,11 +20,6 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
       // Reconnect chat socket if it was disconnected (e.g. after returning from CallActivity)
       _reconnectChatSocketIfNeeded();
 
-      // E2E: sync missed encrypted messages after returning from background
-      if (Get.isRegistered<ChatViewController>()) {
-        Get.find<ChatViewController>().triggerE2ESync();
-      }
-
       if (await LocationService().isLocationAvailable()) {
         log("Permission granted after returning from settings.");
         await LocationService.fetchLocation();

@@ -162,7 +162,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
             0;
 
         items.add({
-          "product": cartInventoryIds[variant.sId] ?? "",
+          "inventory": cartInventoryIds[variant.sId] ?? "",
           "productVariant": variant.sId ?? "",
           "quantity": qty,
           "mrp": mrp,
