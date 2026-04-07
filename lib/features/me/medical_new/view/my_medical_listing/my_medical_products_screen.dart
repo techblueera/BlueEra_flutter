@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
@@ -75,7 +76,7 @@ class _MyMedicalProductsScreenState extends State<MyMedicalProductsScreen> {
         if (groceryList.isEmpty) {
           return Center(
             child: CustomText(
-                'No products found in this category',
+                AppStrings.medicalNoProductsInCategory,
                 fontSize: SizeConfig.large,
                 color: AppColors.secondaryTextColor,
                 fontWeight: FontWeight.w500

@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_variant_card.dart';
@@ -74,7 +76,7 @@ class _MyMedicalVariantScreenState extends State<MyMedicalVariantScreen> {
             // Empty state
             if (_variants.isEmpty) {
               return Center(
-                child: CustomText('No variants found for this product',
+                child: CustomText(AppStrings.medicalNoVariantsForProduct.tr,
                     fontSize: SizeConfig.large,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w500),

@@ -85,7 +85,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                           CustomText(
                             (variantItem.variantName != null && variantItem.variantName!.isNotEmpty)
                                 ? variantItem.variantName!
-                                : 'Variant name not available',
+                                : AppStrings.medicalVariantNameNotAvailable.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium,
                             color: AppColors.mainTextColor,
@@ -128,7 +128,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                               CustomText(
                                 price.sellingRange.isNotEmpty
                                     ? '₹${price.sellingRange}'
-                                    : 'Price not set',
+                                    : AppStrings.medicalPriceNotSet.tr,
                                 fontSize: 11,
                                 color: AppColors.primaryColor,
                                 fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                               if (price.mrpRange.isNotEmpty) ...[
                                 SizedBox(width: 6),
                                 Flexible(
-                                  child: CustomText('MRP ₹${price.mrpRange}',
+                                  child: CustomText('${AppStrings.medicalMrpRangePrefix.tr} ₹${price.mrpRange}',
                                       fontSize: 9,
                                       color: AppColors.grayText,
                                       maxLines: 1,
@@ -157,7 +157,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                       onTap: () {
                         controller.openEditInventoryBottomSheet(
                           context: context,
-                          title: variantItem.variantName ?? 'Edit Inventory',
+                          title: variantItem.variantName ?? AppStrings.medicalEditInventory.tr,
                           variant: variantItem,
                           categoryId: categoryId,
                         );
@@ -181,7 +181,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                                 size: 13, color: AppColors.primaryColor),
                             SizedBox(width: 4),
                             CustomText(
-                              'Edit Inventory',
+                              AppStrings.medicalEditInventory,
                               fontSize: 11,
                               color: AppColors.primaryColor,
                               fontWeight: FontWeight.w600,
@@ -241,7 +241,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                                 child: CustomText(
                                   (variantItem.variantName != null && variantItem.variantName!.isNotEmpty)
                                       ? variantItem.variantName!
-                                      : 'Variant name not available',
+                                      : AppStrings.medicalVariantNameNotAvailable.tr,
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w600,
                                   overflow: TextOverflow.ellipsis,
@@ -303,7 +303,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                                     child: CustomText(
                                       price.sellingRange.isNotEmpty
                                           ? price.sellingRange
-                                          : 'Not set',
+                                          : AppStrings.medicalNotSet.tr,
                                       fontSize: 10,
                                       color: price.sellingRange.isNotEmpty
                                           ? AppColors.primaryColor
@@ -329,7 +329,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                                     child: CustomText(
                                       price.mrpRange.isNotEmpty
                                           ? price.mrpRange
-                                          : 'Not set',
+                                          : AppStrings.medicalNotSet.tr,
                                       fontSize: 10,
                                       color: AppColors.grayText,
                                     ),
@@ -373,7 +373,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                                 controller.openEditInventoryBottomSheet(
                                   context: context,
                                   title: variantItem.variantName ??
-                                      'Edit Inventory',
+                                      AppStrings.medicalEditInventory.tr,
                                   variant: variantItem,
                                   categoryId: categoryId,
                                 );
@@ -399,7 +399,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                                         color: AppColors.primaryColor),
                                     SizedBox(width: 4),
                                     CustomText(
-                                      'Edit Inventory',
+                                      AppStrings.medicalEditInventory,
                                       fontSize: 11,
                                       color: AppColors.primaryColor,
                                       fontWeight: FontWeight.w600,

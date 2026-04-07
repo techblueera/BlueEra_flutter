@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -79,20 +81,20 @@ class _EditMedicalInventoryBottomSheetState
     final qty = int.tryParse(qtyText);
 
     if (mrp == null || selling == null || qty == null) {
-      _updateValidity(false, 'Enter valid numbers');
+      _updateValidity(false, AppStrings.medicalEnterValidNumbers.tr);
       return;
     }
 
     if (mrp <= 0) {
-      _updateValidity(false, 'MRP must be greater than 0');
+      _updateValidity(false, AppStrings.medicalMrpMustBeGreaterThanZero.tr);
     } else if (mrp > _originalMrp && _originalMrp > 0) {
-      _updateValidity(false, 'MRP cannot be increased (max: ₹${_originalMrp.toStringAsFixed(2)})');
+      _updateValidity(false, '${AppStrings.medicalMrpCannotBeIncreasedPrefix.tr} ₹${_originalMrp.toStringAsFixed(2)})');
     } else if (selling > mrp) {
-      _updateValidity(false, 'Selling price cannot exceed MRP');
+      _updateValidity(false, AppStrings.medicalSellingPriceCannotExceedMrp.tr);
     } else if (selling > _originalSellingPrice && _originalSellingPrice > 0) {
-      _updateValidity(false, 'Selling price cannot be increased (max: ₹${_originalSellingPrice.toStringAsFixed(2)})');
+      _updateValidity(false, '${AppStrings.medicalSellingPriceCannotBeIncreasedPrefix.tr} ₹${_originalSellingPrice.toStringAsFixed(2)})');
     } else if (qty < 0) {
-      _updateValidity(false, 'Quantity cannot be negative');
+      _updateValidity(false, AppStrings.medicalQuantityCannotBeNegative.tr);
     } else {
       _updateValidity(true, null);
     }
@@ -147,7 +149,7 @@ class _EditMedicalInventoryBottomSheetState
             ),
             SizedBox(height: 4),
             CustomText(
-              'Price can only be decreased, not increased',
+              AppStrings.medicalPriceCanOnlyBeDecreased,
               fontSize: SizeConfig.extraSmall,
               color: AppColors.secondaryTextColor,
             ),
@@ -155,28 +157,28 @@ class _EditMedicalInventoryBottomSheetState
 
             // MRP field
             _buildField(
-              label: 'MRP (₹)',
-              hint: 'Enter MRP',
+              label: AppStrings.medicalMrpRupee.tr,
+              hint: AppStrings.medicalEnterMrp.tr,
               controller: mrpController,
               isNumber: true,
-              originalValue: _originalMrp > 0 ? 'Current: ₹${_originalMrp.toStringAsFixed(2)}' : null,
+              originalValue: _originalMrp > 0 ? '${AppStrings.medicalCurrentPrefix.tr} ₹${_originalMrp.toStringAsFixed(2)}' : null,
             ),
             SizedBox(height: SizeConfig.size12),
 
             // Selling Price field
             _buildField(
-              label: 'Selling Price (₹)',
-              hint: 'Enter selling price',
+              label: AppStrings.medicalSellingPriceRupee.tr,
+              hint: AppStrings.medicalEnterSellingPrice.tr,
               controller: sellingController,
               isNumber: true,
-              originalValue: _originalSellingPrice > 0 ? 'Current: ₹${_originalSellingPrice.toStringAsFixed(2)}' : null,
+              originalValue: _originalSellingPrice > 0 ? '${AppStrings.medicalCurrentPrefix.tr} ₹${_originalSellingPrice.toStringAsFixed(2)}' : null,
             ),
             SizedBox(height: SizeConfig.size12),
 
             // Quantity field
             _buildField(
-              label: 'Quantity',
-              hint: 'Enter quantity',
+              label: AppStrings.medicalQuantity.tr,
+              hint: AppStrings.medicalEnterQuantity.tr,
               controller: quantityController,
               isNumber: true,
             ),
@@ -219,7 +221,7 @@ class _EditMedicalInventoryBottomSheetState
                   : null,
               isValidate: isFormValid,
               radius: SizeConfig.size10,
-              title: 'Update Inventory',
+              title: AppStrings.medicalUpdateInventory.tr,
               isLoading: widget.isLoading,
             ),
             SizedBox(height: SizeConfig.size10),

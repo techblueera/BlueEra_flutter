@@ -32,7 +32,6 @@ class _MedicalConfirmScreenState extends State<MedicalConfirmScreen> {
   @override
   void dispose() {
     controller.subscription?.cancel();
-    log('Subscription cancelled successfully');
     super.dispose();
   }
 
@@ -65,7 +64,6 @@ class _MedicalConfirmScreenState extends State<MedicalConfirmScreen> {
                   physics: NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     var rider = controller.arrRiders[index];
-                    log('order id -- ${widget.orderId}');
                     return MedicalRiderCard(
                         rider: rider,
                         orderId: widget.orderId,
@@ -77,7 +75,7 @@ class _MedicalConfirmScreenState extends State<MedicalConfirmScreen> {
                        vertical: SizeConfig.paddingL,
                    ),
                    child: CustomText(
-                      'No riders are currently available at this location.',
+                      AppStrings.noRidersAvailableHere,
                       fontSize: SizeConfig.large18,
                       fontWeight: FontWeight.w700,
                       color: AppColors.secondaryTextColor,

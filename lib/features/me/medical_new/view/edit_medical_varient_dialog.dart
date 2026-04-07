@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -59,11 +61,11 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
     final selling = double.tryParse(sellingText);
 
     if (mrp == null || selling == null) {
-      _updateValidity(false, 'Enter valid numbers');
+      _updateValidity(false, AppStrings.medicalEnterValidNumbers.tr);
     } else if (mrp <= 0) {
-      _updateValidity(false, 'MRP must be greater than 0');
+      _updateValidity(false, AppStrings.medicalMrpMustBeGreaterThanZero.tr);
     } else if (selling > mrp) {
-      _updateValidity(false, 'Selling price cannot exceed MRP');
+      _updateValidity(false, AppStrings.medicalSellingPriceCannotExceedMrp.tr);
     } else {
       _updateValidity(true, null);
     }
@@ -117,10 +119,10 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
             ),
             SizedBox(height: SizeConfig.size15),
 
-            _input('MRP (₹)', 'E.g. ₹1,999', mrpController, isNumber: true),
+            _input(AppStrings.medicalMrpRupee.tr, AppStrings.medicalEgRupeeMrp.tr, mrpController, isNumber: true),
             SizedBox(height: SizeConfig.size12),
 
-            _input('Selling Price (₹)', 'E.g. ₹1,499', sellingController, isNumber: true),
+            _input(AppStrings.medicalSellingPriceRupee.tr, AppStrings.medicalEgRupeeSelling.tr, sellingController, isNumber: true),
 
             if (errorMessage != null) ...[
               SizedBox(height: SizeConfig.size8),
@@ -158,7 +160,7 @@ class _EditMedicalVarientDialogState extends State<EditMedicalVarientDialog> {
                   : null,
               isValidate: isFormValid,
               radius: SizeConfig.size10,
-              title: 'Update Price',
+              title: AppStrings.medicalUpdatePrice.tr,
             ),
             SizedBox(height: SizeConfig.size10),
           ],

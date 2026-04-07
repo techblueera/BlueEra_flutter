@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MedicalRiderCard extends StatelessWidget {
   final String orderId;
@@ -117,7 +118,7 @@ class MedicalRiderCard extends StatelessWidget {
 
                   // Order Match Percentage
                   CustomText(
-                    "80 % Order Match",
+                    AppStrings.medicalRiderOrderMatch,
                     // "${rider.orderMatch} % Order Match",
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
@@ -129,7 +130,7 @@ class MedicalRiderCard extends StatelessWidget {
                   Row(
                     children: [
                       CustomText(
-                        "5 Items Unavailable",
+                        AppStrings.medicalRiderItemsUnavailable,
                         // "${rider.unavailableItems} Items Unavailable",
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -141,7 +142,7 @@ class MedicalRiderCard extends StatelessWidget {
                           // Handle "Check" tap
                         },
                         child: CustomText(
-                          "Check",
+                          AppStrings.medicalRiderCheck,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.primaryColor,
@@ -158,7 +159,7 @@ class MedicalRiderCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6.0),
                     ),
                     child: CustomText(
-                      'Second Order',
+                      AppStrings.medicalRiderSecondOrder,
                       // rider.orderTag,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
@@ -197,7 +198,7 @@ class MedicalRiderCard extends StatelessWidget {
                               riderId: rider.riderData?.id ?? ''
                            );
                           },
-                          title: "Book Now",
+                          title: AppStrings.medicalRiderBookNow.tr,
                           bgColor: AppColors.primaryColor,
                           radius: 6.0,
                         ),

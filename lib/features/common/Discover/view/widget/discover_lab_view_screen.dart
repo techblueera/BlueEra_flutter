@@ -80,7 +80,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () {
-                          commonSnackBar(message: 'Coming Soon....');
+                          commonSnackBar(message: AppStrings.medicalComingSoonDots);
                         },
                         title: AppStrings.bookInquiry,
                       ),
@@ -301,10 +301,10 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           ServiceHomeTitleWidget(title: AppStrings.ourPopularServices),
           SizedBox(height: SizeConfig.size8),
           if (tests.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No popular services available",
+                message: AppStrings.noPopularServicesAvailable.tr,
                 imageSize: 60,
               ),
             )
@@ -362,14 +362,14 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
   Widget _buildAllServices(Facility? facility) {
     final chips = <String>[];
     if (facility?.wheelchairAssistance == true)
-      chips.add("Wheelchair Assistance");
+      chips.add(AppStrings.wheelchairAssistance.tr);
     if (facility?.doctorConsultationTieUp == true)
-      chips.add("Doctor Consultation Tie-up");
+      chips.add(AppStrings.doctorConsultationTieUp.tr);
     if (facility?.insuranceCashlessSupport == true)
-      chips.add("Insurance / Cashless Support");
+      chips.add(AppStrings.insuranceCashlessSupport.tr);
     if (facility?.homeSampleCollection == true)
-      chips.add("Home Sample Collection");
-    if (facility?.digitalReport == true) chips.add("Digital Report");
+      chips.add(AppStrings.homeSampleCollection.tr);
+    if (facility?.digitalReport == true) chips.add(AppStrings.digitalReport.tr);
 
     final other = (facility?.other ?? [])
         .map((e) => e.label ?? '')
@@ -387,10 +387,10 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           ServiceHomeTitleWidget(title: AppStrings.ourAllServices),
           SizedBox(height: SizeConfig.size8),
           if (allChips.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No services listed",
+                message: AppStrings.noServicesListedMsg.tr,
                 imageSize: 60,
               ),
             )
@@ -429,7 +429,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(),
-                      child: CustomText('Close',
+                      child: CustomText(AppStrings.medicalCloseLabel,
                           color: AppColors.primaryColor),
                     ),
                   ],
@@ -487,10 +487,10 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           ServiceHomeTitleWidget(title: AppStrings.contactUs),
           const SizedBox(height: 12),
           if (!hasContact && (profile?.name?.isEmpty ?? true))
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: EmptyStateWidget(
-                message: "No contact details available",
+                message: AppStrings.noContactDetailsMsg.tr,
                 imageSize: 60,
               ),
             )
@@ -658,7 +658,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
       } else {
-        commonSnackBar(message: "Could not open the dialer");
+        commonSnackBar(message: AppStrings.couldNotOpenDialer.tr);
       }
     } catch (e) {
       debugPrint("Error launching dialer: $e");
@@ -671,7 +671,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
       } else {
-        commonSnackBar(message: "Could not open email client");
+        commonSnackBar(message: AppStrings.couldNotOpenEmail.tr);
       }
     } catch (e) {
       debugPrint("Error launching email: $e");
@@ -688,7 +688,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        commonSnackBar(message: "Could not open the link");
+        commonSnackBar(message: AppStrings.couldNotOpenLink.tr);
       }
     } catch (e) {
       debugPrint("Error launching URL: $e");

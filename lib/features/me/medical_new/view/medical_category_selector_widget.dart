@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class MedicalCategorySelectorWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                "Update Your Medical Products", // Using GetX translation
+                AppStrings.medicalUpdateYourMedicalProducts, // Using GetX translation
                 fontWeight: FontWeight.w700,
               ),
               // const Icon(Icons.edit_outlined, size: 24),

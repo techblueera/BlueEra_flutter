@@ -111,7 +111,7 @@ class MedicalController extends GetxController {
 
   Future<void> addImagesBySlot(String title) async {
     if (medicalSnapSearchImagesMap.values.any((v) => v != null)) {
-      commonSnackBar(message: "Please remove the current image before selecting another type.");
+      commonSnackBar(message: AppStrings.medicalPleaseRemoveCurrentImage);
       return;
     }
 
@@ -143,7 +143,7 @@ class MedicalController extends GetxController {
         .toList();
 
     if (activeImages.isEmpty) {
-      commonSnackBar(message: "Please upload at least 1 photo");
+      commonSnackBar(message: AppStrings.medicalPleaseUploadAtLeastOnePhoto);
       return;
     }
 
@@ -209,7 +209,7 @@ class MedicalController extends GetxController {
       Get.until((route) =>
           route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
       commonSnackBar(
-        message: response.message ?? 'Products added successfully',
+        message: response.message ?? AppStrings.medicalProductsAddedSuccessfully.tr,
       );
       log('success-- ${response.isSuccess}');
     } catch (e) {
@@ -235,7 +235,7 @@ class MedicalController extends GetxController {
     }
 
     if (postalCode.isEmpty || postalCode == "0") {
-      commonSnackBar(message: 'Please enable GPS or update business pincode');
+      commonSnackBar(message: AppStrings.medicalEnableGpsOrPincode);
       return [];
     }
 
@@ -288,7 +288,7 @@ class MedicalController extends GetxController {
     } else {
       if (selectedMedicalProducts.length >= 10) {
         commonSnackBar(
-            message: 'You can’t select more than 10 medical products at a time.');
+            message: AppStrings.medicalCannotSelectMore10);
         return;
       }
       selectedMedicalProducts.add(p);
@@ -429,7 +429,7 @@ class MedicalController extends GetxController {
   }) {
     // Don't allow adding variants if product has no existing variants
     if (groceryItem.variants == null || groceryItem.variants!.isEmpty) {
-      commonSnackBar(message: 'This product does not support variants');
+      commonSnackBar(message: AppStrings.medicalProductDoesNotSupportVariants);
       return;
     }
 
@@ -441,7 +441,7 @@ class MedicalController extends GetxController {
       enableDrag: !isCreateNewMedicalProductNewVariantLoading.value,
       builder: (_) {
         return Obx(() => AddMedicalVariantBottomSheet(
-              title: groceryItem.name ?? 'Add Variant',
+              title: groceryItem.name ?? AppStrings.medicalAddVariant.tr,
               isLoading: isCreateNewMedicalProductNewVariantLoading.value,
               onSubmit: (weight, unit, mrp, sellingPrice) {
                 createNewMedicalProductNewVariant(
@@ -645,7 +645,7 @@ class MedicalController extends GetxController {
     String postalCode = viewBusinessDetailsController.businessProfileDetails.value?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 
     if(postalCode.isEmpty){
-      commonSnackBar(message: 'Please enable your location permission for adding grocery');
+      commonSnackBar(message: AppStrings.medicalEnableLocationPermission);
       return [];
     }
 
@@ -833,7 +833,7 @@ class MedicalController extends GetxController {
         return;
       }
 
-      commonSnackBar(message: response.message ?? 'Inventory updated successfully');
+      commonSnackBar(message: response.message ?? AppStrings.medicalInventoryUpdatedSuccessfully.tr);
       update();
     } catch (e, s) {
       log('updateInventory error: $s');
@@ -868,7 +868,7 @@ class MedicalController extends GetxController {
               isLoading: isUpdateInventoryLoading.value,
               onSubmit: (mrp, sellingPrice, quantity) async {
                 if (inventory?.inventoryId == null) {
-                  commonSnackBar(message: 'Inventory not found');
+                  commonSnackBar(message: AppStrings.medicalInventoryNotFound);
                   return;
                 }
 
@@ -924,7 +924,7 @@ class MedicalController extends GetxController {
         return;
       }
 
-      commonSnackBar(message: response.message ?? 'Inventory deleted');
+      commonSnackBar(message: response.message ?? AppStrings.medicalInventoryDeleted.tr);
       if (categoryId != null) {
         fetchMyGroceryProducts(categoryId: categoryId);
       }
@@ -965,9 +965,9 @@ class MedicalController extends GetxController {
       /// 200 = direct update (admin), 202 = change request submitted (business)
       final statusCode = response.response?.statusCode;
       if (statusCode == 202) {
-        commonSnackBar(message: 'Update request submitted for approval');
+        commonSnackBar(message: AppStrings.medicalUpdateRequestSubmitted);
       } else {
-        commonSnackBar(message: response.message ?? 'Variant updated');
+        commonSnackBar(message: response.message ?? AppStrings.medicalVariantUpdated.tr);
       }
       update();
     } catch (e, s) {
@@ -992,7 +992,7 @@ class MedicalController extends GetxController {
         return;
       }
 
-      commonSnackBar(message: response.message ?? 'Variant deleted');
+      commonSnackBar(message: response.message ?? AppStrings.medicalVariantDeleted.tr);
       update();
     } catch (e, s) {
       log('deleteVariant error: $s');
@@ -1049,7 +1049,7 @@ class MedicalController extends GetxController {
 
       if (response.isSuccess) {
         changeRequestsList.removeWhere((r) => r.sId == requestId);
-        commonSnackBar(message: response.message ?? 'Change request approved');
+        commonSnackBar(message: response.message ?? AppStrings.medicalChangeRequestApproved.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -1070,7 +1070,7 @@ class MedicalController extends GetxController {
 
       if (response.isSuccess) {
         changeRequestsList.removeWhere((r) => r.sId == requestId);
-        commonSnackBar(message: response.message ?? 'Change request rejected');
+        commonSnackBar(message: response.message ?? AppStrings.medicalChangeRequestRejected.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -1158,7 +1158,7 @@ class MedicalController extends GetxController {
       );
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Missing product request raised');
+        commonSnackBar(message: response.message ?? AppStrings.medicalMissingProductRequestRaised.tr);
         Get.back();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -1190,7 +1190,7 @@ class MedicalController extends GetxController {
       );
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Missing product requests raised');
+        commonSnackBar(message: response.message ?? AppStrings.medicalMissingProductRequestsRaised.tr);
         Get.back();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

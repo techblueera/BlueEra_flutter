@@ -42,12 +42,12 @@ import 'package:get/get.dart';
 
 /// Static 6 categories for "Update Your Medical Products"
 const List<Map<String, String>> _staticCategories = [
-  {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
-  {'title': 'Home &\nPatient Care', 'key': 'HOME___PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
-  {'title': 'Medical\nDevices', 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
-  {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
-  {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
-  {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
+  {'title': AppStrings.medicalAyurvedaNutrition, 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
+  {'title': AppStrings.medicalHomePatientCare, 'key': 'HOME___PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
+  {'title': AppStrings.medicalDevicesCat, 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
+  {'title': AppStrings.medicalOtcMedicines, 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
+  {'title': AppStrings.medicalPersonalBabyCare, 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
+  {'title': AppStrings.medicalWoundCareFirstAid, 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
 ];
 class MedicalHomeScreen extends StatefulWidget {
   final String businessId;
@@ -257,7 +257,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                     CustomText(
-                      '(${profile?.totalRatings ?? '0'} reviews)',
+                      '(${profile?.totalRatings ?? '0'} ${AppStrings.medicalReviewsSuffix.tr})',
                       fontSize: 12,
                       color: AppColors.secondaryTextColor,
                     ),
@@ -382,15 +382,15 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: 'Add Medical Products'),
+            ServiceHomeTitleWidget(title: AppStrings.medicalAddProductsTitle.tr),
             SizedBox(height: SizeConfig.size12),
             Row(
               children: [
                 Expanded(
                   child: _addProductActionCard(
                     icon: Icons.add_circle_outline,
-                    title: 'Add New\nProducts',
-                    subtitle: 'Browse categories & add',
+                    title: AppStrings.medicalAddNewProductsTitle.tr,
+                    subtitle: AppStrings.medicalAddNewProductsSubtitle.tr,
                     color: AppColors.primaryColor,
                     onTap: (){
                       Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
@@ -405,8 +405,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                 Expanded(
                   child: _addProductActionCard(
                     icon: Icons.inventory_2_outlined,
-                    title: 'My\nProducts',
-                    subtitle: 'View & manage listings',
+                    title: AppStrings.medicalMyProductsCardTitle.tr,
+                    subtitle: AppStrings.medicalMyProductsCardSubtitle.tr,
                     color: AppColors.green00,
                     onTap: () => Get.to(
                         () => const MyMedicalSuperCategoryScreen()),
@@ -486,7 +486,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: 'Our Popular Medical Products'),
+            ServiceHomeTitleWidget(title: AppStrings.medicalOurPopularProducts.tr),
             SizedBox(height: SizeConfig.size10),
             SizedBox(
               height: 230,
@@ -591,7 +591,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                         ),
                         SizedBox(width: 4),
                         CustomText(
-                          '$discount% Off',
+                          '$discount${AppStrings.medicalPercentOffSuffix.tr}',
                           fontSize: 10,
                           color: AppColors.green00,
                           fontWeight: FontWeight.w600,
@@ -653,7 +653,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                   InkWell(
                     onTap: () => Get.to(() => MedicalGalleryListScreen()),
                     child: CustomText(
-                      'Add More',
+                      AppStrings.addMore,
                       fontSize: 13,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
@@ -679,7 +679,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                         Icon(Icons.add_photo_alternate_outlined,
                             color: Colors.grey.shade400, size: 36),
                         SizedBox(height: 8),
-                        Text('Add Photos',
+                        Text(AppStrings.medicalAddPhotos.tr,
                             style: TextStyle(
                                 color: Colors.grey.shade500, fontSize: 13)),
                       ],

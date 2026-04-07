@@ -369,7 +369,7 @@ class UserMedicalController extends GetxController{
 
   Future<void> executeOrderProcess({required String orderId, required String riderId}) async {
 
-    show(text: "Waiting for rider response...");
+    show(text: AppStrings.medicalWaitingForRiderResponse.tr);
 
     // Quick Check: If BOTH steps are already done for this rider, just restart stream.
     if (assignedRiderIds.contains(riderId) &&
@@ -548,11 +548,11 @@ class UserMedicalController extends GetxController{
 
     } else if(status == 'accepted') {
       hide(); // TERMINAL STATE: Hide loader
-      commonSnackBar(message: "Rider $status the request");
+      commonSnackBar(message: AppStrings.medicalRiderAcceptedRequest.tr);
 
     } else if(status == 'rejected' || status == 'cancelled'){
       hide(); // TERMINAL STATE: Hide loader
-      commonSnackBar(message: "Rider $status the request");
+      commonSnackBar(message: AppStrings.medicalRiderRejectedRequest.tr);
     }else{
 
     }

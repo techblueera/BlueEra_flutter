@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -251,7 +252,7 @@ class MedicalOrderDetailsSheet extends StatelessWidget {
             // Toggle All
             Expanded(
               child:  CustomText(
-                "All Items Received",
+                AppStrings.medicalAllItemsReceived,
                 fontWeight: FontWeight.w600,
                 fontSize: SizeConfig.medium,
                 color: AppColors.primaryColor,
@@ -262,7 +263,7 @@ class MedicalOrderDetailsSheet extends StatelessWidget {
 
             // Submit Button
             CustomText(
-              "Submit",
+              AppStrings.submit,
               fontWeight: FontWeight.w600,
               fontSize: SizeConfig.medium,
               color: AppColors.primaryColor,
@@ -291,7 +292,7 @@ class MedicalOrderDetailsSheet extends StatelessWidget {
     children: [
       Expanded(
         child: CustomText(
-          "Customer Order Details",
+          AppStrings.medicalCustomerOrderDetails,
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.large,
           color: AppColors.mainTextColor,

@@ -1,7 +1,11 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -91,153 +95,170 @@ class _MedicalContactEditScreenState extends State<MedicalContactEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(title: 'Edit Contact Info'),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _sectionLabel('Business Info'),
-            _field(
-              controller: _businessNameCtrl,
-              label: 'Business Name',
-              hint: 'Enter business name',
-              prefixIcon: Icons.store_outlined,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Business name is required' : null,
+      appBar: CommonBackAppBar(title: AppStrings.editContactInfo),
+      body: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size12,
+              vertical: SizeConfig.size16,
             ),
-            _field(
-              controller: _descriptionCtrl,
-              label: 'Description',
-              hint: 'Enter description',
-              prefixIcon: Icons.description_outlined,
-              maxLines: 3,
-            ),
-            _field(
-              controller: _addressCtrl,
-              label: 'Address',
-              hint: 'Enter address',
-              prefixIcon: Icons.location_on_outlined,
-              maxLines: 2,
-            ),
-            _field(
-              controller: _websiteCtrl,
-              label: 'Website URL',
-              hint: 'https://example.com',
-              prefixIcon: Icons.language_outlined,
-              keyboardType: TextInputType.url,
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return null;
-                final uri = Uri.tryParse(v.trim());
-                if (uri == null || !uri.hasScheme) {
-                  return 'Enter a valid URL (e.g. https://example.com)';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 8),
-            _sectionLabel('Owner / Contact Person'),
-            _field(
-              controller: _ownerNameCtrl,
-              label: 'Owner Name',
-              hint: 'Enter owner name',
-              prefixIcon: Icons.person_outlined,
-            ),
-            _field(
-              controller: _ownerEmailCtrl,
-              label: 'Email',
-              hint: 'Enter email address',
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return null;
-                final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,}$');
-                if (!emailRegex.hasMatch(v.trim())) {
-                  return 'Enter a valid email address';
-                }
-                return null;
-              },
-            ),
-            _field(
-              controller: _phoneCtrl,
-              label: 'Phone Number',
-              hint: 'Enter phone number',
-              prefixIcon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return null;
-                if (v.trim().length < 7) return 'Enter a valid phone number';
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            _isSaving
-                ? const Center(child: CircularProgressIndicator())
-                : PositiveCustomBtn(
-                    onTap: _save,
-                    title: 'Save Changes',
+            children: [
+              // ─── BUSINESS INFO ───
+              _sectionCard(
+                icon: Icons.store_outlined,
+                title: AppStrings.businessInfoSection.tr,
+                children: [
+                  CommonTextField(
+                    textEditController: _businessNameCtrl,
+                    title: AppStrings.businessName.tr,
+                    hintText: AppStrings.enterBusinessName.tr,
+                    keyBoardType: TextInputType.text,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? AppStrings.businessNameRequired.tr
+                        : null,
                   ),
-            const SizedBox(height: 30),
-          ],
+                  SizedBox(height: SizeConfig.paddingM),
+                  CommonTextField(
+                    textEditController: _descriptionCtrl,
+                    title: AppStrings.description.tr,
+                    hintText: AppStrings.enterDescriptionHint.tr,
+                    keyBoardType: TextInputType.multiline,
+                    maxLine: 3,
+                    minLines: 3,
+                  ),
+                  SizedBox(height: SizeConfig.paddingM),
+                  CommonTextField(
+                    textEditController: _addressCtrl,
+                    title: AppStrings.addressLabel.tr,
+                    hintText: AppStrings.enterAddress.tr,
+                    keyBoardType: TextInputType.streetAddress,
+                    maxLine: 2,
+                    minLines: 2,
+                  ),
+                  SizedBox(height: SizeConfig.paddingM),
+                  CommonTextField(
+                    textEditController: _websiteCtrl,
+                    title: AppStrings.websiteUrlLabel.tr,
+                    hintText: AppStrings.websiteUrlHint.tr,
+                    keyBoardType: TextInputType.url,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final uri = Uri.tryParse(v.trim());
+                      if (uri == null || !uri.hasScheme) {
+                        return AppStrings.enterValidUrl.tr;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+
+              SizedBox(height: SizeConfig.size12),
+
+              // ─── OWNER / CONTACT PERSON ───
+              _sectionCard(
+                icon: Icons.person_outline,
+                title: AppStrings.ownerContactPersonSection.tr,
+                children: [
+                  CommonTextField(
+                    textEditController: _ownerNameCtrl,
+                    title: AppStrings.ownerNameLabel.tr,
+                    hintText: AppStrings.enterOwnerName.tr,
+                    keyBoardType: TextInputType.name,
+                  ),
+                  SizedBox(height: SizeConfig.paddingM),
+                  CommonTextField(
+                    textEditController: _ownerEmailCtrl,
+                    title: AppStrings.email.tr,
+                    hintText: AppStrings.enterEmailAddress.tr,
+                    keyBoardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final emailRegex =
+                          RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,}$');
+                      if (!emailRegex.hasMatch(v.trim())) {
+                        return AppStrings.invalidEmail.tr;
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: SizeConfig.paddingM),
+                  CommonTextField(
+                    textEditController: _phoneCtrl,
+                    title: AppStrings.phoneNumberLabel.tr,
+                    hintText: AppStrings.enterPhoneNumberHint.tr,
+                    keyBoardType: TextInputType.phone,
+                    inputLength: 15,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      if (v.trim().length < 7) {
+                        return AppStrings.enterValidPhoneNumber.tr;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+
+              SizedBox(height: SizeConfig.size24),
+
+              _isSaving
+                  ? const Center(child: CircularProgressIndicator())
+                  : PositiveCustomBtn(
+                      onTap: _save,
+                      title: AppStrings.saveChanges,
+                    ),
+              SizedBox(height: SizeConfig.size30),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _sectionLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10, top: 4),
-      child: CustomText(
-        label,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppColors.secondaryTextColor,
-      ),
-    );
-  }
-
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData prefixIcon,
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    String? Function(String?)? validator,
+  // ─── Section card with header icon + title ───
+  Widget _sectionCard({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        validator: validator,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(prefixIcon, size: 20),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size14),
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon,
+                    size: 18, color: AppColors.primaryColor),
+              ),
+              SizedBox(width: SizeConfig.size8),
+              CustomText(
+                title,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              ),
+            ],
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+          Divider(
+            color: AppColors.greyE5,
+            height: SizeConfig.size20,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide:
-                BorderSide(color: AppColors.primaryColor, width: 1.5),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.red),
-          ),
-        ),
+          ...children,
+        ],
       ),
     );
   }

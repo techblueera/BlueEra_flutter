@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -66,13 +68,13 @@ class _AddMedicalVariantBottomSheetState
     final selling = double.tryParse(sellingText);
 
     if (mrp == null || selling == null) {
-      _updateValidity(false, 'Enter valid numbers for price');
+      _updateValidity(false, AppStrings.medicalEnterValidNumbersForPrice.tr);
     } else if (mrp <= 0) {
-      _updateValidity(false, 'MRP must be greater than 0');
+      _updateValidity(false, AppStrings.medicalMrpMustBeGreaterThanZero.tr);
     } else if (selling <= 0) {
-      _updateValidity(false, 'Selling price must be greater than 0');
+      _updateValidity(false, AppStrings.medicalSellingPriceMustBeGreaterThanZero.tr);
     } else if (selling > mrp) {
-      _updateValidity(false, 'Selling price cannot exceed MRP');
+      _updateValidity(false, AppStrings.medicalSellingPriceCannotExceedMrp.tr);
     } else {
       _updateValidity(true, null);
     }
@@ -132,8 +134,8 @@ class _AddMedicalVariantBottomSheetState
               children: [
                 Expanded(
                   child: _buildField(
-                    label: 'Weight / Quantity',
-                    hint: 'E.g. 100',
+                    label: AppStrings.medicalWeightQuantity.tr,
+                    hint: AppStrings.medicalEgWeight.tr,
                     controller: weightController,
                     isNumber: true,
                   ),
@@ -141,8 +143,8 @@ class _AddMedicalVariantBottomSheetState
                 SizedBox(width: 10),
                 Expanded(
                   child: _buildField(
-                    label: 'Unit',
-                    hint: 'GM / KG / PCS',
+                    label: AppStrings.medicalUnit.tr,
+                    hint: AppStrings.medicalUnitHint.tr,
                     controller: unitController,
                     isCapitalize: true,
                   ),
@@ -153,8 +155,8 @@ class _AddMedicalVariantBottomSheetState
 
             // MRP
             _buildField(
-              label: 'MRP (₹)',
-              hint: 'E.g. 1999',
+              label: AppStrings.medicalMrpRupee.tr,
+              hint: AppStrings.medicalEgPlainMrp.tr,
               controller: mrpController,
               isNumber: true,
             ),
@@ -162,8 +164,8 @@ class _AddMedicalVariantBottomSheetState
 
             // Selling Price
             _buildField(
-              label: 'Selling Price (₹)',
-              hint: 'E.g. 1499',
+              label: AppStrings.medicalSellingPriceRupee.tr,
+              hint: AppStrings.medicalEgPlainSelling.tr,
               controller: sellingController,
               isNumber: true,
             ),
@@ -208,7 +210,7 @@ class _AddMedicalVariantBottomSheetState
                   : null,
               isValidate: isFormValid,
               radius: SizeConfig.size10,
-              title: 'Add Variant',
+              title: AppStrings.medicalAddVariant.tr,
               isLoading: widget.isLoading,
             ),
             SizedBox(height: SizeConfig.size10),
