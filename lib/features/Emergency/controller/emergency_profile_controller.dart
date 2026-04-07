@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/personal/emergency/repo/emergency_service_repo.dart';
 import 'package:get/get.dart';
 import '../model/emergency_profile_model.dart';
 import '../repo/emergency_profile_repo.dart';
@@ -25,7 +26,7 @@ class EmergencyProfileController extends GetxController {
     try {
       profileResponse.value = ApiResponse.loading('Fetching data');
       final responseModel =
-          await EmergencyProfileRepo1().getEmergencyProfileUserId();
+          await EmergencyServiceRepo().getEmergencyProfile();
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data['data'];

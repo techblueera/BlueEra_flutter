@@ -7,10 +7,8 @@ import 'package:BlueEra/features/common/Discover/view/all_professional_consultan
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 
 class ProfessionalsCardWidget extends StatelessWidget {
@@ -24,7 +22,6 @@ class ProfessionalsCardWidget extends StatelessWidget {
       padding: EdgeInsets.all(SizeConfig.size10),
       child: Column(
         children: [
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
