@@ -84,7 +84,7 @@ class HospitalDepartmentsController extends GetxController {
       if (res.isSuccess) {
         await loadDepartments();
         Get.back();
-        commonSnackBar(message: editingDepartment == null ? "Department created" : "Department updated");
+        commonSnackBar(message: editingDepartment == null ? AppStrings.hospitalCtrlDepartmentCreated.tr : AppStrings.hospitalCtrlDepartmentUpdated.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
@@ -100,7 +100,7 @@ class HospitalDepartmentsController extends GetxController {
       final res = await repo.deleteDepartment(id: d.id);
       if (res.isSuccess) {
         departments.removeWhere((e) => e.id == d.id);
-        commonSnackBar(message: "Department deleted");
+        commonSnackBar(message: AppStrings.hospitalCtrlDepartmentDeleted.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

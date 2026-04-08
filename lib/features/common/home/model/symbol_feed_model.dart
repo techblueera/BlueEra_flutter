@@ -76,11 +76,27 @@ class SymbolFeedItem {
   });
 
   factory SymbolFeedItem.fromJson(Map<String, dynamic> json) {
+    // With populate=true, user_id may be a populated user document (Map)
+    // instead of a plain string id. Extract id and user data accordingly.
+    final dynamic rawUserId = json['user_id'];
+    final String? extractedUserId = rawUserId is String
+        ? rawUserId
+        : (rawUserId is Map ? rawUserId['_id'] as String? : null);
+
+    // Prefer an explicit `user` field if present, otherwise build user from
+    // the populated `user_id` map.
+    SymbolFeedUser? extractedUser;
+    if (json['user'] is Map) {
+      extractedUser = SymbolFeedUser.fromJson(
+          Map<String, dynamic>.from(json['user'] as Map));
+    } else if (rawUserId is Map) {
+      extractedUser = SymbolFeedUser.fromJson(
+          Map<String, dynamic>.from(rawUserId));
+    }
+
     return SymbolFeedItem(
       id: json['_id'],
-      userId: json['user_id'] is String
-          ? json['user_id']
-          : (json['user_id'] is Map ? json['user_id']['_id'] : null),
+      userId: extractedUserId,
       type: json['type'],
       content: json['content'],
       caption: json['caption'],
@@ -105,9 +121,7 @@ class SymbolFeedItem {
           ? DateTime.tryParse(json['updated_at'])
           : null,
       hasSeen: json['has_seen'],
-      user: json['user'] is Map
-          ? SymbolFeedUser.fromJson(json['user'])
-          : null,
+      user: extractedUser,
     );
   }
 }

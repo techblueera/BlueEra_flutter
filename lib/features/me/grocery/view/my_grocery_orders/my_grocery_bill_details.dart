@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
@@ -91,7 +92,7 @@ class _GroceryBillDetailsSheetState extends State<GroceryBillDetailsSheet> {
               // SizedBox(height: SizeConfig.size16),
 
               CustomText(
-                  "${billDetails?.totalNoOfMissingItems} Item Missing",
+                  AppStrings.groceryViewItemMissingCount.trParams({'count': '${billDetails?.totalNoOfMissingItems}'}),
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.redB4
@@ -109,7 +110,7 @@ class _GroceryBillDetailsSheetState extends State<GroceryBillDetailsSheet> {
                   children: [
                     _buildSummaryRow(
                         imagePath: AppIconAssets.cartListIcon,
-                        label: "Total Items",
+                        label: AppStrings.groceryViewTotalItems.tr,
                         value: '${billDetails?.totalNoofAvailableItems.toString().padLeft(2, '0')}'
                     ),
                     CommonHorizontalDivider(
@@ -118,7 +119,7 @@ class _GroceryBillDetailsSheetState extends State<GroceryBillDetailsSheet> {
                     ),
                     _buildSummaryRow(
                         imagePath: AppIconAssets.handPriceIcon,
-                        label: "Total MRP",
+                        label: AppStrings.groceryViewTotalMrp.tr,
                         value: '₹${billDetails?.totalPrice}'
                     ),
                   ],

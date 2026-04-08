@@ -14,13 +14,26 @@ class LocalizationService extends Translations {
 
   LocalizationService._internal();
 
+  static const String _boxName = 'translations';
+  static const String fallbackLanguage = 'en';
   static late Box box; // we’ll open it in init()
 
   final Map<String, Map<String, String>> _translations = {};
 
   /// Initialize Hive box before using service
   Future<void> init() async {
-    box = await Hive.openBox('translations');
+    box = await _safeBox();
+  }
+
+  /// Returns an open translations box, reopening it if it was closed
+  /// (e.g. after logout via Hive.deleteFromDisk()).
+  Future<Box> _safeBox() async {
+    if (Hive.isBoxOpen(_boxName)) {
+      box = Hive.box(_boxName);
+      return box;
+    }
+    box = await Hive.openBox(_boxName);
+    return box;
   }
   void clearInMemoryTranslations() {
     _translations.clear();
@@ -50,8 +63,10 @@ class LocalizationService extends Translations {
       // Step 2: load local asset JSON as base
       final assetData = await _loadAssetTranslations(languageCode);
 
-      // Step 3: load from Hive (use safe cast for release mode)
-      final stored = box.get(languageCode);
+      // Step 3: load from Hive (use safe cast for release mode).
+      // Re-open the box if it was closed (e.g. after logout via Hive.deleteFromDisk()).
+      final safeBox = await _safeBox();
+      final stored = safeBox.get(languageCode);
       Map<String, String> localData = {};
       if (stored != null && stored is Map) {
         try {
@@ -77,14 +92,30 @@ class LocalizationService extends Translations {
       if (apiData.isNotEmpty) {
         final merged = {...assetData, ...apiData};
         _translations[languageCode] = merged;
-        await box.put(languageCode, merged);
+        try {
+          final putBox = await _safeBox();
+          await putBox.put(languageCode, merged);
+        } catch (_) {}
         return merged;
       }
 
+      if (assetData.isNotEmpty) {
+        _translations[languageCode] = assetData;
+      }
       return assetData;
     } catch (e, st) {
       print('⚠️ Error loading translations for $languageCode: $e\n$st');
-      return {};
+      // Fallback: try the requested language asset, then English asset.
+      final assetData = await _loadAssetTranslations(languageCode);
+      if (assetData.isNotEmpty) {
+        _translations[languageCode] = assetData;
+        return assetData;
+      }
+      final enFallback = await _loadAssetTranslations(fallbackLanguage);
+      if (enFallback.isNotEmpty) {
+        _translations[fallbackLanguage] = enFallback;
+      }
+      return enFallback;
     }
   }
 
@@ -141,7 +172,10 @@ class LocalizationService extends Translations {
           final existing = _translations[languageCode] ?? {};
           final merged = {...existing, ...formatted};
           _translations[languageCode] = merged;
-          await box.put(languageCode, merged);
+          try {
+            final putBox = await _safeBox();
+            await putBox.put(languageCode, merged);
+          } catch (_) {}
 
           // Update GetX so the UI reflects new translations
           Get.clearTranslations();
@@ -185,26 +219,40 @@ class LocalizationService extends Translations {
     return {}; // fallback empty map
   }
 
-  /// Dynamically updates app language
+  /// Dynamically updates app language. If translations cannot be loaded for
+  /// [langCode], falls back to English from local assets so the app never
+  /// ends up with an empty translation map.
   Future<void> updateLanguage(String langCode) async {
-    final data = await loadTranslations(langCode);
+    var data = await loadTranslations(langCode);
+    var effectiveLang = langCode;
 
-    if (data.isNotEmpty) {
-      await box.put('selectedLanguage', langCode);
-
-      Get.clearTranslations();
-      Get.addTranslations(_translations);
-      Get.updateLocale(Locale(langCode));
-    } else {
-      print('⚠️ No translations found for $langCode');
+    if (data.isEmpty) {
+      print('⚠️ No translations found for $langCode — falling back to $fallbackLanguage');
+      effectiveLang = fallbackLanguage;
+      data = await _loadAssetTranslations(fallbackLanguage);
+      if (data.isNotEmpty) {
+        _translations[fallbackLanguage] = data;
+      }
     }
+
+    if (data.isEmpty) return;
+
+    try {
+      final putBox = await _safeBox();
+      await putBox.put('selectedLanguage', effectiveLang);
+    } catch (_) {}
+
+    Get.clearTranslations();
+    Get.addTranslations(_translations);
+    Get.updateLocale(Locale(effectiveLang));
   }
 
   /// Load all cached languages at startup (optional)
   Future<void> preloadCachedLanguages() async {
-    for (final key in box.keys) {
+    final safeBox = await _safeBox();
+    for (final key in safeBox.keys) {
       if (key == 'selectedLanguage') continue;
-      final value = box.get(key);
+      final value = safeBox.get(key);
       if (value is Map) {
         try {
           _translations[key] = Map<String, String>.from(

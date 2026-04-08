@@ -103,7 +103,7 @@ class HospitalOtherFacilitiesController extends GetxController {
       // }
       if (res.isSuccess) {
         await load();
-        commonSnackBar(message: "Saved");
+        commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

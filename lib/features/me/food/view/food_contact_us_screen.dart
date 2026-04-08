@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
@@ -81,7 +82,7 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
     final bool isEdit = widget.profile != null;
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: isEdit ? "Update Contact" : "Contact Us"),
+      appBar: CommonBackAppBar(title: isEdit ? AppStrings.foodUpdateContact.tr : AppStrings.foodContactUsLabel.tr),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
@@ -90,22 +91,22 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
             children: [
               CommonTextField(
                 textEditController: branchNameController,
-                hintText: "E.g. DPS Dehradun",
-                title: "Branch Name",
+                hintText: AppStrings.foodHintBranchName.tr,
+                title: AppStrings.foodBranchNameLabel.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               const SizedBox(height: 12),
               HttpsTextField(
                 controller: websiteController,
-                hintText: "https://dpsdehradun.com",
-                title: "Website URL",
+                hintText: AppStrings.foodHintWebsite.tr,
+                title: AppStrings.foodWebsiteUrlLabel.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               const SizedBox(height: 24),
               CommonTextField(
                 textEditController: titleController,
-                hintText: "E.g. Admission Cell",
-                title: "Department/Role",
+                hintText: AppStrings.foodHintDepartment.tr,
+                title: AppStrings.foodDepartmentRoleLabel.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               const SizedBox(height: 12),
@@ -161,7 +162,7 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
                   phone: phoneController.text,
                 )
                     : null,
-                title: isEdit ? "Update" : "Submit",
+                title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
                 isValidate: controller.isFormValid.value,
               )),
             ],

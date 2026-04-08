@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
@@ -198,7 +199,7 @@ class _AllGroceryProductsScreenState extends State<AllGroceryProductsScreen> {
                           ),
                           child: Center(
                             child: CustomText(
-                              i != 0 ? item!.name : 'All',
+                              i != 0 ? item!.name : AppStrings.groceryViewAll.tr,
                               color: selected
                                   ? AppColors.white
                                   : AppColors.secondaryTextColor,
@@ -238,7 +239,7 @@ class _AllGroceryProductsScreenState extends State<AllGroceryProductsScreen> {
                 return Padding(
                   padding: EdgeInsets.all(SizeConfig.size20),
                   child: EmptyStateWidget(
-                    message: 'No ${consumerController.currentTabName.tr} found.',
+                    message: AppStrings.groceryViewNoXFound.trParams({'name': consumerController.currentTabName.tr}),
                   ),
                 );
               }

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +57,7 @@ class SelfPickupCommonCartUi extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: CustomText(
-                      '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                      '$itemCount ${itemCount == 1 ? AppStrings.groceryViewItemLabel.tr : AppStrings.groceryViewItemsLabel.tr}',
                       fontSize: 13,
                       color: AppColors.white,
                       fontWeight: FontWeight.w600,
@@ -64,7 +65,7 @@ class SelfPickupCommonCartUi extends StatelessWidget {
                   ),
                   const Spacer(),
                   CustomText(
-                    'View Cart',
+                    AppStrings.groceryViewViewCart,
                     fontSize: 16,
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,

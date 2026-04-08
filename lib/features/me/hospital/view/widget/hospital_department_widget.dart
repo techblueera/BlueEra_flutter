@@ -105,7 +105,7 @@ class HospitalBookingScreen extends StatelessWidget {
                             children: List.generate(
                               3,
                               (_) => _buildDummyDoctorCard(
-                                label: 'Add OPD Doctors',
+                                label: AppStrings.hospitalViewAddOpdDoctors.tr,
                                 onTap: () => Get.to(const HospitalOpdScreen()),
                               ),
                             ),
@@ -218,7 +218,7 @@ class HospitalBookingScreen extends StatelessWidget {
                             children: List.generate(
                               3,
                               (_) => _buildDummyDoctorCard(
-                                label: 'Add IPD Wards',
+                                label: AppStrings.hospitalViewAddIpdWards.tr,
                                 onTap: () => Get.to(const HospitalIpdScreen()),
                               ),
                             ),

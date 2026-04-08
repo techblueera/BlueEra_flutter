@@ -176,7 +176,7 @@ class RestaurantController extends GetxController {
   }) async {
     if (selectedLat == null || selectedLng == null) {
       commonSnackBar(
-          message: "Please select a valid location from the search.");
+          message: AppStrings.foodSelectValidLocation.tr);
       return;
     }
 
@@ -202,7 +202,7 @@ class RestaurantController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
-                "Branch details added successfully");
+                AppStrings.foodBranchDetailsAdded.tr);
         Get.back();
         fetchHomeData(businessId: businessId);
       } else {

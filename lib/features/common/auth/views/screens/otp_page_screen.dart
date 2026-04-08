@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -132,7 +133,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
 
   Future<void> _onResendOtpPressed(BuildContext context) async {
     if (widget.mobileNumber?.isEmpty ?? true) {
-      commonSnackBar(message: 'Mobile number is not available');
+      commonSnackBar(message: AppStrings.mobileNumberNotAvailable.tr);
       return;
     }
     await Get.find<AuthController>().sendOTP();
@@ -154,7 +155,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
         if (didPop) return;
         commonConformationDialog(
           context: context,
-          text: langController.tr('Exit Confirmation'),
+          text: AppStrings.exitConfirmation.tr,
           confirmCallback: () async {
             await SharedPreferenceUtils.clearPreference();
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -175,9 +176,8 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
               child: SizedBox(
                 height: height,
                 width: double.infinity,
-                child: Obx(() {
-                  return Column(
-                    children: [
+                child: Column(
+                  children: [
                       const Spacer(flex: 1),
 
                       LocalAssets(
@@ -193,7 +193,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: CustomText(
-                          langController.tr('Enter OTP'),
+                          AppStrings.enterOtpTitle.tr,
                           fontWeight: FontWeight.bold,
                           fontSize: SizeConfig.large,
                         ),
@@ -230,7 +230,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         pinputAutovalidateMode: _autoValidate,
                         validator: (value) {
                           if (value == null || value.length != 6) {
-                            return langController.tr('pleaseEnterValidOtp');
+                            return AppStrings.pleaseEnterValidOtp.tr;
                           }
                           return null;
                         },
@@ -242,7 +242,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         onTap: _isSubmitDisabled
                             ? () => _onVerifyOtpPressed(context)
                             : null,
-                        title: langController.tr('Submit'),
+                        title: AppStrings.submit.tr,
                         isValidate: _isSubmitDisabled,
                       ),
 
@@ -287,7 +287,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         runSpacing: 4,
                         children: [
                           CustomText(
-                            langController.tr("Didn't get OTP code?"),
+                            AppStrings.didntGetOtpCode.tr,
                             color: Colors.black,
                             fontWeight: FontWeight.w400,
                             // decoration: TextDecoration.underline,
@@ -302,7 +302,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                               : InkWell(
                                   onTap: () => _onResendOtpPressed(context),
                                   child: CustomText(
-                                    langController.tr('Resend Code'),
+                                    AppStrings.resendCode.tr,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primaryColor,
@@ -313,10 +313,9 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         ],
                       ),
 
-                      const Spacer(flex: 1),
-                    ],
-                  );
-                }),
+                    const Spacer(flex: 1),
+                  ],
+                ),
               ),
             ),
           ),

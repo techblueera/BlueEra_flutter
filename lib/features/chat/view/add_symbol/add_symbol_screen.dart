@@ -1,7 +1,9 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/add_message_symbol.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/bottom_caption_field.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/symbol_upload_widget.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/top_left_options.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
@@ -89,14 +91,11 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
           onPressed: () => Get.back(),
         ),
         centerTitle: true,
-        title: const Text(
-          'Create Symbol',
-          style: TextStyle(
-            color: Color(0xFF2D3142),
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.3,
-          ),
+        title: CustomText(
+          AppStrings.createSymbol,
+          color: const Color(0xFF2D3142),
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
         ),
         actions: [
           Obx(() {
@@ -183,14 +182,11 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                               const Icon(Icons.send_rounded,
                                   color: Colors.white, size: 20),
                               const SizedBox(width: 10),
-                              Text(
-                                'Post Symbol',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
-                                ),
+                              CustomText(
+                                AppStrings.postSymbolBtn.tr,
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                               ),
                             ],
                           ),
@@ -239,20 +235,18 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (!controller.itTextOrLinkPost()) ...[
-                            const Text(
-                              'Caption',
-                              style: TextStyle(
-                                color: Color(0xFF2D3142),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            CustomText(
+                              AppStrings.captionLabel.tr,
+                              color: const Color(0xFF2D3142),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
                             ),
                             const SizedBox(height: 10),
                             CommonTextField(
                               validator: (val) => null,
                               textEditController: controller.captionController,
                               title: "",
-                              hintText: "Write something about your symbol...",
+                              hintText: AppStrings.writeSymbolHint.tr,
                               inputLength: 300,
                               maxLine: 3,
                               onChange: (v) {},
@@ -295,13 +289,13 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
 
   Widget _buildStepIndicator() {
     final type = controller.selectedPostType.value;
-    final label = type == PostType.image
-        ? 'Photo'
+    final String label = type == PostType.image
+        ? AppStrings.photoSymbol.tr
         : type == PostType.video
-            ? 'Video'
+            ? AppStrings.videoSymbol.tr
             : type == PostType.text
-                ? 'Text'
-                : 'Link';
+                ? AppStrings.textSymbol.tr
+                : AppStrings.linkSymbol.tr;
     final icon = type == PostType.image
         ? Icons.photo_rounded
         : type == PostType.video
@@ -324,13 +318,11 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
         children: [
           Icon(icon, size: 16, color: const Color(0xFF0086FF)),
           const SizedBox(width: 6),
-          Text(
-            '$label Symbol',
-            style: const TextStyle(
-              color: Color(0xFF0086FF),
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+          CustomText(
+            label,
+            color: const Color(0xFF0086FF),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
         ],
       ),

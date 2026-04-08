@@ -125,6 +125,13 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         await dir.delete(recursive: true);
       }
     } catch (e) {}
+    // Reset language controller so its cached (now-closed) box reference and
+    // in-memory selection don't leak into the next session.
+    try {
+      if (Get.isRegistered<LanguageControllerNew>()) {
+        await Get.find<LanguageControllerNew>().reset();
+      }
+    } catch (_) {}
   }
 
   @override

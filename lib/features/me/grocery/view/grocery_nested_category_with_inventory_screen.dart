@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -184,7 +185,7 @@ class _GroceryNestedCategoryWithInventoryScreenState
             ? const Center(child: CircularProgressIndicator())
             : _groceryController
             .groceryNestedCategoryWithInventoryList.isEmpty
-            ? const Center(child: Text('No categories found'))
+            ? Center(child: Text(AppStrings.groceryViewNoCategoriesFoundPlain.tr))
             : MasonryGridView.count(
           crossAxisCount: 2,
           crossAxisSpacing: 6,
@@ -281,7 +282,7 @@ class _GroceryNestedCategoryWithInventoryScreenState
                         color: AppColors.boxBg,
                       ),
                       child: CustomText(
-                        '${item.children?.length ?? 0} Category',
+                        '${item.children?.length ?? 0} ${AppStrings.groceryViewCategory.tr}',
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryTextColor,

@@ -67,7 +67,7 @@ class HospitalServiceAiController extends GetxController {
       ResponseModel response = await hospitalServiceRepo.createHospitalRepo(
           reqBody: {"aiOutput": reqData});
       if (response.isSuccess) {
-        commonSnackBar(message: "Hospital Service Created successfully");
+        commonSnackBar(message: AppStrings.hospitalCtrlServiceCreatedSuccess.tr);
 
         labAddress.value = "";
         String? hospitalID = response.response?.data['hospitalId'];
@@ -178,7 +178,7 @@ class HospitalServiceAiController extends GetxController {
           uploadVia: result.url,
         });
         if (response.isSuccess) {
-          commonSnackBar(message: "Added Successfully");
+          commonSnackBar(message: AppStrings.hospitalCtrlAddedSuccessfully.tr);
         } else {
         }
       }

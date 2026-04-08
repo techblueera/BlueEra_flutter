@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -53,11 +54,11 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
     final selling = double.tryParse(sellingText);
 
     if (mrp == null || selling == null) {
-      _updateValidity(false, "Enter valid numbers");
+      _updateValidity(false, AppStrings.groceryViewEnterValidNumbers.tr);
     } else if (mrp <= 0) {
-      _updateValidity(false, "MRP must be > 0");
+      _updateValidity(false, AppStrings.groceryViewMrpMustBeGtZero.tr);
     } else if (selling > mrp) {
-      _updateValidity(false, "Selling price cannot exceed MRP");
+      _updateValidity(false, AppStrings.groceryViewSellingCannotExceedMrp.tr);
     } else {
       _updateValidity(true, null);
     }
@@ -110,10 +111,10 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
             ),
             // const SizedBox(height: 8),
 
-            _input("MRP", "E.g. ₹1,999", mrpController, isNumber: true),
+            _input(AppStrings.groceryViewMrp.tr, AppStrings.groceryViewPriceHint.tr, mrpController, isNumber: true),
             const SizedBox(height: 12),
 
-            _input("Selling Price", "E.g. ₹1,999", sellingController, isNumber: true),
+            _input(AppStrings.groceryViewSellingPrice.tr, AppStrings.groceryViewPriceHint.tr, sellingController, isNumber: true),
             const SizedBox(height: 20),
 
             // Error Message Display
@@ -139,7 +140,7 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
                   );
                 },
                 child: CustomText(
-                  "Submit",
+                  AppStrings.groceryViewSubmit.tr,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: (isFormValid)

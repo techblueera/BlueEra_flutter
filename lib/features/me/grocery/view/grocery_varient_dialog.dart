@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -178,18 +179,18 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
 
                 Row(
                   children: [
-                    Expanded(child: _input("Quantity", "E.g. 3", quantityController, isNumber: true)),
+                    Expanded(child: _input(AppStrings.groceryViewQuantity.tr, AppStrings.groceryViewQuantityHint.tr, quantityController, isNumber: true)),
                     const SizedBox(width: 8),
-                    Expanded(child: _input("Unit", "GM / KG / PCS", unitController, isCapitalize: true)),
+                    Expanded(child: _input(AppStrings.groceryViewUnit.tr, AppStrings.groceryViewUnitHint.tr, unitController, isCapitalize: true)),
                   ],
                 ),
 
                 const SizedBox(height: 12),
 
-                _input("MRP", "E.g. ₹1,999", mrpController, isNumber: true),
+                _input(AppStrings.groceryViewMrp.tr, AppStrings.groceryViewPriceHint.tr, mrpController, isNumber: true),
                 const SizedBox(height: 12),
 
-                _input("Selling Price", "E.g. ₹1,999", sellingController, isNumber: true),
+                _input(AppStrings.groceryViewSellingPrice.tr, AppStrings.groceryViewPriceHint.tr, sellingController, isNumber: true),
                 const SizedBox(height: 20),
 
                 Align(
@@ -206,7 +207,7 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
                     }
                         : null,
                     child: CustomText(
-                      "Submit",
+                      AppStrings.groceryViewSubmit.tr,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w600,
                       color: (isFormValid && !isLoading)

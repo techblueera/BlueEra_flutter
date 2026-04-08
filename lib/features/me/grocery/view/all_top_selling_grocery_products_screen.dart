@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -150,7 +151,7 @@ class _AllTopSellingGroceryProductsScreenState
     }
     final productVariant = item.productVariant;
     if (productVariant == null) {
-      commonSnackBar(message: 'No variants available');
+      commonSnackBar(message: AppStrings.groceryViewNoVariantsAvailable.tr);
       return;
     }
 
@@ -197,7 +198,7 @@ class _AllTopSellingGroceryProductsScreenState
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
-        title: 'Top Selling Products',
+        title: AppStrings.groceryViewTopSellingProducts.tr,
       ),
       body: Stack(
         // Force the Stack to fill the Scaffold body so the cart bar's
@@ -225,10 +226,10 @@ class _AllTopSellingGroceryProductsScreenState
                 onRefresh: _onRefresh,
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  children: const [
-                    SizedBox(height: 80),
+                  children: [
+                    const SizedBox(height: 80),
                     EmptyStateWidget(
-                      message: 'No top selling products yet.',
+                      message: AppStrings.groceryViewNoTopSellingYet.tr,
                     ),
                   ],
                 ),
@@ -336,7 +337,7 @@ class _AllTopSellingGroceryProductsScreenState
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: CustomText(
-                              '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                              '$itemCount ${itemCount == 1 ? AppStrings.groceryViewItemLabel.tr : AppStrings.groceryViewItemsLabel.tr}',
                               fontSize: 13,
                               color: AppColors.white,
                               fontWeight: FontWeight.w600,
@@ -344,7 +345,7 @@ class _AllTopSellingGroceryProductsScreenState
                           ),
                           const Spacer(),
                           CustomText(
-                            'View Cart',
+                            AppStrings.groceryViewViewCart.tr,
                             fontSize: 16,
                             color: AppColors.white,
                             fontWeight: FontWeight.bold,

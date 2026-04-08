@@ -23,6 +23,7 @@ import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
+import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 
 enum SavedFeedTab {
   posts;
@@ -55,17 +56,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // AppIconAssets.save_tab,
   ];
   final List<String> postTab = [
-    // AppStrings.allPosts,
     AppStrings.lekha,
-    // AppStrings.channel,
-    "Community",
-    // AppStrings.tab_ott,
-    // AppStrings.tab_saved,
+    AppStrings.community,
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
   final homeScreenController = Get.put(HomeScreenController());
   final symbolFeedController = Get.put(SymbolFeedController());
+  final LanguageListController langController = Get.find<LanguageListController>();
 
   late PageController _pageController;
 
@@ -320,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                               Flexible(
                                                 child: CustomText(
-                                                  postTab[index],
+                                                  postTab[index].tr,
                                                   fontSize: 14,
                                                   maxLines: 1,
                                                   fontWeight: FontWeight.w500,

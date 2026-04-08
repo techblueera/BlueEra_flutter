@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MissingGroceryItemsScreen extends StatelessWidget {
   final GroceryController controller;
@@ -26,7 +27,7 @@ class MissingGroceryItemsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: "Missing Items",
+        title: AppStrings.groceryViewMissingItemsTitle.tr,
       ),
       body: missingProducts.isNotEmpty
         ? SingleChildScrollView(
@@ -43,9 +44,9 @@ class MissingGroceryItemsScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 child: Row(
                   children: [
-                    Expanded(flex: 3, child: CustomText("Product Name", fontWeight: FontWeight.w600, fontSize: SizeConfig.small, color: AppColors.mainTextColor)),
-                    Expanded(child: CustomText("Brand", textAlign: TextAlign.center, fontWeight: FontWeight.bold, color: AppColors.mainTextColor)),
-                    Expanded(child: CustomText("Approx Price", textAlign: TextAlign.right, fontWeight: FontWeight.bold, color: AppColors.mainTextColor)),
+                    Expanded(flex: 3, child: CustomText(AppStrings.groceryViewProductName.tr, fontWeight: FontWeight.w600, fontSize: SizeConfig.small, color: AppColors.mainTextColor)),
+                    Expanded(child: CustomText(AppStrings.groceryViewBrand.tr, textAlign: TextAlign.center, fontWeight: FontWeight.bold, color: AppColors.mainTextColor)),
+                    Expanded(child: CustomText(AppStrings.groceryViewApproxPrice.tr, textAlign: TextAlign.right, fontWeight: FontWeight.bold, color: AppColors.mainTextColor)),
                   ],
                 ),
               ),
@@ -100,7 +101,7 @@ class MissingGroceryItemsScreen extends StatelessWidget {
           ),
         )
         : EmptyStateWidget(
-          message: 'No Missing Products'
+          message: AppStrings.groceryViewNoMissingProducts.tr
       ),
       bottomNavigationBar: missingProducts.isNotEmpty
           ? Container(
@@ -110,7 +111,7 @@ class MissingGroceryItemsScreen extends StatelessWidget {
               child: CustomBtn(
                 title: controller.missingProductRequestsLoading.value
                     ? null
-                    : "Request For Missing Item",
+                    : AppStrings.groceryViewRequestForMissingItem.tr,
                 isLoading: controller.missingProductRequestsLoading.value,
                 onTap: () {
                   controller.missingGroceryProductRequestsApi(missingProducts);

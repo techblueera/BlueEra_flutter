@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CustomAddButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -38,7 +40,7 @@ class CustomAddButton extends StatelessWidget {
               const SizedBox(width: 4),
             ],
             CustomText(
-              isAdded ? "ADDED" : "ADD",
+              isAdded ? AppStrings.foodAddedLabel.tr : AppStrings.foodAddBtnLabel.tr,
               color: isAdded ? Colors.green.shade700 : AppColors.primaryColor,
               fontSize: 12,
               fontWeight: FontWeight.bold,

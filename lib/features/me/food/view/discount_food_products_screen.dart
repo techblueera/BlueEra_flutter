@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
@@ -77,7 +78,7 @@ class _DiscountFoodProductsScreenState
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
-        title: 'Offer Dish (Discount)',
+        title: AppStrings.foodOfferDishDiscount.tr,
       ),
       body: Obx(() {
         final items = controller.discountFoodItems;
@@ -96,10 +97,10 @@ class _DiscountFoodProductsScreenState
             onRefresh: _onRefresh,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
+              children: [
                 SizedBox(height: 80),
                 EmptyStateWidget(
-                  message: 'No discount products available right now.',
+                  message: AppStrings.foodNoDiscountProducts.tr,
                 ),
               ],
             ),
@@ -269,7 +270,7 @@ class _DiscountProductTile extends StatelessWidget {
                     const SizedBox(width: 4),
                     Flexible(
                       child: CustomText(
-                        '1.2 K Reviews',
+                        AppStrings.foodReviewsSample.tr,
                         fontWeight: FontWeight.w600,
                         maxLines: 1,
                         color: AppColors.secondaryTextColor,
@@ -316,8 +317,8 @@ class _DiscountProductTile extends StatelessWidget {
                       ),
                       child: CustomText(
                         isMultiVariant ?
-                        "+${variantCount - 1} more variant"
-                            : '${variantCount} variant',
+                        "+${variantCount - 1} ${AppStrings.foodMoreVariant.tr}"
+                            : '${variantCount} ${AppStrings.foodVariantSingular.tr}',
                         fontSize: 10,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w500,

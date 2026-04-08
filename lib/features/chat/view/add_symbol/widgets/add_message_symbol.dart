@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -64,13 +66,11 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                   size: 16, color: Color(0xFF0086FF)),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Design Your Card',
-              style: TextStyle(
-                color: Color(0xFF2D3142),
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+            CustomText(
+              AppStrings.designYourCard.tr,
+              color: const Color(0xFF2D3142),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
           ],
         ),
@@ -121,7 +121,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                   decoration: InputDecoration(
                     filled: false,
                     isCollapsed: true,
-                    hintText: "Type your message here...",
+                    hintText: AppStrings.typeYourMessageHere.tr,
                     hintStyle: TextStyle(
                       color: Colors.white.withOpacity(0.5),
                       fontSize: controller.selectedFontSize.value,
@@ -141,13 +141,11 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
         const SizedBox(height: 22),
 
         // Color picker
-        const Text(
-          'Background',
-          style: TextStyle(
-            color: Color(0xFF2D3142),
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+        CustomText(
+          AppStrings.backgroundLabel.tr,
+          color: const Color(0xFF2D3142),
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -206,7 +204,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
 
           // Font Family
           _buildOptionRow(
-            label: 'Font Style',
+            label: AppStrings.fontStyleLabel.tr,
             child: SizedBox(
               height: 36,
               child: ListView.separated(
@@ -231,16 +229,14 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
+                        child: CustomText(
                           style['name']!,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF2D3142),
-                            fontWeight: FontWeight.w500,
-                            fontFamily: style['family'],
-                            fontSize: 13,
-                          ),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF2D3142),
+                          fontWeight: FontWeight.w500,
+                          fontFamily: style['family'],
+                          fontSize: 13,
                         ),
                       ),
                     );
@@ -254,7 +250,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
 
           // Font Size
           _buildOptionRow(
-            label: 'Size',
+            label: AppStrings.sizeLabel.tr,
             child: SizedBox(
               height: 36,
               child: ListView.separated(
@@ -278,15 +274,13 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
+                        child: CustomText(
                           "${size.toInt()}",
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF2D3142),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF2D3142),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
                         ),
                       ),
                     );
@@ -300,7 +294,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
 
           // Font Weight
           _buildOptionRow(
-            label: 'Weight',
+            label: AppStrings.weightLabel.tr,
             child: SizedBox(
               height: 36,
               child: ListView.separated(
@@ -324,15 +318,13 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
+                        child: CustomText(
                           weight,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF2D3142),
-                            fontWeight: controller.getFontWeight(weight),
-                            fontSize: 13,
-                          ),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF2D3142),
+                          fontWeight: controller.getFontWeight(weight),
+                          fontSize: 13,
                         ),
                       ),
                     );
@@ -350,13 +342,11 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        CustomText(
           label,
-          style: const TextStyle(
-            color: Color(0xFF2D3142),
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          color: const Color(0xFF2D3142),
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
         child,

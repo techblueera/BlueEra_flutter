@@ -55,14 +55,14 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
                   CommonTextField(
                     title:  AppStrings.education,
                     textEditController: controller.educationController,
-                    hintText: "Education (optional)",
+                    hintText: AppStrings.hospitalViewEducationOptional.tr,
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
                     title:  AppStrings.position,
                     textEditController: controller.positionController,
-                    hintText: "Position (e.g., Dr. PhD)",
+                    hintText: AppStrings.hospitalViewPositionHint.tr,
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
@@ -77,14 +77,14 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
                   CommonTextField(
                     title:  AppStrings.timing,
                     textEditController: controller.timingController,
-                    hintText: "Timing (e.g., 10:00 am - 05:00pm Mon-Fri)",
+                    hintText: AppStrings.hospitalViewTimingHint.tr,
                     onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
                   CommonTextField(
                     title:  AppStrings.description,
                     textEditController: controller.descriptionController,
-                    hintText: "Description",
+                    hintText: AppStrings.description.tr,
                     maxLine: 4,
                     onChange: (_) => controller.validate(),
                   ),

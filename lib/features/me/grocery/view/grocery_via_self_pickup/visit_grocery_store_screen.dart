@@ -152,8 +152,8 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const CustomText(
-                              'Live Photos',
+                            CustomText(
+                              AppStrings.groceryViewLivePhotos.tr,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -238,7 +238,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
             children: [
               Expanded(
                 child: CustomText(
-                    'Top Selling Product',
+                    AppStrings.groceryViewTopSellingProduct.tr,
                     fontSize: SizeConfig.large,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w600),
@@ -253,7 +253,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                       visitBusinessId: widget.visitBusinessId,
                     )),
                 child: CustomText(
-                    'View All',
+                    AppStrings.groceryViewViewAll.tr,
                     fontSize: SizeConfig.medium,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600),
@@ -344,7 +344,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                                 return IconButton(
                                   onPressed: () {
                                     if (productVariants == null) {
-                                      commonSnackBar(message: 'No variants available');
+                                      commonSnackBar(message: AppStrings.groceryViewNoVariantsAvailable.tr);
                                       return;
                                     }
 
@@ -475,7 +475,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-          'Category',
+          AppStrings.groceryViewCategory.tr,
           fontSize: SizeConfig.large,
           color: AppColors.mainTextColor,
           fontWeight: FontWeight.w600),
@@ -528,7 +528,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
           )
               :
           EmptyStateWidget(
-            message: '${details?.businessName} don\'t have an product yet.',
+            message: AppStrings.groceryViewNoProductsYet.trParams({'name': details?.businessName ?? ''}),
           ),
 
           SizedBox(

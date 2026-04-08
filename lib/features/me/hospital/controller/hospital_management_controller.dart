@@ -115,7 +115,7 @@ class HospitalManagementController extends GetxController {
         if (res.isSuccess) {
           final created = ManagementMember.fromJson(res.response?.data['data']);
           members.insert(0, created);
-          commonSnackBar(message: "Member added");
+          commonSnackBar(message: AppStrings.hospitalCtrlMemberAdded.tr);
           Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -128,7 +128,7 @@ class HospitalManagementController extends GetxController {
           final idx =
               members.indexWhere((element) => element.id == editingMember!.id);
           if (idx != -1) members[idx] = upd;
-          commonSnackBar(message: "Member updated");
+          commonSnackBar(message: AppStrings.hospitalCtrlMemberUpdated.tr);
           Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -146,7 +146,7 @@ class HospitalManagementController extends GetxController {
       final ResponseModel res = await _repo.delete(id: m.id);
       if (res.isSuccess) {
         members.removeWhere((e) => e.id == m.id);
-        commonSnackBar(message: "Member deleted");
+        commonSnackBar(message: AppStrings.hospitalCtrlMemberDeleted.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

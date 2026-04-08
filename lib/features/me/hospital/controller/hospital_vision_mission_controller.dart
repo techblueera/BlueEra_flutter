@@ -49,11 +49,11 @@ class HospitalVisionMissionController extends GetxController {
   bool validate() {
     final text = visionController.text.trim();
     if (text.isEmpty) {
-      commonSnackBar(message: "Vision & Mission is required");
+      commonSnackBar(message: AppStrings.hospitalCtrlVisionMissionRequired.tr);
       return false;
     }
     if (text.length > maxLen) {
-      commonSnackBar(message: "Max length $maxLen characters");
+      commonSnackBar(message: AppStrings.hospitalCtrlMaxLengthChars.trParams({'count': '$maxLen'}));
       return false;
     }
     return true;
@@ -73,7 +73,7 @@ class HospitalVisionMissionController extends GetxController {
         if (res.isSuccess) {
           final VisionMissionRes vm = VisionMissionRes.fromJson(res.response?.data);
           data.value = vm.data;
-          commonSnackBar(message: "Saved successfully");
+          commonSnackBar(message: AppStrings.hospitalCtrlSavedSuccessfully.tr);
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
@@ -82,7 +82,7 @@ class HospitalVisionMissionController extends GetxController {
         if (res.isSuccess) {
           final VisionMissionRes vm = VisionMissionRes.fromJson(res.response?.data);
           data.value = vm.data;
-          commonSnackBar(message: "Updated successfully");
+          commonSnackBar(message: AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }

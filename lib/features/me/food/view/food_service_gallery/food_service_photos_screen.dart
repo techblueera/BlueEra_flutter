@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_photo_controller.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/upload_food_service_photos_screen.dart';
@@ -16,7 +17,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Food Service Photos",
+        title: AppStrings.foodServicePhotosLabel.tr,
       ),
       bottomNavigationBar: Container(
          padding: const EdgeInsets.only(
@@ -30,7 +31,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
               onTap: () {
                 Get.to(()=> UploadFoodServicePhotosScreen());
               },
-              title: "Upload Other Service Photo"),
+              title: AppStrings.foodUploadServicePhoto.tr),
         ),
       ),
       body: Obx(() {
@@ -91,7 +92,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} Images",
+                                "+${images.length} ${AppStrings.foodImagesLabel.tr}",
                                 textAlign: TextAlign.center,
 
                                     color: Colors.white, fontSize: 10),
@@ -116,7 +117,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 4),
                             CustomText(
-                                   "Last Update: ${formatIsoDate(item.updatedAt??"")}",
+                                   "${AppStrings.foodLastUpdatePrefix.tr}${formatIsoDate(item.updatedAt??"")}",
                                     color: Colors.grey, fontSize: 12),
 
                           ],

@@ -116,8 +116,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const CustomText(
-                                'Offer Dish  (Discount)',
+                              CustomText(
+                                AppStrings.foodOfferDishDiscount.tr,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -172,8 +172,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                       .toList(),
                   onEditTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
                   onAddTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
-                  emptyTitle: 'You Have Not Post Any Photo',
-                  addButtonLabel: 'Add Photo',
+                  emptyTitle: AppStrings.foodNoPhotosPosted.tr,
+                  addButtonLabel: AppStrings.foodAddPhotoLabel.tr,
                   isRestaurantGallery: true
                 ),
 
@@ -467,7 +467,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 12, 10, 0),
               child: CustomText(
-                'Your Restaurant Special Dish',
+                AppStrings.foodYourSpecialDish.tr,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -607,7 +607,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                           ),
                           const SizedBox(height: 6),
                           CustomText(
-                            'You Have Not Added Any Special Dish',
+                            AppStrings.foodNoSpecialDishAdded.tr,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w600,
                             color: AppColors.white,
@@ -626,7 +626,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                                 color: AppColors.primaryColor,
                               ),
                               child: CustomText(
-                                'Add Special Dish',
+                                AppStrings.foodAddSpecialDishLabel.tr,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.white,
@@ -750,7 +750,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                  'Our Menu',
+                  AppStrings.foodOurMenuLabel.tr,
                   fontSize: SizeConfig.large,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w600),
@@ -802,7 +802,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 },
               )
                   : EmptyStateWidget(
-                message: 'You don\'t have product yet, Want to create one?',
+                message: AppStrings.foodNoProductCreate.tr,
               ),
 
               SizedBox(

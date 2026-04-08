@@ -51,7 +51,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Create Food Item Via AI",
+        title: AppStrings.foodCreateFoodItemViaAi.tr,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
@@ -65,7 +65,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
             children: [
 
               // Food Uploaded image
-              _titleWidget("Upload Images"),
+              _titleWidget(AppStrings.foodUploadImagesLabel.tr),
               const SizedBox(height: 10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -139,8 +139,8 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                                       color: Colors.black54,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const CustomText(
-                                      "Tap to Change",
+                                    child: CustomText(
+                                      AppStrings.foodTapToChange.tr,
                                       color: Colors.white,
                                       fontSize: 10,
                                     ),
@@ -160,16 +160,16 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          "Instruction",
+                          AppStrings.foodInstructionLabel.tr,
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.secondaryTextColor,
                         ),
                         const SizedBox(height: 6),
-                        _buildInstructionItem("1. Use high resolution images"),
-                        _buildInstructionItem("2. You can Choose Google Photos, Ai Generated Photo Or Own"),
-                        _buildInstructionItem("3. Keep content easily understandable"),
-                        _buildInstructionItem("4. Maintain accurate visual information"),
+                        _buildInstructionItem(AppStrings.foodInstruction1.tr),
+                        _buildInstructionItem(AppStrings.foodInstruction2.tr),
+                        _buildInstructionItem(AppStrings.foodInstruction3.tr),
+                        _buildInstructionItem(AppStrings.foodInstruction4.tr),
                       ],
                     ),
                   ),
@@ -181,19 +181,19 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               // 1. Food Name Input
               CommonTextField(
                 textEditController: controller.foodNameController,
-                title: "Food Name",
-                hintText: "E.g. Paneer Butter Masala....",
+                title: AppStrings.foodFoodNameLabel.tr,
+                hintText: AppStrings.foodHintFoodName.tr,
               ),
               const SizedBox(height: 16),
 
               // 2. Food Category
-              _titleWidget("Food Category"),
+              _titleWidget(AppStrings.foodFoodCategoryLabel.tr),
               const SizedBox(height: 8),
               _buildCategorySection(),
               const SizedBox(height: 16),
 
               // 2. Food Type Radio Group
-              _titleWidget("Food Type"),
+              _titleWidget(AppStrings.foodFoodTypeLabel.tr),
               Obx(() => Wrap(
                     spacing: 8,
                     children: [
@@ -219,7 +219,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                     if (controller.isFormValid.value) {
                       // 1. Image Validation
                       if (controller.foodSearchImages.isEmpty || controller.foodSearchImages[0] == null) {
-                        commonSnackBar(message: "Please upload a food image to proceed.");
+                        commonSnackBar(message: AppStrings.foodPleaseUploadFoodImage.tr);
                         return;
                       }
 
@@ -233,7 +233,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
 
                       if (!isSelectionComplete) {
                         commonSnackBar(
-                          message: "Please select a specific sub-category/item type before generating.",
+                          message: AppStrings.foodPleaseSelectSubCategory.tr,
                         );
                         _showCategoryPicker(); // Automatically open the picker for them
                         return;
@@ -242,7 +242,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                       // 4. Cooking Method Validation
                       if(controller.selectedCookingMethods.isEmpty){
                         commonSnackBar(
-                          message: "Please select a cooking method.",
+                          message: AppStrings.foodPleaseSelectCookingMethod.tr,
                         );
                         return;
                       }
@@ -295,7 +295,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               Expanded(
                 child: hasSelection
                     ? _buildSelectionPath()
-                    : CustomText("Choose Category", color: Colors.grey[400]),
+                    : CustomText(AppStrings.foodChooseCategoryLabel.tr, color: Colors.grey[400]),
               ),
               const Icon(
                   Icons.keyboard_arrow_down_outlined,
@@ -414,7 +414,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const CustomText("Select Category", fontWeight: FontWeight.bold, fontSize: 16),
+            CustomText(AppStrings.foodSelectCategoryLabel.tr, fontWeight: FontWeight.bold, fontSize: 16),
             IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
           ],
         ),
@@ -504,7 +504,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _titleWidget("Cooking Method"),
+        _titleWidget(AppStrings.foodCookingMethodLabel.tr),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

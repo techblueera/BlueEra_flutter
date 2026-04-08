@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -19,6 +20,7 @@ import 'package:pinput/pinput.dart';
 
 import 'package:BlueEra/widgets/common_drop_down.dart';
 
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../controller/gst_controller.dart';
 
 class GstNumberScreen extends StatefulWidget {
@@ -46,6 +48,7 @@ class GstNumberScreen extends StatefulWidget {
 class _GstNumberScreenState extends State<GstNumberScreen> {
   final _formKey = GlobalKey<FormState>();
   final authController = Get.find<AuthController>();
+  late LanguageListController langController;
 
   final TextEditingController _gstController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -55,6 +58,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   @override
   initState(){
     super.initState();
+    langController = Get.find<LanguageListController>();
     authController.selectedTypeOfBusiness = widget.businessType;
     authController.selectedCategoryName = widget.categoryName;
     authController.selectedCategorySlugId = widget.categorySlugId;
@@ -98,13 +102,13 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                   children: [
                     SizedBox(height: SizeConfig.size15),
                     CustomText(
-                      "Do you have a GST number?",
+                      AppStrings.doYouHaveGstNumber.tr,
                       fontSize: SizeConfig.extraLarge,
                       fontWeight: FontWeight.w700,
                     ),
                     SizedBox(height: SizeConfig.size8),
                     CustomText(
-                     "If yes, your business will be instantly marked as verified.",
+                      AppStrings.gstVerifiedHint.tr,
                       fontSize: SizeConfig.medium,
                       color: AppColors.grey80,
                     ),
@@ -114,10 +118,10 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildRadioOption(
-                            true,'Yes, I have'),
+                            true, AppStrings.yesIHave.tr),
                         SizedBox(width: SizeConfig.size20),
                         _buildRadioOption(
-                            false, 'No, I don’t'),
+                            false, AppStrings.noIDont.tr),
                       ],
                     ),
                     SizedBox(
@@ -131,18 +135,18 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                           children: [
                             CommonTextField(
                               textEditController: _emailController,
-                              hintText: 'Enter Email linked to GST',
-                              title: 'Enter Email',
+                              hintText: AppStrings.enterEmailLinkedToGst.tr,
+                              title: AppStrings.enterEmailLabel.tr,
                               readOnly: isGstVerified,
                               autoFillType: AutoFillType.email,
                               isValidate: false,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
+                                  return AppStrings.pleaseEnterEmail.tr;
                                 }
                                 if (!GetUtils.isEmail(value)) {
-                                  return 'Please enter a valid email';
+                                  return AppStrings.pleaseEnterValidEmail.tr;
                                 }
                                 return null;
                               },
@@ -150,8 +154,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                             SizedBox(height: SizeConfig.size15),
                             CommonTextField(
                               textEditController: _gstController,
-                              hintText: 'Enter GST Number',
-                              title: 'Enter GST Number',
+                              hintText: AppStrings.enterGstNumberLabel.tr,
+                              title: AppStrings.enterGstNumberLabel.tr,
                               maxLength: 15,
                               isValidate: false,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -160,7 +164,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
                                     authController.isValidate.value = false;
                                   });
-                                  return 'Please enter your GST number';
+                                  return AppStrings.pleaseEnterGstNumber.tr;
                                 }
                                 final gstRegExp = RegExp(
                                   r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
@@ -170,7 +174,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
                                     authController.isValidate.value = false;
                                   });
-                                  return 'Please enter a valid GST number';
+                                  return AppStrings.pleaseEnterValidGstNumber.tr;
                                 }
 
                                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -208,13 +212,13 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CustomText(
-                                    "Trade Name: ${data?.tradeNam ?? 'N/A'}",
+                                    "${AppStrings.tradeNameLabel.tr}: ${data?.tradeNam ?? 'N/A'}",
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.mainTextColor,
                                   ),
                                   SizedBox(height: SizeConfig.size4),
                                   CustomText(
-                                    "Address: ${data?.pradr?.addr?.getFullAddress() ?? 'N/A'}",
+                                    "${AppStrings.addressLabel.tr}: ${data?.pradr?.addr?.getFullAddress() ?? 'N/A'}",
                                     fontSize: SizeConfig.small,
                                     color: AppColors.secondaryTextColor,
                                   ),
@@ -244,14 +248,14 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                             // SizedBox(height: SizeConfig.size15),
                             CommonTextField(
                               textEditController: gstController.gstUsernameController,
-                              hintText: 'Enter GST Username',
-                              title: 'GST Username',
+                              hintText: AppStrings.enterGstUsername.tr,
+                              title: AppStrings.gstUsername.tr,
                               readOnly: gstController.otpResponse.value.status == Status.COMPLETE,
                               isValidate: false,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter GST username';
+                                  return AppStrings.pleaseEnterGstUsername.tr;
                                 }
                                 return null;
                               },
@@ -259,7 +263,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                             SizedBox(height: SizeConfig.size15),
                             if (gstController.otpResponse.value.status == Status.COMPLETE) ...[
                               CustomText(
-                                "Enter OTP",
+                                AppStrings.enterOtpTitle.tr,
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -294,7 +298,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         return Padding(
                           padding: EdgeInsets.only(bottom: SizeConfig.size10),
                           child: CustomText(
-                            response.message ?? "Something went wrong",
+                            response.message ?? AppStrings.somethingWentWrong.tr,
                             color: Colors.red,
                             fontSize: SizeConfig.small,
                           ),
@@ -308,7 +312,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         return Padding(
                           padding: EdgeInsets.only(bottom: SizeConfig.size10),
                           child: CustomText(
-                            gstController.otpResponse.value.message ?? "OTP request failed",
+                            gstController.otpResponse.value.message ?? AppStrings.otpRequestFailed.tr,
                             color: Colors.red,
                             fontSize: SizeConfig.small,
                           ),
@@ -322,7 +326,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         return Padding(
                           padding: EdgeInsets.only(bottom: SizeConfig.size10),
                           child: CustomText(
-                            gstController.authTokenResponse.value.message ?? "OTP verification failed",
+                            gstController.authTokenResponse.value.message ?? AppStrings.otpVerificationFailed.tr,
                             color: Colors.red,
                             fontSize: SizeConfig.small,
                           ),
@@ -365,13 +369,13 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         },
                         title: gstController.isLoading.value
                             ? (isGstVerified
-                                ? "Generating OTP..."
-                                : "Verifying...")
+                                ? AppStrings.generatingOtpDots.tr
+                                : AppStrings.verifyingDots.tr)
                             : isOtpGenerated
-                                ? "Verify OTP"
+                                ? AppStrings.verifyOtp.tr
                                 : isGstVerified
-                                    ? "Generate OTP"
-                                    : "Submit",
+                                    ? AppStrings.generateOtp.tr
+                                    : AppStrings.submit.tr,
                         isValidate: authController.hasGstNumber.value
                             ? authController.isValidate.value
                             : true,
@@ -385,7 +389,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         child: TextButton(
                           onPressed: () => _skip(),
                           child: CustomText(
-                            "Skip",
+                            AppStrings.skip.tr,
                             color: AppColors.primaryColor,
                             decoration: TextDecoration.underline,
                             decorationColor: AppColors.primaryColor,

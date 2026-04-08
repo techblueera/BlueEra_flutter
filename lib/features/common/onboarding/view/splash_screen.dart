@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/me/product/view/product/share_product_screen.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
@@ -97,6 +98,23 @@ class _SplashScreenState extends State<SplashScreen> {
       // CallController will navigate directly to ActiveCallScreen
       if (CallController.launchedForCall.value) {
         return;
+      }
+
+      // First-launch (or post-logout) language selection. Logged-in users skip
+      // this since they have already picked a language during onboarding.
+      if (isLoginStatus != "true") {
+        final hasSelectedLanguage =
+            await SharedPreferenceUtils.getSecureValue(
+                    SharedPreferenceUtils.hasSelectedLanguage) ??
+                "false";
+        if (hasSelectedLanguage != "true") {
+          if (!mounted) return;
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const SelectLanguageScreen()),
+            (Route<dynamic> route) => false,
+          );
+          return;
+        }
       }
 
       if (isLoginStatus == "true") {

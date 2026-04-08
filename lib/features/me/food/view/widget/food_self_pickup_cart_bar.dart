@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/view/food_self_pickup_cart_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -53,7 +54,7 @@ class FoodSelfPickupCartBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: CustomText(
-                      '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                      '$itemCount ${itemCount == 1 ? AppStrings.foodItemSingular.tr : AppStrings.foodItemPlural.tr}',
                       fontSize: 13,
                       color: AppColors.white,
                       fontWeight: FontWeight.w600,
@@ -61,7 +62,7 @@ class FoodSelfPickupCartBar extends StatelessWidget {
                   ),
                   const Spacer(),
                   CustomText(
-                    'View Cart',
+                    AppStrings.foodViewCartLabel.tr,
                     fontSize: 16,
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,

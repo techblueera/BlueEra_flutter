@@ -32,7 +32,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
               ?.emergencyCasualty ??
           false)
         {
-          "title": "Emergency / Casualty",
+          "title": AppStrings.hospitalViewEmergencyCasualty.tr,
           "icon": "assets/svg/em_emergency.svg",
           "desc": ""
         },
@@ -40,51 +40,51 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
               .hospitalDataResModel?.value.data?.emergencyCare?.traumaCare ??
           false)
         {
-          "title": "Trauma Care",
+          "title": AppStrings.hospitalViewTraumaCare.tr,
           "icon": "assets/svg/em_trauma_care.svg",
           "desc": ""
         },
       if (controller.hospitalDataResModel?.value.data?.emergencyCare?.icu ??
           false)
         {
-          "title": "ICU (Intensive Care Unit)",
+          "title": AppStrings.hospitalViewIcu.tr,
           "icon": "assets/svg/em_icu.svg",
           "desc": ""
         },
       if (controller.hospitalDataResModel?.value.data?.emergencyCare?.ccu ??
           false)
         {
-          "title": "CCU (Cardiac Care Unit)",
+          "title": AppStrings.hospitalViewCcu.tr,
           "icon": "assets/svg/em_ccu.svg",
           "desc": ""
         },
       if (controller.hospitalDataResModel?.value.data?.emergencyCare?.nicu ??
           false)
         {
-          "title": "NICU (Neonatal ICU)",
+          "title": AppStrings.hospitalViewNicu.tr,
           "icon": "assets/svg/em_nicu.svg",
           "desc": ""
         },
       if (controller.hospitalDataResModel?.value.data?.emergencyCare?.picu ??
           false)
         {
-          "title": "PICU (Pediatric ICU)",
+          "title": AppStrings.hospitalViewPicu.tr,
           "icon": "assets/svg/em_picu.svg",
           "desc": ""
         },
       if (controller
               .hospitalDataResModel?.value.data?.otherFacilities?.ambulance ??
           false)
-        {"title": "Ambulance", "icon": AppIconAssets.Ambulance, "desc": ""},
+        {"title": AppStrings.hospitalViewAmbulance.tr, "icon": AppIconAssets.Ambulance, "desc": ""},
       if (controller
               .hospitalDataResModel?.value.data?.otherFacilities?.bloodBank ??
           false)
-        {"title": "Blood Bank", "icon": AppIconAssets.BloodBank, "desc": ""},
+        {"title": AppStrings.hospitalViewBloodBank.tr, "icon": AppIconAssets.BloodBank, "desc": ""},
       if (controller.hospitalDataResModel?.value.data?.otherFacilities
               ?.diagnosticDepartments ??
           false)
         {
-          "title": "Diagnostic Departments",
+          "title": AppStrings.hospitalViewDiagnosticDepartments.tr,
           "icon": AppIconAssets.diag_dept_view,
           "desc": ""
         },
@@ -92,7 +92,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
               ?.medicalStore ??
           false)
         {
-          "title": "Medical Store",
+          "title": AppStrings.medicalStore.tr,
           "icon": AppIconAssets.medical_view,
           "desc": ""
         },
@@ -100,7 +100,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
               ?.pmSwasthyaBimaYojana ??
           false)
         {
-          "title": "PM Swasthya Bima Yojana",
+          "title": AppStrings.hospitalViewPmSwasthyaBimaYojana.tr,
           "icon": AppIconAssets.PMYojana,
           "desc": ""
         },
@@ -171,7 +171,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
                                       color: Colors.grey[400], size: 32),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Add Facilities',
+                                    AppStrings.hospitalViewAddFacilities.tr,
                                     style: TextStyle(
                                         color: Colors.grey[500], fontSize: 12),
                                   ),
@@ -216,8 +216,8 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
                   children: [
                     CustomText(
                       _isExpanded
-                          ? "View Less"
-                          : "View More (${services.length - _maxVisibleItems})",
+                          ? AppStrings.hospitalViewViewLess.tr
+                          : AppStrings.hospitalViewViewMoreCount.trParams({'count': '${services.length - _maxVisibleItems}'}),
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,

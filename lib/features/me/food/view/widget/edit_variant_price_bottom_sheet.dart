@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -48,8 +49,8 @@ void showEditVariantPriceSheet({
                 const SizedBox(height: 10),
                 CommonTextField(
                   textEditController: vc.mrpController,
-                  hintText: "E.g. ₹1,999",
-                  title: "MRP",
+                  hintText: AppStrings.foodHintRupees.tr,
+                  title: AppStrings.foodMrpLabel.tr,
                   keyBoardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -60,8 +61,8 @@ void showEditVariantPriceSheet({
                 const SizedBox(height: 10),
                 CommonTextField(
                   textEditController: vc.priceController,
-                  hintText: "E.g. ₹1,999",
-                  title: "Selling Price",
+                  hintText: AppStrings.foodHintRupees.tr,
+                  title: AppStrings.foodSellingPriceLabel.tr,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(10)
@@ -92,7 +93,7 @@ void showEditVariantPriceSheet({
                               }
                             : null,
                         child: CustomText(
-                          "Submit",
+                          AppStrings.submit.tr,
                           fontSize: 16,
                           color: vc.isFormValid.value ? Colors.blue : Colors.grey,
                           fontWeight: FontWeight.w600,

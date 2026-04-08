@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/location/user_address.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -40,7 +41,7 @@ class LocationService extends GetxService {
       );
       return "${place.thoroughfare ?? ''}${place.locality ?? ''}, ${place.administrativeArea ?? ''}, ${place.country ?? ''} ,${place.postalCode}";
     } else {
-      return "Address Cannot Found";
+      return AppStrings.addressNotFound.tr;
     }
 
   }
@@ -257,7 +258,7 @@ class LocationService extends GetxService {
           ),
           backgroundColor: Colors.white,
           title: CustomText(
-            "Location Permission Required",
+            AppStrings.locationPermissionRequired.tr,
             fontSize: 16,
             textAlign: TextAlign.center,
             fontWeight: FontWeight.w600,
@@ -266,7 +267,7 @@ class LocationService extends GetxService {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                "Please enable location permission to use store features.",
+                AppStrings.locationPermissionStoreMessage.tr,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -279,7 +280,7 @@ class LocationService extends GetxService {
                   // Request permission and fetch location
                   await fetchLocation(openSettingsOnDeny: true);
                 },
-                title: "Grant Permission",
+                title: AppStrings.grantPermission.tr,
                 borderColor: AppColors.primaryColor,
                 bgColor: AppColors.primaryColor,
               ),
@@ -291,7 +292,7 @@ class LocationService extends GetxService {
                   Get.back(result: false);  // Skip returns false
                 },
                 child: CustomText(
-                  "Skip",
+                  AppStrings.skip.tr,
                   fontSize: 16,
                   color: AppColors.primaryColor,
                   textAlign: TextAlign.center,

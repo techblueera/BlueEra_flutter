@@ -472,6 +472,35 @@ class AppStrings {
   static const selectSuggestion = "selectSuggestion";
   static const noSuggestionsFound = "noSuggestionsFound";
 
+  ///PERSONAL ACCOUNT NEW SCREEN
+  static const profileType = "profileType";
+  static const yourDetails = "yourDetails";
+  static const yourName = "your_name";
+  static const genderHint = "genderHint";
+  static const specialization = "specialization";
+  static const expertise = "expertise";
+  static const loanConsultantHint = "loanConsultantHint";
+  static const selectYourField = "selectYourField";
+  static const mediaCreatorsHint = "mediaCreatorsHint";
+  static const selectYourSpecification = "selectYourSpecification";
+  static const videoCreatorHint = "videoCreatorHint";
+  static const actorHint = "actorHint";
+  static const autoUnionExample = "autoUnionExample";
+  static const enterYourEducation = "enterYourEducation";
+  static const nameOfGovtPSU = "nameOfGovtPSU";
+  static const govtPSUExample = "govtPSUExample";
+  static const enterNameOfGovtPSU = "enterNameOfGovtPSU";
+  static const govtPSUMaxLength = "govtPSUMaxLength";
+  static const designationExpertise = "designationExpertise";
+  static const enterDesignationExpertise = "enterDesignationExpertise";
+  static const check = "check";
+  static const usernameHint = "usernameHint";
+  static const usernameMinLength = "usernameMinLength";
+  static const haveReferCode = "haveReferCode";
+  static const pleaseSelectDateOfBirth = "pleaseSelectDateOfBirth";
+  static const pleaseSelectGender = "pleaseSelectGender";
+  static const aboutMeBio = "aboutMeBio";
+
   ///HELP & Support...
   static const helpAndSupport = "helpAndSupport";
   static const customerSupport = "customerSupport";
@@ -659,6 +688,7 @@ class AppStrings {
 
   static const myBusinessCard = "myBusinessCard";
   static const lekha = "lekha";
+  static const community = "community";
   static const poll = "poll";
   static const symbol = "symbol";
   static const jobPost = "jobPost";
@@ -2149,8 +2179,8 @@ class AppStrings {
   static const String min8CharactersRequired = 'min8CharactersRequired';
   static const String max24CharactersAllowed = 'max24CharactersAllowed';
 
-  static const String previous = 'Previous';
-  static const String websiteHint = '"https://shop.com"';
+  static const String previous = 'previous';
+  static const String websiteHint = "https://shop.com";
   static const String refresh = 'Refresh';
 
   static const String minimumThreeImages = 'Minimum 3 images';
@@ -2270,7 +2300,6 @@ class AppStrings {
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
-  static const yourName = "your_name";
   static const yourNameHint = "your_name_hint";
   static const yourRole = "your_role";
   static const yourRoleHint = "your_role_hint";
@@ -4092,6 +4121,113 @@ class AppStrings {
   static const String groceryAddBtn = "grocery_add_btn";
   static const String grocerySearchManually = "grocery_search_manually";
 
+  /// Grocery Controllers — snackbar / dialog messages
+  static const String groceryMaxSelectWarning = "grocery_max_select_warning";
+  static const String groceryAddMoreVariant = "grocery_add_more_variant";
+  static const String groceryRemoveCurrentImageType = "grocery_remove_current_image_type";
+  static const String groceryRemoveCurrentImage = "grocery_remove_current_image";
+  static const String groceryEnableGpsOrPincode = "grocery_enable_gps_or_pincode";
+  static const String groceryUploadAtLeastOnePhoto = "grocery_upload_at_least_one_photo";
+  static const String groceryEnableLocationForGrocery = "grocery_enable_location_for_grocery";
+  static const String groceryRiderStatusRequest = "grocery_rider_status_request";
+
+  /// Grocery Widgets — UI strings
+  static const String groceryViewItemsUnavailable = "grocery_view_items_unavailable";
+  static const String groceryViewCheck = "grocery_view_check";
+  static const String groceryViewSecondOrder = "grocery_view_second_order";
+  static const String groceryViewBookNow = "grocery_view_book_now";
+
+  /// Grocery Views — hardcoded UI strings
+  static const String groceryViewYouHaveNoOrders = "grocery_view_you_have_no_orders";
+  static const String groceryViewTutorial = "grocery_view_tutorial";
+  static const String groceryViewNoCategoriesFound = "grocery_view_no_categories_found";
+  static const String groceryViewNoCategoriesFoundPlain = "grocery_view_no_categories_found_plain";
+  static const String groceryViewNoSubcategoriesFound = "grocery_view_no_subcategories_found";
+  static const String groceryViewGroceryItemsTitle = "grocery_view_grocery_items_title";
+  static const String groceryViewPublishProductsVariants = "grocery_view_publish_products_variants";
+  static const String groceryViewUploadBulkProduct = "grocery_view_upload_bulk_product";
+  static const String groceryViewUploadBulkProducts = "grocery_view_upload_bulk_products";
+  static const String groceryViewCategory = "grocery_view_category";
+  static const String groceryViewUploadPictureHelper = "grocery_view_upload_picture_helper";
+  static const String groceryViewSnapNoProductsIdentified = "grocery_view_snap_no_products_identified";
+  static const String groceryViewRetry = "grocery_view_retry";
+  static const String groceryViewSearchManually = "grocery_view_search_manually";
+  static const String groceryViewItemsFoundSuffix = "grocery_view_items_found_suffix";
+  static const String groceryViewItemsMissingSuffix = "grocery_view_items_missing_suffix";
+  static const String groceryViewEditVariant = "grocery_view_edit_variant";
+  static const String groceryViewMissingItemsTitle = "grocery_view_missing_items_title";
+  static const String groceryViewProductName = "grocery_view_product_name";
+  static const String groceryViewBrand = "grocery_view_brand";
+  static const String groceryViewApproxPrice = "grocery_view_approx_price";
+  static const String groceryViewNoMissingProducts = "grocery_view_no_missing_products";
+  static const String groceryViewRequestForMissingItem = "grocery_view_request_for_missing_item";
+  static const String groceryViewNoVariantsAvailable = "grocery_view_no_variants_available";
+  static const String groceryViewNoXFound = "grocery_view_no_x_found";
+  static const String groceryViewNoProductsYet = "grocery_view_no_products_yet";
+  static const String groceryViewLivePhotos = "grocery_view_live_photos";
+  static const String groceryViewTopSellingProduct = "grocery_view_top_selling_product";
+  static const String groceryViewTopSellingProducts = "grocery_view_top_selling_products";
+  static const String groceryViewViewAll = "grocery_view_view_all";
+  static const String groceryViewNoTopSellingYet = "grocery_view_no_top_selling_yet";
+  static const String groceryViewViewCart = "grocery_view_view_cart";
+  static const String groceryViewItemLabel = "grocery_view_item_label";
+  static const String groceryViewItemsLabel = "grocery_view_items_label";
+  static const String groceryViewYourCartEmpty = "grocery_view_your_cart_empty";
+  static const String groceryViewBuyNow = "grocery_view_buy_now";
+  static const String groceryViewNoRidersAvailable = "grocery_view_no_riders_available";
+  static const String groceryViewSelfPickUp = "grocery_view_self_pick_up";
+  static const String groceryViewNoItemsSelfPickup = "grocery_view_no_items_self_pickup";
+  static const String groceryViewUnknownStore = "grocery_view_unknown_store";
+  static const String groceryViewShopLabel = "grocery_view_shop_label";
+  static const String groceryViewShopsLabel = "grocery_view_shops_label";
+  static const String groceryViewProductLabel = "grocery_view_product_label";
+  static const String groceryViewProductsLabel = "grocery_view_products_label";
+  static const String groceryViewPlaceOrder = "grocery_view_place_order";
+  static const String groceryViewManageProducts = "grocery_view_manage_products";
+  static const String groceryViewSave = "grocery_view_save";
+  static const String groceryViewSearchProductsHint = "grocery_view_search_products_hint";
+  static const String groceryViewProductsTitle = "grocery_view_products_title";
+  static const String groceryViewNoProductsYetCreate = "grocery_view_no_products_yet_create";
+  static const String groceryViewUpdateInventory = "grocery_view_update_inventory";
+  static const String groceryViewAddMoreVariant = "grocery_view_add_more_variant";
+  static const String groceryViewNetPaymentFromRider = "grocery_view_net_payment_from_rider";
+  static const String groceryViewTotalItems = "grocery_view_total_items";
+  static const String groceryViewTotalMrp = "grocery_view_total_mrp";
+  static const String groceryViewPaymentMode = "grocery_view_payment_mode";
+  static const String groceryViewSubmit = "grocery_view_submit";
+  static const String groceryViewBillDetails = "grocery_view_bill_details";
+  static const String groceryViewItemMissingCount = "grocery_view_item_missing_count";
+  static const String groceryViewMrp = "grocery_view_mrp";
+  static const String groceryViewSellingPrice = "grocery_view_selling_price";
+  static const String groceryViewPriceHint = "grocery_view_price_hint";
+  static const String groceryViewQuantity = "grocery_view_quantity";
+  static const String groceryViewQuantityHint = "grocery_view_quantity_hint";
+  static const String groceryViewUnit = "grocery_view_unit";
+  static const String groceryViewUnitHint = "grocery_view_unit_hint";
+  static const String groceryViewEnterValidNumbers = "grocery_view_enter_valid_numbers";
+  static const String groceryViewMrpMustBeGtZero = "grocery_view_mrp_must_be_gt_zero";
+  static const String groceryViewSellingCannotExceedMrp = "grocery_view_selling_cannot_exceed_mrp";
+  static const String groceryViewVariantsBadge = "grocery_view_variants_badge";
+  static const String groceryViewAddedCaps = "grocery_view_added_caps";
+  static const String groceryViewAddCaps = "grocery_view_add_caps";
+  static const String groceryViewRemoveCaps = "grocery_view_remove_caps";
+  static const String groceryViewEditCaps = "grocery_view_edit_caps";
+  static const String groceryViewAllVariants = "grocery_view_all_variants";
+  static const String groceryViewMaxLimitWarning = "grocery_view_max_limit_warning";
+  static const String groceryViewAllItemsReceived = "grocery_view_all_items_received";
+  static const String groceryViewCustomerOrderDetails = "grocery_view_customer_order_details";
+  static const String groceryViewOrderIdPrefix = "grocery_view_order_id_prefix";
+  static const String groceryViewItemsOfTotal = "grocery_view_items_of_total";
+  static const String groceryViewViewAction = "grocery_view_view_action";
+  static const String groceryViewComplete = "grocery_view_complete";
+  static const String groceryViewAdded = "grocery_view_added";
+  static const String groceryViewAdd = "grocery_view_add";
+  static const String groceryViewCartSummary = "grocery_view_cart_summary";
+  static const String groceryViewShopCountSingular = "grocery_view_shop_count_singular";
+  static const String groceryViewShopCountPlural = "grocery_view_shop_count_plural";
+  static const String groceryViewAll = "grocery_view_all";
+  static const String groceryViewPublishCtaLabel = "grocery_view_publish_cta_label";
+
   ///MEDICAL NEW MODULE (FULL)
   static const String medicalAddProductsTitle = "medical_add_products_title";
   static const String medicalItemsTitle = "medical_items_title";
@@ -4265,4 +4401,330 @@ class AppStrings {
   static const String medicalVariantsPlural = "medical_variants_plural";
   static const String medicalCompleteLabel = "medical_complete_label";
   static const String medicalUpdateYourMedicalProducts = "medical_update_your_medical_products";
+
+  ///FOOD CONTROLLERS====..
+  static const String foodPleaseRemoveCurrentImage = "food_please_remove_current_image";
+  static const String foodEnsurePrimaryImagePresent = "food_ensure_primary_image_present";
+  static const String foodImageUploadFailed = "food_image_upload_failed";
+  static const String foodNoProductsSelectedToPublish = "food_no_products_selected_to_publish";
+  static const String foodPleaseUploadAtLeastOnePhoto = "food_please_upload_at_least_one_photo";
+  static const String foodPleaseSelectAtLeastOneVariant = "food_please_select_at_least_one_variant";
+  static const String foodProductAddedSuccess = "food_product_added_success";
+  static const String foodPhotoLimitReached = "food_photo_limit_reached";
+  static const String foodSelectValidLocation = "food_select_valid_location";
+  static const String foodBranchDetailsAdded = "food_branch_details_added";
+
+  ///FOOD VIEW SCREENS====..
+  static const String foodAddFoodViaAi = "food_add_food_via_ai";
+  static const String foodAddFoodWithinMinViaAi = "food_add_food_within_min_via_ai";
+  static const String foodProductNameLabel = "food_product_name_label";
+  static const String foodDescriptionLabel = "food_description_label";
+  static const String foodShelfLifeLabel = "food_shelf_life_label";
+  static const String foodAddVariantLabel = "food_add_variant_label";
+  static const String foodAddMoreVariant = "food_add_more_variant";
+  static const String foodUploadProductImages = "food_upload_product_images";
+  static const String foodSelectedCategoryLabel = "food_selected_category_label";
+  static const String foodItemLabel = "food_item_label";
+  static const String foodKeyIngredientsLabel = "food_key_ingredients_label";
+  static const String foodUploadBulkProduct = "food_upload_bulk_product";
+  static const String foodRestaurantSpecial = "food_restaurant_special";
+  static const String foodCreateRestaurantSpecial = "food_create_restaurant_special";
+  static const String foodCreateManually = "food_create_manually";
+  static const String foodUpdateContact = "food_update_contact";
+  static const String foodContactUsLabel = "food_contact_us_label";
+  static const String foodHintBranchName = "food_hint_branch_name";
+  static const String foodBranchNameLabel = "food_branch_name_label";
+  static const String foodHintWebsite = "food_hint_website";
+  static const String foodWebsiteUrlLabel = "food_website_url_label";
+  static const String foodHintDepartment = "food_hint_department";
+  static const String foodDepartmentRoleLabel = "food_department_role_label";
+  static const String foodCreateFoodItemViaAi = "food_create_food_item_via_ai";
+  static const String foodUploadImagesLabel = "food_upload_images_label";
+  static const String foodTapToChange = "food_tap_to_change";
+  static const String foodInstructionLabel = "food_instruction_label";
+  static const String foodInstruction1 = "food_instruction_1";
+  static const String foodInstruction2 = "food_instruction_2";
+  static const String foodInstruction3 = "food_instruction_3";
+  static const String foodInstruction4 = "food_instruction_4";
+  static const String foodFoodNameLabel = "food_food_name_label";
+  static const String foodHintFoodName = "food_hint_food_name";
+  static const String foodFoodCategoryLabel = "food_food_category_label";
+  static const String foodFoodTypeLabel = "food_food_type_label";
+  static const String foodCookingMethodLabel = "food_cooking_method_label";
+  static const String foodPleaseUploadFoodImage = "food_please_upload_food_image";
+  static const String foodPleaseSelectSubCategory = "food_please_select_sub_category";
+  static const String foodPleaseSelectCookingMethod = "food_please_select_cooking_method";
+  static const String foodChooseCategoryLabel = "food_choose_category_label";
+  static const String foodSelectCategoryLabel = "food_select_category_label";
+  static const String foodMissingItemsLabel = "food_missing_items_label";
+  static const String foodNoMissingProducts = "food_no_missing_products";
+  static const String foodMissingItemsName = "food_missing_items_name";
+  static const String foodAddStockLabel = "food_add_stock_label";
+  static const String foodFoodItemsLabel = "food_food_items_label";
+  static const String foodUploadPictureMenu = "food_upload_picture_menu";
+  static const String foodSnapNoProductsFound = "food_snap_no_products_found";
+  static const String foodRetryLabel = "food_retry_label";
+  static const String foodSearchManuallyLabel = "food_search_manually_label";
+  static const String foodItemsFoundLabel = "food_items_found_label";
+  static const String foodItemsMissingLabel = "food_items_missing_label";
+  static const String foodProductsSelectedSuffix = "food_products_selected_suffix";
+  static const String foodTotalVariantsReady = "food_total_variants_ready";
+  static const String foodReadyToPublish = "food_ready_to_publish";
+  static const String foodPublishAll = "food_publish_all";
+  static const String foodAddProductLabel = "food_add_product_label";
+  static const String foodFetchDataFailed = "food_fetch_data_failed";
+  static const String foodSelectVariantsLabel = "food_select_variants_label";
+  static const String foodNoDescriptionAvailable = "food_no_description_available";
+  static const String foodAddOwnFoodItems = "food_add_own_food_items";
+  static const String foodOfferDishDiscount = "food_offer_dish_discount";
+  static const String foodNoDiscountProducts = "food_no_discount_products";
+  static const String foodReviewsSample = "food_reviews_sample";
+  static const String foodMoreVariant = "food_more_variant";
+  static const String foodVariantSingular = "food_variant_singular";
+  static const String foodNoProductFound = "food_no_product_found";
+  static const String foodVariantsLabel = "food_variants_label";
+  static const String foodCartWarningMessage = "food_cart_warning_message";
+  static const String foodSkipLabel = "food_skip_label";
+  static const String foodPlaceOrderLabel = "food_place_order_label";
+  static const String foodAddPhotoLabel = "food_add_photo_label";
+  static const String foodNoPhotosPosted = "food_no_photos_posted";
+  static const String foodYourSpecialDish = "food_your_special_dish";
+  static const String foodNoSpecialDishAdded = "food_no_special_dish_added";
+  static const String foodAddSpecialDishLabel = "food_add_special_dish_label";
+  static const String foodOurMenuLabel = "food_our_menu_label";
+  static const String foodNoProductCreate = "food_no_product_create";
+  static const String foodRestaurantNearMe = "food_restaurant_near_me";
+  static const String foodNoRestaurantsNearby = "food_no_restaurants_nearby";
+  static const String foodOrdersLabel = "food_orders_label";
+  static const String foodVegRestaurantLabel = "food_veg_restaurant_label";
+  static const String foodCategoryLabel = "food_category_label";
+  static const String foodProductLabel = "food_product_label";
+  static const String foodSearchHint = "food_search_hint";
+  static const String foodWhatsOnYourMind = "food_whats_on_your_mind";
+  static const String foodKnownAndLoved = "food_known_and_loved";
+  static const String foodAllRestaurantsLabel = "food_all_restaurants_label";
+  static const String foodPureVegLabel = "food_pure_veg_label";
+  static const String foodUnder30Min = "food_under_30_min";
+  static const String foodRating4Plus = "food_rating_4_plus";
+  static const String foodSelfPickupLabel = "food_self_pickup_label";
+  static const String foodNoItemsInPickup = "food_no_items_in_pickup";
+  static const String foodItemSingular = "food_item_singular";
+  static const String foodItemPlural = "food_item_plural";
+  static const String foodShopSingular = "food_shop_singular";
+  static const String foodShopPlural = "food_shop_plural";
+  static const String foodProductSingular = "food_product_singular";
+  static const String foodProductPlural = "food_product_plural";
+  static const String foodManageProducts = "food_manage_products";
+  static const String foodMenuLabel = "food_menu_label";
+  static const String foodThisShopLabel = "food_this_shop_label";
+  static const String foodImageViewerLabel = "food_image_viewer_label";
+  static const String foodUpdateVariantLabel = "food_update_variant_label";
+  static const String foodHintHalfPlate = "food_hint_half_plate";
+  static const String foodVariantNameLabel = "food_variant_name_label";
+  static const String foodHint100GM = "food_hint_100gm";
+  static const String foodQuantityLabel = "food_quantity_label";
+  static const String foodHint200 = "food_hint_200";
+  static const String foodMrpLabel = "food_mrp_label";
+  static const String foodHint180 = "food_hint_180";
+  static const String foodSellingPriceLabel = "food_selling_price_label";
+  static const String foodAddedLabel = "food_added_label";
+  static const String foodAddBtnLabel = "food_add_btn_label";
+  static const String foodHintRupees = "food_hint_rupees";
+  static const String foodAllVariantLabel = "food_all_variant_label";
+  static const String foodAllVariantsLabel = "food_all_variants_label";
+  static const String foodViewCartLabel = "food_view_cart_label";
+  static const String foodConfirmDeleteImage = "food_confirm_delete_image";
+  static const String foodServicePhotosLabel = "food_service_photos_label";
+  static const String foodUploadServicePhoto = "food_upload_service_photo";
+  static const String foodImagesLabel = "food_images_label";
+  static const String foodLastUpdatePrefix = "food_last_update_prefix";
+  static const String foodHintDessertCategory = "food_hint_dessert_category";
+  static const String foodUploadImagesMinMax = "food_upload_images_min_max";
+  static const String foodErrorSelectCategory = "food_error_select_category";
+  static const String foodErrorUploadAtLeastImage = "food_error_upload_at_least_image";
+
+  /// Hospital Controllers — snackbar / dialog messages
+  static const String hospitalCtrlServiceCreatedSuccess = "hospital_ctrl_service_created_success";
+  static const String hospitalCtrlAddedSuccessfully = "hospital_ctrl_added_successfully";
+  static const String hospitalCtrlPhotoLimitReached = "hospital_ctrl_photo_limit_reached";
+  static const String hospitalCtrlUploadSuccessfully = "hospital_ctrl_upload_successfully";
+  static const String hospitalCtrlOpdDoctorAdded = "hospital_ctrl_opd_doctor_added";
+  static const String hospitalCtrlOpdDoctorUpdated = "hospital_ctrl_opd_doctor_updated";
+  static const String hospitalCtrlDeleted = "hospital_ctrl_deleted";
+  static const String hospitalCtrlAllFieldsRequiredValid = "hospital_ctrl_all_fields_required_valid";
+  static const String hospitalCtrlSavedSuccessfully = "hospital_ctrl_saved_successfully";
+  static const String hospitalCtrlUpdatedSuccessfully = "hospital_ctrl_updated_successfully";
+  static const String hospitalCtrlSaved = "hospital_ctrl_saved";
+  static const String hospitalCtrlUpdated = "hospital_ctrl_updated";
+  static const String hospitalCtrlImageUploadFailed = "hospital_ctrl_image_upload_failed";
+  static const String hospitalCtrlIpdAddedSuccessfully = "hospital_ctrl_ipd_added_successfully";
+  static const String hospitalCtrlIpdUpdatedSuccessfully = "hospital_ctrl_ipd_updated_successfully";
+  static const String hospitalCtrlSelectValidLocation = "hospital_ctrl_select_valid_location";
+  static const String hospitalCtrlBranchAddedSuccessfully = "hospital_ctrl_branch_added_successfully";
+  static const String hospitalCtrlVisionMissionRequired = "hospital_ctrl_vision_mission_required";
+  static const String hospitalCtrlMaxLengthChars = "hospital_ctrl_max_length_chars";
+  static const String hospitalCtrlMemberAdded = "hospital_ctrl_member_added";
+  static const String hospitalCtrlMemberUpdated = "hospital_ctrl_member_updated";
+  static const String hospitalCtrlMemberDeleted = "hospital_ctrl_member_deleted";
+  static const String hospitalCtrlDepartmentCreated = "hospital_ctrl_department_created";
+  static const String hospitalCtrlDepartmentUpdated = "hospital_ctrl_department_updated";
+  static const String hospitalCtrlDepartmentDeleted = "hospital_ctrl_department_deleted";
+
+  /// Hospital Views — UI strings
+  static const String hospitalViewEmergencyCasualty = "hospital_view_emergency_casualty";
+  static const String hospitalViewTraumaCare = "hospital_view_trauma_care";
+  static const String hospitalViewIcu = "hospital_view_icu";
+  static const String hospitalViewCcu = "hospital_view_ccu";
+  static const String hospitalViewNicu = "hospital_view_nicu";
+  static const String hospitalViewPicu = "hospital_view_picu";
+  static const String hospitalViewAmbulance = "hospital_view_ambulance";
+  static const String hospitalViewBloodBank = "hospital_view_blood_bank";
+  static const String hospitalViewDiagnosticDepartments = "hospital_view_diagnostic_departments";
+  static const String hospitalViewPmSwasthyaBimaYojana = "hospital_view_pm_swasthya_bima_yojana";
+  static const String hospitalViewAddFacilities = "hospital_view_add_facilities";
+  static const String hospitalViewViewLess = "hospital_view_view_less";
+  static const String hospitalViewViewMoreCount = "hospital_view_view_more_count";
+  static const String hospitalViewEmergencyCriticalCare = "hospital_view_emergency_critical_care";
+  static const String hospitalViewDeleteImageConfirm = "hospital_view_delete_image_confirm";
+  static const String hospitalViewAddPhotos = "hospital_view_add_photos";
+  static const String hospitalViewEgRooms = "hospital_view_eg_rooms";
+  static const String hospitalViewEducationOptional = "hospital_view_education_optional";
+  static const String hospitalViewPositionHint = "hospital_view_position_hint";
+  static const String hospitalViewTimingHint = "hospital_view_timing_hint";
+  static const String hospitalViewCashLessInsurance = "hospital_view_cash_less_insurance";
+  static const String hospitalViewEgInsurance = "hospital_view_eg_insurance";
+  static const String hospitalViewAddOpdDoctors = "hospital_view_add_opd_doctors";
+  static const String hospitalViewAddIpdWards = "hospital_view_add_ipd_wards";
+  static const String hospitalViewAddManagement = "hospital_view_add_management";
+  static const String hospitalViewFaqQ1 = "hospital_view_faq_q1";
+  static const String hospitalViewFaqA1 = "hospital_view_faq_a1";
+  static const String hospitalViewFaqQ2 = "hospital_view_faq_q2";
+  static const String hospitalViewFaqA2 = "hospital_view_faq_a2";
+  static const String hospitalViewFaqQ3 = "hospital_view_faq_q3";
+  static const String hospitalViewFaqA3 = "hospital_view_faq_a3";
+  static const String hospitalViewFaqQ4 = "hospital_view_faq_q4";
+  static const String hospitalViewFaqA4 = "hospital_view_faq_a4";
+  static const String hospitalViewFaqQ5 = "hospital_view_faq_q5";
+  static const String hospitalViewFaqA5 = "hospital_view_faq_a5";
+  static const String hospitalViewFaqQ6 = "hospital_view_faq_q6";
+  static const String hospitalViewFaqA6 = "hospital_view_faq_a6";
+  static const String hospitalViewFaqQ7 = "hospital_view_faq_q7";
+  static const String hospitalViewFaqA7 = "hospital_view_faq_a7";
+  static const String hospitalViewFaqQ8 = "hospital_view_faq_q8";
+  static const String hospitalViewFaqA8 = "hospital_view_faq_a8";
+
+  /// Add Symbol Screen
+  static const String createSymbol = "createSymbol";
+  static const String postSymbolBtn = "postSymbolBtn";
+  static const String captionLabel = "captionLabel";
+  static const String writeSymbolHint = "writeSymbolHint";
+  static const String photoSymbol = "photoSymbol";
+  static const String videoSymbol = "videoSymbol";
+  static const String textSymbol = "textSymbol";
+  static const String linkSymbol = "linkSymbol";
+
+  /// Add Symbol — Card / Upload / Caption / Options
+  static const String designYourCard = "designYourCard";
+  static const String typeYourMessageHere = "typeYourMessageHere";
+  static const String backgroundLabel = "backgroundLabel";
+  static const String fontStyleLabel = "fontStyleLabel";
+  static const String sizeLabel = "sizeLabel";
+  static const String weightLabel = "weightLabel";
+  static const String tagFriends = "tagFriends";
+  static const String whatWouldYouLikeToShare = "whatWouldYouLikeToShare";
+  static const String chooseSymbolType = "chooseSymbolType";
+  static const String textLabel = "textLabel";
+  static const String linkLabel = "linkLabel";
+  static const String upToFourImages = "upToFourImages";
+  static const String recordOrPick = "recordOrPick";
+  static const String shareThoughts = "shareThoughts";
+  static const String shareAUrl = "shareAUrl";
+  static const String selectedPhotos = "selectedPhotos";
+  static const String selectedVideo = "selectedVideo";
+  static const String photosUnit = "photosUnit";
+  static const String oneVideoSelected = "oneVideoSelected";
+  static const String addMoreLabel = "addMore";
+  static const String tapToPreview = "tapToPreview";
+  static const String videoBadge = "videoBadge";
+  static const String durationLabel = "duration";
+  static const String dayUnit = "dayUnit";
+  static const String daysUnit = "daysUnit";
+  static const String privacyLabel = "privacyLabel";
+  static const String publicLabel = "publicLabel";
+  static const String privateLabel = "privateLabel";
+  static const String customLabel = "customLabel";
+  static const String chooseLabel = "chooseLabel";
+  static const String contactExcluded = "contactExcluded";
+  static const String contactsExcluded = "contactsExcluded";
+
+  ///LOCATION SERVICE
+  static const String addressNotFound = "addressNotFound";
+  static const String locationPermissionRequired = "locationPermissionRequired";
+  static const String locationPermissionStoreMessage =
+      "locationPermissionStoreMessage";
+  static const String grantPermission = "grantPermission";
+
+  ///MOBILE NUMBER / LOGIN SCREEN
+  static const String loginSignup = "loginSignup";
+  static const String getOtp = "getOtp";
+  static const String byContinuingYouAgree = "byContinuingYouAgree";
+  static const String andText = "andText";
+  static const String privacyPolicyDot = "privacyPolicyDot";
+
+  ///OTP PAGE SCREEN
+  static const String mobileNumberNotAvailable = "mobileNumberNotAvailable";
+  static const String exitConfirmation = "exitConfirmation";
+  static const String enterOtpTitle = "enterOtpTitle";
+  static const String pleaseEnterValidOtp = "pleaseEnterValidOtp";
+  static const String didntGetOtpCode = "didntGetOtpCode";
+  static const String resendCode = "resendCode";
+
+  ///GST VERIFICATION SCREEN
+  static const String doYouHaveGstNumber = "doYouHaveGstNumber";
+  static const String gstVerifiedHint = "gstVerifiedHint";
+  static const String yesIHave = "yesIHave";
+  static const String noIDont = "noIDont";
+  static const String enterEmailLinkedToGst = "enterEmailLinkedToGst";
+  static const String enterEmailLabel = "enterEmailLabel";
+  static const String enterGstNumberLabel = "enterGstNumberLabel";
+  static const String pleaseEnterGstNumber = "pleaseEnterGstNumber";
+  static const String pleaseEnterValidGstNumber = "pleaseEnterValidGstNumber";
+  static const String enterGstUsername = "enterGstUsername";
+  static const String gstUsername = "gstUsername";
+  static const String pleaseEnterGstUsername = "pleaseEnterGstUsername";
+  static const String otpRequestFailed = "otpRequestFailed";
+  static const String otpVerificationFailed = "otpVerificationFailed";
+  static const String generatingOtpDots = "generatingOtpDots";
+  static const String verifyingDots = "verifyingDots";
+  static const String verifyOtp = "verifyOtp";
+  static const String generateOtp = "generateOtp";
+  static const String tradeNameLabel = "tradeNameLabel";
+
+  ///CHOOSE ACCOUNT TYPE SCREEN
+  static const String pleaseChooseAccountType = "pleaseChooseAccountType";
+  static const String professionalAccount = "professionalAccount";
+  static const String personalAccount = "personalAccount";
+  static const String shopStoreServices = "shopStoreServices";
+  static const String selfEmployeeConsultant = "selfEmployeeConsultant";
+  static const String chipFood = "chipFood";
+  static const String chipHealthCare = "chipHealthCare";
+  static const String chipAutomotive = "chipAutomotive";
+  static const String chipHotel = "chipHotel";
+  static const String chipRestaurant = "chipRestaurant";
+  static const String chipFinance = "chipFinance";
+  static const String chipMore = "chipMore";
+  static const String chipDriver = "chipDriver";
+  static const String chipAdvocate = "chipAdvocate";
+  static const String chipTeacher = "chipTeacher";
+  static const String chipConsultant = "chipConsultant";
+  static const String chipRenovator = "chipRenovator";
+  static const String chipStudents = "chipStudents";
+  static const String chipGovtPvtEmployee = "chipGovtPvtEmployee";
+
+  ///GUEST DASHBOARD SCREEN
+  static const String guestUserTitle = "guestUserTitle";
+  static const String guestCreateAccountMessage = "guestCreateAccountMessage";
+  static const String createProfile = "createProfile";
+
+
 }

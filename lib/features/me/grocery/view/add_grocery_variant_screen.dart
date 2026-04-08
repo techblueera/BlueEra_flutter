@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -51,7 +52,10 @@ class _AddGroceryVariantScreenState extends State<AddGroceryVariantScreen> {
               isValidate: canSubmit,
               radius: SizeConfig.size8,
               bgColor: canSubmit ? AppColors.primaryColor : Colors.grey,
-              title: 'Publish $productCount Products, $variantCount Variants',
+              title: AppStrings.groceryViewPublishProductsVariants.trParams({
+                'productCount': '$productCount',
+                'variantCount': '$variantCount',
+              }),
               isLoading: isLoading,
             );
           }),
@@ -206,7 +210,7 @@ class _AddGroceryVariantScreenState extends State<AddGroceryVariantScreen> {
                                     onTap: () {
                                       controller.openEditVariantDialog(
                                         context: context,
-                                        title: groceryItem.name ?? 'Edit Variant',
+                                        title: groceryItem.name ?? AppStrings.groceryViewEditVariant.tr,
                                         variant: v,
                                       );
                                     },
@@ -248,7 +252,7 @@ class _AddGroceryVariantScreenState extends State<AddGroceryVariantScreen> {
                 ),
                 SizedBox(width: 6),
                 CustomText(
-                  "Add More Varient",
+                  AppStrings.groceryViewAddMoreVariant.tr,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
                   fontSize: SizeConfig.small,

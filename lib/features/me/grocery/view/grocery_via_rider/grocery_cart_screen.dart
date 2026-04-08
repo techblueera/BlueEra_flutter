@@ -43,7 +43,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
       body: Obx((){
         // If cart is empty, show a message (Optional)
         if (controller.selectedGroceriesVariants.isEmpty) {
-          return Center(child: CustomText("Your cart is empty", color: AppColors.secondaryTextColor));
+          return Center(child: CustomText(AppStrings.groceryViewYourCartEmpty.tr, color: AppColors.secondaryTextColor));
         }
 
         return  SingleChildScrollView(
@@ -59,7 +59,10 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedGroceriesVariants.length} Products',
+                        AppStrings.groceryViewCartSummary.trParams({
+                          'total': controller.totalSellingPrice.toStringAsFixed(2),
+                          'count': '${controller.selectedGroceriesVariants.length}',
+                        }),
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryTextColor,
@@ -107,7 +110,7 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                             width: SizeConfig.size100,
                             title: controller.isAddGroceryOrderLoading.value
                                 ? null
-                                : 'Buy Now',
+                                : AppStrings.groceryViewBuyNow.tr,
                             bgColor: AppColors.primaryColor,
                             isLoading: controller.isAddGroceryOrderLoading.value,
                           )

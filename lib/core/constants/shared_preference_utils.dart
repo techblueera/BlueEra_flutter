@@ -110,6 +110,7 @@ class SharedPreferenceUtils {
   static const hospitalIDKey = 'hospitalIDKey';
   static const otherServiceIDKey = 'otherServiceIDKey';
   static const productBusinessProfileIDIDKey = 'productBusinessProfileIDIDKey';
+  static const hasSelectedLanguage = 'hasSelectedLanguage';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,

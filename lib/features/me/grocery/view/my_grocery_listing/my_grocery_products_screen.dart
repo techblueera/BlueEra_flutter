@@ -95,10 +95,10 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
                 searchController.clear();
                 // controller.fetchGroceryProducts();
               },
-              hintText: "Search products...",
+              hintText: AppStrings.groceryViewSearchProductsHint.tr,
             )
                 : CustomText(
-              controller.selectedGroceryData.value?.name ?? "Products",
+              controller.selectedGroceryData.value?.name ?? AppStrings.groceryViewProductsTitle.tr,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -230,8 +230,7 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
             : Padding(
           padding: EdgeInsets.all(SizeConfig.size20),
           child: EmptyStateWidget(
-              message:
-              'No ${controller.currentTabName.tr} found.')
+              message: AppStrings.groceryViewNoXFound.trParams({'name': controller.currentTabName.tr}))
       ),
     ));
   }
@@ -401,7 +400,7 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
                     CustomBtn(
                       height: SizeConfig.size36,
                       onTap: () => controller.toggleSelection(groceryProductData),
-                      title: isSelected ? 'Added' : 'Add',
+                      title: isSelected ? AppStrings.groceryViewAdded.tr : AppStrings.groceryViewAdd.tr,
                       textColor: isSelected ? AppColors.white : AppColors.primaryColor,
                       bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
                       radius: 6.0,

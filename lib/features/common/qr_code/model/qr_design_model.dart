@@ -69,10 +69,30 @@ class QrDesignModel {
   });
 
   static List<QrDesignModel> get designs => [
+    // ─── Classic black & white captioned ───
+    const QrDesignModel(
+      id: 'qr_connects_bw',
+      name: 'BE Connects',
+      shape: QrDesignShape.captionedCard,
+      backgroundColor: Colors.white,
+      qrColor: Colors.black,
+      borderColor: Colors.black,
+      borderWidth: 2.5,
+      showLabel: false,
+      showBranding: true,
+      headerTitle: 'BE Connects',
+      headerSubtitle: 'A smarter way to reach the vehicle Owner',
+      captionText: 'Parking or emergency? Scan here.',
+      featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
+      footerTagline: 'Start using your phone camera or any QR app',
+      accentColor: Colors.black,
+      headlineColor: Colors.black,
+      captionColor: Color(0xFF333333),
+    ),
         // ─── Featured: Bright yellow captioned card (matches mock) ───
         const QrDesignModel(
           id: 'qr_connects_yellow',
-          name: 'QR Connects',
+          name: 'BE Connects',
           shape: QrDesignShape.captionedCard,
           backgroundColor: Color(0xFFFFD400),
           qrColor: Color(0xFF1A1A2E),
@@ -80,7 +100,7 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'QR Connects',
+          headerTitle: 'BE Connects',
           headerSubtitle: 'A smarter way to reach the vehicle Owner',
           captionText: 'Parking or emergency? Scan here.',
           featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
@@ -94,7 +114,7 @@ class QrDesignModel {
         // ─── Insta-style colorful gradient captioned card ───
         QrDesignModel(
           id: 'qr_connects_insta',
-          name: 'Insta Vibes',
+          name: 'BE Connects',
           shape: QrDesignShape.captionedCard,
           backgroundColor: const Color(0xFFFEDA77),
           qrColor: const Color(0xFF1A1A2E),
@@ -102,7 +122,7 @@ class QrDesignModel {
           borderWidth: 3.0,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'BlueEra Connect',
+          headerTitle: 'BE Connect',
           headerSubtitle: 'Reach the owner in one tap',
           captionText: 'Scan to call or chat instantly',
           featureChips: const ['Call', 'Chat', 'Locate'],
@@ -127,7 +147,7 @@ class QrDesignModel {
         // ─── Mint captioned ───
         const QrDesignModel(
           id: 'qr_connects_mint',
-          name: 'Fresh Mint',
+          name: 'BE Connects',
           shape: QrDesignShape.captionedCard,
           backgroundColor: Color(0xFFB8F2D6),
           qrColor: Color(0xFF0F3D2E),
@@ -135,7 +155,7 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'QR Connects',
+          headerTitle: 'BE Connects',
           headerSubtitle: 'A smarter way to reach the vehicle Owner',
           captionText: 'Parking or emergency? Scan here.',
           featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
@@ -148,7 +168,7 @@ class QrDesignModel {
         // ─── Coral captioned ───
         const QrDesignModel(
           id: 'qr_connects_coral',
-          name: 'Sunset Coral',
+          name: 'BE Connects',
           shape: QrDesignShape.captionedCard,
           backgroundColor: Color(0xFFFFB5A7),
           qrColor: Color(0xFF3D1F1F),
@@ -156,7 +176,7 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'QR Connects',
+          headerTitle: 'BE Connects',
           headerSubtitle: 'Reach the owner in one tap',
           captionText: 'Need help? Just scan & connect.',
           featureChips: ['Parking', 'Emergency', 'Tow alert'],
@@ -166,10 +186,12 @@ class QrDesignModel {
           captionColor: Color(0xFF5A2A2A),
         ),
 
+
+
         // ─── Sky blue captioned ───
         const QrDesignModel(
           id: 'qr_connects_sky',
-          name: 'Sky Blue',
+          name: 'BE Connects',
           shape: QrDesignShape.captionedCard,
           backgroundColor: Color(0xFFB3E5FC),
           qrColor: Color(0xFF0D2A4D),
@@ -177,7 +199,7 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'QR Connects',
+          headerTitle: 'BE Connects',
           headerSubtitle: 'Smart way to reach vehicle owner',
           captionText: 'Parking or emergency? Scan here.',
           featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],

@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
@@ -34,7 +35,7 @@ void addOrVariantBottomSheet({
               Row(
                 children: [
                   CustomText(
-                      editingIndex != null ? "Update Variant" : "Add Variant",
+                      editingIndex != null ? AppStrings.foodUpdateVariantLabel.tr : AppStrings.foodAddVariantLabel.tr,
                       fontWeight: FontWeight.bold,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor
@@ -49,30 +50,30 @@ void addOrVariantBottomSheet({
               const SizedBox(height: 8),
               CommonTextField(
                 textEditController: vc.nameController,
-                hintText: "E.g. Half Plate",
-                title: "Variant Name",
+                hintText: AppStrings.foodHintHalfPlate.tr,
+                title: AppStrings.foodVariantNameLabel.tr,
                 onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: vc.quantityController,
-                hintText: "E.g. 100GM",
-                title: "Quantity",
+                hintText: AppStrings.foodHint100GM.tr,
+                title: AppStrings.foodQuantityLabel.tr,
                 onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: vc.mrpController,
-                hintText: "E.g. 200",
-                title: "MRP",
+                hintText: AppStrings.foodHint200.tr,
+                title: AppStrings.foodMrpLabel.tr,
                 keyBoardType: TextInputType.number,
                 onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: vc.priceController,
-                hintText: "E.g. 180",
-                title: "Selling Price",
+                hintText: AppStrings.foodHint180.tr,
+                title: AppStrings.foodSellingPriceLabel.tr,
                 keyBoardType: TextInputType.number,
                 onChange: (val) => vc.validate(),
               ),
@@ -110,7 +111,7 @@ void addOrVariantBottomSheet({
 
                   }
                       : null,
-                  title: (editingIndex!=null) ? "Update" : "Submit",
+                  title: (editingIndex!=null) ? AppStrings.update.tr : AppStrings.submit.tr,
                 )),
               ),
               SizedBox(height: MediaQuery.of(Get.context!).viewInsets.bottom + 20),

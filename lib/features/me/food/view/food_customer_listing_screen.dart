@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -214,8 +215,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
                 : Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(
-                    message:
-                    'No Product found.'
+                    message: AppStrings.foodNoProductFound.tr
                 )
             ),
           )),
@@ -278,7 +278,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
 
               // Variants
               CustomText(
-                "${product.variants?.length ?? 0} Variants",
+                "${product.variants?.length ?? 0} ${AppStrings.foodVariantsLabel.tr}",
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.bold,
               ),

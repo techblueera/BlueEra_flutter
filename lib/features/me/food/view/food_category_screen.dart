@@ -55,7 +55,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                          'Upload Bulk Product',
+                          AppStrings.foodUploadBulkProduct.tr,
                           fontSize: SizeConfig.large,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600
@@ -224,7 +224,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                          'Restaurant Special',
+                          AppStrings.foodRestaurantSpecial.tr,
                           fontSize: SizeConfig.large,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600
@@ -275,7 +275,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                                         ),
                                         SizedBox(width: SizeConfig.paddingXSL),
                                         CustomText(
-                                            'create Your Restaurant Special Items',
+                                            AppStrings.foodCreateRestaurantSpecial.tr,
                                             fontSize: SizeConfig.small,
                                             color: AppColors.secondaryTextColor,
                                             fontWeight: FontWeight.w400
@@ -297,7 +297,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
 
               CustomBtn(
                   onTap: (){},
-                  title: 'Create Food Manually ',
+                  title: AppStrings.foodCreateManually.tr,
                   borderColor: AppColors.primaryColor,
                   bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
                   textColor: AppColors.primaryColor,

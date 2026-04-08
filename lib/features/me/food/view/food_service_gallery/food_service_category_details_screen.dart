@@ -46,7 +46,7 @@ class FoodServiceCategoryDetailsScreen extends StatelessWidget {
                       context,
                       ImageViewScreen(
                         subTitle: categoryData.title,
-                        appBarTitle: AppStrings.imageViewer,
+                        appBarTitle: AppStrings.imageViewer.tr,
                         imageUrls: images,
                         initialIndex: index,
                       ),
@@ -71,7 +71,7 @@ class FoodServiceCategoryDetailsScreen extends StatelessWidget {
                     onTap: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this image?',
+                          text: AppStrings.foodConfirmDeleteImage.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteOtherServiceController(

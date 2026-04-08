@@ -54,7 +54,7 @@ class PopupMenuBuilders {
     const titleMap = {
       PostCreationMenu.message: AppStrings.lekha,
       PostCreationMenu.poll: AppStrings.poll,
-      PostCreationMenu.symbol: "Symbol",
+      PostCreationMenu.symbol: AppStrings.symbol,
       // PostCreationMenu.photos: AppStrings.symbol,
       PostCreationMenu.jobPost: AppStrings.jobPost,
       // PostCreationMenu.travel: AppStrings.travel,

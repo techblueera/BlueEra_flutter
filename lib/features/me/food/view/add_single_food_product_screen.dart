@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
@@ -44,7 +45,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Add Product",
+        title: AppStrings.foodAddProductLabel.tr,
       ),
       bottomNavigationBar: Obx((){
         if(vc.getSingleFoodProductResponse.value.status == Status.COMPLETE){
@@ -63,7 +64,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
           if(vc.getSingleFoodProductResponse.value.status == Status.ERROR){
             return Center(
               child: CustomText(
-                'Something went wrong. unable to fetch data'
+                AppStrings.foodFetchDataFailed.tr
               ),
             );
           }
@@ -73,7 +74,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
           if(liveProduct == null)
             return Center(
             child: CustomText(
-                'Something went wrong. unable to fetch data'
+                AppStrings.foodFetchDataFailed.tr
             ),
           );;
 
@@ -91,7 +92,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
                   const SizedBox(height: 15),
                   const Divider(),
                   const SizedBox(height: 10),
-                  CustomText("Select Variants", fontSize: 16, fontWeight: FontWeight.bold),
+                  CustomText(AppStrings.foodSelectVariantsLabel.tr, fontSize: 16, fontWeight: FontWeight.bold),
                   const SizedBox(height: 15),
                   _buildVariantList(liveProduct),
                   _buildAddVariantButton(liveProduct),
@@ -130,7 +131,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
               CustomText(liveProduct.name, fontSize: 16, fontWeight: FontWeight.bold),
               const SizedBox(height: 5),
               ExpandableText(
-                text: liveProduct.description ?? "No description available",
+                text: liveProduct.description ?? AppStrings.foodNoDescriptionAvailable.tr,
                 trimLines: 2,
                 style: TextStyle(color: AppColors.secondaryTextColor, fontSize: 13),
               ),
@@ -322,7 +323,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Icon(Icons.add, color: AppColors.primaryColor),
-          CustomText("Add More Variant", color: AppColors.primaryColor),
+          CustomText(AppStrings.foodAddMoreVariant.tr, color: AppColors.primaryColor),
         ],
       ),
     );

@@ -120,7 +120,7 @@ class HospitalOpdController extends GetxController {
         if (res.isSuccess) {
           final created = OpdDoctor.fromJson(res.response?.data['data']);
           doctors.insert(0, created);
-          commonSnackBar(message: "OPD doctor added");
+          commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorAdded.tr);
           Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -131,7 +131,7 @@ class HospitalOpdController extends GetxController {
           final upd = OpdDoctor.fromJson(res.response?.data['data']);
           final idx = doctors.indexWhere((e) => e.id == editing!.id);
           if (idx != -1) doctors[idx] = upd;
-          commonSnackBar(message: "OPD doctor updated");
+          commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorUpdated.tr);
           Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -149,7 +149,7 @@ class HospitalOpdController extends GetxController {
       final ResponseModel res = await _repo.delete(id: d.id);
       if (res.isSuccess) {
         doctors.removeWhere((e) => e.id == d.id);
-        commonSnackBar(message: "Deleted");
+        commonSnackBar(message: AppStrings.hospitalCtrlDeleted.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

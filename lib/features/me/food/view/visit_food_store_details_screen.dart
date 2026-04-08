@@ -163,8 +163,8 @@ class _VisitFoodStoreDetailsScreenState
                             mainAxisAlignment:
                                 MainAxisAlignment.spaceBetween,
                             children: [
-                              const CustomText(
-                                'Offer Dish  (Discount)',
+                              CustomText(
+                                AppStrings.foodOfferDishDiscount.tr,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -206,8 +206,8 @@ class _VisitFoodStoreDetailsScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CustomText(
-                          'Live Photos',
+                        CustomText(
+                          AppStrings.livePhotos.tr,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -621,7 +621,7 @@ class _VisitFoodStoreDetailsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Menu',
+              CustomText(AppStrings.foodMenuLabel.tr,
                   fontSize: SizeConfig.large,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w600),
@@ -659,7 +659,7 @@ class _VisitFoodStoreDetailsScreenState
                     )
                   : EmptyStateWidget(
                       message:
-                          '${businessProfileDetails?.businessName ?? 'This shop'} hasn\'t listed any products yet.',
+                          '${businessProfileDetails?.businessName ?? AppStrings.foodThisShopLabel.tr} hasn\'t listed any products yet.',
                     ),
               SizedBox(height: SizeConfig.paddingXSL),
             ],
@@ -709,8 +709,8 @@ class _VisitFoodStoreDetailsScreenState
             onTap: () => navigatePushTo(
               context,
               ImageViewScreen(
-                subTitle: AppStrings.imageViewer,
-                appBarTitle: AppStrings.imageViewer,
+                subTitle: AppStrings.imageViewer.tr,
+                appBarTitle: AppStrings.imageViewer.tr,
                 imageUrls: allImages,
                 initialIndex: index,
               ),
