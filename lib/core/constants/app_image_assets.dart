@@ -78,6 +78,8 @@ class AppImageAssets {
   static const String professionalDiscover = '${imgPath}professional_discover.png';
   static const String shoppingDiscover = '${imgPath}shopping_discover.png';
   static const String servicesDiscover = '${imgPath}services_discover.png';
+  static const String subscriptionBgCard = '${imgPath}subscription_bg_card.png';
+  static const String planTagIcon = '${imgPath}plan_tag_icon.png';
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";

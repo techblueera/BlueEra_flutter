@@ -37,7 +37,7 @@ import '../../../personal/personal_profile/view/profile_settings_drawer.dart';
 import '../../../personal/personal_profile/view/profile_setup_new_screen.dart';
 import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
-import '../../../subscription/view/subscrption_new.dart';
+import '../../../subscription/view/single_plan_subscription_view.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../referral/view/referral_page.dart';
 import '../view/home_screen.dart';
@@ -69,10 +69,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       await viewProfileController.viewPersonalProfile();
     } else {
       viewBusinessProfileController.viewBusinessProfile();
-    }
-    if (userProfileTypeGlobal == SELF_EMPLOYED &&
-        earnServiceCreatedStatusGlobal == 'false') {
-      viewProfileController.partiallyForceToCreateService();
     }
   }
 
@@ -348,7 +344,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       MenuItemModel(
         title: AppStrings.contribution,
         // title: "Subscription",
-        onTap: () => Get.to(()=> SubscriptionScreenNew()),
+        onTap: () => Get.to(() => const SinglePlanSubscriptionView(isShowAppBar: true)),
       ),
       MenuItemModel(
         title: AppStrings.payment,

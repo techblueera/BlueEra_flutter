@@ -23,8 +23,13 @@ class SubscriptionPaymentHandler {
     Get.dialog(
       PromoCodeDialog(
         onBtnPressed: (refCode) async {
-          await subscriptionController.checkReferralApi(refCode);
-          if(subscriptionController.checkReferralResponse.value.status == Status.COMPLETE){
+          if(refCode.isNotEmpty){
+            await subscriptionController.checkReferralApi(refCode);
+            if(subscriptionController.checkReferralResponse.value.status == Status.COMPLETE){
+              Get.back();
+              processSubscription(refCode);
+            }
+          }else{
             Get.back();
             processSubscription(refCode);
           }

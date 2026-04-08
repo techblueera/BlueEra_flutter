@@ -120,161 +120,154 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) {
-            bottomBarController.onChangeIndex(0);
-          }
-        },
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          // Banner is dark and the sticky header bg is dark too, so keep
-          // status bar icons light (white) throughout this screen.
-            value: SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.dark,
-            ),
-            child: Scaffold(
-              backgroundColor: AppColors.appBackgroundColor,
-              body: SafeArea(
-                top: false,
-                child: NotificationListener<UserScrollNotification>(
-                  onNotification: (notification) {
-                    if(notification.metrics.axis == Axis.vertical){
-                      if (notification.direction == ScrollDirection.reverse) {
-                        widget.onHeaderVisibilityChanged?.call(false);
-                      } else if (notification.direction == ScrollDirection.forward) {
-                        widget.onHeaderVisibilityChanged?.call(true);
-                      }
-                    }
-                    return true;
-                  },
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      /// Banner covering full top: status bar + notch + icons overlay
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            /// Banner image — full width, covers status bar & notch
-                            DiscoverBannerSlider(
-                              parentScrollController: _scrollController,
-                              targetKey: _qrWidgetKey,
-                            ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Banner is dark and the sticky header bg is dark too, so keep
+      // status bar icons light (white) throughout this screen.
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: AppColors.appBackgroundColor,
+          body: SafeArea(
+            top: false,
+            child: NotificationListener<UserScrollNotification>(
+              onNotification: (notification) {
+                if(notification.metrics.axis == Axis.vertical){
+                  if (notification.direction == ScrollDirection.reverse) {
+                    widget.onHeaderVisibilityChanged?.call(false);
+                  } else if (notification.direction == ScrollDirection.forward) {
+                    widget.onHeaderVisibilityChanged?.call(true);
+                  }
+                }
+                return true;
+              },
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  /// Banner covering full top: status bar + notch + icons overlay
+                  SliverToBoxAdapter(
+                    child: Stack(
+                      children: [
+                        /// Banner image — full width, covers status bar & notch
+                        DiscoverBannerSlider(
+                          parentScrollController: _scrollController,
+                          targetKey: _qrWidgetKey,
+                        ),
 
-                            /// Overlay: location + cart on top of banner
-                            Positioned(
-                              top: statusBarHeight,
-                              left: SizeConfig.size12,
-                              right: SizeConfig.size12,
-                              child: Row(
-                                children: [
-                                  /// Location with rounded bg
-                                  Expanded(
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.black.withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.location_on_outlined,
-                                              color: AppColors.white, size: 20),
-                                          SizedBox(width: SizeConfig.size6),
-                                          Flexible(
-                                            child: CustomText(
-                                              [
-                                                LocationService.userCurrentAddress.value
-                                                    .subLocality,
-                                                LocationService
-                                                    .userCurrentAddress.value.city,
-                                              ].where((e) => e.isNotEmpty).join(', '),
-                                              fontSize: SizeConfig.medium,
-                                              color: AppColors.white,
-                                              fontWeight: FontWeight.w700,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Icon(Icons.keyboard_arrow_down,
-                                              color: AppColors.white, size: 18),
-                                        ],
-                                      ),
-                                    ),
+                        /// Overlay: location + cart on top of banner
+                        Positioned(
+                          top: statusBarHeight,
+                          left: SizeConfig.size12,
+                          right: SizeConfig.size12,
+                          child: Row(
+                            children: [
+                              /// Location with rounded bg
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.black.withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(24),
                                   ),
-
-                                  SizedBox(width: SizeConfig.size8),
-
-                                  /// Cart with rounded bg
-                                  _appBarAction(
-                                    icon: AppIconAssets.cartIcon,
-                                    onTap: () => Navigator.pushNamed(
-                                        context, RouteHelper.getYourCartScreenRoute()),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.location_on_outlined,
+                                          color: AppColors.white, size: 20),
+                                      SizedBox(width: SizeConfig.size6),
+                                      Flexible(
+                                        child: CustomText(
+                                          [
+                                            LocationService.userCurrentAddress.value
+                                                .subLocality,
+                                            LocationService
+                                                .userCurrentAddress.value.city,
+                                          ].where((e) => e.isNotEmpty).join(', '),
+                                          fontSize: SizeConfig.medium,
+                                          color: AppColors.white,
+                                          fontWeight: FontWeight.w700,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Icon(Icons.keyboard_arrow_down,
+                                          color: AppColors.white, size: 18),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      /// Search Bar + Tabs - sticky on scroll.
-                      /// Search bar collapses away on scroll, tabs stay pinned.
-                      SliverPersistentHeader(
-                        pinned: true,
-                        delegate: _StickySearchBarDelegate(
-                          topPadding: MediaQuery.of(context).padding.top,
-                          activeIndex: _activeTabIndex,
-                          onTabSelected: (i) {
-                            if (i == _activeTabIndex) return;
-                            setState(() => _activeTabIndex = i);
-                          },
-                        ),
-                      ),
+                              SizedBox(width: SizeConfig.size8),
 
-                      /// Sections filtered by the currently selected tab.
-                      ..._buildSectionSlivers(),
-
-                      /// Emergency QR + sticker options - only on Overview tab.
-                      if (_activeTabIndex == 0) ...[
-                        SliverToBoxAdapter(
-                          child: Builder(
-                            key: _qrWidgetKey,
-                            builder: (_) {
-                              return EmergencyQrWidget(key: ValueKey('emergency_qr'));
-                            },
+                              /// Cart with rounded bg
+                              _appBarAction(
+                                icon: AppIconAssets.cartIcon,
+                                onTap: () => Navigator.pushNamed(
+                                    context, RouteHelper.getYourCartScreenRoute()),
+                              ),
+                            ],
                           ),
                         ),
-                        SliverPadding(
-                          padding: EdgeInsets.only(bottom: 100),
-                          sliver: SliverToBoxAdapter(
-                            child: Obx(() {
-                              if (!emergencyController.hasEmergencyData.value) {
-                                return const SizedBox.shrink();
-                              }
-                              return Column(
-                                children: [
-                                  SizedBox(height: SizeConfig.size8),
-                                  QrDesignOptionsWidget(
-                                    userName: emergencyController.fullName.value,
-                                  ),
-                                ],
-                              );
-                            }),
-                          ),
-                        ),
-                      ] else
-                        SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+
+                  /// Search Bar + Tabs - sticky on scroll.
+                  /// Search bar collapses away on scroll, tabs stay pinned.
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _StickySearchBarDelegate(
+                      topPadding: MediaQuery.of(context).padding.top,
+                      activeIndex: _activeTabIndex,
+                      onTabSelected: (i) {
+                        if (i == _activeTabIndex) return;
+                        setState(() => _activeTabIndex = i);
+                      },
+                    ),
+                  ),
+
+                  /// Sections filtered by the currently selected tab.
+                  ..._buildSectionSlivers(),
+
+                  /// Emergency QR + sticker options - only on Overview tab.
+                  if (_activeTabIndex == 0) ...[
+                    SliverToBoxAdapter(
+                      child: Builder(
+                        key: _qrWidgetKey,
+                        builder: (_) {
+                          return EmergencyQrWidget(key: ValueKey('emergency_qr'));
+                        },
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: EdgeInsets.only(bottom: 100),
+                      sliver: SliverToBoxAdapter(
+                        child: Obx(() {
+                          if (!emergencyController.hasEmergencyData.value) {
+                            return const SizedBox.shrink();
+                          }
+                          return Column(
+                            children: [
+                              SizedBox(height: SizeConfig.size8),
+                              QrDesignOptionsWidget(
+                                userName: emergencyController.fullName.value,
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+                  ] else
+                    SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                ],
               ),
-            )));
+            ),
+          ),
+        ));
   }
 
   Widget _appBarAction({required String icon, required VoidCallback onTap}) {
