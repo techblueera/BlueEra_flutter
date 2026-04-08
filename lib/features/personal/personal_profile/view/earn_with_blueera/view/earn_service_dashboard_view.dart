@@ -95,14 +95,11 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
             AppConstants.OPEN.toUpperCase();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: _buildFAB(),
+      // floatingActionButton: _buildFAB(),
       body: SafeArea(
         child: NestedScrollView(
           controller: _nestedScrollController,
@@ -180,7 +177,25 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
               ),
               icon: LocalAssets(imagePath: AppIconAssets.clockIcon),
             ),
-            SizedBox(width: SizeConfig.paddingXSL),
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.paddingL
+              ),
+              child: InkWell(
+                onTap: ()=> Get.to(() => const EarnServiceSelectionScreen()),
+                child: Container(
+                  height: SizeConfig.size40,
+                  width: SizeConfig.size40,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(SizeConfig.size8),
+                      color: AppColors.primaryColor
+                  ),
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.all(6.0),
+                  child: LocalAssets(imagePath: AppIconAssets.add),
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -118,14 +118,6 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
                   onTap: () {
 
                     widget.onBtnPressed(promoCodeController.text.trim());
-                    // if (hasText) {
-                    //   // Logic for Submit
-                    //   print("Promo Code: ${promoCodeController.text}");
-                    //   widget.onBtnPressed(promoCodeController.text);
-                    // } else {
-                    //   // Logic for closing
-                    //   Navigator.pop(context);
-                    // }
                   },
                 );
               },

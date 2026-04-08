@@ -60,18 +60,25 @@ class BottomNavigationBarWidget extends StatelessWidget {
         top: false, // we only care about bottom
         child: Container(
           height: SizeConfig.size70, // adjust as needed
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.white,
-            border: Border(
-              top: BorderSide(color: AppColors.whiteDB, width: 1),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 4,
-                offset: Offset(0, -2),
-              ),
-            ],
+            // On the "Me" tab (index 2) the SubscriptionDraggableSheet sits on
+            // top of this bar and provides its own peek shadow, so we drop
+            // the border + shadow here to avoid a doubled line/shadow.
+            border: currentIndex == 2
+                ? null
+                : const Border(
+                    top: BorderSide(color: AppColors.whiteDB, width: 1),
+                  ),
+            boxShadow: currentIndex == 2
+                ? null
+                : const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, -2),
+                    ),
+                  ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,

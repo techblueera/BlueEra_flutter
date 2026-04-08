@@ -44,7 +44,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-        body: (userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == CAR_TAXI_DRIVER||userProfessionGlobal == DELIVERY_RIDER)
+        body: (userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == CAR_TAXI_DRIVER)
             ? Obx(() => deliveryPartnerController.isRiderStatusLoading.value
                 ? Center(
                     child: CircularProgressIndicator(),

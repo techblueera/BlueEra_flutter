@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -39,6 +40,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/subscription/view/subscription_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
@@ -342,6 +344,34 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                   );
                 }),
 
+                // Subscription peek sheet — visible only on the Me tab
+                // (index 2) and only after the user has chosen a profile
+                // type. Mounted here so every Me-tab screen gets it for
+                // free without per-screen wiring.
+                //
+                // IMPORTANT: this Stack child must always be a Positioned
+                // widget. Returning a non-positioned `SizedBox.shrink()`
+                // from the Obx would shrink the Stack to 0×0 and hide every
+                // other Positioned.fill child (screen content + nav bar).
+                //
+                // bottomPadding must match the *visible* height of the nav
+                // bar widget (SizeConfig.size70 + the bottom safe-area
+                // inset, since the nav uses SafeArea(top: false)). Using
+                // kBottomNavigationBarHeight here would push the peek into
+                // the nav row.
+                Obx(() {
+                  final navBarHeight = SizeConfig.size55 +
+                      MediaQuery.of(context).padding.bottom;
+                  return Positioned.fill(
+                    child: _shouldShowSubscriptionSheet(
+                            bottomBarController.currentIndex.value)
+                        ? SubscriptionDraggableSheet(
+                            bottomPadding: navBarHeight,
+                          )
+                        : const SizedBox.shrink(),
+                  );
+                }),
+
                 // Bottom Nav Animation using ValueListenableBuilder
                 Obx(() {
                   return Positioned(
@@ -403,15 +433,25 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         //   isHeaderVisible: isVisible,
         //   onHeaderVisibilityChanged: _toggleAppBar,
         // );
-        return DiscoverScreen(
-          isHeaderVisible: isVisible,
-          onHeaderVisibilityChanged: _toggleAppBar,
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) {
+              bottomBarController.onChangeIndex(0);
+            }
+          },
+          child: DiscoverScreen(
+            isHeaderVisible: isVisible,
+            onHeaderVisibilityChanged: _toggleAppBar,
+          ),
         );
       case 2:
-        return WillPopScope(
-            onWillPop: () async {
-              bottomBarController.onChangeIndex(0);
-              return false;
+        return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) {
+                bottomBarController.onChangeIndex(0);
+              }
             },
             child: meScreens());
 
@@ -430,6 +470,28 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (bottomBarVisibleNotifier.value != visible) {
       bottomBarVisibleNotifier.value = visible;
     }
+  }
+
+  /// Whether the subscription peek sheet should be shown on the current
+  /// Me-tab screen. Skipped for guests, business users with no business
+  /// type set, and the [PersonalProfileSetupNewScreen] fallback (no profile
+  /// picked yet) — none of those flows have anything to subscribe against.
+  bool _shouldShowSubscriptionSheet(int index) {
+    if (index != 2) return false;
+    if (isGuestUser()) return false;
+    if (isBusinessUser()) {
+      return businessTypeGlobal.isNotEmpty;
+    }
+    if (isIndividualUser()) {
+      const validTypes = {
+        SELF_EMPLOYED,
+        GIG_WORKER,
+        SOCIAL_PROFILE,
+        PROFESSIONAL,
+      };
+      return validTypes.contains(userProfileTypeGlobal);
+    }
+    return false;
   }
 
   Widget meScreens() {
@@ -540,6 +602,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
       case SOCIAL_PROFILE:
         return const SocialMainScreen();
+
 
       case PROFESSIONAL:
         return const ProfessionalsMainScreen();

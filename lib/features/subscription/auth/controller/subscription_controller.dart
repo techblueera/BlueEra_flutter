@@ -107,8 +107,8 @@ class SubscriptionController extends GetxController {
   Rx<SubscriptionPlanDetailsNewModel> subscriptionPlanDetailsNewModel = SubscriptionPlanDetailsNewModel().obs;
 
   Future<void> subscriptionPlansGetApi() async {
+    print('user profile type -- $userProfileTypeGlobal');
     try {
-
 
       // Gig Worker
       // Skill Worker
@@ -120,7 +120,7 @@ class SubscriptionController extends GetxController {
       String entityType;
       if(userProfileTypeGlobal == GIG_WORKER){
         entityType = 'Gig Worker';
-      }else if(userProfileTypeGlobal == SKILL_WORKER ||
+      }else if(userProfileTypeGlobal == SELF_EMPLOYED ||
           userProfileTypeGlobal == PROFESSIONAL){
         entityType = 'Skill Worker';
       }
