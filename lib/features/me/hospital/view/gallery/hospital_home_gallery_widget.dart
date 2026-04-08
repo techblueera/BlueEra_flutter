@@ -65,7 +65,7 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
                         color: Colors.grey[400], size: 40),
                     const SizedBox(height: 10),
                     Text(
-                      'Add Photos',
+                      AppStrings.hospitalViewAddPhotos.tr,
                       style: TextStyle(color: Colors.grey[500], fontSize: 13),
                     ),
                   ],

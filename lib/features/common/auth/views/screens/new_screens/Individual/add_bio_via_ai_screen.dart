@@ -20,6 +20,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../personal/personal_profile/controller/languge_list_controller.dart';
+
 class AddBioViaAiScreen extends StatefulWidget {
   final String profession;
   final String? designation;
@@ -48,9 +50,11 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   final TextEditingController bioController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isFormValid = false;
+  late LanguageListController langController;
 
   @override
   void initState() {
+    langController = Get.find<LanguageListController>();
     log(
         "PROFILE DATA → "
             "Profession: ${widget.profession}, "
@@ -87,7 +91,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
      appBar: CommonBackAppBar(
-       title: AppStrings.personalDetails,
+       title: AppStrings.personalDetails.tr,
      ),
       body: CustomFormCard(
         margin: EdgeInsets.symmetric(
@@ -105,7 +109,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    "About Me / Bio",
+                    langController.tr(AppStrings.aboutMeBio),
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,

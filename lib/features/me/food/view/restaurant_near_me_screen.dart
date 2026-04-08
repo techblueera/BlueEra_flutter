@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -116,8 +117,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
             children: [
               const Icon(Icons.error_rounded, color: Colors.red, size: 80),
               const SizedBox(height: 20),
-              const CustomText(
-                "Place Order Unless Your\nCart Will Be Empty,\nYou Can't See Selected Items",
+              CustomText(
+                AppStrings.foodCartWarningMessage.tr,
                 textAlign: TextAlign.center,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -139,7 +140,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                             borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
-                        "Skip",
+                        AppStrings.foodSkipLabel.tr,
                         color: AppColors.secondaryTextColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -150,7 +151,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                   Expanded(
                     flex: 2,
                     child: CustomBtn(
-                      title: "Place Order",
+                      title: AppStrings.foodPlaceOrderLabel.tr,
                       bgColor: AppColors.primaryColor,
                       onTap: () {
                         Get.back();
@@ -181,8 +182,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
           isCustomTitleWidget: () => Obx(() {
             final idx = selectedCategoryIndex.value;
             final name = (idx >= 0 && idx < _categories.length)
-                ? _categories[idx].name ?? 'Restaurant Near Me'
-                : 'Restaurant Near Me';
+                ? _categories[idx].name ?? AppStrings.foodRestaurantNearMe.tr
+                : AppStrings.foodRestaurantNearMe.tr;
             return Text(
               name,
               style: const TextStyle(
@@ -255,7 +256,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
 
       if (storeController.allStore.isEmpty) {
         return Center(
-          child: EmptyStateWidget(message: 'No restaurants found nearby'),
+          child: EmptyStateWidget(message: AppStrings.foodNoRestaurantsNearby.tr),
         );
       }
 
@@ -421,7 +422,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   Widget _buildRestaurantCard(GetAllStoreResModel store) {
     final categoryName = store.categoryOfBusiness?.name ?? '';
     final subCategoryName =
-        store.subCategoryOfBusiness?.name ?? 'Veg Restaurant';
+        store.subCategoryOfBusiness?.name ?? AppStrings.foodVegRestaurantLabel.tr;
     final livePhotos = (store.livePhotos ?? [])
         .where((p) => p.trim().isNotEmpty)
         .toList();
@@ -505,7 +506,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                             size: 12, color: Colors.white),
                         const SizedBox(width: 4),
                         CustomText(
-                          '$totalOrders Orders',
+                          '$totalOrders ${AppStrings.foodOrdersLabel.tr}',
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: AppColors.white,
@@ -619,7 +620,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              store.businessName ?? 'Restaurant',
+                              store.businessName ?? AppStrings.restaurant.tr,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               maxLines: 1,
@@ -745,7 +746,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                         child: InkWell(
                           onTap: () => RouteMapBottomSheet.show(
                             context: context,
-                            destinationName: store.businessName ?? 'Restaurant',
+                            destinationName: store.businessName ?? AppStrings.restaurant.tr,
                             destinationAddress: store.address ?? '',
                             destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
                             destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
@@ -769,7 +770,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                       _buildStatBox(
                         icon: AppIconAssets.staggeredIcon,
                         count: '${store.totalCategoryCount ?? 0}',
-                        label: 'Category',
+                        label: AppStrings.foodCategoryLabel.tr,
                         iconColor: const Color(0xFF9964F4),
                         bgColor: AppColors.purpleFD,
                       ),
@@ -777,7 +778,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                       _buildStatBox(
                         icon: AppIconAssets.productCartIcon,
                         count: '${store.totalProductCount ?? 0}',
-                        label: 'Product',
+                        label: AppStrings.foodProductLabel.tr,
                         iconColor: const Color(0xFF6179CD),
                         bgColor: AppColors.purpleFF,
                       ),

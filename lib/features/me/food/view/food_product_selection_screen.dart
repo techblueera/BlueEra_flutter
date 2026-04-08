@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -115,7 +116,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
                     width: 5,
                   ),
                   CustomText(
-                    "Add Own Food Items",
+                    AppStrings.foodAddOwnFoodItems.tr,
                     color: AppColors.white,
                   )
                 ],

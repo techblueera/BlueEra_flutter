@@ -65,7 +65,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Add Food Via AI',
+        title: AppStrings.foodAddFoodViaAi.tr,
       ),
       bottomNavigationBar: Obx(() {
         return SafeArea(
@@ -98,7 +98,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Add Food Within 1 Min Via Al",
+                    AppStrings.foodAddFoodWithinMinViaAi.tr,
                     fontWeight: FontWeight.bold,
                     fontSize: SizeConfig.large,
                     color: AppColors.mainTextColor
@@ -106,22 +106,22 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                   _buildImageSection(context),
 
                   const SizedBox(height: 16),
-                  _buildInfoCard("Product Name", product.name ?? ""),
+                  _buildInfoCard(AppStrings.foodProductNameLabel.tr, product.name ?? ""),
                   const SizedBox(height: 12),
-                  _buildInfoCard("Food Description", product.description ?? "",
+                  _buildInfoCard(AppStrings.foodDescriptionLabel.tr, product.description ?? "",
                       isExpandable: true),
                   const SizedBox(height: 12),
                   _buildCategorySection(),
                   const SizedBox(height: 12),
                   _buildIngredientsSection(),
                   const SizedBox(height: 12),
-                  _buildInfoCard("Shelf Life", product.shelfLife ?? ""),
+                  _buildInfoCard(AppStrings.foodShelfLifeLabel.tr, product.shelfLife ?? ""),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        "Add Food Variant",
+                        AppStrings.foodAddVariantLabel.tr,
                         fontWeight: FontWeight.bold,
                       ),
                       InkWell(
@@ -144,7 +144,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                                 color: AppColors.primaryColor,
                               ),
                               CustomText(
-                                vc.variantList.isNotEmpty ? "Add More Variant" : "Add Variant",
+                                vc.variantList.isNotEmpty ? AppStrings.foodAddMoreVariant.tr : AppStrings.foodAddVariantLabel.tr,
                                 color: AppColors.primaryColor,
                               ),
                             ],
@@ -167,7 +167,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 12),
-        const CustomText("Upload product Images", fontWeight: FontWeight.normal),
+        CustomText(AppStrings.foodUploadProductImages.tr, fontWeight: FontWeight.normal),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -418,7 +418,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText("Selected Category",
+              CustomText(AppStrings.foodSelectedCategoryLabel.tr,
                   fontWeight: FontWeight.bold),
               // const Icon(Icons.edit_outlined, size: 18, color: se),
             ],
@@ -426,7 +426,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
           const Divider(),
           Row(
             children: [
-              Expanded(child: _buildRadioPlaceholder("Food Item", true)),
+              Expanded(child: _buildRadioPlaceholder(AppStrings.foodItemLabel.tr, true)),
               Expanded(
                   child:
                       _buildRadioPlaceholder(product.dietaryType ?? "", true)),
@@ -459,7 +459,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Key Ingredients", fontWeight: FontWeight.bold),
+          CustomText(AppStrings.foodKeyIngredientsLabel.tr, fontWeight: FontWeight.bold),
           const SizedBox(height: 12),
           CustomText(product.ingredients!.join(", "),
               color: AppColors.secondaryTextColor, height: 1.5),

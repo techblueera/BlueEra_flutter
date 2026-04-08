@@ -38,23 +38,9 @@ class QrFullScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.appBackgroundColor,
     appBar: CommonBackAppBar(title: AppStrings.myQrCode.tr,),
-      // backgroundColor: AppColors.appBackgroundColor,
-      // appBar: AppBar(
-      //   backgroundColor: AppColors.white,
-      //   elevation: 0,
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back, color: AppColors.black),
-      //     onPressed: () => Navigator.pop(context),
-      //   ),
-      //   title: const CustomText(
-      //     'My QR Code',
-      //     fontSize: 16,
-      //     fontWeight: FontWeight.w600,
-      //     color: AppColors.mainTextColor,
-      //   ),
-      //   centerTitle: false,
-      // ),
+
       body: Column(
         children: [
           Expanded(
@@ -136,7 +122,8 @@ class QrFullScreenView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.whiteE5, width: 0.8),
+          color: AppColors.white,
+          border: Border.all(color: AppColors.white, width: 0.8),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(

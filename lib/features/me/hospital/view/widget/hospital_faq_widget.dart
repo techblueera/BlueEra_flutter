@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -5,12 +6,16 @@ import 'package:get/get.dart';
 class HospitalFaqWidget extends StatelessWidget {
   final FAQController controller = Get.put(FAQController());
 
-  final List<Map<String, String>> faqData = [
-    {"q": "Lorem Ipsum Dolor Amet?", "a": "Torem ipsum dolor sit amet, consectetur adipiscing elit..."},
-    {"q": "Lorem Ipsum Dolor Amet?", "a": "Torem ipsum dolor sit amet..."},
-    // Add more items here
-  ];
-
+  List<Map<String, String>> get faqData => [
+        {"q": AppStrings.hospitalViewFaqQ1.tr, "a": AppStrings.hospitalViewFaqA1.tr},
+        {"q": AppStrings.hospitalViewFaqQ2.tr, "a": AppStrings.hospitalViewFaqA2.tr},
+        {"q": AppStrings.hospitalViewFaqQ3.tr, "a": AppStrings.hospitalViewFaqA3.tr},
+        {"q": AppStrings.hospitalViewFaqQ4.tr, "a": AppStrings.hospitalViewFaqA4.tr},
+        {"q": AppStrings.hospitalViewFaqQ5.tr, "a": AppStrings.hospitalViewFaqA5.tr},
+        {"q": AppStrings.hospitalViewFaqQ6.tr, "a": AppStrings.hospitalViewFaqA6.tr},
+        {"q": AppStrings.hospitalViewFaqQ7.tr, "a": AppStrings.hospitalViewFaqA7.tr},
+        {"q": AppStrings.hospitalViewFaqQ8.tr, "a": AppStrings.hospitalViewFaqA8.tr},
+      ];
   @override
   Widget build(BuildContext context) {
     return CommonCardWidget(

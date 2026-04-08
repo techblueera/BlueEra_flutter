@@ -61,7 +61,7 @@ class HospitalEmergencyContactController extends GetxController {
 
   Future<void> submit() async {
     if (!isFormValid) {
-      commonSnackBar(message: "All fields are required and must be valid");
+      commonSnackBar(message: AppStrings.hospitalCtrlAllFieldsRequiredValid.tr);
       return;
     }
     try {
@@ -75,7 +75,7 @@ class HospitalEmergencyContactController extends GetxController {
       if (res.isSuccess) {
         final ec = EmergencyContactRes.fromJson(res.response?.data);
         data.value = ec.data;
-        commonSnackBar(message: data.value == null ? "Saved successfully" : "Updated successfully");
+        commonSnackBar(message: data.value == null ? AppStrings.hospitalCtrlSavedSuccessfully.tr : AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

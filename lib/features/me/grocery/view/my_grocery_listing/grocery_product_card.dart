@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -123,7 +124,7 @@ class GroceryProductCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: CustomText(
-                          '+${groceryProducts.variants?.length ?? 0} Variants',
+                          AppStrings.groceryViewVariantsBadge.trParams({'count': '${groceryProducts.variants?.length ?? 0}'}),
                           fontSize: SizeConfig.extraSmall,
                           fontWeight: FontWeight.w600,
                           color: AppColors.whiteFE,
@@ -284,7 +285,7 @@ class GroceryProductCard extends StatelessWidget {
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
                 child: CustomText(
-                  isAdded ? 'ADDED' : 'ADD',
+                  isAdded ? AppStrings.groceryViewAddedCaps.tr : AppStrings.groceryViewAddCaps.tr,
                   key: ValueKey(isAdded),
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -342,7 +343,7 @@ class GroceryProductCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CustomText(
-                        groceryProducts.name ?? 'All Variants',
+                        groceryProducts.name ?? AppStrings.groceryViewAllVariants.tr,
                         fontWeight: FontWeight.w600,
                         fontSize: SizeConfig.large,
                         color: AppColors.mainTextColor,
@@ -554,7 +555,7 @@ class GroceryProductCard extends StatelessWidget {
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
                         child: CustomText(
-                          isAdded ? 'REMOVE' : 'ADD',
+                          isAdded ? AppStrings.groceryViewRemoveCaps.tr : AppStrings.groceryViewAddCaps.tr,
                           key: ValueKey(isAdded),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -603,7 +604,7 @@ class GroceryProductCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             CustomText(
-              'EDIT',
+              AppStrings.groceryViewEditCaps.tr,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,

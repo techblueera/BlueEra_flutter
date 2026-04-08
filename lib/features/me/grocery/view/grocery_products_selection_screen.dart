@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
@@ -168,7 +169,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                     ),
                     SizedBox(width: SizeConfig.size8),
                     CustomText(
-                      'You can\'t select more than ${controller.maxLimit} products at a time.',
+                      AppStrings.groceryViewMaxLimitWarning.trParams({'count': '${controller.maxLimit}'}),
                       color: AppColors.redLite,
                       fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w400,
@@ -180,7 +181,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
 
           // TABS
           Obx(() {
-            final List<dynamic> tabData = ["All", ...controller.selectedGroceryData.value?.children??[]];
+            final List<dynamic> tabData = [AppStrings.groceryViewAll.tr, ...controller.selectedGroceryData.value?.children??[]];
 
             return HorizontalTabSelector<dynamic>(
               tabs: tabData,
@@ -243,8 +244,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                 : Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(
-                    message:
-                    'No ${controller.currentTabName.tr} found.')
+                    message: AppStrings.groceryViewNoXFound.trParams({'name': controller.currentTabName.tr}))
             ),
           )
 
@@ -354,7 +354,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
                 CustomBtn(
                   height: SizeConfig.size36,
                   onTap: () => controller.toggleSelection(groceryProductData),
-                  title: isSelected ? 'Added' : 'Add',
+                  title: isSelected ? AppStrings.groceryViewAdded.tr : AppStrings.groceryViewAdd.tr,
                   textColor: isSelected ? AppColors.white : AppColors.primaryColor,
                   bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
                   radius: 6.0,

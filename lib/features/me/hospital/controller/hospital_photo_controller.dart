@@ -87,7 +87,7 @@ class HospitalPhotoController extends GetxController {
     if (selectedImages.length < 6) {
       selectedImages.add(path);
     } else {
-      commonSnackBar(message: "Limit Reached You can upload a maximum of 6 images.");
+      commonSnackBar(message: AppStrings.hospitalCtrlPhotoLimitReached.tr);
     }
   }
 
@@ -119,7 +119,7 @@ class HospitalPhotoController extends GetxController {
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: "Upload successfully");
+        commonSnackBar(message: AppStrings.hospitalCtrlUploadSuccessfully.tr);
         fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

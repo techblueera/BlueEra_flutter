@@ -1,10 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+// `get/get.dart` provides the `.tr` extension on String used by AppStrings.
 
 class GuestDashBoardScreen extends StatefulWidget {
   const GuestDashBoardScreen({super.key});
@@ -26,7 +29,7 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CustomText(
-              "Guest User",
+              AppStrings.guestUserTitle.tr,
               fontSize: SizeConfig.size24,
               color: AppColors.primaryColor,
               fontWeight: FontWeight.bold,
@@ -35,7 +38,7 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
               height: SizeConfig.size10,
             ),
             CustomText(
-              "Create a account to access all features and enjoy the full experience!",
+              AppStrings.guestCreateAccountMessage.tr,
               fontSize: SizeConfig.size15,
               textAlign: TextAlign.center,
             ),
@@ -44,9 +47,9 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
             ),
             PositiveCustomBtn(
                 onTap: () async {
-                 await createProfileScreen();
+                  await createProfileScreen();
                 },
-                title: "Create Profile")
+                title: AppStrings.createProfile.tr)
           ],
         ),
       ),

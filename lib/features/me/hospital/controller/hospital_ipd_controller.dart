@@ -100,7 +100,7 @@ class HospitalIpdController extends GetxController {
         if (uploadResult != null && uploadResult.isSuccess) {
           imageUrl = uploadResult.url;
         } else {
-          commonSnackBar(message: uploadResult?.message ?? "Image Upload Failed");
+          commonSnackBar(message: uploadResult?.message ?? AppStrings.hospitalCtrlImageUploadFailed.tr);
           isSaving.value = false;
           return;
         }
@@ -125,7 +125,7 @@ class HospitalIpdController extends GetxController {
           await loadByDepartment(departmentIdArg!);
         }
         Get.back();
-        commonSnackBar(message: editingWard == null ? "IPD added successfully" : "IPD updated successfully");
+        commonSnackBar(message: editingWard == null ? AppStrings.hospitalCtrlIpdAddedSuccessfully.tr : AppStrings.hospitalCtrlIpdUpdatedSuccessfully.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
@@ -141,7 +141,7 @@ class HospitalIpdController extends GetxController {
       final ResponseModel res = await _repo.delete(id: ward.id);
       if (res.isSuccess) {
         wards.removeWhere((w) => w.id == ward.id);
-        commonSnackBar(message: "Deleted");
+        commonSnackBar(message: AppStrings.hospitalCtrlDeleted.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

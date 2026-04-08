@@ -41,11 +41,11 @@ class _MissingFoodItemsScreenState extends State<MissingFoodItemsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
-          title: "Missing Items",
+          title: AppStrings.foodMissingItemsLabel.tr,
         ),
         body: Obx(() {
           if (controller.missingProducts.isEmpty) {
-            return const EmptyStateWidget(message: 'No Missing Products');
+            return EmptyStateWidget(message: AppStrings.foodNoMissingProducts.tr);
           }
 
           return SingleChildScrollView(
@@ -62,7 +62,7 @@ class _MissingFoodItemsScreenState extends State<MissingFoodItemsScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10.0),
                       child: CustomText(
-                        "Missing Items Name",
+                        AppStrings.foodMissingItemsName.tr,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.mainTextColor,
@@ -163,7 +163,7 @@ class _MissingFoodItemsScreenState extends State<MissingFoodItemsScreen> {
       return CustomBtn(
         height: 28,
         width: 85,
-        title: 'Add Stock',
+        title: AppStrings.foodAddStockLabel.tr,
         bgColor: AppColors.primaryColor,
         onTap: () {
           Get.toNamed(
@@ -181,7 +181,7 @@ class _MissingFoodItemsScreenState extends State<MissingFoodItemsScreen> {
     return CustomBtn(
       height: 28,
       width: 60,
-      title: 'Create',
+      title: AppStrings.create.tr,
       textColor: AppColors.primaryColor,
       radius: 10,
       bgColor: AppColors.white,

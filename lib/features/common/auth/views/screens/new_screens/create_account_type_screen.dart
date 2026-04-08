@@ -25,6 +25,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import '../../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../model/get_categories_model.dart';
 
 class CreateAccountTypeScreen extends StatefulWidget {
@@ -49,6 +50,8 @@ class CreateAccountTypeScreen extends StatefulWidget {
 
 class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   final authController = getOrPut(() => AuthController());
+  final LanguageListController langController =
+      Get.find<LanguageListController>();
 
   bool get _showIndividualSidebar =>
       widget.accountType == null ||
@@ -236,7 +239,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                 child: Column(
                   children: [
                     GradientBorderContainer(
-                      title: "Personal",
+                      title: langController.tr("Personal"),
                       gradientColor: AppColors.lightGreenShade,
                     ),
 
@@ -278,7 +281,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                 child: Column(
                   children: [
                     GradientBorderContainer(
-                      title: "Business",
+                      title: langController.tr("Business"),
                       gradientColor: AppColors.blueShade,
                     ),
 
@@ -396,7 +399,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     required List<ProfessionTypeData> arrIndividualCategory}) {
     if(arrIndividualCategory.isEmpty )
       return EmptyStateWidget(
-        message: 'No profession found',
+        message: langController.tr('No profession found'),
       );
 
     return SingleChildScrollView(
@@ -432,7 +435,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     if(arrSelfWorkTransportCategory.isEmpty ||
         arrSelfWorkSkilledCategory.isEmpty)
       return EmptyStateWidget(
-        message: 'No profession found',
+        message: langController.tr('No profession found'),
       );
 
     return SingleChildScrollView(
@@ -442,7 +445,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-              'Self Work (Transport)',
+              langController.tr('Self Work (Transport)'),
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor
@@ -467,7 +470,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           SizedBox(height: SizeConfig.paddingM),
 
           CustomText(
-              'Self Work (Skill Work)',
+              langController.tr('Self Work (Skill Work)'),
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor
@@ -500,7 +503,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     required List<ProfessionTypeData> arrConsultationsCategory}) {
     if(arrConsultationsCategory.isEmpty)
       return EmptyStateWidget(
-        message: 'No profession found',
+        message: langController.tr('No profession found'),
       );
 
     return SingleChildScrollView(
@@ -520,7 +523,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
               )
             ),
             child: CustomText(
-                'If You Have Any Consulting Farm Then Choose business-service Account',
+                langController.tr('If You Have Any Consulting Farm Then Choose business-service Account'),
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 color: AppColors.redLite
@@ -530,7 +533,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           SizedBox(height: SizeConfig.paddingM),
 
           CustomText(
-              'For Individual - Choose Your Sector',
+              langController.tr('For Individual - Choose Your Sector'),
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor
@@ -566,7 +569,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     if(arrGroceryCategory.isEmpty ||
         arrFoodNdRestaurantCategory.isEmpty)
       return EmptyStateWidget(
-        message: 'No category found',
+        message: langController.tr('No category found'),
       );
 
     return SingleChildScrollView(
@@ -576,7 +579,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-              'Grocery',
+              langController.tr('Grocery'),
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor
@@ -604,7 +607,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           SizedBox(height: SizeConfig.paddingM),
 
           CustomText(
-              'Food & Restaurant',
+              langController.tr('Food & Restaurant'),
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor
@@ -642,7 +645,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     required List<CategoryData> arrBusinessCategory}) {
     if(arrBusinessCategory.isEmpty)
       return EmptyStateWidget(
-        message: 'No category found',
+        message: langController.tr('No category found'),
       );
 
     return SingleChildScrollView(
@@ -727,7 +730,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    entry.key,
+                    langController.tr(entry.key),
                     fontSize: SizeConfig.medium,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w600,
@@ -799,7 +802,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-              'Others',
+              langController.tr('Others'),
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor
@@ -808,7 +811,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             height: SizeConfig.size6,
           ),
           CustomText(
-              'If you do not find a suitable option, you can create one here. Please proceed without concern',
+              langController.tr('If you do not find a suitable option, you can create one here. Please proceed without concern'),
               fontSize: SizeConfig.extraSmall,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor

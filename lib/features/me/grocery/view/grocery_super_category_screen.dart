@@ -44,7 +44,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
             bgColor: AppColors.white,
             borderColor: AppColors.primaryColor,
             radius: 10.0,
-            title: 'Tutorial',
+            title: AppStrings.groceryViewTutorial.tr,
             textColor: AppColors.primaryColor,
           ),
         ),
@@ -66,7 +66,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Upload Bulk Products',
+                        AppStrings.groceryViewUploadBulkProducts.tr,
                         fontSize: SizeConfig.large,
                         color: AppColors.mainTextColor,
                         fontWeight: FontWeight.w600,
@@ -181,7 +181,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      'Category',
+                      AppStrings.groceryViewCategory.tr,
                       fontSize: SizeConfig.large,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w600,
@@ -211,10 +211,10 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
 
                       // ── Empty state ──
                       if (controller.grocerySuperCategoryList.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Text('No categories found.'),
+                            padding: const EdgeInsets.symmetric(vertical: 32),
+                            child: Text(AppStrings.groceryViewNoCategoriesFound.tr),
                           ),
                         );
                       }

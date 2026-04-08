@@ -74,7 +74,7 @@ class ManagementCardListWidget extends StatelessWidget {
                                 Icon(Icons.person_add_outlined, color: Colors.grey[400], size: 40),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'Add Management',
+                                  AppStrings.hospitalViewAddManagement.tr,
                                   style: TextStyle(color: Colors.grey[500], fontSize: 13),
                                 ),
                               ],
@@ -143,7 +143,7 @@ class HospitalManagementCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText(
-                      person.name ?? "Unknown",
+                      person.name ?? AppStrings.unknown.tr,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -160,7 +160,7 @@ class HospitalManagementCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: CustomText(
-                        person.position ?? "Staff",
+                        person.position ?? AppStrings.staff.tr,
                         color: Colors.white70,
                         fontSize: 12,
                         maxLines: 1,

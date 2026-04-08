@@ -57,7 +57,7 @@ class GroceryRiderConsumerController extends GetxController{
 
   Future<void> addRiderImageBySlot(String title) async {
     if (riderSnapSearchImagesMap.values.any((v) => v != null)) {
-      commonSnackBar(message: "Please remove the current image before selecting another.");
+      commonSnackBar(message: AppStrings.groceryRemoveCurrentImage.tr);
       return;
     }
     final List<String>? selected =
@@ -80,7 +80,7 @@ class GroceryRiderConsumerController extends GetxController{
         .toList();
 
     if (activeImages.isEmpty) {
-      commonSnackBar(message: "Please upload at least 1 photo");
+      commonSnackBar(message: AppStrings.groceryUploadAtLeastOnePhoto.tr);
       return;
     }
 
@@ -624,10 +624,10 @@ class GroceryRiderConsumerController extends GetxController{
       // Your dialog logic here
     } else if (status == 'accepted') {
       AppLoader.hide(); // TERMINAL STATE: Hide loader
-      commonSnackBar(message: "Rider $status the request");
+      commonSnackBar(message: AppStrings.groceryRiderStatusRequest.trParams({'status': '$status'}));
     } else if (status == 'rejected' || status == 'cancelled') {
       AppLoader.hide();// TERMINAL STATE: Hide loader
-      commonSnackBar(message: "Rider $status the request");
+      commonSnackBar(message: AppStrings.groceryRiderStatusRequest.trParams({'status': '$status'}));
     } else {}
   }
 

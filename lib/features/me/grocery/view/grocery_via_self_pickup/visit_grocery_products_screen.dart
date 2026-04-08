@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
@@ -100,10 +101,10 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
                 searchController.clear();
                 // controller.fetchGroceryProducts();
               },
-              hintText: "Search products...",
+              hintText: AppStrings.groceryViewSearchProductsHint.tr,
             )
                 : CustomText(
-              controller.selectedGroceryData.value?.name ?? "Products",
+              controller.selectedGroceryData.value?.name ?? AppStrings.groceryViewProductsTitle.tr,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -140,7 +141,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
               ? const Center(child: CircularProgressIndicator())
               : controller
               .groceryNestedCategoryWithInventoryList.isEmpty
-              ? const Center(child: Text('No categories found'))
+              ? Center(child: Text(AppStrings.groceryViewNoCategoriesFoundPlain.tr))
               : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -185,7 +186,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Obx(() {
-            final List<dynamic> tabData = ["All", ...controller.selectedGroceryData.value?.children??[]];
+            final List<dynamic> tabData = [AppStrings.groceryViewAll.tr, ...controller.selectedGroceryData.value?.children??[]];
 
             return HorizontalTabSelector<dynamic>(
               tabs: tabData,
@@ -248,8 +249,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
             ) : Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(
-                    message:
-                    'No ${controller.currentTabName.tr} found.')
+                    message: AppStrings.groceryViewNoXFound.trParams({'name': controller.currentTabName.tr}))
             ),
           ),
         ],

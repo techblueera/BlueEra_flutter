@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -242,6 +243,13 @@ class ProfileSettingsNewScreen extends StatelessWidget {
       await HiveServices.init();
       log("✅ All Hive data wiped and boxes re-opened successfully.");
 
+      // Reset language controller so its cached (now-closed) box reference
+      // and in-memory selection don't leak into the next session.
+      try {
+        if (Get.isRegistered<LanguageControllerNew>()) {
+          await Get.find<LanguageControllerNew>().reset();
+        }
+      } catch (_) {}
     } catch (e) {
       log("❌ Error clearing local data: $e");
     }

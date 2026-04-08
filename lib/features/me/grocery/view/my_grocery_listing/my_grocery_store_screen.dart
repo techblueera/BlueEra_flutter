@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -139,7 +140,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
             children: [
               Expanded(
                 child: CustomText(
-                    'Top Selling Product',
+                    AppStrings.groceryViewTopSellingProduct.tr,
                     fontSize: SizeConfig.large,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w600),
@@ -153,7 +154,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                       otherStore: false,
                     )),
                 child: CustomText(
-                    'View All',
+                    AppStrings.groceryViewViewAll.tr,
                     fontSize: SizeConfig.medium,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600),
@@ -297,7 +298,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
             children: [
               Expanded(
                 child: CustomText(
-                    'Category',
+                    AppStrings.groceryViewCategory.tr,
                     fontSize: SizeConfig.large,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w600),
@@ -319,7 +320,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
                   }
                 },
                 child: CustomText(
-                    'Update Inventory',
+                    AppStrings.groceryViewUpdateInventory.tr,
                     fontSize: SizeConfig.medium,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600),
@@ -373,7 +374,7 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
           )
               :
           EmptyStateWidget(
-            message: 'You don\'t have product yet, Want to create one?',
+            message: AppStrings.groceryViewNoProductsYetCreate.tr,
           ),
 
           SizedBox(

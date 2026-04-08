@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
@@ -81,7 +82,7 @@ class _GrocerySelfPickUpCartScreenState extends State<GrocerySelfPickUpCartScree
           onPressed: () => Navigator.pop(context),
         ),
         title: CustomText(
-          'Self Pick-Up',
+          AppStrings.groceryViewSelfPickUp.tr,
           fontSize: SizeConfig.extraLarge,
           fontWeight: FontWeight.w700,
           color: AppColors.mainTextColor,
@@ -103,7 +104,7 @@ class _GrocerySelfPickUpCartScreenState extends State<GrocerySelfPickUpCartScree
                     size: 64, color: AppColors.greyCA),
                 const SizedBox(height: 16),
                 CustomText(
-                  'No items in self pick-up',
+                  AppStrings.groceryViewNoItemsSelfPickup.tr,
                   fontSize: SizeConfig.large,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -131,7 +132,7 @@ class _GrocerySelfPickUpCartScreenState extends State<GrocerySelfPickUpCartScree
                   final double storeTotal = _calcTotal(items, controller);
 
                   return _StoreCard(
-                    businessName: businessInfo['businessName'] ?? 'Unknown Store',
+                    businessName: businessInfo['businessName'] ?? AppStrings.groceryViewUnknownStore.tr,
                     businessLogo: businessInfo['logo'] ?? '',
                     businessAddress: businessInfo['address'] ?? '',
                     productCount: productCount,
@@ -141,7 +142,7 @@ class _GrocerySelfPickUpCartScreenState extends State<GrocerySelfPickUpCartScree
                       _showProductsBottomSheet(
                         context,
                         businessName:
-                        businessInfo['businessName'] ?? 'Unknown Store',
+                        businessInfo['businessName'] ?? AppStrings.groceryViewUnknownStore.tr,
                         items: items,
                         controller: controller,
                       );
@@ -242,7 +243,7 @@ class _BottomSummaryBar extends StatelessWidget {
                   final businessInfo =
                       controller.cartBusinessInfo[items.first.sId] ?? {};
                   final shopName =
-                      businessInfo['businessName'] ?? 'Unknown Store';
+                      businessInfo['businessName'] ?? AppStrings.groceryViewUnknownStore.tr;
                   final shopTotal = calcTotal(items, controller);
                   final shopItems = calcItemCount(items, controller);
                   final isChecked = selectedBusinessIds.contains(businessId);
@@ -283,7 +284,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: CustomText(
-                              '$shopName ($shopItems ${shopItems == 1 ? 'item' : 'items'})',
+                              '$shopName ($shopItems ${shopItems == 1 ? AppStrings.groceryViewItemLabel.tr : AppStrings.groceryViewItemsLabel.tr})',
                               fontSize: SizeConfig.small,
                               color: isChecked
                                   ? AppColors.secondaryTextColor
@@ -317,7 +318,7 @@ class _BottomSummaryBar extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            '$selectedShopCount ${selectedShopCount == 1 ? 'Shop' : 'Shops'} | $grandItemCount ${grandItemCount == 1 ? 'Product' : 'Products'}',
+                            '$selectedShopCount ${selectedShopCount == 1 ? AppStrings.groceryViewShopLabel.tr : AppStrings.groceryViewShopsLabel.tr} | $grandItemCount ${grandItemCount == 1 ? AppStrings.groceryViewProductLabel.tr : AppStrings.groceryViewProductsLabel.tr}',
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w500,
@@ -359,7 +360,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: CustomText(
-                            'Place Order',
+                            AppStrings.groceryViewPlaceOrder.tr,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w700,
                             color: AppColors.white,
@@ -439,7 +440,7 @@ class _StoreCard extends StatelessWidget {
                       Row(
                         children: [
                           _buildBadge(
-                            '$productCount ${productCount == 1 ? 'Product' : 'Products'}',
+                            '$productCount ${productCount == 1 ? AppStrings.groceryViewProductLabel.tr : AppStrings.groceryViewProductsLabel.tr}',
                             AppColors.lightYellowShade,
                             AppColors.blue2D,
                           ),
@@ -526,7 +527,7 @@ class _StoreCard extends StatelessWidget {
                           size: 16, color: AppColors.green1A),
                       const SizedBox(width: 8),
                       CustomText(
-                        'Manage Products',
+                        AppStrings.groceryViewManageProducts.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.green1A,
@@ -618,7 +619,7 @@ class _ProductsBottomSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: CustomText(
-                      'Save',
+                      AppStrings.groceryViewSave.tr,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.white,
@@ -683,7 +684,7 @@ class _ProductsBottomSheet extends StatelessWidget {
                                   size: 18, color: AppColors.primaryColor),
                               const SizedBox(width: 8),
                               CustomText(
-                                '$totalProducts ${totalProducts == 1 ? 'Product' : 'Products'}',
+                                '$totalProducts ${totalProducts == 1 ? AppStrings.groceryViewProductLabel.tr : AppStrings.groceryViewProductsLabel.tr}',
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primaryColor,

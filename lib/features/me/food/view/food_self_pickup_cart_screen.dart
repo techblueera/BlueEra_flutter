@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
@@ -86,7 +87,7 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: CustomText(
-          'Self Pick-Up',
+          AppStrings.foodSelfPickupLabel.tr,
           fontSize: SizeConfig.extraLarge,
           fontWeight: FontWeight.w700,
           color: AppColors.mainTextColor,
@@ -108,7 +109,7 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
                     size: 64, color: AppColors.greyCA),
                 const SizedBox(height: 16),
                 CustomText(
-                  'No items in self pick-up',
+                  AppStrings.foodNoItemsInPickup.tr,
                   fontSize: SizeConfig.large,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -291,7 +292,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: CustomText(
-                              '$shopName ($shopItems ${shopItems == 1 ? 'item' : 'items'})',
+                              '$shopName ($shopItems ${shopItems == 1 ? AppStrings.foodItemSingular.tr : AppStrings.foodItemPlural.tr})',
                               fontSize: SizeConfig.small,
                               color: isChecked
                                   ? AppColors.secondaryTextColor
@@ -325,7 +326,7 @@ class _BottomSummaryBar extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            '$selectedShopCount ${selectedShopCount == 1 ? 'Shop' : 'Shops'} | $grandItemCount ${grandItemCount == 1 ? 'Product' : 'Products'}',
+                            '$selectedShopCount ${selectedShopCount == 1 ? AppStrings.foodShopSingular.tr : AppStrings.foodShopPlural.tr} | $grandItemCount ${grandItemCount == 1 ? AppStrings.foodProductSingular.tr : AppStrings.foodProductPlural.tr}',
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w500,
@@ -369,7 +370,7 @@ class _BottomSummaryBar extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: CustomText(
-                            'Place Order',
+                            AppStrings.foodPlaceOrderLabel.tr,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w700,
                             color: AppColors.white,
@@ -449,7 +450,7 @@ class _StoreCard extends StatelessWidget {
                       Row(
                         children: [
                           _buildBadge(
-                            '$productCount ${productCount == 1 ? 'Product' : 'Products'}',
+                            '$productCount ${productCount == 1 ? AppStrings.foodProductSingular.tr : AppStrings.foodProductPlural.tr}',
                             AppColors.lightYellowShade,
                             AppColors.blue2D,
                           ),
@@ -533,7 +534,7 @@ class _StoreCard extends StatelessWidget {
                           size: 16, color: AppColors.green1A),
                       const SizedBox(width: 8),
                       CustomText(
-                        'Manage Products',
+                        AppStrings.foodManageProducts.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.green1A,

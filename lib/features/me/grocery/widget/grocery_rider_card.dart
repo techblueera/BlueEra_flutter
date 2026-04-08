@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class GroceryRiderCard extends StatelessWidget {
   final String orderId;
@@ -130,7 +131,7 @@ class GroceryRiderCard extends StatelessWidget {
                   Row(
                     children: [
                       CustomText(
-                        "5 Items Unavailable",
+                        "${AppStrings.groceryViewItemsUnavailable.tr} 5",
                         // "${rider.unavailableItems} Items Unavailable",
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -142,7 +143,7 @@ class GroceryRiderCard extends StatelessWidget {
                           // Handle "Check" tap
                         },
                         child: CustomText(
-                          "Check",
+                          AppStrings.groceryViewCheck,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.primaryColor,
@@ -159,7 +160,7 @@ class GroceryRiderCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6.0),
                     ),
                     child: CustomText(
-                      'Second Order',
+                      AppStrings.groceryViewSecondOrder,
                       // rider.orderTag,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
@@ -198,7 +199,7 @@ class GroceryRiderCard extends StatelessWidget {
                               riderId: rider.riderData?.id ?? ''
                            );
                           },
-                          title: "Book Now",
+                          title: AppStrings.groceryViewBookNow,
                           bgColor: AppColors.primaryColor,
                           radius: 6.0,
                         ),

@@ -30,7 +30,7 @@ class UploadHospitalPhotosScreen extends StatelessWidget {
             // Dropdown using the String list
             Obx(() => CommonDropdownDialog<String>(
                   title: AppStrings.selectCategory,
-                  hintText: "E.g. Rooms",
+                  hintText: AppStrings.hospitalViewEgRooms.tr,
                   items: controller.categories,
                   selectedValue: controller.selectedCategory.value.isEmpty
                       ? null

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
@@ -10,8 +11,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-
 /// Landing screen where the user picks one of three account flavors
 /// (Business Listing, Professional Account, Personal Account) before
 /// entering the detailed [CreateAccountTypeScreen]. The two individual
@@ -31,40 +30,43 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
   // Shared card border color across all three cards (per spec).
   static const Color _cardBorderColor = Color(0xFFDEDCFE);
 
+  // Card titles, subtitles and chip labels are stored as translation keys
+  // (see AppStrings) and resolved with `.tr` at render time so the screen
+  // updates instantly when the user switches language.
   late final List<_AccountCardData> _cards = [
     _AccountCardData(
-      title: 'Business Listing',
-      subtitle: 'Shop, Store, Services',
+      titleKey: AppStrings.businessListing,
+      subtitleKey: AppStrings.shopStoreServices,
       iconAsset: AppImageAssets.businessListing,
-      chips: const [
-        'Grocery',
-        'Food',
-        'Health Care',
-        'Education',
-        'Automotive',
-        'Hotel',
-        'Restaurant',
-        'Finance',
-        'More...',
+      chipKeys: const [
+        AppStrings.grocery,
+        AppStrings.chipFood,
+        AppStrings.chipHealthCare,
+        AppStrings.education,
+        AppStrings.chipAutomotive,
+        AppStrings.chipHotel,
+        AppStrings.chipRestaurant,
+        AppStrings.chipFinance,
+        AppStrings.chipMore,
       ],
       accountType: AppConstants.business,
       chipBg: const Color(0xFFECF6ED),
       chipText: const Color(0xFF2C3F25),
     ),
     _AccountCardData(
-      title: 'Professional Account',
-      subtitle: 'Self Employee, Consultant',
+      titleKey: AppStrings.professionalAccount,
+      subtitleKey: AppStrings.selfEmployeeConsultant,
       iconAsset: AppImageAssets.socialAccount,
-      chips: const [
-        'Rider',
-        'Driver',
-        'Advocate',
-        'Teacher',
-        'Consultant',
-        'Electrician',
-        'Plumber',
-        'Renovator',
-        'More...',
+      chipKeys: const [
+        AppStrings.rider,
+        AppStrings.chipDriver,
+        AppStrings.chipAdvocate,
+        AppStrings.chipTeacher,
+        AppStrings.chipConsultant,
+        AppStrings.electrician,
+        AppStrings.plumber,
+        AppStrings.chipRenovator,
+        AppStrings.chipMore,
       ],
       accountType: AppConstants.individual,
       chipBg: const Color(0xFFE6F1FB),
@@ -74,18 +76,18 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
       individualPreselectIndex: 1,
     ),
     _AccountCardData(
-      title: 'Personal Account',
-      subtitle: 'Social Profile',
+      titleKey: AppStrings.personalAccount,
+      subtitleKey: AppStrings.socialProfile,
       iconAsset: AppImageAssets.professionalAccounts,
-      chips: const [
-        'Politician',
-        'Director',
-        'Students',
-        'Farmer',
-        'Artist',
-        'Govt. / Pvt. Employee',
-        'Journalist',
-        'More...',
+      chipKeys: const [
+        AppStrings.politician,
+        AppStrings.director,
+        AppStrings.chipStudents,
+        AppStrings.farmer,
+        AppStrings.artist,
+        AppStrings.chipGovtPvtEmployee,
+        AppStrings.journalist,
+        AppStrings.chipMore,
       ],
       accountType: AppConstants.individual,
       chipBg: const Color(0xFFEEEDFE),
@@ -97,7 +99,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
 
   void _onContinue() {
     if (_selectedIndex < 0 || _selectedIndex >= _cards.length) {
-      commonSnackBar(message: 'Please choose an account type');
+      commonSnackBar(message: AppStrings.pleaseChooseAccountType.tr);
       return;
     }
     final selected = _cards[_selectedIndex];
@@ -114,7 +116,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
-        title: 'Choose Your Account Type',
+        title: AppStrings.chooseYourAccountType.tr,
       ),
       body: SafeArea(
         child: Column(
@@ -152,7 +154,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
               ),
               child: CustomBtn(
                 onTap: _onContinue,
-                title: 'Continue',
+                title: AppStrings.continueText.tr,
                 bgColor: AppColors.primaryColor,
                 textColor: AppColors.white,
                 radius: 10,
@@ -166,10 +168,15 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
 }
 
 class _AccountCardData {
-  final String title;
-  final String subtitle;
+  /// Translation key for the card title (resolved with `.tr` at render time).
+  final String titleKey;
+
+  /// Translation key for the card subtitle.
+  final String subtitleKey;
   final String iconAsset;
-  final List<String> chips;
+
+  /// Translation keys for each chip label inside the card.
+  final List<String> chipKeys;
   final String accountType;
   final Color chipBg;
   final Color chipText;
@@ -181,10 +188,10 @@ class _AccountCardData {
   final int individualPreselectIndex;
 
   _AccountCardData({
-    required this.title,
-    required this.subtitle,
+    required this.titleKey,
+    required this.subtitleKey,
     required this.iconAsset,
-    required this.chips,
+    required this.chipKeys,
     required this.accountType,
     required this.chipBg,
     required this.chipText,
@@ -267,14 +274,14 @@ class _AccountCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CustomText(
-                          data.title,
+                          data.titleKey.tr,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.w700,
                           color: AppColors.mainTextColor,
                         ),
                         SizedBox(height: SizeConfig.size4),
                         CustomText(
-                          data.subtitle,
+                          data.subtitleKey.tr,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w500,
                           color: AppColors.secondaryTextColor,
@@ -304,8 +311,8 @@ class _AccountCard extends StatelessWidget {
               child: Wrap(
                 spacing: SizeConfig.size6,
                 runSpacing: SizeConfig.size6,
-                children: data.chips
-                    .map((label) => _chip(label, data.chipBg, data.chipText))
+                children: data.chipKeys
+                    .map((key) => _chip(key, data.chipBg, data.chipText))
                     .toList(),
               ),
             ),
@@ -315,8 +322,8 @@ class _AccountCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(String label, Color bg, Color textColor) {
-    final isMore = label == 'More...';
+  Widget _chip(String labelKey, Color bg, Color textColor) {
+    final isMore = labelKey == AppStrings.chipMore;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size10,
@@ -327,7 +334,7 @@ class _AccountCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomText(
-        label,
+        labelKey.tr,
         fontSize: 11,
         fontWeight: FontWeight.w500,
         color: isMore ? AppColors.secondaryTextColor : textColor,

@@ -77,7 +77,7 @@ class _GroceryConfirmScreenState extends State<GroceryConfirmScreen> {
                        vertical: SizeConfig.paddingL,
                    ),
                    child: CustomText(
-                      'No riders are currently available at this location.',
+                      AppStrings.groceryViewNoRidersAvailable.tr,
                       fontSize: SizeConfig.large18,
                       fontWeight: FontWeight.w700,
                       color: AppColors.secondaryTextColor,

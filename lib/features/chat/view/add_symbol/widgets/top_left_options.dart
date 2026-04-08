@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
@@ -48,22 +50,18 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                   size: 16, color: Color(0xFF667EEA)),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Duration',
-              style: TextStyle(
-                color: Color(0xFF2D3142),
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+            CustomText(
+              AppStrings.durationLabel.tr,
+              color: const Color(0xFF2D3142),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
             const Spacer(),
-            Text(
-              '${c.selectedDays.value} ${c.selectedDays.value == 1 ? 'day' : 'days'}',
-              style: const TextStyle(
-                color: Color(0xFF667EEA),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+            CustomText(
+              '${c.selectedDays.value} ${c.selectedDays.value == 1 ? AppStrings.dayUnit.tr : AppStrings.daysUnit.tr}',
+              color: const Color(0xFF667EEA),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
           ],
         ),
@@ -98,15 +96,13 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                             : [],
                       ),
                       child: Center(
-                        child: Text(
+                        child: CustomText(
                           "$day",
-                          style: TextStyle(
-                            color: selected
-                                ? Colors.white
-                                : const Color(0xFF2D3142).withOpacity(0.6),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
+                          color: selected
+                              ? Colors.white
+                              : const Color(0xFF2D3142).withOpacity(0.6),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -136,13 +132,11 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                   size: 16, color: Color(0xFF11998E)),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Privacy',
-              style: TextStyle(
-                color: Color(0xFF2D3142),
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+            CustomText(
+              AppStrings.privacyLabel.tr,
+              color: const Color(0xFF2D3142),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
           ],
         ),
@@ -159,17 +153,17 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
             children: [
               _privacyChip(
                 icon: Icons.public_rounded,
-                label: 'Public',
+                label: AppStrings.publicLabel.tr,
                 value: PostVisibility.public,
               ),
               _privacyChip(
                 icon: Icons.lock_rounded,
-                label: 'Private',
+                label: AppStrings.privateLabel.tr,
                 value: PostVisibility.private,
               ),
               _privacyChip(
                 icon: Icons.people_rounded,
-                label: 'Custom',
+                label: AppStrings.customLabel.tr,
                 value: PostVisibility.custom,
               ),
             ],
@@ -195,13 +189,11 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${c.onExceptContactSelectedList.length} contact${c.onExceptContactSelectedList.length == 1 ? '' : 's'} excluded',
-                        style: TextStyle(
-                          color: const Color(0xFF2D3142).withOpacity(0.6),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      CustomText(
+                        '${c.onExceptContactSelectedList.length} ${c.onExceptContactSelectedList.length == 1 ? AppStrings.contactExcluded.tr : AppStrings.contactsExcluded.tr}',
+                        color: const Color(0xFF2D3142).withOpacity(0.6),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                       ),
                       GestureDetector(
                         onTap: () {
@@ -224,19 +216,17 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                             color: const Color(0xFF11998E),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.person_add_rounded,
+                              const Icon(Icons.person_add_rounded,
                                   size: 14, color: Colors.white),
-                              SizedBox(width: 6),
-                              Text(
-                                'Choose',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              const SizedBox(width: 6),
+                              CustomText(
+                                AppStrings.chooseLabel.tr,
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
                             ],
                           ),
@@ -290,15 +280,13 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                       : const Color(0xFF2D3142).withOpacity(0.4),
                 ),
                 const SizedBox(width: 5),
-                Text(
+                CustomText(
                   label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? const Color(0xFF2D3142)
-                        : const Color(0xFF2D3142).withOpacity(0.4),
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
+                  color: isSelected
+                      ? const Color(0xFF2D3142)
+                      : const Color(0xFF2D3142).withOpacity(0.4),
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ],
             ),

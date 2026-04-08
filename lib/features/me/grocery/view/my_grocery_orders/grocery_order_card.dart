@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_order_model.dart';
@@ -86,8 +88,8 @@ class _GroceryOrderCardState extends State<GroceryOrderCard> {
                     fontFamily: 'OpenSans', // Make sure to define your font family if not default
                   ),
                   children: [
-                    const TextSpan(
-                      text: 'Order ID - ',
+                    TextSpan(
+                      text: AppStrings.groceryViewOrderIdPrefix.tr,
                     ),
                     TextSpan(
                       text: _order.orderId,
@@ -133,7 +135,10 @@ class _GroceryOrderCardState extends State<GroceryOrderCard> {
         children: [
           Expanded(
             child: CustomText(
-              '${_order.totalItems} Items Of  ₹${_order.totalPrice}',
+              AppStrings.groceryViewItemsOfTotal.trParams({
+                'items': '${_order.totalItems}',
+                'total': '${_order.totalPrice}',
+              }),
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -151,7 +156,7 @@ class _GroceryOrderCardState extends State<GroceryOrderCard> {
               );
             },
             child: CustomText(
-              'View',
+              AppStrings.groceryViewViewAction.tr,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
@@ -167,7 +172,7 @@ class _GroceryOrderCardState extends State<GroceryOrderCard> {
       children: [
         Expanded(
           child: CustomText(
-            '${_order.missingItemsCount} Item Missing',
+            AppStrings.groceryViewItemMissingCount.trParams({'count': '${_order.missingItemsCount}'}),
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.redB4,
@@ -192,7 +197,7 @@ class _GroceryOrderCardState extends State<GroceryOrderCard> {
                 ),
             ),
             child: CustomText(
-              'Complete',
+              AppStrings.groceryViewComplete.tr,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,

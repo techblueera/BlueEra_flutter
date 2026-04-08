@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
@@ -40,7 +41,10 @@ class ViewCartFooter extends StatelessWidget {
                     isValidate: false,
                     radius: SizeConfig.size10,
                     // FittedBox ensures long prices don't break the UI
-                    title: '₹${totalPrice.toStringAsFixed(2)}, $itemCount Products',
+                    title: AppStrings.groceryViewCartSummary.trParams({
+                      'total': totalPrice.toStringAsFixed(2),
+                      'count': '$itemCount',
+                    }),
                     borderColor: AppColors.primaryColor,
                     textColor: AppColors.primaryColor,
                     bgColor: AppColors.white,
@@ -58,7 +62,7 @@ class ViewCartFooter extends StatelessWidget {
                   },
                   isValidate: true,
                   radius: SizeConfig.size10,
-                  title: 'View Cart',
+                  title: AppStrings.groceryViewViewCart,
                   width: SizeConfig.size110, // Slightly wider for better touch target
                 ),
               ],

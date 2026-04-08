@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -42,7 +43,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: "Grocery Items",
+        title: AppStrings.groceryViewGroceryItemsTitle.tr,
       ),
       bottomNavigationBar: _buildBottomAction(),
       body: SingleChildScrollView(
@@ -88,7 +89,10 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
             isValidate: canSubmit,
             radius: SizeConfig.size8,
             bgColor: canSubmit ? AppColors.primaryColor : Colors.grey,
-            title: 'Publish $productCount Products, $variantCount Variants',
+            title: AppStrings.groceryViewPublishProductsVariants.trParams({
+              'productCount': '$productCount',
+              'variantCount': '$variantCount',
+            }),
             isLoading: loading,
           ),
         );
@@ -102,7 +106,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Upload Bulk Product", fontWeight: FontWeight.bold),
+          CustomText(AppStrings.groceryViewUploadBulkProduct.tr, fontWeight: FontWeight.bold),
           const SizedBox(height: 14),
           MasonryGridView.count(
             shrinkWrap: true,
@@ -273,8 +277,8 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
             },
           ),
           const SizedBox(height: 10),
-          const CustomText(
-            "Upload picture/menu containing up to 20 product at time",
+          CustomText(
+            AppStrings.groceryViewUploadPictureHelper.tr,
             fontWeight: FontWeight.w400,
             color: AppColors.red,
             textAlign: TextAlign.center,
@@ -357,14 +361,13 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(height: SizeConfig.paddingL),
-        const EmptyStateWidget(
-          message: 'We couldn’t identify any products from this photo. \n'
-              'Try capturing a clearer shot or searching for individual items!',
+        EmptyStateWidget(
+          message: AppStrings.groceryViewSnapNoProductsIdentified.tr,
         ),
         SizedBox(height: SizeConfig.paddingL),
         CustomBtn(
           width: SizeConfig.size120,
-          title: "Retry",
+          title: AppStrings.groceryViewRetry.tr,
           textColor: AppColors.white,
           bgColor: AppColors.primaryColor,
           radius: 10.0,
@@ -377,7 +380,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
           ),
           child: CustomText(
-            "Search Manually",
+            AppStrings.groceryViewSearchManually.tr,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.primaryColor,
@@ -561,7 +564,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                                     onTap: () {
                                       controller.openEditVariantDialog(
                                         context: context,
-                                        title: groceryItem.name ?? 'Edit Variant',
+                                        title: groceryItem.name ?? AppStrings.groceryViewEditVariant.tr,
                                         variant: v,
                                       );
                                     },

@@ -54,7 +54,7 @@ class HospitalBranchContactController extends GetxController {
   }) async {
     if (selectedLat == null || selectedLng == null) {
       commonSnackBar(
-          message: "Please select a valid location from the search.");
+          message: AppStrings.hospitalCtrlSelectValidLocation.tr);
       return;
     }
 
@@ -88,7 +88,7 @@ class HospitalBranchContactController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
-                "Branch details added successfully");
+                AppStrings.hospitalCtrlBranchAddedSuccessfully.tr);
       await  getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

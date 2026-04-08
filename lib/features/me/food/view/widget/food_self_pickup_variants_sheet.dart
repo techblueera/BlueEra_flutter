@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
@@ -103,7 +104,7 @@ class _FoodSelfPickupVariantsSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  args.name ?? 'All Variants',
+                  args.name ?? AppStrings.foodAllVariantsLabel.tr,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),

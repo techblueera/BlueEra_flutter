@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -74,14 +75,13 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: CustomText(
-                      langController.tr('Login / Sign Up'),
+                      AppStrings.loginSignup.tr,
                       fontWeight: FontWeight.bold,
                       fontSize: SizeConfig.large,
                     ),
                   ),
 
-                  SizedBox(height: SizeConfig.size6),
-                  SizedBox(height: SizeConfig.size10),
+                  SizedBox(height: SizeConfig.size16),
 
                   Row(
                     mainAxisSize: MainAxisSize.max,
@@ -113,7 +113,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           regularExpression:
                           RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
-                          hintText: langController.tr('Enter your mobile number'),
+                          hintText: AppStrings.enterMobileNumberHint.tr,
                           autoFillType: AutoFillType.phone,
                           hintStyle: TextStyle(
                             fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
@@ -121,7 +121,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           autovalidateMode: _autoValidate,
                           validator: (value) {
                             if (value?.length != 10) {
-                              return langController.tr('Please enter valid mobile number');
+                              return AppStrings.pleaseEnterValidMobileNo.tr;
                             }
                             return null;
                           },
@@ -141,14 +141,14 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           color: Colors.black87,
                         ),
                         children: [
-                          const TextSpan(
-                            text: 'By continuing you agree to ',
+                          TextSpan(
+                            text: AppStrings.byContinuingYouAgree.tr,
                             style: const TextStyle(
                               fontFamily: AppConstants.OpenSans,
                             ),
                           ),
                           TextSpan(
-                            text: 'Terms & Conditions',
+                            text: " ${AppStrings.termsConditions.tr}",
                             style: const TextStyle(
                               color: AppColors.primaryColor,
                               fontFamily: AppConstants.OpenSans,
@@ -157,15 +157,15 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                               ..onTap = () {
                                 Get.to(CommonWebView(
                                   urlLink: tncLink,
-                                  urlTitle: 'Terms & Conditions',
+                                  urlTitle: AppStrings.termsConditions.tr,
                                 ));
                                 // Handle Terms & Conditions tap
                                 print('Tapped Terms & Conditions');
                               },
                           ),
-                          const TextSpan(text: ' and\n'),
+                          TextSpan(text: AppStrings.andText.tr),
                           TextSpan(
-                            text: 'Privacy Policy.',
+                            text: AppStrings.privacyPolicyDot.tr,
                             style: TextStyle(
                               color: AppColors.primaryColor,
                               fontFamily: AppConstants.OpenSans,
@@ -174,7 +174,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                               ..onTap = () {
                                 Get.to(CommonWebView(
                                   urlLink: privacyLink,
-                                  urlTitle: 'Privacy Policy',
+                                  urlTitle: AppStrings.privacyPolicy.tr,
                                 ));
 
                                 // Handle Privacy Policy tap
@@ -185,66 +185,13 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       ),
                     ),
                   ),
-                  // Center(
-                  //   child: RichText(
-                  //     textAlign: TextAlign.center,
-                  //     text: TextSpan(
-                  //       style: const TextStyle(
-                  //         fontSize: 12,
-                  //         color: Colors.black87,
-                  //       ),
-                  //       children: [
-                  //         TextSpan(
-                  //           text: langController.tr('agreeToTermsText') ??
-                  //               'By continuing you agree to ',
-                  //           style: const TextStyle(
-                  //             fontFamily: AppConstants.OpenSans,
-                  //           ),
-                  //         ),
-                  //         TextSpan(
-                  //           text: langController.tr('termsAndConditions') ??
-                  //               'Terms & Conditions',
-                  //           style: const TextStyle(
-                  //             color: AppColors.primaryColor,
-                  //             fontFamily: AppConstants.OpenSans,
-                  //           ),
-                  //           recognizer: TapGestureRecognizer()
-                  //             ..onTap = () {
-                  //               Get.to(CommonWebView(
-                  //                 urlLink: tncLink,
-                  //                 urlTitle: 'Terms & Conditions',
-                  //               ));
-                  //             },
-                  //         ),
-                  //         TextSpan(
-                  //           text: langController.tr('andText') ?? ' and\n',
-                  //         ),
-                  //         TextSpan(
-                  //           text: langController.tr('privacyPolicy') ??
-                  //               'Privacy Policy.',
-                  //           style: const TextStyle(
-                  //             color: AppColors.primaryColor,
-                  //             fontFamily: AppConstants.OpenSans,
-                  //           ),
-                  //           recognizer: TapGestureRecognizer()
-                  //             ..onTap = () {
-                  //               Get.to(CommonWebView(
-                  //                 urlLink: privacyLink,
-                  //                 urlTitle: 'Privacy Policy',
-                  //               ));
-                  //             },
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
 
                   SizedBox(height: SizeConfig.size20),
 
                   CustomBtn(
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
-                    title: langController.tr('Get OTP'),
+                    title: AppStrings.getOtp.tr,
                     onTap: () => _onNextButtonPressed(context),
                   ),
 

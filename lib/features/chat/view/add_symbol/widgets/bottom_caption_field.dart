@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
@@ -43,14 +45,12 @@ class BottomCaptionField extends StatelessWidget {
                       size: 16, color: Color(0xFFF7971E)),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'Tag Friends',
-                    style: TextStyle(
-                      color: Color(0xFF2D3142),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Expanded(
+                  child: CustomText(
+                    AppStrings.tagFriends.tr,
+                    color: const Color(0xFF2D3142),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Container(
@@ -67,13 +67,11 @@ class BottomCaptionField extends StatelessWidget {
                           size: 16,
                           color: const Color(0xFF2D3142).withOpacity(0.5)),
                       const SizedBox(width: 4),
-                      Text(
-                        'Add',
-                        style: TextStyle(
-                          color: const Color(0xFF2D3142).withOpacity(0.5),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      CustomText(
+                        AppStrings.add.tr,
+                        color: const Color(0xFF2D3142).withOpacity(0.5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ],
                   ),
@@ -111,27 +109,23 @@ class BottomCaptionField extends StatelessWidget {
                         radius: 10,
                         backgroundColor:
                             const Color(0xFF0086FF).withOpacity(0.15),
-                        child: Text(
+                        child: CustomText(
                           (user.name ?? 'U')[0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Color(0xFF0086FF),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          color: const Color(0xFF0086FF),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(width: 6),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 120),
-                        child: Text(
+                        child: CustomText(
                           user.name ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF0086FF),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          color: const Color(0xFF0086FF),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(width: 4),

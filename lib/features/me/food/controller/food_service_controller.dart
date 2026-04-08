@@ -84,7 +84,7 @@ class FoodServiceController extends GetxController {
   Future<void> addImagesBySlot(String title) async {
     // 1. Prevent adding if something else is already there (Safety check)
     if (foodSnapSearchImagesMap.values.any((v) => v != null)) {
-      commonSnackBar(message: "Please remove the current image before selecting another type.");
+      commonSnackBar(message: AppStrings.foodPleaseRemoveCurrentImage.tr);
       return;
     }
 
@@ -355,7 +355,7 @@ class FoodServiceController extends GetxController {
       final validFiles = foodImages.whereType<XFile>().toList();
 
       if (validFiles.isEmpty) {
-        commonSnackBar(message: "Please ensure the primary image is present.");
+        commonSnackBar(message: AppStrings.foodEnsurePrimaryImagePresent.tr);
         return;
       }
       for (var xFile in validFiles) {
@@ -364,7 +364,7 @@ class FoodServiceController extends GetxController {
         if (result.isSuccess) {
           uploadedImages.add(result.url);
         } else {
-          commonSnackBar(message: "One of the images failed to upload.");
+          commonSnackBar(message: AppStrings.foodImageUploadFailed.tr);
           return; // Stop process if a single upload fails
         }
       }
@@ -469,7 +469,7 @@ class FoodServiceController extends GetxController {
 
       // 1. Check if there is anything to publish
       if (selectedVariantsMap.isEmpty) {
-        commonSnackBar(message: "No products selected to publish.");
+        commonSnackBar(message: AppStrings.foodNoProductsSelectedToPublish.tr);
         return;
       }
 
@@ -534,7 +534,7 @@ class FoodServiceController extends GetxController {
   Future<void> fetchFoodSnapSearchApi() async {
 
     if (validSnapSearchImages.isEmpty) {
-      commonSnackBar(message: "Please upload at least 1 photo");
+      commonSnackBar(message: AppStrings.foodPleaseUploadAtLeastOnePhoto.tr);
       return;
     }
 
@@ -620,7 +620,7 @@ class FoodServiceController extends GetxController {
     try {
       // 1. Validation
       if (selectedVariants.isEmpty) {
-        commonSnackBar(message: "Please select at least one variant.");
+        commonSnackBar(message: AppStrings.foodPleaseSelectAtLeastOneVariant.tr);
         return;
       }
 
@@ -652,7 +652,7 @@ class FoodServiceController extends GetxController {
       final responseModel = await FoodRepo().addKitchenInventoryRepo(params: tempReqList);
 
       if (responseModel.isSuccess) {
-        commonSnackBar(message: responseModel.message ?? "Product added to product");
+        commonSnackBar(message: responseModel.message ?? AppStrings.foodProductAddedSuccess.tr);
         if(createMissingProductIndex==null){
           Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
 

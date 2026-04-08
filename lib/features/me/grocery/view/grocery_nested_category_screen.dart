@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -152,7 +153,7 @@ class _GroceryNestedCategoryScreenState
                 )),
         body: SafeArea(
             child: _filteredChildren.isEmpty
-                ? const Center(child: Text('No subcategories found.'))
+                ? Center(child: Text(AppStrings.groceryViewNoSubcategoriesFound.tr))
                 : MasonryGridView.count(
               crossAxisCount: 2,
               crossAxisSpacing: 6,
@@ -249,7 +250,7 @@ class _GroceryNestedCategoryScreenState
                               BorderRadius.circular(4.0),
                               color: AppColors.boxBg),
                           child: CustomText(
-                            '${item.children?.length} Category',
+                            '${item.children?.length} ${AppStrings.groceryViewCategory.tr}',
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w600,
                             color: AppColors.secondaryTextColor,

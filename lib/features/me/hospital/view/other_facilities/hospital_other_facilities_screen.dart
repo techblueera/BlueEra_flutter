@@ -91,7 +91,6 @@ class _HospitalOtherFacilitiesScreenState extends State<HospitalOtherFacilitiesS
 
                         title: "Submit",
                         onTap: controller.save,
-                        // onTap: controller.isFormValid.value && !controller.isSaving.value ? controller.save : null,
                       ),
                     ),
                   ],

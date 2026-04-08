@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -250,7 +251,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
             // Toggle All
             Expanded(
               child:  CustomText(
-                "All Items Received",
+                AppStrings.groceryViewAllItemsReceived.tr,
                 fontWeight: FontWeight.w600,
                 fontSize: SizeConfig.medium,
                 color: AppColors.primaryColor,
@@ -261,7 +262,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
 
             // Submit Button
             CustomText(
-              "Submit",
+              AppStrings.groceryViewSubmit.tr,
               fontWeight: FontWeight.w600,
               fontSize: SizeConfig.medium,
               color: AppColors.primaryColor,
@@ -290,7 +291,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
     children: [
       Expanded(
         child: CustomText(
-          "Customer Order Details",
+          AppStrings.groceryViewCustomerOrderDetails.tr,
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.large,
           color: AppColors.mainTextColor,

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_emergency_controller.dart';
@@ -33,7 +34,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Emergency & Critical Care"),
+      appBar: CommonBackAppBar(title: AppStrings.hospitalViewEmergencyCriticalCare.tr),
       body: Obx(() {
         return SingleChildScrollView(
           // padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -44,7 +45,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                 child: Column(
                   children: [
                     MeMenuCardDesign(
-                      title: "Emergency / Casualty",
+                      title: AppStrings.hospitalViewEmergencyCasualty.tr,
                       icon: AppIconAssets.Casualty,
                       showToggleButton: true,
                       isToggleOn: controller.emergencyCasualty.value,
@@ -54,7 +55,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                       },
                     ),
                     MeMenuCardDesign(
-                      title: "Trauma Care",
+                      title: AppStrings.hospitalViewTraumaCare.tr,
                       icon: AppIconAssets.TraumaCare,
                       showToggleButton: true,
                       isToggleOn: controller.traumaCare.value,
@@ -64,7 +65,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                       },
                     ),
                     MeMenuCardDesign(
-                      title: "ICU (Intensive Care Unit)",
+                      title: AppStrings.hospitalViewIcu.tr,
                       icon: AppIconAssets.IntensiveCareUnit,
                       showToggleButton: true,
                       isToggleOn: controller.icu.value,
@@ -74,7 +75,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                       },
                     ),
                     MeMenuCardDesign(
-                      title: "CCU (Cardiac Care Unit)",
+                      title: AppStrings.hospitalViewCcu.tr,
                       icon: AppIconAssets.CardiacCareUnit,
                       showToggleButton: true,
                       isToggleOn: controller.ccu.value,
@@ -84,7 +85,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                       },
                     ),
                     MeMenuCardDesign(
-                      title: "NICU (Neonatal ICU)",
+                      title: AppStrings.hospitalViewNicu.tr,
                       icon: AppIconAssets.Neonatal,
                       showToggleButton: true,
                       isToggleOn: controller.nicu.value,
@@ -94,7 +95,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                       },
                     ),
                     MeMenuCardDesign(
-                      title: "PICU (Pediatric ICU)",
+                      title: AppStrings.hospitalViewPicu.tr,
                       icon: AppIconAssets.PICU,
                       showToggleButton: true,
                       isToggleOn: controller.picu.value,
@@ -106,7 +107,7 @@ class _HospitalEmergencyCareScreenState extends State<HospitalEmergencyCareScree
                     SizedBox(height: SizeConfig.size20),
                     PositiveCustomBtn(
                       // isValidate: controller.isFormValid.value,
-                      title: "Submit",
+                      title: AppStrings.submit,
                       // onTap: controller.isFormValid.value && !controller.isSaving.value ? controller.save : null,
                       onTap:  controller.save ,
                     )

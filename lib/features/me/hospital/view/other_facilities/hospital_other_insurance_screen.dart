@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_other_facilities_controller.dart';
@@ -31,7 +32,7 @@ class _HospitalOtherInsuranceScreenState
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Cash Less Insurance"),
+      appBar: CommonBackAppBar(title: AppStrings.hospitalViewCashLessInsurance.tr),
       body: Obx(() {
         return SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -43,7 +44,7 @@ class _HospitalOtherInsuranceScreenState
                   children: [
                     CommonTextField(
                       textEditController: controller.insuranceInput,
-                      hintText: "E.g. Star Health, RBC, WBC",
+                      hintText: AppStrings.hospitalViewEgInsurance.tr,
                     ),
                     SizedBox(height: SizeConfig.size10),
                     SizedBox(
@@ -54,7 +55,7 @@ class _HospitalOtherInsuranceScreenState
                           SizedBox(
                             width: 90,
                             child: PositiveCustomBtn(
-                              title: "Add",
+                              title: AppStrings.add,
                               onTap: () => controller.addInsurance(),
                             ),
                           ),
@@ -93,9 +94,8 @@ class _HospitalOtherInsuranceScreenState
                     SizedBox(
                       width: double.infinity,
                       child: PositiveCustomBtn(
-                        title: "Submit",
+                        title: AppStrings.submit,
                         onTap: controller.save,
-                        // onTap: controller.isFormValid.value && !controller.isSaving.value ? controller.save : null,
                       ),
                     ),
                   ],

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_photo_controller.dart';
@@ -18,19 +19,19 @@ class UploadFoodServicePhotosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Upload Images",
+        title: AppStrings.foodUploadImagesLabel.tr,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText("Select category", color: AppColors.mainTextColor),
+            CustomText(AppStrings.foodSelectCategoryLabel.tr, color: AppColors.mainTextColor),
             SizedBox(height: 10),
             // Dropdown using the String list
             Obx(() => CommonDropdownDialog<String>(
-                  title: "Select Category",
-                  hintText: "E.g. Desserts & Sweets",
+                  title: AppStrings.foodSelectCategoryLabel.tr,
+                  hintText: AppStrings.foodHintDessertCategory.tr,
                   items: controller.categories,
                   selectedValue: controller.selectedCategory.value.isEmpty
                       ? null
@@ -40,7 +41,7 @@ class UploadFoodServicePhotosScreen extends StatelessWidget {
                 )),
 
             SizedBox(height: 20),
-            CustomText("Upload Images (Min 1, Max 6)",
+            CustomText(AppStrings.foodUploadImagesMinMax.tr,
                 fontWeight: FontWeight.bold),
             SizedBox(height: 10),
 
@@ -110,7 +111,7 @@ class UploadFoodServicePhotosScreen extends StatelessWidget {
             SizedBox(height: 40),
             Obx(() {
               return CustomBtn(
-                title: "Submit",
+                title: AppStrings.submit.tr,
                 isValidate: controller.selectedCategory.value.isNotEmpty &&
                     controller.selectedImages.isNotEmpty,
                 onTap: controller.selectedCategory.value.isNotEmpty &&
@@ -118,10 +119,10 @@ class UploadFoodServicePhotosScreen extends StatelessWidget {
                     ? () {
                         if (controller.selectedCategory.isEmpty) {
                           commonSnackBar(
-                              message: "Error Please select a category");
+                              message: AppStrings.foodErrorSelectCategory.tr);
                         } else if (controller.selectedImages.isEmpty) {
                           commonSnackBar(
-                              message: "Error Please upload at least 1 image");
+                              message: AppStrings.foodErrorUploadAtLeastImage.tr);
                         } else {
                           controller.buildRequestBody();
                           // Call your API upload logic here

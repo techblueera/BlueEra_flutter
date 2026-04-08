@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -47,7 +48,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: "Food Items",
+        title: AppStrings.foodFoodItemsLabel.tr,
       ),
       bottomNavigationBar: _buildBottomPublishBar(),
       body: SafeArea(
@@ -75,7 +76,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Upload Bulk Product", fontWeight: FontWeight.bold),
+          CustomText(AppStrings.foodUploadBulkProduct.tr, fontWeight: FontWeight.bold),
           const SizedBox(height: 14),
           MasonryGridView.count(
             shrinkWrap: true,
@@ -245,8 +246,8 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
             },
           ),
           const SizedBox(height: 10),
-          const CustomText(
-            "Upload picture/menu containing up to 20 product at time",
+          CustomText(
+            AppStrings.foodUploadPictureMenu.tr,
             fontWeight: FontWeight.w400,
             color: AppColors.red,
             textAlign: TextAlign.center,
@@ -335,14 +336,13 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 20),
-        const EmptyStateWidget(
-          message: 'We couldn’t identify any products from this photo. \n'
-              'Try capturing a clearer shot or searching for individual items!',
+        EmptyStateWidget(
+          message: AppStrings.foodSnapNoProductsFound.tr,
         ),
         const SizedBox(height: 20),
         CustomBtn(
           width: 120,
-          title: "Retry",
+          title: AppStrings.foodRetryLabel.tr,
           textColor: AppColors.white,
           bgColor: AppColors.primaryColor,
           radius: 10.0,
@@ -352,7 +352,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
         TextButton(
           onPressed: () => Get.back(),
           child: CustomText(
-            "Search Manually",
+            AppStrings.foodSearchManuallyLabel.tr,
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.primaryColor,
@@ -370,13 +370,13 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
         children: [
           CustomText(
             // "${data.foundCount ?? 0} Items Found",
-            "${controller.categoryFoundProductDataList.length} Items Found",
+            "${controller.categoryFoundProductDataList.length} ${AppStrings.foodItemsFoundLabel.tr}",
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
           CustomText(
             // "${data.missingCount ?? 0} Items missing",
-            "${controller.missingProducts.length} Items missing",
+            "${controller.missingProducts.length} ${AppStrings.foodItemsMissingLabel.tr}",
             color: Colors.red,
             fontWeight: FontWeight.w500,
           ),
@@ -433,13 +433,13 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      "$productCount Products Selected, $totalVariantsCount Total Variants ready",
+                      "$productCount ${AppStrings.foodProductsSelectedSuffix.tr} $totalVariantsCount ${AppStrings.foodTotalVariantsReady.tr}",
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                     CustomText(
-                      "Ready to publish to product",
+                      AppStrings.foodReadyToPublish.tr,
                       fontSize: 12,
                       color: Colors.grey.shade600,
                     ),
@@ -450,7 +450,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
                 width: 140,
                 child: PositiveCustomBtn(
                   onTap: () => controller.bulkPublishInventory(isSnapSearch: true),
-                  title: "Publish All",
+                  title: AppStrings.foodPublishAll.tr,
                 ),
               ),
             ],

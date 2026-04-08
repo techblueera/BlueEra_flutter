@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,33 +24,33 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
       ? Get.find<AddChatSymbolController>()
       : Get.put(AddChatSymbolController());
 
-  final List<_SymbolTypeOption> _options = [
+  late final List<_SymbolTypeOption> _options = [
     _SymbolTypeOption(
-      label: 'Photo',
-      subtitle: 'Up to 4 images',
+      label: AppStrings.photo.tr,
+      subtitle: AppStrings.upToFourImages.tr,
       icon: Icons.photo_rounded,
-      gradient: [Color(0xFF667EEA), Color(0xFF764BA2)],
+      gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
       type: PostType.image,
     ),
     _SymbolTypeOption(
-      label: 'Video',
-      subtitle: 'Record or pick',
+      label: AppStrings.video.tr,
+      subtitle: AppStrings.recordOrPick.tr,
       icon: Icons.videocam_rounded,
-      gradient: [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
+      gradient: const [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
       type: PostType.video,
     ),
     _SymbolTypeOption(
-      label: 'Text',
-      subtitle: 'Share thoughts',
+      label: AppStrings.textLabel.tr,
+      subtitle: AppStrings.shareThoughts.tr,
       icon: Icons.text_fields_rounded,
-      gradient: [Color(0xFF11998E), Color(0xFF38EF7D)],
+      gradient: const [Color(0xFF11998E), Color(0xFF38EF7D)],
       type: PostType.text,
     ),
     _SymbolTypeOption(
-      label: 'Link',
-      subtitle: 'Share a URL',
+      label: AppStrings.linkLabel.tr,
+      subtitle: AppStrings.shareAUrl.tr,
       icon: Icons.link_rounded,
-      gradient: [Color(0xFFF7971E), Color(0xFFFFD200)],
+      gradient: const [Color(0xFFF7971E), Color(0xFFFFD200)],
       type: PostType.link,
     ),
   ];
@@ -65,23 +67,18 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
         children: [
           // --- INITIAL TYPE SELECTOR ---
           if (controller.selectedPostType.value == null) ...[
-            const Text(
-              'What would you like to share?',
-              style: TextStyle(
-                color: Color(0xFF2D3142),
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-              ),
+            CustomText(
+              AppStrings.whatWouldYouLikeToShare.tr,
+              color: const Color(0xFF2D3142),
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
             ),
             const SizedBox(height: 6),
-            Text(
-              'Choose a symbol type to get started',
-              style: TextStyle(
-                color: const Color(0xFF2D3142).withValues(alpha: 0.45),
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-              ),
+            CustomText(
+              AppStrings.chooseSymbolType.tr,
+              color: const Color(0xFF2D3142).withValues(alpha: 0.45),
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
             ),
             const SizedBox(height: 20),
             _buildTypeGrid(),
@@ -184,14 +181,11 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                     child: Icon(option.icon, color: Colors.white, size: 22),
                   ),
                   const SizedBox(height: 10),
-                  Text(
+                  CustomText(
                     option.label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
-                    ),
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                   ),
                 ],
               ),
@@ -232,21 +226,21 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                isPhoto ? 'Selected Photos' : 'Selected Video',
-                style: const TextStyle(
-                  color: Color(0xFF2D3142),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
+              CustomText(
+                isPhoto
+                    ? AppStrings.selectedPhotos.tr
+                    : AppStrings.selectedVideo.tr,
+                color: const Color(0xFF2D3142),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
               const SizedBox(height: 2),
-              Text(
-                isPhoto ? '$count photos' : '1 video selected',
-                style: TextStyle(
-                  color: const Color(0xFF2D3142).withValues(alpha: 0.4),
-                  fontSize: 12,
-                ),
+              CustomText(
+                isPhoto
+                    ? '$count ${AppStrings.photosUnit.tr}'
+                    : AppStrings.oneVideoSelected.tr,
+                color: const Color(0xFF2D3142).withValues(alpha: 0.4),
+                fontSize: 12,
               ),
             ],
           ),
@@ -271,18 +265,17 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                  SizedBox(width: 4),
-                  Text(
-                    'Add More',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  const Icon(Icons.add_rounded,
+                      size: 16, color: Colors.white),
+                  const SizedBox(width: 4),
+                  CustomText(
+                    AppStrings.addMoreLabel.tr,
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ],
               ),
@@ -598,19 +591,17 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.touch_app_rounded,
+                        const Icon(Icons.touch_app_rounded,
                             size: 14, color: Colors.white70),
-                        SizedBox(width: 6),
-                        Text(
-                          'Tap to preview',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(width: 6),
+                        CustomText(
+                          AppStrings.tapToPreview.tr,
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
                     ),
@@ -650,20 +641,17 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                     color: const Color(0xFFFF6B6B).withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.videocam_rounded,
+                      const Icon(Icons.videocam_rounded,
                           size: 13, color: Colors.white),
-                      SizedBox(width: 4),
-                      Text(
-                        'VIDEO',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                        ),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        AppStrings.videoBadge.tr,
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
                       ),
                     ],
                   ),
@@ -794,9 +782,10 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                       color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
+                    child: CustomText(
                       '${currentIndex + 1} / ${files.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      color: Colors.white,
+                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -845,13 +834,11 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
           ],
         ),
         child: Center(
-          child: Text(
+          child: CustomText(
             '${index + 1}',
-            style: const TextStyle(
-              color: Color(0xFF2D3142),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
+            color: const Color(0xFF2D3142),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../model/get_categories_model.dart';
 
 class BusinessSubCategorySelectionDialog extends StatefulWidget {
@@ -30,6 +31,8 @@ class BusinessSubCategorySelectionDialog extends StatefulWidget {
 
 class _BusinessSubCategorySelectionDialogState extends State<BusinessSubCategorySelectionDialog> {
   late AuthController _authController;
+  final LanguageListController langController =
+      Get.find<LanguageListController>();
   SubCategories? _selectedSubCat;
 
   @override
@@ -154,7 +157,7 @@ class _BusinessSubCategorySelectionDialogState extends State<BusinessSubCategory
             height: 100,
             alignment: Alignment.center,
             child: CustomText(
-              "No sub-categories found.",
+              langController.tr("No sub-categories found."),
               fontSize: SizeConfig.medium,
               color: AppColors.secondaryTextColor,
             ),

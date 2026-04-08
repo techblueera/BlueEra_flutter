@@ -83,7 +83,7 @@ class HospitalHistoryController extends GetxController {
           final HospitalHistoryRes hr = HospitalHistoryRes.fromJson(res.response?.data);
           data.value = hr.data;
           initialImageUrl = hr.data?.imageUrl ?? '';
-          commonSnackBar(message: "Saved");
+          commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
@@ -93,7 +93,7 @@ class HospitalHistoryController extends GetxController {
           final HospitalHistoryRes hr = HospitalHistoryRes.fromJson(res.response?.data);
           data.value = hr.data;
           initialImageUrl = hr.data?.imageUrl ?? '';
-          commonSnackBar(message: "Updated");
+          commonSnackBar(message: AppStrings.hospitalCtrlUpdated.tr);
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }

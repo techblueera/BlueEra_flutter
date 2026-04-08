@@ -20,7 +20,7 @@ class QrDesignOptionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final designs = QrDesignModel.designs;
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: AppColors.white,
 appBar: CommonBackAppBar(title: AppStrings.qrStickerDesigns.tr,),
       // appBar: AppBar(
       //   backgroundColor: AppColors.white,
@@ -44,7 +44,8 @@ appBar: CommonBackAppBar(title: AppStrings.qrStickerDesigns.tr,),
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 0.85,
+            childAspectRatio: 0.61,
+            // childAspectRatio: 0.85,
           ),
           itemCount: designs.length,
           itemBuilder: (context, index) {

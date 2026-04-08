@@ -111,7 +111,7 @@ class GroceryController extends GetxController {
     } else {
       if (selectedGroceries.length >= 10) {
         commonSnackBar(
-            message: 'You can’t select more than 10 products at a time.');
+            message: AppStrings.groceryMaxSelectWarning.tr);
         return;
       }
       selectedGroceries.add(p);
@@ -144,10 +144,6 @@ class GroceryController extends GetxController {
   bool get canSubmitProducts {
     // Check if there is ANY list in the map that is NOT empty
     bool hasAtLeastOneVariant = selectedProductVariants.values.any((variants) => variants.isNotEmpty);
-
-    print('--- Validation Check ---');
-    print('Total Product Keys: ${selectedProductVariants.length}');
-    print('Has at least one variant selected: $hasAtLeastOneVariant');
 
     return hasAtLeastOneVariant;
   }
@@ -257,7 +253,7 @@ class GroceryController extends GetxController {
       barrierDismissible: !isCreateNewGroceryProductNewVariantLoading.value,
       builder: (_) {
         return GroceryVariantDialog(
-          title: "Add More Variant",
+          title: AppStrings.groceryAddMoreVariant.tr,
           onSubmit: (quantity, unit, mrp, sellingPrice) {
             createNewGroceryProductNewVariant(
                 groceryItem: groceryItem,
@@ -275,7 +271,7 @@ class GroceryController extends GetxController {
   Future<void> addImagesBySlot(String title) async {
     // 1. Prevent adding if something else is already there (Safety check)
     if (grocerySnapSearchImagesMap.values.any((v) => v != null)) {
-      commonSnackBar(message: "Please remove the current image before selecting another type.");
+      commonSnackBar(message: AppStrings.groceryRemoveCurrentImageType.tr);
       return;
     }
 
@@ -552,7 +548,7 @@ class GroceryController extends GetxController {
     }
 
     if (postalCode.isEmpty || postalCode == "0") {
-      commonSnackBar(message: 'Please enable GPS or update business pincode');
+      commonSnackBar(message: AppStrings.groceryEnableGpsOrPincode.tr);
     }
 
     selectedProductVariants.forEach((productId, variants) {
@@ -584,7 +580,7 @@ class GroceryController extends GetxController {
 
     // 2. Validate that at least one image is uploaded
     if (activeImages.isEmpty) {
-      commonSnackBar(message: "Please upload at least 1 photo");
+      commonSnackBar(message: AppStrings.groceryUploadAtLeastOnePhoto.tr);
       return;
     }
 
@@ -1052,7 +1048,7 @@ class GroceryController extends GetxController {
     String postalCode = viewBusinessDetailsController.businessProfileDetails.value?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 
     if(postalCode.isEmpty) {
-      commonSnackBar(message: 'Please enable your location permission for adding grocery');
+      commonSnackBar(message: AppStrings.groceryEnableLocationForGrocery.tr);
       return {};
     }
 

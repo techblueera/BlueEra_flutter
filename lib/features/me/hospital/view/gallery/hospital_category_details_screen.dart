@@ -71,7 +71,7 @@ class HospitalCategoryDetailsScreen extends StatelessWidget {
                     onTap: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this image?',
+                          text: AppStrings.hospitalViewDeleteImageConfirm.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteHotelRoomController(

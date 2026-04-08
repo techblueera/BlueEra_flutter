@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../model/business_category_response_model.dart';
 import '../../model/get_categories_model.dart';
 
@@ -31,6 +32,8 @@ class BusinessCategorySelectionDialog extends StatefulWidget {
 
 class _BusinessCategorySelectionDialogState extends State<BusinessCategorySelectionDialog> {
   late AuthController _authController;
+  final LanguageListController langController =
+      Get.find<LanguageListController>();
   BusinessCategory? _selectedCategory;
 
   @override
@@ -185,7 +188,7 @@ class _BusinessCategorySelectionDialogState extends State<BusinessCategorySelect
             height: 100,
             alignment: Alignment.center,
             child: CustomText(
-              "No categories found.",
+              langController.tr("No categories found."),
               fontSize: SizeConfig.medium,
               color: AppColors.secondaryTextColor,
             ),
