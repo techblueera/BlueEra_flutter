@@ -149,7 +149,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
         title: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.greyE4,
+            color: AppColors.greyE4.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
@@ -203,8 +203,18 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 8),
+
           /// Use Current Location
-          InkWell(
+          _buildActionTile(
+            icon: Icons.my_location,
+            iconBgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+            iconColor: AppColors.primaryColor,
+            title: "Use Current Location",
+            titleColor: AppColors.primaryColor,
+            subtitle: (_currentAddress != null && _currentAddress!.isNotEmpty)
+                ? _currentAddress
+                : null,
             onTap: () {
               _onPlaceSelected(
                 _currentPosition.latitude,
@@ -213,154 +223,174 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
               );
               Navigator.pop(context);
             },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.my_location,
-                        color: AppColors.primaryColor, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "Use Current Location",
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                        ),
-                        if (_currentAddress != null &&
-                            _currentAddress!.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          CustomText(
-                            _currentAddress,
-                            fontSize: 12,
-                            color: AppColors.grayText,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right,
-                      color: AppColors.grayText, size: 20),
-                ],
-              ),
-            ),
           ),
 
-          Divider(height: 1, color: AppColors.whiteE5),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(height: 1, color: Colors.grey.shade200),
+          ),
 
           /// Choose on Map
-          InkWell(
+          _buildActionTile(
+            icon: Icons.map_outlined,
+            iconBgColor: Colors.orange.withValues(alpha: 0.1),
+            iconColor: Colors.orange,
+            title: "Choose on Map",
             onTap: () {
               Navigator.pop(context);
             },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.map_outlined,
-                        color: Colors.orange, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: CustomText(
-                      "Choose on Map",
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Icon(Icons.chevron_right,
-                      color: AppColors.grayText, size: 20),
-                ],
-              ),
-            ),
           ),
-
-          Divider(height: 1, color: AppColors.whiteE5),
 
           /// Recent Searches
           if (_recentSearches.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Divider(height: 1, color: Colors.grey.shade200),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CustomText(
-                    "Recent Searches",
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grayText,
+                  Row(
+                    children: [
+                      Icon(Icons.schedule, size: 16, color: AppColors.grayText),
+                      const SizedBox(width: 6),
+                      CustomText(
+                        "Recent Searches",
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.grayText,
+                      ),
+                    ],
                   ),
                   InkWell(
                     onTap: _clearRecentSearches,
-                    child: CustomText(
-                      "Clear All",
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.red00,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: CustomText(
+                        "Clear All",
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.red00,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            ..._recentSearches.map((search) {
-              return InkWell(
-                onTap: () {
-                  final lat = (search['lat'] as num).toDouble();
-                  final lng = (search['lng'] as num).toDouble();
-                  final address = search['address'] as String;
-                  _onPlaceSelected(lat, lng, address);
-                  Navigator.pop(context);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.greyE4,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.history,
-                            color: AppColors.grayText, size: 18),
+            const SizedBox(height: 4),
+            ..._recentSearches.asMap().entries.map((entry) {
+              final index = entry.key;
+              final search = entry.value;
+              return Column(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      final lat = (search['lat'] as num).toDouble();
+                      final lng = (search['lng'] as num).toDouble();
+                      final address = search['address'] as String;
+                      _onPlaceSelected(lat, lng, address);
+                      Navigator.pop(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.location_on_outlined,
+                                color: AppColors.grayText, size: 18),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: CustomText(
+                              search['address'],
+                              fontSize: 14,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.north_west,
+                              color: Colors.grey.shade400, size: 14),
+                        ],
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: CustomText(
-                          search['address'],
-                          fontSize: 14,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(Icons.north_west,
-                          color: AppColors.grayText, size: 16),
-                    ],
+                    ),
                   ),
-                ),
+                  if (index < _recentSearches.length - 1)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 58),
+                      child: Divider(
+                          height: 1, color: Colors.grey.shade200),
+                    ),
+                ],
               );
             }),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required Color iconBgColor,
+    required Color iconColor,
+    required String title,
+    Color? titleColor,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    title,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: titleColor,
+                  ),
+                  if (subtitle != null && subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    CustomText(
+                      subtitle,
+                      fontSize: 12,
+                      color: AppColors.grayText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+          ],
+        ),
       ),
     );
   }

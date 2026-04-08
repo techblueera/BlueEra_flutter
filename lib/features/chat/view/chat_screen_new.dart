@@ -37,6 +37,7 @@ import 'contacts/view/contact_list_page.dart';
 import 'symbol_view/symbol_view_images.dart';
 import 'wallet_chat/wallet_chat_screen.dart';
 import '../../../features/personal/personal_profile/view/manage_notification/notification.dart';
+import 'reminder_chat/reminder_todo_screen.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen({super.key,
@@ -75,7 +76,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       chatViewController.selectedUserIds.clear();
     }
     chatViewController.chatMainTabController = TabController(
-      length:4,
+      length:3,
       vsync: this,
       initialIndex: chatViewController.selectedChatTabIndex.value,
     );
@@ -95,7 +96,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         } else if (index == 1) {
           chatViewController.emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.business_Chat_Type});
-        } else if (index == 3) {
+        } else if (index == 2) {
           chatViewController.emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.order_Chat_Type});
         }
@@ -335,7 +336,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       tabs:  [
                         Tab(text: "Personal"),
                         Tab(text: "Business"),
-                        Tab(text: "Finder"),
+                        // Tab(text: "Finder"),
                         Tab(text: "Orders"),
                       ],
                     ),
@@ -353,7 +354,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                         isNewGroupUI: widget.isNewGroupUI,),
                       BusinessChatsList(isForwardUI: widget.isForwardUI,
                         isNewGroupUI: widget.isNewGroupUI,),
-                      FindContactWithService(fromBottomNav: true),
+                      // FindContactWithService(fromBottomNav: true),
                       OrdersTabView()
                     ],
                   ),
@@ -533,7 +534,12 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
           ),
         ),
         const SizedBox(width: 18),
-        Icon(Icons.lock_clock)
+        InkWell(
+          onTap: () {
+            Get.to(() => const ReminderTodoScreen());
+          },
+          child: const Icon(Icons.lock_clock),
+        )
         // InkWell(
         //   onTap: () {
         //     Get.to(FindContactWithService());

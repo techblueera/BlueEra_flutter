@@ -45,7 +45,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
       svgImage: AppIconAssets.transport_auto,
     ),
     TransportCategoryDetailsModel(
-      name: "Rickshaws",
+      name: "E Rickshaws",
       svgImage: AppIconAssets.transport_big_auto,
     ),
   ];

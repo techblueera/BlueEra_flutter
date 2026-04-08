@@ -516,6 +516,7 @@ Widget  ChatListTile({
                       lastMessageType == "contact" ||
                       lastMessageType == "audio" ||
                       lastMessageType == "location" ||
+                      lastMessageType == "live_location" ||
                       lastMessageType == "image" ||
                       lastMessageType == "video")
                       ? Row(
@@ -531,6 +532,10 @@ Widget  ChatListTile({
                             ? Icons.video_chat
                             : lastMessageType == "location"
                             ? Icons.location_history
+                            : lastMessageType == "live_location"
+                            ? (chat?.isEnded == true
+                                ? Icons.location_off_rounded
+                                : Icons.share_location_rounded)
                             : Icons.camera_alt,
                         color: AppColors.grey9A,
                         size: SizeConfig.size16,
@@ -547,6 +552,10 @@ Widget  ChatListTile({
                             ? "Video"
                             : lastMessageType == "location"
                             ? "Location"
+                            : lastMessageType == "live_location"
+                            ? (chat?.isEnded == true
+                                ? "Live location ended"
+                                : "Live location")
                             : "Image",
                         fontSize: SizeConfig.size14,
                         color: AppColors.grey9A,

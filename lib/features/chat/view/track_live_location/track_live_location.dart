@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -35,6 +36,8 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   final chatThemeController = getOrPut(() => ChatThemeController());
   final chatViewController = getOrPut(() => ChatViewController());
   LatLng? currentLatLng;
+  Timer? _expiryTimer;
+  bool _isExpired = false;
 
   /// Sender (the other person) info
   String get _senderName => widget.messages?.sender?.name ?? 'User';
@@ -53,11 +56,75 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   @override
   void initState() {
     super.initState();
+    _initExpiryState();
     _determinePosition();
+  }
+
+  void _initExpiryState() {
+    if (widget.messages?.isEnded == true) {
+      _isExpired = true;
+      return;
+    }
+
+    final expiresAt = widget.messages?.live_location_expires_at;
+    if (expiresAt != null && expiresAt.isNotEmpty) {
+      try {
+        final expiryTime = DateTime.parse(expiresAt);
+        final remaining = expiryTime.difference(DateTime.now());
+        if (remaining.isNegative) {
+          _isExpired = true;
+        } else {
+          _expiryTimer = Timer(remaining, () {
+            if (mounted) {
+              setState(() {
+                _isExpired = true;
+              });
+            }
+          });
+        }
+      } catch (_) {
+        _initExpiryFromValidity();
+      }
+    } else {
+      _initExpiryFromValidity();
+    }
+  }
+
+  void _initExpiryFromValidity() {
+    final createdAt = widget.messages?.createdAt;
+    final validity = widget.messages?.live_location_validity;
+    if (createdAt == null || validity == null) return;
+
+    try {
+      final created = DateTime.parse(createdAt);
+      Duration duration;
+      if (validity.endsWith("min")) {
+        duration = Duration(minutes: int.parse(validity.replaceAll("min", "")));
+      } else if (validity.endsWith("h")) {
+        duration = Duration(hours: int.parse(validity.replaceAll("h", "")));
+      } else {
+        return;
+      }
+
+      final expiryTime = created.add(duration);
+      final remaining = expiryTime.difference(DateTime.now());
+      if (remaining.isNegative) {
+        _isExpired = true;
+      } else {
+        _expiryTimer = Timer(remaining, () {
+          if (mounted) {
+            setState(() {
+              _isExpired = true;
+            });
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
+    _expiryTimer?.cancel();
     LiveTrackingSocketService().disconnectSocket();
     mapController?.dispose();
     super.dispose();
@@ -197,6 +264,19 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   }
 
   String _calculateExpiry() {
+    // Use live_location_expires_at if available
+    final expiresAt = widget.messages?.live_location_expires_at;
+    if (expiresAt != null && expiresAt.isNotEmpty) {
+      try {
+        final expiry = DateTime.parse(expiresAt).toLocal();
+        final hour = expiry.hour % 12 == 0 ? 12 : expiry.hour % 12;
+        final minute = expiry.minute.toString().padLeft(2, '0');
+        final period = expiry.hour >= 12 ? "PM" : "AM";
+        return "$hour:$minute $period";
+      } catch (_) {}
+    }
+
+    // Fallback to createdAt + validity
     final createdAt = widget.messages?.createdAt;
     final validity = widget.messages?.live_location_validity;
     if (createdAt == null || validity == null) return '';
@@ -348,17 +428,27 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
                 width: double.infinity,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                color: Colors.green.shade50,
+                color: _isExpired ? Colors.grey.shade100 : Colors.green.shade50,
                 child: Row(
                   children: [
-                    Icon(Icons.share_location_rounded,
-                        size: 18, color: Colors.green.shade700),
+                    Icon(
+                        _isExpired
+                            ? Icons.location_off_rounded
+                            : Icons.share_location_rounded,
+                        size: 18,
+                        color: _isExpired
+                            ? Colors.grey
+                            : Colors.green.shade700),
                     const SizedBox(width: 8),
                     CustomText(
-                      "Live until $expiryTime",
+                      _isExpired
+                          ? "Live location ended"
+                          : "Live until $expiryTime",
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Colors.green.shade700,
+                      color: _isExpired
+                          ? Colors.grey
+                          : Colors.green.shade700,
                     ),
                   ],
                 ),

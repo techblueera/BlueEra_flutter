@@ -782,49 +782,51 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
+        Future.delayed(Duration(seconds: 40),()async{
+          final parsedData = GetListOfMessageData.fromJson(data);
 
-        final parsedData = GetListOfMessageData.fromJson(data);
-
-        if (parsedData.messages != null) {
-          for (var message in parsedData.messages!) {
-            if (message.myMessage == null) {
-              final currentUserId = userId;
-              final senderId = message.senderId;
-              message.myMessage = currentUserId == senderId;
-            }
-          }
-        }
-
-        if (parsedData.messages?.isNotEmpty ?? false) {
-          final conversationId =
-              parsedData.messages?.first.conversationId ?? '';
-          if (parsedData.messages != null && conversationId.isNotEmpty) {
-            // Deduplicate server messages by ID before setting
-            final seen = <String>{};
-            final deduped = <Messages>[];
-            for (final m in parsedData.messages!) {
-              final id = m.id ?? '';
-              if (id.isEmpty || seen.add(id)) {
-                deduped.add(m);
+          if (parsedData.messages != null) {
+            for (var message in parsedData.messages!) {
+              if (message.myMessage == null) {
+                final currentUserId = userId;
+                final senderId = message.senderId;
+                message.myMessage = currentUserId == senderId;
               }
             }
-            // Resolve local file paths for already-downloaded media
-            // so images/videos show instantly from local storage
-            await _resolveLocalMediaPaths(deduped);
-            getListOfMessageResponse.value = ApiResponse.complete(deduped);
-            scrollDown();
-            // saveMessagesByConversationId REPLACES the full list — this is
-            // the authoritative server data, so it cleans up any local duplicates
-            localStorageHelper.saveMessagesByConversationId(
-                userOpenConversationId.value, deduped);
+          }
+
+          if (parsedData.messages?.isNotEmpty ?? false) {
+            final conversationId =
+                parsedData.messages?.first.conversationId ?? '';
+            if (parsedData.messages != null && conversationId.isNotEmpty) {
+              // Deduplicate server messages by ID before setting
+              final seen = <String>{};
+              final deduped = <Messages>[];
+              for (final m in parsedData.messages!) {
+                final id = m.id ?? '';
+                if (id.isEmpty || seen.add(id)) {
+                  deduped.add(m);
+                }
+              }
+              // Resolve local file paths for already-downloaded media
+              // so images/videos show instantly from local storage
+              await _resolveLocalMediaPaths(deduped);
+              getListOfMessageResponse.value = ApiResponse.complete(deduped);
+              scrollDown();
+              // saveMessagesByConversationId REPLACES the full list — this is
+              // the authoritative server data, so it cleans up any local duplicates
+              localStorageHelper.saveMessagesByConversationId(
+                  userOpenConversationId.value, deduped);
+            } else {
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(parsedData.messages);
+            }
           } else {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
           }
-        } else {
-          getListOfMessageResponse.value =
-              ApiResponse.complete(parsedData.messages);
-        }
+        });
+
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) async {
 
@@ -1964,6 +1966,7 @@ class ChatViewController extends GetxController {
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
           // Deduplicate: newMessageReceived socket event may have already added this
+
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
           if (!alreadyExists) {
@@ -2829,16 +2832,9 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().sendMessageToUserLargeFile(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
-        if (sendFiles != null &&
-            sendFiles.isNotEmpty &&
-            params[ApiKeys.message_type] == 'video' &&
-            isPendingMessage == null) {
-          if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
-            getListOfMessageData!.removeLast();
-          }
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
-        }
+        // Remove the uploading placeholder (shown for both image & video)
+        _removeUploadingPlaceholder();
+
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
@@ -2882,20 +2878,13 @@ class ChatViewController extends GetxController {
         clearMessageControllerCommon();
         return true;
       } else {
+        _removeUploadingPlaceholder();
         clearMessageControllerCommon();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      if (sendFiles != null &&
-          sendFiles.isNotEmpty &&
-          params[ApiKeys.message_type] == 'video') {
-        if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
-          getListOfMessageData!.removeLast();
-        }
-        getListOfMessageResponse.value =
-            ApiResponse.complete(getListOfMessageData);
-      }
+      _removeUploadingPlaceholder();
     }
     return null;
   }

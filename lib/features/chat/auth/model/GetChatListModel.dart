@@ -71,6 +71,7 @@ class ChatList {
     this.publicGroup,
     this.sender,
     this.symbolData,
+    this.isEnded,
   });
 
   ChatList.fromJson(dynamic json) {
@@ -87,6 +88,7 @@ class ChatList {
     publicGroup = json['public_group'];
 
     sender = json['sender'] != null ? Sender.fromJson(json['sender']) : null;
+    isEnded = json['isEnded'];
 
     /// NEW: symbolData parsing
     if (json['symbolData'] != null) {
@@ -109,6 +111,8 @@ class ChatList {
   bool? tagged;
   Sender? sender;
 
+  bool? isEnded;
+
   /// NEW FIELD
   List<SymbolDataModel>? symbolData;
 
@@ -125,6 +129,7 @@ class ChatList {
     map['unread_count'] = unreadCount;
     map['tagged'] = tagged;
     map['public_group'] = publicGroup;
+    map['isEnded'] = isEnded;
 
     if (sender != null) {
       map['sender'] = sender?.toJson();

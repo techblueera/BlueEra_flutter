@@ -27,6 +27,8 @@ import 'package:BlueEra/widgets/social_gallery_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../chat/auth/controller/chat_view_controller.dart';
+
 // ─── AllSelfProfessionScreen ───
 class AllSelfProfessionScreen extends StatefulWidget {
   final List<ProfessionTypeData> selfEmployedCategories;
@@ -714,7 +716,15 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                 ],
               ),
               child: CustomBtn(
-                onTap: () {},
+                onTap: () {
+                  final targetUserId = service.id ?? '';
+                  if (targetUserId.isEmpty) return;
+                  final chatViewController = getOrPut(() => ChatViewController());
+
+                  chatViewController.checkChatConnectionAndOpenChat(
+                      userId:  service.id??""
+                  );
+                },
                 isValidate: true,
                 radius: SizeConfig.size12,
                 title: AppStrings.requestBooking.tr,

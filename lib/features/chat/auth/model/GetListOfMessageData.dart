@@ -86,6 +86,8 @@ class Messages {
       this.latitude,
       this.longitude, 
       this.live_location_validity,
+      this.live_location_expires_at,
+      this.isEnded,
       this.sharedContactName,
       this.sharedContactProfileImage, 
       this.sharedContactNumber, 
@@ -137,6 +139,8 @@ class Messages {
     latitude = json['latitude'];
     longitude = json['longitude'];
     live_location_validity = json['live_location_validity'];
+    live_location_expires_at = json['live_location_expires_at'];
+    isEnded = json['isEnded'];
     sharedContactName = json['shared_contact_name'];
     sharedContactProfileImage = json['shared_contact_profile_image'];
     sharedContactNumber = json['shared_contact_number'];
@@ -197,6 +201,8 @@ class Messages {
   String? latitude;
   String? longitude;
   String? live_location_validity;
+  String? live_location_expires_at;
+  bool? isEnded;
   String? sharedContactName;
   String? sharedContactProfileImage;
   String? sharedContactNumber;
@@ -243,6 +249,8 @@ class Messages {
     map['latitude'] = latitude;
     map['longitude'] = longitude;
     map['live_location_validity'] = live_location_validity;
+    map['live_location_expires_at'] = live_location_expires_at;
+    map['isEnded'] = isEnded;
     map['shared_contact_name'] = sharedContactName;
     map['shared_contact_profile_image'] = sharedContactProfileImage;
     map['shared_contact_number'] = sharedContactNumber;

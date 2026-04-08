@@ -48,6 +48,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
   LatLng? fromLatLng;
   LatLng? toLatLng;
+  String? _distanceText;
 
   LatLng get _currentLatLng {
     final lat = LocationService.lat;
@@ -61,9 +62,33 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     super.initState();
     _setVehicleType();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _setInitialCurrentLocation();
+      _initializeLocations();
       authController.isSearchOpen.value = true;
     });
+  }
+
+  /// If both from & to are already selected, show route immediately.
+  /// Otherwise, set current location as "from".
+  Future<void> _initializeLocations() async {
+    final hasFrom = (discoverController.selectedFromLat?.value ?? 0) != 0.0 &&
+        (discoverController.selectedFromLong?.value ?? 0) != 0.0;
+    final hasTo = (discoverController.selectedToLat?.value ?? 0) != 0.0 &&
+        (discoverController.selectedToLong?.value ?? 0) != 0.0;
+
+    if (hasFrom && hasTo) {
+      // Both locations already selected — show route immediately
+      fromLatLng = LatLng(
+        discoverController.selectedFromLat!.value,
+        discoverController.selectedFromLong!.value,
+      );
+      toLatLng = LatLng(
+        discoverController.selectedToLat!.value,
+        discoverController.selectedToLong!.value,
+      );
+      _updateMarkersAndRoute();
+    } else {
+      await _setInitialCurrentLocation();
+    }
   }
 
   void _setVehicleType() {
@@ -187,7 +212,23 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
           .map((point) => LatLng(point.latitude, point.longitude))
           .toList();
 
+      // Calculate road distance from polyline points
+      double totalKm = 0;
+      for (int i = 0; i < routeCoords.length - 1; i++) {
+        totalKm += calculateDistanceKm(
+          routeCoords[i].latitude,
+          routeCoords[i].longitude,
+          routeCoords[i + 1].latitude,
+          routeCoords[i + 1].longitude,
+        );
+      }
+
+      discoverController.roadDistanceKm.value = totalKm;
+
       setState(() {
+        _distanceText = totalKm < 1
+            ? '${(totalKm * 1000).round()} m'
+            : '${totalKm.toStringAsFixed(1)} km';
         _polylines.clear();
         _polylines.add(
           Polyline(
@@ -367,6 +408,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                   fromLatLng = latLng;
                   discoverController.markers.clear();
                   _polylines.clear();
+                  _distanceText = null;
+                  discoverController.roadDistanceKm.value = 0.0;
                 }
                 // Case 3: Both selected -> reset (Uber behaviour)
                 else {
@@ -378,6 +421,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                   toLatLng = null;
                   discoverController.markers.clear();
                   _polylines.clear();
+                  _distanceText = null;
+                  discoverController.roadDistanceKm.value = 0.0;
                 }
 
                 String address = await LocationService.getAddressUsingLatLng(
@@ -514,6 +559,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                         fromLatLng = null;
                                         discoverController.markers.clear();
                                         _polylines.clear();
+                                        _distanceText = null;
+                  discoverController.roadDistanceKm.value = 0.0;
                                         if (toLatLng != null) {
                                           discoverController.markers.add(
                                             Marker(
@@ -536,6 +583,25 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                               ),
                             ),
                             const SizedBox(height: 8),
+
+                            /// Distance indicator
+                            if (_distanceText != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.route,
+                                        size: 14, color: AppColors.primaryColor),
+                                    const SizedBox(width: 6),
+                                    CustomText(
+                                      _distanceText!,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
 
                             /// Drop field
                             InkWell(
@@ -588,6 +654,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                             .selectedToAddress?.value = "";
                                         toLatLng = null;
                                         _polylines.clear();
+                                        _distanceText = null;
+                  discoverController.roadDistanceKm.value = 0.0;
                                         _updateMarkersAndRoute();
                                       },
                                       child: const Icon(Icons.close,

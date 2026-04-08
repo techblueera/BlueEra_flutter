@@ -139,6 +139,7 @@ class DiscoverController extends GetxController {
   RxString? selectedFromAddress = "".obs;
   RxString? selectedToAddress = "".obs;
   RxString transportDistanceText = "".obs;
+  RxDouble roadDistanceKm = 0.0.obs;
   RxString selectedRideType = AppConstants.oneWay.obs;
   RxString selectedBookingFor = AppConstants.mySelf.obs;
   final myFriendPhoneController = TextEditingController();
@@ -772,6 +773,8 @@ class DiscoverController extends GetxController {
         if (selectedHorizontalTab.value == 0 ||
             selectedHorizontalTab.value == 1)
           ApiKeys.pincode: pincode,
+        if (roadDistanceKm.value > 0)
+          'distance_in_km': roadDistanceKm.value,
       };
       final response = await DiscoverRepo().getBookingRidersApi(
         queryParams: queryParams,
