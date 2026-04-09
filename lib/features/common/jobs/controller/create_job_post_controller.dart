@@ -15,7 +15,6 @@ import '../../../../core/api/apiService/response_model.dart';
 import '../../auth/model/get_job_details_byId_model.dart';
 import 'job_details_screen_controller.dart';
 
-
 class CreateJobPostController extends GetxController {
   late String jobId;
 
@@ -65,7 +64,7 @@ class CreateJobPostController extends GetxController {
   RxString jobID = ''.obs;
   final isEditMode = false.obs;
 
-  final addressEditController=TextEditingController();
+  final addressEditController = TextEditingController();
   // Added variables to store location data
   RxDouble? startLocationLat = 0.0.obs;
   RxDouble? startLocationLng = 0.0.obs;
@@ -113,7 +112,8 @@ class CreateJobPostController extends GetxController {
   final JobRepo _repo = JobRepo();
 
   ///POST JOB
-  Future<void> postJobApi({String? imagePath,required String? createJobVia}) async {
+  Future<void> postJobApi(
+      {String? imagePath, required String? createJobVia}) async {
     try {
       final params = {
         ApiKeys.jobTitle: jobTitleController.text,
@@ -125,8 +125,10 @@ class CreateJobPostController extends GetxController {
         ApiKeys.benefits: jsonEncode(selectedCompensationPerks),
         ApiKeys.jobHighlights: jsonEncode(selectedJobDescriptionPerks),
         ApiKeys.compensationType: payType.value,
-        ApiKeys.compensationMinSalary: int.tryParse(minSalaryController.text) ?? 0,
-        ApiKeys.compensationMaxSalary: int.tryParse(maxSalaryController.text) ?? 0,
+        ApiKeys.compensationMinSalary:
+            int.tryParse(minSalaryController.text) ?? 0,
+        ApiKeys.compensationMaxSalary:
+            int.tryParse(maxSalaryController.text) ?? 0,
         ApiKeys.locationLatitude: startLocationLat?.value ?? 0.0,
         ApiKeys.locationLongitude: startLocationLng?.value ?? 0.0,
         ApiKeys.locationAddress: addressEditController.text,
@@ -178,22 +180,26 @@ class CreateJobPostController extends GetxController {
     }
   }
 
-  Future<void> postJobStep3Api({required String jobId, required Map<String, dynamic> interviewDetails}) async {
+  Future<void> postJobStep3Api(
+      {required String jobId,
+      required Map<String, dynamic> interviewDetails}) async {
     try {
       // Debug logging for communication preference8
-      
-              final params = {
-          ApiKeys.interviewDetails: {
-            ApiKeys.isWalkIn : interviewDetails[ApiKeys.isWalkIn],
-            ApiKeys.interviewAddress : interviewDetails[ApiKeys.interviewAddress],
-            ApiKeys.walkInStartDate : interviewDetails[ApiKeys.walkInStartDate],
-            ApiKeys.walkInEndDate : interviewDetails[ApiKeys.walkInEndDate],
-            ApiKeys.walkInStartTime : interviewDetails[ApiKeys.walkInStartTime],
-            ApiKeys.walkInEndTime : interviewDetails[ApiKeys.walkInEndTime],
-            ApiKeys.communicationPreferences : interviewDetails[ApiKeys.communicationPreferences],
-            ApiKeys.otherInstructions : interviewDetails[ApiKeys.otherInstructions],
-          },
-        };
+
+      final params = {
+        ApiKeys.interviewDetails: {
+          ApiKeys.isWalkIn: interviewDetails[ApiKeys.isWalkIn],
+          ApiKeys.interviewAddress: interviewDetails[ApiKeys.interviewAddress],
+          ApiKeys.walkInStartDate: interviewDetails[ApiKeys.walkInStartDate],
+          ApiKeys.walkInEndDate: interviewDetails[ApiKeys.walkInEndDate],
+          ApiKeys.walkInStartTime: interviewDetails[ApiKeys.walkInStartTime],
+          ApiKeys.walkInEndTime: interviewDetails[ApiKeys.walkInEndTime],
+          ApiKeys.communicationPreferences:
+              interviewDetails[ApiKeys.communicationPreferences],
+          ApiKeys.otherInstructions:
+              interviewDetails[ApiKeys.otherInstructions],
+        },
+      };
 
       final response = await _repo.jobPostStep3Repo(
         jobId: jobId,
@@ -204,15 +210,17 @@ class CreateJobPostController extends GetxController {
         Get.toNamed(RouteHelper.getCreateJobPostStep4Route());
         commonSnackBar(message: response.message ?? AppStrings.success);
       } else {
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
-
-  Future<void> postJobStep4Api({required String jobId, required List<Map<String, dynamic>> customQuestions}) async {
+  Future<void> postJobStep4Api(
+      {required String jobId,
+      required List<Map<String, dynamic>> customQuestions}) async {
     try {
       final params = {
         ApiKeys.customQuestions: customQuestions,
@@ -224,32 +232,39 @@ class CreateJobPostController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.success);
 
-        Get.to(() => JobDetailScreen(isPostEdit: AppConstants.EDIT,isPostCreate: AppConstants.JOB_POST,jobId: jobId,isShowSaveJob: false, isPostDirection: '', isPostApply: '',));
-
+        Get.to(() => JobDetailScreen(
+              isPostEdit: AppConstants.EDIT,
+              isPostCreate: AppConstants.JOB_POST,
+              jobId: jobId,
+              isShowSaveJob: false,
+              isPostDirection: '',
+              isPostApply: '',
+            ));
       } else {
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
- Future<void> updateJobPostDetailsApi({required String jobId, required Map<String, dynamic> params}) async {
+  Future<void> updateJobPostDetailsApi(
+      {required String jobId, required Map<String, dynamic> params}) async {
     try {
-      
       final response = await _repo.updateJobPostDetailsRepo(
         jobId: jobId,
         params: params,
       );
-      
+
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.success);
         Get.toNamed(RouteHelper.getCreateJobPostStep2Route());
       } else {
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
@@ -276,16 +291,17 @@ class CreateJobPostController extends GetxController {
   }
 
   Future<void> fetchJobDetails(String jobId) async {
-
     try {
       isLoading.value = true;
       error.value = '';
 
-      final ResponseModel response = await _repo.getJobDetailsRepo(jobId: jobId);
+      final ResponseModel response =
+          await _repo.getJobDetailsRepo(jobId: jobId);
 
       if (response.isSuccess && response.response?.data != null) {
         try {
-          jobDetails.value = GetJobDetailsByIdModel.fromJson(response.response!.data);
+          jobDetails.value =
+              GetJobDetailsByIdModel.fromJson(response.response!.data);
         } catch (parseError) {
           error.value = 'Error parsing job details: ${parseError.toString()}';
           jobDetails.value = null;
@@ -300,8 +316,8 @@ class CreateJobPostController extends GetxController {
     } finally {
       // Ensure we're still mounted before updating state
       if (Get.isRegistered<JobDetailsScreenController>()) {
-        isLoading.value = false;}
+        isLoading.value = false;
+      }
     }
   }
-
 }

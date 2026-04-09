@@ -66,204 +66,220 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                size: 18, color: Color(0xFF2D3142)),
-          ),
-          onPressed: () => Get.back(),
-        ),
-        centerTitle: true,
-        title: CustomText(
-          AppStrings.createSymbol,
-          color: const Color(0xFF2D3142),
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
-        actions: [
-          Obx(() {
-            if (controller.selectedPostType.value == null) {
-              return const SizedBox.shrink();
-            }
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+    return WillPopScope(
+      onWillPop: () async {
+        if (controller.selectedPostType.value != null) {
+          controller.clearData();
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF6F7FB),
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                  child: const Icon(Icons.refresh_rounded,
-                      size: 18, color: Color(0xFF2D3142)),
-                ),
-                onPressed: () {
-                  controller.clearData();
-                },
-              ),
-            );
-          }),
-        ],
-      ),
-      bottomNavigationBar: Obx(() {
-        final canPost = controller.itTextOrLinkPost()
-            ? true
-            : controller.imagesList.length >= 1;
-        return SafeArea(
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: AnimatedOpacity(
-              opacity: canPost ? 1.0 : 0.5,
-              duration: const Duration(milliseconds: 300),
-              child: GestureDetector(
-                onTap: canPost && !controller.isPosting.value
-                    ? () => controller.createSymbol()
-                    : null,
-                child: Container(
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: canPost
-                        ? const LinearGradient(
-                            colors: [Color(0xFF0086FF), Color(0xFF5BA3F5)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          )
-                        : null,
-                    color: canPost ? null : const Color(0xFFBCC4D4),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: canPost
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF0086FF).withOpacity(0.3),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Center(
-                    child: controller.isPosting.value
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.send_rounded,
-                                  color: Colors.white, size: 20),
-                              const SizedBox(width: 10),
-                              CustomText(
-                                AppStrings.postSymbolBtn.tr,
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: Obx(() {
-          return SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Step indicator
-                  if (controller.selectedPostType.value != null) ...[
-                    _buildStepIndicator(),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Type selector / Upload widget
-                  _buildSection(
-                    child: SymbolUploadWidget(),
-                  ),
-
-                  // Text/Link editor
-                  if (controller.selectedPostType.value != null &&
-                      controller.itTextOrLinkPost()) ...[
-                    const SizedBox(height: 16),
-                    _buildSection(
-                      child: CreateMessagePostScreen(),
-                    ),
-                  ],
-
-                  // Caption + Options
-                  if (controller.selectedPostType.value != null) ...[
-                    const SizedBox(height: 16),
-                    _buildSection(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (!controller.itTextOrLinkPost()) ...[
-                            CustomText(
-                              AppStrings.captionLabel.tr,
-                              color: const Color(0xFF2D3142),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            const SizedBox(height: 10),
-                            CommonTextField(
-                              validator: (val) => null,
-                              textEditController: controller.captionController,
-                              title: "",
-                              hintText: AppStrings.writeSymbolHint.tr,
-                              inputLength: 300,
-                              maxLine: 3,
-                              onChange: (v) {},
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                          TopLeftOptions(),
-                          BottomCaptionField(),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
+              ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  size: 18, color: Color(0xFF2D3142)),
+            ),
+            onPressed: () {
+              if (controller.selectedPostType.value != null) {
+                controller.clearData();
+              } else {
+                Get.back();
+              }
+            },
+          ),
+          centerTitle: true,
+          title: CustomText(
+            AppStrings.createSymbol,
+            color: const Color(0xFF2D3142),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          actions: [
+            Obx(() {
+              if (controller.selectedPostType.value == null) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.refresh_rounded,
+                        size: 18, color: Color(0xFF2D3142)),
+                  ),
+                  onPressed: () {
+                    controller.clearData();
+                  },
+                ),
+              );
+            }),
+          ],
+        ),
+        bottomNavigationBar: Obx(() {
+          final canPost = controller.itTextOrLinkPost()
+              ? true
+              : controller.imagesList.length >= 1;
+          return SafeArea(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: AnimatedOpacity(
+                opacity: canPost ? 1.0 : 0.5,
+                duration: const Duration(milliseconds: 300),
+                child: GestureDetector(
+                  onTap: canPost && !controller.isPosting.value
+                      ? () => controller.createSymbol()
+                      : null,
+                  child: Container(
+                    height: 54,
+                    decoration: BoxDecoration(
+                      gradient: canPost
+                          ? const LinearGradient(
+                              colors: [Color(0xFF0086FF), Color(0xFF5BA3F5)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            )
+                          : null,
+                      color: canPost ? null : const Color(0xFFBCC4D4),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: canPost
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF0086FF).withOpacity(0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Center(
+                      child: controller.isPosting.value
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.send_rounded,
+                                    color: Colors.white, size: 20),
+                                const SizedBox(width: 10),
+                                CustomText(
+                                  AppStrings.postSymbolBtn.tr,
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ),
               ),
             ),
           );
         }),
+        body: FadeTransition(
+          opacity: _fadeAnim,
+          child: Obx(() {
+            return SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Step indicator
+                    if (controller.selectedPostType.value != null) ...[
+                      _buildStepIndicator(),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Type selector / Upload widget
+                    _buildSection(
+                      child: SymbolUploadWidget(),
+                    ),
+
+                    // Text/Link editor
+                    if (controller.selectedPostType.value != null &&
+                        controller.itTextOrLinkPost()) ...[
+                      const SizedBox(height: 16),
+                      _buildSection(
+                        child: CreateMessagePostScreen(),
+                      ),
+                    ],
+
+                    // Caption + Options
+                    if (controller.selectedPostType.value != null) ...[
+                      const SizedBox(height: 16),
+                      _buildSection(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!controller.itTextOrLinkPost()) ...[
+                              CustomText(
+                                AppStrings.captionLabel.tr,
+                                color: const Color(0xFF2D3142),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              const SizedBox(height: 10),
+                              CommonTextField(
+                                validator: (val) => null,
+                                textEditController:
+                                    controller.captionController,
+                                title: "",
+                                hintText: AppStrings.writeSymbolHint.tr,
+                                inputLength: 300,
+                                maxLine: 3,
+                                onChange: (v) {},
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                            TopLeftOptions(),
+                            BottomCaptionField(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }

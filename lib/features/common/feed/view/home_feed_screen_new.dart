@@ -227,14 +227,13 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     top: item.type?.toLowerCase() == "poll_post"
                         ? SizeConfig.size10
                         : 1,
-                    bottom: item.type?.toLowerCase() == "message_post"
-                        ?0
-                        : 0),
+                    bottom: item.type?.toLowerCase() == "message_post" ? 0 : 0),
                 child: FeedCard(
                   post: item,
                   index: index,
                   postFilteredType: PostType.all,
-                  bottomPadding: 0,horizontalPadding: 10,
+                  bottomPadding: 0,
+                  horizontalPadding: 10,
                   isRepost: false,
                 ),
               );

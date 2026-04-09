@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_enum.dart';
+import '../../../../core/constants/regular_expression.dart';
 
 class EditPersonalDetailsScreen extends StatefulWidget {
   const EditPersonalDetailsScreen({Key? key}) : super(key: key);
@@ -49,7 +50,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
 
   void _validate() {
     final phoneValid =
-        RegExp(r'^\d{10}$').hasMatch(phoneController.text.trim());
+        ValidationMethod.validatePhone(phoneController.text.trim()) == null;
     final valid = nameController.text.trim().isNotEmpty &&
         emailController.text.trim().isNotEmpty &&
         phoneValid &&
@@ -184,8 +185,8 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       CustomBtn(
                         title: AppStrings.update,
                         isValidate: isValid,
-                        onTap: (isValid==false||phoneController.text.isEmpty||phoneController.text.length<10)
-                            ? null:() async {
+                        onTap: !isValid
+                            ? null : () async {
                           await controller.updateProfileDetails(
                             name: nameController.text.trim(),
                             email: emailController.text.trim(),

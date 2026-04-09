@@ -84,14 +84,14 @@ class ApiBaseHelper {
   static Dio addInterceptors(Dio dio) {
     ///For Print Logs
     // if (!kReleaseMode) {
-      dio.interceptors.add(
-        LogInterceptor(
-          request: true,
-          error: true,
-          responseHeader: false,
-          requestHeader: false,
-        ),
-      );
+    dio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        error: true,
+        responseHeader: false,
+        requestHeader: false,
+      ),
+    );
     // }
 
     ///For Show Hide Progress Dialog
@@ -170,7 +170,8 @@ class ApiBaseHelper {
             }
 
             final response = err.response;
-            logs("err==== response?.statusCode ${response?.statusCode.runtimeType}");
+            logs(
+                "err==== response?.statusCode ${response?.statusCode.runtimeType}");
 
             if (response?.statusCode == 401) {
               logs("ERROR CODE 401 ====");
