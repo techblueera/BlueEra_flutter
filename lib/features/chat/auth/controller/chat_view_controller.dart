@@ -782,7 +782,6 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
-        Future.delayed(Duration(seconds: 40),()async{
           final parsedData = GetListOfMessageData.fromJson(data);
 
           if (parsedData.messages != null) {
@@ -825,7 +824,7 @@ class ChatViewController extends GetxController {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
           }
-        });
+
 
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) async {
