@@ -25,7 +25,6 @@ class PersonalProfileRepo extends BaseService {
   }) async {
     final response = await ApiBaseHelper().putHTTP(
       "$updateIndividualAccountUser$userId",
-      // "$updateUserProfile/$userId",
       params: formData,
       showProgress: showProgress ?? true,
       isMultipart: true,
