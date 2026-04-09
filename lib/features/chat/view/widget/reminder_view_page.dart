@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_image_assets.dart';
-import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../widget/chat_input_box.dart';
@@ -45,6 +43,73 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
 
     return grouped;
   }
+
+  void _showRemoveConfirmation(ReminderMessage reminderMsg) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_off_rounded,
+                color: Colors.red,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                "Remove Reminder",
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to remove this message from reminders?",
+          style: TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _removeReminder(reminderMsg);
+            },
+            child: const Text("Remove", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _removeReminder(ReminderMessage reminderMsg) {
+    final messageId = reminderMsg.message.id ?? '';
+    if (messageId.isEmpty) return;
+
+    chatThemeController.deleteReminderMessage(
+      conversationId: widget.conversationId,
+      messageId: messageId,
+    ).then((_) {
+      // If all messages removed, go back to the list
+      if (chatThemeController.reminderMessageModel.isEmpty) {
+        Get.back();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -56,7 +121,7 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
         if (chatThemeController.getListOfReminderMsgResponse.value.status ==
             Status.COMPLETE) {
           List<ReminderMessage> messages =
-              chatThemeController.reminderMessageModel ?? [];
+              chatThemeController.reminderMessageModel;
           messages.sort((a, b) {
             final dateA = (a.message.createdAt != null && a.message.createdAt!.isNotEmpty)
                 ? DateTime.parse(a.message.createdAt!).toLocal()
@@ -107,7 +172,7 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
                                         return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            /// 🔵 Reminder Time Header (shown once per group)
+                                            /// Reminder Time Header (shown once per group)
                                             Container(
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(4),
@@ -127,63 +192,88 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
                                               ),
                                             ),
 
-                                            /// 📨 Messages under same time
+                                            /// Messages under same time — swipe left to remove
                                             ...timeMessages.map((message) {
-                                              return MessageCard(isFromAiMessage: true,
-                                                message: message.message,
-                                                isInitialMessage: false,
-                                                conversationId: message.message.conversationId,
-                                                userId: message.message.sender?.id,
-                                                name: message.message.sender?.name,
-                                                contactNo: message.message.sender?.contactNo,
-                                                profileImage: message.message.sender?.profileImage,
+                                              final reminderMsg = message as ReminderMessage;
+                                              return Dismissible(
+                                                key: ValueKey(
+                                                    reminderMsg.message.id ??
+                                                        UniqueKey().toString()),
+                                                direction:
+                                                    DismissDirection.endToStart,
+                                                confirmDismiss: (_) async {
+                                                  _showRemoveConfirmation(
+                                                      reminderMsg);
+                                                  return false;
+                                                },
+                                                background: Container(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          right: 20),
+                                                  margin:
+                                                      const EdgeInsets.symmetric(
+                                                          vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.red
+                                                        .withValues(alpha: 0.15),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      const Icon(
+                                                        Icons
+                                                            .notifications_off_rounded,
+                                                        color: Colors.red,
+                                                        size: 22,
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 2),
+                                                      Text(
+                                                        "Remove",
+                                                        style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                child: MessageCard(
+                                                  isFromAiMessage: true,
+                                                  message:
+                                                      reminderMsg.message,
+                                                  isInitialMessage: false,
+                                                  conversationId: reminderMsg
+                                                      .message
+                                                      .conversationId,
+                                                  userId: reminderMsg
+                                                      .message.sender?.id,
+                                                  name: reminderMsg
+                                                      .message.sender?.name,
+                                                  contactNo: reminderMsg
+                                                      .message
+                                                      .sender
+                                                      ?.contactNo,
+                                                  profileImage: reminderMsg
+                                                      .message
+                                                      .sender
+                                                      ?.profileImage,
+                                                ),
                                               );
                                             }).toList(),
                                           ],
                                         );
                                       }).toList(),
                                     ),
-                                    // if(chatThemeController.isMessageSelectionActive.value)
-                                    //   Container(
-                                    //     decoration: BoxDecoration(
-                                    //       borderRadius: BorderRadius.circular(10),
-                                    //       color: AppColors.lightBlueShade.withOpacity(0.2),
-                                    //     ),
-                                    //     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                    //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                    //     child: Row(
-                                    //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    //       children: [
-                                    //
-                                    //         /// Reminder
-                                    //         ChatActionButton(
-                                    //           title: "Change Reminder",
-                                    //           iconPath: AppIconAssets.clock_new,
-                                    //           onTap: () {
-                                    //             showModalBottomSheet(
-                                    //               context: context,
-                                    //               isScrollControlled: true,
-                                    //               backgroundColor: Colors.transparent,
-                                    //               builder: (context) =>  ReminderBottomSheet(
-                                    //                 profileImagePath: widget.profileImagePath,
-                                    //                 conversationId: widget.conversationId,
-                                    //                 name: widget.name,
-                                    //               ),
-                                    //             );
-                                    //           },
-                                    //         ),
-                                    //         ChatActionButton(
-                                    //           title: "Remove From Reminder",
-                                    //           iconPath: AppIconAssets.clock_new,
-                                    //           onTap: () {
-                                    //             // chatThemeController.removeSelectedReminderMessages();
-                                    //           },
-                                    //         ),
-                                    //
-                                    //
-                                    //       ],
-                                    //     ),
-                                    //   ),
                                     SizedBox(height: 8,)
                                   ],
                                 ),

@@ -313,7 +313,7 @@ class FoodSelfPickupController extends GetxController {
 
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
-      chatViewController.onSelectChatTab(3);
+      chatViewController.onSelectChatTab(2);
       chatViewController.emitEvent(
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.order_Chat_Type},

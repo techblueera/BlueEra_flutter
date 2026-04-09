@@ -179,7 +179,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
       ApiResponse.initial('Initial').obs;
 
   Future<void> placeBulkGroceryOrderApi() async {
-    try {
+    // try {
       isPlaceBulkGroceryOrderLoading.value = true;
       AppLoader.show();
 
@@ -201,39 +201,29 @@ class GrocerySelfPickupConsumerController extends GetxController {
         );
         return;
       }
+      final controller = getOrPut(() => BottomBarController());
+      controller.onChangeIndex(3);
 
+      ChatViewController  chatViewController = getOrPut(() => ChatViewController());
+      chatViewController.onSelectChatTab(2);
+
+      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
+
+      Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
       placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
       AppLoader.hide();
       selectedGroceriesVariants.clear();
       cartQuantities.clear();
       cartBusinessInfo.clear();
-      final controller = getOrPut(() => BottomBarController());
-      controller.onChangeIndex(3);
 
-      ChatViewController  chatViewController = getOrPut(() => ChatViewController());
-      chatViewController.onSelectChatTab(3);
-      Future.delayed(Duration(seconds: 400),(){
 
-      });
-      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
 
-      Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
-
-      //
-      // final addGroceryOrderResponseModel =
-      //     AddGroceryOrderResponseModel.fromJson(response.response?.data);
-      // String orderId = addGroceryOrderResponseModel.id ?? '';
-      //
-      // Get.toNamed(
-      //   RouteHelper.getGroceryConfirmScreenRoute(),
-      //   arguments: {ApiKeys.argOrderId: orderId},
-      // );
-    } catch (e) {
-      AppLoader.hide();
-      placeBulkGroceryOrderResponse.value = ApiResponse.error('error');
-    } finally {
-      isPlaceBulkGroceryOrderLoading.value = false;
-    }
+    // } catch (e) {
+    //   AppLoader.hide();
+    //   placeBulkGroceryOrderResponse.value = ApiResponse.error('error');
+    // } finally {
+    //   isPlaceBulkGroceryOrderLoading.value = false;
+    // }
   }
 
 }

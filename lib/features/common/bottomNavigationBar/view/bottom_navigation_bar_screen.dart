@@ -388,6 +388,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         currentIndex: bottomBarController.currentIndex.value,
                         onTap: (index) async {
                           /// for store need location permission
+
                           if (index == 1 || index == 2) {
                             if (LocationService.lat == 0.0 ||
                                 LocationService.lng == 0.0) {
@@ -402,6 +403,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             await AppNotificationHandler()
                                 .checkNotificationPermission();
                             if (await Permission.notification.isGranted) {
+                              if(chatViewController.chatMainTabController!=null){
+                                if(chatViewController.chatMainTabController?.index!=0){
+                                  chatViewController.onSelectChatTab(0);
+                                  chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                                      {ApiKeys.type: AppConstants.personal_Chat_Type});
+                                }
+                              }
                               bottomBarController.onChangeIndex(index);
                             }
                           } else {
