@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/theme/themes.dart';
@@ -106,7 +107,7 @@ class CallApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'BlueEra Call',
+      title: AppStrings.blueEraCall.tr,
       // home: Scaffold(
       //   appBar: AppBar(
       //     title: Text("Hello"),
@@ -140,9 +141,9 @@ class _CallActivityErrorScreen extends StatelessWidget {
               const Icon(Icons.error_outline,
                   color: Colors.redAccent, size: 48),
               const SizedBox(height: 16),
-              const Text(
-                'Call initialization failed',
-                style: TextStyle(
+              Text(
+                AppStrings.callInitFailed.tr,
+                style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600),
@@ -159,9 +160,9 @@ class _CallActivityErrorScreen extends StatelessWidget {
                 onPressed: CallActivityService.finishCallActivity,
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent),
-                child: const Text(
-                  "Close",
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  AppStrings.closeLabel.tr,
+                  style: const TextStyle(color: Colors.white),
                 ),
               )
             ],

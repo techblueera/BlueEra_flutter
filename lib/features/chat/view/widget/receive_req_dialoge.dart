@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/widget/view_req_profile_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -54,7 +55,7 @@ class _ReceivedRequestsDialogState extends State<ReceivedRequestsDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                            "Received Requests",
+                            AppStrings.receivedRequests.tr,
                             fontSize: 16,
                             fontWeight: FontWeight.bold
                         ),
@@ -82,7 +83,7 @@ class _ReceivedRequestsDialogState extends State<ReceivedRequestsDialog> {
                   SizedBox(height: 18),
 
                   // List of requests
-                  (requestDetails?.isEmpty??false)?CustomText("No Record Found"):Expanded(
+                  (requestDetails?.isEmpty??false)?CustomText(AppStrings.noRecordFoundLabel.tr):Expanded(
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 14.0),
                       itemCount: requestDetails?.length ?? 0,
@@ -120,10 +121,9 @@ class _ReceivedRequestsDialogState extends State<ReceivedRequestsDialog> {
                                             fontSize: 14),
                                       ),
                                       SizedBox(height: 2),
-                                      Text(
-                                        "Message",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 12),
+                                      CustomText(
+                                        AppStrings.messageLabel.tr,
+                                        color: Colors.grey, fontSize: 12,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
@@ -145,7 +145,7 @@ class _ReceivedRequestsDialogState extends State<ReceivedRequestsDialog> {
                                           };
                                           chatViewController
                                               .acceptOrRejectRequest(data);
-                                        }, title: "Accept")
+                                        }, title: AppStrings.acceptLabel.tr)
                                     // InkWell(
                                     //     onTap: () {
                                     //       Map<String, dynamic> data = {
@@ -217,7 +217,7 @@ class _ReceivedRequestsDialogState extends State<ReceivedRequestsDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                            "Received Requests",
+                            AppStrings.receivedRequests.tr,
                             fontSize: 16,
                             fontWeight: FontWeight.bold
                         ),

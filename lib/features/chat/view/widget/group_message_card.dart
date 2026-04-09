@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -476,8 +477,8 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
   Widget _buildContactMessage(Messages? message, String name, String number,
       String time, bool isReceiveMsg) {
     final theme = Theme.of(context);
-    final displayName = name.trim().isEmpty ? 'Unknown' : name;
-    final displayNumber = number.trim().isEmpty ? 'No number' : number;
+    final displayName = name.trim().isEmpty ? AppStrings.unknownLabel.tr : name;
+    final displayNumber = number.trim().isEmpty ? AppStrings.noNumber.tr : number;
     final String? profileImage = message?.sharedContactProfileImage;
     final bool hasProfileImage =
         profileImage != null && profileImage.isNotEmpty;
@@ -636,13 +637,13 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                       Expanded(
                         child: InkWell(
                           onTap: () {
-                            if (displayNumber != 'No number') {
+                            if (displayNumber != AppStrings.noNumber.tr) {
                               _launchSms(displayNumber);
                             }
                           },
                           child: Center(
                             child: CustomText(
-                              "Message",
+                              AppStrings.messageLabel.tr,
                               color: isReceiveMsg
                                   ? theme.colorScheme.primary
                                   : Colors.white,
@@ -664,13 +665,13 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                       Expanded(
                         child: InkWell(
                           onTap: () {
-                            if (displayNumber != 'No number') {
+                            if (displayNumber != AppStrings.noNumber.tr) {
                               _launchCall(displayNumber);
                             }
                           },
                           child: Center(
                             child: CustomText(
-                              "Call",
+                              AppStrings.callLabel.tr,
                               color: isReceiveMsg
                                   ? theme.colorScheme.primary
                                   : Colors.white,
@@ -696,7 +697,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                           },
                           child: Center(
                             child: CustomText(
-                              "Save",
+                              AppStrings.saveLabel.tr,
                               color: isReceiveMsg
                                   ? theme.colorScheme.primary
                                   : Colors.white,
@@ -766,7 +767,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     } else {
       // Permission denied
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Contact permission denied')),
+        SnackBar(content: Text(AppStrings.contactPermissionDenied.tr)),
       );
     }
   }

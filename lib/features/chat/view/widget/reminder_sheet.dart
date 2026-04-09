@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
@@ -31,6 +33,18 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
     "1 Week",
     "6 Hours Later",
   ];
+
+  String _localizedOption(String option) {
+    switch (option) {
+      case "1 Day": return AppStrings.oneDayOption.tr;
+      case "2 Hours Later": return AppStrings.twoHoursLater.tr;
+      case "2 Days": return AppStrings.twoDays.tr;
+      case "4 Hours Later": return AppStrings.fourHoursLater.tr;
+      case "1 Week": return AppStrings.oneWeek.tr;
+      case "6 Hours Later": return AppStrings.sixHoursLater.tr;
+      default: return option;
+    }
+  }
   void applyQuickOption(String option) {
     final now = DateTime.now();
     DateTime updatedDateTime = now;
@@ -104,10 +118,10 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             /// Title
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: CustomText(
-                "Quick Reminder",
+                AppStrings.quickReminder.tr,
                fontSize: 16, fontWeight: FontWeight.w600,
               ),
             ),
@@ -132,7 +146,7 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
                     setState(() => selectedOption = val);
                     applyQuickOption(val!);
                   },
-                  title: CustomText(option,
+                  title: CustomText(_localizedOption(option),
                       fontSize: 14,
                   color: AppColors.secondaryTextColor,),
                   contentPadding: EdgeInsets.zero,
@@ -147,9 +161,9 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
             Row(
               children: [
                 Expanded(child: Divider(color: Colors.grey.shade400)),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: CustomText("Or",color: Colors.grey)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: CustomText(AppStrings.orLabel.tr,color: Colors.grey)
                 ),
                 Expanded(child: Divider(color: Colors.grey.shade400)),
               ],
@@ -158,10 +172,10 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
             const SizedBox(height: 20),
 
             /// Schedule Title
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: CustomText(
-                "Schedule Reminder",
+                AppStrings.scheduleReminder.tr,
                fontSize: 15, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 12),
@@ -230,7 +244,7 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
                   );
                 }
 
-               }, title: "Notify Me"),
+               }, title: AppStrings.notifyMe.tr),
           ],
         ),
       ),

@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:open_file/open_file.dart';
 import 'package:pdfx/pdfx.dart' as pdfx;
 import 'package:video_compress/video_compress.dart';
@@ -110,21 +113,17 @@ class _ConversationMediaPageState extends State<ConversationMediaPage>
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            CustomText(
               widget.contactName,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              color: Colors.black87,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
-            const Text(
-              'Media & Docs',
-              style: TextStyle(
-                color: Colors.black45,
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-              ),
+            CustomText(
+              AppStrings.mediaDocs.tr,
+              color: Colors.black45,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
             ),
           ],
         ),
@@ -158,7 +157,7 @@ class _ConversationMediaPageState extends State<ConversationMediaPage>
 
   Widget _buildMediaGrid() {
     if (_mediaMessages.isEmpty) {
-      return _emptyState(Icons.photo_library_outlined, 'No media shared yet');
+      return _emptyState(Icons.photo_library_outlined, AppStrings.noMediaSharedYet.tr);
     }
 
     final items = <_MediaItem>[];
@@ -210,7 +209,7 @@ class _ConversationMediaPageState extends State<ConversationMediaPage>
 
   Widget _buildDocsList() {
     if (_docMessages.isEmpty) {
-      return _emptyState(Icons.insert_drive_file_outlined, 'No documents shared yet');
+      return _emptyState(Icons.insert_drive_file_outlined, AppStrings.noDocumentsSharedYet.tr);
     }
 
     return ListView.separated(

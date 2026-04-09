@@ -1,4 +1,6 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
@@ -49,8 +51,8 @@ class _BusinessChatProfileOverviewState extends State<BusinessChatProfileOvervie
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("Rating Summary",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            CustomText(AppStrings.ratingSummary.tr,
+                fontWeight: FontWeight.bold, fontSize: 16),
             IconButton(
               icon: Icon(
                 _isExpanded
@@ -115,9 +117,8 @@ class _BusinessChatProfileOverviewState extends State<BusinessChatProfileOvervie
           const SizedBox(height: 20),
 
           /// Rate & Review form
-          const Text("Rate And Review",
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold)),
+          CustomText(AppStrings.rateAndReview.tr,
+              fontSize: 16, fontWeight: FontWeight.bold),
           const SizedBox(height: 10),
 
           Center(
@@ -146,7 +147,7 @@ class _BusinessChatProfileOverviewState extends State<BusinessChatProfileOvervie
             controller: _reviewController,
             maxLines: 3,
             decoration: InputDecoration(
-              labelText: "Write Your Review (Optional)",
+              labelText: AppStrings.writeYourReview.tr,
               hintText:
                   'E.g. "Great service, quick response, highly recommended!"',
               border: OutlineInputBorder(
@@ -164,7 +165,7 @@ class _BusinessChatProfileOverviewState extends State<BusinessChatProfileOvervie
                   _reviewController.clear();
                   setState(() => _userRating = 0);
                 },
-                child: const Text("Cancel"),
+                child: CustomText(AppStrings.cancel.tr),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -172,10 +173,10 @@ class _BusinessChatProfileOverviewState extends State<BusinessChatProfileOvervie
                     print("Rating: $_userRating, Review: ${_reviewController.text}");
                     // TODO: Call API here
                   } else {
-                    Get.snackbar("Rating required", "Please select at least 1 star");
+                    Get.snackbar(AppStrings.ratingRequired.tr, AppStrings.selectAtLeastOneStar.tr);
                   }
                 },
-                child: const Text("Submit"),
+                child: CustomText(AppStrings.submitLabel.tr),
               ),
             ],
           )

@@ -80,17 +80,16 @@ class ChatSocketService {
       });
 
       _socket!.onConnectError((err) {
-        if (kDebugMode) print('Chat Socket Connect error: $err');
+
       });
 
       _socket!.onDisconnect((_) {
         _isConnected = false;
-        if (kDebugMode) print('Chat socket disconnected');
         _scheduleReconnect();
       });
 
     } catch (e) {
-      if (kDebugMode) print("Socket connection failed: $e");
+
       rethrow;
     }
   }
@@ -103,7 +102,7 @@ class ChatSocketService {
     } else {
       await connectToSocket();
       _socket?.emit(event, data);
-      if (kDebugMode) print("⚠ Cannot emit, socket not connected");
+
     }
   }
 
@@ -111,7 +110,6 @@ class ChatSocketService {
     if (_isConnected && _socket != null) {
       _socket!.emit(event, data);
     } else {
-      if (kDebugMode) print("⚠ Cannot emit, socket not connected");
     }
   }
 
@@ -138,7 +136,6 @@ class ChatSocketService {
     if (_socket == null) return;
     if (_isConnected) return;
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      if (kDebugMode) print('Chat socket max reconnect attempts reached');
       return;
     }
 
@@ -146,9 +143,7 @@ class ChatSocketService {
     final delay = Duration(seconds: 2 << _reconnectAttempts); // 2, 4, 8, 16, 32
     _reconnectAttempts++;
 
-    if (kDebugMode) {
-      print('Chat socket reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts)');
-    }
+
     _reconnectTimer = Timer(delay, () {
       if (_socket != null && !_isConnected) {
         connectToSocket();

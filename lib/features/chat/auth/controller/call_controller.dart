@@ -17,6 +17,7 @@ import 'package:get/get.dart' hide navigator;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../core/api/apiService/response_model.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/app_notification.dart';
@@ -308,7 +309,7 @@ class CallController extends GetxController {
       if (type == CallType.video) permissions.add(Permission.camera);
       final statuses = await permissions.request();
       if (statuses.values.any((s) => s.isDenied || s.isPermanentlyDenied)) {
-        commonSnackBar(message: 'Camera/Microphone permission required');
+        commonSnackBar(message: AppStrings.cameraMicrophonePermissionRequired.tr);
         return false;
       }
     } catch (e) {
@@ -333,9 +334,9 @@ class CallController extends GetxController {
       final statusCode = response.response?.statusCode;
       debugPrint('[CALL_DEBUG] initiateCall → API FAILED, statusCode=$statusCode');
       if (statusCode == 409) {
-        commonSnackBar(message: 'User is busy on another call');
+        commonSnackBar(message: AppStrings.userBusyOnAnotherCall.tr);
       } else {
-        commonSnackBar(message: response.message ?? 'Failed to initiate call');
+        commonSnackBar(message: response.message ?? AppStrings.failedToInitiateCall.tr);
       }
       return false;
     }
@@ -493,9 +494,9 @@ class CallController extends GetxController {
       final statusCode = response.response?.statusCode;
       debugPrint('[CALL_DEBUG] acceptCall → API FAILED, statusCode=$statusCode, message=${response.message}');
       if (statusCode == 404) {
-        commonSnackBar(message: 'Call is no longer available ${statusCode}');
+        commonSnackBar(message: '${AppStrings.callNoLongerAvailable.tr} ${statusCode}');
       } else {
-        commonSnackBar(message: response.message ?? 'Failed to accept call');
+        commonSnackBar(message: response.message ?? AppStrings.failedToAcceptCall.tr);
       }
       _cleanup();
       _resetColdStartIfNeeded();
@@ -691,7 +692,7 @@ class CallController extends GetxController {
       if (callStatus.value == CallStatus.connecting ||
           callStatus.value == CallStatus.accepting) {
         if (kDebugMode) print('Call connection timeout — ending call');
-        commonSnackBar(message: 'Call connection timed out');
+        commonSnackBar(message: AppStrings.callConnectionTimedOut.tr);
         endCall();
       }
     });
@@ -915,7 +916,7 @@ class CallController extends GetxController {
     }
 
     if (callEnded == true) {
-      commonSnackBar(message: 'Call declined');
+      commonSnackBar(message: AppStrings.callDeclined.tr);
       _leaveRoomAndCleanup();
       Get.back();
     } else {
@@ -1222,7 +1223,7 @@ class CallController extends GetxController {
     });
 
     if (!response.isSuccess) {
-      commonSnackBar(message: response.message ?? 'Failed to add users');
+      commonSnackBar(message: response.message ?? AppStrings.failedToAddUsers.tr);
       return null;
     }
 
@@ -1238,13 +1239,13 @@ class CallController extends GetxController {
 
     if (busyUsers.isNotEmpty) {
       commonSnackBar(
-          message: '${busyUsers.length} user(s) are on another call');
+          message: '${busyUsers.length} ${AppStrings.usersOnAnotherCall.tr}');
     }
     if (addedUsers.isNotEmpty) {
-      commonSnackBar(message: '${addedUsers.length} user(s) added to call');
+      commonSnackBar(message: '${addedUsers.length} ${AppStrings.usersAddedToCall.tr}');
     }
     if (addedUsers.isEmpty && busyUsers.isEmpty && alreadyInCall.isNotEmpty) {
-      commonSnackBar(message: 'User(s) already in this call');
+      commonSnackBar(message: AppStrings.usersAlreadyInCall.tr);
     }
 
     return data;
@@ -1265,7 +1266,7 @@ class CallController extends GetxController {
       final status = await Permission.camera.request();
       if (!status.isGranted) {
         commonSnackBar(
-            message: 'Camera permission required to switch to video');
+            message: AppStrings.cameraPermissionRequiredToSwitch.tr);
         return;
       }
     }
@@ -1277,7 +1278,7 @@ class CallController extends GetxController {
     });
 
     if (!response.isSuccess) {
-      commonSnackBar(message: response.message ?? 'Failed to switch call type');
+      commonSnackBar(message: response.message ?? AppStrings.failedToSwitchCallType.tr);
       return;
     }
 
@@ -1285,7 +1286,7 @@ class CallController extends GetxController {
     if (data?['pending_approval'] == true) {
       // Audio → video: waiting for other participants to accept
       isSwitchTypePending.value = true;
-      commonSnackBar(message: 'Waiting for approval to switch to video...');
+      commonSnackBar(message: AppStrings.waitingForApprovalToSwitchVideo.tr);
     }
     // Video → audio: call:type-switched will fire immediately from server
   }
@@ -1345,7 +1346,7 @@ class CallController extends GetxController {
 
   void _handleSwitchTypeDeclined(dynamic data) {
     isSwitchTypePending.value = false;
-    commonSnackBar(message: 'Switch to video was declined');
+    commonSnackBar(message: AppStrings.switchToVideoDeclined.tr);
   }
 
   /// Enable local video track (for audio → video switch)
@@ -1382,7 +1383,7 @@ class CallController extends GetxController {
       isCameraOn.value = true;
     } catch (e) {
       if (kDebugMode) print('Failed to enable video: $e');
-      commonSnackBar(message: 'Failed to enable camera');
+      commonSnackBar(message: AppStrings.failedToEnableCamera.tr);
     }
   }
 
@@ -1399,7 +1400,7 @@ class CallController extends GetxController {
     });
 
     if (!response.isSuccess) {
-      commonSnackBar(message: response.message ?? 'Failed to join call');
+      commonSnackBar(message: response.message ?? AppStrings.failedToJoinCall.tr);
       return false;
     }
 
@@ -1855,7 +1856,7 @@ class CallController extends GetxController {
     try {
       final statuses = await [Permission.microphone].request();
       if (statuses.values.any((s) => s.isDenied || s.isPermanentlyDenied)) {
-        commonSnackBar(message: 'Microphone permission required');
+        commonSnackBar(message: AppStrings.microphonePermissionRequired.tr);
         return false;
       }
     } catch (e) {
@@ -1931,7 +1932,7 @@ class CallController extends GetxController {
       debugPrint('[FARE_CALL] Ride accepted successfully');
       return true;
     } else {
-      commonSnackBar(message: response.message ?? 'Failed to accept ride');
+      commonSnackBar(message: response.message ?? AppStrings.failedToAcceptRide.tr);
       return false;
     }
   }
@@ -1950,7 +1951,7 @@ class CallController extends GetxController {
       declineCall();
       return true;
     } else {
-      commonSnackBar(message: response.message ?? 'Failed to reject ride');
+      commonSnackBar(message: response.message ?? AppStrings.failedToRejectRide.tr);
       return false;
     }
   }

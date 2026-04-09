@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,8 +34,8 @@ class PinMessageDurationDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CustomText(
-              "Choose how long pin lasts",
+            CustomText(
+              AppStrings.chooseHowLongPinLasts.tr,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -44,28 +45,28 @@ class PinMessageDurationDialog extends StatelessWidget {
             Column(
               children: [
                 _durationTile(
-                  title: "One Day",
+                  title: AppStrings.oneDay.tr,
                   value: 1,
                   groupValue: chatViewController.selectedDays.value,
                   onChanged: (val) =>
                   chatViewController.selectedDays.value = val,
                 ),
                 _durationTile(
-                  title: "7 Days",
+                  title: AppStrings.sevenDays.tr,
                   value: 7,
                   groupValue: chatViewController.selectedDays.value,
                   onChanged: (val) =>
                   chatViewController.selectedDays.value = val,
                 ),
                 _durationTile(
-                  title: "30 Days",
+                  title: AppStrings.thirtyDays.tr,
                   value: 30,
                   groupValue: chatViewController.selectedDays.value,
                   onChanged: (val) =>
                   chatViewController.selectedDays.value = val,
                 ),
                 _durationTile(
-                  title: "Life Time",
+                  title: AppStrings.lifeTime.tr,
                   value: 34,
                   groupValue: chatViewController.selectedDays.value,
                   onChanged: (val) =>
@@ -82,7 +83,7 @@ class PinMessageDurationDialog extends StatelessWidget {
                 Expanded(
                   child: CustomBtn(
                     onTap: () => Get.back(),
-                    title: "Cancel",
+                    title: AppStrings.cancel.tr,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -116,7 +117,7 @@ class PinMessageDurationDialog extends StatelessWidget {
                       };
                      chatViewController.addToPinMessage(params);
                     },
-                    title: "Confirm",
+                    title: AppStrings.confirmLabel.tr,
                   ),
                 ),
               ],

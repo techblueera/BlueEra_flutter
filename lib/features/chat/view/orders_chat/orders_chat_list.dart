@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,13 +23,14 @@ class OrdersTabView extends StatefulWidget {
 
 class _OrdersTabViewState extends State<OrdersTabView> {
 
-  final List<String> filters = ['filter', 'All', 'Product', 'Service', 'Food'];
+  List<String> get filters => ['filter', AppStrings.allTab.tr, AppStrings.productLabel.tr, AppStrings.serviceLabel.tr, AppStrings.foodLabel.tr];
 
-  String seletecValue = "All";
+  String seletecValue = "";
   final chatViewController = Get.find<ChatViewController>();
 
   @override
   Widget build(BuildContext context) {
+    if (seletecValue.isEmpty) seletecValue = AppStrings.allTab.tr;
     final theme = Theme.of(context);
     // Obx(() {
 

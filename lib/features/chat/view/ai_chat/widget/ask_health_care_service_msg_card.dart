@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -496,7 +497,7 @@ class AskHealthCareServiceMsgCard extends StatelessWidget {
                                         imgColor: AppColors.primaryColor
                                     ),
                                     label:   CustomText(
-                                      'Chat Now',
+                                      AppStrings.chatNow.tr,
                                       color: Colors.blue,
                                       fontWeight: FontWeight.w900,
                                     ),
@@ -522,13 +523,11 @@ class AskHealthCareServiceMsgCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                child: Text(
-                  "See More",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.blue.shade700,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: CustomText(
+                  AppStrings.seeMore.tr,
+                  fontSize: 15,
+                  color: Colors.blue.shade700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

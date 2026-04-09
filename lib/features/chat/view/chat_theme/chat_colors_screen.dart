@@ -1,4 +1,8 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 class ChatColorScreen extends StatelessWidget {
   final List<Color> colors = [
     Colors.green,
@@ -16,7 +20,7 @@ class ChatColorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Chat color")),
+      appBar: AppBar(title: CustomText(AppStrings.chatColorLabel.tr)),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

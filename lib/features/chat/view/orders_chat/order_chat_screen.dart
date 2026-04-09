@@ -140,7 +140,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                               onTap: () {
                                 Map<String, dynamic> data = {
                                   ApiKeys.other_user_id: widget.userId,
-                                  ApiKeys.message: "Namaste 🙏",
+                                  ApiKeys.message: AppStrings.namasteSayHi.tr,
                                   ApiKeys.message_type: "text",
                                 };
                                 chatViewController

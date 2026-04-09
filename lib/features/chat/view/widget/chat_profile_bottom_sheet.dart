@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -130,6 +131,22 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
     ),
   ];
 
+  String _localizedTitle(String id) {
+    switch (id) {
+      case 'ADD_SYMBOL': return AppStrings.addSymbolMenu.tr;
+      case 'VIEW_SYMBOL': return AppStrings.viewSymbolMenu.tr;
+      case 'CREATE_GROUP': return AppStrings.createGroupMenu.tr;
+      case 'BACKGROUND': return AppStrings.backgroundMenu.tr;
+      case 'WALLET': return AppStrings.walletLabel.tr;
+      case 'PRIVATE_ROOM': return AppStrings.privateRoomMenu.tr;
+      case 'LINKED_DEVICE': return AppStrings.linkedDeviceMenu.tr;
+      case 'LOCK_CHAT': return AppStrings.lockChatMenu.tr;
+      case 'NOTIFICATION': return AppStrings.notificationMenu.tr;
+      case 'INVITE_FRIEND': return AppStrings.inviteFriendMenu.tr;
+      default: return id;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -175,7 +192,7 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
         Get.to(() => const WalletChatScreen());
         break;
       default:
-        commonSnackBar(message: "Coming soon....");
+        commonSnackBar(message: AppStrings.comingSoon.tr);
     }
   }
 
@@ -264,7 +281,7 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
                             ),
                             const SizedBox(width: 5),
                             CustomText(
-                              'Online',
+                              AppStrings.onlineStatus.tr,
                               fontSize: 12,
                               color: AppColors.secondaryTextColor,
                             ),
@@ -372,7 +389,7 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
               ),
               const SizedBox(height: 8),
               CustomText(
-                item.title,
+                _localizedTitle(item.id),
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -415,7 +432,7 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
               const SizedBox(width: 14),
               Expanded(
                 child: CustomText(
-                  item.title,
+                  _localizedTitle(item.id),
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   color: AppColors.black,

@@ -7,6 +7,7 @@ import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -283,7 +284,7 @@ class AskHealthCareMsgCard extends StatelessWidget {
                                         imgColor: AppColors.primaryColor
                                     ),
                                     label:   CustomText(
-                                      'Chat Now',
+                                      AppStrings.chatNow.tr,
                                       color: Colors.blue,
                                       fontWeight: FontWeight.w900,
                                     ),
@@ -309,13 +310,11 @@ class AskHealthCareMsgCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                child: Text(
-                  "See More",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.blue.shade700,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: CustomText(
+                  AppStrings.seeMore.tr,
+                  fontSize: 15,
+                  color: Colors.blue.shade700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

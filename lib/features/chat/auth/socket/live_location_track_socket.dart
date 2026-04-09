@@ -30,7 +30,6 @@ class LiveTrackingSocketService {
             .build(),
       );
       _socket.connect();
-      print("✅ LiveTracking socket connected jjj");
       _socket.onConnect((_) {
         _isConnected = true;
 
@@ -47,15 +46,12 @@ class LiveTrackingSocketService {
       });
       _isConnected = true;
       _socket.onConnectError((err) {
-        print("❌ LiveTracking socket connect error: $err");
       });
 
       _socket.onDisconnect((_) {
         _isConnected = false;
-        print("🔌 LiveTracking socket disconnected");
       });
     } catch (e) {
-      print("🔥 LiveTracking socket connection failed: $e");
       rethrow;
     }
   }
@@ -75,7 +71,6 @@ class LiveTrackingSocketService {
     if (_isConnected) {
       _socket.emit(event, data);
     } else {
-      print("⚠ LiveTracking socket not connected");
     }
   }
 

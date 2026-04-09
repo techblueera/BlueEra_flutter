@@ -11,6 +11,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../widgets/cached_avatar_widget.dart';
@@ -310,7 +311,7 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: "Live location",
+        title: AppStrings.liveLocationLabel.tr,
         isShadowShow: false,
       ),
       body: Obx(() {
@@ -330,14 +331,14 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
             : (senderLat != null && senderLat != 0);
 
         if (!ready) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(strokeWidth: 2),
-                SizedBox(height: 16),
-                Text('Getting location...',
-                    style: TextStyle(color: Colors.grey, fontSize: 14)),
+                const CircularProgressIndicator(strokeWidth: 2),
+                const SizedBox(height: 16),
+                CustomText(AppStrings.gettingLocation.tr,
+                    color: Colors.grey, fontSize: 14),
               ],
             ),
           );
@@ -442,7 +443,7 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
                     const SizedBox(width: 8),
                     CustomText(
                       _isExpired
-                          ? "Live location ended"
+                          ? AppStrings.liveLocationEnded.tr
                           : "Live until $expiryTime",
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -460,7 +461,7 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
               imageUrl: _senderImage,
               subtitle: (senderLat != null && senderLat != 0)
                   ? distanceText
-                  : 'Waiting for location...',
+                  : AppStrings.waitingForLocation.tr,
               borderColor: Colors.green,
               isOnline: senderLat != null && senderLat != 0,
             ),

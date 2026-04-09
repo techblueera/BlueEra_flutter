@@ -344,95 +344,98 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                 ),
               ];
             },
-            body: Column(
-              children: [
-                Expanded(
-                  child: TabBarView(
-                    controller: chatViewController.chatMainTabController,
-                    children: [
-                      PersonalChatsList(isForwardUI: widget.isForwardUI,
-                        isNewGroupUI: widget.isNewGroupUI,),
-                      BusinessChatsList(isForwardUI: widget.isForwardUI,
-                        isNewGroupUI: widget.isNewGroupUI,),
-                      // FindContactWithService(fromBottomNav: true),
-                      OrdersTabView()
-                    ],
+            body: Container(
+              color: AppColors.white,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: TabBarView(
+                      controller: chatViewController.chatMainTabController,
+                      children: [
+                        PersonalChatsList(isForwardUI: widget.isForwardUI,
+                          isNewGroupUI: widget.isNewGroupUI,),
+                        BusinessChatsList(isForwardUI: widget.isForwardUI,
+                          isNewGroupUI: widget.isNewGroupUI,),
+                        // FindContactWithService(fromBottomNav: true),
+                        OrdersTabView()
+                      ],
+                    ),
                   ),
-                ),
-                (widget.isForwardUI != null && (widget.isForwardUI ?? false))
-                    ?
-                Obx(() {
-                  return InkWell(
-                    onTap: (chatViewController.selectedUserIds.isNotEmpty)
-                        ? () async
-                    {
-                      if (widget.isNewGroupUI != null &&
-                          (widget.isNewGroupUI ?? false)) {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
-                      } else {
-                        Map<String, dynamic> data = {
-                          ApiKeys.forward_id:
-                          chatThemeController.selectedMessageIds,
-                          ApiKeys.forward_to_conversations:
-                          chatViewController.selectedUserIds,
-                          // ApiKeys.additional_message: "${widget.message?.messageType}"
-                          // ApiKeys.additional_message: "${widget.message?.messageType}"
-                        };
+                  (widget.isForwardUI != null && (widget.isForwardUI ?? false))
+                      ?
+                  Obx(() {
+                    return InkWell(
+                      onTap: (chatViewController.selectedUserIds.isNotEmpty)
+                          ? () async
+                      {
+                        if (widget.isNewGroupUI != null &&
+                            (widget.isNewGroupUI ?? false)) {
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
+                        } else {
+                          Map<String, dynamic> data = {
+                            ApiKeys.forward_id:
+                            chatThemeController.selectedMessageIds,
+                            ApiKeys.forward_to_conversations:
+                            chatViewController.selectedUserIds,
+                            // ApiKeys.additional_message: "${widget.message?.messageType}"
+                            // ApiKeys.additional_message: "${widget.message?.messageType}"
+                          };
 
-                        bool value = await chatViewController
-                            .forwardMessageApi(data);
+                          bool value = await chatViewController
+                              .forwardMessageApi(data);
 
-                        if (value) {
-                          chatViewController.emitEvent(
-                              ChatEmitEvents.ChatList,
-                              {ApiKeys.type: AppConstants.personal_Chat_Type});
-                          Navigator.pop(context);
-                          Navigator.pop(context);
+                          if (value) {
+                            chatViewController.emitEvent(
+                                ChatEmitEvents.ChatList,
+                                {ApiKeys.type: AppConstants.personal_Chat_Type});
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          }
                         }
                       }
-                    }
-                        : null,
-                    child: Container(
-                      padding: EdgeInsets.all(14),
-                      margin: EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                          color: chatViewController.selectedUserIds.isNotEmpty
-                              ? AppColors.primaryColor
-                              : chatThemeController.myMessageBgColor.value,
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CustomText(
+                          : null,
+                      child: Container(
+                        padding: EdgeInsets.all(14),
+                        margin: EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                            color: chatViewController.selectedUserIds.isNotEmpty
+                                ? AppColors.primaryColor
+                                : chatThemeController.myMessageBgColor.value,
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomText(
+                              (widget.isNewGroupUI != null &&
+                                  (widget.isNewGroupUI ?? false))
+                                  ? ""
+                                  : "${chatViewController.selectedUserIds.length} Forward",
+                              color: Colors.white,
+                            ),
+                            const SizedBox(
+                              width: 6,
+                            ),
                             (widget.isNewGroupUI != null &&
                                 (widget.isNewGroupUI ?? false))
-                                ? ""
-                                : "${chatViewController.selectedUserIds.length} Forward",
-                            color: Colors.white,
-                          ),
-                          const SizedBox(
-                            width: 6,
-                          ),
-                          (widget.isNewGroupUI != null &&
-                              (widget.isNewGroupUI ?? false))
-                              ? Icon(
-                            Icons.arrow_right_alt,
-                            size: 26,
-                            color: Colors.white,
-                          )
-                              : SvgPicture.asset(
-                              height: 18,
-                              width: 18,
-                              AppIconAssets.send_message_chat),
-                        ],
+                                ? Icon(
+                              Icons.arrow_right_alt,
+                              size: 26,
+                              color: Colors.white,
+                            )
+                                : SvgPicture.asset(
+                                height: 18,
+                                width: 18,
+                                AppIconAssets.send_message_chat),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                })
-                    : SizedBox()
-              ],
+                    );
+                  })
+                      : SizedBox()
+                ],
+              ),
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -157,14 +158,14 @@ class _SendLocationPageState extends State<SendLocationPage> {
                     ),
                   ),
                   CustomText(
-                    "Share live location for",
+                    AppStrings.shareLiveLocationFor.tr,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                   const SizedBox(height: 20),
                   _DurationTile(
-                    title: "15 minutes",
-                    subtitle: "Quick share",
+                    title: AppStrings.fifteenMinutes.tr,
+                    subtitle: AppStrings.quickShare.tr,
                     icon: Icons.timer_outlined,
                     selected: selectedDuration == const Duration(minutes: 15),
                     onTap: () {
@@ -174,8 +175,8 @@ class _SendLocationPageState extends State<SendLocationPage> {
                     },
                   ),
                   _DurationTile(
-                    title: "1 hour",
-                    subtitle: "Short trip",
+                    title: AppStrings.oneHour.tr,
+                    subtitle: AppStrings.shortTrip.tr,
                     icon: Icons.schedule_outlined,
                     selected: selectedDuration == const Duration(hours: 1),
                     onTap: () {
@@ -185,8 +186,8 @@ class _SendLocationPageState extends State<SendLocationPage> {
                     },
                   ),
                   _DurationTile(
-                    title: "8 hours",
-                    subtitle: "All day",
+                    title: AppStrings.eightHours.tr,
+                    subtitle: AppStrings.allDay.tr,
                     icon: Icons.access_time_filled_outlined,
                     selected: selectedDuration == const Duration(hours: 8),
                     onTap: () {
@@ -207,7 +208,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
                       );
                       Get.back();
                     },
-                    title: "Share Live Location",
+                    title: AppStrings.shareLiveLocation.tr,
                   ),
                   SizedBox(height: SizeConfig.size20),
                 ],
@@ -224,7 +225,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
     return Scaffold(
       backgroundColor: Color(0xFFF8F9FA),
       appBar: CommonBackAppBar(
-        title: "Send Location",
+        title: AppStrings.sendLocationLabel.tr,
       ),
       body: (_currentPosition == null)
           ? Center(
@@ -237,7 +238,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
                   ),
                   SizedBox(height: 16),
                   CustomText(
-                    "Getting your location...",
+                    AppStrings.gettingYourLocation.tr,
                     fontSize: 14,
                     color: AppColors.grayText,
                   ),
@@ -399,7 +400,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                CustomText("Nearby Places",
+                CustomText(AppStrings.nearbyPlaces.tr,
                   fontSize: 15, fontWeight: FontWeight.w700,
                 ),
                 SizedBox(width: 6),
@@ -415,7 +416,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
           Expanded(
             child: _nearbyPlaces.isEmpty
                 ? Center(
-                    child: CustomText("No nearby places found",
+                    child: CustomText(AppStrings.noNearbyPlacesFound.tr,
                       fontSize: 14, color: AppColors.grayText,
                     ),
                   )
@@ -442,7 +443,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Failed to get location for this place")),
+                              SnackBar(content: Text(AppStrings.failedToGetLocation.tr)),
                             );
                           }
                         },

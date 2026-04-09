@@ -757,18 +757,18 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
 
   Widget _buildEmptyState() {
     String text;
-    switch (widget.chatType) { // Use the widget.chatType passed from previous screen
+    switch (widget.chatType) {
       case AppConstants.askInventory_Chat_Type:
-        text = "No conversation yet. Search for Products.";
+        text = AppStrings.noConversationYetProducts.tr;
         break;
       case AppConstants.askFood_Chat_Type:
-        text = "No conversation yet. Tell me what you ate.";
+        text = AppStrings.noConversationYetFood.tr;
         break;
       case AppConstants.askEducation_Chat_Type:
-        text = "Start asking about courses or education.";
+        text = AppStrings.startAskingEducation.tr;
         break;
       default:
-        text = "Start a conversation.";
+        text = AppStrings.startAConversation.tr;
     }
 
     return Center(
@@ -778,13 +778,11 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
           color: Colors.grey.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(
+        child: CustomText(
           text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
+          color: Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -865,7 +863,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                             fontWeight: FontWeight.w500,
                             fontSize: 16),
                         decoration: InputDecoration(
-                            hintText: "Type Message...",
+                            hintText: AppStrings.typeMessage.tr,
                             hintStyle: TextStyle(
                                 color: Colors.grey,
                                 fontSize: 14,
@@ -900,11 +898,11 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a URL';
+                            return AppStrings.pleaseEnterAUrl.tr;
                           }
                           final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
                           if (!httpsUrlRegex.hasMatch(value)) {
-                            return 'Only HTTPS URLs are allowed';
+                            return AppStrings.onlyHttpsUrlsAllowed.tr;
                           }
                           return null;
                         },
@@ -1010,7 +1008,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
             Spacer(),
 
             // Swipe Text (Optional)
-            Text("Recording...", style: TextStyle(color: Colors.grey)),
+            CustomText(AppStrings.recording.tr, color: Colors.grey),
             Spacer(),
 
             SizedBox(width: 10),

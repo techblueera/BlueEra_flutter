@@ -26,9 +26,6 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
     'Connection': 'keep-alive',
   });
 
-  print("Connecting to: $url");
-  print("Auth token length: ${authTokenGlobal}");
-
   final response = await request.send();
 
   if (response.statusCode != 200) {
@@ -49,7 +46,7 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
             final data = jsonDecode(jsonStr);
             yield data;
           } catch (e) {
-            log('Invalid JSON in SSE: $jsonStr');
+
           }
         }
       }
@@ -73,8 +70,6 @@ Stream<dynamic> riderLiveLocationOrderStream(String riderId,) async* {
     'Connection': 'keep-alive',
   });
 
-  print("Connecting to: $url");
-  print("Auth token length: ${authTokenGlobal}");
 
   final response = await request.send();
 
@@ -89,7 +84,6 @@ Stream<dynamic> riderLiveLocationOrderStream(String riderId,) async* {
   // Listen to the stream
   await for (final chunk in response.stream.transform(utf8.decoder)) {
     for (final line in chunk.split('\n')) {
-      log('Invalid JSON in SSE: $line');
       if (line.startsWith('data:')) {
         final jsonStr = line.substring(5).trim();
         if (jsonStr.isNotEmpty) {
@@ -97,7 +91,6 @@ Stream<dynamic> riderLiveLocationOrderStream(String riderId,) async* {
             final data = jsonDecode(jsonStr);
             yield data;
           } catch (e) {
-            log('Invalid JSON in SSE: $jsonStr');
           }
         }
       }

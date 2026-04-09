@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../../core/services/chat_media_storage_service.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/messageMediaUrl.dart';
@@ -166,12 +167,12 @@ class _AudioMessageWidgetState extends State<AudioMessageWidget> {
           color: Colors.black.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.download_rounded, color: Colors.white, size: 20),
-            SizedBox(width: 4),
-            Text('Audio', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+            const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 4),
+            CustomText(AppStrings.audioLabel.tr, color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
           ],
         ),
       ),

@@ -31,9 +31,7 @@ class CallActivityService {
   }) async {
 
     if (!Platform.isAndroid) {
-      if (kDebugMode) {
-        print("CallActivityService: launchCallActivity only works on Android");
-      }
+
       return false;
     }
 
@@ -54,26 +52,16 @@ class CallActivityService {
         'iceServers': iceServers,
       };
 
-      if (kDebugMode) {
-        print("CallActivityService: launching CallActivity with params:");
-        print(params);
-      }
+
 
       final bool? launched =
       await _launcherChannel.invokeMethod('launchCallActivity', params);
 
-      if (kDebugMode) {
-        print("CallActivityService: launched = $launched");
-      }
 
       return launched??true;
 
     } catch (e, stack) {
 
-      if (kDebugMode) {
-        print("CallActivityService launch error: $e");
-        print(stack);
-      }
 
       return false;
     }
@@ -91,18 +79,13 @@ class CallActivityService {
 
       final params = Map<String, dynamic>.from(result as Map);
 
-      if (kDebugMode) {
-        print("CallActivityService: received call params:");
-        print(params);
-      }
+
 
       return params;
 
     } catch (e) {
 
-      if (kDebugMode) {
-        print("CallActivityService getCallParams error: $e");
-      }
+
 
       return {};
     }
@@ -116,9 +99,7 @@ class CallActivityService {
       final result = await _launcherChannel.invokeMethod('bringCallActivityToFront');
       return result == true;
     } catch (e) {
-      if (kDebugMode) {
-        print("CallActivityService bringCallActivityToFront error: $e");
-      }
+
       return false;
     }
   }
@@ -126,21 +107,15 @@ class CallActivityService {
   /// Close CallActivity and remove from Recents
   static Future<void> closeCallActivity() async {
     if (!Platform.isAndroid) {
-      if (kDebugMode) {
-        print("CallActivityService: closeCallActivity only works on Android");
-      }
+
       return;
     }
 
     try {
-      if (kDebugMode) {
-        print("CallActivityService: closing CallActivity");
-      }
+
       await _bridgeChannel.invokeMethod('closeCallActivity');
     } catch (e) {
-      if (kDebugMode) {
-        print("CallActivityService closeCallActivity error: $e");
-      }
+
     }
   }
 
@@ -148,17 +123,10 @@ class CallActivityService {
   static Future<void> finishCallActivity() async {
     try {
 
-      if (kDebugMode) {
-        print("CallActivityService: finishing CallActivity");
-      }
-
       await _bridgeChannel.invokeMethod('finishCallActivity');
 
     } catch (e) {
 
-      if (kDebugMode) {
-        print("CallActivityService finishCallActivity error: $e");
-      }
 
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,7 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                                   children: [
                                     Obx(() {
                                       if (controller.myMessage?.value ?? true) {
-                                        return CustomText("You",
+                                        return CustomText(AppStrings.youLabel.tr,
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.white);
@@ -182,7 +183,7 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                                 children: [
                                   Icon(Icons.reply, color: AppColors.white),
                                   SizedBox(width: SizeConfig.size6),
-                                  CustomText("Reply",
+                                  CustomText(AppStrings.replyLabel.tr,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                       color: AppColors.white),
@@ -231,7 +232,7 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                 const Icon(Icons.broken_image, size: 60, color: Colors.grey),
                 const SizedBox(height: 8),
                 CustomText(
-                  "Failed to load image",
+                  AppStrings.failedToLoadImage.tr,
                  color: Colors.grey[600],
                 ),
               ],

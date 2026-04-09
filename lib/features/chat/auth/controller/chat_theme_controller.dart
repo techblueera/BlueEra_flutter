@@ -400,7 +400,7 @@ class ChatThemeController extends GetxController {
 
     await reminderChatBox.put(listKey, jsonEncode(chatList));
 
-    commonSnackBar(message: "Reminder Message Added");
+    commonSnackBar(message: AppStrings.reminderMessageAdded.tr);
     resetSelection();
     Get.back();
   }
@@ -498,13 +498,71 @@ class ChatThemeController extends GetxController {
 
     updatedList.removeWhere((item) {
       final messageMap = Map<String, dynamic>.from(item["message"]);
-      return messageMap["messageId"] == messageId;
+      return messageMap["_id"] == messageId;
     });
 
     if (updatedList.isEmpty) {
-      await box.delete(conversationId); // 🔥 optional: delete entire conversation
+      await box.delete(conversationId);
+      // Also remove from chat list
+      await _removeConversationFromReminderList(conversationId);
     } else {
       await box.put(conversationId, jsonEncode(updatedList));
+      // Update message count in chat list
+      await _updateReminderChatListCount(conversationId, updatedList.length);
+    }
+
+    // Refresh the in-memory list
+    reminderMessageModel.value =
+        await getReminderMessagesByConversationId(conversationId);
+    commonSnackBar(message: AppStrings.reminderRemoved.tr);
+  }
+
+  Future<void> _removeConversationFromReminderList(String conversationId) async {
+    final chatBox = await Hive.openBox<String>('reminder_chat_list');
+    const listKey = 'reminder_conversations';
+    final existingJson = chatBox.get(listKey);
+    if (existingJson == null || existingJson.isEmpty) return;
+
+    List<dynamic> decoded = jsonDecode(existingJson);
+    List<Map<String, dynamic>> chatList =
+        decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    chatList.removeWhere(
+        (chat) => chat[ApiKeys.conversation_id] == conversationId);
+
+    if (chatList.isEmpty) {
+      await chatBox.delete(listKey);
+    } else {
+      await chatBox.put(listKey, jsonEncode(chatList));
+    }
+    // Refresh the chat list
+    reminderChatList.value = await getReminderChatList();
+    getListOfReminderMsgResponse.value = ApiResponse.complete();
+  }
+
+  Future<void> deleteAllRemindersForConversation(String conversationId) async {
+    final box = await Hive.openBox<String>('reminder_messages_box');
+    await box.delete(conversationId);
+    await _removeConversationFromReminderList(conversationId);
+    commonSnackBar(message: AppStrings.allRemindersRemoved.tr);
+  }
+
+  Future<void> _updateReminderChatListCount(
+      String conversationId, int newCount) async {
+    final chatBox = await Hive.openBox<String>('reminder_chat_list');
+    const listKey = 'reminder_conversations';
+    final existingJson = chatBox.get(listKey);
+    if (existingJson == null || existingJson.isEmpty) return;
+
+    List<dynamic> decoded = jsonDecode(existingJson);
+    List<Map<String, dynamic>> chatList =
+        decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    final index = chatList.indexWhere(
+        (chat) => chat[ApiKeys.conversation_id] == conversationId);
+    if (index != -1) {
+      chatList[index][ApiKeys.messageCount] = newCount;
+      await chatBox.put(listKey, jsonEncode(chatList));
     }
   }
   Future<bool?> setReminderApiCall(Map<String, dynamic> params) async {

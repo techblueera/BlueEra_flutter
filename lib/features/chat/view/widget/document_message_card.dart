@@ -2,10 +2,12 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart' as pdfx;
 
@@ -240,7 +242,7 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
                     ),
                     const SizedBox(height: 4),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      CustomText("Tap to view", fontSize: 11, color: textColor.withValues(alpha: 0.7)),
+                      CustomText(AppStrings.tapToView.tr, fontSize: 11, color: textColor.withValues(alpha: 0.7)),
                       timeAndReadInfoWidget(
                         message: widget.message,
                         isMyMessage: widget.message.myMessage ?? false,
@@ -271,7 +273,7 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.download_rounded, color: Colors.white, size: 16),
           const SizedBox(width: 4),
-          Text('Download', style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.w600)),
+          CustomText(AppStrings.downloadLabel.tr, color: textColor, fontSize: 11, fontWeight: FontWeight.w600),
         ]),
       ),
     );
@@ -357,7 +359,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         onPageError: (page, error) =>
             debugPrint('$page: ${error.toString()}'),
       )
-          : const Center(child: Text('Failed to load PDF')),
+          : Center(child: CustomText(AppStrings.failedToLoadPdf.tr)),
     );
   }
 }

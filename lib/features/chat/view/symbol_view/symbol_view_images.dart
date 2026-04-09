@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -162,7 +163,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     _replyFocusNode.unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Reply sent'),
+        content: Text(AppStrings.replySent.tr),
         backgroundColor: AppColors.primaryColor,
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
@@ -367,7 +368,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              _displayName ?? 'User',
+                              _displayName ?? AppStrings.unknownLabel.tr,
                               color: Colors.white,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -469,7 +470,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                                 fontSize: 14,
                               ),
                               decoration: InputDecoration(
-                                hintText: 'Reply...',
+                                hintText: AppStrings.replyHint.tr,
                                 hintStyle: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.5),
                                   fontSize: 14,

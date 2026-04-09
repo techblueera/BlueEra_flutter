@@ -530,31 +530,31 @@ class ChatViewController extends GetxController {
   String _getInitialMessageText(String type) {
     switch (type) {
       case AppConstants.askInventory_Chat_Type:
-        return "Hello! I can help you check our product. What product are you looking for?";
+        return AppStrings.aiChatInventory.tr;
 
       case AppConstants.askFood_Chat_Type:
-        return "Hungry? I can help you find food details and calories. What did you eat?";
+        return AppStrings.aiChatFood.tr;
 
       case AppConstants.askService_Chat_Type:
-        return "Hello! Looking for a specific service? Let me know what you need help with.";
+        return AppStrings.aiChatService.tr;
 
       case AppConstants.askHealthCare_Chat_Type:
-        return "Hello. I am your health assistant. How can I help you today?";
+        return AppStrings.aiChatHealthCare.tr;
 
       case AppConstants.askEducation_Chat_Type:
-        return "Welcome! Ask me anything about courses, degrees, or educational institutes.";
+        return AppStrings.aiChatEducation.tr;
 
       case AppConstants.askHomeService_Chat_Type:
-        return "Need help around the house? Ask me about cleaning, repairs, or other home services.";
+        return AppStrings.aiChatHomeService.tr;
 
       case AppConstants.askTravelStay_Chat_Type:
-        return "Planning a trip? Ask me about hotels, flights, and travel options.";
+        return AppStrings.aiChatTravelStay.tr;
 
       case AppConstants.askConsultingTalk_Chat_Type:
-        return "Hi there. I'm here to provide expert consulting and advice. What topic would you like to discuss?";
+        return AppStrings.aiChatConsulting.tr;
 
       default:
-        return "Hi there! How can I assist you today?";
+        return AppStrings.aiChatDefault.tr;
     }
   }
 
@@ -1947,6 +1947,12 @@ class ChatViewController extends GetxController {
             myMessage: true,
             messageType: params[ApiKeys.message_type]);
         getListOfMessageData?.add(sendLoadingFile.value);
+        Future.delayed(Duration(seconds: 3),(){
+          getListOfMessageData?.add(sendLoadingFile.value);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(getListOfMessageData);
+        });
+
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
       }
@@ -1970,6 +1976,12 @@ class ChatViewController extends GetxController {
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
           if (!alreadyExists) {
             getListOfMessageData?.add(message);
+
+            Future.delayed(Duration(seconds: 3),(){
+              getListOfMessageData?.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(getListOfMessageData);
+            });
           }
           // Single rebuild: removes loading placeholder + adds real message at once
           getListOfMessageResponse.value =
@@ -2630,7 +2642,7 @@ class ChatViewController extends GetxController {
       if (responseModel.isSuccess) {
         isPinMessageLoading.value=false;
         commonSnackBar(
-            message:responseModel.message?? "Message Pinned Successfully");
+            message:responseModel.message?? AppStrings.messagePinnedSuccessfully.tr);
         return true;
       } else {
         isPinMessageLoading.value=false;
@@ -2850,6 +2862,11 @@ class ChatViewController extends GetxController {
             final alreadyExists = message.id != null &&
                 (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
             if (!alreadyExists) {
+              Future.delayed(Duration(seconds: 3),(){
+                getListOfMessageData?.add(message);
+                getListOfMessageResponse.value =
+                    ApiResponse.complete(getListOfMessageData);
+              });
               getListOfMessageData?.add(message);
             }
             getListOfMessageResponse.value =
@@ -2914,7 +2931,7 @@ class ChatViewController extends GetxController {
     try {
       ResponseModel? response = await ChatViewRepo().addGroupMembers(params);
       if (response.isSuccess) {
-        commonSnackBar(message: "Group Member Added");
+        commonSnackBar(message: AppStrings.groupMemberAdded.tr);
         Map<String, dynamic> data = {
           ApiKeys.conversation_id: params[ApiKeys.conversation_id]
         };

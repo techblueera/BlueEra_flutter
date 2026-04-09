@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/Discover/view/book_your_transport/search
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -147,7 +148,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                         ));
                   }
                 },
-                title: "Call to Rider"),
+                title: AppStrings.callToRider.tr),
           ),
         ),
         body: SingleChildScrollView(
@@ -162,10 +163,10 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 HorizontalTabSelector(
                     unSelectedBackgroundColor: AppColors.white,
                     tabs: [
-                      'In City',
-                      "Out Station",
-                      "Hourly Rental",
-                      "Parcel / Goods"
+                      AppStrings.inCity.tr,
+                      AppStrings.outStation.tr,
+                      AppStrings.hourlyRental.tr,
+                      AppStrings.parcelGoods.tr
                     ],
                     selectedIndex:
                     discoverController.selectedHorizontalTab.value,
@@ -234,7 +235,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                             .isNotEmpty
                                             ? discoverController
                                             .selectedFromAddress?.value
-                                            : "Select Pickup",
+                                            : AppStrings.selectPickup.tr,
                                         fontSize: 13,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -266,7 +267,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                             .isNotEmpty
                                             ? discoverController
                                             .selectedToAddress?.value
-                                            : "Select Drop",
+                                            : AppStrings.selectDrop.tr,
                                         fontSize: 13,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -305,7 +306,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
 
                 /// One Way / Round Trip
                 HorizontalTabSelector(
-                    tabs: ["One Way", "Round Trip"],
+                    tabs: [AppStrings.oneWayTab.tr, AppStrings.roundTripTab.tr],
                     selectedIndex: 0,
                     onTabSelected: (value, index) {},
                     labelBuilder: (value) => value),
@@ -408,11 +409,11 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText("Choose Your Rider",
+                    CustomText(AppStrings.chooseYourRider.tr,
                         fontSize: 16, fontWeight: FontWeight.w600),
                     if (discoverController.selectedRiders.length > 1)
                       CustomText(
-                        "${discoverController.selectedRiders.length} selected",
+                        "${discoverController.selectedRiders.length} ${AppStrings.selectedLabel.tr}",
                         fontSize: 13,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,
@@ -438,9 +439,9 @@ class _BookTransportMainState extends State<BookTransportMain> {
                     final riders = vehicleData?.users ?? [];
 
                     if (riders.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: Text("No riders available")),
+                      return Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(child: CustomText(AppStrings.noRidersAvailable.tr)),
                       );
                     }
 
@@ -464,10 +465,10 @@ class _BookTransportMainState extends State<BookTransportMain> {
                         child: Center(child: CircularProgressIndicator()),
                       );
                     } else {
-                      return const Padding(
-                        padding: EdgeInsets.all(24),
+                      return Padding(
+                        padding: const EdgeInsets.all(24),
                         child: Center(
-                            child: CustomText("Loading riders...")),
+                            child: CustomText(AppStrings.loadingRiders.tr)),
                       );
                     }
                   }
@@ -746,8 +747,8 @@ class RiderCardWidget extends StatelessWidget {
               children: [
                 CustomText(
                   discoverController.selectedHorizontalTab.value == 1
-                      ? "Fare"
-                      : "Distance",
+                      ? AppStrings.fareLabel.tr
+                      : AppStrings.distanceLabel.tr,
                   fontSize: 12,
                   color: AppColors.grayText,
                   fontWeight: FontWeight.w600,

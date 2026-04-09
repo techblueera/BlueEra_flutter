@@ -1172,7 +1172,7 @@ class AppNotificationHandler {
     Map<String, dynamic> data,
   ) async {
     // Parse sender_user if it's a JSON string
-    log("sldclsdkmcskldcmsdc ${data}");
+
     if (data['sender_user'] is String) {
       data['sender_user'] = jsonDecode(data['sender_user']);
     }
@@ -1247,6 +1247,7 @@ class AppNotificationHandler {
       case 'ride_order_cancelled':
       case 'ride_cancelled_by_rider':
       case 'ride_payment_confirmed':
+      case 'rider_onboarding_complete':
         Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
         break;
 

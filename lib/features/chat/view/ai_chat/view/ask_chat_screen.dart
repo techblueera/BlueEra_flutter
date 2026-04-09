@@ -78,7 +78,7 @@ class _AskChatScreenState extends State<AskChatScreen> {
               child: Column(
                 children: [
                   CustomText(
-                      'Sarthi Ai',
+                      AppStrings.sarthiAi,
                       fontSize: SizeConfig.extraLarge,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w500
@@ -118,7 +118,7 @@ class _AskChatScreenState extends State<AskChatScreen> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: CustomText(
-                        'Hi! What Are You Looking For?',
+                        AppStrings.hiWhatAreYouLookingFor,
                         fontSize: SizeConfig.medium,
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w500

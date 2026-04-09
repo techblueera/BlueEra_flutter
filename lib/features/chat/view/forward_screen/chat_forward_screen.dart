@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -51,7 +52,7 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
         isShadowShow: false,
-        title: "Forward to...",
+        title: AppStrings.forwardTo.tr,
         isForwardUi: true,
       ),
       // AppBar(
@@ -76,7 +77,7 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _topOptions(),
-                  _sectionTitle("Recent chats"),
+                  _sectionTitle(AppStrings.recentChatsLabel.tr),
                   PersonalChatsList(isForwardUI: true,hideAiChats: true,),
                 ],
               ),
@@ -94,8 +95,8 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
     return Column(
       children: [
         _chatTile(
-          name: "My symbol",
-          subtitle: "My contacts +",
+          name: AppStrings.mySymbolLabel.tr,
+          subtitle: AppStrings.myContactsPlus.tr,
           icon: Icons.account_circle_rounded,
           isGreen: true,
         ),

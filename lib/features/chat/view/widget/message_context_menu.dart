@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -261,7 +263,7 @@ class _ContextMenuCard extends StatelessWidget {
           children: [
             _menuItem(
               icon: Icons.reply_rounded,
-              label: "Reply",
+              label: AppStrings.replyLabel.tr,
               onTap: () {
                 Navigator.of(context).pop();
                 chatViewController.setReplyMessage(message);
@@ -270,12 +272,12 @@ class _ContextMenuCard extends StatelessWidget {
             _divider(),
             _menuItem(
               icon: Icons.copy_rounded,
-              label: "Copy",
+              label: AppStrings.copyLabel.tr,
               onTap: () {
                 Navigator.of(context).pop();
                 if (message.message != null) {
                   Clipboard.setData(ClipboardData(text: message.message!));
-                  Get.snackbar("Copied", "Message copied to clipboard",
+                  Get.snackbar(AppStrings.copiedLabel.tr, AppStrings.messageCopied.tr,
                       snackPosition: SnackPosition.BOTTOM,
                       duration: const Duration(seconds: 1));
                 }
@@ -284,7 +286,7 @@ class _ContextMenuCard extends StatelessWidget {
             _divider(),
             _menuItem(
               icon: Icons.shortcut_rounded,
-              label: "Forward",
+              label: AppStrings.forwardLabel.tr,
               onTap: () {
                 Navigator.of(context).pop();
                 chatThemeController.activateSelection(message);
@@ -297,7 +299,7 @@ class _ContextMenuCard extends StatelessWidget {
               _divider(),
               _menuItem(
                 icon: Icons.download_rounded,
-                label: "Download",
+                label: AppStrings.downloadLabel.tr,
                 onTap: () {
                   Navigator.of(context).pop();
                   _downloadMedia(context, message);
@@ -308,7 +310,7 @@ class _ContextMenuCard extends StatelessWidget {
             _divider(),
             _menuItem(
               icon: Icons.alarm_rounded,
-              label: "Reminder",
+              label: AppStrings.reminderLabel.tr,
               onTap: () {
                 Navigator.of(context).pop();
                 chatThemeController.activateSelection(message);
@@ -327,7 +329,7 @@ class _ContextMenuCard extends StatelessWidget {
             _divider(),
             _menuItem(
               icon: Icons.check_circle_outline_rounded,
-              label: "Select",
+              label: AppStrings.selectLabel.tr,
               onTap: () {
                 Navigator.of(context).pop();
                 chatThemeController.activateSelection(message);
@@ -336,7 +338,7 @@ class _ContextMenuCard extends StatelessWidget {
             _divider(),
             _menuItem(
               icon: Icons.delete_outline_rounded,
-              label: "Delete",
+              label: AppStrings.delete.tr,
               color: Colors.red,
               onTap: () {
                 Navigator.of(context).pop();
@@ -459,13 +461,11 @@ class _ContextMenuCard extends StatelessWidget {
           children: [
             Icon(icon, size: 20, color: c),
             const SizedBox(width: 12),
-            Text(
+            CustomText(
               label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: c,
-              ),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: c,
             ),
           ],
         ),

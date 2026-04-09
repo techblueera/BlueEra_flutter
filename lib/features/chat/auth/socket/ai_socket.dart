@@ -94,9 +94,7 @@ class AiSocketService {
   // LISTEN HISTORY RESPONSE
   void onHistory(void Function(dynamic messages) callback) {
     socket?.on('history_data', (data) {
-      if (kDebugMode) {
-        log('📥 ON [history_data]: $data');
-      }
+
       callback(data);
     });
   }
@@ -117,9 +115,6 @@ class AiSocketService {
     Uint8List? imageBytes,
     String? mimeType,
   }) {
-    if (kDebugMode) {
-      print('📤 EMIT [send_message] --> ID: $conversationId | Message: "$message" | Service Type: "$serviceType"');
-    }
 
     socket?.emit('send_message', {
       if(tag!=null)

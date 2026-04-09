@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -195,7 +196,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         position: LatLng(pickupLat, pickupLng),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: InfoWindow(
-          title: 'Your Pickup',
+          title: AppStrings.yourPickup.tr,
           snippet: discoverController.selectedFromAddress?.value ?? '',
         ),
       ),
@@ -221,7 +222,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           position: riderPos,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           infoWindow: InfoWindow(
-            title: _acceptedRiderInfo?['name'] ?? 'Rider',
+            title: _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
           ),
         ),
       );
@@ -360,8 +361,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       riderLngVal: riderLng,
       destLatVal: pickupLat,
       destLngVal: pickupLng,
-      destLabelVal: discoverController.selectedFromAddress?.value ?? 'Pickup',
-      customerNameVal: _acceptedRiderInfo?['name'] ?? 'Rider',
+      destLabelVal: discoverController.selectedFromAddress?.value ?? AppStrings.pickupLabel.tr,
+      customerNameVal: _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
       fareAmountVal: 0,
       routePoints: _routeCoords,
       type: 'customer_tracking',
@@ -562,7 +563,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Rider on the way',
+                              AppStrings.riderOnTheWay.tr,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -572,7 +573,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              _acceptedRiderInfo?['name'] ?? 'Rider',
+                              _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -685,7 +686,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _acceptedRiderInfo?['name'] ?? 'Rider',
+                        _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -749,8 +750,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     const Icon(Icons.pin_rounded,
                         color: Color(0xFF4285F4), size: 20),
                     const SizedBox(width: 10),
-                    const Text(
-                      'Pickup OTP',
+                    Text(
+                      AppStrings.pickupOtp.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -830,7 +831,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        discoverController.selectedFromAddress?.value ?? 'Pickup',
+                        discoverController.selectedFromAddress?.value ?? AppStrings.pickupLabel.tr,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -842,7 +843,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        discoverController.selectedToAddress?.value ?? 'Drop',
+                        discoverController.selectedToAddress?.value ?? AppStrings.dropLabel.tr,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -918,8 +919,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                 color: Color(0xFF00C853), size: 36),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Ride Completed!',
+          Text(
+            AppStrings.rideCompleted.tr,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -929,7 +930,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           ),
           const SizedBox(height: 6),
           Text(
-            'You have arrived at your destination',
+            AppStrings.arrivedAtDestination.tr,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,
@@ -1028,7 +1029,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Fare',
+                        AppStrings.fareLabel.tr,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade500,
@@ -1055,7 +1056,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Payment',
+                        AppStrings.paymentLabel.tr,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade500,
@@ -1083,7 +1084,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Ride Type',
+                          AppStrings.rideTypeLabel.tr,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade500,
@@ -1188,8 +1189,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
-                  'Done',
+                child: Text(
+                  AppStrings.doneLabel.tr,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
@@ -1225,9 +1226,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                 const Icon(Icons.check_circle_rounded,
                     color: Color(0xFF00C853), size: 20),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Ride Started — OTP Verified',
+                    AppStrings.rideStartedOtpVerified.tr,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1245,8 +1246,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
               child: ElevatedButton.icon(
                 onPressed: _shareRiderDetails,
                 icon: const Icon(Icons.share_rounded, size: 20),
-                label: const Text(
-                  'Share Rider Details',
+                label: Text(
+                  AppStrings.shareRiderDetails.tr,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -1314,8 +1315,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             ListTile(
               leading: const Icon(Icons.send_rounded,
                   color: Color(0xFF4285F4), size: 24),
-              title: const Text(
-                'Share within BlueEra',
+              title: Text(
+                AppStrings.shareWithinBlueEra.tr,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -1334,8 +1335,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             ListTile(
               leading: const Icon(Icons.share_outlined,
                   color: Color(0xFF4285F4), size: 24),
-              title: const Text(
-                'Share externally',
+              title: Text(
+                AppStrings.shareExternally.tr,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -1412,7 +1413,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             color: Colors.white.withValues(alpha: 0.35), size: 13),
         const SizedBox(width: 4),
         Text(
-          'End-to-end encrypted',
+          AppStrings.endToEndEncrypted.tr,
           style: TextStyle(
             fontSize: 11,
             fontFamily: 'OpenSans',
@@ -1430,7 +1431,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       final total = discoverController.fareCallTotalRiders.value;
 
       return Text(
-        total > 0 ? 'Calling rider $index of $total' : 'Finding you a rider',
+        total > 0 ? '${AppStrings.callingRiderOfTotal.tr} $index / $total' : AppStrings.findingYouARider.tr,
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w500,
@@ -1456,14 +1457,14 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         color = const Color(0xFF00C853);
       } else if (status == CallStatus.connecting ||
           status == CallStatus.accepting) {
-        text = 'Connecting...';
+        text = AppStrings.connectingLabel.tr;
         color = const Color(0xFF8696A0);
       } else if (status == CallStatus.outgoing ||
           status == CallStatus.ringing) {
-        text = 'Ringing...';
+        text = AppStrings.ringingLabel.tr;
         color = const Color(0xFF8696A0);
       } else {
-        text = 'Calling...';
+        text = AppStrings.callingLabel.tr;
         color = const Color(0xFF8696A0);
       }
 
@@ -1642,7 +1643,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      from.isNotEmpty ? from : 'Pickup location',
+                      from.isNotEmpty ? from : AppStrings.pickupLocationLabel.tr,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white,
@@ -1653,7 +1654,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      to.isNotEmpty ? to : 'Drop location',
+                      to.isNotEmpty ? to : AppStrings.dropLocationLabel.tr,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white,
@@ -1687,7 +1688,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
               icon: isSpeakerOn
                   ? Icons.volume_up_rounded
                   : Icons.volume_down_rounded,
-              label: 'Speaker',
+              label: AppStrings.speakerLabel.tr,
               isActive: isSpeakerOn,
               onTap: () => _callController.toggleSpeaker(),
               enabled: isConnected,
@@ -1765,7 +1766,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           ),
           const SizedBox(height: 10),
           Text(
-            'End Call',
+            AppStrings.endCallLabel.tr,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 13,

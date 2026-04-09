@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -56,13 +57,105 @@ class _ReminderChatListState extends State<ReminderChatList> {
                   child: noChatsFound(true),
                 )
                     : ListView.builder(
-                  itemCount: members.length, // ADD 1 EXTRA ITEM
+                  itemCount: members.length,
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     final chat =members[index];
                     String senderProfileImage=chat.profileImagePath;
                     String senderName=chat.name;
-                    return  InkWell(
+                    return  Dismissible(
+                      key: ValueKey(chat.conversationId),
+                      direction: DismissDirection.endToStart,
+                      confirmDismiss: (_) async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            title: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications_off_rounded,
+                                    color: Colors.red,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    AppStrings.removeAllReminders.tr,
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            content: Text(
+                              "${AppStrings.removeAllRemindersConfirm.tr} $senderName?",
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: Text(AppStrings.cancel.tr,
+                                    style: TextStyle(color: Colors.grey)),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text(AppStrings.removeLabel.tr,
+                                    style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          await chatThemeController
+                              .deleteAllRemindersForConversation(
+                                  chat.conversationId);
+                        }
+                        return false;
+                      },
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 24),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.notifications_off_rounded,
+                              color: Colors.red,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              AppStrings.removeLabel.tr,
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      child: InkWell(
                       onTap: (){
                         Get.to(()=>ReminderViewPage(
                           name: senderName,
@@ -139,7 +232,7 @@ class _ReminderChatListState extends State<ReminderChatList> {
                                   SizedBox(height: SizeConfig.size2),
                                   CustomText(
                                     maxLines: 1,
-                                    "Reminder Message",
+                                    AppStrings.reminderMessageLabel.tr,
                                     fontSize: SizeConfig.size14,
                                     color: AppColors.grey9A,
                                     overflow: TextOverflow.ellipsis,
@@ -172,6 +265,7 @@ class _ReminderChatListState extends State<ReminderChatList> {
                           ],
                         ),
                       ),
+                    ),
                     );
                   },
                 ),

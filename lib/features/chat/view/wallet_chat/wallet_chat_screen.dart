@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -116,7 +117,7 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
   Future<void> _sendInitialNamaste() async {
     Map<String, dynamic> data = {
       ApiKeys.other_user_id: userId, // self → self conversation
-      ApiKeys.message: "Namaste \u{1F64F}",
+      ApiKeys.message: AppStrings.namasteSayHi.tr,
       ApiKeys.message_type: "text",
     };
 
@@ -283,8 +284,8 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
                 size: 40,
               ),
               const SizedBox(height: 10),
-              const Text(
-                "Your Wallet Space",
+              Text(
+                AppStrings.yourWalletSpace.tr,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -293,17 +294,17 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
               ),
               const SizedBox(height: 4),
               RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   children: [
                     TextSpan(
-                      text: "Tap to say ",
+                      text: AppStrings.tapToSay.tr,
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
                       ),
                     ),
                     TextSpan(
-                      text: "Namaste \u{1F64F}",
+                      text: " ${AppStrings.namasteSayHi.tr}",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -362,8 +363,8 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Wallet',
+              Text(
+                AppStrings.walletLabel.tr,
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -371,7 +372,7 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
                 ),
               ),
               Text(
-                'Notes to self',
+                AppStrings.notesToSelf.tr,
                 style: TextStyle(
                   color: AppColors.secondaryTextColor,
                   fontSize: 12,
