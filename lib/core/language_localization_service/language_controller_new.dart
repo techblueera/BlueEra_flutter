@@ -62,7 +62,7 @@ class LanguageControllerNew extends GetxController {
       selectedLang.value = savedLangCode;
 
       final response =
-          await http.get(Uri.parse('${baseUrl}language-service/languages'));
+          await http.get(Uri.parse('${baseUrl}language-service/languages/names?languages=en%2Chi'));
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         final freshBox = await _safeBox();
@@ -141,16 +141,11 @@ class LanguageControllerNew extends GetxController {
         GuestUserResModel guestUserResModel =
         GuestUserResModel.fromJson(responseModel.response?.data);
         await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
-        // if(!isFromProfileOnly)
-        // {
-        //   Get.back();
-        // }
+
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.authToken, guestUserResModel.token);
         await getUserAuthToken();
-
       }
-
     } catch (e) {
       log('⚠️ Failed to sync language preference to server: $e');
     }

@@ -28,6 +28,7 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
@@ -435,12 +436,36 @@ class AuthController extends GetxController {
             final lat = locationMap[ApiKeys.lat];
             final lon = locationMap[ApiKeys.lon];
 
+            // Reverse-geocode lat/lon to fill city, state, pincode.
+            String city = '';
+            String state = '';
+            String pincode = '';
+            final double? latD =
+                lat is num ? lat.toDouble() : double.tryParse(lat.toString());
+            final double? lonD =
+                lon is num ? lon.toDouble() : double.tryParse(lon.toString());
+            if (latD != null && lonD != null) {
+              try {
+                final placemarks = await placemarkFromCoordinates(latD, lonD);
+                if (placemarks.isNotEmpty) {
+                  final p = placemarks.first;
+                  city = p.locality?.isNotEmpty == true
+                      ? p.locality!
+                      : (p.subAdministrativeArea ?? '');
+                  state = p.administrativeArea ?? '';
+                  pincode = p.postalCode ?? '';
+                }
+              } catch (e) {
+                log('Motel reverse-geocode failed: $e');
+              }
+            }
+
             final reqDataParm = {
               ApiKeys.businessId: businessId,
               "name": reqData[ApiKeys.business_name],
               "description": "",
               "website": "",
-              "address": {"city": "", "state": '', "pincode": ''},
+              "address": {"city": city, "state": state, "pincode": pincode},
               "location": {
                 "name": "",
                 "type": "Point",

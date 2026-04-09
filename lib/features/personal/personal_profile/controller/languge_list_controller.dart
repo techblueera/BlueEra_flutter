@@ -36,9 +36,9 @@ class LanguageListController extends GetxController {
     languages.value = [
       LanguageModel(code: "en", name: "English"),
       LanguageModel(code: "hi", name: "Hindi"),
-      LanguageModel(code: "ta", name: "Tamil"),
-      LanguageModel(code: "te", name: "Telugu"),
-      LanguageModel(code: "ml", name: "Malayalam"),
+      // LanguageModel(code: "ta", name: "Tamil"),
+      // LanguageModel(code: "te", name: "Telugu"),
+      // LanguageModel(code: "ml", name: "Malayalam"),
     ];
 
     fetchLanguages();
@@ -62,8 +62,12 @@ class LanguageListController extends GetxController {
   Future<void> fetchLanguages() async {
     try {
       final response = await _repo.getLanguagesRaw();
+
+
       if (response.isSuccess && response.response?.data != null) {
         final rawData = response.response?.data;
+        logs("response====fffff ${rawData}");
+
         List<dynamic> dataList;
 
         if (rawData is List) {

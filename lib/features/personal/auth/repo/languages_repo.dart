@@ -6,7 +6,7 @@ class LanguageRepo extends BaseService {
   Future<ResponseModel> getLanguagesRaw() async {
 
     return await ApiBaseHelper().getHTTP(
-      languages,
+      languages,params: {"languages":"en,hi"},
       showProgress: true,
     );
   }

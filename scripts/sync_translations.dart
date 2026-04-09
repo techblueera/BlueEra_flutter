@@ -8,6 +8,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
+
 const defaultBaseUrl = 'https://be.blueera.ai/api/';
 const languagesEndpoint = 'language-service/languages/names';
 const downloadEndpoint = 'language-service/languages';
@@ -85,7 +87,7 @@ Future<void> main(List<String> args) async {
 Future<String> _get(HttpClient client, String url) async {
   final request = await client.getUrl(Uri.parse(url));
   final response = await request.close();
-
+logs("response=11111=== ${response}");
   if (response.statusCode != 200) {
     final body = await response.transform(utf8.decoder).join();
     throw HttpException('HTTP ${response.statusCode}: $body', uri: Uri.parse(url));

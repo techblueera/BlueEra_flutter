@@ -2289,14 +2289,14 @@ class AppStrings {
       "propertyOwnershipOrLeaseAgreement";
   static const upload = "upload";
   static const bookViaBlueEraPartner = "bookViaBlueEraPartner";
-  static const numberOfEmployees = "Number of Employees";
-  static const numberOfBranchOrUnit = "Number of Branch / Units";
-  static const numberOfEmployeesHintText = "Eg. 1-100";
-  static const numberOfBranchOrUnitHintText = "Eg. Single";
+  static const numberOfEmployees = "numberOfEmployees";
+  static const numberOfBranchOrUnit = "numberOfBranchOrUnit";
+  static const numberOfEmployeesHintText = "numberOfEmployeesHintText";
+  static const numberOfBranchOrUnitHintText = "numberOfBranchOrUnitHintText";
   static const pleaseEnterNumberOfEmployees =
-      "Please Enter Number Of Employees";
+      "pleaseEnterNumberOfEmployees";
   static const pleaseEnterNumberOfBranchOrUnit =
-      "Please Enter Number Of Branch/Unit";
+      "pleaseEnterNumberOfBranchOrUnit";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
