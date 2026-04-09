@@ -780,9 +780,9 @@ class ProductController extends GetxController{
     // await setEarnServiceOptData(true);
     await setRiderServiceOptData(true);
     if (userProfessionGlobal == BIKE_RIDER) {
-      Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+      Get.until((route) => Get.currentRoute == RouteHelper.getGigWorkerOptionsScreenRoute());
     } else {
-      Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
+      Get.until((route) => Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
     }
   }
 

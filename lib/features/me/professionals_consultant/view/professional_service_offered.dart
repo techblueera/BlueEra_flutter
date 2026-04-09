@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/add_service_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/add_service_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

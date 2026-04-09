@@ -141,10 +141,10 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                     Get.to(() => CreateProfileScreen());
                   } else {
                     if (userProfessionGlobal == BIKE_RIDER) {
-                      Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+                      Get.toNamed(RouteHelper.getGigWorkerOptionsScreenRoute());
                     } else {
                       Get.toNamed(
-                          RouteHelper.getEarnServiceScreenRoute());
+                          RouteHelper.getSelfEmployeeScreenRoute());
                     }
                     // if (userProfessionGlobal == BIKE_RIDER) {
                     //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());

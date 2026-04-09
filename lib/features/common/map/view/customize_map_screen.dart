@@ -18,7 +18,7 @@ import 'package:BlueEra/features/common/map/widget/rental_service_bottom_sheet.d
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';

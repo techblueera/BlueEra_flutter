@@ -13,6 +13,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
   final int chatNotificationCount;
+  // When the SubscriptionDraggableSheet sits above the bar it provides its
+  // own peak shadow, so the parent passes [showShadow] = false to avoid a
+  // doubled shadow. On every other Me-tab state (sheet hidden because of
+  // active subscription, social profile, etc.) the bar paints its own.
+  final bool showShadow;
 
   BottomNavigationBarWidget({
     super.key,
@@ -21,6 +26,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.chatNotificationCount,
+    this.showShadow = true,
   });
 
   DateTime? lastBackPressed;
@@ -62,15 +68,15 @@ class BottomNavigationBarWidget extends StatelessWidget {
           height: SizeConfig.size70, // adjust as needed
           decoration: BoxDecoration(
             color: AppColors.white,
-            // On the "Me" tab (index 2) the SubscriptionDraggableSheet sits on
-            // top of this bar and provides its own peek shadow, so we drop
-            // the border + shadow here to avoid a doubled line/shadow.
-            border: currentIndex == 2
+            // Drop our own border + shadow only when the
+            // SubscriptionDraggableSheet is rendering above us — otherwise
+            // we'd doubled them up. The parent decides via [showShadow].
+            border: !showShadow
                 ? null
                 : const Border(
                     top: BorderSide(color: AppColors.whiteDB, width: 1),
                   ),
-            boxShadow: currentIndex == 2
+            boxShadow: !showShadow
                 ? null
                 : const [
                     BoxShadow(

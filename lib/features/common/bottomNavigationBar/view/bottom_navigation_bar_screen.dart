@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -35,15 +36,17 @@ import 'package:BlueEra/features/me/professionals_consultant/view/professionals_
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/social/view/social_main.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/view/subscription_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -83,6 +86,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
+  // Shared with SubscriptionDraggableSheet via getOrPut, so we can observe
+  // the user's plan state up here and decide whether to mount the peek sheet
+  // at all (once the user is on an active/trial plan we hide it).
+  final SubscriptionController _subController =
+      getOrPut(() => SubscriptionController());
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -101,6 +109,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
+    _checkAndFetchLocationData();
     if (Platform.isAndroid) {
       final pipController = getOrPut(() => PipFloatingPageController());
       pipController.setPipStatus(false);
@@ -109,36 +118,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     //   logs("DIALOGE CALL");
     //   _checkAndShowDialog();
     // }
-    _checkAndFetchLocationData();
     _getAllCategories();
     _initializeControllers();
     _initializeUserData();
+
     _initializeSocketConnections();
     _initializeChatMediaFolders();
     checkByRiderCall();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
-      // FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-      //   if (event == null) return;
-      //   final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
-      //   final operation = (extra['operation'] ?? '').toString();
-      //
-      //   if (operation == 'incoming_call') {
-      //     // Call events are handled by CallController._setupCallKitListeners()
-      //     // which is registered permanently in main(). No duplicate handling needed.
-      //     return;
-      //   } else {
-      //     // Ride order events
-      //     if (event.event == Event.actionCallAccept) {
-      //       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      //       FlutterCallkitIncoming.endAllCalls();
-      //     } else if (event.event == Event.actionCallDecline) {
-      //       commonSnackBar(message: "Your Order Rejected by You");
-      //       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      //       FlutterCallkitIncoming.endAllCalls();
-      //     }
-      //   }
-      // });
+      // _setupCallKitEventListener();
     });
   }
 
@@ -189,10 +178,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   void _initializeControllers() {
-    if (!isGuestUser()) {
-      // Get.put(LocationServiceProviderController());
-    }
-
     getOrPut(() => ChatThemeController());
   }
 
@@ -201,8 +186,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     AppNotificationHandler().onMsgOpen();
     if (isIndividual()) {
       await _initializeIndividualUser();
-    } else {
-      await _initializeBusinessUser();
     }
   }
 
@@ -230,10 +213,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.channelOwner, channelOwner),
     ]);
-  }
-
-  Future<void> _initializeBusinessUser() async {
-    // await getBusinessUserOwnProduct();
   }
 
   void _initializeSocketConnections() {
@@ -286,12 +265,32 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  ///GET BUSINESS PRODUCTS...
-  Future<void> getBusinessUserOwnProduct() async {
-    await inventoryController.fetchProducts();
+  void _setupCallKitEventListener() {
+    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+      if (event == null) return;
+
+      final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
+      final operation = (extra['operation'] ?? '').toString();
+
+      if (operation == 'incoming_call') {
+        // Call events are handled by CallController._setupCallKitListeners()
+        // which is registered permanently in main(). No duplicate handling needed.
+        return;
+      }
+
+      // Ride order events
+      if (event.event == Event.actionCallAccept) {
+        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+        FlutterCallkitIncoming.endAllCalls();
+      } else if (event.event == Event.actionCallDecline) {
+        commonSnackBar(message: "Your Order Rejected by You");
+        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+        FlutterCallkitIncoming.endAllCalls();
+      }
+    });
   }
 
-  ///GET CHANNEL DETAILS...
+  // GET CHANNEL DETAILS...
   Future<ChannelModel?> getChannelDetails() async {
     try {
       ResponseModel response =
@@ -309,7 +308,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   void dispose() {
-    bottomBarVisibleNotifier.dispose(); // 🧼 Clean up
+    bottomBarVisibleNotifier.dispose(); // Clean up
     // Only fully dispose socket if no active call — otherwise the socket
     // gets killed when the widget tree rebuilds after returning from CallActivity
     // and can never reconnect (listeners are cleared permanently).
@@ -359,12 +358,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 // inset, since the nav uses SafeArea(top: false)). Using
                 // kBottomNavigationBarHeight here would push the peek into
                 // the nav row.
+
                 Obx(() {
                   final navBarHeight = SizeConfig.size55 +
                       MediaQuery.of(context).padding.bottom;
+                  final showSheet = _shouldShowSubscriptionSheet(
+                      bottomBarController.currentIndex.value);
                   return Positioned.fill(
-                    child: _shouldShowSubscriptionSheet(
-                            bottomBarController.currentIndex.value)
+                    child: showSheet
                         ? SubscriptionDraggableSheet(
                             bottomPadding: navBarHeight,
                           )
@@ -372,8 +373,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                   );
                 }),
 
-                // Bottom Nav Animation using ValueListenableBuilder
+                // Bottom Nav Animation using ValueListenableBuilder (Bottom tabs)
                 Obx(() {
+                  // Recompute here so this Obx also reacts to subscription
+                  // state changes — when the peek sheet hides, the nav bar
+                  // needs to flip its own shadow back on.
+                  final showSubscriptionSheet = _shouldShowSubscriptionSheet(
+                      bottomBarController.currentIndex.value);
                   return Positioned(
                     bottom: 0,
                     left: 0,
@@ -386,7 +392,20 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         onHeaderVisibilityChanged: _toggleAppBar,
                         isBottomNavVisible: isVisible,
                         currentIndex: bottomBarController.currentIndex.value,
+                        showShadow: !showSubscriptionSheet,
                         onTap: (index) async {
+                          // Refresh the user's subscription state every
+                          // time the Me tab is tapped. The peek bottom
+                          // sheet is hidden for active/authenticated users
+                          // so it can't be the refresh hook here — without
+                          // this call, subscribed users would never see a
+                          // fresh /user-subscriptions response after the
+                          // app-start fetch. Controller-level in-flight
+                          // dedupe collapses rapid taps into one HTTP hit.
+                          if (index == 2 && !isGuestUser()) {
+                            _subController.userCurrentPlanApi();
+                          }
+
                           /// for store need location permission
 
                           if (index == 1 || index == 2) {
@@ -414,9 +433,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             }
                           } else {
                             bottomBarController.onChangeIndex(index);
-
                             // Stay on the same screen until permission is granted
                           }
+
                         },
                         chatNotificationCount: chatNotificationCount,
                       ),
@@ -480,26 +499,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  /// Whether the subscription peek sheet should be shown on the current
-  /// Me-tab screen. Skipped for guests, business users with no business
-  /// type set, and the [PersonalProfileSetupNewScreen] fallback (no profile
-  /// picked yet) — none of those flows have anything to subscribe against.
   bool _shouldShowSubscriptionSheet(int index) {
     if (index != 2) return false;
     if (isGuestUser()) return false;
-    if (isBusinessUser()) {
-      return businessTypeGlobal.isNotEmpty;
+
+    // Single source of truth — same allowlist used by the controller to
+    // decide whether to even hit the plans API. If the user has no
+    // resolvable entity type, there is no subscription flow at all.
+    if (SubscriptionController.resolveEntityType() == null) return false;
+
+    // Once the user is on an active paid plan or an authenticated trial,
+    // there is nothing left to upsell — hide the peek.
+    final plans = _subController.currentPlansList;
+    if (plans.isNotEmpty) {
+      final status = plans.first.status;
+      if (status == 'active' || status == 'authenticated') return false;
     }
-    if (isIndividualUser()) {
-      const validTypes = {
-        SELF_EMPLOYED,
-        GIG_WORKER,
-        SOCIAL_PROFILE,
-        PROFESSIONAL,
-      };
-      return validTypes.contains(userProfileTypeGlobal);
-    }
-    return false;
+
+    return true;
   }
 
   Widget meScreens() {
@@ -512,9 +529,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveBusinessScreen() {
-    log('Resolving Screen... Type: ${businessTypeGlobal.toUpperCase()}');
-    log('Resolving Screen. businessCategoryGlobal .. Type: ${businessCategoryGlobal.toUpperCase()}');
-
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Food.name.toUpperCase()) {
@@ -603,10 +617,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // Using a Switch statement makes it cleaner and easier to add new types
     switch (currentType) {
       case SELF_EMPLOYED:
-        return const EarnServiceScreen(fromBottomNavBar: true);
+        return const SelfEmployeeScreen(fromBottomNavBar: true);
 
       case GIG_WORKER:
-        return const EarnServiceAvailableOptionsScreen(fromBottomNavBar: true);
+        return const GigWorkOptionsScreen(fromBottomNavBar: true);
 
       case SOCIAL_PROFILE:
         return const SocialMainScreen();

@@ -10,9 +10,9 @@ import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart'
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/food_item_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -126,7 +126,7 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       child: InkWell(
         onTap: () {
           if (isGuestUser()) return;
-          Get.to(() => const EarnServiceScreen(
+          Get.to(() => const SelfEmployeeScreen(
                 initialTabIndex: 1,
                 initialProductSubTab: 1,
               ));

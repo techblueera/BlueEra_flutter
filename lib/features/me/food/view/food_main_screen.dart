@@ -6,7 +6,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
-import 'package:BlueEra/features/me/school/view/coming_soon.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
+import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -41,10 +42,12 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    MeTabRegistry.register(_tabController);
   }
 
   @override
   void dispose() {
+    MeTabRegistry.unregister(_tabController);
     _tabController.dispose();
     super.dispose();
   }
@@ -91,7 +94,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                   children: [
                     RestaurantHomeScreen(),
                     const WebsiteTab(),
-                    ComingSoon(),
+                    const SubscriptionStatusView(),
                   ],
                 ),
               ),

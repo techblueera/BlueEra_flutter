@@ -4,38 +4,50 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class SubscriptionRepo extends BaseService {
   ///GET SUBSCRIPTION LIST...
-  Future<ResponseModel> subscriptionPlan() async {
-    final response = await ApiBaseHelper().getHTTP(
-      getSubscriptionPlans,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-
-    return response;
-  }
+  // Future<ResponseModel> subscriptionPlan() async {
+  //   final response = await ApiBaseHelper().getHTTP(
+  //     getSubscriptionPlans,
+  //     onError: (error) {},
+  //     onSuccess: (data) {},
+  //   );
+  //
+  //   return response;
+  // }
 
   ///GET SUBSCRIPTION OFFER LIST...
-  Future<ResponseModel> subscriptionOffer() async {
-    final response = await ApiBaseHelper().getHTTP(
-      getSubscriptionOffer,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-
-    return response;
-  }
+  // Future<ResponseModel> subscriptionOffer() async {
+  //   final response = await ApiBaseHelper().getHTTP(
+  //     getSubscriptionOffer,
+  //     onError: (error) {},
+  //     onSuccess: (data) {},
+  //   );
+  //
+  //   return response;
+  // }
 
   ///CREATE SUBSCRIPTION....
-  Future<ResponseModel> createSubscriptionRepo(
-      {required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-        params: params,
-        subscriptionCreate,
-        onError: (error) {},
-        onSuccess: (data) {});
+  // Future<ResponseModel> createSubscriptionRepo(
+  //     {required Map<String, dynamic> params}) async {
+  //   final response = await ApiBaseHelper().postHTTP(
+  //       params: params,
+  //       subscriptionCreate,
+  //       onError: (error) {},
+  //       onSuccess: (data) {});
+  //
+  //   return response;
+  // }
 
-    return response;
-  }
+  ///SUBSCRIPTION VERIFY.....
+  // Future<ResponseModel> verifySubscriptionRepo(
+  //     {required Map<String, dynamic> params}) async {
+  //   final response = await ApiBaseHelper().postHTTP(
+  //       params: params,
+  //       subscriptionVerification,
+  //       onError: (error) {},
+  //       onSuccess: (data) {});
+  //
+  //   return response;
+  // }
 
   ///CANCEL SUBSCRIPTION....
   Future<ResponseModel> cancelSubscriptionRepo(
@@ -49,17 +61,7 @@ class SubscriptionRepo extends BaseService {
     return response;
   }
 
-  ///SUBSCRIPTION VERIFY.....
-  Future<ResponseModel> verifySubscriptionRepo(
-      {required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-        params: params,
-        subscriptionVerification,
-        onError: (error) {},
-        onSuccess: (data) {});
-
-    return response;
-  }
+  ///GET SUBSCRIPTION LIST...
   Future<ResponseModel> subscriptionPlansGetApi({required Map<String, String> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
         subscriptionPlansGet,
@@ -70,12 +72,14 @@ class SubscriptionRepo extends BaseService {
 
     return response;
   }
+
+  ///USER CURRENT PLAN LIST....
   Future<ResponseModel> userCurrentPlanApi(Map<String,dynamic>? params) async {
     final response = await ApiBaseHelper().getHTTP(
         userCurrentPlan,
         onError: (error) {},
         params: params,
-        showProgress: true,
+        showProgress: false,
         onSuccess: (data) {});
 
     return response;
@@ -87,18 +91,19 @@ class SubscriptionRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
         params: params,
         subscriptionTrialInitiate,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
 
     return response;
   }
 
-  /// VERIFY TRIAL SUBSCRIPTION .....
-  Future<ResponseModel> verifyTrialSubscriptionRepo(
-      {required Map<String, dynamic> params}) async {
+  /// SUBSCRIPTION VERIFY.....
+  Future<ResponseModel> verifyTrialSubscriptionRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
         params: params,
         subscriptionVerification,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
 

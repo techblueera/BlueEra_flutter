@@ -3,7 +3,9 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
+import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../widgets/common_search_bar.dart';
@@ -19,10 +21,12 @@ class _ManufactureMainState extends State<ManufactureMain>
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
+    MeTabRegistry.register(_tabController);
     super.initState();
   }
   @override
   void dispose() {
+    MeTabRegistry.unregister(_tabController);
     _tabController.dispose();
     super.dispose();
   }
@@ -100,7 +104,7 @@ class _ManufactureMainState extends State<ManufactureMain>
                     showAppBar: false,
                   ),
                   SizedBox(),
-                  SizedBox(),
+                  const SubscriptionStatusView(),
                 ],
               ))
             ],

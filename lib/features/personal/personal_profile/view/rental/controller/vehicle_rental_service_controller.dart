@@ -192,7 +192,7 @@ class VehicleRentalServiceController extends GetxController {
     Get.until(
           (route) =>
       route.settings.name ==
-          RouteHelper.getEarnServiceScreenRoute(),
+          RouteHelper.getSelfEmployeeScreenRoute(),
     );
 
 

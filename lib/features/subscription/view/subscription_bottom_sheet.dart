@@ -47,8 +47,14 @@ class _SubscriptionDraggableSheetState
   @override
   void initState() {
     super.initState();
-    // Kick off the data load up-front so the collapsed peek already
-    // reflects the user's current subscription state on first paint.
+    // Canonical "fresh load on Me-screen entry" point. The peek mounts
+    // once per Me-screen visit, so we always refetch here to keep the
+    // user's plan/subscription state current — pricing changes, freshly
+    // started trials and post-payment status flips all surface here. The
+    // sibling consumers ([SubscriptionStatusView] in the statistics tab
+    // and [SinglePlanSubscriptionView] embedded in the expanded sheet)
+    // both guard their own initState fetches against INITIAL, so they
+    // won't pile a duplicate request on top of this one.
     _subController.userCurrentPlanApi();
     _subController.subscriptionPlansGetApi();
   }
@@ -64,7 +70,7 @@ class _SubscriptionDraggableSheetState
     final list = _subController.currentPlansList;
 
     if (list.isEmpty) {
-      return _ctaPill(title: 'Go Live in Just ₹5');
+      return _ctaPill(title: 'Go Live Now');
     }
 
     final userSub = list.first;
@@ -88,7 +94,7 @@ class _SubscriptionDraggableSheetState
           //     : 'Resubscribe Now',
         );
       default:
-        return _ctaPill(title: 'Go Live in Just ₹5');
+        return _ctaPill(title: 'Go Live Now');
     }
   }
 

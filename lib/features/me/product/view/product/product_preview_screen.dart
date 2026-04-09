@@ -218,9 +218,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           }
         }else if(widget.providerType == ProviderType.user){
           if (userProfessionGlobal == BIKE_RIDER) {
-            Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+            Get.until((route) => Get.currentRoute == RouteHelper.getGigWorkerOptionsScreenRoute());
           } else {
-            Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
+            Get.until((route) => Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
           }
         }else if(widget.providerType == ProviderType.channel){
           Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
