@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
+import 'package:flutter/foundation.dart' as foundationObj;
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
 import 'package:flutter/services.dart';
@@ -23,9 +24,9 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  // if (foundationObj.kDebugMode) {
+  if (foundationObj.kDebugMode) {
   log(logMsg);
-  // }
+  }
 }
 
 ///UN FOCUS KEYBOARD

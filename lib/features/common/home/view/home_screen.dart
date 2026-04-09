@@ -364,7 +364,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCommunitySubFilterRow() {
     return Obx(() {
-      final channelFeedController = Get.find<ChannelFeedController>();
+      final channelFeedController = Get.isRegistered<ChannelFeedController>()
+          ? Get.find<ChannelFeedController>()
+          : Get.put(ChannelFeedController());
       final hasJoined = channelFeedController.channelDataList.isNotEmpty;
       // If joined chip is hidden, force-select Suggested as default.
       // Schedule outside the build phase to avoid markNeedsBuild while
@@ -440,7 +442,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _communitySubFilterChip(String title, {required int index}) {
-    final channelFeedController = Get.find<ChannelFeedController>();
+    final channelFeedController = Get.isRegistered<ChannelFeedController>()
+        ? Get.find<ChannelFeedController>()
+        : Get.put(ChannelFeedController());
     bool isActive = channelFeedController.communityIndex.value == index;
     return GestureDetector(
       onTap: () {

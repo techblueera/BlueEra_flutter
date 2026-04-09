@@ -255,9 +255,9 @@ class _PersonalProfileSetupNewScreenState
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-          isLeading: true,
+          isLeading: false,
           title: '',
-          isLogout: true,
+          isLogout: false,
           onShareTap: () {},
           onQrCodeTap: () {},
           onBackTap: () async {
@@ -265,7 +265,7 @@ class _PersonalProfileSetupNewScreenState
           },
         ),
         body: isGuestUser()
-            ? PositiveCustomBtn(onTap: () {}, title: "Logout")
+            ? PositiveCustomBtn(onTap: () {}, title: AppStrings.logout)
             : Obx(() {
                 if (viewProfileController.viewPersonalResponse.value.status ==
                     Status.COMPLETE) {
@@ -350,30 +350,6 @@ class _PersonalProfileSetupNewScreenState
       default:
         return const Center(child: Text('Unknown Tab'));
     }
-
-    /*  switch (postTab[index]) {
-      case 'My Store':
-        return PortfolioWidget(
-          isSelfPortfolio: true,
-        );
-      case 'About Me':
-        return AboutMeWidget();
-      case 'Posts':
-        return FeedScreen(
-          key: ValueKey('feedScreen_my_posts'),
-          postFilterType: PostType.myPosts,
-          id: userId,
-          isInParentScroll: true,
-        );
-      case 'Testimonials':
-        return TestimonialsScreen(
-          userName: "",
-          visitUserID: userId,
-          isSelfTestimonial: true,
-        );
-      default:
-        return const Center(child: Text('Unknown Tab'));
-    }*/
   }
 
   Widget AboutMeWidget() {
@@ -723,7 +699,6 @@ class _PersonalProfileSetupNewScreenState
               setState(() {
                 _selectedDesignationObj = match;
               });
-
             } catch (e) {
               // No match found, leave selection empty
             }
