@@ -43,7 +43,7 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.item == null ? "Add Blogs" : "Edit Blogs",
+        title: widget.item == null ? AppStrings.otherAddBlogs.tr : AppStrings.otherEditBlogs.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -93,7 +93,7 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
                                       width: 24),
                                   const SizedBox(height: 8),
                                   CustomText(
-                                    "Upload Photo",
+                                    AppStrings.otherUploadPhoto.tr,
                                     fontSize: 16,
                                     color: AppColors.secondaryTextColor,
                                     fontWeight: FontWeight.w400,
@@ -107,14 +107,14 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
 
               // Title
               CustomText(
-                "Title",
+                AppStrings.title.tr,
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
               ),
               const SizedBox(height: 8),
               CommonTextField(
                 textEditController: controller.titleController,
-                hintText: "Enter Title",
+                hintText: AppStrings.enterTitle.tr,
                 onChange: (val) {
                   controller.title.value = val;
                 },
@@ -122,8 +122,8 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
               const SizedBox(height: 16),
               Obx(() {
                 return AiDescriptionField(
-                  label: "Blog",
-                  hintText: "Tell us more about the Blogs...",
+                  label: AppStrings.otherBlogLabel.tr,
+                  hintText: AppStrings.otherTellAboutBlogs.tr,
                   controller: controller.descriptionController,
                   rxValue: controller.description,
                   // Your RX variable from the controller
@@ -157,7 +157,7 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
                     ),
                   ),
                   child: CustomText(
-                    widget.item == null ? "Create" : "Update",
+                    widget.item == null ? AppStrings.create.tr : AppStrings.update.tr,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

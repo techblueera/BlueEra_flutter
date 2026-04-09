@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/others/model/management_model.dart';
@@ -88,24 +89,24 @@ class ManagementController extends GetxController {
 
   Future<void> saveManagement() async {
     if (nameController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter name");
+      commonSnackBar(message: AppStrings.otherPleaseEnterName.tr);
       return;
     }
     if (positionController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter position");
+      commonSnackBar(message: AppStrings.otherPleaseEnterPosition.tr);
       return;
     }
     if (qualificationController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter qualification");
+      commonSnackBar(message: AppStrings.otherPleaseEnterQualification.tr);
       return;
     }
     if (messageController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter message");
+      commonSnackBar(message: AppStrings.otherPleaseEnterMessage.tr);
       return;
     }
 
     if (editingId == null && selectedImage.value == null) {
-      commonSnackBar(message: "Please select an image");
+      commonSnackBar(message: AppStrings.otherPleaseSelectImage.tr);
       return;
     }
 
@@ -142,10 +143,10 @@ class ManagementController extends GetxController {
 
     if (res.isSuccess) {
       Get.back(); // Go back to list
-      commonSnackBar(message: res.message ?? "Saved successfully");
+      commonSnackBar(message: res.message ?? AppStrings.genericSavedSuccess.tr);
       getManagementData();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to save");
+      commonSnackBar(message: res.message ?? AppStrings.labFailedToSave.tr);
     }
   }
 
@@ -156,10 +157,10 @@ class ManagementController extends GetxController {
 
     final res = await _repo.deleteManagementRepo(id);
     if (res.isSuccess) {
-      commonSnackBar(message: res.message ?? "Deleted successfully");
+      commonSnackBar(message: res.message ?? AppStrings.genericDeletedSuccess.tr);
       getManagementData();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to delete");
+      commonSnackBar(message: res.message ?? AppStrings.labFailedToDelete.tr);
     }
   }
 }

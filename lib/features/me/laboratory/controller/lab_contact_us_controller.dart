@@ -66,7 +66,7 @@ class LabContactUsController extends GetxController {
   }) async {
     if (selectedLat == null || selectedLng == null) {
       commonSnackBar(
-          message: "Please select a valid location from the search.");
+          message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
 
@@ -94,7 +94,7 @@ class LabContactUsController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
-                "Branch details added successfully");
+                AppStrings.hotelBranchAddedSuccess.tr);
         Get.back();
         fetchHomeData();
       } else {

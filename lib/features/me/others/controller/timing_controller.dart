@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/model/timing_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
@@ -142,16 +143,16 @@ class TimingController extends GetxController {
       }
 
       if (response.isSuccess== true) {
-         commonSnackBar(message: "Availability updated successfully");
+         commonSnackBar(message: AppStrings.otherAvailabilityUpdated.tr);
          // Refresh data to ensure sync (optional, but good practice)
-         // await fetchTimings(); 
+         // await fetchTimings();
          isFirstTime = false;
       } else {
-         commonSnackBar(message: response.response?.data['message'] != null ? response.response?.data['message'] : "Failed to update availability");
+         commonSnackBar(message: response.response?.data['message'] != null ? response.response?.data['message'] : AppStrings.otherFailedUpdateAvailability.tr);
       }
     } catch (e) {
       print("Error submitting timings: $e");
-      commonSnackBar(message: "An error occurred");
+      commonSnackBar(message: AppStrings.otherAnErrorOccurred.tr);
     } finally {
       isLoading.value = false;
     }

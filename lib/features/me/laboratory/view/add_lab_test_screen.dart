@@ -202,7 +202,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 CommonTextField(
                   textEditController: reportHoursController,
                   title: AppStrings.estimatedReportHours.tr,
-                  hintText: "E.g. 24",
+                  hintText: AppStrings.labHintHours.tr,
                   keyBoardType: TextInputType.number,
                 ),
                 SizedBox(height: SizeConfig.size16),
@@ -257,7 +257,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 CommonTextField(
                   textEditController: feesController,
                   title: AppStrings.testFeesMrp.tr,
-                  hintText: "E.g. 1000",
+                  hintText: AppStrings.labHint1000.tr,
                   keyBoardType: TextInputType.number,
                   isValidate: true,
                 ),
@@ -265,7 +265,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 CommonTextField(
                   textEditController: priceController,
                   title: AppStrings.customerPrice.tr,
-                  hintText: "E.g. 800",
+                  hintText: AppStrings.labHint800.tr,
                   keyBoardType: TextInputType.number,
                   isValidate: true,
                 ),

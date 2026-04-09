@@ -27,7 +27,7 @@ class HotelImageUploadScreen extends StatelessWidget {
         onWillPop: () async => !controller.isLoading.value,
         child: Scaffold(
           appBar: CommonBackAppBar(
-            title: "Hotel Images",
+            title: AppStrings.hotelImagesAppBar.tr,
           ),
           body: Stack(
             children: [
@@ -36,10 +36,10 @@ class HotelImageUploadScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildSection(
-                        "Upload Exterior Images", controller.exteriorImages,context),
+                        AppStrings.hotelUploadExteriorImages.tr, controller.exteriorImages,context),
                     _buildSection(
-                        "Upload Washrooms Images", controller.washroomImages,context),
-                    _buildSection("Upload Amenities Images (Optional)",
+                        AppStrings.hotelUploadWashroomImages.tr, controller.washroomImages,context),
+                    _buildSection(AppStrings.hotelUploadAmenitiesImagesOptional.tr,
                         controller.amenityImages,context),
                     SizedBox(height: 30),
                     Obx(() {
@@ -54,7 +54,7 @@ class HotelImageUploadScreen extends StatelessWidget {
                           }
                         }
                             : null,
-                        title: AppStrings.submit,
+                        title: AppStrings.submit.tr,
                         isValidate: controller.isCreateHotel,
                       );
                     }),
@@ -82,7 +82,7 @@ class HotelImageUploadScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(title, fontWeight: FontWeight.w500),
-              CustomText("Min-2 Images",
+              CustomText(AppStrings.hotelMin2Images.tr,
                color: AppColors.secondaryTextColor, fontSize: SizeConfig.size12),
             ],
           ),

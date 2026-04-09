@@ -26,7 +26,7 @@ class OtherDownloadsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Downloads",
+        title: AppStrings.otherDownloadsTitle.tr,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -44,7 +44,7 @@ class OtherDownloadsScreen extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText("No Downloads Found")),
+                  : Center(child: CustomText(AppStrings.otherNoDownloadsFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -130,7 +130,7 @@ class OtherDownloadsScreen extends StatelessWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this download?',
+                          text: AppStrings.otherConfirmDeleteDownload.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteDownloadsController(item.sId!);

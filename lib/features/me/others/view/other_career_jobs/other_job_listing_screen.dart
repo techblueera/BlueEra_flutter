@@ -1,6 +1,7 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/jobs/view/all_job_post_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -20,7 +21,7 @@ class _OtherJobListingScreenState extends State<OtherJobListingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Other Jobs",
+        title: AppStrings.otherJobsTitle.tr,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -38,7 +39,7 @@ class _OtherJobListingScreenState extends State<OtherJobListingScreen> {
                       'createJobVia': 'others',
                     });
               },
-              title: "Create Job"),
+              title: AppStrings.otherCreateJob.tr),
         ),
       ),
 

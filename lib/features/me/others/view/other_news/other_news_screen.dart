@@ -26,7 +26,7 @@ class OtherNewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "News",
+        title: AppStrings.otherNewsTitle.tr,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -44,7 +44,7 @@ class OtherNewsScreen extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText("No News Found")),
+                  : Center(child: CustomText(AppStrings.otherNoNewsFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -130,7 +130,7 @@ class OtherNewsScreen extends StatelessWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this News?',
+                          text: AppStrings.otherConfirmDeleteNews.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteNewsRepo(item.sId!);

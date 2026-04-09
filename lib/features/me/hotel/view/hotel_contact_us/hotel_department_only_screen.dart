@@ -65,7 +65,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title:  AppStrings.department,
+        title:  AppStrings.department.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -75,8 +75,8 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
             children: [
               HttpsTextField(
                 controller: websiteController,
-                hintText: "https://yourwebsite.com",
-                title: AppStrings.website,
+                hintText: AppStrings.hotelWebsiteHint.tr,
+                title: AppStrings.website.tr,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
@@ -92,15 +92,15 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
-                hintText: "dpsdehradun@gmail.com",
-                title: AppStrings.email,
+                hintText: AppStrings.hotelEmailExampleHint.tr,
+                title: AppStrings.email.tr,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
-                hintText: "+91 1234567890",
-                title: AppStrings.phoneNumber,
+                hintText: AppStrings.hotelPhoneExampleHint.tr,
+                title: AppStrings.phoneNumber.tr,
                 maxLength: 10,
                 onChange: (_) => _runValidation(),
               ),
@@ -119,7 +119,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                           department: '');
 
                     },
-                    title: AppStrings.submit);
+                    title: AppStrings.submit.tr);
               }),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_profile_repo.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class LabProfileController extends GetxController {
         hasExisting.value = descController.text.trim().isNotEmpty;
       }
     } catch (e) {
-      commonSnackBar(message: "Error fetching profile: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
       validateForm();
@@ -51,14 +52,14 @@ class LabProfileController extends GetxController {
           ? await _repo.putDescription(payload)
           : await _repo.postDescription(payload);
       if (res.isSuccess) {
-        commonSnackBar(message: "Description saved");
+        commonSnackBar(message: AppStrings.labDescriptionSaved.tr);
         return true;
       } else {
-        commonSnackBar(message: res.response?.data['message'] ?? "Failed to save");
+        commonSnackBar(message: res.response?.data['message'] ?? AppStrings.labFailedToSave.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error saving profile: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;

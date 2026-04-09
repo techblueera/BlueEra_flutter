@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/others/model/other_downloads_model.dart';
@@ -42,7 +43,7 @@ class OtherDownloadsController extends GetxController {
 
   Future<void> pickImage(BuildContext context) async {
     final String? path = await SelectProfilePictureDialog.showLogoDialog(
-        context, "Upload Picture");
+        context, AppStrings.otherUploadPicture.tr);
     if (path != null && path.isNotEmpty) {
       selectedImage.value = File(path);
     }
@@ -69,15 +70,15 @@ class OtherDownloadsController extends GetxController {
 
   Future<void> createDownloadsController() async {
     if (selectedImage.value == null) {
-      commonSnackBar(message: "Please select an image");
+      commonSnackBar(message: AppStrings.otherPleaseSelectImage.tr);
       return;
     }
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
@@ -95,17 +96,17 @@ class OtherDownloadsController extends GetxController {
 
         final response = await _repo.createDownloadsRepo(body);
         if (response != null && response.isSuccess) {
-          commonSnackBar(message: "Created successfully");
+          commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
           Get.back(); // Close form/screen
           getDownloadsController(); // Refresh list
         } else {
-          commonSnackBar(message: response?.message ?? "Failed to create");
+          commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
         }
       } else {
-        commonSnackBar(message: "Image upload failed");
+        commonSnackBar(message: AppStrings.genericImageUploadFailed.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -114,11 +115,11 @@ class OtherDownloadsController extends GetxController {
   Future<void> updateDownloadsController(String id,
       {String? existingImageUrl}) async {
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
@@ -132,7 +133,7 @@ class OtherDownloadsController extends GetxController {
         if (uploadResult.isSuccess) {
           imageUrl = uploadResult.url;
         } else {
-          commonSnackBar(message: "Image upload failed");
+          commonSnackBar(message: AppStrings.genericImageUploadFailed.tr);
           isLoading.value = false;
           return;
         }
@@ -146,14 +147,14 @@ class OtherDownloadsController extends GetxController {
 
       final response = await _repo.updateDownloadsRepo(id, body);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Updated successfully");
+        commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
         Get.back();
         getDownloadsController();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to update");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -164,13 +165,13 @@ class OtherDownloadsController extends GetxController {
     try {
       final response = await _repo.deleteDownloadsRepo(id);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Deleted successfully");
+        commonSnackBar(message: AppStrings.genericDeletedSuccess.tr);
         getDownloadsController();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to delete");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }

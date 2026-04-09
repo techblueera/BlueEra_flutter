@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/model/about_organisation_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
@@ -10,17 +11,17 @@ import 'package:image_picker/image_picker.dart';
 
 class AboutOrganisationController extends GetxController {
   final OtherRepo _repo = OtherRepo();
-  
+
   var aboutList = <AboutOrganisationData>[].obs;
   var isLoading = false.obs;
-  
+
   // Form controllers
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   var title = "".obs;
   var description = "".obs;
   Rx<File?> selectedImage = Rx<File?>(null);
-  
+
   @override
   void onInit() {
     super.onInit();
@@ -37,7 +38,7 @@ class AboutOrganisationController extends GetxController {
     titleController.text = data.title ?? "";
     descriptionController.text = data.description ?? "";
     // Image handling would require checking if we want to show existing image or only new selection
-    selectedImage.value = null; 
+    selectedImage.value = null;
   }
 
   Future<void> pickImage() async {
@@ -69,42 +70,42 @@ class AboutOrganisationController extends GetxController {
 
   Future<void> createAboutOrganisation() async {
     if (selectedImage.value == null) {
-      commonSnackBar(message: "Please select an image");
+      commonSnackBar(message: AppStrings.otherPleaseSelectImage.tr);
       return;
     }
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
     isLoading.value = true;
     try {
       UploadResult? uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
-      
+
       if (uploadResult.isSuccess) {
         final body = {
           "imageUrl": uploadResult.url,
           "title": titleController.text,
           "description": descriptionController.text
         };
-        
+
         final response = await _repo.createAboutOrganisationRepo(body);
         if (response != null && response.isSuccess) {
-          commonSnackBar(message: "Created successfully");
+          commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
           Get.back(); // Close form/screen
           getAboutOrganisation(); // Refresh list
         } else {
-          commonSnackBar(message: response?.message ?? "Failed to create");
+          commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
         }
       } else {
-        commonSnackBar(message: "Image upload failed");
+        commonSnackBar(message: AppStrings.genericImageUploadFailed.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -112,24 +113,24 @@ class AboutOrganisationController extends GetxController {
 
   Future<void> updateAboutOrganisation(String id, {String? existingImageUrl}) async {
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
     isLoading.value = true;
     try {
       String? imageUrl = existingImageUrl;
-      
+
       if (selectedImage.value != null) {
         UploadResult? uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
         if (uploadResult.isSuccess) {
           imageUrl = uploadResult.url;
         } else {
-           commonSnackBar(message: "Image upload failed");
+           commonSnackBar(message: AppStrings.genericImageUploadFailed.tr);
            isLoading.value = false;
            return;
         }
@@ -143,14 +144,14 @@ class AboutOrganisationController extends GetxController {
 
       final response = await _repo.updateAboutOrganisationRepo(id, body);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Updated successfully");
+        commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
         Get.back();
         getAboutOrganisation();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to update");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -161,13 +162,13 @@ class AboutOrganisationController extends GetxController {
     try {
       final response = await _repo.deleteAboutOrganisationRepo(id);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Deleted successfully");
+        commonSnackBar(message: AppStrings.genericDeletedSuccess.tr);
         getAboutOrganisation();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to delete");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }

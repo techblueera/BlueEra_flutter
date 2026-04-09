@@ -37,13 +37,13 @@ class AddHotelServiceScreen extends StatefulWidget {
 
 class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
   final List<Map<String, String>> menuList = [
-    {"name": "Room Details", "key": "ROOM_DETAILS"},
-    {"name": "Room Amenities", "key": "ROOM_AMENITIES"},
-    {"name": "Hotel Amenities", "key": "HOTEL_AMENITIES"},
-    {"name": "Hotel Policies", "key": "HOTEL_POLICIES"},
-    {"name": "Property Photos", "key": "PROPERTY_PHOTOS"},
-    {"name": "Career", "key": "CAREER"},
-    {"name": "Contact Us", "key": "CONTACT_US"},
+    {"name": AppStrings.hotelRoomDetails, "key": "ROOM_DETAILS"},
+    {"name": AppStrings.hotelRoomAmenities, "key": "ROOM_AMENITIES"},
+    {"name": AppStrings.hotelAmenitiesTitle, "key": "HOTEL_AMENITIES"},
+    {"name": AppStrings.hotelPoliciesTitle, "key": "HOTEL_POLICIES"},
+    {"name": AppStrings.hotelPropertyPhotos, "key": "PROPERTY_PHOTOS"},
+    {"name": AppStrings.hotelCareer, "key": "CAREER"},
+    {"name": AppStrings.contactUs, "key": "CONTACT_US"},
   ];
 
   final myDocumentsController = getOrPut(() => MyDocumentsController());
@@ -90,7 +90,7 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
                             width: SizeConfig.size10,
                           ),
                           CustomText(
-                            item['name'],
+                            (item['name'] ?? '').tr,
                             color: AppColors.secondaryTextColor,
                             fontSize: 18,
                           )

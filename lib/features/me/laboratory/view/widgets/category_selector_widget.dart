@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -57,7 +58,7 @@ class CategorySelector extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                "update_your_test", // Using GetX translation
+                AppStrings.labUpdateYourTest.tr,
                 fontWeight: FontWeight.w700,
               ),
               // const Icon(Icons.edit_outlined, size: 24),

@@ -277,7 +277,7 @@ Widget allServices(Facility? facility, BuildContext context) {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: CustomText('Close', color: AppColors.primaryColor),
+                        child: CustomText(AppStrings.labClose.tr, color: AppColors.primaryColor),
                       ),
                     ],
                   ),
@@ -291,7 +291,7 @@ Widget allServices(Facility? facility, BuildContext context) {
                   border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
                 ),
                 child: CustomText(
-                  '+${allChips.length - 2} View More',
+                  '+${allChips.length - 2} ${AppStrings.labViewMore.tr}',
                   fontSize: SizeConfig.small,
                   color: AppColors.primaryColor,
                 ),

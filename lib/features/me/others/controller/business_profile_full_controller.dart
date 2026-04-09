@@ -112,7 +112,7 @@ class BusinessProfileFullController extends GetxController {
       ResponseModel response =
           await _repo.createOtherBusinessProfileRepo(reqBODY: reqParm);
       if (response.isSuccess) {
-        commonSnackBar(message: "Other service create successfully");
+        commonSnackBar(message: AppStrings.otherServiceCreatedSuccess.tr);
         createSchoolResponse.value =
             ApiResponse.complete(response.response?.data);
         otherServiceIDGlobal = response.response?.data['data']['_id'];

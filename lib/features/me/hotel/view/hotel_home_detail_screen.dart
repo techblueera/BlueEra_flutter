@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/hotel_details_home_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
@@ -82,7 +83,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            "Choose Room",
+                            AppStrings.hotelChooseRoom.tr,
                             onAdd: () => Get.to(RoomSelectionScreen()),
                             onEdit: () => Get.to(RoomAmenitiesScreen()),
                           ),
@@ -141,16 +142,16 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                                 controller.hotelData.value?.rooms ?? [];
                             if (allRooms.isEmpty) {
                               return _buildEmptyPlaceholder(
-                                "No rooms added yet",
+                                AppStrings.hotelNoRoomsAdded.tr,
                                 icon: Icons.hotel_outlined,
                                 onAdd: () => Get.to(RoomSelectionScreen()),
                               );
                             }
                             if (controller.filteredRooms.isEmpty) {
-                              return const SizedBox(
+                              return SizedBox(
                                 height: 80,
                                 child: Center(
-                                  child: CustomText("No rooms for this type"),
+                                  child: CustomText(AppStrings.hotelNoRoomsForType.tr),
                                 ),
                               );
                             }
@@ -177,7 +178,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   CustomText(
-                                    "View All ",
+                                    "${AppStrings.viewAll.tr} ",
                                     color: AppColors.primaryColor,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
@@ -204,14 +205,14 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            "Gallery",
+                            AppStrings.hotelGallery.tr,
                             onAdd: () => Get.to(PropertyPhotoScreen()),
                           ),
                           const SizedBox(height: 12),
                           profile?.photos?.isNotEmpty == true
                               ? HotelHomeGalleryWidget(photos: profile?.photos)
                               : _buildEmptyPlaceholder(
-                                  "No photos added yet",
+                                  AppStrings.hotelNoPhotosAdded.tr,
                                   icon: Icons.photo_library_outlined,
                                   onAdd: () => Get.to(PropertyPhotoScreen()),
                                 ),
@@ -231,14 +232,14 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildSectionHeader(
-                              "Hotel Amenities",
+                              AppStrings.hotelAmenitiesTitle.tr,
                               onEdit: () => Get.to(HotelAmenitiesScreen()),
                             ),
                             const SizedBox(height: 15),
                             profile?.amenities != null
                                 ? _buildAmenities(profile?.amenities)
                                 : _buildEmptyPlaceholder(
-                                    "No amenities added yet",
+                                    AppStrings.hotelNoAmenitiesAdded.tr,
                                     icon: Icons.spa_outlined,
                                     onAdd: () =>
                                         Get.to(HotelAmenitiesScreen()),
@@ -257,14 +258,14 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            "Hotel Policies",
+                            AppStrings.hotelPoliciesTitle.tr,
                             onEdit: () => Get.to(HotelPoliciesScreen()),
                           ),
                           const SizedBox(height: 10),
                           profile?.policy != null
                               ? _buildPolicySummary(profile!.policy!)
                               : _buildEmptyPlaceholder(
-                                  "No policies added yet",
+                                  AppStrings.hotelNoPoliciesAdded.tr,
                                   icon: Icons.policy_outlined,
                                   onAdd: () =>
                                       Get.to(HotelPoliciesScreen()),
@@ -389,7 +390,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                   children: [
                     const Icon(Icons.add, size: 16, color: Colors.white),
                     const SizedBox(width: 4),
-                    CustomText("Add Now",
+                    CustomText(AppStrings.hotelAddNow.tr,
                         color: Colors.white, fontSize: 13),
                   ],
                 ),
@@ -405,23 +406,23 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
   Widget _buildPolicySummary(Policy policy) {
     final items = <String>[];
     if (policy.checkInTime != null)
-      items.add("Check-in: ${policy.checkInTime}");
+      items.add("${AppStrings.hotelCheckInLabel.tr} ${policy.checkInTime}");
     if (policy.checkOutTime != null)
-      items.add("Check-out: ${policy.checkOutTime}");
+      items.add("${AppStrings.hotelCheckOutLabel.tr} ${policy.checkOutTime}");
     if (policy.earlyCheckInAllowed == true)
-      items.add("Early check-in allowed");
+      items.add(AppStrings.hotelEarlyCheckInAllowed.tr);
     if (policy.lateCheckOutAllowed == true)
-      items.add("Late check-out allowed");
-    if (policy.freeCancellation == true) items.add("Free cancellation");
-    if (policy.localIdAllowed == true) items.add("Local ID accepted");
+      items.add(AppStrings.hotelLateCheckOutAllowed.tr);
+    if (policy.freeCancellation == true) items.add(AppStrings.hotelFreeCancellation.tr);
+    if (policy.localIdAllowed == true) items.add(AppStrings.hotelLocalIdAccepted.tr);
     if (policy.marriedCoupleAllowed == true)
-      items.add("Married couples allowed");
+      items.add(AppStrings.hotelMarriedCouplesAllowed.tr);
     if (policy.bachelorStudentAllowed == true)
-      items.add("Bachelors/students allowed");
+      items.add(AppStrings.hotelBachelorsStudentsAllowed.tr);
 
     if (items.isEmpty) {
       return _buildEmptyPlaceholder(
-        "No policies added yet",
+        AppStrings.hotelNoPoliciesAdded.tr,
         icon: Icons.policy_outlined,
         onAdd: () => Get.to(HotelPoliciesScreen()),
       );
@@ -455,13 +456,13 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(
-            "Contact Us",
+            AppStrings.contactUs.tr,
             onEdit: () => Get.to(const HotelContactUs()),
           ),
           const SizedBox(height: 20),
           if (profile?.contacts?.isEmpty ?? true)
             _buildEmptyPlaceholder(
-              "No contact details added yet",
+              AppStrings.hotelNoContactDetailsAdded.tr,
               icon: Icons.contact_phone_outlined,
               onAdd: () => Get.to(const HotelContactUs()),
             )
@@ -509,7 +510,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                   // Contact List
                   _contactItem(AppIconAssets.website_click,
                       profile?.website ?? "", AppColors.primaryColor),
-                  _contactItem(AppIconAssets.principal, "Reception",
+                  _contactItem(AppIconAssets.principal, AppStrings.reception.tr,
                       Colors.grey[700]!),
                   _contactItem(
                       AppIconAssets.email,
@@ -673,25 +674,25 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
     return Wrap(
       spacing: 20,
       children: [
-        if (amen.freeWifi ?? false) _amenityIcon(Icons.wifi, "Wifi"),
-        if (amen.airConditioning ?? false) _amenityIcon(Icons.ac_unit, "AC"),
-        if (amen.television ?? false) _amenityIcon(Icons.tv, "TV"),
+        if (amen.freeWifi ?? false) _amenityIcon(Icons.wifi, AppStrings.hotelAmenityWifi.tr),
+        if (amen.airConditioning ?? false) _amenityIcon(Icons.ac_unit, AppStrings.hotelAmenityAc.tr),
+        if (amen.television ?? false) _amenityIcon(Icons.tv, AppStrings.hotelAmenityTv.tr),
         if (amen.roomService ?? false)
-          _amenityIcon(Icons.room_service, "Room Service"),
+          _amenityIcon(Icons.room_service, AppStrings.hotelAmenityRoomService.tr),
         if (amen.powerBackup ?? false)
           _amenityIcon(
-              Icons.battery_charging_full_sharp, "Power Bank"),
-        if (amen.balcony ?? false) _amenityIcon(Icons.balcony, "Balcony"),
+              Icons.battery_charging_full_sharp, AppStrings.hotelAmenityPowerBank.tr),
+        if (amen.balcony ?? false) _amenityIcon(Icons.balcony, AppStrings.hotelAmenityBalcony.tr),
         if (amen.attachedBathroom ?? false)
-          _amenityIcon(Icons.bathroom, "Bathroom"),
+          _amenityIcon(Icons.bathroom, AppStrings.hotelAmenityBathroom.tr),
         if (amen.wardrobe ?? false)
-          _amenityIcon(Icons.devices_other, "Wardrobe"),
+          _amenityIcon(Icons.devices_other, AppStrings.hotelAmenityWardrobe.tr),
         if (amen.deskChair ?? false)
-          _amenityIcon(Icons.chair, "Desk Chair"),
+          _amenityIcon(Icons.chair, AppStrings.hotelAmenityDeskChair.tr),
         if (amen.roomRefrigerators ?? false)
-          _amenityIcon(Icons.cabin_sharp, "Room Refrigerators"),
+          _amenityIcon(Icons.cabin_sharp, AppStrings.hotelAmenityRoomRefrigerators.tr),
         if (amen.electricKettle ?? false)
-          _amenityIcon(Icons.electric_bolt, "Electric Kettle"),
+          _amenityIcon(Icons.electric_bolt, AppStrings.hotelAmenityElectricKettle.tr),
       ],
     );
   }

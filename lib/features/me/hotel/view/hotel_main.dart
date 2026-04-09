@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -102,9 +103,9 @@ class _HotelMainState extends State<HotelMain>
               indicatorSize: TabBarIndicatorSize.tab,
               labelStyle: const TextStyle(fontWeight: FontWeight.w600),
               tabs: [
-                const Tab(text: "My Hotel"),
-                if (_hasWebsite) const Tab(text: "Website"),
-                const Tab(text: "Statics"),
+                Tab(text: AppStrings.hotelMyHotelTab.tr),
+                if (_hasWebsite) Tab(text: AppStrings.website.tr),
+                Tab(text: AppStrings.hotelStaticsTab.tr),
               ],
             ),
             Expanded(

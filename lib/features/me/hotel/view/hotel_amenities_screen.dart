@@ -20,57 +20,57 @@ class _HotelAmenitiesScreenState extends State<HotelAmenitiesScreen> {
   final HotelAmenityController controller = Get.put(HotelAmenityController());
   final List<Map<String, dynamic>> hotelAmenityList = [
     {
-      "name": "Free Parking",
+      "name": AppStrings.hotelFreeParking,
       "key": "FREE_PARKING",
       "key_id": "freeParking",
     },
     {
-      "name": "Restaurant",
+      "name": AppStrings.hotelRestaurant,
       "key": "RESTAURANT",
       "key_id": "restaurant",
     },
     {
-      "name": "24x7 Front Desk",
+      "name": AppStrings.hotelFrontDesk247,
       "key": "FRONT_DESK_24_7",
       "key_id": "frontDesk24x7",
     },
     {
-      "name": "Elevator / Lift",
+      "name": AppStrings.hotelElevatorLift,
       "key": "ELEVATOR_LIFT",
       "key_id": "elevatorLift",
     },
     {
-      "name": "CCTV Surveillance",
+      "name": AppStrings.hotelCctvSurveillance,
       "key": "CCTV_SURVEILLANCE",
       "key_id": "cctvSurveillance",
     },
     {
-      "name": "Power Backup",
+      "name": AppStrings.hotelPowerBackup,
       "key": "POWER_BACKUP",
       "key_id": "powerBackup",
     },
     {
-      "name": "Laundry Service",
+      "name": AppStrings.hotelLaundryService,
       "key": "WARDROBE",
       "key_id": "laundryService",
     },
     {
-      "name": "Swimming Pool",
+      "name": AppStrings.hotelSwimmingPool,
       "key": "SWIMMING_POOL",
       "key_id": "swimmingPool",
     },
     {
-      "name": "Airport Transportation",
+      "name": AppStrings.hotelAirportTransportation,
       "key": "AIRPORT_TRANSPORT",
       "key_id": "airportTransportation",
     },
     {
-      "name": "Bar",
+      "name": AppStrings.hotelBar,
       "key": "BAR",
       "key_id": "bar",
     },
     {
-      "name": "Gym",
+      "name": AppStrings.hotelGym,
       "key": "FITNESS_CENTER_GYM",
       "key_id": "gym",
     },
@@ -79,7 +79,7 @@ class _HotelAmenitiesScreenState extends State<HotelAmenitiesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Room Amenities"),
+      appBar: CommonBackAppBar(title: AppStrings.hotelAmenitiesTitle.tr),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -111,7 +111,7 @@ class _HotelAmenitiesScreenState extends State<HotelAmenitiesScreen> {
                           ),
                           Expanded(
                             child: CustomText(
-                              item['name'],
+                              (item['name'] as String).tr,
                               color: AppColors.secondaryTextColor,
                               fontSize: 18,
                             ),

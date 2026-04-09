@@ -24,7 +24,7 @@ class RoomDesignScreen extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       appBar: CommonBackAppBar(
         title: roomName,
-        actionText: "Step: 1/2",
+        actionText: AppStrings.hotelStepOneOfTwo.tr,
         actionTextColor: Colors.black,
       ),
       body: SafeArea(
@@ -56,8 +56,8 @@ class RoomDesignScreen extends StatelessWidget {
           children: [
             CommonTextField(
               textEditController: controller.totalRoomsTotal,
-              title: "Total Rooms",
-              hintText: "E.g. 3 Rooms",
+              title: AppStrings.hotelTotalRooms.tr,
+              hintText: AppStrings.hotelHintTotalRooms.tr,
               keyBoardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
@@ -66,14 +66,14 @@ class RoomDesignScreen extends StatelessWidget {
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
-            CustomText("Room Size", fontWeight: FontWeight.w500),
+            CustomText(AppStrings.hotelRoomSize.tr, fontWeight: FontWeight.w500),
             SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: CommonTextField(
                     textEditController: controller.roomLength,
-                    hintText: "Length - 20ft",
+                    hintText: AppStrings.hotelHintLength.tr,
                     onChange: (_) => controller.triggerValidation(),
                   ),
                 ),
@@ -81,7 +81,7 @@ class RoomDesignScreen extends StatelessWidget {
                 Expanded(
                   child: CommonTextField(
                     textEditController: controller.roomWidth,
-                    hintText: "Width - 30ft",
+                    hintText: AppStrings.hotelHintWidth.tr,
                     onChange: (_) => controller.triggerValidation(),
                   ),
                 ),
@@ -89,8 +89,8 @@ class RoomDesignScreen extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Obx(() => CommonDropdownDialog<BedType>(
-                  title: "Select Bed Type",
-                  hintText: "E.g. Single Bed",
+                  title: AppStrings.hotelSelectBedType.tr,
+                  hintText: AppStrings.hotelHintSingleBed.tr,
                   items: controller.bedTypeList,
                   selectedValue: controller.selectedBedType.value,
                   // displayValue takes the enum and returns the string name defined in the enum
@@ -103,8 +103,8 @@ class RoomDesignScreen extends StatelessWidget {
                 )),
             SizedBox(height: 12),
             Obx(() => CommonDropdownDialog<OccupancyType>(
-                  title: "Maximum Occupancy",
-                  hintText: "E.g. Family Occupancy",
+                  title: AppStrings.hotelMaximumOccupancy.tr,
+                  hintText: AppStrings.hotelHintFamilyOccupancy.tr,
                   items: controller.occupancyList,
                   selectedValue: controller.selectedOccupancy.value,
                   displayValue: (occ) => occ.name,
@@ -127,8 +127,8 @@ class RoomDesignScreen extends StatelessWidget {
           children: [
             CommonTextField(
               textEditController: controller.pricePerDay,
-              title: "Price Per Day",
-              hintText: "E.g. ₹300",
+              title: AppStrings.hotelPricePerDay.tr,
+              hintText: AppStrings.hotelHintPricePerDay.tr,
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
@@ -154,8 +154,8 @@ class RoomDesignScreen extends StatelessWidget {
                 children: [
                   Obx(() => CustomText(
                         controller.savedCoupons.isEmpty
-                            ? "Discount Coupon"
-                            : "${controller.savedCoupons.length} Coupon Added",
+                            ? AppStrings.hotelDiscountCoupon.tr
+                            : "${controller.savedCoupons.length} ${AppStrings.hotelCouponAdded.tr}",
                         color: Colors.grey.shade600,
                       )),
                   const Spacer(),
@@ -168,7 +168,7 @@ class RoomDesignScreen extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () => showCouponModal(context),
                 icon: Icon(Icons.add),
-                label: CustomText("Add More Coupon"),
+                label: CustomText(AppStrings.hotelAddMoreCoupon.tr),
               ),
             )
           ],
@@ -197,7 +197,7 @@ class RoomDesignScreen extends StatelessWidget {
               children: [
                 // Title with bold amount
                 CustomText(
-                    "Discount worth ${isPercentage ? '' : '₹'}${data['offValue']}${isPercentage ? '%' : ''} T&Cs",
+                    "${AppStrings.hotelDiscountWorth.tr} ${isPercentage ? '' : '₹'}${data['offValue']}${isPercentage ? '%' : ''} ${AppStrings.hotelTcs.tr}",
                     fontWeight: FontWeight.bold,
                     fontSize: 16),
                 const SizedBox(height: 4),
@@ -272,7 +272,7 @@ class RoomDesignScreen extends StatelessWidget {
 
         return CustomBtn(
           isValidate: isValid,
-          title: "Next",
+          title: AppStrings.next.tr,
           onTap: isValid
               ? () {
                   Get.to(HotelImageUploadScreen(
@@ -306,7 +306,7 @@ void showCouponModal(BuildContext context) {
             children: [
               Row(
                 children: [
-                  const CustomText("Discount Coupon",
+                  CustomText(AppStrings.hotelDiscountCoupon.tr,
                       fontSize: 18, fontWeight: FontWeight.bold),
                   InkWell(
                       onTap: () {
@@ -317,8 +317,8 @@ void showCouponModal(BuildContext context) {
               ),
               const SizedBox(height: 20),
               CommonTextField(
-                title: "Coupon Name",
-                hintText: "e.g. Size",
+                title: AppStrings.hotelCouponName.tr,
+                hintText: AppStrings.hotelHintCouponName.tr,
                 textEditController: controller.couponName,
                 // onChange: (_) => controller.update(),
                 onChange: (_) {
@@ -328,8 +328,8 @@ void showCouponModal(BuildContext context) {
               ),
               const SizedBox(height: 15),
               CommonTextField(
-                title: "Description / Terms And Condition",
-                hintText: "Lorem ipsum dolor...",
+                title: AppStrings.hotelDescriptionTerms.tr,
+                hintText: AppStrings.hotelHintLoremIpsum.tr,
                 maxLine: 3,
                 textEditController: controller.couponDesc,
                 // onChange: (_) => controller.update(),
@@ -340,8 +340,8 @@ void showCouponModal(BuildContext context) {
               ),
               const SizedBox(height: 15),
               CommonTextField(
-                title: "Code Name (Optional)",
-                hintText: "e.g. 4526525",
+                title: AppStrings.hotelCodeNameOptional.tr,
+                hintText: AppStrings.hotelHintCouponCode.tr,
                 textEditController: controller.couponCode,
                 onChange: (_) {
                   controller.isCouponValidMethod();
@@ -351,14 +351,14 @@ void showCouponModal(BuildContext context) {
               const SizedBox(height: 15),
               Row(
                 children: [
-                  const CustomText("Total Off", fontWeight: FontWeight.w500),
+                  CustomText(AppStrings.hotelTotalOff.tr, fontWeight: FontWeight.w500),
                   const Spacer(),
                   Obx(() => _radioOption(controller, "In Rupees")),
                   Obx(() => _radioOption(controller, "In Percentage")),
                 ],
               ),
               CommonTextField(
-                hintText: "e.g. 10% Off",
+                hintText: AppStrings.hotelHintPercentageOff.tr,
                 textEditController: controller.totalOff,
                 onChange: (_) {
 
@@ -374,7 +374,7 @@ void showCouponModal(BuildContext context) {
                             Get.back();
                           }
                         : null,
-                    title: AppStrings.save,
+                    title: AppStrings.save.tr,
                     isValidate: controller.isCouponValid.value,
                   )),
               const SizedBox(height: 50),
@@ -407,6 +407,11 @@ void showCouponModal(BuildContext context) {
 }
 
 Widget _radioOption(RoomDetailController controller, String value) {
+  final String displayValue = value == "In Rupees"
+      ? AppStrings.hotelInRupees.tr
+      : value == "In Percentage"
+          ? AppStrings.hotelInPercentage.tr
+          : value;
   return Row(
     children: [
       Radio<String>(
@@ -419,7 +424,7 @@ Widget _radioOption(RoomDetailController controller, String value) {
           // controller.update();
         },
       ),
-      CustomText(value, fontSize: 12),
+      CustomText(displayValue, fontSize: 12),
     ],
   );
 }

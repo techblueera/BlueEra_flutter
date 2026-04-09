@@ -58,7 +58,7 @@ class _OtherBranchOnlyScreenState extends State<OtherBranchOnlyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Branch",
+        title: AppStrings.branch.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -69,16 +69,16 @@ class _OtherBranchOnlyScreenState extends State<OtherBranchOnlyScreen> {
               // --- TOP BRANCH SECTION ---
               CommonTextField(
                 textEditController: branchNameController,
-                hintText: "E.g. DPS Dehradun",
-                title: "Branch Name",
+                hintText: AppStrings.hotelHintBranchName.tr,
+                title: AppStrings.otherBranchNameTitle.tr,
                 maxLength: 50,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               HttpsTextField(
                 controller: websiteController,
-                hintText: "https://dpsdehradun.com",
-                title: "Website URL",
+                hintText: AppStrings.hotelHintBranchUrl.tr,
+                title: AppStrings.otherWebsiteUrlTitle.tr,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
@@ -139,7 +139,7 @@ class _OtherBranchOnlyScreenState extends State<OtherBranchOnlyScreen> {
                           }, branchId: widget.schoolContactUsData.id ?? "");
                         }
                       : null,
-                  title: "Submit",
+                  title: AppStrings.submit.tr,
                   isValidate: schoolAboutUsController.isFormValid.value,
                 );
               }),

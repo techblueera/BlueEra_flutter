@@ -28,7 +28,7 @@ class LabServiceAiController extends GetxController {
           // .createLabServiceRepo(reqBody: {"data": aiLabResModel?.value.data});
           .createLabServiceRepo(reqBody: {"data": reqData});
       if (response.isSuccess) {
-        commonSnackBar(message: "Laboratory Service Created successfully");
+        commonSnackBar(message: AppStrings.labServiceCreatedSuccess.tr);
 
         labAddress.value = "";
         String? labID = response.response?.data['laboratoryId'];

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
@@ -146,15 +147,15 @@ class LabTestController extends GetxController {
     try {
       ResponseModel res = await _repo.selectCatalogTests([id]);
       if (res.isSuccess) {
-        commonSnackBar(message: "Selected successfully");
+        commonSnackBar(message: AppStrings.labSelectedSuccess.tr);
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to select");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToSelect.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error selecting: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;
@@ -166,16 +167,16 @@ class LabTestController extends GetxController {
     try {
       ResponseModel res = await _repo.createPathologyTest(test.toJson());
       if (res.isSuccess) {
-        commonSnackBar(message: "Test added successfully");
+        commonSnackBar(message: AppStrings.labTestAddedSuccess.tr);
         fetchTests(test.collection ?? "");
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to add test");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error adding test: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;
@@ -188,16 +189,16 @@ class LabTestController extends GetxController {
       ResponseModel res =
           await _repo.updatePathologyTest(test.id!, test.toJson());
       if (res.isSuccess) {
-        commonSnackBar(message: "Test updated successfully");
+        commonSnackBar(message: AppStrings.labTestUpdatedSuccess.tr);
         fetchTests(test.collection ?? "");
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to update test");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToUpdateTest.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error updating test: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;
@@ -209,14 +210,14 @@ class LabTestController extends GetxController {
     try {
       ResponseModel res = await _repo.deletePathologyTest(id);
       if (res.isSuccess) {
-        commonSnackBar(message: "Test deleted successfully");
+        commonSnackBar(message: AppStrings.labTestDeletedSuccess.tr);
         fetchTests(collection);
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to delete test");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToDeleteTest.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error deleting test: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }

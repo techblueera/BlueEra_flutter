@@ -71,7 +71,7 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
                     onTap: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this image?',
+                          text: AppStrings.hotelConfirmDeleteImage.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteOtherServiceController(

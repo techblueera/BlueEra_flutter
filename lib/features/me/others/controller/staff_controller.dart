@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/others/model/staff_model.dart';
@@ -103,7 +104,7 @@ class StaffController extends GetxController {
 
   Future<void> pickImage(BuildContext context) async {
     final String? path = await SelectProfilePictureDialog.showLogoDialog(
-        context, "Upload Picture");
+        context, AppStrings.otherUploadPicture.tr);
     if (path != null && path.isNotEmpty) {
       selectedImage.value = File(path);
     }
@@ -128,40 +129,40 @@ class StaffController extends GetxController {
 
   Future<void> saveStaff() async {
     if (nameController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter name");
+      commonSnackBar(message: AppStrings.otherPleaseEnterName.tr);
       return;
     }
     if (positionController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter position");
+      commonSnackBar(message: AppStrings.otherPleaseEnterPosition.tr);
       return;
     }
     if (qualificationController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter qualification");
+      commonSnackBar(message: AppStrings.otherPleaseEnterQualification.tr);
       return;
     }
-    
+
     if (fromDay.value == null || fromMonth.value == null || fromYear.value == null) {
-      commonSnackBar(message: "Please select joining date");
+      commonSnackBar(message: AppStrings.otherPleaseSelectJoiningDate.tr);
       return;
     }
 
     if (!isPresent.value) {
       if (toDay.value == null || toMonth.value == null || toYear.value == null) {
-        commonSnackBar(message: "Please select ending date");
+        commonSnackBar(message: AppStrings.otherPleaseSelectEndingDate.tr);
         return;
       }
-      
+
       final fromDate = DateTime(fromYear.value!, fromMonth.value!, fromDay.value!);
       final toDate = DateTime(toYear.value!, toMonth.value!, toDay.value!);
-      
+
       if (toDate.isBefore(fromDate)) {
-        commonSnackBar(message: "Ending date cannot be before joining date");
+        commonSnackBar(message: AppStrings.otherEndingBeforeJoining.tr);
         return;
       }
     }
 
     if (editingId == null && selectedImage.value == null) {
-      commonSnackBar(message: "Please select an image");
+      commonSnackBar(message: AppStrings.otherPleaseSelectImage.tr);
       return;
     }
 
@@ -210,20 +211,20 @@ class StaffController extends GetxController {
 
     if (res.isSuccess) {
       Get.back(); // Go back to list
-      commonSnackBar(message: res.message ?? "Saved successfully");
+      commonSnackBar(message: res.message ?? AppStrings.genericSavedSuccess.tr);
       getStaffData();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to save");
+      commonSnackBar(message: res.message ?? AppStrings.labFailedToSave.tr);
     }
   }
 
   Future<void> deleteStaff(String id) async {
     final res = await _repo.deleteStaffRepo(id);
     if (res.isSuccess) {
-      commonSnackBar(message: res.message ?? "Deleted successfully");
+      commonSnackBar(message: res.message ?? AppStrings.genericDeletedSuccess.tr);
       getStaffData();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to delete");
+      commonSnackBar(message: res.message ?? AppStrings.labFailedToDelete.tr);
     }
   }
 }

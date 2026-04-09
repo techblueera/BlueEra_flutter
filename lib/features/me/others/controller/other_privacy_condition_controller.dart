@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/model/otherTNC_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
@@ -55,11 +56,11 @@ class OtherPrivacyConditionController extends GetxController {
 
   Future<void> createOtherTNCController() async {
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
@@ -72,14 +73,14 @@ class OtherPrivacyConditionController extends GetxController {
 
       final response = await _repo.createOtherTNCRepo(body);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Created successfully");
+        commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
         Get.back(); // Close form/screen
         getOtherTNCController(); // Refresh list
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to create");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -88,11 +89,11 @@ class OtherPrivacyConditionController extends GetxController {
   Future<void> updateOtherTNCController(String id,
     ) async {
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
@@ -105,14 +106,14 @@ class OtherPrivacyConditionController extends GetxController {
 
       final response = await _repo.updateOtherTNCRepo(id, body);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Updated successfully");
+        commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
         Get.back();
         getOtherTNCController();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to update");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -123,13 +124,13 @@ class OtherPrivacyConditionController extends GetxController {
     try {
       final response = await _repo.deleteOtherTNCRepo(id);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Deleted successfully");
+        commonSnackBar(message: AppStrings.genericDeletedSuccess.tr);
         getOtherTNCController();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to delete");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }

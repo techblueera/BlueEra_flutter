@@ -293,7 +293,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
         // Start Date Container
         Expanded(
           child: _buildDateTimeBox(
-            label: "Start Date", // Use localization key if needed
+            label: AppStrings.labStartDate.tr,
             date: startFormatted,
             time: camp.startTime ?? '',
           ),
@@ -302,7 +302,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
         // End Date Container
         Expanded(
           child: _buildDateTimeBox(
-            label: "End Date", // Use localization key if needed
+            label: AppStrings.labEndDate.tr,
             date: endFormatted,
             time: camp.startTime ?? '', // Ensure you use endTime here
           ),
@@ -433,7 +433,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
           children: [
             Expanded(
               child: CustomText(
-                discount.test?.testName ?? "Test Details",
+                discount.test?.testName ?? AppStrings.labTestDetails.tr,
                 // fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -600,12 +600,12 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _pill(
-                "Reports within ${test.estimatedReportHours ?? 24} Hrs",
+                "${AppStrings.labReportsWithinPrefix.tr} ${test.estimatedReportHours ?? 24} ${AppStrings.labHrsSuffix.tr}",
                 Colors.white,
               ),
               if (test.customerPrice != null)
                 _pill(
-                  "INR ${test.customerPrice}",
+                  "${AppStrings.labInrSpace.tr}${test.customerPrice}",
                   Colors.white,
                   isBold: true,
                 ),

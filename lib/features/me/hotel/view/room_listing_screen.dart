@@ -71,7 +71,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
                 );
               }
               return Center(
-                  child: CustomText("No Rooms found please create room"));
+                  child: CustomText(AppStrings.hotelNoRoomsCreate.tr));
             });
           },
         ),

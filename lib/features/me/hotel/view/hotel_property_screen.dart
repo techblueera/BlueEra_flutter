@@ -16,7 +16,7 @@ class HotelPoliciesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Hotel Policies",
+        title: AppStrings.hotelPoliciesTitle.tr,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -32,10 +32,10 @@ class HotelPoliciesScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText("Check In/Check Out", fontWeight: FontWeight.bold),
+                        CustomText(AppStrings.hotelCheckInCheckOut.tr, fontWeight: FontWeight.bold),
                         Row(
                           children: [
-                            CustomText("24hrs", fontSize: 12),
+                            CustomText(AppStrings.hotelHours24.tr, fontSize: 12),
                             Obx(() => Transform.scale(
                                   scale: 0.75,
                                   child: Switch(
@@ -50,9 +50,9 @@ class HotelPoliciesScreen extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        _timeDropdown("Check In"),
+                        _timeDropdown(AppStrings.hotelCheckIn.tr),
                         SizedBox(width: 10),
-                        _timeDropdownCheckOut("Check Out"),
+                        _timeDropdownCheckOut(AppStrings.hotelCheckOut.tr),
                       ],
                     ),
                   ],
@@ -64,21 +64,21 @@ class HotelPoliciesScreen extends StatelessWidget {
               // Reusable Switches
               Obx(() => Column(
                     children: [
-                      _buildSwitchTile("Early Check In Allowed ?",
+                      _buildSwitchTile(AppStrings.hotelEarlyCheckInAllowedQ.tr,
                           controller.earlyCheckInAllowed),
-                      _buildSwitchTile("Late Check Out Allowed ?",
+                      _buildSwitchTile(AppStrings.hotelLateCheckOutAllowedQ.tr,
                           controller.lateCheckOutAllowed),
-                      _buildSwitchTile("Are You Allow Un-Married Couple",
+                      _buildSwitchTile(AppStrings.hotelAllowUnmarriedCouple.tr,
                           controller.marriedCoupleAllowed),
-                      _buildSwitchTile("Are You Allow Bachelor or Student",
+                      _buildSwitchTile(AppStrings.areYouAllowBachelorOrStudent.tr,
                           controller.bachelorStudentAllowed),
                       _buildSwitchTile(
-                          "Free Cancelation", controller.freeCancellation),
+                          AppStrings.hotelFreeCancelation.tr, controller.freeCancellation),
                       _buildSwitchTile(
-                          "Local ID Allowed?", controller.localIdAllowed),
+                          AppStrings.hotelLocalIdAllowed.tr, controller.localIdAllowed),
                       _buildSwitchTile(
-                          "Aadhar Mandatory As ID?", controller.aadharMandatory),
-                      _buildSwitchTile("Smoking & Drinking Allowed?",
+                          AppStrings.hotelAadharMandatory.tr, controller.aadharMandatory),
+                      _buildSwitchTile(AppStrings.hotelSmokingDrinkingAllowed.tr,
                           controller.smokingDrinkingAllowed),
         
                       // Food Restriction Section
@@ -88,7 +88,7 @@ class HotelPoliciesScreen extends StatelessWidget {
         
               const SizedBox(height: 20),
               PositiveCustomBtn(
-                  onTap: controller.submitPolicies, title: AppStrings.submit),
+                  onTap: controller.submitPolicies, title: AppStrings.submit.tr),
 
                SizedBox(height: 20),
 
@@ -222,7 +222,7 @@ class HotelPoliciesScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText("Any Food Habit Restrictions"),
+              CustomText(AppStrings.anyFoodHabitRestrictions.tr),
               Transform.scale(
                 scale: 0.75,
                 child: Switch(
@@ -235,7 +235,7 @@ class HotelPoliciesScreen extends StatelessWidget {
             ],
           ),
           if (controller.foodRestrictionsEnabled.value) ...[
-            const CustomText("Kindly Indicate Which Food Habits You Allow.",
+            CustomText(AppStrings.kindlyIndicateWhichFoodHabits.tr,
              fontSize: 12, color: Colors.grey),
             _checkBoxTile("All"),
             _checkBoxTile("Vegetarian"),
@@ -255,8 +255,15 @@ class HotelPoliciesScreen extends StatelessWidget {
       // Match these exactly with your UI labels and API expected values
       final foodOptions = ["Vegetarian", "Non-Vegetarian"];
 
+      final String displayLabel = {
+            "All": AppStrings.all.tr,
+            "Vegetarian": AppStrings.vegetarian.tr,
+            "Non-Vegetarian": AppStrings.nonVegetarian.tr,
+          }[label] ??
+          label;
+
       return CheckboxListTile(
-        title: CustomText(label, fontSize: 12),
+        title: CustomText(displayLabel, fontSize: 12),
         value: isSelected,
         checkColor: AppColors.white,
         controlAffinity: ListTileControlAffinity.leading,

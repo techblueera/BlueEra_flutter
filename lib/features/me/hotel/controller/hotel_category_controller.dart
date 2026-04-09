@@ -37,7 +37,7 @@ class HotelCategoryController extends GetxController {
       }
     } catch (e) {
       getAllHotelServiceResponse.value = ApiResponse.error(e.toString());
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     }
   }
 
@@ -68,15 +68,15 @@ class HotelCategoryController extends GetxController {
 
       if (response.isSuccess == true) {
         // SUCCESS MESSAGE
-        commonSnackBar(message:   response.message ?? "Hotel services updated successfully!");
+        commonSnackBar(message:   response.message ?? AppStrings.hotelServicesUpdatedSuccess.tr);
 
       } else {
         // FAILED MESSAGE FROM API
-        commonSnackBar(message: response.message ?? "Failed to update services.");
+        commonSnackBar(message: response.message ?? AppStrings.hotelFailedToUpdateServices.tr);
       }
     } catch (e) {
       // EXCEPTION HANDLING (Network issues, etc.)
-      commonSnackBar(message: "Something went wrong. Please try again later.");
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }
 }

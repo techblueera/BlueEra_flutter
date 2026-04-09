@@ -56,7 +56,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         }
         final data = controller.businessProfile.value;
         if (data == null) {
-          return Center(child: CustomText("No Data Found"));
+          return Center(child: CustomText(AppStrings.noDataFound.tr));
         }
 
         return CustomScrollView(
@@ -84,7 +84,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle("Our Staffs", onSeeAll: () {
+                          _buildSectionTitle(AppStrings.otherOurStaffs.tr, onSeeAll: () {
                             Get.to(StaffScreen());
                           }),
                           const SizedBox(height: 10),
@@ -92,7 +92,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             _buildStaffList(data.staff!)
                           else
                             _buildEmptySectionCard(
-                              title: 'Add Staff Members',
+                              title: AppStrings.otherAddStaffMembers.tr,
                               icon: AppIconAssets.about_us,
                               onTap: () => Get.to(StaffScreen()),
                             ),
@@ -108,7 +108,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         bgColor: Color(0xff0085FE).withValues(alpha: 0.10),
                         child: Column(
                           children: [
-                            _buildSectionTitle("Product", onSeeAll: () {
+                            _buildSectionTitle(AppStrings.otherProduct.tr, onSeeAll: () {
                               Get.toNamed(RouteHelper.getInventoryScreenRoute());
                             }),
                             OtherProductWidget(),
@@ -122,7 +122,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       padding: 10,
                       child: Column(
                         children: [
-                          _buildSectionTitle("Our Organisation", onSeeAll: () {
+                          _buildSectionTitle(AppStrings.otherOurOrganisation.tr, onSeeAll: () {
                             Get.to(OthersAboutUs());
                           }),
                           const SizedBox(height: 10),
@@ -141,7 +141,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       padding: 10,
                       child: Column(
                         children: [
-                          _buildSectionTitle("Our Blogs", onSeeAll: () {
+                          _buildSectionTitle(AppStrings.otherOurBlogs.tr, onSeeAll: () {
                             Get.to(OtherBlogsScreen());
                           }),
                           const SizedBox(height: 10),
@@ -149,7 +149,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             _buildBlogsServicesList(data.blogs!)
                           else
                             _buildEmptySectionCard(
-                              title: 'Add Blog Posts',
+                              title: AppStrings.otherAddBlogPosts.tr,
                               icon: AppIconAssets.other_announcements,
                               onTap: () => Get.to(OtherBlogsScreen()),
                             ),
@@ -168,7 +168,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ServiceHomeTitleWidget(title: 'Gallery'),
+                              ServiceHomeTitleWidget(title: AppStrings.gallery.tr),
                               GestureDetector(
                                 onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
                                 child: Container(
@@ -179,10 +179,10 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.add_photo_alternate_outlined, size: 14, color: Colors.white),
-                                      SizedBox(width: 4),
-                                      CustomText('Add / Edit', fontSize: 12, color: Colors.white),
+                                    children: [
+                                      const Icon(Icons.add_photo_alternate_outlined, size: 14, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      CustomText(AppStrings.otherAddEdit.tr, fontSize: 12, color: Colors.white),
                                     ],
                                   ),
                                 ),
@@ -194,7 +194,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             _buildGallery(data.gallery!, context)
                           else
                             _buildEmptySectionCard(
-                              title: 'Add Gallery Photos',
+                              title: AppStrings.otherAddGalleryPhotos.tr,
                               icon: AppIconAssets.other_gallery,
                               onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
                             ),
@@ -217,7 +217,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionTitle("Website"),
+                                _buildSectionTitle(AppStrings.website.tr),
                                 const SizedBox(height: 10),
                                 _buildContactRow(
                                   AppIconAssets.website_click,
@@ -239,7 +239,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       padding: 10,
                       child: Column(
                         children: [
-                          _buildSectionTitle("Contact Us", onSeeAll: () {
+                          _buildSectionTitle(AppStrings.contactUs.tr, onSeeAll: () {
                             Get.to(OtherContactUs());
                           }),
                           const SizedBox(height: 10),
@@ -285,14 +285,14 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
           Icon(Icons.business_center_outlined, size: 48, color: Colors.grey[350]),
           const SizedBox(height: 12),
           CustomText(
-            'No Organisation Info Added',
+            AppStrings.otherNoOrganisationInfoAdded.tr,
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
           ),
           const SizedBox(height: 6),
           CustomText(
-            'Share your organisation story, mission and services',
+            AppStrings.otherShareOrgStory.tr,
             fontSize: 12,
             color: AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
@@ -311,8 +311,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                 children: [
                   const Icon(Icons.add, color: Colors.white, size: 18),
                   const SizedBox(width: 6),
-                  const CustomText(
-                    'Add Organisation',
+                  CustomText(
+                    AppStrings.otherAddOrganisation.tr,
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -346,8 +346,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         if (onSeeAll != null)
           InkWell(
             onTap: onSeeAll,
-            child: const CustomText(
-              "Add / Edit",
+            child: CustomText(
+              AppStrings.otherAddEdit.tr,
               color: AppColors.primaryColor,
             ),
           ),

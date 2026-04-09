@@ -78,7 +78,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
               CommonTextField(
                 textEditController: controller.sqFootController,
                 title: AppStrings.sqFoot.tr,
-                hintText: "E.g. 200",
+                hintText: AppStrings.labHintCampPrice.tr,
                 keyBoardType: TextInputType.number,
                 onChange: (val) => controller.validateForm(),
               ),
@@ -90,7 +90,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     child: CommonTextField(
                       textEditController: controller.priceController,
                       title: AppStrings.price.tr,
-                      hintText: "E.g. 499",
+                      hintText: AppStrings.labHintCampDiscountPrice.tr,
                       keyBoardType: TextInputType.number,
                       onChange: (val) => controller.validateForm(),
                     ),
@@ -100,7 +100,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     child: CommonTextField(
                       textEditController: controller.discountPriceController,
                       title: AppStrings.discountPrice.tr,
-                      hintText: "E.g. 399",
+                      hintText: AppStrings.labHintCampDiscountedPrice.tr,
                       keyBoardType: TextInputType.number,
                       onChange: (val) => controller.validateForm(),
                     ),
@@ -155,9 +155,9 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
               SizedBox(height: SizeConfig.size16),
               CommonLocationSearchField(
                 controller: controller.searchController,
-                hintText: "E.g. Happy Health Club...",
+                hintText: AppStrings.labHintHappyHealth.tr,
                 isShowLeading: false,
-                title: "Search Your Location On Google",
+                title: AppStrings.labSearchLocationGoogle.tr,
                 onSelected: (placeId, lat, lng, address) async {
                   controller.searchController.text = address;
                   //
@@ -326,7 +326,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CustomText(
-              "Add Discount Test",
+              AppStrings.labAddDiscountTest.tr,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -425,7 +425,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                   ),
                   child: Center(
                     child: CustomText(
-                      "Add Test Offer",
+                      AppStrings.labAddTestOffer.tr,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: AppColors.primaryColor,
@@ -464,7 +464,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        "Add Discounted Test",
+                        AppStrings.labAddDiscountedTest.tr,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -516,7 +516,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                 Padding(
                   padding: EdgeInsets.all(SizeConfig.size16),
                   child: Obx(() => CustomBtn(
-                        title: "Next",
+                        title: AppStrings.next.tr,
                         isValidate:
                             controller.selectedTestCategories.isNotEmpty,
                         onTap: controller.selectedTestCategories.isNotEmpty
@@ -666,7 +666,7 @@ class _SelectTestTabViewState extends State<_SelectTestTabView>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                "Select Test",
+                AppStrings.labSelectTest.tr,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -725,7 +725,7 @@ class _SelectTestTabViewState extends State<_SelectTestTabView>
         Padding(
           padding: EdgeInsets.all(SizeConfig.size16),
           child: CustomBtn(
-            title: "Post",
+            title: AppStrings.labPostBtn.tr,
             isValidate: true,
             onTap: () => Navigator.pop(context),
           ),
@@ -743,7 +743,7 @@ class _SelectTestTabViewState extends State<_SelectTestTabView>
       if (tests.isEmpty) {
         return Center(
           child: CustomText(
-            "No tests found",
+            AppStrings.labNoTestsFound.tr,
             fontSize: 14,
             color: AppColors.greyA5,
           ),
@@ -799,7 +799,7 @@ class _SelectTestTabViewState extends State<_SelectTestTabView>
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: CustomText(
-                                "Reports within ${item.estimatedReportHours ?? 0} Hrs - ${item.specimen ?? ''} sample collection",
+                                "${AppStrings.labReportsWithinPrefix.tr} ${item.estimatedReportHours ?? 0} ${AppStrings.labHrsSuffix.tr} - ${item.specimen ?? ''} ${AppStrings.labSampleCollection.tr}",
                                 fontSize: 10,
                                 color: AppColors.greyA5,
                               ),
@@ -812,14 +812,14 @@ class _SelectTestTabViewState extends State<_SelectTestTabView>
                       children: [
                         if (item.testFees != null)
                           CustomText(
-                            "INR ${item.testFees}",
+                            "${AppStrings.labInrSpace.tr}${item.testFees}",
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         if (item.customerPrice != null &&
                             item.customerPrice != item.testFees)
                           CustomText(
-                            "INR ${item.customerPrice}",
+                            "${AppStrings.labInrSpace.tr}${item.customerPrice}",
                             fontSize: 10,
                             color: AppColors.greyA5,
                           ),

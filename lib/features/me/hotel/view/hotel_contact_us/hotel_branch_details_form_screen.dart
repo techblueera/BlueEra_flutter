@@ -40,7 +40,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Contact Us"),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs.tr),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
@@ -49,8 +49,8 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
             children: [
               HttpsTextField(
                 controller: websiteController,
-                hintText: "https://yourwebsite.com",
-                title: AppStrings.website,
+                hintText: AppStrings.hotelWebsiteHint.tr,
+                title: AppStrings.website.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
@@ -69,16 +69,16 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
 
               CommonTextField(
                 textEditController: emailController,
-                hintText: "dpsdehradun@gmail.com",
-                title: AppStrings.email,
+                hintText: AppStrings.hotelEmailExampleHint.tr,
+                title: AppStrings.email.tr,
                 onChange: (_) => _triggerValidation(),
               ),
 
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
-                hintText: "+91 1234567890",
-                title:  AppStrings.phoneNumber,
+                hintText: AppStrings.hotelPhoneExampleHint.tr,
+                title:  AppStrings.phoneNumber.tr,
                 maxLength: 10,
                 onChange: (_) => _triggerValidation(),
               ),
@@ -98,7 +98,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
                               phone: phoneController.text,
                             )
                         : null, // Button disabled if form invalid
-                    title:  AppStrings.submit,
+                    title:  AppStrings.submit.tr,
                     isValidate: controller.isFormValid.value,
                   )),
             ],
